@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project basedir="." default="build" name="tools">
+    
+    <!-- properties can be overwritten with ant -D option -->
+    <property environment="env"/>
+	<property name="cnf.location" value="../cnf"/>
+	<property name="repo-script" value="scripts/generate_repo.sh" />
+    <property name="debuglevel" value="source,lines,vars"/>
+    <property name="target" value="1.6"/>
+    <property name="source" value="1.6"/>
+    <property name="bndrun" value="run-mgmt.bndrun"/> <!-- default values can be overwritten (name of bndrun file in tools folder) -->
+    <property name="config" value="local"/> <!-- default values can be overwritten (folder names in configs folder) -->
+    
+    <target name="init" depends="enter">
+        <mkdir dir="bin"/>
+        <copy includeemptydirs="false" todir="bin">
+            <fileset dir="src">
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
+    </target>
+    
+	<target name="enter">
+    	<echo message="Enter project ${ant.project.name}"/>
+	</target>
+	
+    <target name="clean" depends="enter">
+        <delete dir="bin"/>
+    	<delete dir="generated"/>
+    	<delete dir="run"/>
+    </target>
+    
+    <target depends="clean" name="clean-all">
+        <delete dir="resources"/>
+    </target>   
+    
+    <target depends="build-subprojects,build-project" name="build"/>
+    
+    <target name="build-subprojects"/>
+    
+    <target depends="init" name="build-project">
+        <echo message="${ant.project.name}: ${ant.file}"/>
+        <javac debug="true" debuglevel="${debuglevel}" destdir="bin" includeantruntime="false" source="${source}" target="${target}">
+            <src path="src"/>
+        </javac>
+    </target>
+    
+    <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
+    
+    <target name="run" depends="repo">
+        <echo message="Launching AIOLOS - config ${config}"/>
+  		<delete dir="resources"/>
+  		<mkdir dir="resources"/>
+  		<copy todir="resources">
+    		<fileset dir="configs/${config}"/>
+    		<fileset dir="configs">
+      			<include name="*.xml"/>
+      			<include name="*.cfg"/>
+	        </fileset>
+  		</copy>
+        <java jar="../cnf/plugins/biz.aQute.bnd/biz.aQute.bnd-2.4.0.jar" fork="true">
+            <jvmarg value="-Dconfig=${config}"/>
+            <jvmarg value="-Dmode=launch"/>
+            <jvmarg value="-Dbndrun=${bndrun}"/>
+            <arg value="launch.bndrun"/>
+        </java>     
+    </target>
+    
+    <target name="kill">
+        <echo message="Killing AIOLOS - config ${config}"/>
+  		<delete dir="resources"/>
+  		<mkdir dir="resources"/>
+  		<copy todir="resources">
+    		<fileset dir="configs/${config}"/>
+    		<fileset dir="configs">
+      			<include name="*.xml"/>
+      			<include name="*.cfg"/>
+	        </fileset>
+  		</copy>
+        <java jar="../cnf/plugins/biz.aQute.bnd/biz.aQute.bnd-2.4.0.jar" fork="true">
+            <jvmarg value="-Dconfig=${config}"/>
+            <jvmarg value="-Dmode=kill"/>
+            <jvmarg value="-Dbndrun=${bndrun}"/>
+            <arg value="launch.bndrun"/>
+        </java>     
+    </target>
+              	
+  	<target name="jar" depends="build-project">
+		<mkdir dir="generated" />
+		<jar destfile="generated/${ant.project.name}.jar" basedir="bin">
+		</jar>
+	</target>
+	
+   	<target name="repo" depends="jar">
+		<exec executable="/bin/bash" failonerror="true">
+			<arg value="${repo-script}"/>
+		</exec>
+	</target>  
+	
+	<!--  use bnd build tools to create platform jars -->
+	<import file="../cnf/build.xml" />
+	
+
+</project>

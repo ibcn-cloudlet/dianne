@@ -1,0 +1,75 @@
+-runfw: org.apache.felix.framework;version='[4.2.1,4.2.1]'
+-runee: JavaSE-1.6
+
+aiolos.version='[0.4.1,0.5.0)'
+jclouds.version='[1.8.0,1.9.0)'
+
+-resolve.effective: active
+-runbundles: \
+	osgi.enterprise;version='[5.0.0,5.1.0)',\
+	ch.qos.logback.classic,\
+	ch.qos.logback.core,\
+	slf4j.api;version=1.7.2,\
+	org.slf4j.osgi-over-slf4j,\
+	org.apache.felix.http.jetty,\
+	org.apache.felix.webconsole,\
+	org.apache.felix.webconsole.plugins.gogo,\
+	org.apache.felix.configadmin;version=1.6.0,\
+	org.apache.felix.gogo.command;version='[0.12.0,0.12.1)',\
+	org.apache.felix.gogo.runtime;version='[0.10.0,0.10.1)',\
+	org.apache.felix.gogo.shell;version='[0.10.0,0.10.1)',\
+	org.apache.felix.log;version='[1.0.1,1.0.2)',\
+	org.apache.felix.scr;version='[1.8.2,1.8.3)',\
+	org.apache.felix.resolver,\
+	org.apache.felix.fileinstall;version=3.2.4,\
+	objectprofiler;version='[1.0.0,1.0.1)',\
+	org.apache.commons.io,\
+	aopalliance,\
+	javax.inject,\
+	com.google.guava;version='[17.0.0,18.0.0)',\
+	com.google.inject,\
+	com.google.inject.assistedinject,\
+	com.google.gson;version='[2.2.4,3)',\
+	com.googlecode.json-simple;version=1.1.1,\
+	javax.ws.rs.jsr311-api,\
+	net.schmizz.sshj,\
+	bcpkix;version=1.49.0,\
+	bcprov-ext;version=1.49.0,\
+	rocoto,\
+	com.jcraft.jsch.agentproxy,\
+	jclouds-compute;version=${jclouds.version},\
+	jclouds-core;version=${jclouds.version},\
+	jclouds-scriptbuilder;version=${jclouds.version},\
+	jclouds-sshj;version=${jclouds.version},\
+	jclouds-slf4j;version=${jclouds.version},\
+	openstack-keystone;version=${jclouds.version},\
+	openstack-nova;version=${jclouds.version},\
+	sts;version=${jclouds.version},\
+	ec2;version=${jclouds.version},\
+	aws-ec2;version=${jclouds.version},\
+	kxml;version='[2.2.2,2.2.3)',\
+	jslp,\
+	org.objenesis;version=2.1.0,\
+	com.esotericsoftware.kryo;version=2.23.0,\
+	de.javakaffee.kryo-serializers,\
+	be.iminds.aiolos.api;version=${aiolos.version},\
+	be.iminds.aiolos.discovery;version=${aiolos.version},\
+	be.iminds.aiolos.remoteserviceadmin;version=${aiolos.version},\
+	be.iminds.aiolos.deploymentmanager;version=${aiolos.version},\
+	be.iminds.aiolos.servicemonitor;version=${aiolos.version},\
+	be.iminds.aiolos.nodemonitor;version=${aiolos.version},\
+	be.iminds.aiolos.topologymanager;version=${aiolos.version},\
+	be.iminds.aiolos.repository;version=${aiolos.version},\
+	be.iminds.aiolos.cloudmanager;version=${aiolos.version},\
+	be.iminds.aiolos.platformmanager;version=${aiolos.version},\
+	be.iminds.aiolos.userinterface;version=${aiolos.version},\
+	be.iminds.aiolos.proxymanager;version=${aiolos.version}
+
+-runstorage: generated/mgmt
+
+-runsystempackages: sun.reflect
+
+-runproperties: org.apache.felix.log.storeDebug=true,\
+	felix.fileinstall.dir=resources,\
+	org.osgi.service.http.port=8080,\
+	logback.configurationFile=resources/logback.xml

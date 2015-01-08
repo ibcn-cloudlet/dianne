@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!-- If you want to enable logback add ch.qos.logback.classic and ch.qos.logback.core to runbundles -->
+<configuration scan="false" debug="false">
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<!-- encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder 
+			by default -->
+		<encoder>
+			<pattern>%d{HH:mm:ss} %-5level - %msg%n</pattern>
+		</encoder>
+	</appender>
+	<root level="WARN">
+		<appender-ref ref="STDOUT" />
+	</root>
+
+	<logger name="be.iminds.aiolos">
+		<level value="INFO" />
+	</logger>
+	
+	<logger name="org.example">
+		<level value="INFO" />
+	</logger>
+
+	<logger name="net.schmizz">
+		<level value="ERROR" />
+	</logger>
+</configuration>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="root" default="build">
+    <target name="__mainiterateinit" unless="__mainiterateinit_done">
+        <!-- tasks and macros must be defined in a task or we'll get
+             'Trying to override old definition of task ...' reports -->
+
+        <macrodef name="iterate">
+            <attribute name="target" />
+            <sequential>
+                <subant target="@{target}">
+                    <fileset dir="." includes="*/build.xml" excludes="cnf/*"/>
+                </subant>
+            </sequential>
+        </macrodef>
+
+        <!-- mark __mainiterateinit has been run -->
+        <property name="__mainiterateinit_done" value="set" />
+    </target>
+
+    <target name="init" depends="__mainiterateinit">
+	<iterate target="init" />
+    </target>
+
+    <target name="build" depends="__mainiterateinit">
+        <iterate target="build" />
+    </target>
+
+    <target name="junit" depends="__mainiterateinit">
+        <iterate target="junit" />
+    </target>
+
+    <target name="clean" depends="__mainiterateinit">
+        <iterate target="clean" />
+    </target>
+
+    <target name="clean-all" depends="__mainiterateinit">
+        <iterate target="clean" />
+	<ant dir="tools" target="clean-all" />
+        <delete dir="generated" />
+    </target>
+
+    <target name="upload" depends="build">
+        <ant dir="tools" target="upload" />
+    </target>
+    
+    <target name="run">
+        <ant dir="tools" target="run" />
+    </target>
+
+    <target name="kill">
+        <ant dir="tools" target="kill" />
+    </target>
+
+</project>

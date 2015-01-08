@@ -1,0 +1,51 @@
+-runfw: org.apache.felix.framework;version='[4.2.1,4.2.1]'
+-runee: JavaSE-1.6
+
+aiolos.version='[0.4.1,0.5.0)'
+jclouds.version='[1.8.0,1.9.0)'
+
+-resolve.effective: active
+-runbundles: \
+	osgi.enterprise;version='[5.0.0,5.1.0)',\
+	ch.qos.logback.classic,\
+	ch.qos.logback.core,\
+	slf4j.api;version=1.7.2,\
+	org.slf4j.osgi-over-slf4j,\
+	org.apache.felix.fileinstall;version=3.2.4,\
+	org.apache.felix.configadmin;version=1.6.0,\
+	aopalliance,\
+	javax.inject,\
+	com.google.guava;version='[17.0.0,18.0.0)',\
+	com.google.inject,\
+	com.google.inject.assistedinject,\
+	com.google.gson,\
+	javax.ws.rs.jsr311-api,\
+	net.schmizz.sshj,\
+	com.jcraft.jsch.agentproxy,\
+	bcpkix;version=1.49.0,\
+	bcprov-ext;version=1.49.0,\
+	rocoto,\
+	jclouds-compute;version=${jclouds.version},\
+	jclouds-core;version=${jclouds.version},\
+	jclouds-scriptbuilder;version=${jclouds.version},\
+	jclouds-sshj;version=${jclouds.version},\
+	jclouds-slf4j;version=${jclouds.version},\
+	openstack-keystone;version=${jclouds.version},\
+	openstack-nova;version=${jclouds.version},\
+	sts;version=${jclouds.version},\
+	ec2;version=${jclouds.version},\
+	aws-ec2;version=${jclouds.version},\
+	be.iminds.aiolos.api;version=${aiolos.version},\
+	be.iminds.aiolos.cloudmanager;version=${aiolos.version},\
+	be.iminds.aiolos.launch;version=${aiolos.version},\
+
+-runsystempackages: sun.reflect
+
+-runproperties: org.apache.felix.log.storeDebug=true,\
+	felix.fileinstall.dir=resources,\
+	aiolos.launch.config=${config},\
+	aiolos.launch.mode=${mode},\
+	aiolos.launch.bndrun=${bndrun},\
+	logback.configurationFile=resources/logback.xml
+
+
