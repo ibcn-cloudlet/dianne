@@ -6,7 +6,7 @@ import be.iminds.iot.dianne.tensor.TensorMath;
 
 public class JavaTensorFactory implements TensorFactory {
 
-	private final JavaTensorMath math = new JavaTensorMath();
+	private final JavaTensorMath math = new JavaTensorMath(this);
 	
 	@Override
 	public Tensor createTensor(final int... d) {
