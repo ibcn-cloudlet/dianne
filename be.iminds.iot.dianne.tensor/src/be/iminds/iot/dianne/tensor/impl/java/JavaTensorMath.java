@@ -14,7 +14,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		public float apply(float... params);
 	}
 	
-	private JavaTensor apply(JavaTensor res, Operator op, JavaTensor t){
+	private JavaTensor apply(JavaTensor res, final Operator op, final JavaTensor t){
 		// TODO check dims?
 		if(res == null){
 			res = factory.createTensor(t.dims);
@@ -25,7 +25,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		return res;
 	}
 
-	private JavaTensor apply(JavaTensor res, Operator op, JavaTensor t1, JavaTensor t2){
+	private JavaTensor apply(JavaTensor res, final Operator op, final JavaTensor t1, final JavaTensor t2){
 		// TODO check dims?
 		if(res == null){
 			res = factory.createTensor(t1.dims);
@@ -37,7 +37,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 	
 	@Override
-	public JavaTensor add(JavaTensor res, JavaTensor tensor, final float value) {
+	public JavaTensor add(JavaTensor res, final JavaTensor tensor, final float value) {
 		Operator add = new Operator(){
 			@Override
 			public float apply(float... params) {
@@ -48,7 +48,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 
 	@Override
-	public JavaTensor add(JavaTensor res, JavaTensor tensor1, JavaTensor tensor2) {
+	public JavaTensor add(JavaTensor res, final JavaTensor tensor1, final JavaTensor tensor2) {
 		Operator add = new Operator(){
 			@Override
 			public float apply(float... params) {
@@ -59,7 +59,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 
 	@Override
-	public JavaTensor add(JavaTensor res, JavaTensor tensor1, final float value, JavaTensor tensor2) {
+	public JavaTensor add(JavaTensor res, final JavaTensor tensor1, final float value, final JavaTensor tensor2) {
 		Operator add = new Operator(){
 			@Override
 			public float apply(float... params) {
@@ -70,7 +70,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 
 	@Override
-	public JavaTensor mul(JavaTensor res, JavaTensor tensor, final float value) {
+	public JavaTensor mul(JavaTensor res, final JavaTensor tensor, final float value) {
 		Operator mul = new Operator(){
 			@Override
 			public float apply(float... params) {
@@ -81,7 +81,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 
 	@Override
-	public JavaTensor cmul(JavaTensor res, JavaTensor tensor1, JavaTensor tensor2) {
+	public JavaTensor cmul(JavaTensor res, final JavaTensor tensor1, final JavaTensor tensor2) {
 		Operator cmul = new Operator(){
 			@Override
 			public float apply(float... params) {
@@ -92,7 +92,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 
 	@Override
-	public JavaTensor div(JavaTensor res, JavaTensor tensor, float value) {
+	public JavaTensor div(JavaTensor res, final JavaTensor tensor, final float value) {
 		Operator div = new Operator(){
 			@Override
 			public float apply(float... params) {
@@ -103,7 +103,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 
 	@Override
-	public JavaTensor cdiv(JavaTensor res, JavaTensor tensor1, JavaTensor tensor2) {
+	public JavaTensor cdiv(JavaTensor res, final JavaTensor tensor1, final JavaTensor tensor2) {
 		Operator cdiv = new Operator(){
 			@Override
 			public float apply(float... params) {
@@ -114,7 +114,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 
 	@Override
-	public float dot(JavaTensor vec1, JavaTensor vec2) {
+	public float dot(final JavaTensor vec1, final JavaTensor vec2) {
 		float dot = 0;
 		for(int i=0;i<vec1.data.length;i++){
 			dot+= vec1.data[i] * vec2.data[i];
@@ -123,7 +123,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 
 	@Override
-	public JavaTensor mv(JavaTensor res, JavaTensor mat, JavaTensor vec) {
+	public JavaTensor mv(JavaTensor res, final JavaTensor mat, final JavaTensor vec) {
 		// TODO check dims?
 		if(res==null){
 			res = factory.createTensor(mat.dims[0]);
@@ -139,7 +139,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 
 	@Override
-	public JavaTensor mm(JavaTensor res, JavaTensor mat1, JavaTensor mat2) {
+	public JavaTensor mm(JavaTensor res, final JavaTensor mat1, final JavaTensor mat2) {
 		// TODO check dims?
 		if(res==null){
 			res = factory.createTensor(mat1.dims[0],mat2.dims[1]);
