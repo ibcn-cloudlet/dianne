@@ -8,10 +8,10 @@ package be.iminds.iot.dianne.tensor;
  * @author tverbele
  *
  */
-public interface TensorFactory {
+public interface TensorFactory<T extends Tensor<T>> {
 
-	Tensor createTensor(final int ... d);
+	T createTensor(final int ... d);
 	
-	TensorMath getTensorMath();
+	TensorMath<T> getTensorMath();
 	
 }

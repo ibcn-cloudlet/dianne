@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 import be.iminds.iot.dianne.tensor.Tensor;
 
-public class JavaTensor implements Tensor {
+public class JavaTensor implements Tensor<JavaTensor> {
 
 	int[] dims;
 	int[] strides;

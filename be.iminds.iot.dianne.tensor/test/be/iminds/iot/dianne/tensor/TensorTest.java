@@ -9,7 +9,7 @@ import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;
 
 public class TensorTest {
 
-	TensorFactory factory;
+	TensorFactory<?> factory;
 	
     @Before
     public void setUp() {
@@ -18,7 +18,7 @@ public class TensorTest {
 	
 	@Test
 	public void test1DTensor() {
-		Tensor t = factory.createTensor(4);
+		Tensor<?> t = factory.createTensor(4);
 		Assert.assertEquals(1, t.dim());
 		Assert.assertEquals(4, t.size());
 		Assert.assertEquals(4, t.size(0));
@@ -30,7 +30,7 @@ public class TensorTest {
 
 	@Test
 	public void test2DTensor() {
-		Tensor t = factory.createTensor(3,4);
+		Tensor<?> t = factory.createTensor(3,4);
 		Assert.assertEquals(2, t.dim());
 		Assert.assertEquals(12, t.size());
 		Assert.assertEquals(3, t.size(0));
@@ -46,7 +46,7 @@ public class TensorTest {
 	
 	@Test
 	public void test3DTensor() {
-		Tensor t = factory.createTensor(2,3,4);
+		Tensor<?> t = factory.createTensor(2,3,4);
 		Assert.assertEquals(3, t.dim());
 		Assert.assertEquals(24, t.size());
 		Assert.assertEquals(2, t.size(0));

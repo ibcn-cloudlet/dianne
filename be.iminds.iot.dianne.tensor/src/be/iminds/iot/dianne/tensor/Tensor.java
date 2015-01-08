@@ -1,6 +1,6 @@
 package be.iminds.iot.dianne.tensor;
 
-public interface Tensor {
+public interface Tensor<T extends Tensor<T>> {
 
 	/**
 	 * @return the number of dimensions of this tensor
@@ -32,6 +32,5 @@ public interface Tensor {
 	 * @param d the indices of the element to set
 	 */
 	public void set(final float v, final int... d);
-	
 	
 }
