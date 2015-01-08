@@ -1,11 +1,25 @@
 package be.iminds.iot.dianne.tensor;
 
+/**
+ * Represents an n-dimensional tensor
+ * 
+ * A Tensor should implement the equals method to check if 
+ * two tensors are equal.
+ * 
+ * @author tverbele
+ *
+ */
 public interface Tensor {
 
 	/**
 	 * @return the number of dimensions of this tensor
 	 */
 	public int dim();
+
+	/**
+	 * @return the dimensions of this tensor
+	 */
+	public int[] dims();
 	
 	/**
 	 * @return the total size of the tensor
@@ -27,11 +41,32 @@ public interface Tensor {
 	public float get(final int... d);
 	
 	/**
+	 * get a value of the tensor using a flat index (seeing it as a 1d vector)
+	 */
+	public float get(final int i);
+	
+	/**
 	 * set a value of the tensor
 	 * @param v the new value
 	 * @param d the indices of the element to set
 	 */
 	public void set(final float v, final int... d);
+
+	/**
+	 * set a value of the tensor using a flat index (seeing it as a 1d vector)
+	 * @param v the new value
+	 * @param i the indices of the element to set
+	 */
+	public void set(final float v, final int i);
+
+	/**
+	 * fill with fixed value
+	 * @param v the new value
+	 */
+	public void fill(final float v);
 	
-	
+	/**
+	 * fill with random values
+	 */
+	public void rand();
 }

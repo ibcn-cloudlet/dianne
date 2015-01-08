@@ -40,8 +40,11 @@ public class TensorTest {
 		Assert.assertEquals(0.0f, t.get(1,2));
 		t.set(1.0f, 1,2);
 		Assert.assertEquals(1.0f, t.get(1,2));
-		
-		System.out.println(t);
+
+		Assert.assertEquals(0.0f, t.get(0));
+		t.set(2.0f, 0);
+		Assert.assertEquals(2.0f, t.get(0));
+		Assert.assertEquals(2.0f, t.get(0,0));
 	}
 	
 	@Test
@@ -57,5 +60,18 @@ public class TensorTest {
 		t.set(1.0f, 1,2,3);
 		Assert.assertEquals(1.0f, t.get(1,2,3));
 		
+	}
+	
+	@Test
+	public void testEquals() {
+		Tensor t = factory.createTensor(2,2);
+		Tensor t2 = factory.createTensor(2,2);
+		Tensor t3 = factory.createTensor(4);
+		
+		Assert.assertEquals(true, t.equals(t2));
+		Assert.assertEquals(false, t.equals(t3));
+		t.set(1.0f, 0);
+		Assert.assertEquals(false, t.equals(t2));
+
 	}
 }
