@@ -1,9 +1,8 @@
 package be.iminds.iot.dianne.tensor.impl.java;
 
-import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorMath;
 
-public class JavaTensorMath implements TensorMath {
+public class JavaTensorMath implements TensorMath<JavaTensor> {
 
 	private final JavaTensorFactory factory;
 	
@@ -12,63 +11,62 @@ public class JavaTensorMath implements TensorMath {
 	}
 
 	@Override
-	public Tensor add(Tensor res, Tensor tensor, float value) {
+	public JavaTensor add(JavaTensor res, JavaTensor JavaTensor, float value) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Tensor add(Tensor res, Tensor tensor1, Tensor tensor2) {
+	public JavaTensor add(JavaTensor res, JavaTensor JavaTensor1, JavaTensor JavaTensor2) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Tensor add(Tensor res, Tensor tensor1, float value, Tensor tensor2) {
+	public JavaTensor add(JavaTensor res, JavaTensor JavaTensor1, float value, JavaTensor JavaTensor2) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Tensor mul(Tensor res, Tensor tensor1, float value) {
+	public JavaTensor mul(JavaTensor res, JavaTensor JavaTensor1, float value) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Tensor cmul(Tensor res, Tensor tensor1, Tensor tensor2) {
+	public JavaTensor cmul(JavaTensor res, JavaTensor JavaTensor1, JavaTensor JavaTensor2) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Tensor div(Tensor res, Tensor tensor1, float value) {
+	public JavaTensor div(JavaTensor res, JavaTensor JavaTensor1, float value) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Tensor cdiv(Tensor res, Tensor tensor1, Tensor tensor2) {
+	public JavaTensor cdiv(JavaTensor res, JavaTensor JavaTensor1, JavaTensor JavaTensor2) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public float dot(Tensor vec1, Tensor vec2) {
+	public float dot(JavaTensor vec1, JavaTensor vec2) {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
-	public Tensor mv(Tensor res, Tensor mat, Tensor vec) {
+	public JavaTensor mv(JavaTensor res, JavaTensor mat, JavaTensor vec) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Tensor mm(Tensor res, Tensor mat1, Tensor mat2) {
+	public JavaTensor mm(JavaTensor res, JavaTensor mat1, JavaTensor mat2) {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
 }

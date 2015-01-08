@@ -9,7 +9,7 @@ package be.iminds.iot.dianne.tensor;
  * @author tverbele
  *
  */
-public interface Tensor {
+public interface Tensor<T extends Tensor<T>> {
 
 	/**
 	 * @return the number of dimensions of this tensor
@@ -64,7 +64,7 @@ public interface Tensor {
 	 * @param v the new value
 	 */
 	public void fill(final float v);
-	
+
 	/**
 	 * fill with random values
 	 */

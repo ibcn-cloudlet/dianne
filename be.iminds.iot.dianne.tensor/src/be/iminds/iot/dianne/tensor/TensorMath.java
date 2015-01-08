@@ -9,64 +9,64 @@ package be.iminds.iot.dianne.tensor;
  * @author tverbele
  *
  */
-public interface TensorMath {
+public interface TensorMath<T extends Tensor<T>> {
 
 	/**
-	 * Add the given value to all elements in the tensor.
+	 * Add the given value to all elements in the T.
 	 */
-	public Tensor add(final Tensor res, final Tensor tensor, final float value);
+	public T add(final T res, final T T, final float value);
 	
 	/**
-	 * Add tensor1 to tensor2 and put result into res. 
+	 * Add T1 to T2 and put result into res. 
 	 * The number of elements must match, but sizes do not matter.
 	 */
-	public Tensor add(final Tensor res, final Tensor tensor1, final Tensor tensor2);
+	public T add(final T res, final T T1, final T T2);
 
 	/**
-	 * Multiply elements of tensor2 by the scalar value and add it to tensor1. 
+	 * Multiply elements of T2 by the scalar value and add it to T1. 
 	 * The number of elements must match, but sizes do not matter.
 	 */
-	public Tensor add(final Tensor res, final Tensor tensor1, final float value, final Tensor tensor2);
+	public T add(final T res, final T T1, final float value, final T T2);
 	
 	/**
-	 * Multiply all elements in the tensor by the given value.
+	 * Multiply all elements in the T by the given value.
 	 */
-	public Tensor mul(final Tensor res, final Tensor tensor1, final float value);
+	public T mul(final T res, final T T1, final float value);
 	
 	/**
-	 * Element-wise multiplication of tensor1 by tensor2. 
+	 * Element-wise multiplication of T1 by T2. 
 	 * The number of elements must match, but sizes do not matter.
 	 */
-	public Tensor cmul(final Tensor res, final Tensor tensor1, final Tensor tensor2);
+	public T cmul(final T res, final T T1, final T T2);
 	
 	/**
-	 * Divide all elements in the tensor by the given value.
+	 * Divide all elements in the T by the given value.
 	 */
-	public Tensor div(final Tensor res, final Tensor tensor1, final float value);
+	public T div(final T res, final T T1, final float value);
 	
 	/**
-	 * Element-wise division of tensor1 by tensor2. 
+	 * Element-wise division of T1 by T2. 
 	 * The number of elements must match, but sizes do not matter.
 	 */
-	public Tensor cdiv(final Tensor res, final Tensor tensor1, final Tensor tensor2);
+	public T cdiv(final T res, final T T1, final T T2);
 	
 	/**
 	 * Performs the dot product between vec1 and vec2. 
-	 * The number of elements must match: both tensors are seen as a 1D vector.
+	 * The number of elements must match: both Ts are seen as a 1D vector.
 	 */
-	public float dot(final Tensor vec1, final Tensor vec2);
+	public float dot(final T vec1, final T vec2);
 	
 	/**
 	 * Matrix vector product of mat and vec. 
 	 * Sizes must respect the matrix-multiplication operation: 
 	 * if mat is a n x m matrix, vec must be vector of size m and res must be a vector of size n.
 	 */
-	public Tensor mv(final Tensor res, final Tensor mat, final Tensor vec);
+	public T mv(final T res, final T mat, final T vec);
 	
 	/**
 	 * Matrix matrix product of mat1 and mat2. If mat1 is a n x m matrix, mat2 a m x p matrix, 
 	 * res must be a n x p matrix.
 	 */
-	public Tensor mm(final Tensor res, final Tensor mat1, final Tensor mat2);
+	public T mm(final T res, final T mat1, final T mat2);
 	
 }
