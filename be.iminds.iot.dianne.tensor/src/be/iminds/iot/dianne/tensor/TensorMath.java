@@ -81,4 +81,13 @@ public interface TensorMath<T extends Tensor<T>> {
 	 */
 	public T addmm(T res, final T mat, final T mat1, final T mat2);
 
+	/**
+	 * Put the tanh of each element into res
+	 */
+	public T tanh(T res, final T tensor);
+	
+	/**
+	 * Put the sigmoid of each element into res
+	 */
+	public T sigmoid(T res, final T tensor);
 }
