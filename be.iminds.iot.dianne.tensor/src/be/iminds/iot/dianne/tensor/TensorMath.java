@@ -14,41 +14,41 @@ public interface TensorMath<T extends Tensor<T>> {
 	/**
 	 * Add the given value to all elements in the T.
 	 */
-	public T add(T res, final T T, final float value);
+	public T add(T res, final T tensor, final float value);
 	
 	/**
-	 * Add T1 to T2 and put result into res. 
+	 * Add tensor1 to tensor2 and put result into res. 
 	 * The number of elements must match, but sizes do not matter.
 	 */
-	public T add(T res, final T T1, final T T2);
+	public T add(T res, final T tensor1, final T tensor2);
 
 	/**
-	 * Multiply elements of T2 by the scalar value and add it to T1. 
+	 * Multiply elements of tensor2 by the scalar value and add it to tensor1. 
 	 * The number of elements must match, but sizes do not matter.
 	 */
-	public T add(T res, final T T1, final float value, final T T2);
+	public T add(T res, final T tensor1, final float value, final T tensor2);
 	
 	/**
 	 * Multiply all elements in the T by the given value.
 	 */
-	public T mul(T res, final T T1, final float value);
+	public T mul(T res, final T tensor1, final float value);
 	
 	/**
-	 * Element-wise multiplication of T1 by T2. 
+	 * Element-wise multiplication of tensor1 by tensor2. 
 	 * The number of elements must match, but sizes do not matter.
 	 */
-	public T cmul(T res, final T T1, final T T2);
+	public T cmul(T res, final T tensor1, final T tensor2);
 	
 	/**
 	 * Divide all elements in the T by the given value.
 	 */
-	public T div(T res, final T T1, final float value);
+	public T div(T res, final T tensor1, final float value);
 	
 	/**
-	 * Element-wise division of T1 by T2. 
+	 * Element-wise division of tensor1 by tensor2. 
 	 * The number of elements must match, but sizes do not matter.
 	 */
-	public T cdiv(T res, final T T1, final T T2);
+	public T cdiv(T res, final T tensor1, final T tensor2);
 	
 	/**
 	 * Performs the dot product between vec1 and vec2. 
@@ -64,7 +64,7 @@ public interface TensorMath<T extends Tensor<T>> {
 	public T mv(T res, final T mat, final T vec);
 	
 	/**
-	 * Matrix matrix product of mat1 and mat2. If mat1 is a n x m matrix, mat2 a m x p matrix, 
+	 * Matrix matrix product of matensor1 and matensor2. If matensor1 is a n x m matrix, matensor2 a m x p matrix, 
 	 * res must be a n x p matrix.
 	 */
 	public T mm(T res, final T mat1, final T mat2);
@@ -76,8 +76,8 @@ public interface TensorMath<T extends Tensor<T>> {
 	public T addmv(T res, final T vec1, final T mat, final T vec2);
 
 	/**
-	 * Performs a matrix-vector multiplication between mat1 (2D tensor) and mat2 (2D tensor) 
-	 * and add it to mat. In other words, res = mat + mat1*mat2
+	 * Performs a matrix-vector multiplication between matensor1 (2D tensor) and matensor2 (2D tensor) 
+	 * and add it to mat. In other words, res = mat + matensor1*matensor2
 	 */
 	public T addmm(T res, final T mat, final T mat1, final T mat2);
 
