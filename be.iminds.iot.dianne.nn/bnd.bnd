@@ -3,3 +3,8 @@ Bundle-Version: 0.1.0.${tstamp}
 Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 -buildpath: be.iminds.iot.dianne.tensor;version=latest,biz.aQute.junit
 Export-Package: be.iminds.iot.dianne.nn.module
+Private-Package: \
+	be.iminds.iot.dianne.nn.module.activation,\
+	be.iminds.iot.dianne.nn.module.container,\
+	be.iminds.iot.dianne.nn.module.layer,\
+	be.iminds.iot.dianne.nn.module.io
