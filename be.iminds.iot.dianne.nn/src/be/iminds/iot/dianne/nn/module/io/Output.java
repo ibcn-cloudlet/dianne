@@ -12,10 +12,7 @@ public class Output extends AbstractModule {
 	
 	@Override
 	protected void forward() {
-		System.out.println("RESULT: ");
-		for(Tensor t : inputs.values()){
-			System.out.println(t);
-		}
+		System.out.println("RESULT: "+input);
 	}
 
 	@Override
@@ -24,12 +21,8 @@ public class Output extends AbstractModule {
 	}
 	
 	@Override
-	public void addNext(final Module... next) {
+	public void setNext(final Module... next) {
 		System.out.println("Output cannot have next modules");
 	}
 
-	@Override
-	public void removeNext(final Module... next) {
-		System.out.println("Output cannot have next modules");
-	}
 }

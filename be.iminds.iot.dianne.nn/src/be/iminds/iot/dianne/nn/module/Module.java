@@ -12,12 +12,8 @@ public interface Module {
 	
 	public void backward(final UUID moduleId, final Tensor gradOutput);
 	
-	public void addNext(final Module... next);
+	public void setNext(final Module... next);
 	
-	public void removeNext(final Module... next);
-	
-	public void addPrevious(final Module... prev);
-	
-	public void removePrevious(final Module... prev);
+	public void setPrevious(final Module... prev);
 	
 }

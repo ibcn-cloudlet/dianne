@@ -21,12 +21,8 @@ public class Input extends AbstractModule {
 	}
 
 	@Override
-	public void addPrevious(final Module... prev) {
+	public void setPrevious(final Module... prev) {
 		System.out.println("Input cannot have previous modules");
 	}
 
-	@Override
-	public void removePrevious(final Module... prev) {
-		System.out.println("Input cannot have previous modules");
-	}
 }

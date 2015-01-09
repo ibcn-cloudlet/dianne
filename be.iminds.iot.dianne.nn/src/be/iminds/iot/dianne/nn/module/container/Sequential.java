@@ -32,23 +32,13 @@ public class Sequential implements Module {
 	}
 
 	@Override
-	public void addNext(Module... next) {
-		modules.get(modules.size()-1).addNext(next);
+	public void setNext(Module... next) {
+		modules.get(modules.size()-1).setNext(next);
 	}
 
 	@Override
-	public void removeNext(Module... next) {
-		modules.remove(modules.size()-1).addNext(next);
-	}
-
-	@Override
-	public void addPrevious(Module... prev) {
-		modules.get(0).addPrevious(prev);
-	}
-
-	@Override
-	public void removePrevious(Module... prev) {
-		modules.get(0).removePrevious(prev);
+	public void setPrevious(Module... prev) {
+		modules.get(0).setPrevious(prev);
 	}
 
 	public void add(Module m){
@@ -57,8 +47,8 @@ public class Sequential implements Module {
 			Module m1 = modules.get(modules.size()-2);
 			Module m2 = modules.get(modules.size()-1);
 			
-			m1.addNext(m2);
-			m2.addPrevious(m1);
+			m1.setNext(m2);
+			m2.setPrevious(m1);
 		}
 	}
 }
