@@ -192,4 +192,26 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		};
 		return apply(res, sigmoid, tensor);
 	}
+
+	@Override
+	public JavaTensor dtanh(JavaTensor res, JavaTensor tensor) {
+		Operator dtanh = new Operator(){
+			@Override
+			public float apply(float... params) {
+				return (1.0f - params[0]*params[0]);
+			}
+		};
+		return apply(res, dtanh, tensor);
+	}
+
+	@Override
+	public JavaTensor dsigmoid(JavaTensor res, JavaTensor tensor) {
+		Operator dsigmoid = new Operator(){
+			@Override
+			public float apply(float... params) {
+				return params[0]*(1.0f - params[0]);
+			}
+		};
+		return apply(res, dsigmoid, tensor);
+	}
 }

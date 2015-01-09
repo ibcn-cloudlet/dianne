@@ -69,4 +69,9 @@ public interface Tensor<T extends Tensor<T>> {
 	 * fill with random values
 	 */
 	public void rand();
+	
+	/**
+	 * check if other tensor has same dimensions
+	 */
+	public boolean sameDim(Tensor other);
 }

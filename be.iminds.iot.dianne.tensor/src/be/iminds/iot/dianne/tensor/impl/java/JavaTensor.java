@@ -147,4 +147,17 @@ public class JavaTensor implements Tensor<JavaTensor> {
 		return true;
 		
 	}
+
+	@Override
+	public boolean sameDim(Tensor other) {
+		if(dims.length!=other.dim()){
+			return false;
+		}
+		for(int i=0;i<dims.length;i++){
+			if(other.size(i) != dims[i]){
+				return false;
+			}
+		}
+		return true;
+	}
 }

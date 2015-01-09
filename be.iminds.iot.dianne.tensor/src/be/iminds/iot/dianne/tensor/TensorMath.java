@@ -87,7 +87,17 @@ public interface TensorMath<T extends Tensor<T>> {
 	public T tanh(T res, final T tensor);
 	
 	/**
+	 * Calculates for each element (1-x^2)
+	 */
+	public T dtanh(T res, final T tensor);
+	
+	/**
 	 * Put the sigmoid of each element into res
 	 */
 	public T sigmoid(T res, final T tensor);
+	
+	/**
+	 * Calculates for each element x*(1-x)
+	 */
+	public T dsigmoid(T res, final T tensor);
 }
