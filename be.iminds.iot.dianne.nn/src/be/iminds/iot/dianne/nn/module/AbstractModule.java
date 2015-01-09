@@ -5,9 +5,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public abstract class AbstractModule implements Module {
 
+	// the factory for this module
+	protected static final TensorFactory factory = TensorFactory.getFactory(TensorFactory.TensorType.JAVA);
+	
 	// the UUID of this module
 	protected final UUID id;
 	
