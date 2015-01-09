@@ -75,4 +75,27 @@ public class TensorTest<T extends Tensor<T>> {
 		Assert.assertEquals(false, t.equals(t2));
 
 	}
+	
+	@Test
+	public void testClone() {
+		T t = factory.createTensor(2,2);
+		t.set(0f, 0);
+		t.set(1f, 1);
+		t.set(2f, 2);
+		t.set(3f, 3);
+		
+		T t2 = t.clone(null);
+		Assert.assertEquals(0f, t2.get(0), 0.1f);
+		Assert.assertEquals(1f, t2.get(1), 0.1f);
+		Assert.assertEquals(2f, t2.get(2), 0.1f);
+		Assert.assertEquals(3f, t2.get(3), 0.1f);
+		
+		T t3 = factory.createTensor(4);
+		t.clone(t3);
+		
+		Assert.assertEquals(0f, t3.get(0), 0.1f);
+		Assert.assertEquals(1f, t3.get(1), 0.1f);
+		Assert.assertEquals(2f, t3.get(2), 0.1f);
+		Assert.assertEquals(3f, t3.get(3), 0.1f);
+	}
 }

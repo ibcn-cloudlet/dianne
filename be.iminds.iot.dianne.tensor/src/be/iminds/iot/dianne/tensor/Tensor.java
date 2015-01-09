@@ -9,6 +9,11 @@ package be.iminds.iot.dianne.tensor;
  * @author tverbele
  *
  */
+/**
+ * @author smbohez
+ *
+ * @param <T>
+ */
 public interface Tensor<T extends Tensor<T>> {
 
 	/**
@@ -73,5 +78,12 @@ public interface Tensor<T extends Tensor<T>> {
 	/**
 	 * check if other tensor has same dimensions
 	 */
-	public boolean sameDim(Tensor other);
+	public boolean sameDim(Tensor<?> other);
+	
+	/**
+	 * clone this tensor into other tensor, create new one if null or different number of elements
+	 * @param other the tensor to clone into
+	 * @return the cloned tensor
+	 */
+	public T clone(T other);
 }

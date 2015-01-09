@@ -149,7 +149,7 @@ public class JavaTensor implements Tensor<JavaTensor> {
 	}
 
 	@Override
-	public boolean sameDim(Tensor other) {
+	public boolean sameDim(Tensor<?> other) {
 		if(dims.length!=other.dim()){
 			return false;
 		}
@@ -159,5 +159,16 @@ public class JavaTensor implements Tensor<JavaTensor> {
 			}
 		}
 		return true;
+	}
+
+	@Override
+	public JavaTensor clone(JavaTensor other) {
+		if(other == null
+				|| this.data.length != other.data.length)
+			other = new JavaTensor(dims);
+		
+		System.arraycopy(data, 0, other.data, 0, data.length);
+		
+		return other;
 	}
 }
