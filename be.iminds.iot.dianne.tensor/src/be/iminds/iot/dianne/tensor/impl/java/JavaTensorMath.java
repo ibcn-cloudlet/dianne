@@ -122,6 +122,20 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		}
 		return dot;
 	}
+	
+	@Override
+	public JavaTensor vv(JavaTensor res, final JavaTensor vec1, final JavaTensor vec2) {
+		// TODO check dims?
+		if(res==null){
+			res = factory.createTensor(vec1.size(), vec2.size());
+		}
+		for(int i=0;i<vec1.size();i++){
+			for(int j=0;j<vec2.size();j++){
+				res.set(vec1.get(i)*vec2.get(j), i, j);
+			}
+		}
+		return res;
+	}
 
 	@Override
 	public JavaTensor mv(JavaTensor res, final JavaTensor mat, final JavaTensor vec) {
@@ -133,6 +147,22 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 			float v = 0;
 			for(int j=0;j<mat.dims[1];j++){
 				v+= mat.get(i,j) * vec.get(j);
+			}
+			res.set(v, i);
+		}
+		return res;
+	}
+	
+	@Override
+	public JavaTensor tmv(JavaTensor res, final JavaTensor mat, final JavaTensor vec) {
+		// TODO check dims?
+		if(res==null){
+			res = factory.createTensor(mat.dims[1]);
+		}
+		for(int i=0;i<mat.dims[1];i++){
+			float v = 0;
+			for(int j=0;j<mat.dims[0];j++){
+				v+= mat.get(j,i) * vec.get(j);
 			}
 			res.set(v, i);
 		}

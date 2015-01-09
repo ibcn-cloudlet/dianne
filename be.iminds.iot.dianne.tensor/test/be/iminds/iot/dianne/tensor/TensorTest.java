@@ -98,4 +98,17 @@ public class TensorTest<T extends Tensor<T>> {
 		Assert.assertEquals(2f, t3.get(2), 0.1f);
 		Assert.assertEquals(3f, t3.get(3), 0.1f);
 	}
+	
+	@Test
+	public void testTranspose() {
+		T t = factory.createTensor(2,3);
+		for(int i = 0; i < 2; i++)
+			for(int j = 0; j < 3; j++)
+				t.set(i*2+j, i, j);
+		
+		T t2 = t.transpose(null, 0, 1);
+		for(int i = 0; i < 3; i++)
+			for(int j = 0; j < 2; j++)
+				Assert.assertEquals(j*2+i, t2.get(i, j), 0.1f);
+	}
 }

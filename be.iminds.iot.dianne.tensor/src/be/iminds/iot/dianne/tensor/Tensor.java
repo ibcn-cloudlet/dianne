@@ -86,4 +86,6 @@ public interface Tensor<T extends Tensor<T>> {
 	 * @return the cloned tensor
 	 */
 	public T clone(T other);
+	
+	public T transpose(T res, int d1, int d2);
 }

@@ -94,7 +94,11 @@ public class JavaTensor implements Tensor<JavaTensor> {
 			// format as matrix
 			String s = "";
 			for(int i=0;i<dims[0];i++){
-				s+=Arrays.toString(Arrays.copyOfRange(data, strides[0]*i, strides[0]*i+dims[1]));
+				s+="[";
+				for(int j = 0; j < dims[1]-1; j++){
+					s+= get(i,j)+", ";
+				}
+				s+= get(i, dims[1]-1) + "]";
 				s+="\n";
 			}
 			return s;
@@ -170,5 +174,38 @@ public class JavaTensor implements Tensor<JavaTensor> {
 		System.arraycopy(data, 0, other.data, 0, data.length);
 		
 		return other;
+	}
+
+	@Override
+	public JavaTensor transpose(JavaTensor res, int d1, int d2) {
+		res = this.clone(res);
+		
+		if(res.dims.length <= d1 || res.dims.length <= d2){
+			int maxd = d1 < d2 ? d2 : d1;
+			
+			int[] newDims = new int[maxd+1];
+			int[] newStrides = new int[maxd+1];
+			
+			System.arraycopy(res.dims, 0, newDims, 0, res.dims.length);
+			System.arraycopy(res.strides, 0, newStrides, 0, res.strides.length);
+			
+			for(int i = res.dims.length; i <= maxd; i++){
+				newDims[i] = 1;
+				newStrides[i] = 1;
+			}
+			
+			res.dims = newDims;
+			res.strides = newStrides;
+		}
+		
+		int tempDim = res.dims[d1];
+		res.dims[d1] = res.dims[d2];
+		res.dims[d2] = tempDim;
+		
+		int tempStride = res.strides[d1];
+		res.strides[d1] = res.strides[d2];
+		res.strides[d2] = tempStride;
+		
+		return res;
 	}
 }

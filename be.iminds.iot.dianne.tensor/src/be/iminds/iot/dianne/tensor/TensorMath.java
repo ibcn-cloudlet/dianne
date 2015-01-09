@@ -57,11 +57,27 @@ public interface TensorMath<T extends Tensor<T>> {
 	public float dot(final T vec1, final T vec2);
 	
 	/**
+	 * Performs the matrix product between vec1 and vec2
+	 * @param res placeholder
+	 * @param vec1 vector of size m
+	 * @param vec2 vector of size n
+	 * @return resulting matrix of size mxn
+	 */
+	public T vv(T res, final T vec1, final T vec2);
+	
+	/**
 	 * Matrix vector product of mat and vec. 
 	 * Sizes must respect the matrix-multiplication operation: 
 	 * if mat is a n x m matrix, vec must be vector of size m and res must be a vector of size n.
 	 */
 	public T mv(T res, final T mat, final T vec);
+	
+	/**
+	 * Matrix vector product of transposed mat and vec. 
+	 * Sizes must respect the matrix-multiplication operation: 
+	 * if mat is a m x n matrix, vec must be vector of size m and res must be a vector of size n.
+	 */
+	public T tmv(T res, final T mat, final T vec);
 	
 	/**
 	 * Matrix matrix product of matensor1 and matensor2. If matensor1 is a n x m matrix, matensor2 a m x p matrix, 
