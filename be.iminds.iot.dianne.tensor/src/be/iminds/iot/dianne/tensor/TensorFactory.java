@@ -2,6 +2,9 @@ package be.iminds.iot.dianne.tensor;
 
 import java.lang.reflect.InvocationTargetException;
 
+import be.iminds.iot.dianne.tensor.impl.java.JavaTensor;
+import be.iminds.iot.dianne.tensor.impl.java.JavaTensorMath;
+
 /**
  * Factory interface to create Tensors and get a suitable TensorMath object for these Tensors.
  * Within a single runtime, every Tensor should be created via the TensorFactory and only the
@@ -39,6 +42,19 @@ public class TensorFactory<T extends Tensor<T>> {
 	
 	public TensorMath<T> getTensorMath(){
 		return math;
+	}
+	
+	public static TensorFactory<?> getFactory(TensorType t){
+		switch(t){
+			case JAVA:
+				return new TensorFactory<JavaTensor>(JavaTensor.class, JavaTensorMath.class);
+			default:
+				throw new IllegalArgumentException("Invalid Tensor type!");
+		}
+	}
+	
+	public enum TensorType{
+		JAVA
 	}
 	
 }
