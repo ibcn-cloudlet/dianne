@@ -160,14 +160,14 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	@Override
 	public JavaTensor addmv(JavaTensor res, final JavaTensor vec1, final JavaTensor mat,
 			JavaTensor vec2) {
-		mv(res, mat, vec2);
+		res = mv(res, mat, vec2);
 		return add(res, vec1, res);
 	}
 
 	@Override
 	public JavaTensor addmm(JavaTensor res, final JavaTensor mat, final JavaTensor mat1,
 			JavaTensor mat2) {
-		mm(res, mat1, mat2);
+		res = mm(res, mat1, mat2);
 		return add(res, mat, res);
 	}
 
