@@ -5,20 +5,21 @@ import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;
+import be.iminds.iot.dianne.tensor.impl.java.JavaTensor;
+import be.iminds.iot.dianne.tensor.impl.java.JavaTensorMath;
 
-public class TensorTest {
+public class TensorTest<T extends Tensor<T>> {
 
-	TensorFactory<?> factory;
+	TensorFactory<T> factory;
 	
     @Before
     public void setUp() {
-        factory = new JavaTensorFactory();
+        factory = new TensorFactory(JavaTensor.class, JavaTensorMath.class);
     }
 	
 	@Test
 	public void test1DTensor() {
-		Tensor<?> t = factory.createTensor(4);
+		T t = factory.createTensor(4);
 		Assert.assertEquals(1, t.dim());
 		Assert.assertEquals(4, t.size());
 		Assert.assertEquals(4, t.size(0));
@@ -30,7 +31,7 @@ public class TensorTest {
 
 	@Test
 	public void test2DTensor() {
-		Tensor<?> t = factory.createTensor(3,4);
+		T t = factory.createTensor(3,4);
 		Assert.assertEquals(2, t.dim());
 		Assert.assertEquals(12, t.size());
 		Assert.assertEquals(3, t.size(0));
@@ -49,7 +50,7 @@ public class TensorTest {
 	
 	@Test
 	public void test3DTensor() {
-		Tensor<?> t = factory.createTensor(2,3,4);
+		T t = factory.createTensor(2,3,4);
 		Assert.assertEquals(3, t.dim());
 		Assert.assertEquals(24, t.size());
 		Assert.assertEquals(2, t.size(0));
@@ -64,9 +65,9 @@ public class TensorTest {
 	
 	@Test
 	public void testEquals() {
-		Tensor t = factory.createTensor(2,2);
-		Tensor t2 = factory.createTensor(2,2);
-		Tensor t3 = factory.createTensor(4);
+		T t = factory.createTensor(2,2);
+		T t2 = factory.createTensor(2,2);
+		T t3 = factory.createTensor(4);
 		
 		Assert.assertEquals(true, t.equals(t2));
 		Assert.assertEquals(false, t.equals(t3));

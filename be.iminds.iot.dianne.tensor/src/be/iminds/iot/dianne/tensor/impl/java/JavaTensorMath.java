@@ -1,12 +1,13 @@
 package be.iminds.iot.dianne.tensor.impl.java;
 
+import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.dianne.tensor.TensorMath;
 
 public class JavaTensorMath implements TensorMath<JavaTensor> {
 
-	private final JavaTensorFactory factory;
+	private final TensorFactory<JavaTensor> factory;
 	
-	JavaTensorMath(JavaTensorFactory factory) {
+	public JavaTensorMath(TensorFactory<JavaTensor> factory) {
 		this.factory = factory;
 	}
 

@@ -11,7 +11,7 @@ public class JavaTensor implements Tensor<JavaTensor> {
 	int[] strides;
 	float[] data;
 	
-	JavaTensor(final int... d){
+	public JavaTensor(final int... d){
 		this(d, null);
 		
 		int size = 1;
@@ -122,7 +122,7 @@ public class JavaTensor implements Tensor<JavaTensor> {
 		if(!(other instanceof Tensor)){
 			return false;
 		} 
-		Tensor o = (Tensor) other;
+		Tensor<?> o = (Tensor<?>) other;
 		
 		if(o.dim() != dims.length){
 			return false;
