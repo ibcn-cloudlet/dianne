@@ -44,15 +44,16 @@ public class MNISTDataset implements Dataset{
 			
 			int noSamples = noImages;
 			inputSize = noRows*noColumns;
-			outputSize = 1;
+			outputSize = 10;
 			int sampleSize = inputSize+outputSize;
 			
 			data = factory.createTensor(noSamples, sampleSize);
-			for(int i=0;i<noSamples;i++){
+			for(int i=0;i<1;i++){
 				for(int j=0;j<sampleSize-1;j++){
 					data.set((float)readUByte(imageInput), i,j);
 				}
-				data.set((float)readUByte(labelInput), i, sampleSize-1);
+				int output = readUByte(labelInput);
+				data.set(1.0f, i, inputSize+output);
 			}
 			
 			imageInput.close();
@@ -89,12 +90,12 @@ public class MNISTDataset implements Dataset{
 
 	@Override
 	public Tensor getOutputSample(int index) {
-		return data.narrow(index, 1, inputSize, 1);
+		return data.narrow(index, 1, inputSize, 10);
 	}
 
 	@Override
 	public Tensor getOutputBatch(int startIndex, int size) {
-		return data.narrow(startIndex, size, inputSize+1, 1);
+		return data.narrow(startIndex, size, inputSize, 10);
 	}
 
 	private int readInt(InputStream is) throws IOException{
