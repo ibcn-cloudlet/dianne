@@ -14,8 +14,13 @@ public class Linear extends AbstractTrainableModule {
 	public Linear(int inSize, int outSize){
 		super();
 		
-		weights = factory.createTensor(outSize, inSize);
-		bias = factory.createTensor(outSize);
+		parameters = factory.createTensor(outSize, inSize+1);
+		gradParameters = factory.createTensor(outSize, inSize+1);
+		
+		weights = parameters.narrow(1, 0, inSize);
+		bias = parameters.narrow(1, inSize, 1);
+		//weights = factory.createTensor(outSize, inSize);
+		//bias = factory.createTensor(outSize);
 		
 		weights.rand();
 		bias.rand();
@@ -33,9 +38,8 @@ public class Linear extends AbstractTrainableModule {
 
 	@Override
 	public void accGradParameters() {
-		// TODO accumulate instead of replace!
-		gradWeights = factory.getTensorMath().vv(gradWeights, gradOutput, input);
-		gradBias = gradOutput.clone(gradBias);
+		gradWeights = factory.getTensorMath().addvv(gradWeights, gradWeights, gradOutput, input);
+		gradBias = factory.getTensorMath().add(gradBias, gradBias, gradOutput);
 	}
 
 }
