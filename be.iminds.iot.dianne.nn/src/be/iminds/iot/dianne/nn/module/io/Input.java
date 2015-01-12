@@ -12,13 +12,11 @@ public class Input extends AbstractModule {
 	
 	@Override
 	protected void forward() {
-		System.out.println("FORWARD INPUT "+id);
 		output = input;
 	}
 
 	@Override
 	protected void backward() {
-		System.out.println("RESULT: "+gradOutput);
 		gradInput = gradOutput;
 	}
 

@@ -10,15 +10,17 @@ public class Output extends AbstractModule {
 		backward(this.id, e);
 	}
 	
+	public Tensor getOutput(){
+		return output;
+	}
+	
 	@Override
 	protected void forward() {
-		System.out.println("RESULT: "+input);
 		output = input;
 	}
 
 	@Override
 	protected void backward() {
-		System.out.println("BACKWARD OUTPUT "+id);
 		gradInput = gradOutput;
 	}
 	
