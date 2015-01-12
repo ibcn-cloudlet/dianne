@@ -220,6 +220,22 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		}
 		return res;
 	}
+	
+	@Override
+	public JavaTensor addvv(JavaTensor res, JavaTensor mat, JavaTensor vec1,
+			JavaTensor vec2) {
+		// TODO check dims?
+		if(res==null){
+			res = factory.createTensor(vec1.size(), vec2.size());
+		}
+		for(int i=0;i<vec1.size();i++){
+			for(int j=0;j<vec2.size();j++){
+				res.set(mat.get(i,j) + vec1.get(i)*vec2.get(j), i, j);
+			}
+		}
+		return res;
+	}
+
 
 	@Override
 	public JavaTensor addmv(JavaTensor res, final JavaTensor vec1, final JavaTensor mat,
@@ -319,6 +335,5 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		mean /= tensor.size();
 		return mean;
 	}
-
 
 }

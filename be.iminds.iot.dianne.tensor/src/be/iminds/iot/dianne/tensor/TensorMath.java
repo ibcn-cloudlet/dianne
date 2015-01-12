@@ -97,6 +97,16 @@ public interface TensorMath<T extends Tensor<T>> {
 	public T mm(T res, final T mat1, final T mat2);
 	
 	/**
+	 * Performs the matrix product between vec1 and vec2 and adds this to mat
+	 * @param res placeholder
+	 * @param mat mxn matrix to add to result
+	 * @param vec1 vector of size m
+	 * @param vec2 vector of size n
+	 * @return resulting matrix of size mxn
+	 */
+	public T addvv(T res, final T mat, final T vec1, final T vec2);
+	
+	/**
 	 * Performs a matrix-vector multiplication between mat (2D tensor) and vec (1D tensor) 
 	 * and add it to vec1. In other words, res = vec1 + mat*vec2
 	 */
