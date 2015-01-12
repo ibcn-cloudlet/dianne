@@ -6,13 +6,9 @@ package be.iminds.iot.dianne.tensor;
  * A Tensor should implement the equals method to check if 
  * two tensors are equal.
  * 
+ * 
  * @author tverbele
  *
- */
-/**
- * @author smbohez
- *
- * @param <T>
  */
 public interface Tensor<T extends Tensor<T>> {
 
@@ -46,23 +42,11 @@ public interface Tensor<T extends Tensor<T>> {
 	public float get(final int... d);
 	
 	/**
-	 * get a value of the tensor using a flat index (seeing it as a 1d vector)
-	 */
-	public float get(final int i);
-	
-	/**
 	 * set a value of the tensor
 	 * @param v the new value
 	 * @param d the indices of the element to set
 	 */
 	public void set(final float v, final int... d);
-
-	/**
-	 * set a value of the tensor using a flat index (seeing it as a 1d vector)
-	 * @param v the new value
-	 * @param i the indices of the element to set
-	 */
-	public void set(final float v, final int i);
 
 	/**
 	 * fill with fixed value
@@ -85,7 +69,27 @@ public interface Tensor<T extends Tensor<T>> {
 	 * @param other the tensor to clone into
 	 * @return the cloned tensor
 	 */
-	public T clone(T other);
+	public T clone(final T other);
 	
-	public T transpose(T res, int d1, int d2);
+	/**
+	 * Return a subtensor narrowing dimension dim from index to index+size-1
+	 */
+	public T narrow(final int dim, final int index, final int size);
+	
+	/**
+	 * Return a subtensor narrowing according to the ranges array. This is interpreted
+	 * as narrowing dimension 1 from ranges[0] to (incl) ranges[1], narrowing dimension 2 from
+	 * ranges[2] to ranges[3], etc.
+	 */
+	public T narrow(final int... ranges);
+	
+	/**
+	 * Return a slice at the given index in dimension dim
+	 */
+	public T select(final int dim, final int index);
+	
+	/**
+	 * calculate the transpose of the tensor
+	 */
+	public T transpose(T res, final int d1, final int d2);
 }

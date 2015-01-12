@@ -8,20 +8,17 @@ import be.iminds.iot.dianne.tensor.Tensor;
 public class JavaTensor implements Tensor<JavaTensor> {
 
 	int[] dims;
+	int offset = 0;
 	int[] strides;
 	float[] data;
 	
 	public JavaTensor(final int... d){
 		this(d, null);
-		
-		int size = 1;
-		for(int i=0;i<d.length;i++){
-			size *= d[i];
-		}
-		data = new float[size];
+	
+		data = new float[size()];
 	}
 
-	JavaTensor(final int[] dims,final float[] data){
+	JavaTensor(final int[] dims, final float[] data){
 		this.dims = dims;
 		this.data = data;
 
@@ -32,7 +29,9 @@ public class JavaTensor implements Tensor<JavaTensor> {
 			stride*= dims[i];
 		}
 		
-		// TODO check data size?
+		if(data!=null){
+			assert data.length == size();
+		}
 	}
 	
 	@Override
@@ -47,7 +46,11 @@ public class JavaTensor implements Tensor<JavaTensor> {
 
 	@Override
 	public int size() {
-		return data.length;
+		int size = 1;
+		for(int i=0;i<dims.length;i++){
+			size *= dims[i];
+		}
+		return size;
 	}
 
 	@Override
@@ -57,35 +60,18 @@ public class JavaTensor implements Tensor<JavaTensor> {
 	
 	@Override
 	public float get(final int... d) {
-		// TODO check indices?
-		int index = 0;
-		for(int i=0;i<d.length;i++){
-			index += strides[i]*d[i];
-		}
+		assert d.length == dims.length;
+		
+		int index = getIndex(d);
 		return data[index];
 	}
 	
 	@Override
-	public float get(final int i) {
-		// TODO check indices?
-		return data[i];
-	}
-
-
-	@Override
 	public void set(final float v, final int... d) {
-		// TODO check indices?
-		int index = 0;
-		for(int i=0;i<d.length;i++){
-			index += strides[i]*d[i];
-		}
+		assert d.length == dims.length;
+		
+		int index = getIndex(d);
 		data[index] = v;
-	}
-
-	@Override
-	public void set(final float v, final int i) {
-		// TODO check indices?
-		data[i] = v;
 	}
 	
 	@Override
@@ -108,31 +94,33 @@ public class JavaTensor implements Tensor<JavaTensor> {
 
 	@Override
 	public void fill(float v) {
-		for(int i=0;i<data.length;i++){
-			data[i] = v;
+		JavaTensorIterator it = iterator();
+		while(it.hasNext()){
+			data[it.next()] = v;
 		}
 	}
 
 	@Override
 	public void rand() {
 		Random r = new Random(System.currentTimeMillis());
-		for(int i=0;i<data.length;i++){
-			data[i] = r.nextFloat();
+		JavaTensorIterator it = iterator();
+		while(it.hasNext()){
+			data[it.next()] = r.nextFloat();
 		}
 	}
 
 	@Override
 	public boolean equals(Object other){
-		if(!(other instanceof Tensor)){
+		if(!(other instanceof JavaTensor)){
 			return false;
 		} 
-		Tensor<?> o = (Tensor<?>) other;
+		JavaTensor o = (JavaTensor) other;
 		
-		if(o.dim() != dims.length){
+		if(o.dim() != dim()){
 			return false;
 		}
 		
-		if(o.size() != data.length){
+		if(o.size() != size()){
 			return false;
 		}
 		
@@ -142,12 +130,13 @@ public class JavaTensor implements Tensor<JavaTensor> {
 			}
 		}
 		
-		for(int i=0;i<data.length;i++){
-			if(o.get(i) != data[i]){
+		JavaTensorIterator it1 = iterator();
+		JavaTensorIterator it2 = o.iterator();
+		while(it1.hasNext()){
+			if(data[it1.next()] != o.data[it2.next()])
 				return false;
-			}
 		}
-		
+	
 		return true;
 		
 	}
@@ -171,11 +160,44 @@ public class JavaTensor implements Tensor<JavaTensor> {
 				|| this.data.length != other.data.length)
 			other = new JavaTensor(dims);
 		
-		System.arraycopy(data, 0, other.data, 0, data.length);
+		JavaTensorIterator it = iterator();
+		int i = 0;
+		while(it.hasNext()){
+			other.data[i++] = data[it.next()];
+		}
 		
 		return other;
 	}
 
+	@Override
+	public JavaTensor narrow(int dim, int index, int size) {
+		int[] narrowDims = dims.clone();
+		JavaTensor narrow = new JavaTensor(narrowDims, data);
+		narrow.dims[dim] = size;
+		int[] start = new int[dims.length];
+		start[dim] = index;
+		narrow.offset = getIndex(start);
+		return narrow;
+	}
+
+	@Override
+	public JavaTensor narrow(int... ranges) {
+		int[] narrowDims = dims.clone();
+		JavaTensor narrow = new JavaTensor(narrowDims, data);
+		int[] start = new int[dims.length];
+		for(int i=0;i<ranges.length/2;i++){
+			start[i] = ranges[2*i];
+			narrow.dims[i] = ranges[2*i+1]-ranges[2*i]+1;
+		}
+		narrow.offset = getIndex(start);
+		return narrow;
+	}
+
+	@Override
+	public JavaTensor select(int dim, int index) {
+		return narrow(dim, index, 1);
+	}
+	
 	@Override
 	public JavaTensor transpose(JavaTensor res, int d1, int d2) {
 		res = this.clone(res);
@@ -207,5 +229,49 @@ public class JavaTensor implements Tensor<JavaTensor> {
 		res.strides[d2] = tempStride;
 		
 		return res;
+	}
+	
+	int getIndex(int[] d){
+		int index = offset;
+		for(int i=0;i<d.length;i++){
+			index += strides[i]*d[i];
+		}
+		return index;
+	}
+	
+	JavaTensorIterator iterator(){
+		return new JavaTensorIterator();
+	}
+	
+	class JavaTensorIterator {
+		private int[] index = new int[dims.length]; // 3D index
+		private int current = 0;
+		private int next = offset; // linear index
+		
+		public int next(){
+			current = next;
+			boolean incremented = false;
+			int dim = dims.length-1;
+			while(!incremented){
+				index[dim]++;
+				if(index[dim]==dims[dim]){
+					index[dim] = 0;
+					dim--;
+				} else {
+					incremented = true;
+					//next+= strides[dim];
+					next = getIndex(index);
+				}
+				if(dim<0){
+					next = -1;
+					incremented = true; 
+				}
+			}
+			return current;
+		}
+		
+		public boolean hasNext(){
+			return next != -1;
+		}
 	}
 }

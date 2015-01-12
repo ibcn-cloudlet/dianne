@@ -2,6 +2,7 @@ package be.iminds.iot.dianne.tensor.impl.java;
 
 import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.dianne.tensor.TensorMath;
+import be.iminds.iot.dianne.tensor.impl.java.JavaTensor.JavaTensorIterator;
 
 public class JavaTensorMath implements TensorMath<JavaTensor> {
 
@@ -20,8 +21,10 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		if(res == null){
 			res = factory.createTensor(t.dims);
 		}
-		for(int i=0;i<res.data.length;i++){
-			res.data[i] = op.apply(t.data[i]);
+		JavaTensorIterator resIt = res.iterator();
+		JavaTensorIterator tIt = t.iterator();
+		while(tIt.hasNext()){
+			res.data[resIt.next()] = op.apply(t.data[tIt.next()]);
 		}
 		return res;
 	}
@@ -31,8 +34,12 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		if(res == null){
 			res = factory.createTensor(t1.dims);
 		}
-		for(int i=0;i<res.data.length;i++){
-			res.data[i] = op.apply(t1.data[i], t2.data[i]);
+		
+		JavaTensorIterator resIt = res.iterator();
+		JavaTensorIterator t1It = t1.iterator();
+		JavaTensorIterator t2It = t2.iterator();
+		while(t1It.hasNext()){
+			res.data[resIt.next()] = op.apply(t1.data[t1It.next()], t2.data[t2It.next()]);
 		}
 		return res;
 	}
@@ -116,10 +123,15 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 
 	@Override
 	public float dot(final JavaTensor vec1, final JavaTensor vec2) {
+		// TODO check dimensions
 		float dot = 0;
-		for(int i=0;i<vec1.data.length;i++){
-			dot+= vec1.data[i] * vec2.data[i];
+		
+		JavaTensorIterator v1It = vec1.iterator();
+		JavaTensorIterator v2It = vec2.iterator();
+		while(v1It.hasNext()){
+			dot+= vec1.data[v1It.next()] * vec2.data[v2It.next()];
 		}
+		
 		return dot;
 	}
 	

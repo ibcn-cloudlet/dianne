@@ -163,26 +163,35 @@ public class TensorMathTest<T extends Tensor<T>> {
 	@Test
 	public void testMm2() {
 		T t1 = factory.createTensor(3,2);
-		for(int i=0;i<6;i++){
-			t1.set(i+1, i);
+		int k = 1; 
+		for(int i=0;i<3;i++){
+			for(int j=0;j<2;j++){
+				t1.set(k, i, j);
+				k++;
+			}
 		}
+		
 		T t2 = factory.createTensor(2,3);
-		for(int i=0;i<6;i++){
-			t2.set(i+1, i);
+		k = 1; 
+		for(int i=0;i<2;i++){
+			for(int j=0;j<3;j++){
+				t2.set(k, i, j);
+				k++;
+			}
 		}
-	
+
 		T r = math.mm(null, t1, t2);
 		
 		T exp = factory.createTensor(3,3);
-		exp.set(9, 0);
-		exp.set(12, 1);
-		exp.set(15, 2);
-		exp.set(19, 3);
-		exp.set(26, 4);
-		exp.set(33, 5);
-		exp.set(29, 6);
-		exp.set(40, 7);
-		exp.set(51, 8);
+		exp.set(9, 0, 0);
+		exp.set(12, 0, 1);
+		exp.set(15, 0, 2);
+		exp.set(19, 1, 0);
+		exp.set(26, 1, 1);
+		exp.set(33, 1, 2);
+		exp.set(29, 2, 0);
+		exp.set(40, 2, 1);
+		exp.set(51, 2, 2);
 		
 		Assert.assertEquals(exp, r);
 	}
