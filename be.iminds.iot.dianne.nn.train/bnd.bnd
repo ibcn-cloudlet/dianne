@@ -3,8 +3,10 @@ Bundle-Version: 0.1.0.${tstamp}
 Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 -buildpath: \
 	be.iminds.iot.dianne.tensor;version=latest,\
-	be.iminds.iot.dianne.nn;version=latest
+	be.iminds.iot.dianne.nn;version=latest,\
+	biz.aQute.junit
 Private-Package: \
 	be.iminds.iot.dianne.nn.train.criterion,\
-	be.iminds.iot.dianne.nn.train.strategy
+	be.iminds.iot.dianne.nn.train.strategy,\
+	be.iminds.iot.dianne.nn.train.dataset
 Export-Package: be.iminds.iot.dianne.nn.train
