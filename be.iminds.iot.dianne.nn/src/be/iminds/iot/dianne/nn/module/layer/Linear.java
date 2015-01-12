@@ -1,9 +1,9 @@
 package be.iminds.iot.dianne.nn.module.layer;
 
-import be.iminds.iot.dianne.nn.module.AbstractModule;
+import be.iminds.iot.dianne.nn.module.AbstractTrainableModule;
 import be.iminds.iot.dianne.tensor.Tensor;
 
-public class Linear extends AbstractModule {
+public class Linear extends AbstractTrainableModule {
 
 	private Tensor weights;
 	private Tensor bias;
@@ -29,7 +29,11 @@ public class Linear extends AbstractModule {
 	@Override
 	protected void backward() {
 		gradInput = factory.getTensorMath().tmv(gradInput, weights, gradOutput);
-		
+	}
+
+	@Override
+	public void accGradParameters() {
+		// TODO accumulate instead of replace!
 		gradWeights = factory.getTensorMath().vv(gradWeights, gradOutput, input);
 		gradBias = gradOutput.clone(gradBias);
 	}
