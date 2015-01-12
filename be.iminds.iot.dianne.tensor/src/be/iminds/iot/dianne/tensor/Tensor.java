@@ -78,8 +78,8 @@ public interface Tensor<T extends Tensor<T>> {
 	
 	/**
 	 * Return a subtensor narrowing according to the ranges array. This is interpreted
-	 * as narrowing dimension 1 from ranges[0] to (incl) ranges[1], narrowing dimension 2 from
-	 * ranges[2] to ranges[3], etc.
+	 * as narrowing dimension 1 from ranges[0] with size ranges[1], narrowing dimension 2 from
+	 * ranges[2] with size ranges[3], etc.
 	 */
 	public T narrow(final int... ranges);
 	

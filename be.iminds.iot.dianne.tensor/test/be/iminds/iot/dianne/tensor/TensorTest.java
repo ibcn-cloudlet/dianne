@@ -147,9 +147,11 @@ public class TensorTest<T extends Tensor<T>> {
 	public void testNarrow3() {
 		T t = factory.createTensor(5,6);
 		
-		T t2 = t.narrow(1,3,2,4);
+		T t2 = t.narrow(1,3,2,3);
 		t2.fill(1);
 	
+		System.out.println(t);
+		
 		for(int i = 0; i < 3; i++)
 			for(int j = 0; j < 3; j++)
 				Assert.assertEquals(1.0f, t2.get(i, j), 0.1f);

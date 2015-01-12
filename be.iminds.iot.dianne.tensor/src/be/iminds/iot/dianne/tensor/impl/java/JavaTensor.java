@@ -187,7 +187,7 @@ public class JavaTensor implements Tensor<JavaTensor> {
 		int[] start = new int[dims.length];
 		for(int i=0;i<ranges.length/2;i++){
 			start[i] = ranges[2*i];
-			narrow.dims[i] = ranges[2*i+1]-ranges[2*i]+1;
+			narrow.dims[i] = ranges[2*i+1];
 		}
 		narrow.offset = getIndex(start);
 		return narrow;
