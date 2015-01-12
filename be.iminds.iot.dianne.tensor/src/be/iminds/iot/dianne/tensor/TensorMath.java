@@ -127,4 +127,24 @@ public interface TensorMath<T extends Tensor<T>> {
 	 * Calculates for each element x*(1-x)
 	 */
 	public T dsigmoid(T res, final T tensor);
+	
+	/**
+	 * Return the sum of all elements
+	 */
+	public float sum(final T tensor);
+	
+	/**
+	 * Return the max of all elements
+	 */
+	public float max(final T tensor);
+	
+	/**
+	 * Return the min of all elements
+	 */
+	public float min(final T tensor);
+	
+	/**
+	 * Return the mean of all elements
+	 */
+	public float mean(final T tensor);
 }

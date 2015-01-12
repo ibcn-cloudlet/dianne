@@ -236,7 +236,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 
 	@Override
-	public JavaTensor tanh(JavaTensor res, JavaTensor tensor) {
+	public JavaTensor tanh(JavaTensor res, final JavaTensor tensor) {
 		Operator tanh = new Operator(){
 			@Override
 			public float apply(float... params) {
@@ -247,7 +247,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 
 	@Override
-	public JavaTensor sigmoid(JavaTensor res, JavaTensor tensor) {
+	public JavaTensor sigmoid(JavaTensor res, final JavaTensor tensor) {
 		Operator sigmoid = new Operator(){
 			@Override
 			public float apply(float... params) {
@@ -258,7 +258,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 
 	@Override
-	public JavaTensor dtanh(JavaTensor res, JavaTensor tensor) {
+	public JavaTensor dtanh(JavaTensor res, final JavaTensor tensor) {
 		Operator dtanh = new Operator(){
 			@Override
 			public float apply(float... params) {
@@ -269,7 +269,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 
 	@Override
-	public JavaTensor dsigmoid(JavaTensor res, JavaTensor tensor) {
+	public JavaTensor dsigmoid(JavaTensor res, final JavaTensor tensor) {
 		Operator dsigmoid = new Operator(){
 			@Override
 			public float apply(float... params) {
@@ -277,6 +277,47 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 			}
 		};
 		return apply(res, dsigmoid, tensor);
+	}
+
+	@Override
+	public float sum(final JavaTensor tensor) {
+		float sum = 0;
+		JavaTensorIterator it = tensor.iterator();
+		while(it.hasNext()){
+			sum+= tensor.data[it.next()];
+		}
+		return sum;
+	}
+
+	@Override
+	public float max(final JavaTensor tensor) {
+		float max = Float.MIN_VALUE;
+		JavaTensorIterator it = tensor.iterator();
+		while(it.hasNext()){
+			float val = tensor.data[it.next()];
+			if(val > max)
+				max = val;
+		}
+		return max;
+	}
+
+	@Override
+	public float min(final JavaTensor tensor) {
+		float min = Float.MAX_VALUE;
+		JavaTensorIterator it = tensor.iterator();
+		while(it.hasNext()){
+			float val = tensor.data[it.next()];
+			if(val < min)
+				min = val;
+		}
+		return min;
+	}
+
+	@Override
+	public float mean(final JavaTensor tensor) {
+		float mean = sum(tensor);
+		mean /= tensor.size();
+		return mean;
 	}
 
 
