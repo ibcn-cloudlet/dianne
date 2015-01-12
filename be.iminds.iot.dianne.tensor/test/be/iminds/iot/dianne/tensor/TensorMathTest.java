@@ -63,6 +63,34 @@ public class TensorMathTest<T extends Tensor<T>> {
 	}
 	
 	@Test
+	public void testSub1() {
+		T t1 = factory.createTensor(2,2);
+		t1.fill(3);
+		
+		T r = math.sub(null, t1, 1);
+		
+		T exp = factory.createTensor(2,2);
+		exp.fill(2);
+		
+		Assert.assertEquals(exp, r);
+	}
+	
+	@Test
+	public void testSub2() {
+		T t1 = factory.createTensor(2,2);
+		t1.fill(3);
+		T t2 = factory.createTensor(4);
+		t2.fill(1);
+		
+		T r = math.sub(null, t1, t2);
+		
+		T exp = factory.createTensor(2,2);
+		exp.fill(2);
+		
+		Assert.assertEquals(exp, r);
+	}
+	
+	@Test
 	public void testMul() {
 		T t1 = factory.createTensor(2,2);
 		t1.fill(2);

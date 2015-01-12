@@ -29,6 +29,17 @@ public interface TensorMath<T extends Tensor<T>> {
 	public T add(T res, final T tensor1, final float value, final T tensor2);
 	
 	/**
+	 * Subract the given value of all elements in the T.
+	 */
+	public T sub(T res, final T tensor, final float value);
+	
+	/**
+	 * Subtract tensor2 from tensor1 and put result into res. 
+	 * The number of elements must match, but sizes do not matter.
+	 */
+	public T sub(T res, final T tensor1, final T tensor2);
+	
+	/**
 	 * Multiply all elements in the T by the given value.
 	 */
 	public T mul(T res, final T tensor1, final float value);

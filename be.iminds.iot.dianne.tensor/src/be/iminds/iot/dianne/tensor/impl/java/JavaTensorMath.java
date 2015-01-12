@@ -78,6 +78,28 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 
 	@Override
+	public JavaTensor sub(JavaTensor res, JavaTensor tensor, float value) {
+		Operator sub = new Operator(){
+			@Override
+			public float apply(float... params) {
+				return params[0] - value;
+			}
+		};
+		return apply(res, sub, tensor);
+	}
+
+	@Override
+	public JavaTensor sub(JavaTensor res, JavaTensor tensor1, JavaTensor tensor2) {
+		Operator sub = new Operator(){
+			@Override
+			public float apply(float... params) {
+				return params[0] - params[1];
+			}
+		};
+		return apply(res, sub, tensor1, tensor2);
+	}
+	
+	@Override
 	public JavaTensor mul(JavaTensor res, final JavaTensor tensor, final float value) {
 		Operator mul = new Operator(){
 			@Override
@@ -256,4 +278,6 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		};
 		return apply(res, dsigmoid, tensor);
 	}
+
+
 }
