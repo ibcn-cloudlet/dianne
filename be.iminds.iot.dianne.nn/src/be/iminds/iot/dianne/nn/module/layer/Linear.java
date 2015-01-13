@@ -20,8 +20,8 @@ public class Linear extends AbstractTrainableModule {
 		weights = parameters.narrow(1, 0, inSize);
 		bias = parameters.narrow(1, inSize, 1);
 
-		gradWeights = factory.createTensor(outSize, inSize);
-		gradBias = factory.createTensor(outSize);
+		gradWeights = gradParameters.narrow(1, 0, inSize);
+		gradBias = gradParameters.narrow(1, inSize, 1);
 				
 		weights.rand();
 		bias.rand();
