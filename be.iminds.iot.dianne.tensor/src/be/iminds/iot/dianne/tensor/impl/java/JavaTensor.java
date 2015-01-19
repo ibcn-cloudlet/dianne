@@ -7,6 +7,8 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 public class JavaTensor implements Tensor<JavaTensor> {
 
+	static Random random = new Random(System.currentTimeMillis());
+	
 	int[] dims;
 	int offset = 0;
 	int[] strides;
@@ -114,10 +116,17 @@ public class JavaTensor implements Tensor<JavaTensor> {
 
 	@Override
 	public void rand() {
-		Random r = new Random(System.currentTimeMillis());
 		JavaTensorIterator it = iterator();
 		while(it.hasNext()){
-			data[it.next()] = r.nextFloat();
+			data[it.next()] = random.nextFloat();
+		}
+	}
+	
+	@Override
+	public void grand() {
+		JavaTensorIterator it = iterator();
+		while(it.hasNext()){
+			data[it.next()] = (float) random.nextGaussian();
 		}
 	}
 

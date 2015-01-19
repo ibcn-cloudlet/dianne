@@ -55,9 +55,14 @@ public interface Tensor<T extends Tensor<T>> {
 	public void fill(final float v);
 
 	/**
-	 * fill with random values
+	 * fill with random values uniformely distributed between 0 and 1
 	 */
 	public void rand();
+
+	/**
+	 * fill with random values Gaussian ("normally") distributed with mean 0.0 and standard deviation 1.0
+	 */
+	public void grand();
 	
 	/**
 	 * check if other tensor has same dimensions
