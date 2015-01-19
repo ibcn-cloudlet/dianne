@@ -23,8 +23,8 @@ public class Linear extends AbstractTrainableModule {
 		gradWeights = gradParameters.narrow(1, 0, inSize);
 		gradBias = gradParameters.narrow(1, inSize, 1);
 				
-		weights.rand();
-		bias.rand();
+		weights.grand();
+		bias.grand();
 	}
 	
 	@Override
