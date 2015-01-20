@@ -97,4 +97,9 @@ public interface Tensor<T extends Tensor<T>> {
 	 * calculate the transpose of the tensor
 	 */
 	public T transpose(T res, final int d1, final int d2);
+	
+	/**
+	 * return the diag vec of the tensor
+	 */
+	public T diag(T res);
 }

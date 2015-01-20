@@ -178,4 +178,19 @@ public class TensorTest<T extends Tensor<T>> {
 		Assert.assertEquals(true, t3.equals(t2));
 		Assert.assertEquals(3, t3.size());
 	}
+	
+	@Test
+	public void testDiag() {
+		T t = factory.createTensor(3,3);
+		for(int i = 0; i < 3; i++)
+			for(int j = 0; j < 3; j++)
+				t.set(i*2+j, i, j);
+		
+		T diag = t.diag(null);
+		T expected = factory.createTensor(3);
+		expected.set(0.0f, 0);
+		expected.set(3.0f, 1);
+		expected.set(6.0f, 2);
+		Assert.assertEquals(expected, diag);
+	}
 }

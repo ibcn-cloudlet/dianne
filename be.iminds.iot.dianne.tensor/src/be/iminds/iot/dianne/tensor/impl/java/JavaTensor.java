@@ -252,6 +252,18 @@ public class JavaTensor implements Tensor<JavaTensor> {
 		return res;
 	}
 	
+	@Override
+	public JavaTensor diag(JavaTensor res) {
+		// TODO check if tensor is nxn matrix?
+		if(res==null){
+			res = new JavaTensor(dims[0]);
+		}
+		for(int i=0;i<dims[0];i++){
+			res.set(get(i,i), i);
+		}
+		return res;
+	}
+	
 	int getIndex(int[] d){
 		int index = offset;
 		for(int i=0;i<d.length;i++){
