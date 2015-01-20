@@ -119,7 +119,7 @@ public class MNISTDataset implements Dataset{
 			try {
 				for(;read<=index && read<noSamples;read++){
 					for(int j=0;j<inputSize;j++){
-						data.set((float)readUByte(imageInput), read,j);
+						data.set((float)readUByte(imageInput)/255f, read,j);
 					}
 					int output = readUByte(labelInput);
 					data.set(1.0f, read, inputSize+output);
