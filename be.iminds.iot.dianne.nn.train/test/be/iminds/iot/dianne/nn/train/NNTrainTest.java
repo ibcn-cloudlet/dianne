@@ -7,7 +7,7 @@ import junit.framework.Assert;
 import org.junit.Test;
 
 import be.iminds.iot.dianne.nn.module.Trainable;
-import be.iminds.iot.dianne.nn.module.activation.Tanh;
+import be.iminds.iot.dianne.nn.module.activation.Sigmoid;
 import be.iminds.iot.dianne.nn.module.container.Sequential;
 import be.iminds.iot.dianne.nn.module.io.Input;
 import be.iminds.iot.dianne.nn.module.io.Output;
@@ -28,7 +28,7 @@ public class NNTrainTest {
 		Assert.assertEquals(28*28, mnist.inputSize());
 		Assert.assertEquals(10, mnist.outputSize());
 		Tensor output = mnist.getOutputSample(0);
-
+		
 		Assert.assertEquals(0.0f, mnist.getOutputSample(0).get(0), 0.1f);
 		Assert.assertEquals(1.0f, mnist.getOutputSample(0).get(5), 0.1f);
 		Assert.assertEquals(0.0f, mnist.getOutputSample(0).get(9), 0.1f);
@@ -39,7 +39,7 @@ public class NNTrainTest {
 		Dataset data = new MNISTDataset();
 		
 		int noInput = data.inputSize();
-		int noHidden = 1500;
+		int noHidden = 20;
 		int noOutput = data.outputSize();
 		
 		Input in = new Input();
@@ -53,9 +53,9 @@ public class NNTrainTest {
 		Sequential nn = new Sequential();
 		nn.add(in);
 		nn.add(l1);
-		nn.add(new Tanh());
+		nn.add(new Sigmoid());
 		nn.add(l2);
-		nn.add(new Tanh());
+		nn.add(new Sigmoid());
 		nn.add(out);
 		
 		
