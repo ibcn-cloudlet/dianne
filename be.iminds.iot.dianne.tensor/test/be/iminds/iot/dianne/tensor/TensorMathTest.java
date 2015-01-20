@@ -261,4 +261,23 @@ public class TensorMathTest<T extends Tensor<T>> {
 		
 		Assert.assertEquals(2.25, math.mean(t1), 0.1f);
 	}
+	
+	@Test
+	public void testArgMax() {
+		T t1 = factory.createTensor(4);
+		t1.fill(2);
+		t1.set(0, 0);
+		t1.set(5, 3);
+		
+		Assert.assertEquals(3, math.argmax(t1));
+	}
+	
+	@Test
+	public void testArgMin() {
+		T t1 = factory.createTensor(4);
+		t1.fill(2);
+		t1.set(0, 0);
+		t1.set(5, 3);
+		Assert.assertEquals(0, math.argmin(t1));
+	}
 }

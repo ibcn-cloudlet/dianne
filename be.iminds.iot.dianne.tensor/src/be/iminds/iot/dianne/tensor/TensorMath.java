@@ -157,4 +157,14 @@ public interface TensorMath<T extends Tensor<T>> {
 	 * Return the mean of all elements
 	 */
 	public float mean(final T tensor);
+	
+	/**
+	 * Return index of the max element (treats T as 1 dim vector)
+	 */
+	public int argmax(final T tensor);
+	
+	/**
+	 * Return index of the min element (treats T as 1 dim vector)
+	 */
+	public int argmin(final T tensor);
 }

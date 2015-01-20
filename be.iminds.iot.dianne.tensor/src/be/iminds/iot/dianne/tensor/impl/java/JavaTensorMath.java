@@ -336,4 +336,39 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		return mean;
 	}
 
+	@Override
+	public int argmax(JavaTensor tensor) {
+		float max = Float.MIN_VALUE;
+		int index = -1;
+		JavaTensorIterator it = tensor.iterator();
+		int i = 0;
+		while(it.hasNext()){
+			float val = tensor.data[it.next()];
+			if(val > max){
+				max = val;
+				index = i;
+			}
+			i++;
+		}
+		return index;
+	}
+	
+	
+	@Override
+	public int argmin(final JavaTensor tensor) {
+		float min = Float.MAX_VALUE;
+		int index = -1;
+		JavaTensorIterator it = tensor.iterator();
+		int i = 0;
+		while(it.hasNext()){
+			float val = tensor.data[it.next()];
+			if(val < min){
+				min = val;
+				index = i;
+			}
+			i++;
+		}
+		return index;
+	}
+
 }
