@@ -9,6 +9,7 @@ import be.iminds.iot.dianne.nn.module.io.Output;
 public interface Trainer {
 
 	// TODO better specify the neural network to train?
-	public void train(Input input, Output output, List<Trainable> module, Criterion criterion, Dataset data);
+	public void train(final Input input, final Output output, 
+			final List<Trainable> module, final Criterion criterion, final Dataset data);
 	
 }
