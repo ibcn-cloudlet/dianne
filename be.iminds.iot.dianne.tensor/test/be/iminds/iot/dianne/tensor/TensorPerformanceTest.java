@@ -11,6 +11,7 @@ public class TensorPerformanceTest<T extends Tensor<T>> {
 
 	private TensorFactory<T> factory;
 	private TensorMath<T> math;
+	private int count = 10;
 	
 	private int outSize = 1500;
 	private int inSize = 28*28;
@@ -56,31 +57,37 @@ public class TensorPerformanceTest<T extends Tensor<T>> {
 	@Test
 	public void testAddmv() {
 		long t1 = System.currentTimeMillis();
-		output = math.addmv(output, bias, weights, input);
+		for(int i=0;i<count;i++)
+			output = math.addmv(output, bias, weights, input);
 		long t2 = System.currentTimeMillis();
 		
-		System.out.println("addmv: "+(t2-t1)+" ms");
-		Assert.assertTrue((t2-t1)<5);
+		float time = (float)(t2-t1)/count;
+		System.out.println("addmv: "+time+" ms");
+		Assert.assertTrue((time)<5);
 	}
 	
 	@Test
 	public void testTmv(){
 		long t1 = System.currentTimeMillis();
-		gradInput = math.tmv(gradInput, weights, gradOutput);
+		for(int i=0;i<count;i++)
+			gradInput = math.tmv(gradInput, weights, gradOutput);
 		long t2 = System.currentTimeMillis();
 		
-		System.out.println("tmv: "+(t2-t1)+" ms");
-		Assert.assertTrue((t2-t1)<5);
+		float time = (float)(t2-t1)/count;
+		System.out.println("tmv: "+time+" ms");
+		Assert.assertTrue((time)<5);
 	}
 
 	@Test
 	public void testAddvv(){
 		long t1 = System.currentTimeMillis();
-		gradWeights = factory.getTensorMath().addvv(gradWeights, gradWeights, gradOutput, input);
+		for(int i=0;i<count;i++)
+			gradWeights = factory.getTensorMath().addvv(gradWeights, gradWeights, gradOutput, input);
 		long t2 = System.currentTimeMillis();
 		
-		System.out.println("addvv: "+(t2-t1)+" ms");
-		Assert.assertTrue((t2-t1)<5);
+		float time = (float)(t2-t1)/count;
+		System.out.println("addvv: "+time+" ms");
+		Assert.assertTrue((time)<5);
 	}
 
 }
