@@ -12,6 +12,17 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 public class StochasticGradient implements Trainer {
 
+	private int batchSize = 10;
+	private int noEpochs = 1;
+	
+	public StochasticGradient() {	
+	}
+	
+	public StochasticGradient(int batchSize, int noEpochs) {
+		this.batchSize = batchSize;
+		this.noEpochs = noEpochs;
+	}
+	
 	@Override
 	public void train(Input input, Output output, List<Trainable> modules, 
 			Criterion criterion, Dataset data) {
@@ -19,11 +30,12 @@ public class StochasticGradient implements Trainer {
 		
 		// Training procedure
 		int batchSize = 10;
-		int noEpochs = 10;
+		int noEpochs = 1;
 		
 		for(int epoch=0;epoch<noEpochs;epoch++){
 			
 			System.out.println(epoch);
+			long t1 = System.currentTimeMillis();
 			
 			int batch = 0;
 			for(int i=0;i<data.size();i++){
@@ -34,20 +46,10 @@ public class StochasticGradient implements Trainer {
 				// Forward through input module
 				input.forward(input.getId(), in);
 				
-//				// TODO output callback/sync execution flag?
-//				try {
-//					Thread.sleep(100);
-//				} catch (InterruptedException e) {}
-				
 				Tensor mse = criterion.forward(output.getOutput(), data.getOutputSample(i));
 				
 				// Backward through output module
 				output.backward(output.getId(), criterion.backward(output.getOutput(), data.getOutputSample(i)));
-			
-//				// TODO input callback/sync execution flag?
-//				try {
-//					Thread.sleep(100);
-//				} catch (InterruptedException e) {}
 				
 				// accGradParameters for all trainable modules
 				for(Trainable m : modules){
@@ -64,9 +66,11 @@ public class StochasticGradient implements Trainer {
 					batch = 0;
 				}
 			}
+			
+			long t2 = System.currentTimeMillis();
+			System.out.println("Training time per sample: "+(double)(t2-t1)/(double)data.size()+" ms");
 		}
 		// repeat
-			
 			
 	}
 

@@ -17,6 +17,7 @@ public class ArgMaxEvaluator implements Evaluator {
 		Tensor confusion = factory.createTensor(data.outputSize(), data.outputSize());
 		confusion.fill(0.0f);
 		
+		long t1 = System.currentTimeMillis();
 		for(int i=0;i<data.size();i++){
 
 			// Read samples from dataset
@@ -31,6 +32,8 @@ public class ArgMaxEvaluator implements Evaluator {
 			
 			confusion.set(confusion.get(real, predicted)+1, real, predicted);
 		}
+		long t2 = System.currentTimeMillis();
+		System.out.println("Forward time per sample: "+(double)(t2-t1)/(double)data.size()+" ms");
 		
 		return new Evaluation(confusion);
 	}
