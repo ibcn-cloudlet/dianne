@@ -289,11 +289,11 @@ public class JavaTensor implements Tensor<JavaTensor> {
 				index[dim]++;
 				if(index[dim]==dims[dim]){
 					index[dim] = 0;
+					next-=strides[dim]*(dims[dim]-1);
 					dim--;
 				} else {
 					incremented = true;
-					//next+= strides[dim];
-					next = getIndex(index);
+					next+= strides[dim];
 				}
 				if(dim<0){
 					next = -1;
