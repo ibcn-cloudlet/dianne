@@ -13,6 +13,7 @@ public class JavaTensor implements Tensor<JavaTensor> {
 	int offset = 0;
 	int[] strides;
 	float[] data;
+	int[] indices = null;
 	
 	public JavaTensor(final int... d){
 		this(d, null);
@@ -198,6 +199,9 @@ public class JavaTensor implements Tensor<JavaTensor> {
 		int[] start = new int[dims.length];
 		start[dim] = index;
 		narrow.offset = getIndex(start);
+		
+		narrow.generateIndices();
+		
 		return narrow;
 	}
 
@@ -211,6 +215,9 @@ public class JavaTensor implements Tensor<JavaTensor> {
 			narrow.dims[i] = ranges[2*i+1];
 		}
 		narrow.offset = getIndex(start);
+		
+		narrow.generateIndices();
+		
 		return narrow;
 	}
 
@@ -273,10 +280,29 @@ public class JavaTensor implements Tensor<JavaTensor> {
 	}
 	
 	JavaTensorIterator iterator(){
-		return new JavaTensorIterator();
+		if(indices!=null){
+			return new JavaTensorIteratorIndices();
+		} else {
+			return new JavaTensorIteratorSimple();
+		}
 	}
 	
-	class JavaTensorIterator {
+	
+	private void generateIndices(){
+		JavaTensorIterator it = new JavaTensorIteratorStart();
+		int i = 0;
+		indices = new int[size()];
+		while(it.hasNext()){
+			indices[i++] = it.next();
+		}
+	}
+	
+	interface JavaTensorIterator {
+		public int next();
+		public boolean hasNext();
+	}
+	
+	class JavaTensorIteratorStart implements JavaTensorIterator {
 		private int[] index = new int[dims.length]; // 3D index
 		private int current = 0;
 		private int next = offset; // linear index
@@ -308,15 +334,27 @@ public class JavaTensor implements Tensor<JavaTensor> {
 		}
 	}
 	
-//	class JavaTensorIterator {
-//		private int next = offset; // linear index
-//		
-//		public int next(){
-//			return next++;
-//		}
-//		
-//		public boolean hasNext(){
-//			return next < data.length;
-//		}
-//	}
+	class JavaTensorIteratorSimple implements JavaTensorIterator {
+		private int next = 0;
+		
+		public int next(){
+			return next++;
+		}
+		
+		public boolean hasNext(){
+			return next < data.length;
+		}
+	}
+	
+	class JavaTensorIteratorIndices implements JavaTensorIterator {
+		private int next = 0; // linear index
+		
+		public int next(){
+			return indices[next++];
+		}
+		
+		public boolean hasNext(){
+			return next < indices.length;
+		}
+	}
 }
