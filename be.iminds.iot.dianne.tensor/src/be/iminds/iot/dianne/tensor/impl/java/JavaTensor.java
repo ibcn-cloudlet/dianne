@@ -307,4 +307,16 @@ public class JavaTensor implements Tensor<JavaTensor> {
 			return next != -1;
 		}
 	}
+	
+//	class JavaTensorIterator {
+//		private int next = offset; // linear index
+//		
+//		public int next(){
+//			return next++;
+//		}
+//		
+//		public boolean hasNext(){
+//			return next < data.length;
+//		}
+//	}
 }

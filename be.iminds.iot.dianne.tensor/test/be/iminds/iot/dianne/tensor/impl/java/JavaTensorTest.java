@@ -106,4 +106,25 @@ public class JavaTensorTest {
 			i++;
 		}
 	}
+	
+	@Test
+	public void testIterator(){
+		JavaTensor t = new JavaTensor(100000000);
+		
+		long t1 = System.currentTimeMillis();
+		for(int i=0;i<t.data.length;i++){
+			t.data[i] = 3.0f;
+		}
+		long t2 = System.currentTimeMillis();
+		JavaTensorIterator it = t.iterator();
+		while(it.hasNext()){
+			t.data[it.next()] = 3.0f;
+		}
+		
+		long t3 = System.currentTimeMillis();
+		
+		System.out.println("it:"+(t3-t2)+" loop:"+(t2-t1));
+		
+		
+	}
 }

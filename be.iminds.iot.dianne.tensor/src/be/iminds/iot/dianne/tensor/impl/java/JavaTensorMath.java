@@ -177,12 +177,15 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		if(res==null){
 			res = factory.createTensor(mat.dims[0]);
 		}
-		for(int i=0;i<mat.dims[0];i++){
+		JavaTensorIterator it = mat.iterator();
+		JavaTensorIterator rIt = res.iterator();
+		while(it.hasNext()){
 			float v = 0;
-			for(int j=0;j<mat.dims[1];j++){
-				v+= mat.get(i,j) * vec.get(j);
+			JavaTensorIterator vIt = vec.iterator();
+			while(vIt.hasNext()){
+				v+= mat.data[it.next()]*vec.data[vIt.next()];
 			}
-			res.set(v, i);
+			res.data[rIt.next()] = v;
 		}
 		return res;
 	}
@@ -193,12 +196,17 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		if(res==null){
 			res = factory.createTensor(mat.dims[1]);
 		}
-		for(int i=0;i<mat.dims[1];i++){
-			float v = 0;
-			for(int j=0;j<mat.dims[0];j++){
-				v+= mat.get(j,i) * vec.get(j);
+		res.fill(0.0f);
+		JavaTensorIterator mIt = mat.iterator();
+		JavaTensorIterator rIt = res.iterator();
+		JavaTensorIterator vIt = vec.iterator();
+		int vi = vIt.next();
+		while(mIt.hasNext()){
+			if(!rIt.hasNext()){
+				rIt = res.iterator();
+				vi = vIt.next();
 			}
-			res.set(v, i);
+			res.data[rIt.next()] += mat.data[mIt.next()]*vec.data[vi];	
 		}
 		return res;
 	}
@@ -228,10 +236,17 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		if(res==null){
 			res = factory.createTensor(vec1.size(), vec2.size());
 		}
-		for(int i=0;i<vec1.size();i++){
-			for(int j=0;j<vec2.size();j++){
-				res.set(mat.get(i,j) + vec1.get(i)*vec2.get(j), i, j);
+		JavaTensorIterator mIt = mat.iterator();
+		JavaTensorIterator rIt = res.iterator();
+		JavaTensorIterator v1It = vec1.iterator();
+		JavaTensorIterator v2It = vec2.iterator();
+		int v1i = v1It.next();
+		while(mIt.hasNext()){
+			if(!v2It.hasNext()){
+				v2It = vec2.iterator();
+				v1i = v1It.next();
 			}
+			res.data[rIt.next()] = mat.data[mIt.next()] + vec1.data[v1i]*vec2.data[v2It.next()];
 		}
 		return res;
 	}
@@ -240,8 +255,21 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	@Override
 	public JavaTensor addmv(JavaTensor res, final JavaTensor vec1, final JavaTensor mat,
 			JavaTensor vec2) {
-		res = mv(res, mat, vec2);
-		return add(res, vec1, res);
+		if(res==null){
+			res = factory.createTensor(mat.dims[0]);
+		}
+		JavaTensorIterator it = mat.iterator();
+		JavaTensorIterator rIt = res.iterator();
+		JavaTensorIterator aIt = vec1.iterator();
+		while(it.hasNext()){
+			float v = 0;
+			JavaTensorIterator vIt = vec2.iterator();
+			while(vIt.hasNext()){
+				v+= mat.data[it.next()]*vec2.data[vIt.next()];
+			}
+			res.data[rIt.next()] = v + vec1.data[aIt.next()];
+		}
+		return res;
 	}
 
 	@Override
