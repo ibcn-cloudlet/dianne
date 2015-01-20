@@ -8,5 +8,6 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 Private-Package: \
 	be.iminds.iot.dianne.nn.train.criterion,\
 	be.iminds.iot.dianne.nn.train.strategy,\
-	be.iminds.iot.dianne.nn.train.dataset
+	be.iminds.iot.dianne.nn.train.dataset,\
+	be.iminds.iot.dianne.nn.train.eval
 Export-Package: be.iminds.iot.dianne.nn.train
