@@ -12,6 +12,8 @@ public class MNISTDataset implements Dataset{
 
 	protected static final TensorFactory factory = TensorFactory.getFactory(TensorFactory.TensorType.JAVA);
 	
+	public static enum Set {TRAIN, TEST};
+	
 	private Tensor data;
 	private int inputSize;
 	private int outputSize;
@@ -22,15 +24,26 @@ public class MNISTDataset implements Dataset{
 	private InputStream imageInput;
 	private InputStream labelInput;
 	
-	private String dir = "/home/tverbele/MNIST/";
+	private String dir = "";
+	private String images;
+	private String labels;
 	
-	public MNISTDataset() {
+	
+	public MNISTDataset(String dir, Set set) {
+		this.dir = dir;
+		if(set == Set.TRAIN){
+			images = "train-images.idx3-ubyte";
+			labels = "train-labels.idx1-ubyte";
+		} else if(set == Set.TEST){
+			images = "t10k-images.idx3-ubyte";
+			labels = "t10k-labels.idx1-ubyte";			
+		}
 		init();
 	}
 	
 	public void init(){
 		try {
-			imageInput = new FileInputStream(dir+"train-images.idx3-ubyte");
+			imageInput = new FileInputStream(dir+images);
 
 			int magic = readInt(imageInput);
 			assert magic == 2051;
@@ -38,7 +51,7 @@ public class MNISTDataset implements Dataset{
 			int noRows = readInt(imageInput);
 			int noColumns = readInt(imageInput);
 			
-			labelInput = new FileInputStream(dir+"train-labels.idx1-ubyte");
+			labelInput = new FileInputStream(dir+labels);
 			magic = readInt(labelInput);
 			assert magic == 2049;
 			int noLabels = readInt(labelInput);

@@ -14,6 +14,7 @@ import be.iminds.iot.dianne.nn.module.io.Output;
 import be.iminds.iot.dianne.nn.module.layer.Linear;
 import be.iminds.iot.dianne.nn.train.criterion.MSECriterion;
 import be.iminds.iot.dianne.nn.train.dataset.MNISTDataset;
+import be.iminds.iot.dianne.nn.train.dataset.MNISTDataset.Set;
 import be.iminds.iot.dianne.nn.train.strategy.StochasticGradient;
 import be.iminds.iot.dianne.tensor.Tensor;
 
@@ -22,7 +23,7 @@ public class NNTrainTest {
 	@Test
 	public void testMNIST() {
 		
-		Dataset mnist = new MNISTDataset();
+		Dataset mnist = new MNISTDataset("/home/tverbele/MNIST/", Set.TRAIN);
 		
 		Assert.assertEquals(60000, mnist.size());
 		Assert.assertEquals(28*28, mnist.inputSize());
@@ -32,11 +33,17 @@ public class NNTrainTest {
 		Assert.assertEquals(0.0f, mnist.getOutputSample(0).get(0), 0.1f);
 		Assert.assertEquals(1.0f, mnist.getOutputSample(0).get(5), 0.1f);
 		Assert.assertEquals(0.0f, mnist.getOutputSample(0).get(9), 0.1f);
+		
+		Dataset mnist2 = new MNISTDataset("/home/tverbele/MNIST/", Set.TEST);
+		
+		Assert.assertEquals(10000, mnist2.size());
+		Assert.assertEquals(28*28, mnist2.inputSize());
+		Assert.assertEquals(10, mnist2.outputSize());
 	}
 
 	@Test
 	public void testStochasticGradientTraining(){
-		Dataset data = new MNISTDataset();
+		Dataset data = new MNISTDataset("/home/tverbele/MNIST/", Set.TRAIN);
 		
 		int noInput = data.inputSize();
 		int noHidden = 20;
