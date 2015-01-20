@@ -82,15 +82,5 @@ public class TensorPerformanceTest<T extends Tensor<T>> {
 		System.out.println("addvv: "+(t2-t1)+" ms");
 		Assert.assertTrue((t2-t1)<5);
 	}
-	
-	@Test
-	public void testAdd(){
-		long t1 = System.currentTimeMillis();
-		gradBias = factory.getTensorMath().add(gradBias, gradBias, gradOutput);
-		long t2 = System.currentTimeMillis();
-		
-		System.out.println("addvv: "+(t2-t1)+" ms");
-		Assert.assertTrue((t2-t1)<5);
-	}
 
 }
