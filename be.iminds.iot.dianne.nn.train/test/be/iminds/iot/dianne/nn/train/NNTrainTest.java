@@ -2,7 +2,6 @@ package be.iminds.iot.dianne.nn.train;
 
 import java.util.ArrayList;
 
-import jdk.nashorn.internal.runtime.regexp.JoniRegExp.Factory;
 import junit.framework.Assert;
 
 import org.junit.Before;
