@@ -29,6 +29,14 @@ public class MNISTDataset implements Dataset{
 	private String labels;
 	
 	
+	public MNISTDataset(String dir, Set set, boolean readOnInit){
+		this(dir, set);
+		
+		if(readOnInit){
+			read(noSamples);
+		}
+	}
+	
 	public MNISTDataset(String dir, Set set) {
 		this.dir = dir;
 		if(set == Set.TRAIN){

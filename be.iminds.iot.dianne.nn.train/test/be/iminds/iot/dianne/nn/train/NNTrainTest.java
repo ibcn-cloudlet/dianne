@@ -90,7 +90,7 @@ public class NNTrainTest {
 	
 	@Test
 	public void testStochasticGradientTraining(){
-		Dataset train = new MNISTDataset(mnistDir, Set.TRAIN);
+		Dataset train = new MNISTDataset(mnistDir, Set.TRAIN, true);
 		
 		int noInput = train.inputSize();
 		int noHidden = 20;
@@ -119,7 +119,7 @@ public class NNTrainTest {
 		
 		// now evaluate
 		System.out.println("Training done ... now evaluate...");
-		Dataset test = new MNISTDataset(mnistDir, Set.TEST);
+		Dataset test = new MNISTDataset(mnistDir, Set.TEST, true);
 		Evaluator eval = new ArgMaxEvaluator();
 		Evaluation result = eval.evaluate(in, out, test);
 		
