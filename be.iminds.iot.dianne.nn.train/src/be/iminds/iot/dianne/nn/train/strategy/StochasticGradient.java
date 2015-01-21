@@ -2,9 +2,9 @@ package be.iminds.iot.dianne.nn.train.strategy;
 
 import java.util.List;
 
+import be.iminds.iot.dianne.nn.module.Input;
+import be.iminds.iot.dianne.nn.module.Output;
 import be.iminds.iot.dianne.nn.module.Trainable;
-import be.iminds.iot.dianne.nn.module.io.Input;
-import be.iminds.iot.dianne.nn.module.io.Output;
 import be.iminds.iot.dianne.nn.train.Criterion;
 import be.iminds.iot.dianne.nn.train.Dataset;
 import be.iminds.iot.dianne.nn.train.Trainer;
@@ -49,7 +49,7 @@ public class StochasticGradient implements Trainer {
 				Tensor mse = criterion.forward(output.getOutput(), data.getOutputSample(i));
 				
 				// Backward through output module
-				output.backward(output.getId(), criterion.backward(output.getOutput(), data.getOutputSample(i)));
+				output.backpropagate(criterion.backward(output.getOutput(), data.getOutputSample(i)));
 				
 				// accGradParameters for all trainable modules
 				for(Trainable m : modules){

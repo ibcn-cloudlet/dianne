@@ -7,11 +7,13 @@ import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import be.iminds.iot.dianne.nn.module.Input;
+import be.iminds.iot.dianne.nn.module.Output;
 import be.iminds.iot.dianne.nn.module.Trainable;
 import be.iminds.iot.dianne.nn.module.activation.Sigmoid;
 import be.iminds.iot.dianne.nn.module.container.Sequential;
-import be.iminds.iot.dianne.nn.module.io.Input;
-import be.iminds.iot.dianne.nn.module.io.Output;
+import be.iminds.iot.dianne.nn.module.io.InputImpl;
+import be.iminds.iot.dianne.nn.module.io.OutputImpl;
 import be.iminds.iot.dianne.nn.module.layer.Linear;
 import be.iminds.iot.dianne.nn.train.criterion.MSECriterion;
 import be.iminds.iot.dianne.nn.train.dataset.MNISTDataset;
@@ -94,8 +96,8 @@ public class NNTrainTest {
 		int noHidden = 20;
 		int noOutput = train.outputSize();
 		
-		Input in = new Input();
-		Output out = new Output();
+		Input in = new InputImpl();
+		Output out = new OutputImpl();
 		Linear l1 = new Linear(noInput, noHidden);
 		Linear l2 = new Linear(noHidden, noOutput);
 		ArrayList<Trainable> modules = new ArrayList<Trainable>();

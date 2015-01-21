@@ -3,10 +3,12 @@ package be.iminds.iot.dianne.nn;
 import org.junit.Before;
 import org.junit.Test;
 
+import be.iminds.iot.dianne.nn.module.Input;
+import be.iminds.iot.dianne.nn.module.Output;
 import be.iminds.iot.dianne.nn.module.activation.Tanh;
 import be.iminds.iot.dianne.nn.module.container.Sequential;
-import be.iminds.iot.dianne.nn.module.io.Input;
-import be.iminds.iot.dianne.nn.module.io.Output;
+import be.iminds.iot.dianne.nn.module.io.InputImpl;
+import be.iminds.iot.dianne.nn.module.io.OutputImpl;
 import be.iminds.iot.dianne.nn.module.layer.Linear;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
@@ -23,8 +25,8 @@ public class NNTest {
 	
 	@Test
 	public void test() throws Exception {
-		Input in = new Input();
-		Output out = new Output();
+		Input in = new InputImpl();
+		Output out = new OutputImpl();
 		
 		Sequential nn = new Sequential();
 		nn.add(in);
@@ -41,9 +43,9 @@ public class NNTest {
 		Thread.sleep(1000);
 		System.out.println("============");
 
-		Tensor expected = factory.createTensor(3);
-		expected.set(1.0f, 1);
-		out.expected(expected);
+		Tensor gradOutput = factory.createTensor(3);
+		gradOutput.set(1.0f, 1);
+		out.backpropagate(gradOutput);
 		
 		Thread.sleep(1000);
 	}
