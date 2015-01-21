@@ -90,7 +90,7 @@ public class NNTrainTest {
 	
 	@Test
 	public void testStochasticGradientTraining(){
-		Dataset train = new MNISTDataset(mnistDir, Set.TRAIN, true);
+		Dataset train = new MNISTDataset(mnistDir, Set.TRAIN, false);
 		
 		int noInput = train.inputSize();
 		int noHidden = 20;

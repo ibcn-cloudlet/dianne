@@ -28,6 +28,8 @@ public class InputImpl extends AbstractModule implements Input {
 	@Override
 	protected void backward() {
 		gradInput = gradOutput;
+		
+		notifyListeners();
 	}
 
 	@Override

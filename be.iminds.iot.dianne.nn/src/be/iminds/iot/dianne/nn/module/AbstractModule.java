@@ -12,8 +12,6 @@ public abstract class AbstractModule implements Module {
 	// the factory for this module
 	protected static final TensorFactory factory = TensorFactory.getFactory(TensorFactory.TensorType.JAVA);
 	
-	protected static final boolean threaded = false;
-	
 	// the UUID of this module
 	protected final UUID id;
 	
@@ -72,11 +70,7 @@ public abstract class AbstractModule implements Module {
 	public void forward(final UUID moduleId, final Tensor input) {
 		this.input = input;
 		
-		// TODO fix this
-		if(threaded)
-			executor.execute(forward);
-		else
-			forward.run();
+		executor.execute(forward);
 	}
 	
 	protected abstract void forward();
@@ -85,11 +79,7 @@ public abstract class AbstractModule implements Module {
 	public void backward(final UUID moduleId, final Tensor gradOutput) {
 		this.gradOutput = gradOutput;
 		
-		//TODO fix this
-		if(threaded)
-			executor.execute(backward);
-		else
-			backward.run();
+		backward.run();
 	}
 	
 	protected abstract void backward();
