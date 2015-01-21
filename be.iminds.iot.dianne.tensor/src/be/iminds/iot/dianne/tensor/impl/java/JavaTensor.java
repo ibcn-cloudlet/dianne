@@ -35,8 +35,6 @@ public class JavaTensor implements Tensor<JavaTensor> {
 		if(data!=null){
 			assert data.length == size();
 		}
-		
-		generateIndices();
 	}
 	
 	@Override
