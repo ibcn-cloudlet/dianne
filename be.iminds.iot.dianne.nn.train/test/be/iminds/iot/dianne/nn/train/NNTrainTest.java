@@ -25,17 +25,17 @@ public class NNTrainTest {
 
 	private TensorFactory factory;
 	
+	private final String mnistDir = "/home/tverbele/MNIST/";
+	
 	@Before
 	public void setUp(){
 		factory = TensorFactory.getFactory(TensorFactory.TensorType.JAVA);
-		
-
 	}
 	
 	@Test
 	public void testMNIST() {
 		
-		Dataset mnist = new MNISTDataset("/home/tverbele/MNIST/", Set.TRAIN);
+		Dataset mnist = new MNISTDataset(mnistDir, Set.TRAIN);
 		
 		Assert.assertEquals(60000, mnist.size());
 		Assert.assertEquals(28*28, mnist.inputSize());
@@ -46,7 +46,7 @@ public class NNTrainTest {
 		Assert.assertEquals(1.0f, mnist.getOutputSample(0).get(5), 0.1f);
 		Assert.assertEquals(0.0f, mnist.getOutputSample(0).get(9), 0.1f);
 		
-		Dataset mnist2 = new MNISTDataset("/home/tverbele/MNIST/", Set.TEST);
+		Dataset mnist2 = new MNISTDataset(mnistDir, Set.TEST);
 		
 		Assert.assertEquals(10000, mnist2.size());
 		Assert.assertEquals(28*28, mnist2.inputSize());
@@ -88,7 +88,7 @@ public class NNTrainTest {
 	
 	@Test
 	public void testStochasticGradientTraining(){
-		Dataset train = new MNISTDataset("/home/tverbele/MNIST/", Set.TRAIN);
+		Dataset train = new MNISTDataset(mnistDir, Set.TRAIN);
 		
 		int noInput = train.inputSize();
 		int noHidden = 20;
@@ -117,7 +117,7 @@ public class NNTrainTest {
 		
 		// now evaluate
 		System.out.println("Training done ... now evaluate...");
-		Dataset test = new MNISTDataset("/home/tverbele/MNIST/", Set.TEST);
+		Dataset test = new MNISTDataset(mnistDir, Set.TEST);
 		Evaluator eval = new ArgMaxEvaluator();
 		Evaluation result = eval.evaluate(in, out, test);
 		
