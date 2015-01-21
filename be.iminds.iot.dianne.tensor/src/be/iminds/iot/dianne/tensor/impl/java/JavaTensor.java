@@ -109,37 +109,22 @@ public class JavaTensor implements Tensor<JavaTensor> {
 
 	@Override
 	public void fill(float v) {
-		if(indices==null){
-			for(int i=0;i<data.length;i++)
-				data[i] = v;
-		} else {
-			for(int i=0;i<indices.length;i++){
-				data[indices[i]] = v;
-			}
+		for(int i=0;i< (indices==null? data.length : indices.length);i++){
+			data[(indices==null ? i : indices[i])] = v;
 		}
 	}
 
 	@Override
 	public void rand() {
-		if(indices==null){
-			for(int i=0;i<data.length;i++)
-				data[i] = random.nextFloat();
-		} else {
-			for(int i=0;i<indices.length;i++){
-				data[indices[i]] = random.nextFloat();
-			}
+		for(int i=0;i< (indices==null? data.length : indices.length);i++){
+			data[(indices==null ? i : indices[i])] = random.nextFloat();
 		}
 	}
 	
 	@Override
 	public void grand() {
-		if(indices==null){
-			for(int i=0;i<data.length;i++)
-				data[i] = (float) random.nextGaussian();
-		} else {
-			for(int i=0;i<indices.length;i++){
-				data[indices[i]] = (float) random.nextGaussian();
-			}
+		for(int i=0;i< (indices==null? data.length : indices.length);i++){
+			data[(indices==null ? i : indices[i])] = (float) random.nextGaussian();
 		}
 	}
 
@@ -164,14 +149,10 @@ public class JavaTensor implements Tensor<JavaTensor> {
 			}
 		}
 		
-		if(indices==null){
-			for(int i=0;i<data.length;i++)
-				if(data[i] != o.data[i])
-					return false;
-		} else {
-			for(int i=0;i<indices.length;i++){
-				if(data[indices[i]] != o.data[o.indices[i]])
-					return false;
+		for(int i=0;i< (indices==null? data.length : indices.length);i++){
+			if(data[(indices==null ? i : indices[i])] 
+					!= o.data[(o.indices==null ? i : o.indices[i])]){
+				return false;
 			}
 		}
 
