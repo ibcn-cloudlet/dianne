@@ -4,8 +4,6 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
-import be.iminds.iot.dianne.tensor.impl.java.JavaTensor.JavaTensorIterator;
-
 public class JavaTensorTest {
 
 	@Test
@@ -75,56 +73,4 @@ public class JavaTensorTest {
 		Assert.assertEquals(expected, tensor.toString());
 	}
 	
-	@Test
-	public void testJavaTensorIterator1() {
-		int[] dims = {2,2};
-		float[] data = {0.0f, 0.1f, 0.2f, 0.3f};
-		
-		JavaTensor tensor = new JavaTensor(dims, data);
-		JavaTensorIterator it = tensor.iterator();
-		int i = 0;
-		while(it.hasNext()){
-			float next = it.next();
-			System.out.println(next);
-			Assert.assertEquals(i, next, 0.1f);
-			i++;
-		}
-	}
-	
-	@Test
-	public void testJavaTensorIterator2() {
-		int[] dims = {2, 3, 2};
-		float[] data = {0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 10.0f, 11.0f};
-		
-		JavaTensor tensor = new JavaTensor(dims, data);
-		JavaTensorIterator it = tensor.iterator();
-		int i = 0;
-		while(it.hasNext()){
-			float next = it.next();
-			System.out.println(next);
-			Assert.assertEquals(i, next, 0.1f);
-			i++;
-		}
-	}
-	
-	@Test
-	public void testIterator(){
-		JavaTensor t = new JavaTensor(100000000);
-		
-		long t1 = System.currentTimeMillis();
-		for(int i=0;i<t.data.length;i++){
-			t.data[i] = 3.0f;
-		}
-		long t2 = System.currentTimeMillis();
-		JavaTensorIterator it = t.iterator();
-		while(it.hasNext()){
-			t.data[it.next()] = 3.0f;
-		}
-		
-		long t3 = System.currentTimeMillis();
-		
-		System.out.println("it:"+(t3-t2)+" loop:"+(t2-t1));
-		
-		
-	}
 }

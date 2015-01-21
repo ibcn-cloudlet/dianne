@@ -35,6 +35,8 @@ public class JavaTensor implements Tensor<JavaTensor> {
 		if(data!=null){
 			assert data.length == size();
 		}
+		
+		generateIndices();
 	}
 	
 	@Override
@@ -109,25 +111,37 @@ public class JavaTensor implements Tensor<JavaTensor> {
 
 	@Override
 	public void fill(float v) {
-		JavaTensorIterator it = iterator();
-		while(it.hasNext()){
-			data[it.next()] = v;
+		if(indices==null){
+			for(int i=0;i<data.length;i++)
+				data[i] = v;
+		} else {
+			for(int i=0;i<indices.length;i++){
+				data[indices[i]] = v;
+			}
 		}
 	}
 
 	@Override
 	public void rand() {
-		JavaTensorIterator it = iterator();
-		while(it.hasNext()){
-			data[it.next()] = random.nextFloat();
+		if(indices==null){
+			for(int i=0;i<data.length;i++)
+				data[i] = random.nextFloat();
+		} else {
+			for(int i=0;i<indices.length;i++){
+				data[indices[i]] = random.nextFloat();
+			}
 		}
 	}
 	
 	@Override
 	public void grand() {
-		JavaTensorIterator it = iterator();
-		while(it.hasNext()){
-			data[it.next()] = (float) random.nextGaussian();
+		if(indices==null){
+			for(int i=0;i<data.length;i++)
+				data[i] = (float) random.nextGaussian();
+		} else {
+			for(int i=0;i<indices.length;i++){
+				data[indices[i]] = (float) random.nextGaussian();
+			}
 		}
 	}
 
@@ -152,13 +166,17 @@ public class JavaTensor implements Tensor<JavaTensor> {
 			}
 		}
 		
-		JavaTensorIterator it1 = iterator();
-		JavaTensorIterator it2 = o.iterator();
-		while(it1.hasNext()){
-			if(data[it1.next()] != o.data[it2.next()])
-				return false;
+		if(indices==null){
+			for(int i=0;i<data.length;i++)
+				if(data[i] != o.data[i])
+					return false;
+		} else {
+			for(int i=0;i<indices.length;i++){
+				if(data[indices[i]] != o.data[o.indices[i]])
+					return false;
+			}
 		}
-	
+
 		return true;
 		
 	}
@@ -182,10 +200,13 @@ public class JavaTensor implements Tensor<JavaTensor> {
 				|| this.data.length != other.data.length)
 			other = new JavaTensor(dims);
 		
-		JavaTensorIterator it = iterator();
-		int i = 0;
-		while(it.hasNext()){
-			other.data[i++] = data[it.next()];
+		if(indices==null){
+			for(int i=0;i<data.length;i++)
+				other.data[i] = data[i];
+		} else {
+			for(int i=0;i<indices.length;i++){
+				other.data[i] = data[indices[i]];
+			}
 		}
 		
 		return other;
@@ -279,17 +300,9 @@ public class JavaTensor implements Tensor<JavaTensor> {
 		return index;
 	}
 	
-	JavaTensorIterator iterator(){
-		if(indices!=null){
-			return new JavaTensorIteratorIndices();
-		} else {
-			return new JavaTensorIteratorSimple();
-		}
-	}
-	
-	
+
 	private void generateIndices(){
-		JavaTensorIterator it = new JavaTensorIteratorStart();
+		IndexGenerator it = new IndexGenerator();
 		int i = 0;
 		indices = new int[size()];
 		while(it.hasNext()){
@@ -297,12 +310,7 @@ public class JavaTensor implements Tensor<JavaTensor> {
 		}
 	}
 	
-	interface JavaTensorIterator {
-		public int next();
-		public boolean hasNext();
-	}
-	
-	class JavaTensorIteratorStart implements JavaTensorIterator {
+	class IndexGenerator {
 		private int[] index = new int[dims.length]; // 3D index
 		private int current = 0;
 		private int next = offset; // linear index
@@ -331,30 +339,6 @@ public class JavaTensor implements Tensor<JavaTensor> {
 		
 		public boolean hasNext(){
 			return next != -1;
-		}
-	}
-	
-	class JavaTensorIteratorSimple implements JavaTensorIterator {
-		private int next = 0;
-		
-		public int next(){
-			return next++;
-		}
-		
-		public boolean hasNext(){
-			return next < data.length;
-		}
-	}
-	
-	class JavaTensorIteratorIndices implements JavaTensorIterator {
-		private int next = 0; // linear index
-		
-		public int next(){
-			return indices[next++];
-		}
-		
-		public boolean hasNext(){
-			return next < indices.length;
 		}
 	}
 }

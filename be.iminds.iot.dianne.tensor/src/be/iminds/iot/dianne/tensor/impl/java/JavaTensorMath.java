@@ -2,7 +2,6 @@ package be.iminds.iot.dianne.tensor.impl.java;
 
 import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.dianne.tensor.TensorMath;
-import be.iminds.iot.dianne.tensor.impl.java.JavaTensor.JavaTensorIterator;
 
 public class JavaTensorMath implements TensorMath<JavaTensor> {
 
@@ -21,11 +20,11 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		if(res == null){
 			res = factory.createTensor(t.dims);
 		}
-		JavaTensorIterator resIt = res.iterator();
-		JavaTensorIterator tIt = t.iterator();
-		while(tIt.hasNext()){
-			res.data[resIt.next()] = op.apply(t.data[tIt.next()]);
+		
+		for(int i=0;i<res.indices.length;i++){
+			res.data[res.indices[i]] = op.apply(t.data[t.indices[i]]);
 		}
+		
 		return res;
 	}
 
@@ -34,13 +33,11 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		if(res == null){
 			res = factory.createTensor(t1.dims);
 		}
-		
-		JavaTensorIterator resIt = res.iterator();
-		JavaTensorIterator t1It = t1.iterator();
-		JavaTensorIterator t2It = t2.iterator();
-		while(t1It.hasNext()){
-			res.data[resIt.next()] = op.apply(t1.data[t1It.next()], t2.data[t2It.next()]);
+
+		for(int i=0;i<t1.indices.length;i++){
+			res.data[res.indices[i]] = op.apply(t1.data[t1.indices[i]], t2.data[t2.indices[i]]);
 		}
+		
 		return res;
 	}
 	
@@ -148,10 +145,8 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		// TODO check dimensions
 		float dot = 0;
 		
-		JavaTensorIterator v1It = vec1.iterator();
-		JavaTensorIterator v2It = vec2.iterator();
-		while(v1It.hasNext()){
-			dot+= vec1.data[v1It.next()] * vec2.data[v2It.next()];
+		for(int i=0;i<vec1.indices.length;i++){
+			dot+= vec1.data[vec1.indices[i]] * vec2.data[vec2.indices[i]];
 		}
 		
 		return dot;
@@ -177,16 +172,17 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		if(res==null){
 			res = factory.createTensor(mat.dims[0]);
 		}
-		JavaTensorIterator it = mat.iterator();
-		JavaTensorIterator rIt = res.iterator();
-		while(it.hasNext()){
+		
+		int k = 0;
+		for(int i=0;i<mat.indices.length;){
 			float v = 0;
-			JavaTensorIterator vIt = vec.iterator();
-			while(vIt.hasNext()){
-				v+= mat.data[it.next()]*vec.data[vIt.next()];
+			for(int j=0;j<vec.indices.length;j++){
+				v+= mat.data[mat.indices[i++]]*vec.data[vec.indices[j]];
 			}
-			res.data[rIt.next()] = v;
+			res.data[res.indices[k]] = v;
+			k++;
 		}
+	
 		return res;
 	}
 	
@@ -197,16 +193,14 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 			res = factory.createTensor(mat.dims[1]);
 		}
 		res.fill(0.0f);
-		JavaTensorIterator mIt = mat.iterator();
-		JavaTensorIterator rIt = res.iterator();
-		JavaTensorIterator vIt = vec.iterator();
-		int vi = vIt.next();
-		while(mIt.hasNext()){
-			if(!rIt.hasNext()){
-				rIt = res.iterator();
-				vi = vIt.next();
+		int j = 0;
+		int k = 0;
+		for(int i=0;i<mat.indices.length;i++){
+			if(j==res.indices.length){
+				j = 0;
+				k++;
 			}
-			res.data[rIt.next()] += mat.data[mIt.next()]*vec.data[vi];	
+			res.data[res.indices[j++]] += mat.data[mat.indices[i]]*vec.data[vec.indices[k]];
 		}
 		return res;
 	}
@@ -236,17 +230,14 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		if(res==null){
 			res = factory.createTensor(vec1.size(), vec2.size());
 		}
-		JavaTensorIterator mIt = mat.iterator();
-		JavaTensorIterator rIt = res.iterator();
-		JavaTensorIterator v1It = vec1.iterator();
-		JavaTensorIterator v2It = vec2.iterator();
-		int v1i = v1It.next();
-		while(mIt.hasNext()){
-			if(!v2It.hasNext()){
-				v2It = vec2.iterator();
-				v1i = v1It.next();
+		int k = 0;
+		int j = 0;
+		for(int i=0;i<mat.indices.length;i++){
+			if(j==vec2.indices.length){
+				j = 0;
+				k++;
 			}
-			res.data[rIt.next()] = mat.data[mIt.next()] + vec1.data[v1i]*vec2.data[v2It.next()];
+			res.data[res.indices[i]] = mat.data[mat.indices[i]] + vec1.data[vec1.indices[k]]*vec2.data[vec2.indices[j++]];
 		}
 		return res;
 	}
@@ -258,16 +249,15 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		if(res==null){
 			res = factory.createTensor(mat.dims[0]);
 		}
-		JavaTensorIterator it = mat.iterator();
-		JavaTensorIterator rIt = res.iterator();
-		JavaTensorIterator aIt = vec1.iterator();
-		while(it.hasNext()){
+		
+		int k = 0;
+		for(int i=0;i<mat.indices.length;){
 			float v = 0;
-			JavaTensorIterator vIt = vec2.iterator();
-			while(vIt.hasNext()){
-				v+= mat.data[it.next()]*vec2.data[vIt.next()];
+			for(int j=0;j<vec2.indices.length;j++){
+				v+= mat.data[mat.indices[i++]]*vec2.data[vec2.indices[j]];
 			}
-			res.data[rIt.next()] = v + vec1.data[aIt.next()];
+			res.data[res.indices[k]] = v + vec1.data[vec1.indices[k]];
+			k++;
 		}
 		return res;
 	}
@@ -326,9 +316,8 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	@Override
 	public float sum(final JavaTensor tensor) {
 		float sum = 0;
-		JavaTensorIterator it = tensor.iterator();
-		while(it.hasNext()){
-			sum+= tensor.data[it.next()];
+		for(int i=0;i<tensor.indices.length;i++){
+			sum+= tensor.data[tensor.indices[i]];
 		}
 		return sum;
 	}
@@ -336,9 +325,8 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	@Override
 	public float max(final JavaTensor tensor) {
 		float max = Float.MIN_VALUE;
-		JavaTensorIterator it = tensor.iterator();
-		while(it.hasNext()){
-			float val = tensor.data[it.next()];
+		for(int i=0;i<tensor.indices.length;i++){	
+			float val = tensor.data[tensor.indices[i]];
 			if(val > max)
 				max = val;
 		}
@@ -348,9 +336,8 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	@Override
 	public float min(final JavaTensor tensor) {
 		float min = Float.MAX_VALUE;
-		JavaTensorIterator it = tensor.iterator();
-		while(it.hasNext()){
-			float val = tensor.data[it.next()];
+		for(int i=0;i<tensor.indices.length;i++){	
+			float val = tensor.data[tensor.indices[i]];
 			if(val < min)
 				min = val;
 		}
@@ -368,15 +355,12 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	public int argmax(JavaTensor tensor) {
 		float max = Float.MIN_VALUE;
 		int index = -1;
-		JavaTensorIterator it = tensor.iterator();
-		int i = 0;
-		while(it.hasNext()){
-			float val = tensor.data[it.next()];
+		for(int i=0;i<tensor.indices.length;i++){	
+			float val = tensor.data[tensor.indices[i]];
 			if(val > max){
 				max = val;
 				index = i;
 			}
-			i++;
 		}
 		return index;
 	}
@@ -386,15 +370,12 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	public int argmin(final JavaTensor tensor) {
 		float min = Float.MAX_VALUE;
 		int index = -1;
-		JavaTensorIterator it = tensor.iterator();
-		int i = 0;
-		while(it.hasNext()){
-			float val = tensor.data[it.next()];
+		for(int i=0;i<tensor.indices.length;i++){
+			float val = tensor.data[tensor.indices[i]];
 			if(val < min){
 				min = val;
 				index = i;
 			}
-			i++;
 		}
 		return index;
 	}
