@@ -92,12 +92,24 @@ public abstract class AbstractModule implements Module {
 
 	@Override
 	public void setNext(final Module... next) {
-		this.next = next[0];
+		if(next==null){
+//			System.out.println("Reset next of "+id);
+			this.next = null;
+		} else {
+//			System.out.println("Set "+id+"->\t"+next[0].getId());
+			this.next = next[0];
+		}
 	}
 
 	@Override
 	public void setPrevious(final Module... prev) {
-		this.prev = prev[0];
+		if(prev==null){
+//			System.out.println("Reset prev of "+id);
+			this.prev = null;
+		} else {
+//			System.out.println("Set "+id+"\t<-"+prev[0].getId());
+			this.prev = prev[0];
+		}
 	}
 
 }

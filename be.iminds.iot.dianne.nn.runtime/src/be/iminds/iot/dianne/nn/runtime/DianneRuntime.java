@@ -1,9 +1,15 @@
 package be.iminds.iot.dianne.nn.runtime;
 
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.StringTokenizer;
+import java.util.UUID;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -13,6 +19,8 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.nn.module.Module;
 import be.iminds.iot.dianne.nn.module.factory.ModuleFactory;
@@ -27,7 +35,13 @@ public class DianneRuntime implements ManagedServiceFactory {
 	private TensorFactory tFactory;
 	private ModuleFactory mFactory;
 	
-	private Map<String, ServiceRegistration> modules = Collections.synchronizedMap(new HashMap<String, ServiceRegistration>());
+	// All module service registrations by PID
+	private Map<String, ServiceRegistration> registrations = new HashMap<String, ServiceRegistration>();
+	// All known modules by their UUID
+	private Map<UUID, Module> modules = new HashMap<UUID, Module>();
+	
+	private Map<UUID, List<UUID>> nextMap = new HashMap<UUID, List<UUID>>();
+	private Map<UUID, List<UUID>> prevMap = new HashMap<UUID, List<UUID>>();
 	
 	@Override
 	public String getName() {
@@ -41,7 +55,7 @@ public class DianneRuntime implements ManagedServiceFactory {
 	
 	@Deactivate
 	public void deactivate(){
-		for(ServiceRegistration reg : modules.values()){
+		for(ServiceRegistration reg : registrations.values()){
 			reg.unregister();
 		}
 	}
@@ -56,17 +70,58 @@ public class DianneRuntime implements ManagedServiceFactory {
 		this.mFactory = factory;
 	}
 	
+	@Reference(
+			cardinality=ReferenceCardinality.MULTIPLE, 
+			policy=ReferencePolicy.DYNAMIC)
+	public synchronized void addModule(Module module, Map<String, Object> properties){
+		UUID id = UUID.fromString((String)properties.get("module.id"));
+		modules.put(id, module);
+		
+		// configure modules that require this module
+		for(Module m : findDependingModules(id, nextMap)){
+			configureNext(m);
+		}
+		for(Module m : findDependingModules(id, prevMap)){
+			configurePrevious(m);
+		}
+	}
+	
+	public synchronized void removeModule(Module module, Map<String, Object> properties){
+		UUID id = UUID.fromString((String)properties.get("module.id"));
+		modules.remove(id);
+		
+		// unconfigure modules that require this module
+		for(Module m : findDependingModules(id, nextMap)){
+			unconfigureNext(m);
+		}
+		for(Module m : findDependingModules(id, prevMap)){
+			unconfigurePrevious(m);
+		}
+	}
+	
 	@Override
-	public void updated(String pid, Dictionary<String, ?> properties)
+	public synchronized void updated(String pid, Dictionary<String, ?> properties)
 			throws ConfigurationException {
 		// Create and register module
 		try {
 			Module module = this.mFactory.createModule(tFactory, properties);
 			
+			// configure next/prev
+			String next = (String)properties.get("module.next");
+			List<UUID> nextIDs =  parseUUIDs(next);
+			nextMap.put(module.getId(), nextIDs);
+			configureNext(module);
+			
+			String prev = (String)properties.get("module.prev");
+			List<UUID> prevIDs = parseUUIDs(prev);
+			prevMap.put(module.getId(), prevIDs);
+			configurePrevious(module);
+
 			ServiceRegistration reg = context.registerService(Module.class.getName(), module, properties);
-			this.modules.put(pid, reg);
+			this.registrations.put(pid, reg);
 			
 			System.out.println("Registered module "+module.getClass().getName()+" "+module.getId());
+			
 		} catch(InstantiationException e){
 			System.err.println("Could not instantiate module");
 			e.printStackTrace();
@@ -74,11 +129,88 @@ public class DianneRuntime implements ManagedServiceFactory {
 	}
 
 	@Override
-	public void deleted(String pid) {
-		ServiceRegistration reg = modules.get(pid);
+	public synchronized void deleted(String pid) {
+		ServiceRegistration reg = registrations.get(pid);
+		UUID id = UUID.fromString((String)reg.getReference().getProperty("module.id"));
+		nextMap.remove(id);
+		prevMap.remove(id);
 		if(reg!=null){
 			reg.unregister();
 		}
 	}
-
+	
+	private void configureNext(Module m){
+		List<UUID> nextIDs = nextMap.get(m.getId());
+		if(nextIDs.size()==0){
+			// output module
+			return;
+		}
+		Module[] nextModules = new Module[nextIDs.size()];
+		
+		int i = 0;
+		for(UUID nextID : nextIDs){
+			Module nextModule = modules.get(nextID);
+			if(nextModule== null)
+				return;
+			
+			nextModules[i] = nextModule;
+			i++;
+		}
+		
+		m.setNext(nextModules);
+	}
+	
+	private void unconfigureNext(Module m){
+		m.setNext((Module[])null);
+	}
+	
+	private void configurePrevious(Module m){
+		List<UUID> prevIDs = prevMap.get(m.getId());
+		if(prevIDs.size()==0){
+			// input module
+			return;
+		}
+		Module[] prevModules = new Module[prevIDs.size()];
+		
+		int i = 0;
+		for(UUID prevID : prevIDs){
+			Module prevModule = modules.get(prevID);
+			if(prevModule== null)
+				return;
+			
+			prevModules[i] = prevModule;
+			i++;
+		}
+		
+		m.setPrevious(prevModules);
+	}
+	
+	private void unconfigurePrevious(Module m){
+		m.setPrevious((Module[])null);
+	}
+	
+	private List<Module> findDependingModules(UUID id, Map<UUID, List<UUID>> map){
+		List<Module> result = new ArrayList<Module>();
+		for(Iterator<Entry<UUID, List<UUID>>> it = map.entrySet().iterator();it.hasNext();){
+			Entry<UUID, List<UUID>> entry = it.next();
+			for(UUID nxtId : entry.getValue()){
+				if(nxtId.equals(id)){
+					result.add(modules.get(entry.getKey()));
+				}
+			}
+		}
+		return result;
+	}
+	
+	private List<UUID> parseUUIDs(String string){
+		ArrayList<UUID> result = new ArrayList<UUID>();
+		if(string!=null){
+			StringTokenizer st = new StringTokenizer(string, ",");
+			while(st.hasMoreTokens()){
+				UUID id = UUID.fromString(st.nextToken());
+				result.add(id);
+			}
+		}
+		return result;
+	}
 }
