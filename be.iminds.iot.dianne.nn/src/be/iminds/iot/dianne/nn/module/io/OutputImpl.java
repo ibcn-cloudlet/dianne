@@ -9,10 +9,15 @@ import be.iminds.iot.dianne.nn.module.Module;
 import be.iminds.iot.dianne.nn.module.Output;
 import be.iminds.iot.dianne.nn.module.OutputListener;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public class OutputImpl extends AbstractModule implements Output {
 
 	private List<OutputListener> listeners = Collections.synchronizedList(new ArrayList<OutputListener>());
+	
+	public OutputImpl(TensorFactory factory) {
+		super(factory);
+	}
 	
 	@Override
 	public Tensor getOutput(){

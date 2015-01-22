@@ -1,8 +1,13 @@
 package be.iminds.iot.dianne.nn.module.activation;
 
 import be.iminds.iot.dianne.nn.module.AbstractModule;
+import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public class Tanh extends AbstractModule {
+	
+	public Tanh(TensorFactory factory) {
+		super(factory);
+	}
 	
 	@Override
 	protected void forward() {

@@ -8,13 +8,17 @@ import be.iminds.iot.dianne.nn.module.AbstractModule;
 import be.iminds.iot.dianne.nn.module.Input;
 import be.iminds.iot.dianne.nn.module.InputListener;
 import be.iminds.iot.dianne.nn.module.Module;
-import be.iminds.iot.dianne.nn.module.OutputListener;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public class InputImpl extends AbstractModule implements Input {
 
 	private List<InputListener> listeners = Collections.synchronizedList(new ArrayList<InputListener>());
 
+	public InputImpl(TensorFactory factory) {
+		super(factory);
+	}
+	
 	@Override
 	public void input(Tensor input){
 		forward(this.id, input);

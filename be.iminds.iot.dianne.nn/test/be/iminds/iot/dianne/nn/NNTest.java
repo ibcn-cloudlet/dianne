@@ -25,15 +25,15 @@ public class NNTest {
 	
 	@Test
 	public void test() throws Exception {
-		Input in = new InputImpl();
-		Output out = new OutputImpl();
+		Input in = new InputImpl(factory);
+		Output out = new OutputImpl(factory);
 		
 		Sequential nn = new Sequential();
 		nn.add(in);
-		nn.add(new Linear(5,10));
-		nn.add(new Tanh());
-		nn.add(new Linear(10,3));
-		nn.add(new Tanh());
+		nn.add(new Linear(factory, 5,10));
+		nn.add(new Tanh(factory));
+		nn.add(new Linear(factory, 10,3));
+		nn.add(new Tanh(factory));
 		nn.add(out);
 		
 		Tensor input = factory.createTensor(5);

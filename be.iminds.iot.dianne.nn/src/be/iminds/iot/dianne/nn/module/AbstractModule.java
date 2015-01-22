@@ -10,7 +10,7 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 public abstract class AbstractModule implements Module {
 
 	// the factory for this module
-	protected static final TensorFactory factory = TensorFactory.getFactory(TensorFactory.TensorType.JAVA);
+	protected final TensorFactory factory;
 	
 	// the UUID of this module
 	protected final UUID id;
@@ -57,8 +57,10 @@ public abstract class AbstractModule implements Module {
 		}
 	};
 	
-	public AbstractModule() {
+	public AbstractModule(TensorFactory factory) {
 		this.id = UUID.randomUUID(); // TODO meaningful uuid?
+		
+		this.factory = factory;
 	}
 	
 	@Override

@@ -2,6 +2,7 @@ package be.iminds.iot.dianne.nn.module.layer;
 
 import be.iminds.iot.dianne.nn.module.AbstractTrainableModule;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public class Linear extends AbstractTrainableModule {
 
@@ -11,8 +12,8 @@ public class Linear extends AbstractTrainableModule {
 	private Tensor gradWeights;
 	private Tensor gradBias;
 	
-	public Linear(int inSize, int outSize){
-		super();
+	public Linear(TensorFactory factory, int inSize, int outSize){
+		super(factory);
 		
 		parameters = factory.createTensor(outSize, inSize+1);
 		gradParameters = factory.createTensor(outSize, inSize+1);

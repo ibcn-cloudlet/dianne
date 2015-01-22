@@ -9,9 +9,12 @@ import be.iminds.iot.dianne.nn.module.activation.Tanh;
 import be.iminds.iot.dianne.nn.module.io.InputImpl;
 import be.iminds.iot.dianne.nn.module.io.OutputImpl;
 import be.iminds.iot.dianne.nn.module.layer.Linear;
+import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public class DianneModuleFactory implements ModuleFactory {
 
+	private TensorFactory factory;
+	
 	@Override
 	public Module createModule(Dictionary<String, ?> config)
 			throws InstantiationException {
@@ -25,15 +28,15 @@ public class DianneModuleFactory implements ModuleFactory {
 			int input = Integer.parseInt((String)config.get("module.linear.input"));
 			int output = Integer.parseInt((String)config.get("module.linear.output"));
 			
-			module = new Linear(input, output);
+			module = new Linear(factory, input, output);
 		} else if(type.equals("Tanh")){
-			module = new Tanh(); 
+			module = new Tanh(factory); 
 		} else if(type.equals("Sigmoid")){
-			module = new Sigmoid();
+			module = new Sigmoid(factory);
 		} else if(type.equals("Input")){
-			module = new InputImpl(); 
+			module = new InputImpl(factory); 
 		} else if(type.equals("Output")){
-			module = new OutputImpl();
+			module = new OutputImpl(factory);
 		} else if(type.equals("anotherTypeHere")){
 			// instantiate other types ... 
 		}

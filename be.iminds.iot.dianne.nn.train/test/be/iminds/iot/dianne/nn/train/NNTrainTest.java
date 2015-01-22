@@ -96,10 +96,10 @@ public class NNTrainTest {
 		int noHidden = 20;
 		int noOutput = train.outputSize();
 		
-		Input in = new InputImpl();
-		Output out = new OutputImpl();
-		Linear l1 = new Linear(noInput, noHidden);
-		Linear l2 = new Linear(noHidden, noOutput);
+		Input in = new InputImpl(factory);
+		Output out = new OutputImpl(factory);
+		Linear l1 = new Linear(factory, noInput, noHidden);
+		Linear l2 = new Linear(factory, noHidden, noOutput);
 		ArrayList<Trainable> modules = new ArrayList<Trainable>();
 		modules.add(l1);
 		modules.add(l2);
@@ -107,9 +107,9 @@ public class NNTrainTest {
 		Sequential nn = new Sequential();
 		nn.add(in);
 		nn.add(l1);
-		nn.add(new Sigmoid());
+		nn.add(new Sigmoid(factory));
 		nn.add(l2);
-		nn.add(new Sigmoid());
+		nn.add(new Sigmoid(factory));
 		nn.add(out);
 		
 		
