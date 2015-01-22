@@ -2,7 +2,9 @@ package be.iminds.iot.dianne.nn.runtime;
 
 import java.util.ArrayList;
 import java.util.Dictionary;
+import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -130,7 +132,16 @@ public class DianneRuntime implements ManagedServiceFactory {
 				classes = new String[]{Module.class.getName()};
 			}
 			
-			ServiceRegistration reg = context.registerService(classes, module, properties);
+			Dictionary<String, Object> props = new Hashtable<String, Object>();
+			for(Enumeration<String> keys = properties.keys();keys.hasMoreElements();){
+				String key = keys.nextElement();
+				props.put(key, properties.get(key));
+			}
+			// make sure that for each module all interfaces are behind a single proxy 
+			// and that each module is uniquely proxied
+			props.put("aiolos.combine", "*");
+			props.put("aiolos.instance.id", module.getId().toString());
+			ServiceRegistration reg = context.registerService(classes, module, props);
 			this.registrations.put(pid, reg);
 			
 			System.out.println("Registered module "+module.getClass().getName()+" "+module.getId());
