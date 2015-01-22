@@ -1,7 +1,7 @@
 -runfw: org.apache.felix.framework;version='[4.2.1,4.2.1]'
 -runee: JavaSE-1.6
 
-aiolos.version='[0.4.1,0.5.0)'
+aiolos.version='[0.5.0,0.6.0)'
 jclouds.version='[1.8.0,1.9.0)'
 
 -resolve.effective: active
@@ -63,7 +63,12 @@ jclouds.version='[1.8.0,1.9.0)'
 	be.iminds.aiolos.cloudmanager;version=${aiolos.version},\
 	be.iminds.aiolos.platformmanager;version=${aiolos.version},\
 	be.iminds.aiolos.userinterface;version=${aiolos.version},\
-	be.iminds.aiolos.proxymanager;version=${aiolos.version}
+	be.iminds.aiolos.demo;version=${aiolos.version},\
+	be.iminds.aiolos.proxymanager;version=${aiolos.version},\
+	be.iminds.iot.dianne.tensor;version=latest,\
+	be.iminds.iot.dianne.nn;version=latest,\
+	be.iminds.iot.dianne.nn.runtime;version=latest,\
+	be.iminds.iot.dianne.nn.train;version=latest
 
 -runstorage: generated/mgmt
 
