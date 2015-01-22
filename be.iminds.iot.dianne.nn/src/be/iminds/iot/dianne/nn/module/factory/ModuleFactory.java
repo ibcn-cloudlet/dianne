@@ -1,6 +1,8 @@
-package be.iminds.iot.dianne.nn.module;
+package be.iminds.iot.dianne.nn.module.factory;
 
 import java.util.Dictionary;
+
+import be.iminds.iot.dianne.nn.module.Module;
 
 public interface ModuleFactory {
 

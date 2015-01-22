@@ -3,7 +3,6 @@ package be.iminds.iot.dianne.nn.module.factory;
 import java.util.Dictionary;
 
 import be.iminds.iot.dianne.nn.module.Module;
-import be.iminds.iot.dianne.nn.module.ModuleFactory;
 import be.iminds.iot.dianne.nn.module.activation.Sigmoid;
 import be.iminds.iot.dianne.nn.module.activation.Tanh;
 import be.iminds.iot.dianne.nn.module.io.InputImpl;
