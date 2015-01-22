@@ -37,7 +37,6 @@ public class DianneRuntime implements ManagedServiceFactory {
 	@Activate
 	public void activate(BundleContext context){
 		this.context = context;
-		System.out.println("ACTIVATED!");
 	}
 	
 	@Deactivate
@@ -60,8 +59,6 @@ public class DianneRuntime implements ManagedServiceFactory {
 	@Override
 	public void updated(String pid, Dictionary<String, ?> properties)
 			throws ConfigurationException {
-		System.out.println("UPDATED "+pid);
-		
 		// Create and register module
 		try {
 			Module module = this.mFactory.createModule(tFactory, properties);
@@ -69,6 +66,7 @@ public class DianneRuntime implements ManagedServiceFactory {
 			ServiceRegistration reg = context.registerService(Module.class.getName(), module, properties);
 			this.modules.put(pid, reg);
 			
+			System.out.println("Registered module "+module.getClass().getName()+" "+module.getId());
 			// TODO set next/prev?
 		} catch(InstantiationException e){
 			System.out.println("Could not instantiate module");
@@ -77,8 +75,6 @@ public class DianneRuntime implements ManagedServiceFactory {
 
 	@Override
 	public void deleted(String pid) {
-		System.out.println("DELETED "+pid);
-		
 		ServiceRegistration reg = modules.get(pid);
 		if(reg!=null){
 			reg.unregister();
