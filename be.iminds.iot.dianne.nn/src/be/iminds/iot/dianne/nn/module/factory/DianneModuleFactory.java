@@ -2,6 +2,9 @@ package be.iminds.iot.dianne.nn.module.factory;
 
 import java.util.Dictionary;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 import be.iminds.iot.dianne.nn.module.Module;
 import be.iminds.iot.dianne.nn.module.activation.Sigmoid;
 import be.iminds.iot.dianne.nn.module.activation.Tanh;
@@ -10,12 +13,11 @@ import be.iminds.iot.dianne.nn.module.io.OutputImpl;
 import be.iminds.iot.dianne.nn.module.layer.Linear;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
+@Component
 public class DianneModuleFactory implements ModuleFactory {
 
-	private TensorFactory factory;
-	
 	@Override
-	public Module createModule(Dictionary<String, ?> config)
+	public Module createModule(TensorFactory factory, Dictionary<String, ?> config)
 			throws InstantiationException {
 		Module module = null;
 		

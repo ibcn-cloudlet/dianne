@@ -8,11 +8,19 @@ import org.osgi.service.cm.ManagedServiceFactory;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+
+import be.iminds.iot.dianne.nn.module.factory.ModuleFactory;
+import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component(immediate=true, property={"service.pid=be.iminds.iot.dianne.nn.module"})
 public class DianneRuntime implements ManagedServiceFactory {
 
 	private BundleContext context;
+	
+	// TODO support multiple factories in the future?!
+	private TensorFactory tFactory;
+	private ModuleFactory mFactory;
 	
 	@Override
 	public String getName() {
@@ -30,12 +38,23 @@ public class DianneRuntime implements ManagedServiceFactory {
 		// Tear down all modules!
 	}
 	
+	@Reference
+	public void setTensorFactory(TensorFactory factory){
+		this.tFactory = factory;
+	}
+	
+	@Reference
+	public void setModuleFactory(ModuleFactory factory){
+		this.mFactory = factory;
+	}
+	
 	@Override
 	public void updated(String pid, Dictionary<String, ?> properties)
 			throws ConfigurationException {
 		System.out.println("UPDATED "+pid);
 		
 		// Create and register module
+		
 	}
 
 	@Override

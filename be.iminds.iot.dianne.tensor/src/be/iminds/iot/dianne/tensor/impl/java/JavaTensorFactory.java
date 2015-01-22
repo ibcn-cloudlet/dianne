@@ -1,8 +1,11 @@
 package be.iminds.iot.dianne.tensor.impl.java;
 
+import org.osgi.service.component.annotations.Component;
+
 import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.dianne.tensor.TensorMath;
 
+@Component
 public class JavaTensorFactory implements TensorFactory<JavaTensor>{
 
 	private final JavaTensorMath math = new JavaTensorMath(this);
