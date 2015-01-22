@@ -91,6 +91,8 @@ public abstract class DatasetProcessor {
 		// remove listeners again
 		input.removeInputListener(inputListener);
 		output.removeOutputListener(outputListener);
+		// reset index
+		index = 0;
 	}
 	
 	/**
