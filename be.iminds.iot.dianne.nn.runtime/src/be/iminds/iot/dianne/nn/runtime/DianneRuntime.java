@@ -1,8 +1,12 @@
 package be.iminds.iot.dianne.nn.runtime;
 
+import java.util.Collections;
 import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedServiceFactory;
 import org.osgi.service.component.annotations.Activate;
@@ -10,6 +14,7 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 
+import be.iminds.iot.dianne.nn.module.Module;
 import be.iminds.iot.dianne.nn.module.factory.ModuleFactory;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -21,6 +26,8 @@ public class DianneRuntime implements ManagedServiceFactory {
 	// TODO support multiple factories in the future?!
 	private TensorFactory tFactory;
 	private ModuleFactory mFactory;
+	
+	private Map<String, ServiceRegistration> modules = Collections.synchronizedMap(new HashMap<String, ServiceRegistration>());
 	
 	@Override
 	public String getName() {
@@ -35,7 +42,9 @@ public class DianneRuntime implements ManagedServiceFactory {
 	
 	@Deactivate
 	public void deactivate(){
-		// Tear down all modules!
+		for(ServiceRegistration reg : modules.values()){
+			reg.unregister();
+		}
 	}
 	
 	@Reference
@@ -54,14 +63,26 @@ public class DianneRuntime implements ManagedServiceFactory {
 		System.out.println("UPDATED "+pid);
 		
 		// Create and register module
-		
+		try {
+			Module module = this.mFactory.createModule(tFactory, properties);
+			
+			ServiceRegistration reg = context.registerService(Module.class.getName(), module, properties);
+			this.modules.put(pid, reg);
+			
+			// TODO set next/prev?
+		} catch(InstantiationException e){
+			System.out.println("Could not instantiate module");
+		}
 	}
 
 	@Override
 	public void deleted(String pid) {
 		System.out.println("DELETED "+pid);
 		
-		// Delete and unregister module
+		ServiceRegistration reg = modules.get(pid);
+		if(reg!=null){
+			reg.unregister();
+		}
 	}
 
 }
