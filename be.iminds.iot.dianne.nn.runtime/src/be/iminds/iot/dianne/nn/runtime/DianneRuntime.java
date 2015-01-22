@@ -67,9 +67,9 @@ public class DianneRuntime implements ManagedServiceFactory {
 			this.modules.put(pid, reg);
 			
 			System.out.println("Registered module "+module.getClass().getName()+" "+module.getId());
-			// TODO set next/prev?
 		} catch(InstantiationException e){
-			System.out.println("Could not instantiate module");
+			System.err.println("Could not instantiate module");
+			e.printStackTrace();
 		}
 	}
 
