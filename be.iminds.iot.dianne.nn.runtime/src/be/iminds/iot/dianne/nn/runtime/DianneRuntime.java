@@ -1,7 +1,6 @@
 package be.iminds.iot.dianne.nn.runtime;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -22,7 +21,10 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
+import be.iminds.iot.dianne.nn.module.Input;
 import be.iminds.iot.dianne.nn.module.Module;
+import be.iminds.iot.dianne.nn.module.Output;
+import be.iminds.iot.dianne.nn.module.Trainable;
 import be.iminds.iot.dianne.nn.module.factory.ModuleFactory;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -117,7 +119,18 @@ public class DianneRuntime implements ManagedServiceFactory {
 			prevMap.put(module.getId(), prevIDs);
 			configurePrevious(module);
 
-			ServiceRegistration reg = context.registerService(Module.class.getName(), module, properties);
+			String[] classes;
+			if(module instanceof Input){
+				classes = new String[]{Module.class.getName(),Input.class.getName()};
+			}else if(module instanceof Output){
+				classes = new String[]{Module.class.getName(),Output.class.getName()};
+			} else if(module instanceof Trainable){
+				classes = new String[]{Module.class.getName(),Trainable.class.getName()};
+			} else {
+				classes = new String[]{Module.class.getName()};
+			}
+			
+			ServiceRegistration reg = context.registerService(classes, module, properties);
 			this.registrations.put(pid, reg);
 			
 			System.out.println("Registered module "+module.getClass().getName()+" "+module.getId());
