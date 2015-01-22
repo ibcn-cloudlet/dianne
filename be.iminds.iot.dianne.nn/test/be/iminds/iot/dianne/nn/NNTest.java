@@ -12,6 +12,7 @@ import be.iminds.iot.dianne.nn.module.io.OutputImpl;
 import be.iminds.iot.dianne.nn.module.layer.Linear;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;
 
 public class NNTest {
 
@@ -19,8 +20,7 @@ public class NNTest {
 	
 	@Before
 	public void setUp(){
-		factory = TensorFactory.getFactory(TensorFactory.TensorType.JAVA);
-
+		factory = new JavaTensorFactory();
 	}
 	
 	@Test

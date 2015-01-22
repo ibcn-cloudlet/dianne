@@ -1,6 +1,7 @@
 Bundle-Version: 0.1.0.${tstamp}
 
 Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
-Private-Package: be.iminds.iot.dianne.tensor.impl.java
-Export-Package: be.iminds.iot.dianne.tensor
+Export-Package: \
+	be.iminds.iot.dianne.tensor,\
+	be.iminds.iot.dianne.tensor.impl.java
 -buildpath: biz.aQute.junit

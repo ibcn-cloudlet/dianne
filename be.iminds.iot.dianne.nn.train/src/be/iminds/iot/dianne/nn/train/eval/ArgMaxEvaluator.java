@@ -8,10 +8,11 @@ import be.iminds.iot.dianne.nn.train.Evaluation;
 import be.iminds.iot.dianne.nn.train.Evaluator;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;
 
 public class ArgMaxEvaluator implements Evaluator {
 
-	protected static final TensorFactory factory = TensorFactory.getFactory(TensorFactory.TensorType.JAVA);
+	protected static final TensorFactory factory = new JavaTensorFactory();
 	
 	@Override
 	public Evaluation evaluate(Input input, Output output, final Dataset data) {

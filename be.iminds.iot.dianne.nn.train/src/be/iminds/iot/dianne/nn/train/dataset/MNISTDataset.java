@@ -7,10 +7,11 @@ import java.io.InputStream;
 import be.iminds.iot.dianne.nn.train.Dataset;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;
 
 public class MNISTDataset implements Dataset{
 
-	protected static final TensorFactory factory = TensorFactory.getFactory(TensorFactory.TensorType.JAVA);
+	protected static final TensorFactory factory = new JavaTensorFactory();
 	
 	public static enum Set {TRAIN, TEST};
 	

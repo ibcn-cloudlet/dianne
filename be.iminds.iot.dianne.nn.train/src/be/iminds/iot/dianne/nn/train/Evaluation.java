@@ -2,10 +2,11 @@ package be.iminds.iot.dianne.nn.train;
 
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;
 
 public class Evaluation {
 
-	protected static final TensorFactory factory = TensorFactory.getFactory(TensorFactory.TensorType.JAVA);
+	protected static final TensorFactory factory = new JavaTensorFactory();
 	
 	private Tensor confusionMatrix;
 	

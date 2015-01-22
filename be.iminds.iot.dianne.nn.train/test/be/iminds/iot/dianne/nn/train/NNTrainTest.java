@@ -22,6 +22,7 @@ import be.iminds.iot.dianne.nn.train.eval.ArgMaxEvaluator;
 import be.iminds.iot.dianne.nn.train.strategy.StochasticGradient;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;
 
 public class NNTrainTest {
 
@@ -31,7 +32,7 @@ public class NNTrainTest {
 	
 	@Before
 	public void setUp(){
-		factory = TensorFactory.getFactory(TensorFactory.TensorType.JAVA);
+        factory = new JavaTensorFactory();
 	}
 	
 	@Test

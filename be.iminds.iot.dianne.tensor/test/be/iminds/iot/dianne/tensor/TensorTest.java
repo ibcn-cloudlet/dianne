@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import be.iminds.iot.dianne.tensor.impl.java.JavaTensor;
+import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;
 import be.iminds.iot.dianne.tensor.impl.java.JavaTensorMath;
 
 public class TensorTest<T extends Tensor<T>> {
@@ -14,7 +15,7 @@ public class TensorTest<T extends Tensor<T>> {
 	
     @Before
     public void setUp() {
-        factory = new TensorFactory(JavaTensor.class, JavaTensorMath.class);
+        factory = (TensorFactory<T>) new JavaTensorFactory();
     }
 	
 	@Test
