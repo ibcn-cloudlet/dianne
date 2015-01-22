@@ -1,5 +1,7 @@
 package be.iminds.iot.dianne.nn.module;
 
+import java.util.UUID;
+
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -10,6 +12,10 @@ public abstract class AbstractTrainableModule extends AbstractModule implements 
 	
 	public AbstractTrainableModule(TensorFactory factory) {
 		super(factory);
+	}
+	
+	public AbstractTrainableModule(TensorFactory factory, UUID id) {
+		super(factory, id);
 	}
 	
 	@Override

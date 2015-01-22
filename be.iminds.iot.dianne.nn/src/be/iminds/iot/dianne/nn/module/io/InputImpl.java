@@ -3,6 +3,7 @@ package be.iminds.iot.dianne.nn.module.io;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import be.iminds.iot.dianne.nn.module.AbstractModule;
 import be.iminds.iot.dianne.nn.module.Input;
@@ -17,6 +18,10 @@ public class InputImpl extends AbstractModule implements Input {
 
 	public InputImpl(TensorFactory factory) {
 		super(factory);
+	}
+
+	public InputImpl(TensorFactory factory, UUID id) {
+		super(factory, id);
 	}
 	
 	@Override

@@ -56,10 +56,14 @@ public abstract class AbstractModule implements Module {
 				prev.backward(AbstractModule.this.id, AbstractModule.this.gradInput);
 		}
 	};
-	
+
 	public AbstractModule(TensorFactory factory) {
-		this.id = UUID.randomUUID(); // TODO meaningful uuid?
-		
+		this.id = UUID.randomUUID();
+		this.factory = factory;
+	}
+	
+	public AbstractModule(TensorFactory factory, UUID id) {
+		this.id = id;
 		this.factory = factory;
 	}
 	

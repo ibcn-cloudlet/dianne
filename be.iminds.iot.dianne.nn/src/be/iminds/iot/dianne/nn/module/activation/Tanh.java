@@ -1,12 +1,18 @@
 package be.iminds.iot.dianne.nn.module.activation;
 
+import java.util.UUID;
+
 import be.iminds.iot.dianne.nn.module.AbstractModule;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public class Tanh extends AbstractModule {
-	
+
 	public Tanh(TensorFactory factory) {
 		super(factory);
+	}
+	
+	public Tanh(TensorFactory factory, UUID id) {
+		super(factory, id);
 	}
 	
 	@Override

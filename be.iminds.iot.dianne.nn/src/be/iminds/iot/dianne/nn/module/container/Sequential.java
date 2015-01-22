@@ -13,7 +13,11 @@ public class Sequential implements Module {
 	protected List<Module> modules = new ArrayList<Module>();
 	
 	public Sequential(){
-		id = UUID.randomUUID(); // TODO meaningful id?
+		this.id = UUID.randomUUID();
+	}
+	
+	public Sequential(UUID id){
+		this.id = id;
 	}
 	
 	@Override
