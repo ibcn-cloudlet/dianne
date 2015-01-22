@@ -5,4 +5,8 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 	be.iminds.iot.dianne.tensor;version=latest,\
 	be.iminds.iot.dianne.nn;version=latest,\
 	be.iminds.iot.dianne.nn.train;version=latest,\
-	biz.aQute.junit
+	biz.aQute.junit,\
+	osgi.enterprise,\
+	osgi.core
+Private-Package: be.iminds.iot.dianne.nn.runtime
+-dsannotations: *
