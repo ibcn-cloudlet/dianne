@@ -1,0 +1,5 @@
+Bundle-Version: 0.1.0.${tstamp}
+-dsannotations: *
+Private-Package: \
+	be.iminds.iot.dianne.demo.mnist,\
+	be.iminds.iot.dianne.demo.mnist.dataset
