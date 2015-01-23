@@ -3,16 +3,19 @@ package be.iminds.iot.dianne.nn.train.criterion;
 import be.iminds.iot.dianne.nn.train.Criterion;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
-import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;
 
 public class MSECriterion implements Criterion {
 
-	// the factory for this module
-	protected static final TensorFactory factory = new JavaTensorFactory();
+	protected final TensorFactory factory;
 		
 	protected Tensor error;
 	protected Tensor sqerror;
-	protected Tensor mse = factory.createTensor(1);
+	protected Tensor mse;
+	
+	public MSECriterion(TensorFactory factory) {
+		this.factory = factory;	
+		this.mse = factory.createTensor(1);
+	}
 	
 	@Override
 	public Tensor forward(final Tensor output, final Tensor target) {

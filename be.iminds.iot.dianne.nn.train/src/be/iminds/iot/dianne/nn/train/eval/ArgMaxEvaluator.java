@@ -8,11 +8,14 @@ import be.iminds.iot.dianne.nn.train.Evaluation;
 import be.iminds.iot.dianne.nn.train.Evaluator;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
-import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;
 
 public class ArgMaxEvaluator implements Evaluator {
 
-	protected static final TensorFactory factory = new JavaTensorFactory();
+	protected final TensorFactory factory;
+	
+	public ArgMaxEvaluator(TensorFactory factory) {
+		this.factory = factory;
+	}
 	
 	@Override
 	public Evaluation evaluate(Input input, Output output, final Dataset data) {
@@ -40,7 +43,7 @@ public class ArgMaxEvaluator implements Evaluator {
 		long t2 = System.currentTimeMillis();
 		System.out.println("Forward time per sample: "+(double)(t2-t1)/(double)data.size()+" ms");
 		
-		return new Evaluation(confusion);
+		return new Evaluation(factory, confusion);
 	}
 
 

@@ -2,18 +2,18 @@ package be.iminds.iot.dianne.nn.train;
 
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
-import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;
 
 public class Evaluation {
 
-	protected static final TensorFactory factory = new JavaTensorFactory();
+	protected final TensorFactory factory;
 	
 	private Tensor confusionMatrix;
 	
-	public Evaluation(Tensor confusionMatrix){
+	public Evaluation(TensorFactory factory, Tensor confusionMatrix){
 		assert confusionMatrix.dim() == 2;
 		assert confusionMatrix.dims()[0] == confusionMatrix.dims()[1];
 		this.confusionMatrix = confusionMatrix;
+		this.factory = factory;
 	}
 	
 	@Override

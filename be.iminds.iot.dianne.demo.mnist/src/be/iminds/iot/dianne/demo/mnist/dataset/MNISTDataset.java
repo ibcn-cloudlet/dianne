@@ -1,4 +1,4 @@
-package be.iminds.iot.dianne.nn.train.dataset;
+package be.iminds.iot.dianne.demo.mnist.dataset;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -7,13 +7,12 @@ import java.io.InputStream;
 import be.iminds.iot.dianne.nn.train.Dataset;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
-import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;
 
 public class MNISTDataset implements Dataset{
 
-	protected static final TensorFactory factory = new JavaTensorFactory();
-	
 	public static enum Set {TRAIN, TEST};
+
+	private final TensorFactory factory;
 	
 	private Tensor data;
 	private int inputSize;
@@ -30,15 +29,16 @@ public class MNISTDataset implements Dataset{
 	private String labels;
 	
 	
-	public MNISTDataset(String dir, Set set, boolean readOnInit){
-		this(dir, set);
+	public MNISTDataset(TensorFactory factory, String dir, Set set, boolean readOnInit){
+		this(factory, dir, set);
 		
 		if(readOnInit){
 			read(noSamples);
 		}
 	}
 	
-	public MNISTDataset(String dir, Set set) {
+	public MNISTDataset(TensorFactory factory, String dir, Set set) {
+		this.factory = factory;
 		this.dir = dir;
 		if(set == Set.TRAIN){
 			images = "train-images.idx3-ubyte";

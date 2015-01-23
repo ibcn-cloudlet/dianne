@@ -1,4 +1,4 @@
-package be.iminds.iot.dianne.nn.train.osgi;
+package be.iminds.iot.dianne.demo.mnist;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +9,8 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
+import be.iminds.iot.dianne.demo.mnist.dataset.MNISTDataset;
+import be.iminds.iot.dianne.demo.mnist.dataset.MNISTDataset.Set;
 import be.iminds.iot.dianne.nn.module.Input;
 import be.iminds.iot.dianne.nn.module.Output;
 import be.iminds.iot.dianne.nn.module.OutputListener;
@@ -19,11 +21,10 @@ import be.iminds.iot.dianne.nn.train.Evaluation;
 import be.iminds.iot.dianne.nn.train.Evaluator;
 import be.iminds.iot.dianne.nn.train.Trainer;
 import be.iminds.iot.dianne.nn.train.criterion.MSECriterion;
-import be.iminds.iot.dianne.nn.train.dataset.MNISTDataset;
-import be.iminds.iot.dianne.nn.train.dataset.MNISTDataset.Set;
 import be.iminds.iot.dianne.nn.train.eval.ArgMaxEvaluator;
 import be.iminds.iot.dianne.nn.train.strategy.StochasticGradient;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component(service=MNISTDemo.class, 
 	property={"osgi.command.scope=mnist",
@@ -41,6 +42,8 @@ public class MNISTDemo {
 	private Dataset dataTrain = null;
 	private Dataset dataTest = null;
 
+	private TensorFactory factory = null;
+	
 	private OutputListener outputLog = new OutputListener() {
 		@Override
 		public void onForward(Tensor output) {
@@ -49,6 +52,11 @@ public class MNISTDemo {
 	};
 	
 	private Random rand = new Random(System.currentTimeMillis());
+	
+	@Reference
+	public void setTensorFactory(TensorFactory factory){
+		this.factory = factory;
+	}
 	
 	@Reference
 	public void setInput(Input input){
@@ -77,8 +85,8 @@ public class MNISTDemo {
 	
 	public void data(String dir){
 		System.out.println("Loading MNIST dataset ...");
-		this.dataTrain = new MNISTDataset(dir, Set.TRAIN, true);
-		this.dataTest = new MNISTDataset(dir, Set.TEST, true);
+		this.dataTrain = new MNISTDataset(factory, dir, Set.TRAIN, true);
+		this.dataTest = new MNISTDataset(factory, dir, Set.TEST, true);
 		System.out.println("Loaded!");
 	}
 	
@@ -91,7 +99,7 @@ public class MNISTDemo {
 		this.output.removeOutputListener(outputLog);
 		
 		System.out.println("Training ...");
-		Criterion loss = new MSECriterion();
+		Criterion loss = new MSECriterion(factory);
 		Trainer trainer = new StochasticGradient();
 		trainer.train(input, output, toTrain, loss, dataTrain);
 		System.out.println("Trained!");
@@ -109,7 +117,7 @@ public class MNISTDemo {
 		this.output.removeOutputListener(outputLog);
 		
 		System.out.println("Evaluating...");
-		Evaluator eval = new ArgMaxEvaluator();
+		Evaluator eval = new ArgMaxEvaluator(factory);
 		Evaluation result = eval.evaluate(input, output, dataTest);
 		System.out.println("Accuracy: "+result.accuracy());
 		
