@@ -141,7 +141,15 @@ public class DianneRuntime implements ManagedServiceFactory {
 			// and that each module is uniquely proxied
 			props.put("aiolos.combine", "*");
 			props.put("aiolos.instance.id", module.getId().toString());
-			ServiceRegistration reg = context.registerService(classes, module, props);
+			
+			// register on behalf of bundle that provided configuration if applicable
+			BundleContext c = context;
+			Long bundleId = (Long) properties.get("be.iminds.aiolos.configurer.bundle.id");
+			if(bundleId!=null){
+				c = context.getBundle(bundleId).getBundleContext();
+			}
+			
+			ServiceRegistration reg = c.registerService(classes, module, props);
 			this.registrations.put(pid, reg);
 			
 			System.out.println("Registered module "+module.getClass().getName()+" "+module.getId());
