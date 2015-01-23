@@ -15,4 +15,4 @@
 	be.iminds.iot.dianne.nn.train;version=latest,\
 	be.iminds.iot.dianne.demo.mnist;version=latest
 	
--runproperties: felix.fileinstall.dir=config
+-runproperties: felix.fileinstall.dir=configuration
