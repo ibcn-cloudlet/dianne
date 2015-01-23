@@ -13,6 +13,8 @@ public interface TensorFactory<T extends Tensor<T>> {
 	
 	public T createTensor(final int ... d);
 	
+	public T createTensor(final float[] data, final int ... d);
+	
 	public TensorMath<T> getTensorMath();
 	
 }

@@ -11,8 +11,13 @@ public class JavaTensorFactory implements TensorFactory<JavaTensor>{
 	private final JavaTensorMath math = new JavaTensorMath(this);
 	
 	@Override
-	public JavaTensor createTensor(int... d) {
+	public JavaTensor createTensor(final int... d) {
 		return new JavaTensor(d);
+	}
+	
+	@Override
+	public JavaTensor createTensor(final float[] data, final int ... d){
+		return new JavaTensor(data, d);
 	}
 
 	@Override

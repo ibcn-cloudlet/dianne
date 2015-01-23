@@ -18,7 +18,7 @@ public class JavaTensorTest {
 	@Test
 	public void testJavaTensorConstructor2() {
 		float[] data = new float[]{1.0f, 2.0f, 3.0f, 4.0f};
-		JavaTensor tensor = new JavaTensor(new int[]{2,2}, data);
+		JavaTensor tensor = new JavaTensor(data, new int[]{2,2});
 		
 		Assert.assertEquals(2, tensor.dims.length);
 		Assert.assertEquals(2, tensor.strides.length);
@@ -46,7 +46,7 @@ public class JavaTensorTest {
 	@Test
 	public void testJavaTensorToString2() {
 		float[] data = new float[]{1.0f, 2.0f, 3.0f, 4.0f};
-		JavaTensor tensor = new JavaTensor(new int[]{2,2}, data);
+		JavaTensor tensor = new JavaTensor(data, new int[]{2,2});
 		String expected = "[1.0, 2.0]\n[3.0, 4.0]\n";
 		Assert.assertEquals(expected, tensor.toString());
 	}
@@ -54,7 +54,7 @@ public class JavaTensorTest {
 	@Test
 	public void testJavaTensorToString3() {
 		float[] data = new float[]{1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f};
-		JavaTensor tensor = new JavaTensor(new int[]{2,3}, data);
+		JavaTensor tensor = new JavaTensor(data, new int[]{2,3});
 		String expected = "[1.0, 2.0, 3.0]\n[4.0, 5.0, 6.0]\n";
 		Assert.assertEquals(expected, tensor.toString());
 	}

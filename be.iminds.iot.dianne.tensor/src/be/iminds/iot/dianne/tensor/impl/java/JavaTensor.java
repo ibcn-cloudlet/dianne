@@ -10,18 +10,18 @@ public class JavaTensor implements Tensor<JavaTensor> {
 	static Random random = new Random(System.currentTimeMillis());
 	
 	int[] dims;
+	float[] data;
 	int offset = 0;
 	int[] strides;
-	float[] data;
 	int[] indices = null;
 	
 	public JavaTensor(final int... d){
-		this(d, null);
+		this(null, d);
 	
 		data = new float[size()];
 	}
 
-	JavaTensor(final int[] dims, final float[] data){
+	JavaTensor(final float[] data, final int ... dims){
 		this.dims = dims;
 		this.data = data;
 
@@ -194,7 +194,7 @@ public class JavaTensor implements Tensor<JavaTensor> {
 	@Override
 	public JavaTensor narrow(int dim, int index, int size) {
 		int[] narrowDims = dims.clone();
-		JavaTensor narrow = new JavaTensor(narrowDims, data);
+		JavaTensor narrow = new JavaTensor(data, narrowDims);
 		narrow.dims[dim] = size;
 		int[] start = new int[dims.length];
 		start[dim] = index;
@@ -208,7 +208,7 @@ public class JavaTensor implements Tensor<JavaTensor> {
 	@Override
 	public JavaTensor narrow(int... ranges) {
 		int[] narrowDims = dims.clone();
-		JavaTensor narrow = new JavaTensor(narrowDims, data);
+		JavaTensor narrow = new JavaTensor(data, narrowDims);
 		int[] start = new int[dims.length];
 		for(int i=0;i<ranges.length/2;i++){
 			start[i] = ranges[2*i];
