@@ -1,5 +1,6 @@
 package be.iminds.iot.dianne.nn.module;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -37,9 +38,18 @@ public abstract class AbstractModule implements Module {
 	// Thread executor to perform calculations on
 	private ExecutorService executor = Executors.newSingleThreadExecutor();
 	
+	public void setExecutorService(ExecutorService executor){
+		List<Runnable> todo = this.executor.shutdownNow();
+		this.executor = executor;
+		for(Runnable r : todo){
+			this.executor.execute(r);
+		}
+	}
+	
 	private Runnable forward = new Runnable(){
 		public void run(){
 			// calculates new outputs
+			//System.out.println("Forward "+AbstractModule.this.getClass().getName()+" "+id);
 			forward();
 			
 			if(next!=null)
@@ -50,6 +60,7 @@ public abstract class AbstractModule implements Module {
 	private Runnable backward = new Runnable(){
 		public void run(){
 			// calculates new gradInputs
+			//System.out.println("Backward "+AbstractModule.this.getClass().getName()+" "+id);
 			backward();
 			
 			if(prev!=null)

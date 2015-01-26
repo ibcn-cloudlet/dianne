@@ -2,10 +2,12 @@ package be.iminds.iot.dianne.nn.module.factory;
 
 import java.util.Dictionary;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
 
+import be.iminds.iot.dianne.nn.module.AbstractModule;
 import be.iminds.iot.dianne.nn.module.Module;
 import be.iminds.iot.dianne.nn.module.activation.Sigmoid;
 import be.iminds.iot.dianne.nn.module.activation.Tanh;
@@ -17,10 +19,12 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 @Component
 public class DianneModuleFactory implements ModuleFactory {
 
+	private ExecutorService executor = Executors.newCachedThreadPool();
+	
 	@Override
 	public Module createModule(TensorFactory factory, Dictionary<String, ?> config)
 			throws InstantiationException {
-		Module module = null;
+		AbstractModule module = null;
 		
 		// TODO have a better design for this?
 		// for now just hard code an if/else for each known module
@@ -47,6 +51,9 @@ public class DianneModuleFactory implements ModuleFactory {
 		if(module==null){
 			throw new InstantiationException("Could not instantiate module of type "+type);
 		}
+		
+		// re-use a cached threadpool
+		module.setExecutorService(executor);
 		
 		return module;
 	}
