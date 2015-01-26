@@ -16,7 +16,7 @@ import be.iminds.iot.dianne.nn.module.io.OutputImpl;
 import be.iminds.iot.dianne.nn.module.layer.Linear;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
-@Component
+@Component(property={"aiolos.export=false"})
 public class DianneModuleFactory implements ModuleFactory {
 
 	private ExecutorService executor = Executors.newCachedThreadPool();

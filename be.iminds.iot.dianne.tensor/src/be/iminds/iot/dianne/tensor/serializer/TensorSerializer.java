@@ -11,7 +11,7 @@ import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
-@Component(service=Serializer.class, property={"kryo.serializer.class=be.iminds.iot.dianne.tensor.Tensor"})
+@Component(service=Serializer.class, property={"aiolos.export=false","kryo.serializer.class=be.iminds.iot.dianne.tensor.Tensor"})
 public class TensorSerializer extends Serializer<Tensor> {
 
 	private TensorFactory factory;

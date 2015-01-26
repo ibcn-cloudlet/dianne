@@ -5,7 +5,7 @@ import org.osgi.service.component.annotations.Component;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.dianne.tensor.TensorMath;
 
-@Component
+@Component(property={"aiolos.export=false"})
 public class JavaTensorFactory implements TensorFactory<JavaTensor>{
 
 	private final JavaTensorMath math = new JavaTensorMath(this);
