@@ -42,12 +42,18 @@ public interface Tensor<T extends Tensor<T>> {
 	public float get(final int... d);
 	
 	/**
+	 * get (a copy of) the raw data for this tensor, this way that the tensor 
+	 * can be reconstructed with the createTensor(data, dims) factory method
+	 */
+	public float[] data();
+	
+	/**
 	 * set a value of the tensor
 	 * @param v the new value
 	 * @param d the indices of the element to set
 	 */
 	public void set(final float v, final int... d);
-
+	
 	/**
 	 * fill with fixed value
 	 * @param v the new value

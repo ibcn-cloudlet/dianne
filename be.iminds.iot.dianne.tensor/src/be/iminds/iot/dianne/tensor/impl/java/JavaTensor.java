@@ -16,12 +16,16 @@ public class JavaTensor implements Tensor<JavaTensor> {
 	int[] indices = null;
 	
 	public JavaTensor(final int... d){
-		this(null, d);
+		init(null, d);
 	
 		data = new float[size()];
 	}
 
 	JavaTensor(final float[] data, final int ... dims){
+		init(data, dims);
+	}
+	
+	private void init(final float[] data, final int[] dims){
 		this.dims = dims;
 		this.data = data;
 
@@ -79,6 +83,15 @@ public class JavaTensor implements Tensor<JavaTensor> {
 		
 		int index = getIndex(i);
 		return data[index];
+	}
+	
+	@Override
+	public float[] data(){
+		float[] result = new float[size()];
+		for(int i=0;i< (indices==null? data.length : indices.length);i++){
+			result[i] = data[(indices==null ? i : indices[i])];
+		}
+		return result;
 	}
 	
 	@Override
