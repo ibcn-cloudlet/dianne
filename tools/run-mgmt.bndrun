@@ -49,9 +49,9 @@ jclouds.version='[1.8.0,1.9.0)'
 	aws-ec2;version=${jclouds.version},\
 	kxml;version='[2.2.2,2.2.3)',\
 	jslp,\
-	org.objenesis;version=2.1.0,\
-	com.esotericsoftware.kryo;version=2.23.0,\
-	de.javakaffee.kryo-serializers,\
+	org.objenesis;version='[2.1.0,2.2.0)',\
+	com.esotericsoftware.kryo;version='[2.23,2.24)',\
+	de.javakaffee.kryo-serializers;version='[0.23,0.24)',\
 	be.iminds.aiolos.api;version=${aiolos.version},\
 	be.iminds.aiolos.discovery;version=${aiolos.version},\
 	be.iminds.aiolos.remoteserviceadmin;version=${aiolos.version},\
