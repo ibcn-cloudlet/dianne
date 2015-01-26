@@ -48,10 +48,6 @@ public abstract class AbstractModule implements Module {
 	
 	private Runnable forward = new Runnable(){
 		public void run(){
-			// calculates new outputs
-			//System.out.println("Forward "+AbstractModule.this.getClass().getName()+" "+id);
-			forward();
-			
 			if(next!=null)
 				next.forward(AbstractModule.this.id, AbstractModule.this.output);
 		}
@@ -59,10 +55,6 @@ public abstract class AbstractModule implements Module {
 	
 	private Runnable backward = new Runnable(){
 		public void run(){
-			// calculates new gradInputs
-			//System.out.println("Backward "+AbstractModule.this.getClass().getName()+" "+id);
-			backward();
-			
 			if(prev!=null)
 				prev.backward(AbstractModule.this.id, AbstractModule.this.gradInput);
 		}
@@ -87,6 +79,11 @@ public abstract class AbstractModule implements Module {
 	public void forward(final UUID moduleId, final Tensor input) {
 		this.input = input;
 		
+		// calculates new outputs
+		//System.out.println("Forward "+AbstractModule.this.getClass().getName()+" "+id);
+		forward();
+		
+		// forward on separate thread
 		executor.execute(forward);
 	}
 	
@@ -96,7 +93,12 @@ public abstract class AbstractModule implements Module {
 	public void backward(final UUID moduleId, final Tensor gradOutput) {
 		this.gradOutput = gradOutput;
 		
-		backward.run();
+		// calculates new gradInputs
+		//System.out.println("Backward "+AbstractModule.this.getClass().getName()+" "+id);
+		backward();
+		
+		// backward on separate thread
+		executor.execute(backward);
 	}
 	
 	protected abstract void backward();
