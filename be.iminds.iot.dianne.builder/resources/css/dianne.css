@@ -1,0 +1,94 @@
+/*
+ * Globals
+ */
+
+/* Links */
+a, a:focus, a:hover {
+	color: #555;
+}
+
+/*
+ * Base structure
+ */
+html, body {
+	height: 100%;
+	background-color: #FFF;
+	color: #333;
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.vertical-align {
+	display: flex;
+	align-items: center;
+}
+
+/* Extra markup and styles for table-esque vertical and horizontal centering */
+.site-wrapper {
+	display: table;
+	width: 100%;
+	height: 100%; /* For at least Firefox */
+	min-height: 100%;
+	-webkit-box-shadow: inset 0 0 100px rgba(0, 0, 0, .5);
+	box-shadow: inset 0 0 100px rgba(0, 0, 0, .5);
+	padding: 196px 0 90px 0;
+}
+
+.site-wrapper-inner {
+	display: table-cell;
+	vertical-align: top;
+}
+
+/* Padding for spacing */
+.inner {
+	padding: 30px;
+}
+
+/*
+ * Header
+ */
+.custom-navbar {
+	background-color: #E7E7E7;
+	-webkit-box-shadow: 0 0 10px rgba(0, 0, 0, .5);
+	box-shadow: 0 0 10px rgba(0, 0, 0, .5);
+}
+
+.masthead-image {
+	float: left;
+	margin: 0px 10px 0px 10px;
+	width: 75px;
+}
+
+.masthead-brand {
+	margin: auto 0;
+}
+
+.masthead-nav>li {
+	display: inline-block;
+}
+
+.masthead-nav>li+li {
+	margin-left: 20px;
+}
+
+@media ( min-width : 768px) {
+	.masthead-brand {
+		float: left;
+	}
+	.masthead-nav {
+		float: right;
+	}
+}
+
+/*
+ * Footer
+ */
+footer {
+	color: #555;
+	text-align: center;
+	-webkit-box-shadow: 0px 0 100px rgba(0, 0, 0, .5);
+	box-shadow: 0 0 100px rgba(0, 0, 0, .5);
+}
+
+.custom-footer {
+	background-color: #E7E7E7;
+}

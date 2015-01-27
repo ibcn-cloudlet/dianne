@@ -1,10 +1,16 @@
 Bundle-Version: 0.1.0.${tstamp}
 
 Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
+Include-Resource: res=resources
 -buildpath: \
 	biz.aQute.junit,\
 	osgi.enterprise;version=5.0,\
+	osgi.core;version=5.0.0,\
+	org.apache.felix.http.servlet-api,\
+	org.apache.felix.http.api,\
 	be.iminds.iot.dianne.nn;version=latest,\
 	be.iminds.iot.dianne.nn.runtime;version=latest,\
 	be.iminds.iot.dianne.nn.train;version=latest,\
 	be.iminds.iot.dianne.tensor;version=latest
+-dsannotations: *
+Private-Package: be.iminds.iot.diane.builder
