@@ -13,6 +13,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.http.HttpService;
 
 import be.iminds.iot.dianne.nn.module.factory.ModuleDescription;
@@ -25,7 +27,8 @@ public class DianneBuilder extends HttpServlet {
 
 	private List<ModuleFactory> factories = Collections.synchronizedList(new ArrayList<ModuleFactory>());
 	
-	@Reference
+	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
+			policy=ReferencePolicy.DYNAMIC)
 	public void addModuleFactory(ModuleFactory factory){
 		factories.add(factory);
 	}
