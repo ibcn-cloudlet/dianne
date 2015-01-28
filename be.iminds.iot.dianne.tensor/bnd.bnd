@@ -10,3 +10,4 @@ Export-Package: \
 	com.esotericsoftware.kryo;version=2.23
 -dsannotations: *
 Private-Package: be.iminds.iot.dianne.tensor.serializer
+Import-Package: com.esotericsoftware.kryo.*;resolution:=optional
