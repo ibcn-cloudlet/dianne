@@ -1,10 +1,15 @@
 package be.iminds.iot.dianne.nn.module.factory;
 
+import java.util.ArrayList;
 import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 
 import be.iminds.iot.dianne.nn.module.AbstractModule;
@@ -21,12 +26,48 @@ public class DianneModuleFactory implements ModuleFactory {
 
 	private ExecutorService executor = Executors.newCachedThreadPool();
 	
+	private final Map<String, ModuleDescription> supportedModules = new HashMap<String, ModuleDescription>();
+	
+	@Activate
+	public void activate(){
+		// build list of supported modules
+		// TODO use reflection for this?
+		
+		{
+			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
+			properties.add(new ModuleProperty("Input size", "module.linear.input"));
+			properties.add(new ModuleProperty("Output size", "module.linear.output"));
+			ModuleDescription description = new ModuleDescription("Linear", properties);
+			supportedModules.put(description.getName(), description);
+		}
+		{
+			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
+			ModuleDescription description = new ModuleDescription("Sigmoid", properties);
+			supportedModules.put(description.getName(), description);
+		}
+		{
+			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
+			ModuleDescription description = new ModuleDescription("Tanh", properties);
+			supportedModules.put(description.getName(), description);
+		}
+		{
+			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
+			ModuleDescription description = new ModuleDescription("Input", properties);
+			supportedModules.put(description.getName(), description);
+		}
+		{
+			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
+			ModuleDescription description = new ModuleDescription("Output", properties);
+			supportedModules.put(description.getName(), description);
+		}
+	}
+	
 	@Override
 	public Module createModule(TensorFactory factory, Dictionary<String, ?> config)
 			throws InstantiationException {
 		AbstractModule module = null;
 		
-		// TODO have a better design for this?
+		// TODO use reflection for this?
 		// for now just hard code an if/else for each known module
 		String type = (String)config.get("module.type");
 		UUID id = UUID.fromString((String)config.get("module.id"));
@@ -58,4 +99,14 @@ public class DianneModuleFactory implements ModuleFactory {
 		return module;
 	}
 
+	@Override
+	public List<ModuleDescription> getSupportedModules() {
+		return new ArrayList<ModuleDescription>(supportedModules.values());
+	}
+
+	@Override
+	public ModuleDescription getModuleDescription(String name) {
+		return supportedModules.get(name);
+	}
+	
 }
