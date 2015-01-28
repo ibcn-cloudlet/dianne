@@ -45,20 +45,7 @@
 
 		<div class="container-fluid">
 			<div id="builder" class="row">
-				<div id="toolbox" class="col-xs-4 col-md-2">
-					<div class="module toolbox" id="Linear">
-						<strong>Linear</strong>
-					</div>
-					<div class="module toolbox" id="Tanh">
-						<strong>Tanh</strong>
-					</div>
-					<div class="module toolbox" id="Input">
-						<strong>Input</strong>
-					</div>
-					<div class="module toolbox" id="Output">
-						<strong>Output</strong>
-					</div>
-				</div>
+				<div id="toolbox" class="col-xs-4 col-md-2"></div>
 				<div id="canvas" class="col-xs-8 col-md-10"></div>
 			</div>
 		</div>
@@ -106,5 +93,17 @@
 	<script src="js/jquery.jsPlumb-1.7.2.min.js"></script>
 	<!-- Our own scripts -->
 	<script src="js/dianne.js"></script>
+	<!-- Mustache Template Script  -->
+	<script src="js/mustache.js"></script>
+	
+	
+	    <!-- Templates -->
+    <!-- Template for things -->
+	<script type="x-tmpl-mustache" id="toolbox-module">
+		<div class="module toolbox" id="{{name}}">
+			<strong>{{name}}</strong>
+		</div>
+    </script>
+	<!-- end things template -->
 </body>
 </html>

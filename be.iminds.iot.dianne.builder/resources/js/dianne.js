@@ -1,4 +1,8 @@
+/**
+ * This script allows to create a NN structure by drag-and-drop using jsPlumb
+ */
 
+// definition of source Endpoints
 var source = {
 	isSource:true,
 	anchor : "Right",	
@@ -25,7 +29,8 @@ var source = {
 	},
 //		maxConnections:-1,
 }		
-// the definition of target endpoints (will appear when the user drags a connection) 
+
+// the definition of target Endpoints 
 var target = {
 	isTarget:true,
 	anchor: "Left",					
@@ -38,10 +43,71 @@ var target = {
 //		maxConnections:-1,
 }
 
+// on ready, query for all supported modules and put those in the toolbox
+$( document ).ready(function() {
+	$.post("/dianne/builder", {action : "supported-modules"}, 
+		function( data ) {
+			$.each(data, function(index, name){
+				console.log(name);	
+				// Render toolbox item
+				var template = $('#toolbox-module').html();
+				Mustache.parse(template);
+				var rendered = Mustache.render(template, 
+						{
+							name: name 
+						});
+				$('#toolbox').append(rendered);
+				
+				// Make draggable and add code to create new modules
+				$('#'+name).draggable({helper: "clone"});
+				$('#'+name).bind('dragstop', function(event, ui) {
+				    var module = $(ui.helper).clone().removeClass("toolbox").appendTo("#canvas");
+				    
+				    // fix offset
+				    var offset = {};
+				    offset.left = module.offset().left - ($("#canvas").offset().left - $("#toolbox").offset().left);
+				    offset.top = module.offset().top - ($("#canvas").offset().top - $("#toolbox").offset().top);
+				    module.offset(offset);
+				    
+					var type = $(this).attr("id");
+					var id = guid();
+					module.attr("id",id);
+					
+					// TODO this should not be hard coded?
+					if(type==="Input"){
+						jsPlumb.addEndpoint(module, source);
+					} else if(type==="Output"){
+						jsPlumb.addEndpoint(module, target);
+					} else {
+						jsPlumb.addEndpoint(module, source);
+						jsPlumb.addEndpoint(module, target);
+					}
+					
+					// Show dialog on double click
+					module.dblclick(function() {
+						showConfigureModuleDialog($(this));
+					});
+					
+					module.click(function(){
+						console.log("click");
+					});
+					
+					module.draggable(
+					{
+						drag: function(){
+						    jsPlumb.repaintEverything();
+						}
+					});
+					
+					console.log("Add module "+id);
+				});
+			});
+		}
+		, "json");
+});
+
+// jsPlumb init code
 jsPlumb.ready(function() {       
-    // your jsPlumb related init code goes here
-    console.log("init jsPlumb");
-    
     jsPlumb.setContainer($("canvas"));
     jsPlumb.importDefaults({
     	ConnectionOverlays : [[ "Arrow", { location : 1 } ]],
@@ -78,47 +144,6 @@ jsPlumb.ready(function() {
 			console.log("Add connection " + connection.sourceId + " -> " + connection.targetId);
 			// TODO check whether connection is OK?
 			return true;
-		});
-		
-		$('.toolbox').draggable({helper: "clone"});
-		$('.toolbox').bind('dragstop', function(event, ui) {
-		    var module = $(ui.helper).clone().removeClass("toolbox").appendTo("#canvas");
-		    
-		    // fix offset
-		    var offset = {};
-		    offset.left = module.offset().left - ($("#canvas").offset().left - $("#toolbox").offset().left);
-		    offset.top = module.offset().top - ($("#canvas").offset().top - $("#toolbox").offset().top);
-		    module.offset(offset);
-		    
-			var type = $(this).attr("id");
-			var id = guid();
-			module.attr("id",id);
-			
-			if(type==="Input"){
-				jsPlumb.addEndpoint(module, source);
-			} else if(type==="Output"){
-				jsPlumb.addEndpoint(module, target);
-			} else {
-				jsPlumb.addEndpoint(module, source);
-				jsPlumb.addEndpoint(module, target);
-			}
-			
-			module.dblclick(function() {
-				showConfigureModuleDialog($(this));
-			});
-			
-			module.click(function(){
-				console.log("click");
-			});
-			
-			module.draggable(
-			{
-				drag: function(){
-				    jsPlumb.repaintEverything();
-				}
-			});
-			
-			console.log("Add module "+id);
 		});
 	});
 
