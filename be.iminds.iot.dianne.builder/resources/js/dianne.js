@@ -72,13 +72,13 @@ jsPlumb.ready(function() {
 		// listen for connection add/removes
 		//
 		jsPlumb.bind("beforeDetach", function(connection) {
-			console.log("connection detach " + connection.sourceId + " -> " + connection.targetId);
+			console.log("Remove connection " + connection.sourceId + " -> " + connection.targetId);
 			// TODO check whether connection can be detached
 			return true;
 		});
 		
 		jsPlumb.bind("beforeDrop", function(connection) {
-			console.log("connection add " + connection.sourceId + " -> " + connection.targetId);
+			console.log("Add connection " + connection.sourceId + " -> " + connection.targetId);
 			// TODO check whether connection is OK?
 			return true;
 		});
@@ -101,7 +101,20 @@ $( ".module.toolbox" ).click(function() {
 		jsPlumb.addEndpoint(module, target);
 	}
 	
+	module.dblclick(function() {
+		console.log("Remove module "+$(this).attr("id"));
+		// delete this module
+		$.each(jsPlumb.getEndpoints($(this)), function(index, endpoint){
+			jsPlumb.deleteEndpoint(endpoint)}
+		);
+		
+		jsPlumb.detachAllConnections($(this));
+		$(this).remove();
+	});
+	
 	jsPlumb.draggable(module);
+	
+	console.log("Add module "+id);
 });
 
 
