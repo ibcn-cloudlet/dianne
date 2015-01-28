@@ -1,64 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="An intuitive and user friendly user interface for building, training and deploying Artificial Neural Networks.">
-	<meta name="keywords" content="Dianne, IoT, Internet of Things">
-	<meta name="author" content="Tim Verbelen and Elias De Coninck">
-    <title>Dianne Neural Network Builder</title>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description"
+	content="An intuitive and user friendly user interface for building, training and deploying Artificial Neural Networks.">
+<meta name="keywords" content="Dianne, IoT, Internet of Things">
+<meta name="author" content="Tim Verbelen and Elias De Coninck">
+<title>Dianne Neural Network Builder</title>
 
-    <!-- Bootstrap -->
-    <!-- Latest compiled and minified CSS -->
-	<link rel="stylesheet" href="css/bootstrap.min.css">
-	
-	<!-- Styles -->
-	<link rel="stylesheet" href="css/dianne.css">
+<!-- Bootstrap -->
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="css/bootstrap.min.css">
 
-    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
+<!-- Styles -->
+<link rel="stylesheet" href="css/dianne.css">
+
+<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+<!--[if lt IE 9]>
       <script src="js/html5shiv.min.js"></script>
       <script src="js/respond.min.js"></script>
     <![endif]-->
-  </head>
-  <body>
+</head>
+<body>
 
-    <div class="site-wrapper">
+	<div class="site-wrapper">
 
-      <div class="site-wrapper-inner">
-
-          <header class="navbar-fixed-top custom-navbar">
-            <img class="masthead-image" src="images/dianne.png"/>	
-            <div class="inner">
-              <h3 class="masthead-brand">Dianne Neural Network Builder</h3>
-              <nav class='controls'>
-                <ul id="actions" class="nav masthead-nav control-group">
-                	<li><a href="#">Train</a></li>
-                	<li><a href="#">Evaluate</a></li>
-                	<li><a href="#">Deploy</a></li>
-                </ul>
-              </nav>
-            </div>
-          </header>
+		<header class="navbar-fixed-top custom-navbar">
+			<img class="masthead-image" src="images/dianne.png" />
+			<div class="inner">
+				<h3 class="masthead-brand">Dianne Neural Network Builder</h3>
+				<nav class='controls'>
+					<ul id="actions" class="nav masthead-nav control-group">
+						<li><a href="#">Train</a></li>
+						<li><a href="#">Evaluate</a></li>
+						<li><a href="#">Deploy</a></li>
+					</ul>
+				</nav>
+			</div>
+		</header>
 
 
-          <div class="container">
-	          <div id="builder" class="row"></div>
-          </div>
-		  <footer class="navbar-fixed-bottom custom-footer">
-            <div class="inner">
-              <p>Copyright &copy; iMinds IoT lab, 2014</p>
-            </div>
-          </footer>
-       </div>
-    </div>
-  
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="js/jquery.min.js"></script>
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
+		<div class="container-fluid">
+			<div id="nn" class="row">
+				<div id="blocks" class="col-xs-4 col-md-2">
+					<div class="module toolbox" id="Linear"><strong>Linear</strong></div>
+					<div class="module toolbox" id="Tanh"><strong>Tanh</strong></div>
+					<div class="module toolbox" id="Input"><strong>Input</strong></div>
+					<div class="module toolbox" id="Output"><strong>Output</strong></div>
+				</div>
+				<div id="canvas" class="col-xs-8 col-md-10">
+					<div class="module draggable" id="Test"><strong>Test</strong></div>
+					<div class="module draggable" id="Test2"><strong>Test 2</strong></div>
+				</div>
+			</div>
+		</div>
+		
+		<footer class="navbar-fixed-bottom custom-footer">
+			<div class="inner">
+				<p>Copyright &copy; iMinds IoT lab, 2014</p>
+			</div>
+		</footer>
+	</div>
+
+
+	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+	<script src="js/jquery.min.js"></script>
+	<!-- Include all compiled plugins (below), or include individual files as needed -->
 	<!-- Latest compiled and minified JavaScript -->
 	<script src="js/bootstrap.min.js"></script>
+	<!-- jQuery UI and jsPlumb for NN module builder and drag-and-drop -->
+	<script src="js/jquery-ui.min.js"></script>
+	<script src="js/jquery.jsPlumb-1.7.2.min.js"></script>
+	<!-- Our own scripts -->
+	<script src="js/dianne.js"></script>
 </body>
 </html>
