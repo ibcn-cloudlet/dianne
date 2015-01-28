@@ -65,9 +65,6 @@ jsPlumb.ready(function() {
 			init(connInfo.connection);
 		});			
 					
-		// make all the window divs draggable (intially canvas will be empty so not needed...)						
-		// jsPlumb.draggable($(".module.draggable"), { grid: [20, 20] });		
-	
 		//
 		// listen for connection add/removes
 		//
@@ -82,41 +79,53 @@ jsPlumb.ready(function() {
 			// TODO check whether connection is OK?
 			return true;
 		});
-	});
-
-});
-
-$( ".module.toolbox" ).click(function() {
-	var module = $( this ).clone().removeClass("toolbox").addClass("draggable").appendTo("#canvas");
-	// TODO configure module dialog?
-	var type = module.attr("id");
-	var id = guid();
-	module.attr("id",id);
-	if(type==="Input"){
-		jsPlumb.addEndpoint(module, source);
-	} else if(type==="Output"){
-		jsPlumb.addEndpoint(module, target);
-	} else {
-		jsPlumb.addEndpoint(module, source);
-		jsPlumb.addEndpoint(module, target);
-	}
-	
-	module.dblclick(function() {
-		console.log("Remove module "+$(this).attr("id"));
-		// delete this module
-		$.each(jsPlumb.getEndpoints($(this)), function(index, endpoint){
-			jsPlumb.deleteEndpoint(endpoint)}
-		);
 		
-		jsPlumb.detachAllConnections($(this));
-		$(this).remove();
+		$('.toolbox').draggable({helper: "clone"});
+		$('.toolbox').bind('dragstop', function(event, ui) {
+		    var module = $(ui.helper).clone().removeClass("toolbox").appendTo("#canvas");
+		    
+		    // fix offset
+		    var offset = {};
+		    offset.left = module.offset().left - ($("#canvas").offset().left - $("#toolbox").offset().left);
+		    offset.top = module.offset().top - ($("#canvas").offset().top - $("#toolbox").offset().top);
+		    module.offset(offset);
+		    
+			var type = $(this).attr("id");
+			var id = guid();
+			module.attr("id",id);
+			
+			if(type==="Input"){
+				jsPlumb.addEndpoint(module, source);
+			} else if(type==="Output"){
+				jsPlumb.addEndpoint(module, target);
+			} else {
+				jsPlumb.addEndpoint(module, source);
+				jsPlumb.addEndpoint(module, target);
+			}
+			
+			module.dblclick(function() {
+				console.log("Remove module "+$(this).attr("id"));
+				// delete this module
+				$.each(jsPlumb.getEndpoints($(this)), function(index, endpoint){
+					jsPlumb.deleteEndpoint(endpoint)}
+				);
+				
+				jsPlumb.detachAllConnections($(this));
+				$(this).remove();
+			});
+			
+			module.draggable(
+			{
+				drag: function(){
+				    jsPlumb.repaintEverything();
+				}
+			});
+			
+			console.log("Add module "+id);
+		});
 	});
-	
-	jsPlumb.draggable(module);
-	
-	console.log("Add module "+id);
-});
 
+});
 
 /**
  * Generates a GUID string.

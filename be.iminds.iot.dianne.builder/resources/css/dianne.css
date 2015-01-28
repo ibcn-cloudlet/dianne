@@ -103,7 +103,6 @@ footer {
 	filter: alpha(opacity = 80);
 	text-align: center;
 	z-index: 20;
-	position: absolute;
 	background-color: #eee;
 	color: black;
 	font-family: helvetica;
@@ -116,10 +115,6 @@ footer {
 
 .toolbox {
 	position: relative;
-}
-
-.draggable {
-	
 }
 
 .module:hover {
