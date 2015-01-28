@@ -104,14 +104,11 @@ jsPlumb.ready(function() {
 			}
 			
 			module.dblclick(function() {
-				console.log("Remove module "+$(this).attr("id"));
-				// delete this module
-				$.each(jsPlumb.getEndpoints($(this)), function(index, endpoint){
-					jsPlumb.deleteEndpoint(endpoint)}
-				);
-				
-				jsPlumb.detachAllConnections($(this));
-				$(this).remove();
+				showConfigureModuleDialog($(this));
+			});
+			
+			module.click(function(){
+				console.log("click");
 			});
 			
 			module.draggable(
@@ -125,6 +122,41 @@ jsPlumb.ready(function() {
 		});
 	});
 
+});
+
+function showConfigureModuleDialog(module){
+	var dialog = $('#configureModuleDialog');
+	
+	var id = module.attr("id");
+	dialog.find('#configure-id').val(id);
+	// set configuration options
+	
+	dialog.modal('show');
+}
+
+$("#configure").click(function(e){
+	// apply configuration
+	var data = $('#configureModuleDialog').find('form').serializeArray();
+	
+	$('#configureModuleDialog').modal('hide');
+});
+
+$("#delete").click(function(e){
+	// remove object
+	var id = $('#configureModuleDialog').find('#configure-id').val();
+	
+	console.log("Remove module "+id);
+	
+	var module = $('#'+id);
+	// delete this module
+	$.each(jsPlumb.getEndpoints(module), function(index, endpoint){
+		jsPlumb.deleteEndpoint(endpoint)}
+	);
+	
+	jsPlumb.detachAllConnections(module);
+	module.remove();
+	
+	$('#configureModuleDialog').modal('hide');
 });
 
 /**

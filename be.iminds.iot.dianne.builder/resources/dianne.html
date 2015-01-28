@@ -46,16 +46,48 @@
 		<div class="container-fluid">
 			<div id="builder" class="row">
 				<div id="toolbox" class="col-xs-4 col-md-2">
-					<div class="module toolbox" id="Linear"><strong>Linear</strong></div>
-					<div class="module toolbox" id="Tanh"><strong>Tanh</strong></div>
-					<div class="module toolbox" id="Input"><strong>Input</strong></div>
-					<div class="module toolbox" id="Output"><strong>Output</strong></div>
+					<div class="module toolbox" id="Linear">
+						<strong>Linear</strong>
+					</div>
+					<div class="module toolbox" id="Tanh">
+						<strong>Tanh</strong>
+					</div>
+					<div class="module toolbox" id="Input">
+						<strong>Input</strong>
+					</div>
+					<div class="module toolbox" id="Output">
+						<strong>Output</strong>
+					</div>
 				</div>
-				<div id="canvas" class="col-xs-8 col-md-10">
+				<div id="canvas" class="col-xs-8 col-md-10"></div>
+			</div>
+		</div>
+
+		<div class="modal fade" id="configureModuleDialog" tabindex="-1"
+			role="dialog" aria-labelledby="configureModuleDialogLabel"
+			aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal">
+							<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+						</button>
+						<h4 class="modal-title">Configure module</h4>
+					</div>
+					<div class="modal-body">
+						<form>
+							<input id="configure-id" type="hidden" name="id" value=""/>
+						</form>
+					</div>
+					<div class="modal-footer">
+						<button id="delete" class="btn btn-danger pull-left">Delete module</button>
+						<button id="configure" class="btn btn-primary">Configure</button>
+					</div>
 				</div>
 			</div>
 		</div>
-		
+
+
 		<footer class="navbar-fixed-bottom custom-footer">
 			<div class="inner">
 				<p>Copyright &copy; iMinds IoT lab, 2014</p>
