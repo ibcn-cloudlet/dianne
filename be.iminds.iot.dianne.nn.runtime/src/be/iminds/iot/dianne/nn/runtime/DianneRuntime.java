@@ -1,6 +1,7 @@
 package be.iminds.iot.dianne.nn.runtime;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -37,7 +38,7 @@ public class DianneRuntime implements ManagedServiceFactory {
 	
 	// TODO support multiple factories in the future?!
 	private TensorFactory tFactory;
-	private ModuleFactory mFactory;
+	private List<ModuleFactory> mFactories = Collections.synchronizedList(new ArrayList<ModuleFactory>());
 	
 	// All module service registrations by PID
 	private Map<String, ServiceRegistration> registrations = new HashMap<String, ServiceRegistration>();
@@ -69,9 +70,14 @@ public class DianneRuntime implements ManagedServiceFactory {
 		this.tFactory = factory;
 	}
 	
-	@Reference
-	public void setModuleFactory(ModuleFactory factory){
-		this.mFactory = factory;
+	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
+			policy=ReferencePolicy.DYNAMIC)
+	public void addModuleFactory(ModuleFactory factory){
+		this.mFactories.add(factory);
+	}
+	
+	public void removeModuleFactory(ModuleFactory factory){
+		this.mFactories.remove(factory);
 	}
 	
 	@Reference(
@@ -107,57 +113,69 @@ public class DianneRuntime implements ManagedServiceFactory {
 	public synchronized void updated(String pid, Dictionary<String, ?> properties)
 			throws ConfigurationException {
 		// Create and register module
-		try {
-			Module module = this.mFactory.createModule(tFactory, properties);
-			
-			// configure next/prev
-			String next = (String)properties.get("module.next");
-			List<UUID> nextIDs =  parseUUIDs(next);
-			nextMap.put(module.getId(), nextIDs);
-			configureNext(module);
-			
-			String prev = (String)properties.get("module.prev");
-			List<UUID> prevIDs = parseUUIDs(prev);
-			prevMap.put(module.getId(), prevIDs);
-			configurePrevious(module);
-
-			String[] classes;
-			if(module instanceof Input){
-				classes = new String[]{Module.class.getName(),Input.class.getName()};
-			}else if(module instanceof Output){
-				classes = new String[]{Module.class.getName(),Output.class.getName()};
-			} else if(module instanceof Trainable){
-				classes = new String[]{Module.class.getName(),Trainable.class.getName()};
-			} else {
-				classes = new String[]{Module.class.getName()};
+		Module module = null;
+		synchronized(mFactories){
+			Iterator<ModuleFactory> it = mFactories.iterator();
+			while(module == null && it.hasNext()){
+				try {
+					ModuleFactory mFactory = it.next();
+					module = mFactory.createModule(tFactory, properties);
+				} catch(InstantiationException e){
+					
+				}
 			}
-			
-			Dictionary<String, Object> props = new Hashtable<String, Object>();
-			for(Enumeration<String> keys = properties.keys();keys.hasMoreElements();){
-				String key = keys.nextElement();
-				props.put(key, properties.get(key));
-			}
-			// make sure that for each module all interfaces are behind a single proxy 
-			// and that each module is uniquely proxied
-			props.put("aiolos.combine", "*");
-			props.put("aiolos.instance.id", module.getId().toString());
-			
-			// register on behalf of bundle that provided configuration if applicable
-			BundleContext c = context;
-			Long bundleId = (Long) properties.get("be.iminds.aiolos.configurer.bundle.id");
-			if(bundleId!=null){
-				c = context.getBundle(bundleId).getBundleContext();
-			}
-			
-			ServiceRegistration reg = c.registerService(classes, module, props);
-			this.registrations.put(pid, reg);
-			
-			System.out.println("Registered module "+module.getClass().getName()+" "+module.getId());
-			
-		} catch(InstantiationException e){
-			System.err.println("Could not instantiate module");
-			e.printStackTrace();
 		}
+
+		if(module==null){
+			System.err.println("Failed to instantiate module");
+			return;
+		}
+		
+		// configure next/prev
+		String next = (String)properties.get("module.next");
+		List<UUID> nextIDs =  parseUUIDs(next);
+		nextMap.put(module.getId(), nextIDs);
+		configureNext(module);
+		
+		String prev = (String)properties.get("module.prev");
+		List<UUID> prevIDs = parseUUIDs(prev);
+		prevMap.put(module.getId(), prevIDs);
+		configurePrevious(module);
+
+		String[] classes;
+		if(module instanceof Input){
+			classes = new String[]{Module.class.getName(),Input.class.getName()};
+		}else if(module instanceof Output){
+			classes = new String[]{Module.class.getName(),Output.class.getName()};
+		} else if(module instanceof Trainable){
+			classes = new String[]{Module.class.getName(),Trainable.class.getName()};
+		} else {
+			classes = new String[]{Module.class.getName()};
+		}
+		
+		Dictionary<String, Object> props = new Hashtable<String, Object>();
+		for(Enumeration<String> keys = properties.keys();keys.hasMoreElements();){
+			String key = keys.nextElement();
+			props.put(key, properties.get(key));
+		}
+		// make sure that for each module all interfaces are behind a single proxy 
+		// and that each module is uniquely proxied
+		props.put("aiolos.combine", "*");
+		props.put("aiolos.instance.id", module.getId().toString());
+		
+		// register on behalf of bundle that provided configuration if applicable
+		BundleContext c = context;
+		Long bundleId = (Long) properties.get("be.iminds.aiolos.configurer.bundle.id");
+		if(bundleId!=null){
+			c = context.getBundle(bundleId).getBundleContext();
+		}
+		
+		ServiceRegistration reg = c.registerService(classes, module, props);
+		this.registrations.put(pid, reg);
+		
+		System.out.println("Registered module "+module.getClass().getName()+" "+module.getId());
+		
+
 	}
 
 	@Override
