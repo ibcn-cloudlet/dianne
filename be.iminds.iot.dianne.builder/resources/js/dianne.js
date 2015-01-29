@@ -2,6 +2,10 @@
  * This script allows to create a NN structure by drag-and-drop using jsPlumb
  */
 
+// keep a model of constructed modules
+var modules = {};
+
+
 // definition of source Endpoints
 var source = {
 	isSource:true,
@@ -43,7 +47,9 @@ var target = {
 //		maxConnections:-1,
 }
 
-// on ready, query for all supported modules and put those in the toolbox
+/**
+ * On ready, fill the toolbox with available supported modules
+ */
 $( document ).ready(function() {
 	$.post("/dianne/builder", {action : "supported-modules"}, 
 		function( data ) {
@@ -58,48 +64,13 @@ $( document ).ready(function() {
 						});
 				$('#toolbox').append(rendered);
 				
-				// Make draggable and add code to create new modules
+				// make draggable and add code to create new modules drag-and-drop style
 				$('#'+name).draggable({helper: "clone"});
 				$('#'+name).bind('dragstop', function(event, ui) {
-				    var module = $(ui.helper).clone().removeClass("toolbox").appendTo("#canvas");
+					// clone the toolbox item
+				    var moduleItem = $(ui.helper).clone().removeClass("toolbox");
 				    
-				    // fix offset
-				    var offset = {};
-				    offset.left = module.offset().left - ($("#canvas").offset().left - $("#toolbox").offset().left);
-				    offset.top = module.offset().top - ($("#canvas").offset().top - $("#toolbox").offset().top);
-				    module.offset(offset);
-				    
-					var type = $(this).attr("id");
-					var id = guid();
-					module.attr("id",id);
-					
-					// TODO this should not be hard coded?
-					if(type==="Input"){
-						jsPlumb.addEndpoint(module, source);
-					} else if(type==="Output"){
-						jsPlumb.addEndpoint(module, target);
-					} else {
-						jsPlumb.addEndpoint(module, source);
-						jsPlumb.addEndpoint(module, target);
-					}
-					
-					// Show dialog on double click
-					module.dblclick(function() {
-						showConfigureModuleDialog($(this));
-					});
-					
-					module.click(function(){
-						console.log("click");
-					});
-					
-					module.draggable(
-					{
-						drag: function(){
-						    jsPlumb.repaintEverything();
-						}
-					});
-					
-					console.log("Add module "+id);
+					addModule(moduleItem, $(this));
 				});
 			});
 		}
@@ -113,36 +84,22 @@ jsPlumb.ready(function() {
     	ConnectionOverlays : [[ "Arrow", { location : 1 } ]],
     	Connector : [ "Flowchart", { stub:[40, 60], gap:10, cornerRadius:5, alwaysRespectStubs:true } ],
     	DragOptions : { cursor: 'pointer', zIndex:2000 },
-    });
-    		
-	var init = function(connection) {			
-		connection.getOverlay("label").setLabel(connection.sourceId.substring(15) + "-" + connection.targetId.substring(15));
-		connection.bind("editCompleted", function(o) {
-			if (typeof console != "undefined")
-				console.log("connection edited. path is now ", o.path);
-		});
-	};			
+    });		
 
 	// suspend drawing and initialise.
 	jsPlumb.doWhileSuspended(function() {
-		
-		// listen for new connections; initialise them the same way we initialise the connections at startup.
-		jsPlumb.bind("connection", function(connInfo, originalEvent) { 
-			init(connInfo.connection);
-		});			
-					
 		//
 		// listen for connection add/removes
 		//
-		jsPlumb.bind("beforeDetach", function(connection) {
-			console.log("Remove connection " + connection.sourceId + " -> " + connection.targetId);
-			// TODO check whether connection can be detached
+		jsPlumb.bind("beforeDrop", function(connection) {
+			// TODO check whether connection is OK?
+			addConnection(connection);
 			return true;
 		});
 		
-		jsPlumb.bind("beforeDrop", function(connection) {
-			console.log("Add connection " + connection.sourceId + " -> " + connection.targetId);
-			// TODO check whether connection is OK?
+		jsPlumb.bind("beforeDetach", function(connection) {
+			// TODO check whether connection can be detached
+			removeConnection(connection);
 			return true;
 		});
 	});
@@ -170,19 +127,106 @@ $("#delete").click(function(e){
 	// remove object
 	var id = $('#configureModuleDialog').find('#configure-id').val();
 	
-	console.log("Remove module "+id);
-	
-	var module = $('#'+id);
-	// delete this module
-	$.each(jsPlumb.getEndpoints(module), function(index, endpoint){
-		jsPlumb.deleteEndpoint(endpoint)}
-	);
-	
-	jsPlumb.detachAllConnections(module);
-	module.remove();
+	var moduleItem = $('#'+id);
+	removeModule(moduleItem);
 	
 	$('#configureModuleDialog').modal('hide');
 });
+
+/**
+ * Add a module to the canvas and to modules datastructure
+ * 
+ * @param moduleItem a freshly cloned DOM element from toolbox item 
+ * @param toolboxItem the toolbox DOM element the moduleItem was cloned from
+ */
+function addModule(moduleItem, toolboxItem){
+	moduleItem.appendTo("#canvas");
+	 
+    // fix offset of toolbox 
+    var offset = {};
+    offset.left = moduleItem.offset().left - ($("#canvas").offset().left - $("#toolbox").offset().left);
+    offset.top = moduleItem.offset().top - ($("#canvas").offset().top - $("#toolbox").offset().top);
+    moduleItem.offset(offset);
+  
+    // get type from toolbox item and generate new UUID
+	var type = toolboxItem.attr("id");
+	var id = guid();
+	moduleItem.attr("id",id);
+	
+	// TODO this should not be hard coded?
+	if(type==="Input"){
+		jsPlumb.addEndpoint(moduleItem, source);
+	} else if(type==="Output"){
+		jsPlumb.addEndpoint(moduleItem, target);
+	} else {
+		jsPlumb.addEndpoint(moduleItem, source);
+		jsPlumb.addEndpoint(moduleItem, target);
+	}
+	
+	// show dialog on double click
+	moduleItem.dblclick(function() {
+		showConfigureModuleDialog($(this));
+	});
+	
+	// make draggable
+	moduleItem.draggable(
+	{
+		drag: function(){
+		    jsPlumb.repaintEverything();
+		}
+	});
+	
+	// add to modules
+	var module = {};
+	module.type = type;
+	module.id = id;
+	modules[id] = module;
+	
+	console.log("Add module "+id);
+}
+
+/**
+ * Remove a module from the canvas and the modules datastructure
+ * 
+ * @param moduleItem the DOM element on the canvas representing the module
+ */
+function removeModule(moduleItem){
+	var id = moduleItem.attr("id");
+
+	// delete this moduleItem
+	$.each(jsPlumb.getEndpoints(moduleItem), function(index, endpoint){
+		jsPlumb.deleteEndpoint(endpoint)}
+	);
+	
+	jsPlumb.detachAllConnections(moduleItem);
+	moduleItem.remove();
+
+	// remove from modules
+	if(modules[modules[id].next]!==undefined){
+		delete modules[modules[id].next].prev;
+	}
+	if(modules[modules[id].prev]!==undefined){
+		delete modules[modules[id].prev].next;
+	}
+	delete modules[id];
+	
+	console.log("Remove module "+id);
+	
+}
+
+function addConnection(connection){
+	console.log("Add connection " + connection.sourceId + " -> " + connection.targetId);
+
+	modules[connection.sourceId].next = connection.targetId;
+	modules[connection.targetId].prev = connection.sourceId;
+}
+
+function removeConnection(connection){
+	console.log("Remove connection " + connection.sourceId + " -> " + connection.targetId);
+
+	delete modules[connection.sourceId].next;
+	delete modules[connection.targetId].prev;
+}
 
 /**
  * Generates a GUID string.
