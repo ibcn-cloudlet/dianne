@@ -102,7 +102,7 @@ public class DianneModuleFactory implements ModuleFactory {
 	}
 
 	@Override
-	public List<ModuleDescription> getSupportedModules() {
+	public List<ModuleDescription> getAvailableModules() {
 		return new ArrayList<ModuleDescription>(supportedModules.values());
 	}
 

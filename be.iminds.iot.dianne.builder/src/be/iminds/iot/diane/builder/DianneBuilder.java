@@ -17,7 +17,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.http.HttpService;
 
-import be.iminds.iot.dianne.nn.module.factory.ModuleDescription;
+import be.iminds.iot.dianne.nn.module.description.ModuleDescription;
 import be.iminds.iot.dianne.nn.module.factory.ModuleFactory;
 
 @Component(service={javax.servlet.Servlet.class},
@@ -59,11 +59,11 @@ public class DianneBuilder extends HttpServlet {
 			throws ServletException, IOException {
 		String action = request.getParameter("action");
 
-		if(action.equals("supported-modules")){
+		if(action.equals("available-modules")){
 			List<ModuleDescription> modules = new ArrayList<ModuleDescription>();
 			synchronized(factories){
 				for(ModuleFactory f : factories){
-					modules.addAll(f.getSupportedModules());
+					modules.addAll(f.getAvailableModules());
 				}
 			}
 			

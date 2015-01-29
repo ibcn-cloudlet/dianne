@@ -218,7 +218,7 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 		List<ModuleDescription> supported = new ArrayList<ModuleDescription>();
 		synchronized(mFactories){
 			for(ModuleFactory f : mFactories){
-				supported.addAll(f.getSupportedModules());
+				supported.addAll(f.getAvailableModules());
 			}
 		}
 		return Collections.unmodifiableList(supported);

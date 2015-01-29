@@ -11,7 +11,7 @@ public interface ModuleFactory {
 
 	Module createModule(TensorFactory factory, Dictionary<String, ?> config) throws InstantiationException;
 	
-	List<ModuleDescription> getSupportedModules();
+	List<ModuleDescription> getAvailableModules();
 	
 	ModuleDescription getModuleDescription(String name);
 }

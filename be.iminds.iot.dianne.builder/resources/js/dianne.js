@@ -55,7 +55,7 @@ var target = {
  * On ready, fill the toolbox with available supported modules
  */
 $( document ).ready(function() {
-	$.post("/dianne/builder", {action : "supported-modules"}, 
+	$.post("/dianne/builder", {action : "available-modules"}, 
 		function( data ) {
 			$.each(data, function(index, name){
 				console.log(name);	
