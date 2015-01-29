@@ -135,7 +135,7 @@ public class JavaTensor implements Tensor<JavaTensor> {
 	}
 	
 	@Override
-	public void grand() {
+	public void randn() {
 		for(int i=0;i< (indices==null? data.length : indices.length);i++){
 			data[(indices==null ? i : indices[i])] = (float) random.nextGaussian();
 		}
