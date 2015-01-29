@@ -345,3 +345,16 @@ function guid() {
     }
     return _p8() + _p8(true) + _p8(true) + _p8();
 }
+
+
+/*
+ * Deploy the modules
+ */
+
+function deploy(){
+	$.post("/dianne/deployer", {"modules":JSON.stringify(modules)}, 
+			function( data ) {
+				// Do something on return?
+			}
+			, "json");
+}
