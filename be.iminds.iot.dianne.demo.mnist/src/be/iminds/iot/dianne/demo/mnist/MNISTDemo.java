@@ -79,10 +79,6 @@ public class MNISTDemo {
 		this.toTrain.remove(t);
 	}
 	
-	public void data(){
-		data("/home/tverbele/MNIST/");
-	}
-	
 	public void data(String dir){
 		System.out.println("Loading MNIST dataset ...");
 		this.dataTrain = new MNISTDataset(factory, dir, Set.TRAIN, true);
@@ -90,7 +86,7 @@ public class MNISTDemo {
 		System.out.println("Loaded!");
 	}
 	
-	public void train(){
+	public void train(int batchSize, int noEpochs){
 		if(dataTrain==null){
 			System.out.println("No dataset loaded");
 			return;
@@ -100,7 +96,7 @@ public class MNISTDemo {
 		
 		System.out.println("Training ...");
 		Criterion loss = new MSECriterion(factory);
-		Trainer trainer = new StochasticGradient();
+		Trainer trainer = new StochasticGradient(batchSize, noEpochs);
 		trainer.train(input, output, toTrain, loss, dataTrain);
 		System.out.println("Trained!");
 		
