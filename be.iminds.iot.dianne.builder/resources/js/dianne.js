@@ -6,6 +6,10 @@
 var modules = {};
 
 
+/*
+ * jsPlumb rendering and setup
+ */
+
 // definition of source Endpoints
 var source = {
 	isSource:true,
@@ -67,10 +71,12 @@ $( document ).ready(function() {
 				// make draggable and add code to create new modules drag-and-drop style
 				$('#'+name).draggable({helper: "clone"});
 				$('#'+name).bind('dragstop', function(event, ui) {
-					// clone the toolbox item
-				    var moduleItem = $(ui.helper).clone().removeClass("toolbox");
-				    
-					addModule(moduleItem, $(this));
+					if(checkAddModule($(this))){
+						// clone the toolbox item
+					    var moduleItem = $(ui.helper).clone().removeClass("toolbox");
+					    
+						addModule(moduleItem, $(this));
+					}
 				});
 			});
 		}
@@ -92,19 +98,27 @@ jsPlumb.ready(function() {
 		// listen for connection add/removes
 		//
 		jsPlumb.bind("beforeDrop", function(connection) {
-			// TODO check whether connection is OK?
+			if(!checkAddConnection(connection)){
+				return false;
+			}
 			addConnection(connection);
 			return true;
 		});
 		
 		jsPlumb.bind("beforeDetach", function(connection) {
-			// TODO check whether connection can be detached
+			if(!checkRemoveConnection(connection)){
+				return false;
+			}
 			removeConnection(connection);
 			return true;
 		});
 	});
 
 });
+
+/*
+ * Module configuration/deletion dialog stuff 
+ */
 
 function showConfigureModuleDialog(module){
 	var dialog = $('#configureModuleDialog');
@@ -128,10 +142,49 @@ $("#delete").click(function(e){
 	var id = $('#configureModuleDialog').find('#configure-id').val();
 	
 	var moduleItem = $('#'+id);
-	removeModule(moduleItem);
+	if(checkRemoveModule(moduleItem)) {
+		removeModule(moduleItem);
+	} 
 	
 	$('#configureModuleDialog').modal('hide');
 });
+
+/*
+ * Module/Connection add/remove checks
+ */
+
+/**
+ * Check whether one is allowed to instantiate another item from this tooblox
+ */
+function checkAddModule(toolboxItem){
+	return true;
+}
+
+/**
+ * Check whether one is allowed to remove this module
+ */
+function checkRemoveModule(moduleItem){
+	return true;
+}
+
+/**
+ * Check whether one is allowed to instantiate this connection
+ */
+function checkAddConnection(connection){
+	return true;
+}
+
+/**
+ * Check whether one is allowed to remove this connection
+ */
+function checkRemoveConnection(connection){
+	return true;
+}
+
+
+/*
+ * Module/Connection add/remove methods
+ */
 
 /**
  * Add a module to the canvas and to modules datastructure
@@ -214,6 +267,10 @@ function removeModule(moduleItem){
 	
 }
 
+/**
+ * Add a connection between two modules
+ * @param connection to add
+ */
 function addConnection(connection){
 	console.log("Add connection " + connection.sourceId + " -> " + connection.targetId);
 
@@ -221,6 +278,10 @@ function addConnection(connection){
 	modules[connection.targetId].prev = connection.sourceId;
 }
 
+/**
+ * Remove a connection between two modules
+ * @param connection to remove
+ */
 function removeConnection(connection){
 	console.log("Remove connection " + connection.sourceId + " -> " + connection.targetId);
 
