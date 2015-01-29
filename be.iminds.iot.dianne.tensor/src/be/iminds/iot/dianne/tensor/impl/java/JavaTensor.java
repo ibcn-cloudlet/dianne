@@ -61,7 +61,7 @@ public class JavaTensor implements Tensor<JavaTensor> {
 	}
 
 	@Override
-	public int size(int d) {
+	public int size(final int d) {
 		return dims[d];
 	}
 	
@@ -121,7 +121,7 @@ public class JavaTensor implements Tensor<JavaTensor> {
 	}
 
 	@Override
-	public void fill(float v) {
+	public void fill(final float v) {
 		for(int i=0;i< (indices==null? data.length : indices.length);i++){
 			data[(indices==null ? i : indices[i])] = v;
 		}
@@ -174,7 +174,7 @@ public class JavaTensor implements Tensor<JavaTensor> {
 	}
 
 	@Override
-	public boolean sameDim(Tensor<?> other) {
+	public boolean sameDim(final Tensor<?> other) {
 		if(dims.length!=other.dim()){
 			return false;
 		}
@@ -205,7 +205,7 @@ public class JavaTensor implements Tensor<JavaTensor> {
 	}
 
 	@Override
-	public JavaTensor narrow(int dim, int index, int size) {
+	public JavaTensor narrow(final int dim, final int index, final int size) {
 		int[] narrowDims = dims.clone();
 		JavaTensor narrow = new JavaTensor(data, narrowDims);
 		narrow.dims[dim] = size;
@@ -219,7 +219,7 @@ public class JavaTensor implements Tensor<JavaTensor> {
 	}
 
 	@Override
-	public JavaTensor narrow(int... ranges) {
+	public JavaTensor narrow(final int... ranges) {
 		int[] narrowDims = dims.clone();
 		JavaTensor narrow = new JavaTensor(data, narrowDims);
 		int[] start = new int[dims.length];
@@ -235,12 +235,12 @@ public class JavaTensor implements Tensor<JavaTensor> {
 	}
 
 	@Override
-	public JavaTensor select(int dim, int index) {
+	public JavaTensor select(final int dim, final int index) {
 		return narrow(dim, index, 1);
 	}
 	
 	@Override
-	public JavaTensor transpose(JavaTensor res, int d1, int d2) {
+	public JavaTensor transpose(JavaTensor res, final int d1, final int d2) {
 		res = this.clone(res);
 		
 		if(res.dims.length <= d1 || res.dims.length <= d2){
@@ -284,7 +284,7 @@ public class JavaTensor implements Tensor<JavaTensor> {
 		return res;
 	}
 	
-	int getIndex(int[] d){
+	int getIndex(final int[] d){
 		int index = offset;
 		for(int i=0;i<d.length;i++){
 			index += strides[i]*d[i];

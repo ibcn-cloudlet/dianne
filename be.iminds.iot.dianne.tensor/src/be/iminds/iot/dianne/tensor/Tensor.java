@@ -73,7 +73,7 @@ public interface Tensor<T extends Tensor<T>> {
 	/**
 	 * check if other tensor has same dimensions
 	 */
-	public boolean sameDim(Tensor<?> other);
+	public boolean sameDim(final Tensor<?> other);
 	
 	/**
 	 * clone this tensor into other tensor, create new one if null or different number of elements

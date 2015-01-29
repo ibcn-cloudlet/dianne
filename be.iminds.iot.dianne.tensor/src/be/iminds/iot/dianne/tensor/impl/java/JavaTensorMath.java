@@ -12,7 +12,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 
 	private interface Operator {
-		public float apply(float... params);
+		public float apply(final float... params);
 	}
 	
 	private JavaTensor apply(JavaTensor res, final Operator op, final JavaTensor t){
@@ -78,7 +78,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 
 	@Override
-	public JavaTensor sub(JavaTensor res, JavaTensor tensor, float value) {
+	public JavaTensor sub(JavaTensor res, final JavaTensor tensor, final float value) {
 		Operator sub = new Operator(){
 			@Override
 			public float apply(float... params) {
@@ -89,7 +89,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 
 	@Override
-	public JavaTensor sub(JavaTensor res, JavaTensor tensor1, JavaTensor tensor2) {
+	public JavaTensor sub(JavaTensor res, final JavaTensor tensor1, final JavaTensor tensor2) {
 		Operator sub = new Operator(){
 			@Override
 			public float apply(float... params) {
@@ -231,8 +231,8 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 	
 	@Override
-	public JavaTensor addvv(JavaTensor res, JavaTensor mat, JavaTensor vec1,
-			JavaTensor vec2) {
+	public JavaTensor addvv(JavaTensor res, final JavaTensor mat, final JavaTensor vec1,
+			final JavaTensor vec2) {
 		// TODO check dims?
 		if(res==null){
 			res = factory.createTensor(vec1.size(), vec2.size());
@@ -255,7 +255,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 
 	@Override
 	public JavaTensor addmv(JavaTensor res, final JavaTensor vec1, final JavaTensor mat,
-			JavaTensor vec2) {
+			final JavaTensor vec2) {
 		if(res==null){
 			res = factory.createTensor(mat.dims[0]);
 		}
@@ -276,7 +276,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 
 	@Override
 	public JavaTensor addmm(JavaTensor res, final JavaTensor mat, final JavaTensor mat1,
-			JavaTensor mat2) {
+			final JavaTensor mat2) {
 		res = mm(res, mat1, mat2);
 		return add(res, mat, res);
 	}
@@ -364,7 +364,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 
 	@Override
-	public int argmax(JavaTensor tensor) {
+	public int argmax(final JavaTensor tensor) {
 		float max = Float.MIN_VALUE;
 		int index = -1;
 		for(int i=0;i<(tensor.indices==null?tensor.data.length : tensor.indices.length);i++){
