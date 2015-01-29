@@ -1,4 +1,4 @@
-package be.iminds.iot.dianne.nn.runtime;
+package be.iminds.iot.dianne.nn.runtime.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,11 +28,13 @@ import be.iminds.iot.dianne.nn.module.Input;
 import be.iminds.iot.dianne.nn.module.Module;
 import be.iminds.iot.dianne.nn.module.Output;
 import be.iminds.iot.dianne.nn.module.Trainable;
+import be.iminds.iot.dianne.nn.module.description.ModuleDescription;
 import be.iminds.iot.dianne.nn.module.factory.ModuleFactory;
+import be.iminds.iot.dianne.nn.runtime.ModuleManager;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component(immediate=true, property={"service.pid=be.iminds.iot.dianne.nn.module"})
-public class DianneRuntime implements ManagedServiceFactory {
+public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 
 	private BundleContext context;
 	
@@ -40,12 +42,12 @@ public class DianneRuntime implements ManagedServiceFactory {
 	private TensorFactory tFactory;
 	private List<ModuleFactory> mFactories = Collections.synchronizedList(new ArrayList<ModuleFactory>());
 	
-	// All module service registrations by PID
-	private Map<String, ServiceRegistration> registrations = new HashMap<String, ServiceRegistration>();
 	// All module UUIDs by their PID
 	private Map<String, UUID> uuids = new HashMap<String, UUID>();
 	// All known modules by their UUID
 	private Map<UUID, Module> modules = new HashMap<UUID, Module>();
+	// All module service registrations by their UUID
+	private Map<UUID, ServiceRegistration> registrations = new HashMap<UUID, ServiceRegistration>();
 	
 	private Map<UUID, List<UUID>> nextMap = new HashMap<UUID, List<UUID>>();
 	private Map<UUID, List<UUID>> prevMap = new HashMap<UUID, List<UUID>>();
@@ -111,9 +113,26 @@ public class DianneRuntime implements ManagedServiceFactory {
 		}
 	}
 	
+	
 	@Override
 	public synchronized void updated(String pid, Dictionary<String, ?> properties)
 			throws ConfigurationException {
+		try {
+			UUID id = deployModule(properties);
+			this.uuids.put(pid, id);
+		} catch(InstantiationException e){
+			System.err.println("Failed to instantiate module defined by "+pid);
+		}
+	}
+
+	@Override
+	public synchronized void deleted(String pid) {
+		UUID id = uuids.remove(pid);
+		undeployModule(id);
+	}
+	
+	@Override
+	public synchronized UUID deployModule(Dictionary<String, ?> properties) throws InstantiationException{
 		// Create and register module
 		Module module = null;
 		synchronized(mFactories){
@@ -129,8 +148,7 @@ public class DianneRuntime implements ManagedServiceFactory {
 		}
 
 		if(module==null){
-			System.err.println("Failed to instantiate module");
-			return;
+			throw new InstantiationException("Failed to instantiate module");
 		}
 		
 		// configure next/prev
@@ -173,18 +191,18 @@ public class DianneRuntime implements ManagedServiceFactory {
 		}
 		
 		ServiceRegistration reg = c.registerService(classes, module, props);
-		this.registrations.put(pid, reg);
-		this.uuids.put(pid, module.getId());
+		this.registrations.put(module.getId(), reg);
+		
 		
 		System.out.println("Registered module "+module.getClass().getName()+" "+module.getId());
+		return null;
 	}
 
 	@Override
-	public synchronized void deleted(String pid) {
-		ServiceRegistration reg = registrations.remove(pid);
-		UUID id = uuids.remove(pid);
+	public synchronized void undeployModule(UUID id) {
 		nextMap.remove(id);
 		prevMap.remove(id);
+		ServiceRegistration reg = registrations.remove(id);
 		if(reg!=null){
 			try {
 				reg.unregister();
@@ -193,6 +211,17 @@ public class DianneRuntime implements ManagedServiceFactory {
 				// that is uninstalled (then service is allready unregistered)
 			}
 		}
+	}
+
+	@Override
+	public List<ModuleDescription> getSupportedModules() {
+		List<ModuleDescription> supported = new ArrayList<ModuleDescription>();
+		synchronized(mFactories){
+			for(ModuleFactory f : mFactories){
+				supported.addAll(f.getSupportedModules());
+			}
+		}
+		return Collections.unmodifiableList(supported);
 	}
 	
 	private void configureNext(Module m){
