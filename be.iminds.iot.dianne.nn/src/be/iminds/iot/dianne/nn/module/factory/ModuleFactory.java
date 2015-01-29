@@ -4,6 +4,7 @@ import java.util.Dictionary;
 import java.util.List;
 
 import be.iminds.iot.dianne.nn.module.Module;
+import be.iminds.iot.dianne.nn.module.description.ModuleDescription;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public interface ModuleFactory {

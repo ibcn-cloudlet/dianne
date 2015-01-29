@@ -1,4 +1,4 @@
-package be.iminds.iot.dianne.nn.module.factory;
+package be.iminds.iot.dianne.nn.module.description;
 
 public class ModuleProperty {
 

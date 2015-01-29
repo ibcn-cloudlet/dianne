@@ -7,7 +7,8 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 	osgi.enterprise;version=5.0
 Export-Package: \
 	be.iminds.iot.dianne.nn.module,\
-	be.iminds.iot.dianne.nn.module.factory
+	be.iminds.iot.dianne.nn.module.factory,\
+	be.iminds.iot.dianne.nn.module.description
 -dsannotations: *
 Private-Package: \
 	be.iminds.iot.dianne.nn.module.activation,\
