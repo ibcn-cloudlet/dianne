@@ -42,6 +42,8 @@ public class DianneRuntime implements ManagedServiceFactory {
 	
 	// All module service registrations by PID
 	private Map<String, ServiceRegistration> registrations = new HashMap<String, ServiceRegistration>();
+	// All module UUIDs by their PID
+	private Map<String, UUID> uuids = new HashMap<String, UUID>();
 	// All known modules by their UUID
 	private Map<UUID, Module> modules = new HashMap<UUID, Module>();
 	
@@ -172,20 +174,24 @@ public class DianneRuntime implements ManagedServiceFactory {
 		
 		ServiceRegistration reg = c.registerService(classes, module, props);
 		this.registrations.put(pid, reg);
+		this.uuids.put(pid, module.getId());
 		
 		System.out.println("Registered module "+module.getClass().getName()+" "+module.getId());
-		
-
 	}
 
 	@Override
 	public synchronized void deleted(String pid) {
-		ServiceRegistration reg = registrations.get(pid);
-		UUID id = UUID.fromString((String)reg.getReference().getProperty("module.id"));
+		ServiceRegistration reg = registrations.remove(pid);
+		UUID id = uuids.remove(pid);
 		nextMap.remove(id);
 		prevMap.remove(id);
 		if(reg!=null){
-			reg.unregister();
+			try {
+				reg.unregister();
+			} catch(IllegalStateException e){
+				// happens when the service was registered on behalf of the (config) bundle
+				// that is uninstalled (then service is allready unregistered)
+			}
 		}
 	}
 	
@@ -211,7 +217,7 @@ public class DianneRuntime implements ManagedServiceFactory {
 	}
 	
 	private void unconfigureNext(Module m){
-		m.setNext((Module[])null);
+		m.setNext(null);
 	}
 	
 	private void configurePrevious(Module m){
@@ -245,7 +251,9 @@ public class DianneRuntime implements ManagedServiceFactory {
 			Entry<UUID, List<UUID>> entry = it.next();
 			for(UUID nxtId : entry.getValue()){
 				if(nxtId.equals(id)){
-					result.add(modules.get(entry.getKey()));
+					Module m = modules.get(entry.getKey());
+					if(m!=null) // could be null if removed by external bundle stop
+						result.add(m);
 				}
 			}
 		}
