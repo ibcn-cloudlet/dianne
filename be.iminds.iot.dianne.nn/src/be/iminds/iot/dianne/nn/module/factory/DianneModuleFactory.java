@@ -14,8 +14,10 @@ import org.osgi.service.component.annotations.Component;
 
 import be.iminds.iot.dianne.nn.module.AbstractModule;
 import be.iminds.iot.dianne.nn.module.Module;
+import be.iminds.iot.dianne.nn.module.activation.ReLU;
 import be.iminds.iot.dianne.nn.module.activation.Sigmoid;
 import be.iminds.iot.dianne.nn.module.activation.Tanh;
+import be.iminds.iot.dianne.nn.module.activation.Threshold;
 import be.iminds.iot.dianne.nn.module.description.ModuleDescription;
 import be.iminds.iot.dianne.nn.module.description.ModuleProperty;
 import be.iminds.iot.dianne.nn.module.io.InputImpl;
@@ -54,6 +56,18 @@ public class DianneModuleFactory implements ModuleFactory {
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
+			ModuleDescription description = new ModuleDescription("ReLU", properties);
+			supportedModules.put(description.getName(), description);
+		}
+		{
+			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
+			properties.add(new ModuleProperty("Threshold value", "thresh"));
+			properties.add(new ModuleProperty("Replacement value", "val"));
+			ModuleDescription description = new ModuleDescription("Threshold", properties);
+			supportedModules.put(description.getName(), description);
+		}
+		{
+			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
 			ModuleDescription description = new ModuleDescription("Input", properties);
 			supportedModules.put(description.getName(), description);
 		}
@@ -86,6 +100,15 @@ public class DianneModuleFactory implements ModuleFactory {
 			break;
 		case "Sigmoid":
 			module = new Sigmoid(factory, id);
+			break;
+		case "ReLU":
+			module = new ReLU(factory, id);
+			break;
+		case "Threshold":
+			float thresh = Float.parseFloat((String)config.get("module.threshold.thresh"));
+			float val = Float.parseFloat((String)config.get("module.threshold.val"));
+			
+			module = new Threshold(factory, id, thresh, val);
 			break;
 		case "Input":
 			module = new InputImpl(factory, id);

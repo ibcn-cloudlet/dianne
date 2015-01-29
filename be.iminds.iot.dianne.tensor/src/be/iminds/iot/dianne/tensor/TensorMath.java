@@ -139,6 +139,16 @@ public interface TensorMath<T extends Tensor<T>> {
 	public T dsigmoid(T res, final T tensor);
 	
 	/**
+	 * All elements smaller than thresh are set to val
+	 */
+	public T thresh(T res, final T tensor, final float thresh, final float val);
+	
+	/**
+	 * All elements smaller than thresh are set to 0, 1 otherwise
+	 */
+	public T dthresh(T res, final T tensor, final float thresh);
+	
+	/**
 	 * Return the sum of all elements
 	 */
 	public float sum(final T tensor);

@@ -304,6 +304,17 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 
 	@Override
+	public JavaTensor thresh(JavaTensor res, final JavaTensor tensor, final float thresh, final float val) {
+		Operator threshOp = new Operator(){
+			@Override
+			public float apply(float... params) {
+				return params[0] > thresh ? params[0] : val;
+			}
+		};
+		return apply(res, threshOp, tensor);
+	}
+	
+	@Override
 	public JavaTensor dtanh(JavaTensor res, final JavaTensor tensor) {
 		Operator dtanh = new Operator(){
 			@Override
@@ -325,6 +336,17 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		return apply(res, dsigmoid, tensor);
 	}
 
+	@Override
+	public JavaTensor dthresh(JavaTensor res, final JavaTensor tensor, final float thresh) {
+		Operator threshOp = new Operator(){
+			@Override
+			public float apply(float... params) {
+				return params[0] > thresh ? 1 : 0;
+			}
+		};
+		return apply(res, threshOp, tensor);
+	}
+	
 	@Override
 	public float sum(final JavaTensor tensor) {
 		float sum = 0;
