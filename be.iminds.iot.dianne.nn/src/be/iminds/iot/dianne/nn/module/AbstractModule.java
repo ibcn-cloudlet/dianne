@@ -46,14 +46,14 @@ public abstract class AbstractModule implements Module {
 		}
 	}
 	
-	private Runnable forward = new Runnable(){
+	private final Runnable forward = new Runnable(){
 		public void run(){
 			if(next!=null)
 				next.forward(AbstractModule.this.id, AbstractModule.this.output);
 		}
 	};
 	
-	private Runnable backward = new Runnable(){
+	private final Runnable backward = new Runnable(){
 		public void run(){
 			if(prev!=null)
 				prev.backward(AbstractModule.this.id, AbstractModule.this.gradInput);
