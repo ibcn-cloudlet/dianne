@@ -13,12 +13,11 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 public class StochasticGradient implements Trainer {
 
-	private int batchSize = 10;
-	private int noEpochs = 1;
+	private final int batchSize;
+	private final int noEpochs;
 	
-	private int batch = 0;
-	
-	public StochasticGradient() {	
+	public StochasticGradient() {
+		this(1,1);
 	}
 	
 	public StochasticGradient(int batchSize, int noEpochs) {
@@ -32,6 +31,8 @@ public class StochasticGradient implements Trainer {
 		System.out.println("Starting training");
 		
 		DatasetProcessor processor = new DatasetProcessor(input, output, data, true) {
+			
+			private int batch = 0;
 			
 			@Override
 			protected void onForward(int index, Tensor out) {
