@@ -37,8 +37,8 @@ public class DianneModuleFactory implements ModuleFactory {
 		
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			properties.add(new ModuleProperty("Input size", "module.linear.input"));
-			properties.add(new ModuleProperty("Output size", "module.linear.output"));
+			properties.add(new ModuleProperty("Input size", "input"));
+			properties.add(new ModuleProperty("Output size", "output"));
 			ModuleDescription description = new ModuleDescription("Linear", properties);
 			supportedModules.put(description.getName(), description);
 		}
