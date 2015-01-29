@@ -187,7 +187,7 @@ public class JavaTensor implements Tensor<JavaTensor> {
 	}
 
 	@Override
-	public JavaTensor clone(JavaTensor other) {
+	public JavaTensor copyInto(JavaTensor other) {
 		if(other == null
 				|| this.data.length != other.data.length)
 			other = new JavaTensor(dims);
@@ -241,7 +241,7 @@ public class JavaTensor implements Tensor<JavaTensor> {
 	
 	@Override
 	public JavaTensor transpose(JavaTensor res, final int d1, final int d2) {
-		res = this.clone(res);
+		res = this.copyInto(res);
 		
 		if(res.dims.length <= d1 || res.dims.length <= d2){
 			int maxd = d1 < d2 ? d2 : d1;

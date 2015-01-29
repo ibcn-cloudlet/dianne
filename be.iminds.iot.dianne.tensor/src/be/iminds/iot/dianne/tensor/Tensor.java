@@ -80,7 +80,7 @@ public interface Tensor<T extends Tensor<T>> {
 	 * @param other the tensor to clone into
 	 * @return the cloned tensor
 	 */
-	public T clone(final T other);
+	public T copyInto(final T other);
 	
 	/**
 	 * Return a subtensor narrowing dimension dim from index to index+size-1

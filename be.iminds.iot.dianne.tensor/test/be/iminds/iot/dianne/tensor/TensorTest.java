@@ -73,21 +73,21 @@ public class TensorTest<T extends Tensor<T>> {
 	}
 	
 	@Test
-	public void testClone() {
+	public void testCopyInto() {
 		T t = factory.createTensor(2,2);
 		t.set(0f, 0, 0);
 		t.set(1f, 0, 1);
 		t.set(2f, 1, 0);
 		t.set(3f, 1, 1);
 		
-		T t2 = t.clone(null);
+		T t2 = t.copyInto(null);
 		Assert.assertEquals(0f, t2.get(0, 0), 0.1f);
 		Assert.assertEquals(1f, t2.get(0, 1), 0.1f);
 		Assert.assertEquals(2f, t2.get(1, 0), 0.1f);
 		Assert.assertEquals(3f, t2.get(1, 1), 0.1f);
 		
 		T t3 = factory.createTensor(4);
-		t.clone(t3);
+		t.copyInto(t3);
 		
 		Assert.assertEquals(0f, t3.get(0), 0.1f);
 		Assert.assertEquals(1f, t3.get(1), 0.1f);
@@ -167,14 +167,14 @@ public class TensorTest<T extends Tensor<T>> {
 	}
 	
 	@Test
-	public void testCloneNarrow() {
+	public void testCopyIntoNarrow() {
 		T t = factory.createTensor(2,3);
 		for(int i = 0; i < 2; i++)
 			for(int j = 0; j < 3; j++)
 				t.set(i*2+j, i, j);
 		
 		T t2 = t.narrow(0, 1, 1);
-		T t3 = t2.clone(null);
+		T t3 = t2.copyInto(null);
 		
 		Assert.assertEquals(true, t3.equals(t2));
 		Assert.assertEquals(3, t3.size());
