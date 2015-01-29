@@ -56,14 +56,10 @@ public class DianneDeployer extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
-		System.out.println("Deploy!");
-		
 		String modulesJsonString = request.getParameter("modules");
 		JsonObject modulesJson = new JsonParser().parse(modulesJsonString).getAsJsonObject();
 		
 		for(Entry<String, JsonElement> module : modulesJson.entrySet()){
-			System.out.println(module.getKey());
-			
 			JsonObject moduleJson = (JsonObject) module.getValue();
 			
 			// new module
@@ -72,6 +68,7 @@ public class DianneDeployer extends HttpServlet {
 			String id = moduleJson.get("id").getAsString();
 			String type = moduleJson.get("type").getAsString();
 			
+			// TODO standardize a configuration key-value format and key names
 			properties.put("module.id", id);
 			properties.put("module.type", type);
 			
