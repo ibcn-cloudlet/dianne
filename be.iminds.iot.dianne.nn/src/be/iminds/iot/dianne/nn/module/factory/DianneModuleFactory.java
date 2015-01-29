@@ -74,24 +74,26 @@ public class DianneModuleFactory implements ModuleFactory {
 		String type = (String)config.get("module.type");
 		UUID id = UUID.fromString((String)config.get("module.id"));
 		
-		if(type.equals("Linear")){
+		switch(type){
+		case "Linear":
 			int input = Integer.parseInt((String)config.get("module.linear.input"));
 			int output = Integer.parseInt((String)config.get("module.linear.output"));
 			
 			module = new Linear(factory, id, input, output);
-		} else if(type.equals("Tanh")){
-			module = new Tanh(factory, id); 
-		} else if(type.equals("Sigmoid")){
+			break;
+		case "Tanh":
+			module = new Tanh(factory, id);
+			break;
+		case "Sigmoid":
 			module = new Sigmoid(factory, id);
-		} else if(type.equals("Input")){
-			module = new InputImpl(factory, id); 
-		} else if(type.equals("Output")){
+			break;
+		case "Input":
+			module = new InputImpl(factory, id);
+			break;
+		case "Output":
 			module = new OutputImpl(factory, id);
-		} else if(type.equals("anotherTypeHere")){
-			// instantiate other types ... 
-		}
-		
-		if(module==null){
+			break;
+		default:
 			throw new InstantiationException("Could not instantiate module of type "+type);
 		}
 		
