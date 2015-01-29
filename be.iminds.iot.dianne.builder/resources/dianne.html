@@ -62,9 +62,13 @@
 						<h4 class="modal-title">Configure module</h4>
 					</div>
 					<div class="modal-body">
-						<form>
-							<input id="configure-id" type="hidden" name="id" value=""/>
-						</form>
+						<!-- TODO center these things? -->
+							<div id="configure-module"></div>
+							<br/>
+							<form role="form" class="form-horizontal">
+								<input id="configure-id" type="hidden" name="id" value=""/>
+								<div id="form-properties"></div>
+							</form>
 					</div>
 					<div class="modal-footer">
 						<button id="delete" class="btn btn-danger pull-left">Delete module</button>
@@ -97,7 +101,7 @@
 	<script src="js/mustache.js"></script>
 	
 	
-	    <!-- Templates -->
+	<!-- Templates -->
     <!-- Template for things -->
 	<script type="x-tmpl-mustache" id="toolbox-module">
 		<div class="module toolbox" id="{{name}}">
@@ -105,5 +109,17 @@
 		</div>
     </script>
 	<!-- end things template -->
+	
+	<!-- Template for module property form -->
+	<script type="x-tmpl-mustache" id="property-form">
+		<div id="form-{{id}}" class="form-group">
+			<label for="param1" class="col-sm-3 control-label">{{name}}</label>
+			<div class="col-sm-7">
+				<input type="text" class="form-control" id="{{id}}" name="{{id}}" value="{{value}}" />
+			</div>
+		</div>
+	</script>
+	<!-- end property template -->
+
 </body>
 </html>

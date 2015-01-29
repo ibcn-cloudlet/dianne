@@ -11,6 +11,7 @@ Include-Resource: res=resources
 	be.iminds.iot.dianne.nn;version=latest,\
 	be.iminds.iot.dianne.nn.runtime;version=latest,\
 	be.iminds.iot.dianne.nn.train;version=latest,\
-	be.iminds.iot.dianne.tensor;version=latest
+	be.iminds.iot.dianne.tensor;version=latest,\
+	com.google.gson;version=2.2
 -dsannotations: *
 Private-Package: be.iminds.iot.diane.builder

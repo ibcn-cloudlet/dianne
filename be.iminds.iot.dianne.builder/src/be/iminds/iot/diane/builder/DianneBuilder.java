@@ -17,7 +17,13 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.http.HttpService;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+
 import be.iminds.iot.dianne.nn.module.description.ModuleDescription;
+import be.iminds.iot.dianne.nn.module.description.ModuleProperty;
 import be.iminds.iot.dianne.nn.module.factory.ModuleFactory;
 
 @Component(service={javax.servlet.Servlet.class},
@@ -67,16 +73,39 @@ public class DianneBuilder extends HttpServlet {
 				}
 			}
 			
-			response.getWriter().write("[");
-			Iterator<ModuleDescription> it = modules.iterator();
-			while(it.hasNext()){
-				ModuleDescription module = it.next();
-				response.getWriter().write("\""+module.getName()+"\"");
-				if(it.hasNext())
-					response.getWriter().write(",");
+			JsonArray jsonModules = new JsonArray();
+			for(ModuleDescription module : modules){
+				jsonModules.add(new JsonPrimitive(module.getName()));
 			}
-			response.getWriter().write("]");
+			response.getWriter().write(jsonModules.toString());
 			response.getWriter().flush();
-		} 
+		} else if(action.equals("module-properties")){
+			String type = request.getParameter("type");
+			
+			ModuleDescription module = null;
+			synchronized(factories){
+				for(ModuleFactory f : factories){
+					module = f.getModuleDescription(type);
+					if(module!=null)
+						break;
+				}
+			}
+			
+			if(module==null){
+				// return;
+			}
+			
+			JsonArray jsonProperties = new JsonArray();
+			for(ModuleProperty p : module.getProperties()){
+				JsonObject jsonProperty = new JsonObject();
+				jsonProperty.addProperty("id", p.getId());
+				jsonProperty.addProperty("name", p.getName());
+				
+				jsonProperties.add(jsonProperty);
+			}
+			
+			response.getWriter().write(jsonProperties.toString());
+			response.getWriter().flush();
+		}
 	}
 }

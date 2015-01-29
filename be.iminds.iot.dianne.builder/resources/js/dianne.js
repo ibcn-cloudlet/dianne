@@ -120,12 +120,45 @@ jsPlumb.ready(function() {
  * Module configuration/deletion dialog stuff 
  */
 
-function showConfigureModuleDialog(module){
+function showConfigureModuleDialog(moduleItem){
 	var dialog = $('#configureModuleDialog');
 	
-	var id = module.attr("id");
+	var id = moduleItem.attr("id");
 	dialog.find('#configure-id').val(id);
+	
 	// set configuration options
+	var module = modules[id];
+	
+	dialog.find('#configure-module').empty();
+	// add a toolbox-like item in the configuration dialog
+	moduleItem.clone().attr("id", "configure-"+id)
+		.removeClass()  // remove draggable classes and reset position
+		.addClass("module")
+		.css('top', 'auto').css('left', 'auto').css('position', 'relative')
+		.appendTo(dialog.find('#configure-module'));
+	
+	dialog.find('#form-properties').empty();
+	$.post("/dianne/builder", {"action" : "module-properties","type" : module.type}, 
+		function( data ) {
+			$.each(data, function(index, property){
+				console.log(property);	
+				// Render toolbox item
+				var template = $('#property-form').html();
+				Mustache.parse(template);
+				var rendered = Mustache.render(template, 
+				{
+					name: property.name,
+					id: property.id,
+					value: module[property.id]
+				});
+				dialog.find('#form-properties').append(rendered);
+			});
+			if (data.length === 0) {
+				dialog.find('#form-properties').append("<p>No properties to configure...</p>");
+			}
+		}
+		, "json");
+	
 	
 	dialog.modal('show');
 }
@@ -133,6 +166,15 @@ function showConfigureModuleDialog(module){
 $("#configure").click(function(e){
 	// apply configuration
 	var data = $('#configureModuleDialog').find('form').serializeArray();
+	
+	var module;
+	$.each( data, function( i, item ) {
+		if(i === 0){
+			module = modules[item.value];
+		} else {
+			module[item.name] = item.value;
+		}
+	});
 	
 	$('#configureModuleDialog').modal('hide');
 });
