@@ -206,7 +206,8 @@ function createBuildModuleDialog(id, dialog){
 			removeModule(moduleItem);
 		}
 		
-		$(this).closest(".modal").modal('hide');
+		// remove dialog when module is removed, else keep it for reuse
+		$(this).closest(".modal").remove();
 	});
 	
 	
