@@ -50,9 +50,6 @@
 			</div>
 		</div>
 
-		<!--  placeholder to hold dialogs -->
-		<div id="dialogs"></div>
-
 		<footer class="navbar-fixed-bottom custom-footer">
 			<div class="inner">
 				<p>Copyright &copy; iMinds IoT lab, 2014</p>
@@ -86,8 +83,8 @@
 
 	<!--  Template for a module dialog -->
 	<script type="x-tmpl-mustache" id="dialog">
-		<div class="modal fade" id="dialog-{{type}}-{{id}}" tabindex="-1"
-			role="dialog" aria-labelledby="dialog-{{type}}-{{id}}-Label"
+		<div class="modal fade" id="dialog-{{id}}" tabindex="-1"
+			role="dialog" aria-labelledby="dialog-{{id}}-Label"
 			aria-hidden="true">
 			<div class="modal-dialog">
 				<div class="modal-content">

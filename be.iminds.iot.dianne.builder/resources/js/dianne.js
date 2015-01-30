@@ -118,22 +118,35 @@ jsPlumb.ready(function() {
 function showConfigureModuleDialog(moduleItem){
 	var id = moduleItem.attr("id");
 	
-	// create 
-	var dialog = renderTemplate("dialog", {
-		type : "configure",
-		id : id,
-		title : "Configure module"
-	});
+	// there can be only one dialog at a time for one module
+	// try to reuse dialog
+	var dialogId = "dialog-"+id;
+	var d;
+	d = $("#"+dialogId);
+	if(d.length==0){
+		// create new dialog
+		var dialog = renderTemplate("dialog", {
+			id : id,
+			title : "Configure module"
+		});
+		
+		// TODO check which "mode" you are in, for now only "build" mode
+		
+		d = createBuildModuleDialog(id, $(dialog));
+	}
 	
-	$('#dialogs').append(dialog);
+	var offset = moduleItem.offset();
+	offset.top = offset.top - 100;
+	offset.left = offset.left - 200;
 	
-	// TODO check which "mode" you are in, for now only "build" mode
-	createBuildModuleDialog(id, $(dialog)).modal('show');
+	// show the modal (disable backdrop)
+	d.modal({'show':true, 'backdrop':false}).draggable({handle: ".modal-header"}).offset(offset);
 	
 }
 
 function createBuildModuleDialog(id, dialog){
 	var module = modules[id];
+	
 	// create build body form
 	var body = renderTemplate("build-dialog-body", {
 		id : module.id,
