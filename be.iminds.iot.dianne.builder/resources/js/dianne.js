@@ -60,13 +60,8 @@ $( document ).ready(function() {
 			$.each(data, function(index, name){
 				console.log(name);	
 				// Render toolbox item
-				var template = $('#toolbox-module').html();
-				Mustache.parse(template);
-				var rendered = Mustache.render(template, 
-						{
-							name: name 
-						});
-				$('#toolbox').append(rendered);
+				$('#toolbox').append(renderTemplate("toolbox-module",
+						{name: name }));
 				
 				// make draggable and add code to create new modules drag-and-drop style
 				$('#'+name).draggable({helper: "clone"});
@@ -121,75 +116,89 @@ jsPlumb.ready(function() {
  */
 
 function showConfigureModuleDialog(moduleItem){
-	var dialog = $('#configureModuleDialog');
-	
 	var id = moduleItem.attr("id");
-	dialog.find('#configure-id').val(id);
 	
-	// set configuration options
+	// create 
+	var dialog = renderTemplate("dialog", {
+		type : "configure",
+		id : id,
+		title : "Configure module"
+	});
+	
+	$('#dialogs').append(dialog);
+	
+	// TODO check which "mode" you are in, for now only "build" mode
+	createBuildModuleDialog(id, $(dialog)).modal('show');
+	
+}
+
+function createBuildModuleDialog(id, dialog){
 	var module = modules[id];
+	// create build body form
+	var body = renderTemplate("build-dialog-body", {
+		id : module.id,
+		type : module.type
+	});
+	dialog.find(".modal-body").append(body);
 	
-	dialog.find('#configure-module').empty();
-	// add a toolbox-like item in the configuration dialog
-	moduleItem.clone().attr("id", "configure-"+id)
-		.removeClass()  // remove draggable classes and reset position
-		.addClass("module")
-		.css('top', 'auto').css('left', 'auto').css('position', 'relative')
-		.appendTo(dialog.find('#configure-module'));
-	
-	dialog.find('#form-properties').empty();
+	// then fill in properties
 	$.post("/dianne/builder", {"action" : "module-properties","type" : module.type}, 
 		function( data ) {
 			$.each(data, function(index, property){
 				console.log(property);	
 				// Render toolbox item
-				var template = $('#property-form').html();
-				Mustache.parse(template);
-				var rendered = Mustache.render(template, 
-				{
-					name: property.name,
-					id: property.id,
-					value: module[property.id]
-				});
-				dialog.find('#form-properties').append(rendered);
+				dialog.find('.form-properties').append(
+						renderTemplate("property-form", 
+						{
+							name: property.name,
+							id: property.id,
+							value: module[property.id]
+						}));
 			});
 			if (data.length === 0) {
-				dialog.find('#form-properties').append("<p>No properties to configure...</p>");
+				dialog.find('.form-properties').append("<p>No properties to configure...</p>");
 			}
 		}
 		, "json");
 	
+	// add buttons
+	var buttons = renderTemplate("build-dialog-buttons", {});
+	dialog.find(".modal-footer").append(buttons);
 	
-	dialog.modal('show');
-}
-
-$("#configure").click(function(e){
-	// apply configuration
-	var data = $('#configureModuleDialog').find('form').serializeArray();
-	
-	var module;
-	$.each( data, function( i, item ) {
-		if(i === 0){
-			module = modules[item.value];
-		} else {
-			module[item.name] = item.value;
-		}
+	// add button callbacks
+	dialog.find(".configure").click(function(e){
+		// apply configuration
+		var data = $(this).closest('.modal').find('form').serializeArray();
+		
+		var module;
+		$.each( data, function( i, item ) {
+			if(i === 0){
+				module = modules[item.value];
+			} else {
+				module[item.name] = item.value;
+			}
+		});
+		
+		$(this).closest(".modal").modal('hide');
 	});
 	
-	$('#configureModuleDialog').modal('hide');
-});
-
-$("#delete").click(function(e){
-	// remove object
-	var id = $('#configureModuleDialog').find('#configure-id').val();
+	dialog.find(".delete").click(function(e){
+		// remove object
+		var test = $(this).closest(".modal");
+		var test2 = test.find(".module-id");
+		var id = $(this).closest(".modal").find(".module-id").val();
+		
+		var moduleItem = $('#'+id);
+		if(checkRemoveModule(moduleItem)) {
+			removeModule(moduleItem);
+		}
+		
+		$(this).closest(".modal").modal('hide');
+	});
 	
-	var moduleItem = $('#'+id);
-	if(checkRemoveModule(moduleItem)) {
-		removeModule(moduleItem);
-	} 
 	
-	$('#configureModuleDialog').modal('hide');
-});
+	return dialog;
+}
 
 /*
  * Module/Connection add/remove checks
@@ -331,6 +340,25 @@ function removeConnection(connection){
 	delete modules[connection.targetId].prev;
 }
 
+
+
+
+/*
+ * Deploy the modules
+ */
+
+function deploy(){
+	$.post("/dianne/deployer", {"modules":JSON.stringify(modules)}, 
+			function( data ) {
+				// Do something on return?
+			}
+			, "json");
+}
+
+/*
+ * Helper functions
+ */
+
 /**
  * Generates a GUID string.
  * @returns {String} The generated GUID.
@@ -346,15 +374,9 @@ function guid() {
     return _p8() + _p8(true) + _p8(true) + _p8();
 }
 
-
-/*
- * Deploy the modules
- */
-
-function deploy(){
-	$.post("/dianne/deployer", {"modules":JSON.stringify(modules)}, 
-			function( data ) {
-				// Do something on return?
-			}
-			, "json");
+function renderTemplate(templateId, options){
+	var template = $('#'+templateId).html();
+	Mustache.parse(template);
+	var rendered = Mustache.render(template, options);
+	return rendered;
 }

@@ -50,34 +50,8 @@
 			</div>
 		</div>
 
-		<div class="modal fade" id="configureModuleDialog" tabindex="-1"
-			role="dialog" aria-labelledby="configureModuleDialogLabel"
-			aria-hidden="true">
-			<div class="modal-dialog">
-				<div class="modal-content">
-					<div class="modal-header">
-						<button type="button" class="close" data-dismiss="modal">
-							<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
-						</button>
-						<h4 class="modal-title">Configure module</h4>
-					</div>
-					<div class="modal-body">
-						<!-- TODO center these things? -->
-							<div id="configure-module"></div>
-							<br/>
-							<form role="form" class="form-horizontal">
-								<input id="configure-id" type="hidden" name="id" value=""/>
-								<div id="form-properties"></div>
-							</form>
-					</div>
-					<div class="modal-footer">
-						<button id="delete" class="btn btn-danger pull-left">Delete module</button>
-						<button id="configure" class="btn btn-primary">Configure</button>
-					</div>
-				</div>
-			</div>
-		</div>
-
+		<!--  placeholder to hold dialogs -->
+		<div id="dialogs"></div>
 
 		<footer class="navbar-fixed-bottom custom-footer">
 			<div class="inner">
@@ -102,24 +76,67 @@
 	
 	
 	<!-- Templates -->
-    <!-- Template for things -->
+    <!-- Template for (toolbox) module -->
 	<script type="x-tmpl-mustache" id="toolbox-module">
 		<div class="module toolbox" id="{{name}}">
 			<strong>{{name}}</strong>
 		</div>
     </script>
 	<!-- end things template -->
+
+	<!--  Template for a module dialog -->
+	<script type="x-tmpl-mustache" id="dialog">
+		<div class="modal fade" id="dialog-{{type}}-{{id}}" tabindex="-1"
+			role="dialog" aria-labelledby="dialog-{{type}}-{{id}}-Label"
+			aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal">
+							<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+						</button>
+						<h4 class="modal-title">{{title}}</h4>
+					</div>
+					<div class="modal-body">
+					</div>
+					<div class="modal-footer">
+					</div>
+				</div>
+			</div>
+		</div>
+	</script>
+	<!-- end dialog template -->
+	
+	<!--  Template for a build dialog body -->
+	<script type="x-tmpl-mustache" id="build-dialog-body">
+		<div class="module toolbox">
+			<strong>{{type}}</strong>
+		</div>
+		<br/>
+		<form role="form" class="form-horizontal">
+			<input class="module-id" type="hidden" name="id" value="{{id}}"/>
+			<div class="form-properties"></div>
+		</form>
+	</script>
+	<!-- end build dialog body template -->
 	
 	<!-- Template for module property form -->
 	<script type="x-tmpl-mustache" id="property-form">
-		<div id="form-{{id}}" class="form-group">
-			<label for="param1" class="col-sm-3 control-label">{{name}}</label>
+		<div class="form-group">
+			<label class="col-sm-3 control-label">{{name}}</label>
 			<div class="col-sm-7">
-				<input type="text" class="form-control" id="{{id}}" name="{{id}}" value="{{value}}" />
+				<input type="text" class="form-control" name="{{id}}" value="{{value}}" />
 			</div>
 		</div>
 	</script>
 	<!-- end property template -->
+	
+	<!--  Template for a build dialog buttons -->
+	<script type="x-tmpl-mustache" id="build-dialog-buttons">
+		<button class="delete btn btn-danger pull-left">Delete module</button>
+		<button class="configure btn btn-primary">Configure</button>
+	</script>
+	<!-- end build dialog buttons template -->
 
 </body>
 </html>
