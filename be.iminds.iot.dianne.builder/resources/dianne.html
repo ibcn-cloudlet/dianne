@@ -34,9 +34,10 @@
 				<h3 class="masthead-brand">Dianne Neural Network Builder</h3>
 				<nav class='controls'>
 					<ul id="actions" class="nav masthead-nav control-group">
-						<li><a href="#">Train</a></li>
-						<li><a href="#">Evaluate</a></li>
-						<li><a href="#" onclick="deploy();return false;">Deploy</a></li>
+						<li><a href="#" id="menu-build" class="active" onclick="setModus('build');return false;">Build</a></li>
+						<li><a href="#" id="menu-learn" onclick="setModus('learn');return false;">Learn</a></li>
+						<li><a href="#" id="menu-deploy" onclick="setModus('deploy');return false;">Deploy</a></li>
+						<li><a href="#" id="menu-run" onclick="setModus('run');return false;">Run</a></li>
 					</ul>
 				</nav>
 			</div>
@@ -45,7 +46,16 @@
 
 		<div class="container-fluid">
 			<div id="builder" class="row">
-				<div id="toolbox" class="col-xs-4 col-md-2"></div>
+				<div id="toolbox-build" class="toolbox col-xs-4 col-md-2"></div>
+				<div id="toolbox-learn" class="toolbox col-xs-4 col-md-2">
+					<h3>Learn</h3>
+				</div>
+				<div id="toolbox-deploy" class="toolbox col-xs-4 col-md-2">
+					<h3>Deploy</h3>
+				</div>
+				<div id="toolbox-run" class="toolbox col-xs-4 col-md-2">
+					<h3>Run</h3>
+				</div>
 				<div id="canvas" class="col-xs-8 col-md-10"></div>
 			</div>
 		</div>
@@ -74,8 +84,8 @@
 	
 	<!-- Templates -->
     <!-- Template for (toolbox) module -->
-	<script type="x-tmpl-mustache" id="toolbox-module">
-		<div class="module toolbox" id="{{name}}">
+	<script type="x-tmpl-mustache" id="module-build">
+		<div class="module build" id="{{name}}">
 			<strong>{{name}}</strong>
 		</div>
     </script>
@@ -105,8 +115,8 @@
 	<!-- end dialog template -->
 	
 	<!--  Template for a build dialog body -->
-	<script type="x-tmpl-mustache" id="build-dialog-body">
-		<div class="module toolbox">
+	<script type="x-tmpl-mustache" id="dialog-body-build">
+		<div class="module build">
 			<strong>{{type}}</strong>
 		</div>
 		<br/>
@@ -129,7 +139,7 @@
 	<!-- end property template -->
 	
 	<!--  Template for a build dialog buttons -->
-	<script type="x-tmpl-mustache" id="build-dialog-buttons">
+	<script type="x-tmpl-mustache" id="dialog-buttons-build">
 		<button class="delete btn btn-danger pull-left">Delete module</button>
 		<button class="configure btn btn-primary">Configure</button>
 	</script>

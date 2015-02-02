@@ -5,6 +5,40 @@
 // keep a model of constructed modules
 var modules = {};
 
+/*
+ * UI Mode
+ */
+var modus = "build";
+
+function setModus(m){
+	$(".active").removeClass("active");
+	
+	modus = m;
+	if(modus === "build"){
+		console.log("switch to build");
+		$(".toolbox").hide();
+		$("#menu-build").addClass("active");
+		$("#toolbox-build").show();
+		
+	} else if(modus === "learn"){
+		console.log("switch to learn");
+		$(".toolbox").hide();
+		$("#menu-learn").addClass("active");
+		$("#toolbox-learn").show();
+	} else if(modus === "deploy"){
+		console.log("switch to deploy");
+		$(".toolbox").hide();
+		$("#menu-deploy").addClass("active");
+		$("#toolbox-deploy").show();
+		deploy();
+	} else if(modus === "run"){
+		console.log("switch to run");
+		$(".toolbox").hide();
+		$("#menu-run").addClass("active");
+		$("#toolbox-run").show();
+	}
+}
+
 
 /*
  * jsPlumb rendering and setup
@@ -55,12 +89,13 @@ var target = {
  * On ready, fill the toolbox with available supported modules
  */
 $( document ).ready(function() {
+	// initialize toolboxes
 	$.post("/dianne/builder", {action : "available-modules"}, 
 		function( data ) {
 			$.each(data, function(index, name){
 				console.log(name);	
 				// Render toolbox item
-				$('#toolbox').append(renderTemplate("toolbox-module",
+				$('#toolbox-build').append(renderTemplate("module-build",
 						{name: name }));
 				
 				// make draggable and add code to create new modules drag-and-drop style
@@ -68,7 +103,7 @@ $( document ).ready(function() {
 				$('#'+name).bind('dragstop', function(event, ui) {
 					if(checkAddModule($(this))){
 						// clone the toolbox item
-					    var moduleItem = $(ui.helper).clone().removeClass("toolbox");
+					    var moduleItem = $(ui.helper).clone().removeClass("build");
 					    
 						addModule(moduleItem, $(this));
 					}
@@ -76,6 +111,9 @@ $( document ).ready(function() {
 			});
 		}
 		, "json");
+	
+	// show correct mode
+	setModus(modus);
 });
 
 // jsPlumb init code
@@ -148,7 +186,7 @@ function createBuildModuleDialog(id, dialog){
 	var module = modules[id];
 	
 	// create build body form
-	var body = renderTemplate("build-dialog-body", {
+	var body = renderTemplate("dialog-body-build", {
 		id : module.id,
 		type : module.type
 	});
@@ -175,7 +213,7 @@ function createBuildModuleDialog(id, dialog){
 		, "json");
 	
 	// add buttons
-	var buttons = renderTemplate("build-dialog-buttons", {});
+	var buttons = renderTemplate("dialog-buttons-build", {});
 	dialog.find(".modal-footer").append(buttons);
 	
 	// add button callbacks
@@ -262,8 +300,8 @@ function addModule(moduleItem, toolboxItem){
 	 
     // fix offset of toolbox 
     var offset = {};
-    offset.left = moduleItem.offset().left - ($("#canvas").offset().left - $("#toolbox").offset().left);
-    offset.top = moduleItem.offset().top - ($("#canvas").offset().top - $("#toolbox").offset().top);
+    offset.left = moduleItem.offset().left - ($("#canvas").offset().left - $(".toolbox").offset().left);
+    offset.top = moduleItem.offset().top - ($("#canvas").offset().top - $(".toolbox").offset().top);
     moduleItem.offset(offset);
   
     // get type from toolbox item and generate new UUID

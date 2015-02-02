@@ -65,6 +65,18 @@ html, body {
 	margin-left: 20px;
 }
 
+.masthead-nav > li > a {
+  	border-bottom: 2px solid transparent;
+}
+.masthead-nav > li > a:hover,
+.masthead-nav > li > a:focus,
+.masthead-nav > li > a.active,
+.masthead-nav > li > a.active:hover,
+.masthead-nav > li > a.active:focus {
+  	background-color: transparent;
+  	border-bottom-color: #888;
+}
+
 @media ( min-width : 768px) {
 	.masthead-brand {
 		float: left;
@@ -113,7 +125,7 @@ footer {
 	margin: 5px 5px 5px 5px;
 }
 
-.toolbox {
+.build {
 	position: relative;
 }
 
