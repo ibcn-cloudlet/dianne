@@ -5,6 +5,9 @@
 // keep a model of constructed modules
 var modules = {};
 
+// keep map module id -> deployment node
+var deployment = {};
+
 /*
  * UI Mode
  */
@@ -12,7 +15,6 @@ var modus = "build";
 
 function setModus(m){
 	$(".active").removeClass("active");
-	
 	modus = m;
 	if(modus === "build"){
 		console.log("switch to build");
@@ -30,13 +32,14 @@ function setModus(m){
 		$(".toolbox").hide();
 		$("#menu-deploy").addClass("active");
 		$("#toolbox-deploy").show();
-		deploy();
 	} else if(modus === "run"){
 		console.log("switch to run");
 		$(".toolbox").hide();
 		$("#menu-run").addClass("active");
 		$("#toolbox-run").show();
 	}
+	// hide all modals
+	$(".modal").modal('hide');
 }
 
 
@@ -90,6 +93,7 @@ var target = {
  */
 $( document ).ready(function() {
 	// initialize toolboxes
+	// build toolbox
 	$.post("/dianne/builder", {action : "available-modules"}, 
 		function( data ) {
 			$.each(data, function(index, name){
@@ -159,18 +163,22 @@ function showConfigureModuleDialog(moduleItem){
 	// there can be only one dialog at a time for one module
 	// try to reuse dialog
 	var dialogId = "dialog-"+id;
-	var d;
-	d = $("#"+dialogId);
-	if(d.length==0){
+	var dialog;
+	dialog = $("#"+dialogId);
+	if(dialog.length==0){
 		// create new dialog
-		var dialog = renderTemplate("dialog", {
+		var d = renderTemplate("dialog", {
 			id : id,
 			title : "Configure module"
 		});
-		
-		// TODO check which "mode" you are in, for now only "build" mode
-		
-		d = createBuildModuleDialog(id, $(dialog));
+		dialog = $(d);
+	}
+	
+	// TODO check which "mode" you are in, for now only "build" mode
+	if(modus==="build"){
+		dialog = createBuildModuleDialog(id, dialog);
+	} else if(modus==="deploy"){
+		dialog = createDeployModuleDialog(id, dialog);
 	}
 	
 	var offset = moduleItem.offset();
@@ -178,7 +186,7 @@ function showConfigureModuleDialog(moduleItem){
 	offset.left = offset.left - 200;
 	
 	// show the modal (disable backdrop)
-	d.modal({'show':true, 'backdrop':false}).draggable({handle: ".modal-header"}).offset(offset);
+	dialog.modal({'show':true, 'backdrop':false}).draggable({handle: ".modal-header"}).offset(offset);
 	
 }
 
@@ -190,6 +198,7 @@ function createBuildModuleDialog(id, dialog){
 		id : module.id,
 		type : module.type
 	});
+	dialog.find(".modal-body").empty();
 	dialog.find(".modal-body").append(body);
 	
 	// then fill in properties
@@ -199,7 +208,7 @@ function createBuildModuleDialog(id, dialog){
 				console.log(property);	
 				// Render toolbox item
 				dialog.find('.form-properties').append(
-						renderTemplate("property-form", 
+						renderTemplate("form-properties", 
 						{
 							name: property.name,
 							id: property.id,
@@ -214,39 +223,103 @@ function createBuildModuleDialog(id, dialog){
 	
 	// add buttons
 	var buttons = renderTemplate("dialog-buttons-build", {});
+	dialog.find(".modal-footer").empty();
+	dialog.find(".modal-footer").append(buttons);
+	
+	// add button callbacks, disable buttons when module is deployed
+	if(deployment[id]!==undefined){
+		dialog.find(".configure").prop('disabled', true);
+		dialog.find(".delete").prop('disabled', true);
+	} else {
+		dialog.find(".configure").click(function(e){
+			// apply configuration
+			var data = $(this).closest('.modal').find('form').serializeArray();
+			
+			var module;
+			$.each( data, function( i, item ) {
+				if(i === 0){
+					module = modules[item.value];
+				} else {
+					module[item.name] = item.value;
+				}
+			});
+			
+			$(this).closest(".modal").modal('hide');
+		});
+		
+		dialog.find(".delete").click(function(e){
+			// remove object
+			var id = $(this).closest(".modal").find(".module-id").val();
+			
+			var moduleItem = $('#'+id);
+			if(checkRemoveModule(moduleItem)) {
+				removeModule(moduleItem);
+			}
+			
+			// remove dialog when module is removed, else keep it for reuse
+			$(this).closest(".modal").remove();
+		});
+	}
+	
+	return dialog;
+}
+
+
+function createDeployModuleDialog(id, dialog){
+	var module = modules[id];
+	
+	// create build body form
+	var body = renderTemplate("dialog-body-deploy", {
+		id : module.id,
+		type : module.type
+	});
+	dialog.find(".modal-body").empty();
+	dialog.find(".modal-body").append(body);
+	
+	// fill in deployment options
+	if(deployment[id]===undefined){
+		dialog.find('.form-deployment').append(
+				renderTemplate("form-deployment", 
+				{}));
+		$.post("/dianne/deployer", {"action" : "targets"}, 
+				function( data ) {
+					$.each(data, function(index, target){
+						dialog.find('.targets').append("<option value="+target+">"+target+"</option>")
+					});
+				}
+				, "json");
+	} else {
+		dialog.find('.form-deployment').append("<p>This module is deployed to "+deployment[id]+"</p>");
+	}
+	
+	// add buttons
+	var buttons = renderTemplate("dialog-buttons-deploy", {});
+	dialog.find(".modal-footer").empty();
 	dialog.find(".modal-footer").append(buttons);
 	
 	// add button callbacks
-	dialog.find(".configure").click(function(e){
-		// apply configuration
-		var data = $(this).closest('.modal').find('form').serializeArray();
-		
-		var module;
-		$.each( data, function( i, item ) {
-			if(i === 0){
-				module = modules[item.value];
-			} else {
-				module[item.name] = item.value;
-			}
+	if(deployment[id]===undefined){
+		dialog.find(".deploy").click(function(e){
+			// deploy this module
+			var id = $(this).closest(".modal").find(".module-id").val();
+			var target = $(this).closest('.modal').find('.targets').val();
+			
+			deploy(id, target);
+			
+			$(this).closest(".modal").modal('hide');
 		});
-		
-		$(this).closest(".modal").modal('hide');
-	});
-	
-	dialog.find(".delete").click(function(e){
-		// remove object
-		var test = $(this).closest(".modal");
-		var test2 = test.find(".module-id");
-		var id = $(this).closest(".modal").find(".module-id").val();
-		
-		var moduleItem = $('#'+id);
-		if(checkRemoveModule(moduleItem)) {
-			removeModule(moduleItem);
-		}
-		
-		// remove dialog when module is removed, else keep it for reuse
-		$(this).closest(".modal").remove();
-	});
+		dialog.find(".undeploy").prop('disabled', true);
+	} else {
+		dialog.find(".undeploy").click(function(e){
+			// undeploy this module
+			var id = $(this).closest(".modal").find(".module-id").val();
+			undeploy(id);
+			
+			// remove dialog when module is removed, else keep it for reuse
+			$(this).closest(".modal").modal('hide');
+		});
+		dialog.find(".deploy").prop('disabled', true);
+	}
 	
 	
 	return dialog;
@@ -260,6 +333,9 @@ function createBuildModuleDialog(id, dialog){
  * Check whether one is allowed to instantiate another item from this tooblox
  */
 function checkAddModule(toolboxItem){
+	if(modus!=="build"){
+		return false;
+	}
 	return true;
 }
 
@@ -267,6 +343,9 @@ function checkAddModule(toolboxItem){
  * Check whether one is allowed to remove this module
  */
 function checkRemoveModule(moduleItem){
+	if(modus!=="build"){
+		return false;
+	}
 	return true;
 }
 
@@ -274,6 +353,13 @@ function checkRemoveModule(moduleItem){
  * Check whether one is allowed to instantiate this connection
  */
 function checkAddConnection(connection){
+	if(modus!=="build"){
+		return false;
+	}
+	if(deployment[connection.sourceId]!==undefined
+		|| deployment[connection.targetId]!==undefined){
+		return false;
+	}
 	return true;
 }
 
@@ -281,6 +367,13 @@ function checkAddConnection(connection){
  * Check whether one is allowed to remove this connection
  */
 function checkRemoveConnection(connection){
+	if(modus!=="build"){
+		return false;
+	}
+	if(deployment[connection.sourceId]!==undefined
+		|| deployment[connection.targetId]!==undefined){
+		return false;
+	}
 	return true;
 }
 
@@ -399,10 +492,43 @@ function removeConnection(connection){
  * Deploy the modules
  */
 
-function deploy(){
-	$.post("/dianne/deployer", {"modules":JSON.stringify(modules)}, 
+function deployAll(){
+	$.post("/dianne/deployer", {"action":"deploy","modules":JSON.stringify(modules)}, 
 			function( data ) {
-				// Do something on return?
+				$.each( data, function(id,target){
+					deployment[id] = target;
+					// TODO separate color per node?
+					$("#"+id).css('background-color', '#FF6CDA');
+				});
+			}
+			, "json");
+}
+
+function undeployAll(){
+	$.each(deployment, function(id,value){
+		undeploy(id);
+	});
+}
+
+function deploy(id, target){
+	$.post("/dianne/deployer", {"action":"deploy",
+		"module":JSON.stringify(modules[id]),
+		"target": target}, 
+			function( data ) {
+				$.each( data, function(id,target){
+					deployment[id] = target;
+					// TODO separate color per node?
+					$("#"+id).css('background-color', '#FF6CDA');
+				});
+			}
+			, "json");
+}
+
+function undeploy(id){
+	$.post("/dianne/deployer", {"action":"undeploy","id":id}, 
+			function( data ) {
+				deployment[id] = undefined;
+				$("#"+id).css('background-color', '');
 			}
 			, "json");
 }

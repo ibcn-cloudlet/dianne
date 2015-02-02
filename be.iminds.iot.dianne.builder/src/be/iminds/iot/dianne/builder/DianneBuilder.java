@@ -26,7 +26,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 @Component(service={javax.servlet.Servlet.class},
-	property={"alias:String=/dianne/builder"},
+	property={"alias:String=/dianne/builder","aiolos.proxy=false"},
 	immediate=true)
 public class DianneBuilder extends HttpServlet {
 

@@ -35,9 +35,9 @@
 				<nav class='controls'>
 					<ul id="actions" class="nav masthead-nav control-group">
 						<li><a href="#" id="menu-build" class="active" onclick="setModus('build');return false;">Build</a></li>
-						<li><a href="#" id="menu-learn" onclick="setModus('learn');return false;">Learn</a></li>
 						<li><a href="#" id="menu-deploy" onclick="setModus('deploy');return false;">Deploy</a></li>
-						<li><a href="#" id="menu-run" onclick="setModus('run');return false;">Run</a></li>
+						<li><a href="#" id="menu-learn" onclick="setModus('learn');return false;">Learn</a></li>
+<!-- 					<li><a href="#" id="menu-run" onclick="setModus('run');return false;">Run</a></li> -->
 					</ul>
 				</nav>
 			</div>
@@ -51,7 +51,8 @@
 					<h3>Learn</h3>
 				</div>
 				<div id="toolbox-deploy" class="toolbox col-xs-4 col-md-2">
-					<h3>Deploy</h3>
+					<button id="deployAll" class="btn btn-default" onclick="deployAll();return false;">Deploy all</button>
+					<button id="undeployAll" class="btn btn-default"  onclick="undeployAll();return false;">Undeploy all</button>
 				</div>
 				<div id="toolbox-run" class="toolbox col-xs-4 col-md-2">
 					<h3>Run</h3>
@@ -128,7 +129,7 @@
 	<!-- end build dialog body template -->
 	
 	<!-- Template for module property form -->
-	<script type="x-tmpl-mustache" id="property-form">
+	<script type="x-tmpl-mustache" id="form-properties">
 		<div class="form-group">
 			<label class="col-sm-3 control-label">{{name}}</label>
 			<div class="col-sm-7">
@@ -142,6 +143,39 @@
 	<script type="x-tmpl-mustache" id="dialog-buttons-build">
 		<button class="delete btn btn-danger pull-left">Delete module</button>
 		<button class="configure btn btn-primary">Configure</button>
+	</script>
+	<!-- end build dialog buttons template -->
+
+	
+	<!--  Template for a deploy dialog body -->
+	<script type="x-tmpl-mustache" id="dialog-body-deploy">
+		<div class="module build">
+			<strong>{{type}}</strong>
+		</div>
+		<br/>
+		<form role="form" class="form-horizontal">
+			<input class="module-id" type="hidden" name="id" value="{{id}}"/>
+			<div class="form-deployment"></div>
+		</form>
+	</script>
+	<!-- end build dialog body template -->
+
+	<!-- Template for module deployment form -->
+	<script type="x-tmpl-mustache" id="form-deployment">
+		<div class="form-group">
+			<label class="col-sm-3 control-label">Deploy to:</label>
+			<div class="col-sm-7">
+				<select class="form-control targets">
+				</select>
+			</div>
+		</div>
+	</script>
+	<!-- end property template -->
+
+	<!--  Template for a deploy dialog buttons -->
+	<script type="x-tmpl-mustache" id="dialog-buttons-deploy">
+		<button class="undeploy btn btn-danger pull-left">Undeploy</button>
+		<button class="deploy btn btn-primary">Deploy</button>
 	</script>
 	<!-- end build dialog buttons template -->
 

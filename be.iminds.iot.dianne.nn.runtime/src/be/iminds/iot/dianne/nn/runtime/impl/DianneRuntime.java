@@ -33,7 +33,9 @@ import be.iminds.iot.dianne.nn.module.factory.ModuleFactory;
 import be.iminds.iot.dianne.nn.runtime.ModuleManager;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
-@Component(immediate=true, property={"service.pid=be.iminds.iot.dianne.nn.module"})
+@Component(immediate=true, 
+	property={"service.pid=be.iminds.iot.dianne.nn.module",
+			  "aiolos.callback=be.iminds.iot.dianne.nn.runtime.ModuleManager"})
 public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 
 	private BundleContext context;
@@ -211,6 +213,7 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 				// that is uninstalled (then service is allready unregistered)
 			}
 		}
+		System.out.println("Unregistered module "+id);
 	}
 
 	@Override
