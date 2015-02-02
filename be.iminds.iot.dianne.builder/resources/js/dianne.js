@@ -2,8 +2,10 @@
  * This script allows to create a NN structure by drag-and-drop using jsPlumb
  */
 
-// keep a model of constructed modules
+// keep a map of neural network modules
 var modules = {};
+// keep a map of all learning blocks
+var learning = {};
 
 // keep map module id -> deployment node
 var deployment = {};
@@ -297,13 +299,25 @@ function addModule(moduleItem, toolboxItem){
 	});
 	
 	// add to modules
+	var module = {};
+	module.type = type;
+	module.id = id;
+	
 	if(type!=="Trainer" 
 		&& type!=="Evaluator"
 		&& type!=="Dataset"){
-		var module = {};
-		module.type = type;
-		module.id = id;
 		modules[id] = module;
+	} else {
+		if(type==="Dataset"){
+			// TODO this is hard coded for MNIST
+			module.dataset = "MNIST";
+			module.total = 70000;
+			module.train = 60000;
+			module.test = 10000;
+			module.validation = 0;
+			
+		}
+		learning[id] = module;
 	}
 	
 	console.log("Add module "+id);
@@ -326,14 +340,17 @@ function removeModule(moduleItem){
 	moduleItem.remove();
 
 	// remove from modules
-	if(modules[modules[id].next]!==undefined){
-		delete modules[modules[id].next].prev;
+	if(modules[id]!==undefined){
+		if(modules[modules[id].next]!==undefined){
+			delete modules[modules[id].next].prev;
+		}
+		if(modules[modules[id].prev]!==undefined){
+			delete modules[modules[id].prev].next;
+		}
+		delete modules[id];
+	} else {
+		delete learning[id];
 	}
-	if(modules[modules[id].prev]!==undefined){
-		delete modules[modules[id].prev].next;
-	}
-	delete modules[id];
-	
 	console.log("Remove module "+id);
 	
 }
@@ -344,7 +361,7 @@ function removeModule(moduleItem){
  */
 function addConnection(connection){
 	console.log("Add connection " + connection.sourceId + " -> " + connection.targetId);
-
+	// TODO what with connections to/from learning modules?!
 	modules[connection.sourceId].next = connection.targetId;
 	modules[connection.targetId].prev = connection.sourceId;
 }
@@ -355,7 +372,7 @@ function addConnection(connection){
  */
 function removeConnection(connection){
 	console.log("Remove connection " + connection.sourceId + " -> " + connection.targetId);
-
+	// TODO what with connections to/from learning modules?!
 	delete modules[connection.sourceId].next;
 	delete modules[connection.targetId].prev;
 }
@@ -377,7 +394,7 @@ function showConfigureModuleDialog(moduleItem){
 		// create new dialog
 		var d = renderTemplate("dialog", {
 			id : id,
-			title : "Configure module"
+			title : "Configure module "
 		});
 		dialog = $(d);
 	}
@@ -387,15 +404,18 @@ function showConfigureModuleDialog(moduleItem){
 		dialog = createBuildModuleDialog(id, dialog);
 	} else if(modus==="deploy"){
 		dialog = createDeployModuleDialog(id, dialog);
+	} else if(modus==="learn"){
+		dialog = createLearnModuleDialog(id, dialog);
 	}
 	
-	var offset = moduleItem.offset();
-	offset.top = offset.top - 100;
-	offset.left = offset.left - 200;
+	if(dialog!==undefined){
+		var offset = moduleItem.offset();
+		offset.top = offset.top - 100;
+		offset.left = offset.left - 200;
 	
-	// show the modal (disable backdrop)
-	dialog.modal({'show':true, 'backdrop':false}).draggable({handle: ".modal-header"}).offset(offset);
-	
+		// show the modal (disable backdrop)
+		dialog.modal({'show':true, 'backdrop':false}).draggable({handle: ".modal-header"}).offset(offset);
+	}
 }
 
 function createBuildModuleDialog(id, dialog){
@@ -533,6 +553,72 @@ function createDeployModuleDialog(id, dialog){
 	return dialog;
 }
 
+
+function createLearnModuleDialog(id, dialog){
+	var block = learning[id];
+	if(block===undefined){
+		return undefined; // (for now) only dialogs for learning blocks
+	}
+	
+	var buttons = renderTemplate("dialog-buttons-learn", {});
+	dialog.find(".modal-footer").empty();
+	dialog.find(".modal-footer").append(buttons);
+	
+	dialog.find(".delete").click(function(e){
+		// remove object
+		var id = $(this).closest(".modal").find(".module-id").val();
+		
+		var moduleItem = $('#'+id);
+		if(checkRemoveModule(moduleItem)) {
+			removeModule(moduleItem);
+		}
+		
+		// remove dialog when module is removed, else keep it for reuse
+		$(this).closest(".modal").remove();
+	});
+	
+	
+	if(block.type==="Dataset"){
+		console.log("Dataset dialog");
+		var body = renderTemplate("dialog-body-dataset", {
+			id : block.id,
+			dataset : block.dataset,
+			train: block.train,
+			test: block.test,
+			validation: block.validation
+		});
+		dialog.find(".modal-body").empty();
+		dialog.find(".modal-body").append(body);
+		dialog.find(".slider").slider({
+			orientation: "vertical",
+			range: true,
+			max: block.total,
+			min: 0,
+			step: 1000,
+			values: [ block.validation, block.test+block.validation ],
+			slide: function( event, ui ) {
+				var h1 = parseInt(ui.values[0]);
+				var h2 = parseInt(ui.values[1]);
+				block.validation = h1;
+				block.test = h2-h1;
+				block.train = block.total-h2;
+				
+				$('#validation').text(block.validation);
+				$('#train').text(block.train);
+				$('#test').text(block.test);
+			}
+		}).find(".ui-slider-handle").remove();
+		
+		// TODO make this a shuffle button?
+		dialog.find(".run").remove();
+	} else if(block.type==="Trainer"){
+		console.log("Trainer dialog");
+	} else if(block.type==="Evaluator"){
+		console.log("Evaluator dialog");
+	}
+	
+	return dialog;
+}
 
 
 /*

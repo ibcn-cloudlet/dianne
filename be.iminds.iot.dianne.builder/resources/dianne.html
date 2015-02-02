@@ -13,7 +13,7 @@
 <!-- Bootstrap -->
 <!-- Latest compiled and minified CSS -->
 <link rel="stylesheet" href="css/bootstrap.min.css">
-
+<link rel="stylesheet" href="css/jquery-ui.css">
 <!-- Styles -->
 <link rel="stylesheet" href="css/dianne.css">
 
@@ -170,12 +170,58 @@
 	</script>
 	<!-- end property template -->
 
-	<!--  Template for a deploy dialog buttons -->
+	<!--  Template for deploy dialog buttons -->
 	<script type="x-tmpl-mustache" id="dialog-buttons-deploy">
 		<button class="undeploy btn btn-danger pull-left">Undeploy</button>
 		<button class="deploy btn btn-primary">Deploy</button>
 	</script>
 	<!-- end build dialog buttons template -->
+	
+	<!--  Template for a learn dialog body -->
+	<script type="x-tmpl-mustache" id="dialog-body-dataset">
+		<div class="row">
+			<div class="col-sm-3">
+				<div class="slider" style="height:200px;width:80px"></div>
+			</div>		
+			<div class="col-sm-9">
+				<form role="form" class="form-horizontal">
+					<input class="module-id" type="hidden" name="id" value="{{id}}"/>
+					<div class="form-group">
+						<label class="col-sm-4 control-label">Dataset:</label>
+						<div class="col-sm-4">
+							<p class="form-control-static" id="dataset" name="dataset">{{dataset}}</p>
+						</div>
+					</div>
+					<br/>
+					<div class="form-group">
+						<label class="col-sm-4 control-label">Train set:</label>
+						<div class="col-sm-4">
+							<p class="form-control-static" id="train" name="train">{{train}}</p>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-4 control-label">Test set:</label>
+						<div class="col-sm-4">
+							<p class="form-control-static" id="test" name="test">{{test}}</p>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-4 control-label">Validation set:</label>
+						<div class="col-sm-4">
+							<p class="form-control-static" id="validation" name="validation">{{validation}}</p>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</script>
+	<!-- end build dialog body template -->
 
+	<!--  Template for learn dialog buttons -->
+	<script type="x-tmpl-mustache" id="dialog-buttons-learn">
+		<button class="delete btn btn-danger pull-left">Delete</button>
+		<button class="run btn btn-primary">Run</button>
+	</script>
+	<!-- end build dialog learn template -->
 </body>
 </html>
