@@ -15,28 +15,41 @@ var modus = "build";
 
 function setModus(m){
 	$(".active").removeClass("active");
+	// only show learn modules in learn modus
+	$(".learn").each(function( index ) {
+		jsPlumb.hide($(this).attr('id'),true);
+		$(this).hide();
+	});
 	modus = m;
 	if(modus === "build"){
 		console.log("switch to build");
 		$(".toolbox").hide();
 		$("#menu-build").addClass("active");
 		$("#toolbox-build").show();
-		
-	} else if(modus === "learn"){
-		console.log("switch to learn");
-		$(".toolbox").hide();
-		$("#menu-learn").addClass("active");
-		$("#toolbox-learn").show();
+		$("#toolbox-build").addClass("active");
 	} else if(modus === "deploy"){
 		console.log("switch to deploy");
 		$(".toolbox").hide();
 		$("#menu-deploy").addClass("active");
 		$("#toolbox-deploy").show();
+		$("#toolbox-deploy").addClass("active");
+	} else if(modus === "learn"){
+		console.log("switch to learn");
+		$(".toolbox").hide();
+		$("#menu-learn").addClass("active");
+		$("#toolbox-learn").show();
+		$("#toolbox-learn").addClass("active");
+		// only show learn modules in learn modus
+		$(".learn").each(function( index ) {
+			jsPlumb.show($(this).attr('id'),true);
+			$(this).show();
+		});
 	} else if(modus === "run"){
 		console.log("switch to run");
 		$(".toolbox").hide();
 		$("#menu-run").addClass("active");
 		$("#toolbox-run").show();
+		$("#toolbox-run").addClass("active");
 	}
 	// hide all modals
 	$(".modal").modal('hide');
@@ -71,8 +84,7 @@ var source = {
 		strokeStyle:"#555",
 		outlineWidth:2,
 		outlineColor:"white"
-	},
-//		maxConnections:-1,
+	}
 }		
 
 // the definition of target Endpoints 
@@ -84,8 +96,7 @@ var target = {
 	},
 	hoverPaintStyle:{ 
 		fillStyle: "#555"
-	},
-//		maxConnections:-1,
+	}
 }
 
 /**
@@ -97,28 +108,39 @@ $( document ).ready(function() {
 	$.post("/dianne/builder", {action : "available-modules"}, 
 		function( data ) {
 			$.each(data, function(index, name){
-				console.log(name);	
-				// Render toolbox item
-				$('#toolbox-build').append(renderTemplate("module-build",
-						{name: name }));
+				console.log(name);
 				
-				// make draggable and add code to create new modules drag-and-drop style
-				$('#'+name).draggable({helper: "clone"});
-				$('#'+name).bind('dragstop', function(event, ui) {
-					if(checkAddModule($(this))){
-						// clone the toolbox item
-					    var moduleItem = $(ui.helper).clone().removeClass("build");
-					    
-						addModule(moduleItem, $(this));
-					}
-				});
+				addToolboxItem('#toolbox-build', name, name, 'build');
 			});
 		}
 		, "json");
 	
+	// learn toolbox
+	// TODO this is hard coded for now, as this does not map to factories/module impls
+	addToolboxItem('#toolbox-learn','MNIST Dataset','Dataset','learn');
+	addToolboxItem('#toolbox-learn','SGD Trainer','Trainer','learn');
+	addToolboxItem('#toolbox-learn','MSE Evaluator','Evaluator','learn');
+	
 	// show correct mode
 	setModus(modus);
 });
+
+// add a toolbox item name to toolbox with id toolboxId and add class clazz
+function addToolboxItem(toolboxId, name, type, clazz){
+	$(toolboxId).append(renderTemplate("module",
+			{name: name, type: type }));
+	
+	// make draggable and add code to create new modules drag-and-drop style
+	$('#'+type).draggable({helper: "clone"});
+	$('#'+type).bind('dragstop', function(event, ui) {
+		if(checkAddModule($(this))){
+			// clone the toolbox item
+		    var moduleItem = $(ui.helper).clone().removeClass("toolbox").addClass(clazz);
+		    
+			addModule(moduleItem, $(this));
+		}
+	});
+}
 
 // jsPlumb init code
 jsPlumb.ready(function() {       
@@ -152,6 +174,192 @@ jsPlumb.ready(function() {
 	});
 
 });
+
+
+
+/*
+ * Module/Connection add/remove checks
+ */
+
+/**
+ * Check whether one is allowed to instantiate another item from this tooblox
+ */
+function checkAddModule(toolboxItem){
+	return true;
+}
+
+/**
+ * Check whether one is allowed to remove this module
+ */
+function checkRemoveModule(moduleItem){
+	return true;
+}
+
+/**
+ * Check whether one is allowed to instantiate this connection
+ */
+function checkAddConnection(connection){
+	if(deployment[connection.sourceId]!==undefined
+		|| deployment[connection.targetId]!==undefined){
+		return false;
+	}
+	if(modus==="build"){
+		if(connection.connection.endpoints[0].type!=="Dot" 
+			|| connection.connection.endpoints[1].type!=="Dot"){
+				return false;
+		}
+	}
+	if(modus==="learn"){
+		if(connection.connection.endpoints[0].type!=="Rectangle" 
+			|| connection.connection.endpoints[1].type!=="Rectangle"){
+				return false;
+		}
+		//TODO dont allow connecting output to input
+	}
+	return true;
+}
+
+/**
+ * Check whether one is allowed to remove this connection
+ */
+function checkRemoveConnection(connection){
+	if(deployment[connection.sourceId]!==undefined
+		|| deployment[connection.targetId]!==undefined){
+		return false;
+	}
+	if(modus==="build"){
+		if(connection.connection.endpoints[0].type!=="Dot" 
+			|| connection.connection.endpoints[1].type!=="Dot"){
+				return false;
+		}
+	}
+	if(modus==="learn"){
+		if(connection.connection.endpoints[0].type!=="Rectangle" 
+			|| connection.connection.endpoints[1].type!=="Rectangle"){
+				return false;
+		}
+	}
+	return true;
+}
+
+
+/*
+ * Module/Connection add/remove methods
+ */
+
+/**
+ * Add a module to the canvas and to modules datastructure
+ * 
+ * @param moduleItem a freshly cloned DOM element from toolbox item 
+ * @param toolboxItem the toolbox DOM element the moduleItem was cloned from
+ */
+function addModule(moduleItem, toolboxItem){
+	moduleItem.appendTo("#canvas");
+	 
+    // fix offset of toolbox 
+    var offset = {};
+    offset.left = moduleItem.offset().left - ($("#canvas").offset().left - $(".toolbox.active").offset().left);
+    offset.top = moduleItem.offset().top - ($("#canvas").offset().top - $(".toolbox.active").offset().top);
+    moduleItem.offset(offset);
+  
+    // get type from toolbox item and generate new UUID
+	var type = toolboxItem.attr("id");
+	var id = guid();
+	moduleItem.attr("id",id);
+	
+	// TODO this should not be hard coded?
+	if(type==="Input"){
+		jsPlumb.addEndpoint(moduleItem, source);
+		jsPlumb.addEndpoint(moduleItem, target, {endpoint:"Rectangle",filter:":not(.build)"});
+	} else if(type==="Output"){
+		jsPlumb.addEndpoint(moduleItem, source, {endpoint:"Rectangle", maxConnections:-1});
+		jsPlumb.addEndpoint(moduleItem, target);
+	} else if(type==="Trainer" || type==="Evaluator"){
+		jsPlumb.addEndpoint(moduleItem, target, {endpoint:"Rectangle"});
+	} else if(type==="Dataset"){ 
+		jsPlumb.addEndpoint(moduleItem, source, {endpoint:"Rectangle"});
+	} else {
+		jsPlumb.addEndpoint(moduleItem, source);
+		jsPlumb.addEndpoint(moduleItem, target);
+	}
+	
+	// show dialog on double click
+	moduleItem.dblclick(function() {
+		showConfigureModuleDialog($(this));
+	});
+	
+	// make draggable
+	moduleItem.draggable(
+	{
+		drag: function(){
+		    jsPlumb.repaintEverything();
+		}
+	});
+	
+	// add to modules
+	if(type!=="Trainer" 
+		&& type!=="Evaluator"
+		&& type!=="Dataset"){
+		var module = {};
+		module.type = type;
+		module.id = id;
+		modules[id] = module;
+	}
+	
+	console.log("Add module "+id);
+}
+
+/**
+ * Remove a module from the canvas and the modules datastructure
+ * 
+ * @param moduleItem the DOM element on the canvas representing the module
+ */
+function removeModule(moduleItem){
+	var id = moduleItem.attr("id");
+
+	// delete this moduleItem
+	$.each(jsPlumb.getEndpoints(moduleItem), function(index, endpoint){
+		jsPlumb.deleteEndpoint(endpoint)}
+	);
+	
+	jsPlumb.detachAllConnections(moduleItem);
+	moduleItem.remove();
+
+	// remove from modules
+	if(modules[modules[id].next]!==undefined){
+		delete modules[modules[id].next].prev;
+	}
+	if(modules[modules[id].prev]!==undefined){
+		delete modules[modules[id].prev].next;
+	}
+	delete modules[id];
+	
+	console.log("Remove module "+id);
+	
+}
+
+/**
+ * Add a connection between two modules
+ * @param connection to add
+ */
+function addConnection(connection){
+	console.log("Add connection " + connection.sourceId + " -> " + connection.targetId);
+
+	modules[connection.sourceId].next = connection.targetId;
+	modules[connection.targetId].prev = connection.sourceId;
+}
+
+/**
+ * Remove a connection between two modules
+ * @param connection to remove
+ */
+function removeConnection(connection){
+	console.log("Remove connection " + connection.sourceId + " -> " + connection.targetId);
+
+	delete modules[connection.sourceId].next;
+	delete modules[connection.targetId].prev;
+}
+
 
 /*
  * Module configuration/deletion dialog stuff 
@@ -324,167 +532,6 @@ function createDeployModuleDialog(id, dialog){
 	
 	return dialog;
 }
-
-/*
- * Module/Connection add/remove checks
- */
-
-/**
- * Check whether one is allowed to instantiate another item from this tooblox
- */
-function checkAddModule(toolboxItem){
-	if(modus!=="build"){
-		return false;
-	}
-	return true;
-}
-
-/**
- * Check whether one is allowed to remove this module
- */
-function checkRemoveModule(moduleItem){
-	if(modus!=="build"){
-		return false;
-	}
-	return true;
-}
-
-/**
- * Check whether one is allowed to instantiate this connection
- */
-function checkAddConnection(connection){
-	if(modus!=="build"){
-		return false;
-	}
-	if(deployment[connection.sourceId]!==undefined
-		|| deployment[connection.targetId]!==undefined){
-		return false;
-	}
-	return true;
-}
-
-/**
- * Check whether one is allowed to remove this connection
- */
-function checkRemoveConnection(connection){
-	if(modus!=="build"){
-		return false;
-	}
-	if(deployment[connection.sourceId]!==undefined
-		|| deployment[connection.targetId]!==undefined){
-		return false;
-	}
-	return true;
-}
-
-
-/*
- * Module/Connection add/remove methods
- */
-
-/**
- * Add a module to the canvas and to modules datastructure
- * 
- * @param moduleItem a freshly cloned DOM element from toolbox item 
- * @param toolboxItem the toolbox DOM element the moduleItem was cloned from
- */
-function addModule(moduleItem, toolboxItem){
-	moduleItem.appendTo("#canvas");
-	 
-    // fix offset of toolbox 
-    var offset = {};
-    offset.left = moduleItem.offset().left - ($("#canvas").offset().left - $(".toolbox").offset().left);
-    offset.top = moduleItem.offset().top - ($("#canvas").offset().top - $(".toolbox").offset().top);
-    moduleItem.offset(offset);
-  
-    // get type from toolbox item and generate new UUID
-	var type = toolboxItem.attr("id");
-	var id = guid();
-	moduleItem.attr("id",id);
-	
-	// TODO this should not be hard coded?
-	if(type==="Input"){
-		jsPlumb.addEndpoint(moduleItem, source);
-	} else if(type==="Output"){
-		jsPlumb.addEndpoint(moduleItem, target);
-	} else {
-		jsPlumb.addEndpoint(moduleItem, source);
-		jsPlumb.addEndpoint(moduleItem, target);
-	}
-	
-	// show dialog on double click
-	moduleItem.dblclick(function() {
-		showConfigureModuleDialog($(this));
-	});
-	
-	// make draggable
-	moduleItem.draggable(
-	{
-		drag: function(){
-		    jsPlumb.repaintEverything();
-		}
-	});
-	
-	// add to modules
-	var module = {};
-	module.type = type;
-	module.id = id;
-	modules[id] = module;
-	
-	console.log("Add module "+id);
-}
-
-/**
- * Remove a module from the canvas and the modules datastructure
- * 
- * @param moduleItem the DOM element on the canvas representing the module
- */
-function removeModule(moduleItem){
-	var id = moduleItem.attr("id");
-
-	// delete this moduleItem
-	$.each(jsPlumb.getEndpoints(moduleItem), function(index, endpoint){
-		jsPlumb.deleteEndpoint(endpoint)}
-	);
-	
-	jsPlumb.detachAllConnections(moduleItem);
-	moduleItem.remove();
-
-	// remove from modules
-	if(modules[modules[id].next]!==undefined){
-		delete modules[modules[id].next].prev;
-	}
-	if(modules[modules[id].prev]!==undefined){
-		delete modules[modules[id].prev].next;
-	}
-	delete modules[id];
-	
-	console.log("Remove module "+id);
-	
-}
-
-/**
- * Add a connection between two modules
- * @param connection to add
- */
-function addConnection(connection){
-	console.log("Add connection " + connection.sourceId + " -> " + connection.targetId);
-
-	modules[connection.sourceId].next = connection.targetId;
-	modules[connection.targetId].prev = connection.sourceId;
-}
-
-/**
- * Remove a connection between two modules
- * @param connection to remove
- */
-function removeConnection(connection){
-	console.log("Remove connection " + connection.sourceId + " -> " + connection.targetId);
-
-	delete modules[connection.sourceId].next;
-	delete modules[connection.targetId].prev;
-}
-
 
 
 

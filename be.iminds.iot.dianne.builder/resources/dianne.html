@@ -47,13 +47,11 @@
 		<div class="container-fluid">
 			<div id="builder" class="row">
 				<div id="toolbox-build" class="toolbox col-xs-4 col-md-2"></div>
-				<div id="toolbox-learn" class="toolbox col-xs-4 col-md-2">
-					<h3>Learn</h3>
-				</div>
 				<div id="toolbox-deploy" class="toolbox col-xs-4 col-md-2">
 					<button id="deployAll" class="btn btn-default" onclick="deployAll();return false;">Deploy all</button>
 					<button id="undeployAll" class="btn btn-default"  onclick="undeployAll();return false;">Undeploy all</button>
 				</div>
+				<div id="toolbox-learn" class="toolbox col-xs-4 col-md-2"></div>
 				<div id="toolbox-run" class="toolbox col-xs-4 col-md-2">
 					<h3>Run</h3>
 				</div>
@@ -85,8 +83,8 @@
 	
 	<!-- Templates -->
     <!-- Template for (toolbox) module -->
-	<script type="x-tmpl-mustache" id="module-build">
-		<div class="module build" id="{{name}}">
+	<script type="x-tmpl-mustache" id="module">
+		<div class="module build" id="{{type}}">
 			<strong>{{name}}</strong>
 		</div>
     </script>

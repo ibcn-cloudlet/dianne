@@ -125,8 +125,12 @@ footer {
 	margin: 5px 5px 5px 5px;
 }
 
-.build {
+.toolbox {
 	position: relative;
+}
+
+.learn {
+	background-color: #adc2ff;	
 }
 
 .module:hover {
