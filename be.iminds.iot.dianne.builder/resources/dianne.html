@@ -177,7 +177,7 @@
 	</script>
 	<!-- end build dialog buttons template -->
 	
-	<!--  Template for a learn dialog body -->
+	<!--  Template for a dataset dialog body -->
 	<script type="x-tmpl-mustache" id="dialog-body-dataset">
 		<div class="row">
 			<div class="col-sm-3">
@@ -215,7 +215,49 @@
 			</div>
 		</div>
 	</script>
-	<!-- end build dialog body template -->
+	<!-- end dataset dialog body template -->
+	
+	<!--  Template for a train dialog body -->
+	<script type="x-tmpl-mustache" id="dialog-body-train">
+		<div class="error">
+		</div>
+		<br/>
+		<form role="form" class="form-horizontal">
+			<input class="module-id" type="hidden" name="id" value="{{id}}"/>
+				<form role="form" class="form-horizontal">
+					<input class="module-id" type="hidden" name="id" value="{{id}}"/>
+					<div class="form-group">
+						<label class="col-sm-3 control-label">Loss:</label>
+						<div class="col-sm-7">
+							<input type="text" class="form-control" id="loss" name="loss" value="{{loss}}" />
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-3 control-label">Batch size:</label>
+						<div class="col-sm-7">
+							<input type="text" class="form-control" id="batch" name="batch" value="{{batch}}" />
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-3 control-label">Epochs:</label>
+						<div class="col-sm-7">
+							<input type="text" class="form-control" id="epochs" name="epochs" value="{{epochs}}" />
+						</div>
+					</div>
+				</form>
+		</form>
+	</script>
+	<!-- end train dialog body template -->
+
+	<!--  Template for a evaluate dialog body -->
+	<script type="x-tmpl-mustache" id="dialog-body-evaluate">
+		<div class="evaluate"></div>
+		<br/>
+		<form role="form" class="form-horizontal">
+			<input class="module-id" type="hidden" name="id" value="{{id}}"/>
+		</form>
+	</script>
+	<!-- end evaluate dialog body template -->
 
 	<!--  Template for learn dialog buttons -->
 	<script type="x-tmpl-mustache" id="dialog-buttons-learn">

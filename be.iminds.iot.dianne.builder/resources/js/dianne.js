@@ -121,7 +121,7 @@ $( document ).ready(function() {
 	// TODO this is hard coded for now, as this does not map to factories/module impls
 	addToolboxItem('#toolbox-learn','MNIST Dataset','Dataset','learn');
 	addToolboxItem('#toolbox-learn','SGD Trainer','Trainer','learn');
-	addToolboxItem('#toolbox-learn','MSE Evaluator','Evaluator','learn');
+	addToolboxItem('#toolbox-learn','Arg Max Evaluator','Evaluator','learn');
 	
 	// show correct mode
 	setModus(modus);
@@ -316,6 +316,12 @@ function addModule(moduleItem, toolboxItem){
 			module.test = 10000;
 			module.validation = 0;
 			
+		} else if(type==="Trainer"){
+			// TODO this is hard coded
+			//module.strategy = "Stochastic Gradient Descent";
+			module.batch = 10;
+			module.epochs = 1;
+			module.loss = "MSE";
 		}
 		learning[id] = module;
 	}
@@ -611,10 +617,46 @@ function createLearnModuleDialog(id, dialog){
 		
 		// TODO make this a shuffle button?
 		dialog.find(".run").remove();
+		
+		dialog.find(".modal-title").text("Configure dataset");
 	} else if(block.type==="Trainer"){
 		console.log("Trainer dialog");
+		
+		var body = renderTemplate("dialog-body-train", {
+			id : block.id,
+			loss : block.loss,
+			batch: block.batch,
+			epochs: block.epochs
+		});
+		dialog.find(".modal-body").empty();
+		dialog.find(".modal-body").append(body);
+		
+		dialog.find(".modal-title").text("Train the network");
+		
+		dialog.find(".run").click(function(e){
+			// TODO do a post here	
+			var id = $(this).closest(".modal").find(".module-id").val();
+			
+			var trainer = learning[id];
+			trainer.loss = $(this).closest(".modal").find("#loss").val();
+			trainer.batch = $(this).closest(".modal").find("#batch").val();
+			trainer.epochs = $(this).closest(".modal").find("#epochs").val();
+
+			console.log("TRAIN!");
+		});
 	} else if(block.type==="Evaluator"){
 		console.log("Evaluator dialog");
+		
+		var body = renderTemplate("dialog-body-evaluate", {id : block.id});
+		dialog.find(".modal-body").empty();
+		dialog.find(".modal-body").append(body);
+		
+		dialog.find(".modal-title").text("Evaluate the network");
+		
+		dialog.find(".run").click(function(e){
+			// TODO do a post here	
+			console.log("EVALUATE!");
+		});
 	}
 	
 	return dialog;
