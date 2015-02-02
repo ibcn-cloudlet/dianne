@@ -367,9 +367,16 @@ function removeModule(moduleItem){
  */
 function addConnection(connection){
 	console.log("Add connection " + connection.sourceId + " -> " + connection.targetId);
-	// TODO what with connections to/from learning modules?!
-	modules[connection.sourceId].next = connection.targetId;
-	modules[connection.targetId].prev = connection.sourceId;
+	if(learning[connection.sourceId]!==undefined){
+		// dataset
+		learning[connection.sourceId].input = connection.targetId; 
+	} else if(learning[connection.targetId]!==undefined){
+		// trainer/evaluator
+		learning[connection.targetId].output = connection.sourceId; 
+	} else {
+		modules[connection.sourceId].next = connection.targetId;
+		modules[connection.targetId].prev = connection.sourceId;
+	}
 }
 
 /**
@@ -378,9 +385,16 @@ function addConnection(connection){
  */
 function removeConnection(connection){
 	console.log("Remove connection " + connection.sourceId + " -> " + connection.targetId);
-	// TODO what with connections to/from learning modules?!
-	delete modules[connection.sourceId].next;
-	delete modules[connection.targetId].prev;
+	if(learning[connection.sourceId]!==undefined){
+		// dataset
+		delete learning[connection.sourceId].input; 
+	} else if(learning[connection.targetId]!==undefined){
+		// trainer/evaluator
+		delete learning[connection.targetId].output; 
+	} else {
+		delete modules[connection.sourceId].next;
+		delete modules[connection.targetId].prev;
+	}
 }
 
 
