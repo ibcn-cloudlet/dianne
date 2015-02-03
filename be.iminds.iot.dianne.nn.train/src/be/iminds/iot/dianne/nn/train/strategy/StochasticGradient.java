@@ -2,11 +2,11 @@ package be.iminds.iot.dianne.nn.train.strategy;
 
 import java.util.List;
 
+import be.iminds.iot.dianne.dataset.Dataset;
 import be.iminds.iot.dianne.nn.module.Input;
 import be.iminds.iot.dianne.nn.module.Output;
 import be.iminds.iot.dianne.nn.module.Trainable;
 import be.iminds.iot.dianne.nn.train.Criterion;
-import be.iminds.iot.dianne.nn.train.Dataset;
 import be.iminds.iot.dianne.nn.train.DatasetProcessor;
 import be.iminds.iot.dianne.nn.train.Trainer;
 import be.iminds.iot.dianne.tensor.Tensor;

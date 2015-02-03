@@ -9,6 +9,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
+import be.iminds.iot.dianne.dataset.Dataset;
 import be.iminds.iot.dianne.demo.mnist.dataset.MNISTDataset;
 import be.iminds.iot.dianne.demo.mnist.dataset.MNISTDataset.Set;
 import be.iminds.iot.dianne.nn.module.Input;
@@ -16,7 +17,6 @@ import be.iminds.iot.dianne.nn.module.Output;
 import be.iminds.iot.dianne.nn.module.OutputListener;
 import be.iminds.iot.dianne.nn.module.Trainable;
 import be.iminds.iot.dianne.nn.train.Criterion;
-import be.iminds.iot.dianne.nn.train.Dataset;
 import be.iminds.iot.dianne.nn.train.Evaluation;
 import be.iminds.iot.dianne.nn.train.Evaluator;
 import be.iminds.iot.dianne.nn.train.Trainer;

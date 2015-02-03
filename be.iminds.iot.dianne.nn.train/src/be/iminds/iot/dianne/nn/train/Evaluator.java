@@ -1,5 +1,6 @@
 package be.iminds.iot.dianne.nn.train;
 
+import be.iminds.iot.dianne.dataset.Dataset;
 import be.iminds.iot.dianne.nn.module.Input;
 import be.iminds.iot.dianne.nn.module.Output;
 

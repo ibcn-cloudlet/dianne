@@ -1,4 +1,4 @@
-package be.iminds.iot.dianne.nn.train;
+package be.iminds.iot.dianne.dataset;
 
 import be.iminds.iot.dianne.tensor.Tensor;
 

@@ -1,8 +1,8 @@
 package be.iminds.iot.dianne.nn.train.eval;
 
+import be.iminds.iot.dianne.dataset.Dataset;
 import be.iminds.iot.dianne.nn.module.Input;
 import be.iminds.iot.dianne.nn.module.Output;
-import be.iminds.iot.dianne.nn.train.Dataset;
 import be.iminds.iot.dianne.nn.train.DatasetProcessor;
 import be.iminds.iot.dianne.nn.train.Evaluation;
 import be.iminds.iot.dianne.nn.train.Evaluator;

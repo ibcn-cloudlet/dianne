@@ -5,6 +5,7 @@ import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import be.iminds.iot.dianne.dataset.Dataset;
 import be.iminds.iot.dianne.demo.mnist.dataset.MNISTDataset;
 import be.iminds.iot.dianne.demo.mnist.dataset.MNISTDataset.Set;
 import be.iminds.iot.dianne.nn.train.criterion.MSECriterion;
