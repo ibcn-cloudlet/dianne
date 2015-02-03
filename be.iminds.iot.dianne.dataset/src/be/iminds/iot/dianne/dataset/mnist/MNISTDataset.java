@@ -1,4 +1,4 @@
-package be.iminds.iot.dianne.demo.mnist.dataset;
+package be.iminds.iot.dianne.dataset.mnist;
 
 import java.io.FileInputStream;
 import java.io.IOException;

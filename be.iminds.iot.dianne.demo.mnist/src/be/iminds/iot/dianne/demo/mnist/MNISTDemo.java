@@ -10,8 +10,8 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.dataset.Dataset;
-import be.iminds.iot.dianne.demo.mnist.dataset.MNISTDataset;
-import be.iminds.iot.dianne.demo.mnist.dataset.MNISTDataset.Set;
+import be.iminds.iot.dianne.dataset.mnist.MNISTDataset;
+import be.iminds.iot.dianne.dataset.mnist.MNISTDataset.Set;
 import be.iminds.iot.dianne.nn.module.Input;
 import be.iminds.iot.dianne.nn.module.Output;
 import be.iminds.iot.dianne.nn.module.OutputListener;

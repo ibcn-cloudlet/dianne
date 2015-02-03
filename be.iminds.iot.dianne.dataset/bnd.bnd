@@ -5,4 +5,4 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 	be.iminds.iot.dianne.tensor;version=latest,\
 	biz.aQute.junit,\
 	osgi.enterprise;version=5.0
-Export-Package: be.iminds.iot.dianne.dataset
+-sub: *.bnd
