@@ -10,8 +10,8 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.dataset.Dataset;
+import be.iminds.iot.dianne.dataset.DatasetAdapter;
 import be.iminds.iot.dianne.dataset.mnist.MNISTDataset;
-import be.iminds.iot.dianne.dataset.mnist.MNISTDataset.Set;
 import be.iminds.iot.dianne.nn.module.Input;
 import be.iminds.iot.dianne.nn.module.Output;
 import be.iminds.iot.dianne.nn.module.OutputListener;
@@ -81,8 +81,9 @@ public class MNISTDemo {
 	
 	public void data(String dir){
 		System.out.println("Loading MNIST dataset ...");
-		this.dataTrain = new MNISTDataset(factory, dir, Set.TRAIN, true);
-		this.dataTest = new MNISTDataset(factory, dir, Set.TEST, true);
+		Dataset mnist = new MNISTDataset(factory, dir);
+		this.dataTrain = new DatasetAdapter(mnist, 0, 60000);
+		this.dataTest = new DatasetAdapter(mnist, 60000, 70000);
 		System.out.println("Loaded!");
 	}
 	
