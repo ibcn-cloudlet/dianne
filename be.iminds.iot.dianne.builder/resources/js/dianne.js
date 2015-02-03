@@ -201,11 +201,11 @@ function checkRemoveModule(moduleItem){
  * Check whether one is allowed to instantiate this connection
  */
 function checkAddConnection(connection){
-	if(deployment[connection.sourceId]!==undefined
-		|| deployment[connection.targetId]!==undefined){
-		return false;
-	}
 	if(modus==="build"){
+		if(deployment[connection.sourceId]!==undefined
+				|| deployment[connection.targetId]!==undefined){
+				return false;
+		}
 		if(connection.connection.endpoints[0].type!=="Dot" 
 			|| connection.connection.endpoints[1].type!=="Dot"){
 				return false;
@@ -648,7 +648,6 @@ function createLearnModuleDialog(id, dialog){
 		dialog.find(".modal-title").text("Train the network");
 		
 		dialog.find(".run").click(function(e){
-			// TODO do a post here	
 			var id = $(this).closest(".modal").find(".module-id").val();
 			
 			var trainer = learning[id];
@@ -656,7 +655,7 @@ function createLearnModuleDialog(id, dialog){
 			trainer.batch = $(this).closest(".modal").find("#batch").val();
 			trainer.epochs = $(this).closest(".modal").find("#epochs").val();
 
-			console.log("TRAIN!");
+			learn(id);
 		});
 	} else if(block.type==="Evaluator"){
 		console.log("Evaluator dialog");
@@ -668,8 +667,9 @@ function createLearnModuleDialog(id, dialog){
 		dialog.find(".modal-title").text("Evaluate the network");
 		
 		dialog.find(".run").click(function(e){
-			// TODO do a post here	
-			console.log("EVALUATE!");
+			var id = $(this).closest(".modal").find(".module-id").val();
+
+			evaluate(id);
 		});
 	}
 	
@@ -718,6 +718,33 @@ function undeploy(id){
 			function( data ) {
 				deployment[id] = undefined;
 				$("#"+id).css('background-color', '');
+			}
+			, "json");
+}
+
+/*
+ * Learning functions
+ */
+
+function learn(id){
+	console.log("LEARN!");
+	$.post("/dianne/learner", {"action":"learn",
+		"config":JSON.stringify(learning),
+		"target": id}, 
+			function( data ) {
+				console.log("DONE!");
+			}
+			, "json");
+}
+
+function evaluate(id){
+	console.log("EVALUATE!");
+	$.post("/dianne/learner", {"action":"evaluate",
+		"config":JSON.stringify(learning),
+		"target": id}, 
+			function( data ) {
+				console.log("DONE!");
+				$("#dialog-"+id).find(".evaluate").text("Accuracy: "+data.accuracy+" %");
 			}
 			, "json");
 }
