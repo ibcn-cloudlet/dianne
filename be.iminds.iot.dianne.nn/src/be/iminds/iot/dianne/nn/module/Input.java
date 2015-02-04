@@ -6,8 +6,4 @@ public interface Input extends Module {
 
 	public void input(Tensor input);
 	
-	public void addInputListener(InputListener listener);
-	
-	public void removeInputListener(InputListener listener);
-	
 }

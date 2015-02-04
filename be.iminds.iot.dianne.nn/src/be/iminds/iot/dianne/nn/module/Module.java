@@ -15,5 +15,6 @@ public interface Module {
 	public void setNext(final Module... next);
 	
 	public void setPrevious(final Module... prev);
+
 	
 }

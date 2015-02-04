@@ -2,8 +2,7 @@ package be.iminds.iot.dianne.nn.module;
 
 import be.iminds.iot.dianne.tensor.Tensor;
 
-public interface OutputListener {
+public interface BackwardListener {
 
-	public void onForward(Tensor output);
-	
+	public void onBackward(Tensor gradInput);
 }

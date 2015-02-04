@@ -8,8 +8,4 @@ public interface Output extends Module {
 	
 	public void backpropagate(Tensor gradOutput);
 	
-	public void addOutputListener(OutputListener listener);
-	
-	public void removeOutputListener(OutputListener listener);
-	
 }

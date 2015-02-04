@@ -3,10 +3,11 @@ package be.iminds.iot.dianne.nn.train;
 import java.util.concurrent.CountDownLatch;
 
 import be.iminds.iot.dianne.dataset.Dataset;
+import be.iminds.iot.dianne.nn.module.AbstractModule;
+import be.iminds.iot.dianne.nn.module.BackwardListener;
+import be.iminds.iot.dianne.nn.module.ForwardListener;
 import be.iminds.iot.dianne.nn.module.Input;
-import be.iminds.iot.dianne.nn.module.InputListener;
 import be.iminds.iot.dianne.nn.module.Output;
-import be.iminds.iot.dianne.nn.module.OutputListener;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 // convenience class to process a dataset with a neural network one by one
@@ -37,7 +38,7 @@ public abstract class DatasetProcessor {
 		final CountDownLatch latch = new CountDownLatch(data.size());
 		
 		// add input and output listeners
-		InputListener inputListener = new InputListener() {
+		BackwardListener inputListener = new BackwardListener() {
 			
 			@Override
 			public void onBackward(Tensor gradInput) {
@@ -56,9 +57,9 @@ public abstract class DatasetProcessor {
 				}
 			}
 		};
-		input.addInputListener(inputListener);
+		((AbstractModule)input).addBackwardListener(inputListener);
 		
-		OutputListener outputListener = new OutputListener() {
+		ForwardListener outputListener = new ForwardListener() {
 			
 			@Override
 			public void onForward(Tensor output) {
@@ -76,7 +77,7 @@ public abstract class DatasetProcessor {
 				}
 			}
 		};
-		output.addOutputListener(outputListener);
+		((AbstractModule)output).addForwardListener(outputListener);
 		
 		// forward first item
 		Tensor in = data.getInputSample(index);
@@ -90,8 +91,8 @@ public abstract class DatasetProcessor {
 		
 		
 		// remove listeners again
-		input.removeInputListener(inputListener);
-		output.removeOutputListener(outputListener);
+		((AbstractModule)input).removeBackwardListener(inputListener);
+		((AbstractModule)output).removeForwardListener(outputListener);
 		// reset index
 		index = 0;
 	}

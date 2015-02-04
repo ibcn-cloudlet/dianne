@@ -12,9 +12,10 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import be.iminds.iot.dianne.dataset.Dataset;
 import be.iminds.iot.dianne.dataset.DatasetAdapter;
 import be.iminds.iot.dianne.dataset.mnist.MNISTDataset;
+import be.iminds.iot.dianne.nn.module.AbstractModule;
+import be.iminds.iot.dianne.nn.module.ForwardListener;
 import be.iminds.iot.dianne.nn.module.Input;
 import be.iminds.iot.dianne.nn.module.Output;
-import be.iminds.iot.dianne.nn.module.OutputListener;
 import be.iminds.iot.dianne.nn.module.Trainable;
 import be.iminds.iot.dianne.nn.train.Criterion;
 import be.iminds.iot.dianne.nn.train.Evaluation;
@@ -44,7 +45,7 @@ public class MNISTDemo {
 
 	private TensorFactory factory = null;
 	
-	private OutputListener outputLog = new OutputListener() {
+	private ForwardListener outputLog = new ForwardListener() {
 		@Override
 		public void onForward(Tensor output) {
 			System.out.println(output);
@@ -66,7 +67,7 @@ public class MNISTDemo {
 	@Reference
 	public void setOutput(Output output){
 		this.output = output;
-		this.output.addOutputListener(outputLog);
+		((AbstractModule)this.output).addForwardListener(outputLog);
 	}
 
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
@@ -93,7 +94,7 @@ public class MNISTDemo {
 			return;
 		}
 		// disable log when training
-		this.output.removeOutputListener(outputLog);
+		((AbstractModule)this.output).removeForwardListener(outputLog);
 		
 		System.out.println("Training ...");
 		Criterion loss = new MSECriterion(factory);
@@ -101,7 +102,7 @@ public class MNISTDemo {
 		trainer.train(input, output, toTrain, loss, dataTrain);
 		System.out.println("Trained!");
 		
-		this.output.addOutputListener(outputLog);
+		((AbstractModule)this.output).addForwardListener(outputLog);
 	}
 	
 	public void evaluate(){
@@ -111,14 +112,14 @@ public class MNISTDemo {
 		}
 		
 		// disable log when evaluating
-		this.output.removeOutputListener(outputLog);
+		((AbstractModule)this.output).removeForwardListener(outputLog);
 		
 		System.out.println("Evaluating...");
 		Evaluator eval = new ArgMaxEvaluator(factory);
 		Evaluation result = eval.evaluate(input, output, dataTest);
 		System.out.println("Accuracy: "+result.accuracy());
 		
-		this.output.addOutputListener(outputLog);
+		((AbstractModule)this.output).addForwardListener(outputLog);
 	}
 	
 	public void sample(){
