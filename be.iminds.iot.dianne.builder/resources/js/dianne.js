@@ -110,8 +110,6 @@ $( document ).ready(function() {
 	$.post("/dianne/builder", {action : "available-modules"}, 
 		function( data ) {
 			$.each(data, function(index, name){
-				console.log(name);
-				
 				addToolboxItem('#toolbox-build', name, name, 'build');
 			});
 		}
@@ -453,7 +451,6 @@ function createBuildModuleDialog(id, dialog){
 	$.post("/dianne/builder", {"action" : "module-properties","type" : module.type}, 
 		function( data ) {
 			$.each(data, function(index, property){
-				console.log(property);	
 				// Render toolbox item
 				dialog.find('.form-properties').append(
 						renderTemplate("form-properties", 
@@ -599,7 +596,6 @@ function createLearnModuleDialog(id, dialog){
 	
 	
 	if(block.type==="Dataset"){
-		console.log("Dataset dialog");
 		var body = renderTemplate("dialog-body-dataset", {
 			id : block.id,
 			dataset : block.dataset,
@@ -634,8 +630,6 @@ function createLearnModuleDialog(id, dialog){
 		
 		dialog.find(".modal-title").text("Configure dataset");
 	} else if(block.type==="Trainer"){
-		console.log("Trainer dialog");
-		
 		var body = renderTemplate("dialog-body-train", {
 			id : block.id,
 			loss : block.loss,
@@ -658,13 +652,13 @@ function createLearnModuleDialog(id, dialog){
 			learn(id);
 		});
 	} else if(block.type==="Evaluator"){
-		console.log("Evaluator dialog");
-		
 		var body = renderTemplate("dialog-body-evaluate", {id : block.id});
 		dialog.find(".modal-body").empty();
 		dialog.find(".modal-body").append(body);
 		
 		dialog.find(".modal-title").text("Evaluate the network");
+				
+		createConfusionChart(dialog.find(".evaluate"));
 		
 		dialog.find(".run").click(function(e){
 			var id = $(this).closest(".modal").find(".module-id").val();
@@ -727,7 +721,6 @@ function undeploy(id){
  */
 
 function learn(id){
-	console.log("LEARN!");
 	// first create the chart
 	createErrorChart($("#dialog-"+id).find(".error"));
 
@@ -750,10 +743,16 @@ function learn(id){
 }
 
 function evaluate(id){
-	console.log("EVALUATE!");
+	// reset chart
+	var index = Number($("#dialog-"+id).find(".evaluate").attr("data-highcharts-chart"));
+	Highcharts.charts[index].series[0].setData(null, true, true, false);
+	$("#dialog-"+id).find(".accuracy").text("");
+
 	source = new EventSource("learner");
 	source.onmessage = function(event){
 		var data = JSON.parse(event.data);
+		var index = Number($("#dialog-"+id).find(".evaluate").attr("data-highcharts-chart"));
+		Highcharts.charts[index].series[0].setData(data, true, true, false);
 	};
 	$.post("/dianne/learner", {"action":"evaluate",
 		"config":JSON.stringify(learning),
@@ -761,7 +760,7 @@ function evaluate(id){
 			function( data ) {
 				console.log("DONE!");
 				source.close();
-				$("#dialog-"+id).find(".evaluate").text("Accuracy: "+data.accuracy+" %");
+				$("#dialog-"+id).find(".accuracy").text("Accuracy: "+data.accuracy+" %");
 			}
 			, "json");
 }
@@ -837,7 +836,46 @@ function createErrorChart(container) {
     });
 }
 
-
+function createConfusionChart(container) {
+    container.highcharts({
+    	chart: {
+            type: 'heatmap',
+    		height: 500,
+    		width: 500
+        },
+        title: {
+            text: "Confusion Matrix"
+        },
+        colorAxis: {
+            stops: [
+                [0, '#3060cf'],
+                [0.5, '#fffbbc'],
+                [0.9, '#c4463a']
+            ],
+            min: 0
+//            min: 0,
+//            minColor: Highcharts.getOptions().colors[0],
+//            maxColor: '#FFFFFF'
+        },
+        yAxis: {
+            title: {
+                text: null
+            }
+        },
+        series: [{
+            name: 'Confusion matrix',
+            borderWidth: 0,
+            dataLabels: {
+                enabled: false,
+                color: 'black',
+                style: {
+                    textShadow: 'none',
+                    HcTextStroke: null
+                }
+            }
+        }]
+    });
+}
 
 /*
  * Helper functions

@@ -22,10 +22,14 @@ public class ArgMaxEvaluator implements Evaluator {
 		this.factory = factory;
 	}
 	
+	private int sample = 0;
+	
 	@Override
-	public Evaluation evaluate(Input input, Output output, final Dataset data) {
+	public synchronized Evaluation evaluate(Input input, Output output, final Dataset data) {
 		final Tensor confusion = factory.createTensor(data.outputSize(), data.outputSize());
 		confusion.fill(0.0f);
+		
+		
 		
 		final DatasetProcessor processor = new DatasetProcessor(input, output, data, false) {
 			
@@ -36,7 +40,10 @@ public class ArgMaxEvaluator implements Evaluator {
 					
 				confusion.set(confusion.get(real, predicted)+1, real, predicted);
 				
-				notifyListeners(confusion);
+				sample++;
+				
+				if(sample % 500 == 0)
+					notifyListeners(confusion);
 			}
 			
 			@Override

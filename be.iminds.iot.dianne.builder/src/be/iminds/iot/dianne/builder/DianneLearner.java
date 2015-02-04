@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
@@ -22,6 +21,7 @@ import be.iminds.iot.dianne.dataset.Dataset;
 import be.iminds.iot.dianne.dataset.DatasetAdapter;
 import be.iminds.iot.dianne.dataset.mnist.MNISTDataset;
 import be.iminds.iot.dianne.nn.module.Input;
+import be.iminds.iot.dianne.nn.module.Module;
 import be.iminds.iot.dianne.nn.module.Output;
 import be.iminds.iot.dianne.nn.module.Trainable;
 import be.iminds.iot.dianne.nn.train.Criterion;
@@ -30,10 +30,13 @@ import be.iminds.iot.dianne.nn.train.Evaluator;
 import be.iminds.iot.dianne.nn.train.Trainer;
 import be.iminds.iot.dianne.nn.train.criterion.MSECriterion;
 import be.iminds.iot.dianne.nn.train.eval.ArgMaxEvaluator;
+import be.iminds.iot.dianne.nn.train.eval.EvalProgressListener;
 import be.iminds.iot.dianne.nn.train.strategy.StochasticGradient;
 import be.iminds.iot.dianne.nn.train.strategy.TrainProgressListener;
+import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -121,7 +124,7 @@ public class DianneLearner extends HttpServlet {
 				}else if(action.equals("evaluate")){
 					Evaluation result = evaluate(datasetConfig, processorConfig);
 					JsonObject eval = new JsonObject();
-					eval.add("accuracy", new JsonPrimitive(result.accuracy()));
+					eval.add("accuracy", new JsonPrimitive(result.accuracy()*100));
 					response.getWriter().write(eval.toString());
 					response.getWriter().flush();
 				}
@@ -136,6 +139,12 @@ public class DianneLearner extends HttpServlet {
 		Criterion loss = createLoss(trainerConfig);
 		
 		// Train
+		System.out.println("Train");
+		System.out.println("Input: "+input.getId());
+		System.out.println("Output: "+output.getId());
+		for(Trainable t : trainable){
+			System.out.println("Trainable: "+((Module)t).getId());
+		}
 		trainer.train(input, output, trainable, loss, trainSet);
 	}
 	
@@ -150,6 +159,35 @@ public class DianneLearner extends HttpServlet {
 	
 	private Evaluator createEvaluator(JsonObject evaluatorConfig){
 		ArgMaxEvaluator evaluator = new ArgMaxEvaluator(factory);
+		evaluator.addProgressListener(new EvalProgressListener() {
+			
+			@Override
+			public void onProgress(Tensor confusionMatrix) {
+				if(sse!=null){
+					try {
+						JsonArray data = new JsonArray();
+						for(int i=0;i<confusionMatrix.size(0);i++){
+							for(int j=0;j<confusionMatrix.size(1);j++){
+								JsonArray element = new JsonArray();
+								element.add(new JsonPrimitive(i));
+								element.add(new JsonPrimitive(j));
+								element.add(new JsonPrimitive(confusionMatrix.get(i,j)));
+								data.add(element);
+							}
+						}
+						
+						StringBuilder builder = new StringBuilder();
+						builder.append("data: ").append(data.toString()).append("\n\n");
+		
+						PrintWriter writer = sse.getResponse().getWriter();
+						writer.write(builder.toString());
+						writer.flush();
+					} catch(Exception e){
+						e.printStackTrace();
+					}
+				}
+			}
+		});
 		return evaluator;
 	}
 	
@@ -170,16 +208,16 @@ public class DianneLearner extends HttpServlet {
 		trainer.addProgressListener(new TrainProgressListener() {
 			
 			@Override
-			public void onProgress(int epoch, int batch, float error) {
+			public void onProgress(int epoch, int sample, float error) {
 				if(sse!=null){
 					try {
 						JsonObject data = new JsonObject();
 						data.add("epoch", new JsonPrimitive(epoch));
-						data.add("sample", new JsonPrimitive(batch));
+						data.add("sample", new JsonPrimitive(sample));
 						data.add("error", new JsonPrimitive(error));
 						StringBuilder builder = new StringBuilder();
 						builder.append("data: ").append(data.toString()).append("\n\n");
-		
+
 						PrintWriter writer = sse.getResponse().getWriter();
 						writer.write(builder.toString());
 						writer.flush();
