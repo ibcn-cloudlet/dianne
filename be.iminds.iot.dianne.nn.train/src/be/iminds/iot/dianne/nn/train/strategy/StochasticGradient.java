@@ -1,5 +1,7 @@
 package be.iminds.iot.dianne.nn.train.strategy;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import be.iminds.iot.dianne.dataset.Dataset;
@@ -16,6 +18,10 @@ public class StochasticGradient implements Trainer {
 	private final int batchSize;
 	private final int noEpochs;
 	
+	private int sample = 0;
+	private int epoch = 0;
+	private float error = 0;
+	
 	public StochasticGradient() {
 		this(1,1);
 	}
@@ -25,19 +31,19 @@ public class StochasticGradient implements Trainer {
 		this.noEpochs = noEpochs;
 	}
 	
+	// TODO can now only do one call at a time cause mse/epoch/batch is counted in class
 	@Override
-	public void train(final Input input, final Output output, final List<Trainable> modules, 
+	public synchronized void train(final Input input, final Output output, final List<Trainable> modules, 
 			final Criterion criterion, final Dataset data) {
 		System.out.println("Starting training");
 		
 		DatasetProcessor processor = new DatasetProcessor(input, output, data, true) {
 			
-			private int batch = 0;
-			
 			@Override
 			protected void onForward(int index, Tensor out) {
 				// forward done,  now back propagate
 				Tensor mse = criterion.forward(out, data.getOutputSample(index));
+				error+= mse.get(0);
 				
 				// Backward through output module
 				output.backpropagate(criterion.backward(out, data.getOutputSample(index)));
@@ -52,21 +58,27 @@ public class StochasticGradient implements Trainer {
 				}
 			
 				// updateParameters after batch
-				batch++;
-				if(batch > batchSize){
+				sample++;
+				if(sample % batchSize == 0){
 					for(Trainable m : modules){
 						m.updateParameters(0.5f);
 						m.zeroGradParameters();
 					}
-					batch = 0;
+				}
+				
+				if(sample % 500 == 0){
+					error /= 500;
+					notifyListeners();
+					error = 0;
 				}
 			}
 		};
 		
 		
 		// repeat for a number of epochs
-		for(int epoch=0;epoch<noEpochs;epoch++){			
+		for(epoch=0;epoch<noEpochs;epoch++){			
 			System.out.println(epoch);
+			sample = 0;
 			
 			long t1 = System.currentTimeMillis();
 			processor.process();
@@ -75,5 +87,22 @@ public class StochasticGradient implements Trainer {
 		}
 
 	}
+	
+	private List<TrainProgressListener> listeners = Collections.synchronizedList(new ArrayList<TrainProgressListener>());
 
+	public void addProgressListener(TrainProgressListener l){
+		this.listeners.add(l);
+	}
+	
+	public void removeProgressListener(TrainProgressListener l){
+		this.listeners.remove(l);
+	}
+	
+	private void notifyListeners(){
+		synchronized(listeners){
+			for(TrainProgressListener l : listeners){
+				l.onProgress(epoch, sample, error);
+			}
+		}
+	}
 }

@@ -23,7 +23,9 @@ import be.iminds.iot.dianne.nn.train.Evaluator;
 import be.iminds.iot.dianne.nn.train.Trainer;
 import be.iminds.iot.dianne.nn.train.criterion.MSECriterion;
 import be.iminds.iot.dianne.nn.train.eval.ArgMaxEvaluator;
+import be.iminds.iot.dianne.nn.train.eval.EvalProgressListener;
 import be.iminds.iot.dianne.nn.train.strategy.StochasticGradient;
+import be.iminds.iot.dianne.nn.train.strategy.TrainProgressListener;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -98,7 +100,14 @@ public class MNISTDemo {
 		
 		System.out.println("Training ...");
 		Criterion loss = new MSECriterion(factory);
-		Trainer trainer = new StochasticGradient(batchSize, noEpochs);
+		StochasticGradient trainer = new StochasticGradient(batchSize, noEpochs);
+		trainer.addProgressListener(new TrainProgressListener() {
+			
+			@Override
+			public void onProgress(int epoch, int batch, float error) {
+				System.out.println(epoch+"\t"+batch+"\t"+error);
+			}
+		});
 		trainer.train(input, output, toTrain, loss, dataTrain);
 		System.out.println("Trained!");
 		
@@ -115,7 +124,13 @@ public class MNISTDemo {
 		((AbstractModule)this.output).removeForwardListener(outputLog);
 		
 		System.out.println("Evaluating...");
-		Evaluator eval = new ArgMaxEvaluator(factory);
+		ArgMaxEvaluator eval = new ArgMaxEvaluator(factory);
+		eval.addProgressListener(new EvalProgressListener() {
+			@Override
+			public void onProgress(Tensor confusionMatrix) {
+				System.out.println(confusionMatrix);
+			}
+		});
 		Evaluation result = eval.evaluate(input, output, dataTest);
 		System.out.println("Accuracy: "+result.accuracy());
 		

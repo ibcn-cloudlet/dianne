@@ -1,11 +1,16 @@
 package be.iminds.iot.dianne.nn.train.eval;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import be.iminds.iot.dianne.dataset.Dataset;
 import be.iminds.iot.dianne.nn.module.Input;
 import be.iminds.iot.dianne.nn.module.Output;
 import be.iminds.iot.dianne.nn.train.DatasetProcessor;
 import be.iminds.iot.dianne.nn.train.Evaluation;
 import be.iminds.iot.dianne.nn.train.Evaluator;
+import be.iminds.iot.dianne.nn.train.strategy.TrainProgressListener;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -30,6 +35,8 @@ public class ArgMaxEvaluator implements Evaluator {
 				int real = factory.getTensorMath().argmax(data.getOutputSample(index));
 					
 				confusion.set(confusion.get(real, predicted)+1, real, predicted);
+				
+				notifyListeners(confusion);
 			}
 			
 			@Override
@@ -46,5 +53,22 @@ public class ArgMaxEvaluator implements Evaluator {
 		return new Evaluation(factory, confusion);
 	}
 
+	private List<EvalProgressListener> listeners = Collections.synchronizedList(new ArrayList<EvalProgressListener>());
+	
+	public void addProgressListener(EvalProgressListener l){
+		this.listeners.add(l);
+	}
+	
+	public void removeProgressListener(EvalProgressListener l){
+		this.listeners.remove(l);
+	}
+	
+	private void notifyListeners(Tensor confusionMatrix){
+		synchronized(listeners){
+			for(EvalProgressListener l : listeners){
+				l.onProgress(confusionMatrix);
+			}
+		}
+	}
 
 }
