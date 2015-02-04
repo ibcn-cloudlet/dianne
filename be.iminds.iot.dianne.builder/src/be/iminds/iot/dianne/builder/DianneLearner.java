@@ -1,17 +1,21 @@
 package be.iminds.iot.dianne.builder;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
+import javax.servlet.AsyncContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.http.HttpService;
 
 import be.iminds.iot.dianne.dataset.Dataset;
@@ -27,6 +31,7 @@ import be.iminds.iot.dianne.nn.train.Trainer;
 import be.iminds.iot.dianne.nn.train.criterion.MSECriterion;
 import be.iminds.iot.dianne.nn.train.eval.ArgMaxEvaluator;
 import be.iminds.iot.dianne.nn.train.strategy.StochasticGradient;
+import be.iminds.iot.dianne.nn.train.strategy.TrainProgressListener;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 import com.google.gson.JsonElement;
@@ -46,6 +51,8 @@ public class DianneLearner extends HttpServlet {
 	private Output output;
 	private List<Trainable> trainable = new ArrayList<Trainable>();
 	
+	private AsyncContext sse = null;
+	
 	@Reference
 	public void setTensorFactory(TensorFactory factory){
 		this.factory = factory;
@@ -61,7 +68,7 @@ public class DianneLearner extends HttpServlet {
 		this.output = output;
 	}
 	
-	@Reference
+	@Reference(cardinality=ReferenceCardinality.MULTIPLE)
 	public void addTrainable(Trainable t){
 		this.trainable.add(t);
 	}
@@ -77,10 +84,22 @@ public class DianneLearner extends HttpServlet {
 	}
 	
 	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		// write text/eventstream response
+		response.setContentType("text/event-stream");
+		response.setHeader("Cache-Control", "no-cache");
+		response.setCharacterEncoding("UTF-8");
+		response.addHeader("Connection", "keep-alive");
+		
+		sse = request.startAsync();
+		sse.setTimeout(0); // no timeout => remove listener when error occurs.
+	}
+	
+	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		// TODO check if parameters exist and are correct!
-		
 		String action = request.getParameter("action");
 		String target = request.getParameter("target");
 		String configJsonString = request.getParameter("config");
@@ -97,6 +116,8 @@ public class DianneLearner extends HttpServlet {
 				// TODO what in case of multiple datasets?
 				if(action.equals("learn")){
 					learn(datasetConfig, processorConfig);
+					response.getWriter().write("DONE!");
+					response.getWriter().flush();
 				}else if(action.equals("evaluate")){
 					Evaluation result = evaluate(datasetConfig, processorConfig);
 					JsonObject eval = new JsonObject();
@@ -128,7 +149,8 @@ public class DianneLearner extends HttpServlet {
 	}
 	
 	private Evaluator createEvaluator(JsonObject evaluatorConfig){
-		return new ArgMaxEvaluator(factory);
+		ArgMaxEvaluator evaluator = new ArgMaxEvaluator(factory);
+		return evaluator;
 	}
 	
 	private Criterion createLoss(JsonObject trainerConfig){
@@ -143,7 +165,30 @@ public class DianneLearner extends HttpServlet {
 	private Trainer createTrainer(JsonObject trainerConfig){
 		int batch = trainerConfig.get("batch").getAsInt();
 		int epochs = trainerConfig.get("epochs").getAsInt();
-		Trainer trainer = new StochasticGradient(batch, epochs);
+		StochasticGradient trainer = new StochasticGradient(batch, epochs);
+		
+		trainer.addProgressListener(new TrainProgressListener() {
+			
+			@Override
+			public void onProgress(int epoch, int batch, float error) {
+				if(sse!=null){
+					try {
+						JsonObject data = new JsonObject();
+						data.add("epoch", new JsonPrimitive(epoch));
+						data.add("sample", new JsonPrimitive(batch));
+						data.add("error", new JsonPrimitive(error));
+						StringBuilder builder = new StringBuilder();
+						builder.append("data: ").append(data.toString()).append("\n\n");
+		
+						PrintWriter writer = sse.getResponse().getWriter();
+						writer.write(builder.toString());
+						writer.flush();
+					} catch(Exception e){
+						e.printStackTrace();
+					}
+				}
+			}
+		});
 		return trainer;
 	}
 	

@@ -728,26 +728,116 @@ function undeploy(id){
 
 function learn(id){
 	console.log("LEARN!");
+	// first create the chart
+	createErrorChart($("#dialog-"+id).find(".error"));
+
+	source = new EventSource("learner");
+	source.onmessage = function(event){
+		var data = JSON.parse(event.data);
+		var index = Number($("#dialog-"+id).find(".error").attr("data-highcharts-chart"));
+    	var x = Number(data.sample);
+        var y = Number(data.error);
+		Highcharts.charts[index].series[0].addPoint([x, y], true, true, false);
+	};
 	$.post("/dianne/learner", {"action":"learn",
 		"config":JSON.stringify(learning),
 		"target": id}, 
 			function( data ) {
 				console.log("DONE!");
+				source.close();
 			}
 			, "json");
 }
 
 function evaluate(id){
 	console.log("EVALUATE!");
+	source = new EventSource("learner");
+	source.onmessage = function(event){
+		var data = JSON.parse(event.data);
+	};
 	$.post("/dianne/learner", {"action":"evaluate",
 		"config":JSON.stringify(learning),
 		"target": id}, 
 			function( data ) {
 				console.log("DONE!");
+				source.close();
 				$("#dialog-"+id).find(".evaluate").text("Accuracy: "+data.accuracy+" %");
 			}
 			, "json");
 }
+
+/*
+ * SSE for feedback when training/running
+ */
+var source;
+
+if(typeof(EventSource) === "undefined") {
+	// load polyfill eventsource library
+	$.getScript( "js/eventsource.min.js").done(function( script, textStatus ) {
+		console("Fallback to eventsource.js for SSE...");
+	}).fail(function( jqxhr, settings, exception ) {
+		console.log("Sorry, your browser does not support server-sent events...");
+	});
+} 
+
+
+
+/*
+ * Charts
+ */
+
+function createErrorChart(container) {
+    container.highcharts({
+        chart: {
+            type: 'line',
+            animation: false, // don't animate in old IE
+            marginRight: 10,
+    		height: 200,
+    		width: 500
+        },
+        title : {
+        	text: null
+        },
+        xAxis: {
+            tickPixelInterval: 150
+        },
+        yAxis: {
+            title: {
+                text: 'Error'
+            },
+            max: 1,
+            floor: 0,
+            plotLines: [{
+                value: 0,
+                width: 1,
+                color: '#808080'
+            }]
+        },
+        legend: {
+            enabled: false
+        },
+        exporting: {
+            enabled: false
+        },
+        series: [{
+            name: 'Data',
+            data: (function () {
+                // generate an array of empty data
+                var data = [],i;
+                for (i = -19; i <= 0; i += 1) {
+                    data.push({
+                        x: 0,
+                        y: null
+                    });
+                }
+                
+                return data;
+            }())
+        }]
+    });
+}
+
+
 
 /*
  * Helper functions
