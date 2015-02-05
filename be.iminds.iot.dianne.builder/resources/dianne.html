@@ -60,9 +60,7 @@
 					<button id="undeployAll" class="btn btn-default"  onclick="undeployAll();return false;">Undeploy all</button>
 				</div>
 				<div id="toolbox-learn" class="toolbox col-xs-4 col-md-2"></div>
-				<div id="toolbox-run" class="toolbox col-xs-4 col-md-2">
-					<h3>Run</h3>
-				</div>
+				<div id="toolbox-run" class="toolbox col-xs-4 col-md-2"></div>
 				<div id="canvas" class="col-xs-8 col-md-10"></div>
 			</div>
 		</div>
@@ -274,8 +272,24 @@
 	<!--  Template for learn dialog buttons -->
 	<script type="x-tmpl-mustache" id="dialog-buttons-learn">
 		<button class="delete btn btn-danger pull-left">Delete</button>
-		<button class="run btn btn-primary">Run</button>
+		<button class="exec btn btn-primary">Run</button>
 	</script>
 	<!-- end build dialog learn template -->
+	
+		<!--  Template for a run dialog body -->
+	<script type="x-tmpl-mustache" id="dialog-body-run">
+		<div class="run-canvas"></div>
+		<br/>
+		<form role="form" class="form-horizontal">
+			<input class="module-id" type="hidden" name="id" value="{{id}}"/>
+		</form>
+	</script>
+	<!-- end evaluate run body template -->
+	
+	<!--  Template for run dialog buttons -->
+	<script type="x-tmpl-mustache" id="dialog-buttons-run">
+		<button class="delete btn btn-danger pull-left">Delete</button>
+	</script>
+	<!-- end build dialog run template -->
 </body>
 </html>

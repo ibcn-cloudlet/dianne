@@ -4,8 +4,8 @@
 
 // keep a map of neural network modules
 var modules = {};
-// keep a map of all learning blocks
-var learning = {};
+// keep a map of all other blocks
+var other = {};
 
 // keep map module id -> deployment node
 var deployment = {};
@@ -17,8 +17,12 @@ var modus = "build";
 
 function setModus(m){
 	$(".active").removeClass("active");
-	// only show learn modules in learn modus
+	// only show learn/run modules in learn/run modus
 	$(".learn").each(function( index ) {
+		jsPlumb.hide($(this).attr('id'),true);
+		$(this).hide();
+	});
+	$(".run").each(function( index ) {
 		jsPlumb.hide($(this).attr('id'),true);
 		$(this).hide();
 	});
@@ -52,6 +56,11 @@ function setModus(m){
 		$("#menu-run").addClass("active");
 		$("#toolbox-run").show();
 		$("#toolbox-run").addClass("active");
+		// only show run modules in learn modus
+		$(".run").each(function( index ) {
+			jsPlumb.show($(this).attr('id'),true);
+			$(this).show();
+		});
 	}
 	// hide all modals
 	$(".modal").modal('hide');
@@ -120,6 +129,10 @@ $( document ).ready(function() {
 	addToolboxItem('#toolbox-learn','MNIST Dataset','Dataset','learn');
 	addToolboxItem('#toolbox-learn','SGD Trainer','Trainer','learn');
 	addToolboxItem('#toolbox-learn','Arg Max Evaluator','Evaluator','learn');
+	
+	addToolboxItem('#toolbox-run','MNIST input','DatasetInput','run');
+	addToolboxItem('#toolbox-run','Canvas input','CanvasInput','run');
+	addToolboxItem('#toolbox-run','Output probabilities','ProbabilityOutput','run');
 	
 	// show correct mode
 	setModus(modus);
@@ -278,7 +291,10 @@ function addModule(moduleItem, toolboxItem){
 	
 	if(type!=="Trainer" 
 		&& type!=="Evaluator"
-		&& type!=="Dataset"){
+		&& type!=="Dataset"
+		&& type!=="DatasetInput"
+		&& type!=="CanvasInput"
+		&& type!=="ProbabilityOutput"){
 		modules[id] = module;
 	} else {
 		if(type==="Dataset"){
@@ -296,7 +312,7 @@ function addModule(moduleItem, toolboxItem){
 			module.epochs = 1;
 			module.loss = "MSE";
 		}
-		learning[id] = module;
+		other[id] = module;
 	}
 	
 	console.log("Add module "+id);
@@ -314,6 +330,10 @@ function setupModule(moduleItem, type){
 		jsPlumb.addEndpoint(moduleItem, target, {endpoint:"Rectangle"});
 	} else if(type==="Dataset"){ 
 		jsPlumb.addEndpoint(moduleItem, source, {endpoint:"Rectangle"});
+	} else if(type==="CanvasInput"||type==="DatasetInput"){ 
+		jsPlumb.addEndpoint(moduleItem, source, {endpoint:"Rectangle"});
+	} else if(type==="ProbabilityOutput"){ 
+		jsPlumb.addEndpoint(moduleItem, target, {endpoint:"Rectangle"});
 	} else {
 		jsPlumb.addEndpoint(moduleItem, source);
 		jsPlumb.addEndpoint(moduleItem, target);
@@ -359,7 +379,7 @@ function removeModule(moduleItem){
 		}
 		delete modules[id];
 	} else {
-		delete learning[id];
+		delete other[id];
 	}
 	console.log("Remove module "+id);
 	
@@ -371,12 +391,12 @@ function removeModule(moduleItem){
  */
 function addConnection(connection){
 	console.log("Add connection " + connection.sourceId + " -> " + connection.targetId);
-	if(learning[connection.sourceId]!==undefined){
+	if(other[connection.sourceId]!==undefined){
 		// dataset
-		learning[connection.sourceId].input = connection.targetId; 
-	} else if(learning[connection.targetId]!==undefined){
+		other[connection.sourceId].input = connection.targetId; 
+	} else if(other[connection.targetId]!==undefined){
 		// trainer/evaluator
-		learning[connection.targetId].output = connection.sourceId; 
+		other[connection.targetId].output = connection.sourceId; 
 	} else {
 		modules[connection.sourceId].next = connection.targetId;
 		modules[connection.targetId].prev = connection.sourceId;
@@ -389,12 +409,12 @@ function addConnection(connection){
  */
 function removeConnection(connection){
 	console.log("Remove connection " + connection.sourceId + " -> " + connection.targetId);
-	if(learning[connection.sourceId]!==undefined){
+	if(other[connection.sourceId]!==undefined){
 		// dataset
-		delete learning[connection.sourceId].input; 
-	} else if(learning[connection.targetId]!==undefined){
+		delete other[connection.sourceId].input; 
+	} else if(other[connection.targetId]!==undefined){
 		// trainer/evaluator
-		delete learning[connection.targetId].output; 
+		delete other[connection.targetId].output; 
 	} else {
 		delete modules[connection.sourceId].next;
 		delete modules[connection.targetId].prev;
@@ -430,6 +450,8 @@ function showConfigureModuleDialog(moduleItem){
 		dialog = createDeployModuleDialog(id, dialog);
 	} else if(modus==="learn"){
 		dialog = createLearnModuleDialog(id, dialog);
+	} else if(modus==="run"){
+		dialog = createRunModuleDialog(id, dialog);
 	}
 	
 	if(dialog!==undefined){
@@ -578,9 +600,9 @@ function createDeployModuleDialog(id, dialog){
 
 
 function createLearnModuleDialog(id, dialog){
-	var block = learning[id];
+	var block = other[id];
 	if(block===undefined){
-		return undefined; // (for now) only dialogs for learning blocks
+		return undefined; // no dialogs for build modules
 	}
 	
 	var buttons = renderTemplate("dialog-buttons-learn", {});
@@ -632,7 +654,7 @@ function createLearnModuleDialog(id, dialog){
 		}).find(".ui-slider-handle").remove();
 		
 		// TODO make this a shuffle button?
-		dialog.find(".run").remove();
+		dialog.find(".exec").remove();
 		
 		dialog.find(".modal-title").text("Configure dataset");
 	} else if(block.type==="Trainer"){
@@ -647,10 +669,10 @@ function createLearnModuleDialog(id, dialog){
 		
 		dialog.find(".modal-title").text("Train the network");
 		
-		dialog.find(".run").click(function(e){
+		dialog.find(".exec").click(function(e){
 			var id = $(this).closest(".modal").find(".module-id").val();
 			
-			var trainer = learning[id];
+			var trainer = other[id];
 			trainer.loss = $(this).closest(".modal").find("#loss").val();
 			trainer.batch = $(this).closest(".modal").find("#batch").val();
 			trainer.epochs = $(this).closest(".modal").find("#epochs").val();
@@ -666,7 +688,7 @@ function createLearnModuleDialog(id, dialog){
 				
 		createConfusionChart(dialog.find(".evaluate"));
 		
-		dialog.find(".run").click(function(e){
+		dialog.find(".exec").click(function(e){
 			var id = $(this).closest(".modal").find(".module-id").val();
 
 			evaluate(id);
@@ -674,6 +696,139 @@ function createLearnModuleDialog(id, dialog){
 	}
 	
 	return dialog;
+}
+
+
+function createRunModuleDialog(id, dialog){
+	var block = other[id];
+	if(block===undefined){
+		return undefined; // no dialogs for build modules
+	}
+	
+	var body = renderTemplate("dialog-body-run", {
+		id : block.id,
+		type : block.type
+	});
+	dialog.find(".modal-body").empty();
+	dialog.find(".modal-body").append(body);
+	
+	var buttons = renderTemplate("dialog-buttons-run", {});
+	dialog.find(".modal-footer").empty();
+	dialog.find(".modal-footer").append(buttons);
+	
+	dialog.find(".delete").click(function(e){
+		// remove object
+		var id = $(this).closest(".modal").find(".module-id").val();
+		
+		var moduleItem = $('#'+id);
+		if(checkRemoveModule(moduleItem)) {
+			removeModule(moduleItem);
+		}
+		
+		// remove dialog when module is removed, else keep it for reuse
+		$(this).closest(".modal").remove();
+	});
+	
+	
+	if(block.type==="CanvasInput"){
+		dialog.find(".modal-title").text("Draw your input");
+
+		dialog.find(".run-canvas").append("<canvas class='inputCanvas' width='224' height='224' style=\"border:1px solid #000000; margin-left:150px\"></canvas>");
+		dialog.find(".run-canvas").append("<button class='btn' onclick='clearCanvas()' style=\"margin-left:10px\">Clear</button>");
+		
+		
+		inputCanvas = dialog.find('.inputCanvas')[0];
+		inputCanvasCtx = inputCanvas.getContext('2d');
+
+		inputCanvasCtx.lineWidth = 20;
+		inputCanvasCtx.lineCap = 'round';
+		inputCanvasCtx.lineJoin = 'round';
+		
+		inputCanvas.addEventListener('mousemove', moveListener, false);
+		inputCanvas.addEventListener('touchmove', touchMoveListener, false);
+		inputCanvas.addEventListener('mousedown', downListener, false);
+		inputCanvas.addEventListener('touchstart', downListener, false);
+		inputCanvas.addEventListener('mouseup', upListener, false);
+		inputCanvas.addEventListener('touchend', upListener, false);
+		
+		
+	} else if(block.type==="DatasetInput"){
+	} else if(block.type==="ProbabilityOutput"){
+
+		dialog.find(".modal-title").text("Output probabilities");
+
+		createOutputChart(dialog.find(".run-canvas"));
+		
+		source = new EventSource("run");
+		source.onmessage = function(event){
+			var data = JSON.parse(event.data);
+			var index = Number($("#dialog-"+id).find(".run-canvas").attr("data-highcharts-chart"));
+			Highcharts.charts[index].series[0].setData(data, true, true, true);
+		};
+		// TODO should we close this source somewhere?
+	}
+	
+	return dialog;
+}
+
+var inputCanvas;
+var inputCanvasCtx;
+var mousePos = {x: 0, y:0};
+
+function downListener(e) {
+	console.log("down");
+	e.preventDefault();
+	inputCanvasCtx.moveTo(mousePos.x, mousePos.y);
+	inputCanvasCtx.beginPath();
+	inputCanvas.addEventListener('mousemove', onPaint, false);
+	inputCanvas.addEventListener('touchmove', onPaint, false);
+}
+
+function upListener(e) {
+	console.log("up");
+	inputCanvas.removeEventListener('mousemove', onPaint, false);
+	inputCanvas.removeEventListener('touchmove', onPaint, false);
+	forwardCanvasInput();
+}
+
+function moveListener(e) {
+	var dialog = inputCanvas.closest(".modal");
+	mousePos.x = e.pageX - inputCanvas.offsetLeft - dialog.offsetLeft;
+	mousePos.y = e.pageY - inputCanvas.offsetTop - dialog.offsetTop - 75;
+}
+
+function touchMoveListener(e) {
+	var touches = e.targetTouches;
+	var dialog = inputCanvas.closest(".modal");
+	mousePos.x = touches[0].pageX - inputCanvas.offsetLeft - dialog.offsetLeft;
+	mousePos.y = touches[0].pageY - inputCanvas.offsetTop - dialog.offsetTop - 75;
+}
+
+function onPaint() {
+	// paint to big canvas
+	inputCanvasCtx.lineTo(mousePos.x, mousePos.y);
+	inputCanvasCtx.stroke();
+}
+
+function clearCanvas() {
+	inputCanvasCtx.clearRect(0, 0, 224, 224);
+}
+
+function forwardCanvasInput(){
+	var array = [];
+	var imageData = inputCanvasCtx.getImageData(0, 0, 224, 224);
+    var data = imageData.data;
+
+	for (var y = 0; y < 224; y+=8) {
+        for (var x = 0; x < 224; x+=8) {
+        	// collect alpha values
+        	array.push(imageData.data[y*224*4+x*4+3]/255);
+        }
+    }
+	$.post("/dianne/run", {"forward":JSON.stringify(array)}, 
+			function( data ) {
+			}
+			, "json");
 }
 
 
@@ -739,7 +894,7 @@ function learn(id){
 		Highcharts.charts[index].series[0].addPoint([x, y], true, true, false);
 	};
 	$.post("/dianne/learner", {"action":"learn",
-		"config":JSON.stringify(learning),
+		"config":JSON.stringify(other),
 		"target": id}, 
 			function( data ) {
 				$.each(data, function(id, parameters){
@@ -763,7 +918,7 @@ function evaluate(id){
 		Highcharts.charts[index].series[0].setData(data, true, true, false);
 	};
 	$.post("/dianne/learner", {"action":"evaluate",
-		"config":JSON.stringify(learning),
+		"config":JSON.stringify(other),
 		"target": id}, 
 			function( data ) {
 				console.log("DONE!");
@@ -792,6 +947,37 @@ if(typeof(EventSource) === "undefined") {
 /*
  * Charts
  */
+
+function createOutputChart(container) {
+    container.highcharts({
+        chart: {
+            type: 'column',
+    		height: 300,
+    		width: 500
+        },
+        title: {
+            text: null
+        },
+        xAxis: {
+            type: 'category'
+        },
+        yAxis: {
+            min: 0,
+            max: 1,
+            title: {
+                text: null
+            }
+        },
+        legend: {
+            enabled: false
+        },
+        series: [{
+            name: 'Output',
+            data: [0.0, 0.1, 0.5, 0.4, 0.2, 0.5, 0.9, 0.1, 0.2, 0.1]
+        }]
+    });
+}
+
 
 function createErrorChart(container) {
     container.highcharts({

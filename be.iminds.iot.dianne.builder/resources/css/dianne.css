@@ -150,6 +150,10 @@ footer {
 	background-color: #adc2ff;	
 }
 
+.run {
+	background-color: #ffffad;	
+}
+
 .module:hover {
 	box-shadow: 2px 2px 19px #444;
 	-o-box-shadow: 2px 2px 19px #444;
