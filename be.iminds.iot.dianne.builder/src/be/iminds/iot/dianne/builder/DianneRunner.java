@@ -2,6 +2,7 @@ package be.iminds.iot.dianne.builder;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Random;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletException;
@@ -32,6 +33,8 @@ public class DianneRunner extends HttpServlet {
 	private Output output;
 
 	private AsyncContext sse = null;
+	
+	private Random rand = new Random(System.currentTimeMillis());
 	
 	@Reference
 	public void setTensorFactory(TensorFactory factory){
@@ -90,12 +93,18 @@ public class DianneRunner extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		float[] data = parseInput(request.getParameter("forward"));
-		Tensor t = factory.createTensor(data, 28, 28);
-		input.input(t);
+		if(request.getParameter("forward")!=null){
+			float[] data = parseInput(request.getParameter("forward"));
+			Tensor t = factory.createTensor(data, 28, 28);
+			input.input(t);
+		} else if(request.getParameter("sample")!=null){
+			Tensor t = DianneLearner.mnist.getInputSample(rand.nextInt(70000));
+			response.getWriter().println(t.toString());
+			response.getWriter().flush();
+		}
+
 	}
 	
-
 	private float[] parseInput(String string){
 		String[] strings = string.replace("[", "").replace("]", "").split(",");
 		float result[] = new float[strings.length];

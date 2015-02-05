@@ -258,7 +258,8 @@ public class DianneLearner extends HttpServlet {
 		return new DatasetAdapter(dataset, start, end);
 	}
 	
-	private Dataset mnist = null;
+	// Share this with runner ... FIXME VERY DIRTY
+	public static Dataset mnist = null;
 	
 	// TODO this should be done better..
 	@Activate

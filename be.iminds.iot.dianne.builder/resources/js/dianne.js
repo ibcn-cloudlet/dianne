@@ -236,13 +236,13 @@ function checkAddConnection(connection){
  * Check whether one is allowed to remove this connection
  */
 function checkRemoveConnection(connection){
-	if(deployment[connection.sourceId]!==undefined
-		|| deployment[connection.targetId]!==undefined){
-		return false;
-	}
 	if(modus==="build"){
 		if(connection.connection.endpoints[0].type!=="Dot" 
 			|| connection.connection.endpoints[1].type!=="Dot"){
+				return false;
+		}
+		if(deployment[connection.sourceId]!==undefined
+				|| deployment[connection.targetId]!==undefined){
 				return false;
 		}
 	}
@@ -322,7 +322,7 @@ function setupModule(moduleItem, type){
 	// TODO this should not be hard coded?
 	if(type==="Input"){
 		jsPlumb.addEndpoint(moduleItem, source);
-		jsPlumb.addEndpoint(moduleItem, target, {endpoint:"Rectangle",filter:":not(.build)"});
+		jsPlumb.addEndpoint(moduleItem, target, {endpoint:"Rectangle",filter:":not(.build)",maxConnections:-1});
 	} else if(type==="Output"){
 		jsPlumb.addEndpoint(moduleItem, source, {endpoint:"Rectangle", maxConnections:-1});
 		jsPlumb.addEndpoint(moduleItem, target);
@@ -736,11 +736,10 @@ function createRunModuleDialog(id, dialog){
 		dialog.find(".run-canvas").append("<canvas class='inputCanvas' width='224' height='224' style=\"border:1px solid #000000; margin-left:150px\"></canvas>");
 		dialog.find(".run-canvas").append("<button class='btn' onclick='clearCanvas()' style=\"margin-left:10px\">Clear</button>");
 		
-		
 		inputCanvas = dialog.find('.inputCanvas')[0];
 		inputCanvasCtx = inputCanvas.getContext('2d');
 
-		inputCanvasCtx.lineWidth = 20;
+		inputCanvasCtx.lineWidth = 15;
 		inputCanvasCtx.lineCap = 'round';
 		inputCanvasCtx.lineJoin = 'round';
 		
@@ -753,19 +752,29 @@ function createRunModuleDialog(id, dialog){
 		
 		
 	} else if(block.type==="DatasetInput"){
+		dialog.find(".modal-title").text("Input a sample of the MNIST dataset");
+
+		dialog.find(".run-canvas").append("<canvas class='sampleCanvas' width='224' height='224' style=\"border:1px solid #000000; margin-left:150px\"></canvas>");
+		dialog.find(".run-canvas").append("<button class='btn' onclick='sample()' style=\"margin-left:10px\">Sample</button>");
+		
+		sampleCanvas = dialog.find('.sampleCanvas')[0];
+		sampleCanvasCtx = sampleCanvas.getContext('2d');
+		
 	} else if(block.type==="ProbabilityOutput"){
 
 		dialog.find(".modal-title").text("Output probabilities");
 
 		createOutputChart(dialog.find(".run-canvas"));
-		
-		source = new EventSource("run");
-		source.onmessage = function(event){
+		eventsource = new EventSource("run");
+		eventsource.onmessage = function(event){
 			var data = JSON.parse(event.data);
 			var index = Number($("#dialog-"+id).find(".run-canvas").attr("data-highcharts-chart"));
 			Highcharts.charts[index].series[0].setData(data, true, true, true);
 		};
-		// TODO should we close this source somewhere?
+		
+		dialog.on('hidden.bs.modal', function () {
+		    eventsource.close();
+		});
 	}
 	
 	return dialog;
@@ -775,8 +784,10 @@ var inputCanvas;
 var inputCanvasCtx;
 var mousePos = {x: 0, y:0};
 
+var sampleCanvas;
+var sampleCanvasCtx;
+
 function downListener(e) {
-	console.log("down");
 	e.preventDefault();
 	inputCanvasCtx.moveTo(mousePos.x, mousePos.y);
 	inputCanvasCtx.beginPath();
@@ -785,7 +796,6 @@ function downListener(e) {
 }
 
 function upListener(e) {
-	console.log("up");
 	inputCanvas.removeEventListener('mousemove', onPaint, false);
 	inputCanvas.removeEventListener('touchmove', onPaint, false);
 	forwardCanvasInput();
@@ -829,6 +839,30 @@ function forwardCanvasInput(){
 			function( data ) {
 			}
 			, "json");
+}
+
+function sample(){
+	$.post("/dianne/run", {"sample":"random"}, 
+			function( data ) {
+				var imageData = sampleCanvasCtx.createImageData(224, 224);
+				for (var y = 0; y < 224; y++) {
+			        for (var x = 0; x < 224; x++) {
+			        	// collect alpha values
+			        	var x_s = Math.floor(x/8);
+			        	var y_s = Math.floor(y/8);
+			        	var index = y_s*28+x_s;
+			        	imageData.data[y*224*4+x*4+3] = Math.floor(data[index]*255);
+			        }
+			    }
+				sampleCanvasCtx.putImageData(imageData, 0, 0); 
+				
+				$.post("/dianne/run", {"forward":JSON.stringify(data)}, 
+						function( data ) {
+						}
+						, "json");
+			}
+			, "json");
+	
 }
 
 
@@ -885,8 +919,8 @@ function learn(id){
 	// first create the chart
 	createErrorChart($("#dialog-"+id).find(".error"));
 
-	source = new EventSource("learner");
-	source.onmessage = function(event){
+	eventsource = new EventSource("learner");
+	eventsource.onmessage = function(event){
 		var data = JSON.parse(event.data);
 		var index = Number($("#dialog-"+id).find(".error").attr("data-highcharts-chart"));
     	var x = Number(data.sample);
@@ -900,7 +934,7 @@ function learn(id){
 				$.each(data, function(id, parameters){
 					modules[id].parameters = parameters;
 				});
-				source.close();
+				eventsource.close();
 			}
 			, "json");
 }
@@ -911,8 +945,8 @@ function evaluate(id){
 	Highcharts.charts[index].series[0].setData(null, true, true, false);
 	$("#dialog-"+id).find(".accuracy").text("");
 
-	source = new EventSource("learner");
-	source.onmessage = function(event){
+	eventsource = new EventSource("learner");
+	eventsource.onmessage = function(event){
 		var data = JSON.parse(event.data);
 		var index = Number($("#dialog-"+id).find(".evaluate").attr("data-highcharts-chart"));
 		Highcharts.charts[index].series[0].setData(data, true, true, false);
@@ -921,8 +955,7 @@ function evaluate(id){
 		"config":JSON.stringify(other),
 		"target": id}, 
 			function( data ) {
-				console.log("DONE!");
-				source.close();
+				eventsource.close();
 				$("#dialog-"+id).find(".accuracy").text("Accuracy: "+data.accuracy+" %");
 			}
 			, "json");
@@ -931,7 +964,7 @@ function evaluate(id){
 /*
  * SSE for feedback when training/running
  */
-var source;
+var eventsource;
 
 if(typeof(EventSource) === "undefined") {
 	// load polyfill eventsource library
@@ -972,8 +1005,7 @@ function createOutputChart(container) {
             enabled: false
         },
         series: [{
-            name: 'Output',
-            data: [0.0, 0.1, 0.5, 0.4, 0.2, 0.5, 0.9, 0.1, 0.2, 0.1]
+            name: 'Output'
         }]
     });
 }
