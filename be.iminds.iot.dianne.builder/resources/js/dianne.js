@@ -128,14 +128,14 @@ $( document ).ready(function() {
 // add a toolbox item name to toolbox with id toolboxId and add class clazz
 function addToolboxItem(toolboxId, name, type, clazz){
 	$(toolboxId).append(renderTemplate("module",
-			{name: name, type: type }));
+			{name: name, type: type, clazz: "tool" }));
 	
 	// make draggable and add code to create new modules drag-and-drop style
 	$('#'+type).draggable({helper: "clone"});
 	$('#'+type).bind('dragstop', function(event, ui) {
 		if(checkAddModule($(this))){
 			// clone the toolbox item
-		    var moduleItem = $(ui.helper).clone().removeClass("toolbox").addClass(clazz);
+		    var moduleItem = $(ui.helper).clone().removeClass("tool").addClass(clazz);
 		    
 			addModule(moduleItem, $(this));
 		}
@@ -254,47 +254,22 @@ function checkRemoveConnection(connection){
  * @param toolboxItem the toolbox DOM element the moduleItem was cloned from
  */
 function addModule(moduleItem, toolboxItem){
+	// only if comes from toolbox, could also be loaded from file
 	moduleItem.appendTo("#canvas");
-	 
-    // fix offset of toolbox 
-    var offset = {};
-    offset.left = moduleItem.offset().left - ($("#canvas").offset().left - $(".toolbox.active").offset().left);
-    offset.top = moduleItem.offset().top - ($("#canvas").offset().top - $(".toolbox.active").offset().top);
-    moduleItem.offset(offset);
-  
-    // get type from toolbox item and generate new UUID
+		
+	// fix offset of toolbox 
+	var offset = {};
+	offset.left = moduleItem.offset().left - ($("#canvas").offset().left - $(".toolbox.active").offset().left);
+	offset.top = moduleItem.offset().top - ($("#canvas").offset().top - $(".toolbox.active").offset().top);
+	moduleItem.offset(offset);
+	  
+	// get type from toolbox item and generate new UUID
 	var type = toolboxItem.attr("id");
 	var id = guid();
 	moduleItem.attr("id",id);
 	
-	// TODO this should not be hard coded?
-	if(type==="Input"){
-		jsPlumb.addEndpoint(moduleItem, source);
-		jsPlumb.addEndpoint(moduleItem, target, {endpoint:"Rectangle",filter:":not(.build)"});
-	} else if(type==="Output"){
-		jsPlumb.addEndpoint(moduleItem, source, {endpoint:"Rectangle", maxConnections:-1});
-		jsPlumb.addEndpoint(moduleItem, target);
-	} else if(type==="Trainer" || type==="Evaluator"){
-		jsPlumb.addEndpoint(moduleItem, target, {endpoint:"Rectangle"});
-	} else if(type==="Dataset"){ 
-		jsPlumb.addEndpoint(moduleItem, source, {endpoint:"Rectangle"});
-	} else {
-		jsPlumb.addEndpoint(moduleItem, source);
-		jsPlumb.addEndpoint(moduleItem, target);
-	}
-	
-	// show dialog on double click
-	moduleItem.dblclick(function() {
-		showConfigureModuleDialog($(this));
-	});
-	
-	// make draggable
-	moduleItem.draggable(
-	{
-		drag: function(){
-		    jsPlumb.repaintEverything();
-		}
-	});
+	// setup UI stuff (add to jsPlumb, attach dialog etc)
+	setupModule(moduleItem, type);
 	
 	// add to modules
 	var module = {};
@@ -325,6 +300,37 @@ function addModule(moduleItem, toolboxItem){
 	}
 	
 	console.log("Add module "+id);
+}
+
+function setupModule(moduleItem, type){
+	// TODO this should not be hard coded?
+	if(type==="Input"){
+		jsPlumb.addEndpoint(moduleItem, source);
+		jsPlumb.addEndpoint(moduleItem, target, {endpoint:"Rectangle",filter:":not(.build)"});
+	} else if(type==="Output"){
+		jsPlumb.addEndpoint(moduleItem, source, {endpoint:"Rectangle", maxConnections:-1});
+		jsPlumb.addEndpoint(moduleItem, target);
+	} else if(type==="Trainer" || type==="Evaluator"){
+		jsPlumb.addEndpoint(moduleItem, target, {endpoint:"Rectangle"});
+	} else if(type==="Dataset"){ 
+		jsPlumb.addEndpoint(moduleItem, source, {endpoint:"Rectangle"});
+	} else {
+		jsPlumb.addEndpoint(moduleItem, source);
+		jsPlumb.addEndpoint(moduleItem, target);
+	}
+	
+	// show dialog on double click
+	moduleItem.dblclick(function() {
+		showConfigureModuleDialog($(this));
+	});
+	
+	// make draggable
+	moduleItem.draggable(
+	{
+		drag: function(){
+		    jsPlumb.repaintEverything();
+		}
+	});
 }
 
 /**
@@ -736,8 +742,8 @@ function learn(id){
 		"config":JSON.stringify(learning),
 		"target": id}, 
 			function( data ) {
-				$.each(data, function(id, weights){
-					modules[id].weights = weights;
+				$.each(data, function(id, parameters){
+					modules[id].parameters = parameters;
 				});
 				source.close();
 			}
@@ -885,10 +891,104 @@ function createConfusionChart(container) {
 
 function save(){
 	console.log("save");
+	// save modules
+	var modulesJson = JSON.stringify(modules);
+	
+	// save layout
+	var layout = saveLayout();
+    var layoutJson = JSON.stringify(layout);
+    console.log(layoutJson);
+    
+	$.post("/dianne/save", {"modules":modulesJson, "layout":layoutJson}, 
+		function( data ) {
+			console.log("Succesfully saved");
+		}
+		, "json");
+    
+}
+
+function saveLayout(){
+	// nodes
+    var nodes = []
+    $(".build").each(function (idx, elem) {
+        var $elem = $(elem);
+        var endpoints = jsPlumb.getEndpoints($elem.attr('id'));
+        nodes.push({
+        	id: $elem.attr('id'),
+            positionX: parseInt($elem.css("left"), 10),
+            positionY: parseInt($elem.css("top"), 10)
+        });
+    });
+    // connections
+    var connections = [];
+    $.each(jsPlumb.getConnections(), function (idx, connection) {
+        connections.push({
+        connectionId: connection.id,
+        sourceId: connection.sourceId,
+        targetId: connection.targetId,
+        // anchors
+        anchors: $.map(connection.endpoints, function(endpoint) {
+
+          return [[endpoint.anchor.x, 
+                   endpoint.anchor.y, 
+                   endpoint.anchor.orientation[0], 
+                   endpoint.anchor.orientation[1],
+                   endpoint.anchor.offsets[0],
+                   endpoint.anchor.offsets[1]]];
+
+	        })
+	    });
+    });
+    
+    var layout = {};
+    layout.nodes = nodes;
+    layout.connections = connections;
+    
+    return layout;
 }
 
 function load(){
 	console.log("load");
+	
+	$.post("/dianne/load", {}, 
+			function( data ) {
+				modules = data.modules;
+				loadLayout(data.layout);
+		
+				console.log("Succesfully loaded");
+			}
+			, "json");
+}
+
+function loadLayout(layout){
+    var nodes = layout.nodes;
+    $.each(nodes, function( index, elem ) {
+    	console.log(elem.id+", "+elem.positionX+", "+elem.positionY);
+    	redrawElement(elem.id, elem.positionX, elem.positionY);
+    });
+    
+    var connections = layout.connections;
+    $.each(connections, function( index, elem ) {
+        var connection1 = jsPlumb.connect({
+        	source: elem.sourceId,
+        	target: elem.targetId,
+        	anchors: elem.anchors
+        });
+    });
+}
+
+function redrawElement(id, posX, posY){
+	var module = modules[id];
+	var moduleBlock = renderTemplate("module",
+		{name: module.type, type: id, clazz: "build" }); // this is not intuitive...
+	$("#canvas").append(moduleBlock);
+	$('#'+id).draggable();
+	$('#'+id).css('position','absolute');
+	$('#'+id).css('left', posX);
+	$('#'+id).css('top', posY);
+	
+	setupModule($('#'+id), module.type);
+	jsPlumb.repaint(id);
 }
 
 /*

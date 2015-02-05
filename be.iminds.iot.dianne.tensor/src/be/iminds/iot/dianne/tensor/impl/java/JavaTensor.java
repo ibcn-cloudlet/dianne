@@ -86,7 +86,7 @@ public class JavaTensor implements Tensor<JavaTensor> {
 	}
 	
 	@Override
-	public float[] data(){
+	public float[] get(){
 		float[] result = new float[size()];
 		for(int i=0;i< (indices==null? data.length : indices.length);i++){
 			result[i] = data[(indices==null ? i : indices[i])];
@@ -100,6 +100,13 @@ public class JavaTensor implements Tensor<JavaTensor> {
 		
 		int index = getIndex(d);
 		data[index] = v;
+	}
+	
+	@Override
+	public void set(final float[]  d) {
+		assert d.length == data.length;
+		
+		System.arraycopy(d, 0, data, 0, data.length);
 	}
 	
 	@Override

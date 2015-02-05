@@ -133,6 +133,9 @@ public class DianneDeployer extends HttpServlet {
 		if(moduleJson.has("prev")){
 			properties.put("module.prev", moduleJson.get("prev").getAsString());
 		}
+		if(moduleJson.has("parameters")){
+			properties.put("module.parameters", moduleJson.get("parameters").getAsString());
+		}
 
 		// key prefix
 		String prefix = "module."+type.toLowerCase()+"."; 

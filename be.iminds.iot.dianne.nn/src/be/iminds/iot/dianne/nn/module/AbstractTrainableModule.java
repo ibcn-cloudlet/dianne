@@ -37,11 +37,9 @@ public abstract class AbstractTrainableModule extends AbstractModule implements 
 	}
 	
 	@Override
-	public void setParameters(Tensor weights){
-		if(parameters == null){
-			parameters = weights;
-		} else if(weights.sameDim(parameters)){
-			weights.copyInto(parameters);
+	public void setParameters(float[] weights){
+		if(parameters != null && weights.length == parameters.size()){
+			parameters.set(weights);
 		}
 	}
 }

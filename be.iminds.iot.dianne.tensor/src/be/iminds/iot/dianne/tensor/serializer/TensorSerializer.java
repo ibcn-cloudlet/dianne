@@ -35,7 +35,7 @@ public class TensorSerializer extends Serializer<Tensor> {
 		output.writeInt(tensor.dims().length);
 		output.writeInts(tensor.dims());
 		output.writeInt(tensor.size());
-		output.writeFloats(tensor.data());
+		output.writeFloats(tensor.get());
 	}
 
 }

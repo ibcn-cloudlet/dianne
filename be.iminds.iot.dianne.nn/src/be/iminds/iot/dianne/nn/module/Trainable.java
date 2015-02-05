@@ -12,6 +12,6 @@ public interface Trainable {
 	
 	public Tensor getParameters();
 	
-	public void setParameters(Tensor weights);
+	public void setParameters(float[] weights);
 	
 }

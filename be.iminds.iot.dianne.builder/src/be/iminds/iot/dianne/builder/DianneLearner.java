@@ -127,12 +127,12 @@ public class DianneLearner extends HttpServlet {
 				if(action.equals("learn")){
 					learn(datasetConfig, processorConfig);
 					
-					JsonObject weights = new JsonObject();
+					JsonObject parameters = new JsonObject();
 					for(Trainable t : trainable){
-						weights.add(((Module)t).getId().toString(), new JsonPrimitive(Arrays.toString(t.getParameters().data())));;
+						parameters.add(((Module)t).getId().toString(), new JsonPrimitive(Arrays.toString(t.getParameters().get())));;
 					}
 					
-					response.getWriter().write(weights.toString());
+					response.getWriter().write(parameters.toString());
 					response.getWriter().flush();
 				}else if(action.equals("evaluate")){
 					Evaluation result = evaluate(datasetConfig, processorConfig);
