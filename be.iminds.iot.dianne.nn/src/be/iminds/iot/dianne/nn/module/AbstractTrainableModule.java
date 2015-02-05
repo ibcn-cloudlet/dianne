@@ -31,4 +31,17 @@ public abstract class AbstractTrainableModule extends AbstractModule implements 
 		factory.getTensorMath().add(parameters, parameters, learningRate, gradParameters);
 	}
 
+	@Override
+	public Tensor getParameters(){
+		return parameters;
+	}
+	
+	@Override
+	public void setParameters(Tensor weights){
+		if(parameters == null){
+			parameters = weights;
+		} else if(weights.sameDim(parameters)){
+			weights.copyInto(parameters);
+		}
+	}
 }
