@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.http.HttpService;
 
 import be.iminds.iot.dianne.dataset.Dataset;
@@ -72,9 +73,14 @@ public class DianneLearner extends HttpServlet {
 		this.output = output;
 	}
 	
-	@Reference(cardinality=ReferenceCardinality.MULTIPLE)
+	@Reference(cardinality=ReferenceCardinality.MULTIPLE,
+			policy=ReferencePolicy.DYNAMIC)
 	public void addTrainable(Trainable t){
 		this.trainable.add(t);
+	}
+	
+	public void removeTrainable(Trainable t){
+		this.trainable.remove(t);
 	}
 	
 	@Reference
