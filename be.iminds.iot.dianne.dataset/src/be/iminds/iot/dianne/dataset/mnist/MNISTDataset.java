@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import be.iminds.iot.dianne.dataset.Dataset;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -14,7 +16,6 @@ public class MNISTDataset implements Dataset{
 
 	private final TensorFactory factory;
 	
-	//private Tensor data;
 	List<Sample> data = new ArrayList<Sample>();
 	
 	private int inputSize;
@@ -22,6 +23,8 @@ public class MNISTDataset implements Dataset{
 	private int noSamples;
 	
 	private String dir = "";
+	// thread to start loading data when constructed
+	private ExecutorService loader = Executors.newSingleThreadExecutor();
 	
 	private class Sample {
 		final Tensor input;
@@ -66,7 +69,12 @@ public class MNISTDataset implements Dataset{
 			inputSize = noRows*noColumns;
 			outputSize = 10;
 			
-			parse(imageInput, labelInput, noImages);
+			loader.execute(new Runnable() {
+				@Override
+				public void run() {
+					parse(imageInput, labelInput, noImages);
+				}
+			});
 		} catch(IOException e){
 			e.printStackTrace();
 		}
@@ -89,11 +97,35 @@ public class MNISTDataset implements Dataset{
 
 	@Override
 	public Tensor getInputSample(int index) {
+		// some hack to allow prefecting on construction
+		// TODO better solution?
+		while(data.size()<=index && index < noSamples){
+			synchronized(data){
+				if(data.size()<=index ){
+					try {
+						data.wait();
+					} catch (InterruptedException e) {
+					}
+				}
+			}
+		}
 		return data.get(index).input;
 	}
 
 	@Override
 	public Tensor getOutputSample(int index) {
+		// some hack to allow prefecting on construction
+		// TODO better solution?
+		while(data.size()<=index && index < noSamples){
+			synchronized(data){
+				if(data.size()<=index && index < noSamples){
+					try {
+						data.wait();
+					} catch (InterruptedException e) {
+					}
+				}
+			}
+		}
 		return data.get(index).output;
 	}
 
@@ -126,7 +158,10 @@ public class MNISTDataset implements Dataset{
 				output.set(1.0f, i);
 				
 				Sample s = new Sample(input, output);
-				data.add(s);
+				synchronized(data){
+					data.add(s);
+					data.notifyAll();
+				}
 			}
 			
 		} catch(Exception e){

@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
@@ -258,6 +259,12 @@ public class DianneLearner extends HttpServlet {
 	}
 	
 	private Dataset mnist = null;
+	
+	// TODO this should be done better..
+	@Activate
+	public void activate(){
+		mnist = new MNISTDataset(factory, "/home/tverbele/MNIST/");
+	}
 	
 	private Dataset createDataset(JsonObject datasetConfig){
 		String set = datasetConfig.get("dataset").getAsString();
