@@ -77,6 +77,23 @@ html, body {
   	border-bottom-color: #888;
 }
 
+.save-load-nav {
+ 	padding: 0;
+ 	float: left;
+ 	margin-left: 20px;
+}
+.save-load-nav > li {
+  display: inline-block;
+  margin: 0 10px;
+}
+.save-load-nav > li > a {
+  color: #888;
+}
+.save-load-nav > li > a:hover,
+.save-load-nav > li > a:focus {
+  background-color: transparent;
+}
+
 @media ( min-width : 768px) {
 	.masthead-brand {
 		float: left;

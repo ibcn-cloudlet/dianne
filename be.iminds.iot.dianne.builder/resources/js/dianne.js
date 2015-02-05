@@ -880,6 +880,18 @@ function createConfusionChart(container) {
 }
 
 /*
+ * Save and load 
+ */
+
+function save(){
+	console.log("save");
+}
+
+function load(){
+	console.log("load");
+}
+
+/*
  * Helper functions
  */
 

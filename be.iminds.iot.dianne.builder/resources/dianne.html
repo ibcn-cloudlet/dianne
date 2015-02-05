@@ -32,12 +32,20 @@
 			<img class="masthead-image" src="images/dianne.png" />
 			<div class="inner">
 				<h3 class="masthead-brand">Dianne Neural Network Builder</h3>
+				
+				<nav class='controls'>
+	                <ul id="save-load" class="nav save-load-nav control-group">
+						<li><a href="#" id="menu-load" onclick="save();return false;">Save</a></li>
+						<li><a href="#" id="menu-save" onclick="load();return false;">Load</a></li>
+	                </ul>
+                </nav>
+				
 				<nav class='controls'>
 					<ul id="actions" class="nav masthead-nav control-group">
 						<li><a href="#" id="menu-build" class="active" onclick="setModus('build');return false;">Build</a></li>
 						<li><a href="#" id="menu-deploy" onclick="setModus('deploy');return false;">Deploy</a></li>
 						<li><a href="#" id="menu-learn" onclick="setModus('learn');return false;">Learn</a></li>
-<!-- 					<li><a href="#" id="menu-run" onclick="setModus('run');return false;">Run</a></li> -->
+						<li><a href="#" id="menu-run" onclick="setModus('run');return false;">Run</a></li>
 					</ul>
 				</nav>
 			</div>
