@@ -729,14 +729,16 @@ function learn(id){
 		var data = JSON.parse(event.data);
 		var index = Number($("#dialog-"+id).find(".error").attr("data-highcharts-chart"));
     	var x = Number(data.sample);
-        var y = Number(data.error);
+        var y = Number(data.error); 
 		Highcharts.charts[index].series[0].addPoint([x, y], true, true, false);
 	};
 	$.post("/dianne/learner", {"action":"learn",
 		"config":JSON.stringify(learning),
 		"target": id}, 
 			function( data ) {
-				console.log("DONE!");
+				$.each(data, function(id, weights){
+					modules[id].weights = weights;
+				});
 				source.close();
 			}
 			, "json");

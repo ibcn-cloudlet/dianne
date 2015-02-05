@@ -3,6 +3,7 @@ package be.iminds.iot.dianne.builder;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -119,7 +120,13 @@ public class DianneLearner extends HttpServlet {
 				// TODO what in case of multiple datasets?
 				if(action.equals("learn")){
 					learn(datasetConfig, processorConfig);
-					response.getWriter().write("DONE!");
+					
+					JsonObject weights = new JsonObject();
+					for(Trainable t : trainable){
+						weights.add(((Module)t).getId().toString(), new JsonPrimitive(Arrays.toString(t.getParameters().data())));;
+					}
+					
+					response.getWriter().write(weights.toString());
 					response.getWriter().flush();
 				}else if(action.equals("evaluate")){
 					Evaluation result = evaluate(datasetConfig, processorConfig);
