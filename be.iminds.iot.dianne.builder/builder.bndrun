@@ -35,4 +35,4 @@
 	
 -runproperties:\
 	org.osgi.service.http.port=8080,\
-	org.apache.felix.http.jetty.maxFormSize=999999999 #required to save the module parameters
+	org.apache.felix.http.jetty.maxFormSize=999999999
