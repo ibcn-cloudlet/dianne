@@ -3,9 +3,11 @@
  */
 
 // keep a map of neural network modules
-var modules = {};
-// keep a map of all other blocks
-var other = {};
+var nn = {};
+// keep a map of all learn blocks
+var learn = {};
+// keep a map of all run blocks
+var run = {};
 
 // keep map module id -> deployment node
 var deployment = {};
@@ -13,11 +15,14 @@ var deployment = {};
 /*
  * UI Mode
  */
-var modus = "build";
+var currentMode = "build";
 
+/**
+ * Set UI modus (build / deploy / learn / run )
+ */
 function setModus(m){
 	$(".active").removeClass("active");
-	// only show learn/run modules in learn/run modus
+	// only show learn/run modules in learn/run mode
 	$(".learn").each(function( index ) {
 		jsPlumb.hide($(this).attr('id'),true);
 		$(this).hide();
@@ -26,37 +31,37 @@ function setModus(m){
 		jsPlumb.hide($(this).attr('id'),true);
 		$(this).hide();
 	});
-	modus = m;
-	if(modus === "build"){
+	currentMode = m;
+	if(currentMode === "build"){
 		console.log("switch to build");
 		$(".toolbox").hide();
 		$("#menu-build").addClass("active");
 		$("#toolbox-build").show();
 		$("#toolbox-build").addClass("active");
-	} else if(modus === "deploy"){
+	} else if(currentMode === "deploy"){
 		console.log("switch to deploy");
 		$(".toolbox").hide();
 		$("#menu-deploy").addClass("active");
 		$("#toolbox-deploy").show();
 		$("#toolbox-deploy").addClass("active");
-	} else if(modus === "learn"){
+	} else if(currentMode === "learn"){
 		console.log("switch to learn");
 		$(".toolbox").hide();
 		$("#menu-learn").addClass("active");
 		$("#toolbox-learn").show();
 		$("#toolbox-learn").addClass("active");
-		// only show learn modules in learn modus
+		// only show learn modules in learn mode
 		$(".learn").each(function( index ) {
 			jsPlumb.show($(this).attr('id'),true);
 			$(this).show();
 		});
-	} else if(modus === "run"){
+	} else if(currentMode === "run"){
 		console.log("switch to run");
 		$(".toolbox").hide();
 		$("#menu-run").addClass("active");
 		$("#toolbox-run").show();
 		$("#toolbox-run").addClass("active");
-		// only show run modules in learn modus
+		// only show run modules in learn mode
 		$(".run").each(function( index ) {
 			jsPlumb.show($(this).attr('id'),true);
 			$(this).show();
@@ -74,34 +79,39 @@ $( document ).ready(function() {
 	// build toolbox
 	$.post("/dianne/builder", {action : "available-modules"}, 
 		function( data ) {
-			$.each(data, function(index, name){
-				addToolboxItem('toolbox-build', name, name, 'build');
+			$.each(data, function(index, type){
+				// TODO fetch name/type/category
+				addToolboxItem('toolbox-build', type, type, type, 'build');
 			});
 		}
 		, "json");
 	
 	// learn toolbox
 	// TODO this is hard coded for now, as this does not map to factories/module impls
-	addToolboxItem('toolbox-learn','MNIST Dataset','Dataset','learn');
-	addToolboxItem('toolbox-learn','SGD Trainer','Trainer','learn');
-	addToolboxItem('toolbox-learn','Arg Max Evaluator','Evaluator','learn');
+	addToolboxItem('toolbox-learn','MNIST Dataset','MNIST','Dataset','learn');
+	addToolboxItem('toolbox-learn','SGD Trainer','StochasticGradientDescent','Trainer','learn');
+	addToolboxItem('toolbox-learn','Arg Max Evaluator','ArgMax','Evaluator','learn');
 	
-	addToolboxItem('toolbox-run','MNIST input','DatasetInput','run');
-	addToolboxItem('toolbox-run','Canvas input','CanvasInput','run');
-	addToolboxItem('toolbox-run','Output probabilities','ProbabilityOutput','run');
+	addToolboxItem('toolbox-run','MNIST input','MNIST','Dataset','run');
+	addToolboxItem('toolbox-run','Canvas input','CanvasInput','RunInput','run');
+	addToolboxItem('toolbox-run','Output probabilities','ProbabilityOutput','RunOutput','run');
 	
 	// show correct mode
-	setModus(modus);
+	setModus(currentMode);
 });
 
-// add a toolbox item name to toolbox with id toolboxId and add class clazz
-function addToolboxItem(toolboxId, name, type, clazz){
+
+/**
+ * add a toolbox item name to toolbox with id toolboxId and add category
+ */
+function addToolboxItem(toolboxId, name, type, category, mode){
 
 	renderTemplate("module",
 		{	
-			name: name, 
+			name: name,
 			type: type, 
-			clazz: "tool" 
+			category: category,
+			mode: mode
 		}, 
 		toolboxId,
 		function(module){
@@ -110,8 +120,8 @@ function addToolboxItem(toolboxId, name, type, clazz){
 			module.bind('dragstop', function(event, ui) {
 				if(checkAddModule($(this))){
 					// clone the toolbox item
-				    var moduleItem = $(ui.helper).clone().removeClass("tool").addClass(clazz);
-					addModule(moduleItem, $(this));
+				    var moduleItem = $(ui.helper).clone().addClass(mode);
+					addModule(moduleItem);
 				}
 			});
 		}
@@ -194,71 +204,6 @@ jsPlumb.ready(function() {
 
 });
 
-/*
- * Module/Connection add/remove checks
- */
-
-/**
- * Check whether one is allowed to instantiate another item from this tooblox
- */
-function checkAddModule(toolboxItem){
-	return true;
-}
-
-/**
- * Check whether one is allowed to remove this module
- */
-function checkRemoveModule(moduleItem){
-	return true;
-}
-
-/**
- * Check whether one is allowed to instantiate this connection
- */
-function checkAddConnection(connection){
-	if(modus==="build"){
-		if(deployment[connection.sourceId]!==undefined
-				|| deployment[connection.targetId]!==undefined){
-				return false;
-		}
-		if(connection.connection.endpoints[0].type!=="Dot" 
-			|| connection.connection.endpoints[1].type!=="Dot"){
-				return false;
-		}
-	}
-	if(modus==="learn"){
-		if(connection.connection.endpoints[0].type!=="Rectangle" 
-			|| connection.connection.endpoints[1].type!=="Rectangle"){
-				return false;
-		}
-		//TODO dont allow connecting output to input
-	}
-	return true;
-}
-
-/**
- * Check whether one is allowed to remove this connection
- */
-function checkRemoveConnection(connection){
-	if(modus==="build"){
-		if(connection.connection.endpoints[0].type!=="Dot" 
-			|| connection.connection.endpoints[1].type!=="Dot"){
-				return false;
-		}
-		if(deployment[connection.sourceId]!==undefined
-				|| deployment[connection.targetId]!==undefined){
-				return false;
-		}
-	}
-	if(modus==="learn" || modus==="run"){
-		if(connection.connection.endpoints[0].type!=="Rectangle" 
-			|| connection.connection.endpoints[1].type!=="Rectangle"){
-				return false;
-		}
-	}
-	return true;
-}
-
 
 /*
  * Module/Connection add/remove methods
@@ -270,7 +215,7 @@ function checkRemoveConnection(connection){
  * @param moduleItem a freshly cloned DOM element from toolbox item 
  * @param toolboxItem the toolbox DOM element the moduleItem was cloned from
  */
-function addModule(moduleItem, toolboxItem){
+function addModule(moduleItem){
 	// only if comes from toolbox, could also be loaded from file
 	moduleItem.appendTo("#canvas");
 		
@@ -281,48 +226,55 @@ function addModule(moduleItem, toolboxItem){
 	moduleItem.offset(offset);
 	  
 	// get type from toolbox item and generate new UUID
-	var type = toolboxItem.attr("id");
+	var type = moduleItem.attr("type");
+	var category = moduleItem.attr("category");
+	var mode = moduleItem.attr("mode");
 	var id = guid();
 	moduleItem.attr("id",id);
 	
 	// setup UI stuff (add to jsPlumb, attach dialog etc)
-	setupModule(moduleItem, type);
-	
-	// add to modules
+	setupModule(moduleItem, type, category);
+
+	// create module object
 	var module = {};
 	module.type = type;
+	module.category = category;
 	module.id = id;
 	
-	if(type!=="Trainer" 
-		&& type!=="Evaluator"
-		&& type!=="Dataset"
-		&& type!=="DatasetInput"
-		&& type!=="CanvasInput"
-		&& type!=="ProbabilityOutput"){
-		modules[id] = module;
-	} else {
-		if(type==="Dataset"){
-			// TODO this is hard coded for MNIST
-			module.dataset = "MNIST";
-			module.total = 70000;
-			module.train = 60000;
-			module.test = 10000;
-			module.validation = 0;
-			
-		} else if(type==="Trainer"){
-			// TODO this is hard coded
-			//module.strategy = "Stochastic Gradient Descent";
-			module.batch = 10;
-			module.epochs = 1;
-			module.loss = "MSE";
-		}
-		other[id] = module;
+	// some hard coded shit here... should be changed
+	if(type==="Dataset"){
+		// TODO this is hard coded for MNIST
+		module.dataset = "MNIST";
+		module.total = 70000;
+		module.train = 60000;
+		module.test = 10000;
+		module.validation = 0;
+		
+	} else if(type==="Trainer"){
+		// TODO this is hard coded
+		//module.strategy = "Stochastic Gradient Descent";
+		module.batch = 10;
+		module.epochs = 1;
+		module.loss = "MSE";
+	}
+	
+	
+	// add to one of the module maps
+	if(mode==="build"){
+		nn[id] = module;
+	} else if(mode==="learn"){
+		learn[id] = module;
+	} else if(mode==="run"){
+		run[id] = module;
 	}
 	
 	console.log("Add module "+id);
 }
 
-function setupModule(moduleItem, type){
+/**
+ * setup module jsPlumb endpoints and drag/click behavior
+ */
+function setupModule(moduleItem, type, category){
 	// TODO this should not be hard coded?
 	if(type==="Input"){
 		jsPlumb.addEndpoint(moduleItem, sourceStyle);
@@ -330,13 +282,13 @@ function setupModule(moduleItem, type){
 	} else if(type==="Output"){
 		jsPlumb.addEndpoint(moduleItem, sourceStyle, {endpoint:"Rectangle", maxConnections:-1});
 		jsPlumb.addEndpoint(moduleItem, targetStyle);
-	} else if(type==="Trainer" || type==="Evaluator"){
+	} else if(category==="Trainer" || category==="Evaluator"){
 		jsPlumb.addEndpoint(moduleItem, targetStyle, {endpoint:"Rectangle"});
-	} else if(type==="Dataset"){ 
+	} else if(category==="Dataset"){ 
 		jsPlumb.addEndpoint(moduleItem, sourceStyle, {endpoint:"Rectangle"});
-	} else if(type==="CanvasInput"||type==="DatasetInput"){ 
+	} else if(category==="RunInput"){ 
 		jsPlumb.addEndpoint(moduleItem, sourceStyle, {endpoint:"Rectangle"});
-	} else if(type==="ProbabilityOutput"){ 
+	} else if(category==="RunOutput"){ 
 		jsPlumb.addEndpoint(moduleItem, targetStyle, {endpoint:"Rectangle"});
 	} else {
 		jsPlumb.addEndpoint(moduleItem, sourceStyle);
@@ -364,6 +316,7 @@ function setupModule(moduleItem, type){
  */
 function removeModule(moduleItem){
 	var id = moduleItem.attr("id");
+	var mode = moduleItem.attr("mode");
 
 	// delete this moduleItem
 	$.each(jsPlumb.getEndpoints(moduleItem), function(index, endpoint){
@@ -374,16 +327,18 @@ function removeModule(moduleItem){
 	moduleItem.remove();
 
 	// remove from modules
-	if(modules[id]!==undefined){
-		if(modules[modules[id].next]!==undefined){
-			delete modules[modules[id].next].prev;
+	if(mode==="nn"){
+		if(nn[nn[id].next]!==undefined){
+			delete nn[nn[id].next].prev;
 		}
-		if(modules[modules[id].prev]!==undefined){
-			delete modules[modules[id].prev].next;
+		if(nn[nn[id].prev]!==undefined){
+			delete nn[nn[id].prev].next;
 		}
-		delete modules[id];
-	} else {
-		delete other[id];
+		delete nn[id];
+	} else if(mode==="learn"){
+		delete learn[id];
+	} else if(mode==="run"){
+		delete run[id];
 	}
 	console.log("Remove module "+id);
 	
@@ -395,15 +350,22 @@ function removeModule(moduleItem){
  */
 function addConnection(connection){
 	console.log("Add connection " + connection.sourceId + " -> " + connection.targetId);
-	if(other[connection.sourceId]!==undefined){
-		// dataset
-		other[connection.sourceId].input = connection.targetId; 
-	} else if(other[connection.targetId]!==undefined){
-		// trainer/evaluator
-		other[connection.targetId].output = connection.sourceId; 
+	// TODO support multiple next/prev
+	if(nn[connection.sourceId]===undefined){
+		if(learn[connection.sourceId]!==undefined){
+			learn[connection.sourceId].input = connection.targetId; 
+		} else {
+			run[connection.sourceId].input = connection.targetId; 
+		}
+	} else if(nn[connection.targetId]===undefined){
+		if(learn[connection.targetId]!==undefined){
+			learn[connection.targetId].output = connection.sourceId; 
+		} else {
+			run[connection.targetId].output = connection.sourceId; 
+		}
 	} else {
-		modules[connection.sourceId].next = connection.targetId;
-		modules[connection.targetId].prev = connection.sourceId;
+		nn[connection.sourceId].next = connection.targetId;
+		nn[connection.targetId].prev = connection.sourceId;
 	}
 }
 
@@ -413,17 +375,91 @@ function addConnection(connection){
  */
 function removeConnection(connection){
 	console.log("Remove connection " + connection.sourceId + " -> " + connection.targetId);
-	if(other[connection.sourceId]!==undefined){
-		// dataset
-		delete other[connection.sourceId].input; 
-	} else if(other[connection.targetId]!==undefined){
-		// trainer/evaluator
-		delete other[connection.targetId].output; 
+	// TODO support multiple next/prev
+	if(nn[connection.sourceId]===undefined){
+		if(learn[connection.sourceId]!==undefined){
+			delete learn[connection.sourceId].input; 
+		} else {
+			delete run[connection.sourceId].input; 
+		}
+	} else if(nn[connection.targetId]===undefined){
+		if(learn[connection.targetId]!==undefined){
+			delete learn[connection.targetId].output; 
+		} else {
+			delete run[connection.targetId].output; 
+		}
 	} else {
-		delete modules[connection.sourceId].next;
-		delete modules[connection.targetId].prev;
+		delete nn[connection.sourceId].next;
+		delete nn[connection.targetId].prev;
 	}
 }
+
+
+/*
+ * Module/Connection add/remove checks
+ */
+
+/**
+ * Check whether one is allowed to instantiate another item from this tooblox
+ */
+function checkAddModule(toolboxItem){
+	return true;
+}
+
+/**
+ * Check whether one is allowed to remove this module
+ */
+function checkRemoveModule(moduleItem){
+	return true;
+}
+
+/**
+ * Check whether one is allowed to instantiate this connection
+ */
+function checkAddConnection(connection){
+	if(currentMode==="build"){
+		if(deployment[connection.sourceId]!==undefined
+				|| deployment[connection.targetId]!==undefined){
+				return false;
+		}
+		if(connection.connection.endpoints[0].type!=="Dot" 
+			|| connection.connection.endpoints[1].type!=="Dot"){
+				return false;
+		}
+	}
+	if(currentMode==="learn"){
+		if(connection.connection.endpoints[0].type!=="Rectangle" 
+			|| connection.connection.endpoints[1].type!=="Rectangle"){
+				return false;
+		}
+		//TODO dont allow connecting output to input
+	}
+	return true;
+}
+
+/**
+ * Check whether one is allowed to remove this connection
+ */
+function checkRemoveConnection(connection){
+	if(currentMode==="build"){
+		if(connection.connection.endpoints[0].type!=="Dot" 
+			|| connection.connection.endpoints[1].type!=="Dot"){
+				return false;
+		}
+		if(deployment[connection.sourceId]!==undefined
+				|| deployment[connection.targetId]!==undefined){
+				return false;
+		}
+	}
+	if(currentMode==="learn" || currentMode==="run"){
+		if(connection.connection.endpoints[0].type!=="Rectangle" 
+			|| connection.connection.endpoints[1].type!=="Rectangle"){
+				return false;
+		}
+	}
+	return true;
+}
+
 
 
 /*
@@ -431,6 +467,24 @@ function removeConnection(connection){
  */
 
 function showConfigureModuleDialog(moduleItem){
+	if(currentMode==="build"){
+		createAndShowBasicDialog(moduleItem,{title:"this is a test"});
+		//createAndShowBuildModuleDialog(moduleItem);
+	} else if(currentMode==="deploy"){
+		createAndShowDeployModuleDialog(moduleItem);
+	} else if(currentMode==="learn"){
+		createAndShowLearnModuleDialog(moduleItem);
+	} else if(currentMode==="run"){
+		createAndShowRunModuleDialog(moduleItem);
+	}
+}
+
+/**
+ * Create a dialog based on the dialog template, for a given moduleItem,
+ * with some overriding options and a configure callback to call before showing
+ * This helper function can be used to create other dialogs
+ */
+function createAndShowBasicDialog(moduleItem, options, configure){
 	var id = moduleItem.attr("id");
 	
 	// there can be only one dialog at a time for one module
@@ -440,36 +494,40 @@ function showConfigureModuleDialog(moduleItem){
 	dialog = $("#"+dialogId);
 	if(dialog.length==0){
 		// create new dialog
-		var d = renderTemplate("dialog", {
-			id : id,
-			title : "Configure module "
-		});
+		var d = renderTemplate('dialog', 
+				$.extend({
+					id : id,
+					title : "Configure module ",
+					submit: "Configure",
+					cancel: "Delete"
+				},options)
+				,'builder', 
+				function(dialog){
+					if(configure!==undefined)
+						configure();
+					showDialog(dialog, moduleItem.offset());
+				}
+			);
 		dialog = $(d);
-	}
-	
-	// TODO check which "mode" you are in, for now only "build" mode
-	if(modus==="build"){
-		dialog = createBuildModuleDialog(id, dialog);
-	} else if(modus==="deploy"){
-		dialog = createDeployModuleDialog(id, dialog);
-	} else if(modus==="learn"){
-		dialog = createLearnModuleDialog(id, dialog);
-	} else if(modus==="run"){
-		dialog = createRunModuleDialog(id, dialog);
-	}
-	
-	if(dialog!==undefined){
-		var offset = moduleItem.offset();
-		offset.top = offset.top - 100;
-		offset.left = offset.left - 200;
-	
-		// show the modal (disable backdrop)
-		dialog.modal({'show':true, 'backdrop':false}).draggable({handle: ".modal-header"}).offset(offset);
+	} else {
+		showDialog(dialog, moduleItem.offset())
 	}
 }
 
+/**
+ * Show a module dialog with given offset, draggable and without backdrop
+ */
+function showDialog(dialog, offset){
+	offset.top = offset.top - 100;
+	offset.left = offset.left - 200;
+	
+	dialog.modal({'show':true, 'backdrop':false})
+		  .draggable({handle: ".modal-header"})
+		  .offset(offset);
+}
+
 function createBuildModuleDialog(id, dialog){
-	var module = modules[id];
+	var module = nn[id];
 	
 	// create build body form
 	var body = renderTemplate("dialog-body-build", {
@@ -515,9 +573,9 @@ function createBuildModuleDialog(id, dialog){
 			var module;
 			$.each( data, function( i, item ) {
 				if(i === 0){
-					module = modules[item.value];
+					module = nn[item.value];
 				} else {
-					module[item.name] = item.value;
+					nn[item.name] = item.value;
 				}
 			});
 			
@@ -543,7 +601,7 @@ function createBuildModuleDialog(id, dialog){
 
 
 function createDeployModuleDialog(id, dialog){
-	var module = modules[id];
+	var module = nn[id];
 	
 	// create build body form
 	var body = renderTemplate("dialog-body-deploy", {
@@ -875,7 +933,7 @@ function sample(){
  */
 
 function deployAll(){
-	$.post("/dianne/deployer", {"action":"deploy","modules":JSON.stringify(modules)}, 
+	$.post("/dianne/deployer", {"action":"deploy","modules":JSON.stringify(nn)}, 
 			function( data ) {
 				$.each( data, function(id,target){
 					deployment[id] = target;
@@ -894,7 +952,7 @@ function undeployAll(){
 
 function deploy(id, target){
 	$.post("/dianne/deployer", {"action":"deploy",
-		"module":JSON.stringify(modules[id]),
+		"module":JSON.stringify(nn[id]),
 		"target": target}, 
 			function( data ) {
 				$.each( data, function(id,target){
@@ -936,7 +994,7 @@ function learn(id){
 		"target": id}, 
 			function( data ) {
 				$.each(data, function(id, parameters){
-					modules[id].parameters = parameters;
+					nn[id].parameters = parameters;
 				});
 				eventsource.close();
 			}
@@ -1114,7 +1172,7 @@ function createConfusionChart(container) {
 function save(){
 	console.log("save");
 	// save modules
-	var modulesJson = JSON.stringify(modules);
+	var modulesJson = JSON.stringify(nn);
 	
 	// save layout
 	var layout = saveLayout();
@@ -1174,7 +1232,7 @@ function load(){
 	
 	$.post("/dianne/load", {}, 
 			function( data ) {
-				modules = data.modules;
+				nn = data.modules;
 				loadLayout(data.layout);
 		
 				console.log("Succesfully loaded");
@@ -1200,7 +1258,7 @@ function loadLayout(layout){
 }
 
 function redrawElement(id, posX, posY){
-	var module = modules[id];
+	var module = nn[id];
 	var moduleBlock = renderTemplate("module",
 		{name: module.type, type: id, clazz: "build" }); // this is not intuitive...
 	$("#canvas").append(moduleBlock);
@@ -1230,13 +1288,6 @@ function guid() {
         return s ? "-" + p.substr(0,4) + "-" + p.substr(4,4) : p ;
     }
     return _p8() + _p8(true) + _p8(true) + _p8();
-}
-
-function renderTemplate(templateId, options){
-	var template = $('#'+templateId).html();
-	Mustache.parse(template);
-	var rendered = Mustache.render(template, options);
-	return rendered;
 }
 
 function renderTemplate(template, options, targetId, init){
