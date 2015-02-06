@@ -475,24 +475,17 @@ function showConfigureModuleDialog(moduleItem) {
 	var dialog;
 	dialog = $("#" + dialogId);
 	if (dialog.length == 0) {
-		// create new dialog
-		dialog = renderTemplate("dialog", {
-			id : id,
-			title : "Configure module ",
-			submit: "Configure",
-			cancel: "Delete"
-		}, $(document.body));
+		
+		if (currentMode === "build") {
+			dialog = createBuildModuleDialog(id, moduleItem);
+		} else if (currentMode === "deploy") {
+			dialog = createDeployModuleDialog(id, dialog);
+		} else if (currentMode === "learn") {
+			dialog = createLearnModuleDialog(id, dialog);
+		} else if (currentMode === "run") {
+			dialog = createRunModuleDialog(id, dialog);
+		}
 	}
-	// TODO check which "mode" you are in, for now only "build" mode
-//	if (currentMode === "build") {
-//		dialog = createBuildModuleDialog(id, dialog);
-//	} else if (currentMode === "deploy") {
-//		dialog = createDeployModuleDialog(id, dialog);
-//	} else if (currentMode === "learn") {
-//		dialog = createLearnModuleDialog(id, dialog);
-//	} else if (currentMode === "run") {
-//		dialog = createRunModuleDialog(id, dialog);
-//	}
 	
 	if (dialog !== undefined) {
 		var offset = moduleItem.offset();
@@ -509,92 +502,51 @@ function showConfigureModuleDialog(moduleItem) {
 }
 
 
-
-function createAndShowBuildModuleDialog(moduleItem){
-	
-	var configure = function(dialog){
-		
-		var id = moduleItem.attr("id");
-		var module = nn[id];
-		
-//		var content = dialog.find('.content');
-//		
-//		// display module 
-//		renderTemplate("module",
-//				{	
-//					name: module.type,
-//					type: module.type, 
-//					category:  module.category,
-//					mode: configure
-//				}, 
-//				content);
-		
-		// add properties to form
-		$.post("/dianne/builder", {"action" : "module-properties","type" : module.type}, 
-				function( data ) {
-					$.each(data, function(index, property){
-						// Render toolbox item
-						renderTemplate('form-item',
-							{
-								name: property.name,
-								id: property.id,
-								value: module[property.id]
-							}, dialog.find('.form-items'));
-					});
-					if (data.length === 0) {
-						dialog.find('.form-items').append("<p>No properties to configure...</p>");
-					}
-				}
-				, "json");
-		
-	}
-	
-	createAndShowBasicDialog(moduleItem,
-			{},
-			configure);
-}
-
-function createBuildModuleDialog(id, dialog){
+function createBuildModuleDialog(id, moduleItem){
 	var module = nn[id];
 	
-	// create build body form
-	var body = renderTemplate("dialog-body-build", {
-		id : module.id,
-		type : module.type
-	});
-	dialog.find(".modal-body").empty();
-	dialog.find(".modal-body").append(body);
+	var dialog = renderTemplate("dialog", {
+		id : id,
+		title : "Configure module ",
+		submit: "Configure",
+		cancel: "Delete"
+	}, $(document.body));
+	
+	// add module div to dialog to show which module to configure
+	renderTemplate("module",
+			{	
+				name: module.type,
+				type: module.type, 
+				category: module.category
+			}, 
+			dialog.find('.content'));
+	
+	dialog.find('.content').append("<br/>");
 	
 	// then fill in properties
 	$.post("/dianne/builder", {"action" : "module-properties","type" : module.type}, 
-		function( data ) {
-			$.each(data, function(index, property){
-				// Render toolbox item
-				dialog.find('.form-properties').append(
-						renderTemplate("form-properties", 
+			function( data ) {
+				$.each(data, function(index, property){
+					// Render toolbox item
+					renderTemplate('form-item',
 						{
 							name: property.name,
 							id: property.id,
 							value: module[property.id]
-						}));
-			});
-			if (data.length === 0) {
-				dialog.find('.form-properties').append("<p>No properties to configure...</p>");
+						}, dialog.find('.form-items'));
+				});
+				if (data.length === 0) {
+					dialog.find('.form-items').append("<p>No properties to configure...</p>");
+				}
 			}
-		}
-		, "json");
+			, "json");
 	
-	// add buttons
-	var buttons = renderTemplate("dialog-buttons-build", {});
-	dialog.find(".modal-footer").empty();
-	dialog.find(".modal-footer").append(buttons);
-	
-	// add button callbacks, disable buttons when module is deployed
+	// set button callbacks, disable buttons when module is deployed
 	if(deployment[id]!==undefined){
-		dialog.find(".configure").prop('disabled', true);
-		dialog.find(".delete").prop('disabled', true);
+		dialog.find(".submit").prop('disabled', true);
+		dialog.find(".cancel").prop('disabled', true);
 	} else {
-		dialog.find(".configure").click(function(e){
+		dialog.find(".submit").click(function(e){
 			// apply configuration
 			var data = $(this).closest('.modal').find('form').serializeArray();
 			
@@ -610,7 +562,7 @@ function createBuildModuleDialog(id, dialog){
 			$(this).closest(".modal").modal('hide');
 		});
 		
-		dialog.find(".delete").click(function(e){
+		dialog.find(".cancel").click(function(e){
 			// remove object
 			var id = $(this).closest(".modal").find(".module-id").val();
 			
