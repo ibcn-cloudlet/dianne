@@ -1,4 +1,0 @@
-
-<div class="module" type="{{type}}" category="{{category}}" mode="{{mode}}">
-	<strong>{{name}}</strong>
-</div>

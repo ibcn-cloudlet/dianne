@@ -106,26 +106,27 @@ $( document ).ready(function() {
  */
 function addToolboxItem(toolboxId, name, type, category, mode){
 
-	renderTemplate("module",
+	var module = renderTemplate("module",
 		{	
 			name: name,
 			type: type, 
 			category: category,
 			mode: mode
 		}, 
-		toolboxId,
-		function(module){
+		$('#'+toolboxId));
+	
+
 			// make toolbox modules draggable to instantiate using drag-and-drop
-			module.draggable({helper: "clone"});
-			module.bind('dragstop', function(event, ui) {
-				if(checkAddModule($(this))){
-					// clone the toolbox item
-				    var moduleItem = $(ui.helper).clone().addClass(mode);
-					addModule(moduleItem);
-				}
-			});
+	module.draggable({helper: "clone"});
+	module.bind('dragstop', function(event, ui) {
+		if(checkAddModule($(this))){
+			// clone the toolbox item
+		    var moduleItem = $(ui.helper).clone().addClass(mode);
+			addModule(moduleItem);
 		}
-	);
+	});
+
+	
 }
 
 /*
@@ -466,64 +467,91 @@ function checkRemoveConnection(connection){
  * Module configuration/deletion dialog stuff 
  */
 
-function showConfigureModuleDialog(moduleItem){
-	if(currentMode==="build"){
-		createAndShowBasicDialog(moduleItem,{title:"this is a test"});
-		//createAndShowBuildModuleDialog(moduleItem);
-	} else if(currentMode==="deploy"){
-		createAndShowDeployModuleDialog(moduleItem);
-	} else if(currentMode==="learn"){
-		createAndShowLearnModuleDialog(moduleItem);
-	} else if(currentMode==="run"){
-		createAndShowRunModuleDialog(moduleItem);
-	}
-}
-
-/**
- * Create a dialog based on the dialog template, for a given moduleItem,
- * with some overriding options and a configure callback to call before showing
- * This helper function can be used to create other dialogs
- */
-function createAndShowBasicDialog(moduleItem, options, configure){
+function showConfigureModuleDialog(moduleItem) {
 	var id = moduleItem.attr("id");
-	
 	// there can be only one dialog at a time for one module
 	// try to reuse dialog
-	var dialogId = "dialog-"+id;
+	var dialogId = "dialog-" + id;
 	var dialog;
-	dialog = $("#"+dialogId);
-	if(dialog.length==0){
+	dialog = $("#" + dialogId);
+	if (dialog.length == 0) {
 		// create new dialog
-		var d = renderTemplate('dialog', 
-				$.extend({
-					id : id,
-					title : "Configure module ",
-					submit: "Configure",
-					cancel: "Delete"
-				},options)
-				,'builder', 
-				function(dialog){
-					if(configure!==undefined)
-						configure();
-					showDialog(dialog, moduleItem.offset());
-				}
-			);
-		dialog = $(d);
-	} else {
-		showDialog(dialog, moduleItem.offset())
+		dialog = renderTemplate("dialog", {
+			id : id,
+			title : "Configure module ",
+			submit: "Configure",
+			cancel: "Delete"
+		}, $(document.body));
+	}
+	// TODO check which "mode" you are in, for now only "build" mode
+//	if (currentMode === "build") {
+//		dialog = createBuildModuleDialog(id, dialog);
+//	} else if (currentMode === "deploy") {
+//		dialog = createDeployModuleDialog(id, dialog);
+//	} else if (currentMode === "learn") {
+//		dialog = createLearnModuleDialog(id, dialog);
+//	} else if (currentMode === "run") {
+//		dialog = createRunModuleDialog(id, dialog);
+//	}
+	
+	if (dialog !== undefined) {
+		var offset = moduleItem.offset();
+		offset.top = offset.top - 100;
+		offset.left = offset.left - 200;
+		// show the modal (disable backdrop)
+		dialog.modal({
+			'show' : true,
+			'backdrop' : false
+		}).draggable({
+			handle : ".modal-header"
+		}).offset(offset);
 	}
 }
 
-/**
- * Show a module dialog with given offset, draggable and without backdrop
- */
-function showDialog(dialog, offset){
-	offset.top = offset.top - 100;
-	offset.left = offset.left - 200;
+
+
+function createAndShowBuildModuleDialog(moduleItem){
 	
-	dialog.modal({'show':true, 'backdrop':false})
-		  .draggable({handle: ".modal-header"})
-		  .offset(offset);
+	var configure = function(dialog){
+		
+		var id = moduleItem.attr("id");
+		var module = nn[id];
+		
+//		var content = dialog.find('.content');
+//		
+//		// display module 
+//		renderTemplate("module",
+//				{	
+//					name: module.type,
+//					type: module.type, 
+//					category:  module.category,
+//					mode: configure
+//				}, 
+//				content);
+		
+		// add properties to form
+		$.post("/dianne/builder", {"action" : "module-properties","type" : module.type}, 
+				function( data ) {
+					$.each(data, function(index, property){
+						// Render toolbox item
+						renderTemplate('form-item',
+							{
+								name: property.name,
+								id: property.id,
+								value: module[property.id]
+							}, dialog.find('.form-items'));
+					});
+					if (data.length === 0) {
+						dialog.find('.form-items').append("<p>No properties to configure...</p>");
+					}
+				}
+				, "json");
+		
+	}
+	
+	createAndShowBasicDialog(moduleItem,
+			{},
+			configure);
 }
 
 function createBuildModuleDialog(id, dialog){
@@ -1290,14 +1318,9 @@ function guid() {
     return _p8() + _p8(true) + _p8(true) + _p8();
 }
 
-function renderTemplate(template, options, targetId, init){
-	$.get('templates/'+template+'.tmp', function(template) {
-		    var rendered = Mustache.render(template, options);
-		    var r = $(rendered).appendTo('#'+targetId);
-		    //$('#'+targetId).append(rendered);
-		    
-		    if(init!==undefined){
-		    	init(r);
-		    }
-	});
+function renderTemplate(template, options, target){
+	var template = $('#'+template).html();
+	Mustache.parse(template);
+	var rendered = Mustache.render(template, options);
+	return $(rendered).appendTo(target);
 }
