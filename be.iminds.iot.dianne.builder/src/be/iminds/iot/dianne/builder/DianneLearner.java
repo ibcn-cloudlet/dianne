@@ -110,13 +110,13 @@ public class DianneLearner extends HttpServlet {
 		
 		for(Entry<String, JsonElement> configs : configJson.entrySet()){
 			JsonObject datasetConfig = (JsonObject) configs.getValue();
-			if(datasetConfig.get("type").getAsString().equals("Dataset")
+			if(datasetConfig.get("category").getAsString().equals("Dataset")
 					&& datasetConfig.get("input") !=null){
 				// found a dataset
 				// TODO what in case of multiple datasets?
 				if(action.equals("learn")){
 					learn(datasetConfig, processorConfig);
-					
+
 					JsonObject parameters = new JsonObject();
 					for(Trainable t : trainable){
 						parameters.add(((Module)t).getId().toString(), new JsonPrimitive(Arrays.toString(t.getParameters().get())));;

@@ -39,7 +39,9 @@ function showConfigureModuleDialog(moduleItem) {
 	}
 }
 
-
+/**
+ * Create dialog for configuring module in build mode
+ */
 function createBuildModuleDialog(id, moduleItem){
 	var module = nn[id];
 	
@@ -58,8 +60,6 @@ function createBuildModuleDialog(id, moduleItem){
 				category: module.category
 			}, 
 			dialog.find('.content'));
-	
-	dialog.find('.content').append("<br/>");
 	
 	// then fill in properties
 	$.post("/dianne/builder", {"action" : "module-properties","type" : module.type}, 
@@ -93,7 +93,7 @@ function createBuildModuleDialog(id, moduleItem){
 				if(i === 0){
 					module = nn[item.value];
 				} else {
-					nn[item.name] = item.value;
+					module[item.name] = item.value;
 				}
 			});
 			
@@ -118,7 +118,9 @@ function createBuildModuleDialog(id, moduleItem){
 }
 
 
-
+/**
+ * Create dialog for configuring module in deploy mode
+ */
 function createDeployModuleDialog(id, moduleItem){
 	var module = nn[id];
 	
@@ -137,8 +139,6 @@ function createDeployModuleDialog(id, moduleItem){
 				category: module.category
 			}, 
 			dialog.find('.content'));
-	
-	dialog.find('.content').append("<br/>");
 	
 	// fill in deployment options
 	if(deployment[id]===undefined){
@@ -182,22 +182,113 @@ function createDeployModuleDialog(id, moduleItem){
 		dialog.find(".submit").prop('disabled', true);
 	}
 	
-	
 	return dialog;
 }
 
 
-function createLearnModuleDialog(id, dialog){
-	var block = other[id];
-	if(block===undefined){
+/**
+ * Create dialogs for learning modules
+ */
+function createLearnModuleDialog(id, moduleItem){
+	var module = learning[id];
+	if(module===undefined){
 		return undefined; // no dialogs for build modules
 	}
 	
-	var buttons = renderTemplate("dialog-buttons-learn", {});
-	dialog.find(".modal-footer").empty();
-	dialog.find(".modal-footer").append(buttons);
+	var dialog;
+	if(module.category==="Dataset"){
+		dialog = renderTemplate("dialog", {
+			id : id,
+			title : "Configure "+module.type+" dataset",
+			submit: "",
+			cancel: "Delete"
+		}, $(document.body));
+		
+		renderTemplate("dataset-learn", {
+				id : module.id,
+				dataset : module.dataset,
+				train: module.train,
+				test: module.test,
+				validation: module.validation
+			},
+			dialog.find('.content')
+		);
 	
-	dialog.find(".delete").click(function(e){
+		dialog.find(".slider").slider({
+			orientation: "vertical",
+			range: true,
+			max: module.total,
+			min: 0,
+			step: 1000,
+			values: [ module.validation, module.test+module.validation ],
+			slide: function( event, ui ) {
+				var h1 = parseInt(ui.values[0]);
+				var h2 = parseInt(ui.values[1]);
+				module.validation = h1;
+				module.test = h2-h1;
+				module.train = module.total-h2;
+				
+				// TODO dont use ids here?
+				$('#validation').text(module.validation);
+				$('#train').text(module.train);
+				$('#test').text(module.test);
+			}
+		}).find(".ui-slider-handle").remove();
+		
+		// TODO make this a shuffle button?
+		dialog.find(".submit").remove();
+	
+	} else if(module.category==="Trainer"){
+		dialog = renderTemplate("dialog", {
+			id : id,
+			title : "Train your network",
+			submit: "Train",
+			cancel: "Delete"
+		}, $(document.body));
+		
+		
+		// form options
+		// TODO fetch parameters from server?
+		renderTemplate("form-train", {
+				id : module.id,
+				loss : module.loss,
+				batch: module.batch,
+				epochs: module.epochs
+			},
+			dialog.find('.form-items'));
+		
+		
+		dialog.find(".submit").click(function(e){
+			var id = $(this).closest(".modal").find(".module-id").val();
+			
+			var trainer = learning[id];
+			trainer.loss = $(this).closest(".modal").find("#loss").val();
+			trainer.batch = $(this).closest(".modal").find("#batch").val();
+			trainer.epochs = $(this).closest(".modal").find("#epochs").val();
+
+			learn(id);
+		});
+	} else if(module.category==="Evaluator"){
+		dialog = renderTemplate("dialog", {
+			id : id,
+			title : "Evaluate your network",
+			submit: "Evaluate",
+			cancel: "Delete"
+		}, $(document.body));
+				
+		// confusion chart and accuracy div
+		createConfusionChart(dialog.find(".content"));
+		dialog.find(".content").append("<div class=\"accuracy\"></div>")
+		
+		dialog.find(".submit").click(function(e){
+			var id = $(this).closest(".modal").find(".module-id").val();
+
+			evaluate(id);
+		});
+	}
+
+	// delete module on cancel
+	dialog.find(".cancel").click(function(e){
 		// remove object
 		var id = $(this).closest(".modal").find(".module-id").val();
 		
@@ -210,92 +301,19 @@ function createLearnModuleDialog(id, dialog){
 		$(this).closest(".modal").remove();
 	});
 	
-	
-	if(block.type==="Dataset"){
-		var body = renderTemplate("dialog-body-dataset", {
-			id : block.id,
-			dataset : block.dataset,
-			train: block.train,
-			test: block.test,
-			validation: block.validation
-		});
-		dialog.find(".modal-body").empty();
-		dialog.find(".modal-body").append(body);
-		dialog.find(".slider").slider({
-			orientation: "vertical",
-			range: true,
-			max: block.total,
-			min: 0,
-			step: 1000,
-			values: [ block.validation, block.test+block.validation ],
-			slide: function( event, ui ) {
-				var h1 = parseInt(ui.values[0]);
-				var h2 = parseInt(ui.values[1]);
-				block.validation = h1;
-				block.test = h2-h1;
-				block.train = block.total-h2;
-				
-				$('#validation').text(block.validation);
-				$('#train').text(block.train);
-				$('#test').text(block.test);
-			}
-		}).find(".ui-slider-handle").remove();
-		
-		// TODO make this a shuffle button?
-		dialog.find(".exec").remove();
-		
-		dialog.find(".modal-title").text("Configure dataset");
-	} else if(block.type==="Trainer"){
-		var body = renderTemplate("dialog-body-train", {
-			id : block.id,
-			loss : block.loss,
-			batch: block.batch,
-			epochs: block.epochs
-		});
-		dialog.find(".modal-body").empty();
-		dialog.find(".modal-body").append(body);
-		
-		dialog.find(".modal-title").text("Train the network");
-		
-		dialog.find(".exec").click(function(e){
-			var id = $(this).closest(".modal").find(".module-id").val();
-			
-			var trainer = other[id];
-			trainer.loss = $(this).closest(".modal").find("#loss").val();
-			trainer.batch = $(this).closest(".modal").find("#batch").val();
-			trainer.epochs = $(this).closest(".modal").find("#epochs").val();
-
-			learn(id);
-		});
-	} else if(block.type==="Evaluator"){
-		var body = renderTemplate("dialog-body-evaluate", {id : block.id});
-		dialog.find(".modal-body").empty();
-		dialog.find(".modal-body").append(body);
-		
-		dialog.find(".modal-title").text("Evaluate the network");
-				
-		createConfusionChart(dialog.find(".evaluate"));
-		
-		dialog.find(".exec").click(function(e){
-			var id = $(this).closest(".modal").find(".module-id").val();
-
-			evaluate(id);
-		});
-	}
-	
 	return dialog;
 }
 
 
 function createRunModuleDialog(id, dialog){
-	var block = other[id];
-	if(block===undefined){
+	var module = running[id];
+	if(module===undefined){
 		return undefined; // no dialogs for build modules
 	}
 	
 	var body = renderTemplate("dialog-body-run", {
-		id : block.id,
-		type : block.type
+		id : module.id,
+		type : module.type
 	});
 	dialog.find(".modal-body").empty();
 	dialog.find(".modal-body").append(body);
@@ -318,7 +336,7 @@ function createRunModuleDialog(id, dialog){
 	});
 	
 	
-	if(block.type==="CanvasInput"){
+	if(module.type==="CanvasInput"){
 		dialog.find(".modal-title").text("Draw your input");
 
 		dialog.find(".run-canvas").append("<canvas class='inputCanvas' width='224' height='224' style=\"border:1px solid #000000; margin-left:150px\"></canvas>");
@@ -339,7 +357,7 @@ function createRunModuleDialog(id, dialog){
 		inputCanvas.addEventListener('touchend', upListener, false);
 		
 		
-	} else if(block.type==="DatasetInput"){
+	} else if(module.type==="DatasetInput"){
 		dialog.find(".modal-title").text("Input a sample of the MNIST dataset");
 
 		dialog.find(".run-canvas").append("<canvas class='sampleCanvas' width='224' height='224' style=\"border:1px solid #000000; margin-left:150px\"></canvas>");
@@ -348,7 +366,7 @@ function createRunModuleDialog(id, dialog){
 		sampleCanvas = dialog.find('.sampleCanvas')[0];
 		sampleCanvasCtx = sampleCanvas.getContext('2d');
 		
-	} else if(block.type==="ProbabilityOutput"){
+	} else if(module.type==="ProbabilityOutput"){
 
 		dialog.find(".modal-title").text("Output probabilities");
 
@@ -505,18 +523,18 @@ function undeploy(id){
 
 function learn(id){
 	// first create the chart
-	createErrorChart($("#dialog-"+id).find(".error"));
+	createErrorChart($("#dialog-"+id).find(".content"));
 
 	eventsource = new EventSource("learner");
 	eventsource.onmessage = function(event){
 		var data = JSON.parse(event.data);
-		var index = Number($("#dialog-"+id).find(".error").attr("data-highcharts-chart"));
+		var index = Number($("#dialog-"+id).find(".content").attr("data-highcharts-chart"));
     	var x = Number(data.sample);
         var y = Number(data.error); 
 		Highcharts.charts[index].series[0].addPoint([x, y], true, true, false);
 	};
 	$.post("/dianne/learner", {"action":"learn",
-		"config":JSON.stringify(other),
+		"config":JSON.stringify(learning),
 		"target": id}, 
 			function( data ) {
 				$.each(data, function(id, parameters){
@@ -529,18 +547,18 @@ function learn(id){
 
 function evaluate(id){
 	// reset chart
-	var index = Number($("#dialog-"+id).find(".evaluate").attr("data-highcharts-chart"));
+	var index = Number($("#dialog-"+id).find(".content").attr("data-highcharts-chart"));
 	Highcharts.charts[index].series[0].setData(null, true, true, false);
 	$("#dialog-"+id).find(".accuracy").text("");
 
 	eventsource = new EventSource("learner");
 	eventsource.onmessage = function(event){
 		var data = JSON.parse(event.data);
-		var index = Number($("#dialog-"+id).find(".evaluate").attr("data-highcharts-chart"));
+		var index = Number($("#dialog-"+id).find(".content").attr("data-highcharts-chart"));
 		Highcharts.charts[index].series[0].setData(data, true, true, false);
 	};
 	$.post("/dianne/learner", {"action":"evaluate",
-		"config":JSON.stringify(other),
+		"config":JSON.stringify(learning),
 		"target": id}, 
 			function( data ) {
 				eventsource.close();

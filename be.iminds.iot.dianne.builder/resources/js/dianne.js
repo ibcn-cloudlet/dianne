@@ -5,9 +5,9 @@
 // keep a map of neural network modules
 var nn = {};
 // keep a map of all learn blocks
-var learn = {};
+var learning = {};
 // keep a map of all run blocks
-var run = {};
+var running = {};
 
 // keep map module id -> deployment node
 var deployment = {};
@@ -243,7 +243,7 @@ function addModule(moduleItem){
 	module.id = id;
 	
 	// some hard coded shit here... should be changed
-	if(type==="Dataset"){
+	if(category==="Dataset"){
 		// TODO this is hard coded for MNIST
 		module.dataset = "MNIST";
 		module.total = 70000;
@@ -251,7 +251,7 @@ function addModule(moduleItem){
 		module.test = 10000;
 		module.validation = 0;
 		
-	} else if(type==="Trainer"){
+	} else if(category==="Trainer"){
 		// TODO this is hard coded
 		//module.strategy = "Stochastic Gradient Descent";
 		module.batch = 10;
@@ -259,14 +259,13 @@ function addModule(moduleItem){
 		module.loss = "MSE";
 	}
 	
-	
 	// add to one of the module maps
 	if(mode==="build"){
 		nn[id] = module;
 	} else if(mode==="learn"){
-		learn[id] = module;
+		learning[id] = module;
 	} else if(mode==="run"){
-		run[id] = module;
+		running[id] = module;
 	}
 	
 	console.log("Add module "+id);
@@ -337,9 +336,9 @@ function removeModule(moduleItem){
 		}
 		delete nn[id];
 	} else if(mode==="learn"){
-		delete learn[id];
+		delete learning[id];
 	} else if(mode==="run"){
-		delete run[id];
+		delete running[id];
 	}
 	console.log("Remove module "+id);
 	
@@ -353,16 +352,16 @@ function addConnection(connection){
 	console.log("Add connection " + connection.sourceId + " -> " + connection.targetId);
 	// TODO support multiple next/prev
 	if(nn[connection.sourceId]===undefined){
-		if(learn[connection.sourceId]!==undefined){
-			learn[connection.sourceId].input = connection.targetId; 
+		if(learning[connection.sourceId]!==undefined){
+			learning[connection.sourceId].input = connection.targetId; 
 		} else {
-			run[connection.sourceId].input = connection.targetId; 
+			running[connection.sourceId].input = connection.targetId; 
 		}
 	} else if(nn[connection.targetId]===undefined){
-		if(learn[connection.targetId]!==undefined){
-			learn[connection.targetId].output = connection.sourceId; 
+		if(learning[connection.targetId]!==undefined){
+			learning[connection.targetId].output = connection.sourceId; 
 		} else {
-			run[connection.targetId].output = connection.sourceId; 
+			running[connection.targetId].output = connection.sourceId; 
 		}
 	} else {
 		nn[connection.sourceId].next = connection.targetId;
@@ -378,16 +377,16 @@ function removeConnection(connection){
 	console.log("Remove connection " + connection.sourceId + " -> " + connection.targetId);
 	// TODO support multiple next/prev
 	if(nn[connection.sourceId]===undefined){
-		if(learn[connection.sourceId]!==undefined){
-			delete learn[connection.sourceId].input; 
+		if(learning[connection.sourceId]!==undefined){
+			delete learning[connection.sourceId].input; 
 		} else {
-			delete run[connection.sourceId].input; 
+			delete running[connection.sourceId].input; 
 		}
 	} else if(nn[connection.targetId]===undefined){
-		if(learn[connection.targetId]!==undefined){
-			delete learn[connection.targetId].output; 
+		if(learning[connection.targetId]!==undefined){
+			delete learning[connection.targetId].output; 
 		} else {
-			delete run[connection.targetId].output; 
+			delete running[connection.targetId].output; 
 		}
 	} else {
 		delete nn[connection.sourceId].next;
@@ -460,9 +459,6 @@ function checkRemoveConnection(connection){
 	}
 	return true;
 }
-
-
-
 
 
 

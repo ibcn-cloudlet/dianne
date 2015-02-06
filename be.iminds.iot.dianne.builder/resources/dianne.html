@@ -110,6 +110,7 @@
 				</div>
 				<div class="modal-body">
 					<div class="content"></div>
+					<br/>
 					<form role="form" class="form-horizontal">
 						<input class="module-id" type="hidden" name="id" value="{{id}}"/>
 						<div class="form-items"></div>
@@ -143,62 +144,7 @@
 	</div>
 	</script>
 	
-	
-	<!--  Template for a build dialog body -->
-	<script type="x-tmpl-mustache" id="dialog-body-build">
-		<div class="module build">
-			<strong>{{type}}</strong>
-		</div>
-		<br/>
-		<form role="form" class="form-horizontal">
-			<input class="module-id" type="hidden" name="id" value="{{id}}"/>
-			<div class="form-properties"></div>
-		</form>
-	</script>
-	<!-- end build dialog body template -->
-	
-	<!-- Template for module property form -->
-	<script type="x-tmpl-mustache" id="form-properties">
-		<div class="form-group">
-			<label class="col-sm-3 control-label">{{name}}</label>
-			<div class="col-sm-7">
-				<input type="text" class="form-control" name="{{id}}" value="{{value}}" />
-			</div>
-		</div>
-	</script>
-	<!-- end property template -->
-	
-	<!--  Template for a build dialog buttons -->
-	<script type="x-tmpl-mustache" id="dialog-buttons-build">
-		<button class="delete btn btn-danger pull-left">Delete module</button>
-		<button class="configure btn btn-primary">Configure</button>
-	</script>
-	<!-- end build dialog buttons template -->
-
-	
-	<!--  Template for a deploy dialog body -->
-	<script type="x-tmpl-mustache" id="dialog-body-deploy">
-		<div class="module build">
-			<strong>{{type}}</strong>
-		</div>
-		<br/>
-		<form role="form" class="form-horizontal">
-			<input class="module-id" type="hidden" name="id" value="{{id}}"/>
-			<div class="form-deployment"></div>
-		</form>
-	</script>
-	<!-- end build dialog body template -->
-
-
-	<!--  Template for deploy dialog buttons -->
-	<script type="x-tmpl-mustache" id="dialog-buttons-deploy">
-		<button class="undeploy btn btn-danger pull-left">Undeploy</button>
-		<button class="deploy btn btn-primary">Deploy</button>
-	</script>
-	<!-- end build dialog buttons template -->
-	
-	<!--  Template for a dataset dialog body -->
-	<script type="x-tmpl-mustache" id="dialog-body-dataset">
+	<script type="x-tmpl-mustache" id="dataset-learn">
 		<div class="row">
 			<div class="col-sm-3">
 				<div class="slider" style="height:200px;width:80px"></div>
@@ -235,59 +181,33 @@
 			</div>
 		</div>
 	</script>
-	<!-- end dataset dialog body template -->
-	
-	<!--  Template for a train dialog body -->
-	<script type="x-tmpl-mustache" id="dialog-body-train">
-		<div class="error">
+
+	<script type="x-tmpl-mustache" id="form-train">
+	<div class="trainer-options">
+		<div class="form-group">
+			<label class="col-sm-3 control-label">Loss:</label>
+			<div class="col-sm-7">
+				<input type="text" class="form-control" id="loss" name="loss" value="{{loss}}" />
+			</div>
 		</div>
-		<br/>
-		<form role="form" class="form-horizontal">
-			<input class="module-id" type="hidden" name="id" value="{{id}}"/>
-				<form role="form" class="form-horizontal">
-					<input class="module-id" type="hidden" name="id" value="{{id}}"/>
-					<div class="form-group">
-						<label class="col-sm-3 control-label">Loss:</label>
-						<div class="col-sm-7">
-							<input type="text" class="form-control" id="loss" name="loss" value="{{loss}}" />
-						</div>
-					</div>
-					<div class="form-group">
-						<label class="col-sm-3 control-label">Batch size:</label>
-						<div class="col-sm-7">
-							<input type="text" class="form-control" id="batch" name="batch" value="{{batch}}" />
-						</div>
-					</div>
-					<div class="form-group">
-						<label class="col-sm-3 control-label">Epochs:</label>
-						<div class="col-sm-7">
-							<input type="text" class="form-control" id="epochs" name="epochs" value="{{epochs}}" />
-						</div>
-					</div>
-				</form>
-		</form>
+		<div class="form-group">
+		<label class="col-sm-3 control-label">Batch size:</label>
+			<div class="col-sm-7">
+				<input type="text" class="form-control" id="batch" name="batch" value="{{batch}}" />
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="col-sm-3 control-label">Epochs:</label>
+			<div class="col-sm-7">
+				<input type="text" class="form-control" id="epochs" name="epochs" value="{{epochs}}" />
+			</div>
+		</div>
+	</div>
 	</script>
-	<!-- end train dialog body template -->
 
-	<!--  Template for a evaluate dialog body -->
-	<script type="x-tmpl-mustache" id="dialog-body-evaluate">
-		<div class="evaluate"></div>
-	 	<div class="accuracy"></div>
-		<br/>
-		<form role="form" class="form-horizontal">
-			<input class="module-id" type="hidden" name="id" value="{{id}}"/>
-		</form>
-	</script>
-	<!-- end evaluate dialog body template -->
 
-	<!--  Template for learn dialog buttons -->
-	<script type="x-tmpl-mustache" id="dialog-buttons-learn">
-		<button class="delete btn btn-danger pull-left">Delete</button>
-		<button class="exec btn btn-primary">Run</button>
-	</script>
-	<!-- end build dialog learn template -->
 	
-		<!--  Template for a run dialog body -->
+	<!--  Template for a run dialog body -->
 	<script type="x-tmpl-mustache" id="dialog-body-run">
 		<div class="run-canvas"></div>
 		<br/>
