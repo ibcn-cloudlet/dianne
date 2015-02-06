@@ -305,42 +305,26 @@ function createLearnModuleDialog(id, moduleItem){
 }
 
 
-function createRunModuleDialog(id, dialog){
+/**
+ * create dialogs for run modules
+ */
+function createRunModuleDialog(id, moduleItem){
 	var module = running[id];
 	if(module===undefined){
 		return undefined; // no dialogs for build modules
 	}
 	
-	var body = renderTemplate("dialog-body-run", {
-		id : module.id,
-		type : module.type
-	});
-	dialog.find(".modal-body").empty();
-	dialog.find(".modal-body").append(body);
-	
-	var buttons = renderTemplate("dialog-buttons-run", {});
-	dialog.find(".modal-footer").empty();
-	dialog.find(".modal-footer").append(buttons);
-	
-	dialog.find(".delete").click(function(e){
-		// remove object
-		var id = $(this).closest(".modal").find(".module-id").val();
-		
-		var moduleItem = $('#'+id);
-		if(checkRemoveModule(moduleItem)) {
-			removeModule(moduleItem);
-		}
-		
-		// remove dialog when module is removed, else keep it for reuse
-		$(this).closest(".modal").remove();
-	});
-	
-	
+	var dialog;
 	if(module.type==="CanvasInput"){
-		dialog.find(".modal-title").text("Draw your input");
-
-		dialog.find(".run-canvas").append("<canvas class='inputCanvas' width='224' height='224' style=\"border:1px solid #000000; margin-left:150px\"></canvas>");
-		dialog.find(".run-canvas").append("<button class='btn' onclick='clearCanvas()' style=\"margin-left:10px\">Clear</button>");
+		dialog = renderTemplate("dialog", {
+			id : id,
+			title : "Draw your input",
+			submit: "",
+			cancel: "Delete"
+		}, $(document.body));
+		
+		dialog.find(".content").append("<canvas class='inputCanvas' width='224' height='224' style=\"border:1px solid #000000; margin-left:150px\"></canvas>");
+		dialog.find(".content").append("<button class='btn' onclick='clearCanvas()' style=\"margin-left:10px\">Clear</button>");
 		
 		inputCanvas = dialog.find('.inputCanvas')[0];
 		inputCanvasCtx = inputCanvas.getContext('2d');
@@ -357,31 +341,57 @@ function createRunModuleDialog(id, dialog){
 		inputCanvas.addEventListener('touchend', upListener, false);
 		
 		
-	} else if(module.type==="DatasetInput"){
-		dialog.find(".modal-title").text("Input a sample of the MNIST dataset");
-
-		dialog.find(".run-canvas").append("<canvas class='sampleCanvas' width='224' height='224' style=\"border:1px solid #000000; margin-left:150px\"></canvas>");
-		dialog.find(".run-canvas").append("<button class='btn' onclick='sample()' style=\"margin-left:10px\">Sample</button>");
-		
-		sampleCanvas = dialog.find('.sampleCanvas')[0];
-		sampleCanvasCtx = sampleCanvas.getContext('2d');
-		
 	} else if(module.type==="ProbabilityOutput"){
-
-		dialog.find(".modal-title").text("Output probabilities");
-
-		createOutputChart(dialog.find(".run-canvas"));
+		dialog = renderTemplate("dialog", {
+			id : id,
+			title : "Output probabilities",
+			submit: "",
+			cancel: "Delete"
+		}, $(document.body));
+		
+		createOutputChart(dialog.find(".content"));
 		eventsource = new EventSource("run");
 		eventsource.onmessage = function(event){
 			var data = JSON.parse(event.data);
-			var index = Number($("#dialog-"+id).find(".run-canvas").attr("data-highcharts-chart"));
+			var index = Number($("#dialog-"+id).find(".content").attr("data-highcharts-chart"));
 			Highcharts.charts[index].series[0].setData(data, true, true, true);
 		};
 		
 		dialog.on('hidden.bs.modal', function () {
 		    eventsource.close();
 		});
-	}
+		
+	} else if(module.category==="Dataset"){
+		dialog = renderTemplate("dialog", {
+			id : id,
+			title : "Input a sample of the "+module.type+" dataset",
+			submit: "",
+			cancel: "Delete"
+		}, $(document.body));
+		
+		dialog.find(".content").append("<canvas class='sampleCanvas' width='224' height='224' style=\"border:1px solid #000000; margin-left:150px\"></canvas>");
+		dialog.find(".content").append("<button class='btn' onclick='sample()' style=\"margin-left:10px\">Sample</button>");
+		
+		sampleCanvas = dialog.find('.sampleCanvas')[0];
+		sampleCanvasCtx = sampleCanvas.getContext('2d');
+		
+	} 
+	
+	dialog.find(".cancel").click(function(e){
+		// remove object
+		var id = $(this).closest(".modal").find(".module-id").val();
+		
+		var moduleItem = $('#'+id);
+		if(checkRemoveModule(moduleItem)) {
+			removeModule(moduleItem);
+		}
+		
+		// remove dialog when module is removed, else keep it for reuse
+		$(this).closest(".modal").remove();
+	});
+	
+	// submit button not used atm
+	dialog.find(".submit").remove();
 	
 	return dialog;
 }
