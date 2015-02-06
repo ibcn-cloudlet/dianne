@@ -88,6 +88,7 @@
 	<script src="js/lib/heatmap.js"></script>
 	<!-- Our own scripts -->
 	<script src="js/dianne.js"></script>
+	<script src="js/dianne-dialogs.js"></script>
 	
 	
 	<!-- Templates -->
@@ -128,6 +129,16 @@
 		<label class="col-sm-3 control-label">{{name}}</label>
 		<div class="col-sm-7">
 			<input type="text" class="form-control" name="{{id}}" value="{{value}}" />
+		</div>
+	</div>
+	</script>
+	
+	<script type="x-tmpl-mustache" id="form-dropdown">
+	<div class="form-group">
+		<label class="col-sm-3 control-label">{{name}}</label>
+		<div class="col-sm-7">
+			<select class="form-control options">
+			</select>
 		</div>
 	</div>
 	</script>
@@ -178,17 +189,6 @@
 	</script>
 	<!-- end build dialog body template -->
 
-	<!-- Template for module deployment form -->
-	<script type="x-tmpl-mustache" id="form-deployment">
-		<div class="form-group">
-			<label class="col-sm-3 control-label">Deploy to:</label>
-			<div class="col-sm-7">
-				<select class="form-control targets">
-				</select>
-			</div>
-		</div>
-	</script>
-	<!-- end property template -->
 
 	<!--  Template for deploy dialog buttons -->
 	<script type="x-tmpl-mustache" id="dialog-buttons-deploy">
