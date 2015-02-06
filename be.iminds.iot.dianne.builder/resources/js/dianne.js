@@ -98,7 +98,11 @@ $( document ).ready(function() {
 function addToolboxItem(toolboxId, name, type, clazz){
 
 	renderTemplate("module",
-		{	name: name, type: type, clazz: "tool" }, 
+		{	
+			name: name, 
+			type: type, 
+			clazz: "tool" 
+		}, 
 		toolboxId,
 		function(module){
 			// make toolbox modules draggable to instantiate using drag-and-drop
@@ -110,7 +114,8 @@ function addToolboxItem(toolboxId, name, type, clazz){
 					addModule(moduleItem, $(this));
 				}
 			});
-		});
+		}
+	);
 }
 
 /*
@@ -118,7 +123,7 @@ function addToolboxItem(toolboxId, name, type, clazz){
  */
 
 // definition of source Endpoints
-var source = {
+var sourceStyle = {
 	isSource:true,
 	anchor : "Right",	
 	paintStyle:{ 
@@ -145,7 +150,7 @@ var source = {
 }		
 
 // the definition of target Endpoints 
-var target = {
+var targetStyle = {
 	isTarget:true,
 	anchor: "Left",					
 	paintStyle:{ 
@@ -155,7 +160,6 @@ var target = {
 		fillStyle: "#555"
 	}
 }
-
 
 // jsPlumb init code
 jsPlumb.ready(function() {       
@@ -189,8 +193,6 @@ jsPlumb.ready(function() {
 	});
 
 });
-
-
 
 /*
  * Module/Connection add/remove checks
@@ -248,7 +250,7 @@ function checkRemoveConnection(connection){
 				return false;
 		}
 	}
-	if(modus==="learn"){
+	if(modus==="learn" || modus==="run"){
 		if(connection.connection.endpoints[0].type!=="Rectangle" 
 			|| connection.connection.endpoints[1].type!=="Rectangle"){
 				return false;
@@ -323,22 +325,22 @@ function addModule(moduleItem, toolboxItem){
 function setupModule(moduleItem, type){
 	// TODO this should not be hard coded?
 	if(type==="Input"){
-		jsPlumb.addEndpoint(moduleItem, source);
-		jsPlumb.addEndpoint(moduleItem, target, {endpoint:"Rectangle",filter:":not(.build)",maxConnections:-1});
+		jsPlumb.addEndpoint(moduleItem, sourceStyle);
+		jsPlumb.addEndpoint(moduleItem, targetStyle, {endpoint:"Rectangle",filter:":not(.build)",maxConnections:-1});
 	} else if(type==="Output"){
-		jsPlumb.addEndpoint(moduleItem, source, {endpoint:"Rectangle", maxConnections:-1});
-		jsPlumb.addEndpoint(moduleItem, target);
+		jsPlumb.addEndpoint(moduleItem, sourceStyle, {endpoint:"Rectangle", maxConnections:-1});
+		jsPlumb.addEndpoint(moduleItem, targetStyle);
 	} else if(type==="Trainer" || type==="Evaluator"){
-		jsPlumb.addEndpoint(moduleItem, target, {endpoint:"Rectangle"});
+		jsPlumb.addEndpoint(moduleItem, targetStyle, {endpoint:"Rectangle"});
 	} else if(type==="Dataset"){ 
-		jsPlumb.addEndpoint(moduleItem, source, {endpoint:"Rectangle"});
+		jsPlumb.addEndpoint(moduleItem, sourceStyle, {endpoint:"Rectangle"});
 	} else if(type==="CanvasInput"||type==="DatasetInput"){ 
-		jsPlumb.addEndpoint(moduleItem, source, {endpoint:"Rectangle"});
+		jsPlumb.addEndpoint(moduleItem, sourceStyle, {endpoint:"Rectangle"});
 	} else if(type==="ProbabilityOutput"){ 
-		jsPlumb.addEndpoint(moduleItem, target, {endpoint:"Rectangle"});
+		jsPlumb.addEndpoint(moduleItem, targetStyle, {endpoint:"Rectangle"});
 	} else {
-		jsPlumb.addEndpoint(moduleItem, source);
-		jsPlumb.addEndpoint(moduleItem, target);
+		jsPlumb.addEndpoint(moduleItem, sourceStyle);
+		jsPlumb.addEndpoint(moduleItem, targetStyle);
 	}
 	
 	// show dialog on double click
