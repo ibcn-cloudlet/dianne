@@ -1,0 +1,4 @@
+
+<div class="module {{clazz}}" id="{{name}}" type="{{type}}">
+	<strong>{{name}}</strong>
+</div>

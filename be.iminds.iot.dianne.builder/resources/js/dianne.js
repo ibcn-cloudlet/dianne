@@ -66,6 +66,52 @@ function setModus(m){
 	$(".modal").modal('hide');
 }
 
+/**
+ * On ready, fill the toolbox with available supported modules
+ */
+$( document ).ready(function() {
+	// initialize toolboxes
+	// build toolbox
+	$.post("/dianne/builder", {action : "available-modules"}, 
+		function( data ) {
+			$.each(data, function(index, name){
+				addToolboxItem('toolbox-build', name, name, 'build');
+			});
+		}
+		, "json");
+	
+	// learn toolbox
+	// TODO this is hard coded for now, as this does not map to factories/module impls
+	addToolboxItem('toolbox-learn','MNIST Dataset','Dataset','learn');
+	addToolboxItem('toolbox-learn','SGD Trainer','Trainer','learn');
+	addToolboxItem('toolbox-learn','Arg Max Evaluator','Evaluator','learn');
+	
+	addToolboxItem('toolbox-run','MNIST input','DatasetInput','run');
+	addToolboxItem('toolbox-run','Canvas input','CanvasInput','run');
+	addToolboxItem('toolbox-run','Output probabilities','ProbabilityOutput','run');
+	
+	// show correct mode
+	setModus(modus);
+});
+
+// add a toolbox item name to toolbox with id toolboxId and add class clazz
+function addToolboxItem(toolboxId, name, type, clazz){
+
+	renderTemplate("module",
+		{	name: name, type: type, clazz: "tool" }, 
+		toolboxId,
+		function(module){
+			// make toolbox modules draggable to instantiate using drag-and-drop
+			module.draggable({helper: "clone"});
+			module.bind('dragstop', function(event, ui) {
+				if(checkAddModule($(this))){
+					// clone the toolbox item
+				    var moduleItem = $(ui.helper).clone().removeClass("tool").addClass(clazz);
+					addModule(moduleItem, $(this));
+				}
+			});
+		});
+}
 
 /*
  * jsPlumb rendering and setup
@@ -110,50 +156,6 @@ var target = {
 	}
 }
 
-/**
- * On ready, fill the toolbox with available supported modules
- */
-$( document ).ready(function() {
-	// initialize toolboxes
-	// build toolbox
-	$.post("/dianne/builder", {action : "available-modules"}, 
-		function( data ) {
-			$.each(data, function(index, name){
-				addToolboxItem('#toolbox-build', name, name, 'build');
-			});
-		}
-		, "json");
-	
-	// learn toolbox
-	// TODO this is hard coded for now, as this does not map to factories/module impls
-	addToolboxItem('#toolbox-learn','MNIST Dataset','Dataset','learn');
-	addToolboxItem('#toolbox-learn','SGD Trainer','Trainer','learn');
-	addToolboxItem('#toolbox-learn','Arg Max Evaluator','Evaluator','learn');
-	
-	addToolboxItem('#toolbox-run','MNIST input','DatasetInput','run');
-	addToolboxItem('#toolbox-run','Canvas input','CanvasInput','run');
-	addToolboxItem('#toolbox-run','Output probabilities','ProbabilityOutput','run');
-	
-	// show correct mode
-	setModus(modus);
-});
-
-// add a toolbox item name to toolbox with id toolboxId and add class clazz
-function addToolboxItem(toolboxId, name, type, clazz){
-	$(toolboxId).append(renderTemplate("module",
-			{name: name, type: type, clazz: "tool" }));
-	
-	// make draggable and add code to create new modules drag-and-drop style
-	$('#'+type).draggable({helper: "clone"});
-	$('#'+type).bind('dragstop', function(event, ui) {
-		if(checkAddModule($(this))){
-			// clone the toolbox item
-		    var moduleItem = $(ui.helper).clone().removeClass("tool").addClass(clazz);
-		    
-			addModule(moduleItem, $(this));
-		}
-	});
-}
 
 // jsPlumb init code
 jsPlumb.ready(function() {       
@@ -1233,4 +1235,16 @@ function renderTemplate(templateId, options){
 	Mustache.parse(template);
 	var rendered = Mustache.render(template, options);
 	return rendered;
+}
+
+function renderTemplate(template, options, targetId, init){
+	$.get('templates/'+template+'.tmp', function(template) {
+		    var rendered = Mustache.render(template, options);
+		    var r = $(rendered).appendTo('#'+targetId);
+		    //$('#'+targetId).append(rendered);
+		    
+		    if(init!==undefined){
+		    	init(r);
+		    }
+	});
 }
