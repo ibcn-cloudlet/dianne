@@ -45,9 +45,8 @@ public class DianneBuilder extends HttpServlet {
 	@Reference
 	public void setHttpService(HttpService http){
 		try {
-			// Use manual registration - problems with whiteboard
+			// TODO How to register resources with whiteboard pattern?
 			http.registerResources("/dianne", "res", null);
-			http.registerServlet("/dianne/builder", this, null, null);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

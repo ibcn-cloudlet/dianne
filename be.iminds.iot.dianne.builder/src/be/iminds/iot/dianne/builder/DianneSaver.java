@@ -1,7 +1,6 @@
 package be.iminds.iot.dianne.builder;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -11,24 +10,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.http.HttpService;
 
 @Component(service = { javax.servlet.Servlet.class }, 
 	property = { "alias:String=/dianne/save","aiolos.proxy=false" }, 
 	immediate = true)
 public class DianneSaver extends HttpServlet {
-	
-	@Reference
-	public void setHttpService(HttpService http){
-		try {
-			// Use manual registration - problems with whiteboard
-			http.registerServlet("/dianne/save", this, null, null);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
+
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {

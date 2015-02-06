@@ -18,7 +18,6 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-import org.osgi.service.http.HttpService;
 
 import be.iminds.iot.dianne.dataset.Dataset;
 import be.iminds.iot.dianne.dataset.DatasetAdapter;
@@ -82,16 +81,6 @@ public class DianneLearner extends HttpServlet {
 	
 	public void removeTrainable(Trainable t){
 		this.trainable.remove(t);
-	}
-	
-	@Reference
-	public void setHttpService(HttpService http){
-		try {
-			// Use manual registration - problems with whiteboard
-			http.registerServlet("/dianne/learner", this, null, null);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 	
 	@Override

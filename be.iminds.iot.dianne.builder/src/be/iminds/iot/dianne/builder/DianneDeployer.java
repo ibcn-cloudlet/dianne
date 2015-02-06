@@ -20,7 +20,6 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-import org.osgi.service.http.HttpService;
 
 import be.iminds.iot.dianne.nn.runtime.ModuleManager;
 
@@ -57,16 +56,7 @@ public class DianneDeployer extends HttpServlet {
 		runtimes.remove(uuid);
 	}
 	
-	@Reference
-	public void setHttpService(HttpService http){
-		try {
-			// Use manual registration - problems with whiteboard
-			http.registerServlet("/dianne/deployer", this, null, null);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
+
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {

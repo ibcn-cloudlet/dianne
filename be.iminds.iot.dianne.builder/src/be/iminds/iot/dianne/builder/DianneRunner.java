@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.http.HttpService;
 
 import be.iminds.iot.dianne.nn.module.AbstractModule;
 import be.iminds.iot.dianne.nn.module.ForwardListener;
@@ -65,16 +64,6 @@ public class DianneRunner extends HttpServlet {
 				}
 			}
 		});
-	}
-	
-	@Reference
-	public void setHttpService(HttpService http){
-		try {
-			// Use manual registration - problems with whiteboard
-			http.registerServlet("/dianne/run", this, null, null);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 	
 	@Override
