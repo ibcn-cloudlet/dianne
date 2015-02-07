@@ -556,15 +556,23 @@ function loadLayout(layout){
 
 function redrawElement(id, posX, posY){
 	var module = nn[id];
-	var moduleBlock = renderTemplate("module",
-		{name: module.type, type: id, clazz: "build" }); // this is not intuitive...
-	$("#canvas").append(moduleBlock);
-	$('#'+id).draggable();
-	$('#'+id).css('position','absolute');
-	$('#'+id).css('left', posX);
-	$('#'+id).css('top', posY);
+
+	var moduleItem = renderTemplate("module",
+			{	
+				name: module.type,
+				type: module.type, 
+				category: module.category,
+				mode: "build"
+			}, 
+			$('#canvas'));
 	
-	setupModule($('#'+id), module.type);
+	moduleItem.attr("id", id);
+	moduleItem.draggable();
+	moduleItem.css('position','absolute');
+	moduleItem.css('left', posX);
+	moduleItem.css('top', posY);
+	
+	setupModule(moduleItem, module.type, module.category);
 	jsPlumb.repaint(id);
 }
 
