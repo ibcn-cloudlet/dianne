@@ -163,7 +163,7 @@ function createDeployModuleDialog(id, moduleItem){
 		dialog.find(".submit").click(function(e){
 			// deploy this module
 			var id = $(this).closest(".modal").find(".module-id").val();
-			var target = $(this).closest('.modal').find('.targets').val();
+			var target = $(this).closest('.modal').find('.options').val();
 			
 			deploy(id, target);
 			
