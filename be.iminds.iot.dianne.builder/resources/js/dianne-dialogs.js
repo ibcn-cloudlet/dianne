@@ -512,7 +512,12 @@ function deploy(id, target){
 				$.each( data, function(id,target){
 					deployment[id] = target;
 					// TODO separate color per node?
-					$("#"+id).css('background-color', '#FF6CDA');
+					var c = deploymentColors[target]; 
+					if(c==undefined){
+						c = nextColor();
+						 deploymentColors[target] = c;
+					}
+					$("#"+id).css('background-color', c);
 				});
 			}
 			, "json");
@@ -525,6 +530,14 @@ function undeploy(id){
 				$("#"+id).css('background-color', '');
 			}
 			, "json");
+}
+
+var deploymentColors = {};
+var colors = ['#FF6CDA','#81F781','#AC58FA','#FA5858'];
+var colorIndex = 0;
+
+function nextColor(){
+	return colors[colorIndex++];
 }
 
 /*
