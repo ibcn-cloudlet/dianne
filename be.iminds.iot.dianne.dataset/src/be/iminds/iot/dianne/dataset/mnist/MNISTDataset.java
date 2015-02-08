@@ -18,6 +18,8 @@ public class MNISTDataset implements Dataset{
 	
 	List<Sample> data = new ArrayList<Sample>();
 	
+	private int noRows;
+	private int noColumns;
 	private int inputSize;
 	private int outputSize;
 	private int noSamples;
@@ -52,8 +54,8 @@ public class MNISTDataset implements Dataset{
 			int magic = readInt(imageInput);
 			assert magic == 2051;
 			int noImages = readInt(imageInput);
-			int noRows = readInt(imageInput);
-			int noColumns = readInt(imageInput);
+			noRows = readInt(imageInput);
+			noColumns = readInt(imageInput);
 			
 			InputStream labelInput = new FileInputStream(dir+labels);
 			magic = readInt(labelInput);
@@ -147,13 +149,16 @@ public class MNISTDataset implements Dataset{
 	private void parse(InputStream imageInput, InputStream labelInput, int count) {
 		try {
 			for(int read = 0;read<count;read++){
-				Tensor input = factory.createTensor(inputSize);
+				//Tensor input = factory.createTensor(inputSize);
 				Tensor output = factory.createTensor(outputSize);
 				output.fill(0.0f);
 				
+				float inputData[] = new float[inputSize];
 				for(int j=0;j<inputSize;j++){
-					input.set((float)readUByte(imageInput)/255f,j);
+					inputData[j] = (float)readUByte(imageInput)/255f;
 				}
+				Tensor input = factory.createTensor(inputData, noRows, noColumns);
+				
 				int i = readUByte(labelInput);
 				output.set(1.0f, i);
 				

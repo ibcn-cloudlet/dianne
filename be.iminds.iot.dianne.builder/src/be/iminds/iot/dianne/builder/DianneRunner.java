@@ -2,6 +2,7 @@ package be.iminds.iot.dianne.builder;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.Random;
 
 import javax.servlet.AsyncContext;
@@ -88,7 +89,7 @@ public class DianneRunner extends HttpServlet {
 			input.input(t);
 		} else if(request.getParameter("sample")!=null){
 			Tensor t = DianneLearner.mnist.getInputSample(rand.nextInt(70000));
-			response.getWriter().println(t.toString());
+			response.getWriter().println(Arrays.toString(t.get()));
 			response.getWriter().flush();
 		}
 
