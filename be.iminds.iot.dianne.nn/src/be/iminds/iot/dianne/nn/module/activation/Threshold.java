@@ -23,12 +23,12 @@ public class Threshold extends AbstractModule {
 	}
 
 	@Override
-	protected void forward(UUID from) {
+	protected void forward() {
 		output = factory.getTensorMath().thresh(output, input, thresh, val);
 	}
 
 	@Override
-	protected void backward(UUID from) {
+	protected void backward() {
 		gradInput = factory.getTensorMath().cmul(gradInput, gradOutput, 
 				factory.getTensorMath().dthresh(gradInput, input, thresh));
 	}

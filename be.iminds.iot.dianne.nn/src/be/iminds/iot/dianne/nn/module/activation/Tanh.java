@@ -16,12 +16,12 @@ public class Tanh extends AbstractModule {
 	}
 	
 	@Override
-	protected void forward(UUID from) {
+	protected void forward() {
 		output = factory.getTensorMath().tanh(output, input);
 	}
 
 	@Override
-	protected void backward(UUID from) {
+	protected void backward() {
 		// derivative of tanh:
 		// dtanh/dx = 1-tanh^2 
 		//

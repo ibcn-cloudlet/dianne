@@ -39,12 +39,12 @@ public class Linear extends AbstractTrainableModule {
 	}
 	
 	@Override
-	protected void forward(UUID from) {
+	protected void forward() {
 		output = factory.getTensorMath().addmv(output, bias, weights, input);
 	}
 
 	@Override
-	protected void backward(UUID from) {
+	protected void backward() {
 		gradInput = factory.getTensorMath().tmv(gradInput, weights, gradOutput);
 	}
 
