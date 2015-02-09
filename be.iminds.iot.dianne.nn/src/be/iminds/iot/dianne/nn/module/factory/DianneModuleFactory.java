@@ -41,40 +41,40 @@ public class DianneModuleFactory implements ModuleFactory {
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
 			properties.add(new ModuleProperty("Input size", "input"));
 			properties.add(new ModuleProperty("Output size", "output"));
-			ModuleDescription description = new ModuleDescription("Linear", properties);
-			supportedModules.put(description.getName(), description);
+			ModuleDescription description = new ModuleDescription("Linear", "Linear", properties);
+			supportedModules.put(description.getType(), description);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleDescription description = new ModuleDescription("Sigmoid", properties);
-			supportedModules.put(description.getName(), description);
+			ModuleDescription description = new ModuleDescription("Sigmoid", "Activation", properties);
+			supportedModules.put(description.getType(), description);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleDescription description = new ModuleDescription("Tanh", properties);
-			supportedModules.put(description.getName(), description);
+			ModuleDescription description = new ModuleDescription("Tanh", "Activation", properties);
+			supportedModules.put(description.getType(), description);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleDescription description = new ModuleDescription("ReLU", properties);
-			supportedModules.put(description.getName(), description);
+			ModuleDescription description = new ModuleDescription("ReLU", "Activation", properties);
+			supportedModules.put(description.getType(), description);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
 			properties.add(new ModuleProperty("Threshold value", "thresh"));
 			properties.add(new ModuleProperty("Replacement value", "val"));
-			ModuleDescription description = new ModuleDescription("Threshold", properties);
-			supportedModules.put(description.getName(), description);
+			ModuleDescription description = new ModuleDescription("Threshold", "Activation", properties);
+			supportedModules.put(description.getType(), description);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleDescription description = new ModuleDescription("Input", properties);
-			supportedModules.put(description.getName(), description);
+			ModuleDescription description = new ModuleDescription("Input", "Input", properties);
+			supportedModules.put(description.getType(), description);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleDescription description = new ModuleDescription("Output", properties);
-			supportedModules.put(description.getName(), description);
+			ModuleDescription description = new ModuleDescription("Output", "Output", properties);
+			supportedModules.put(description.getType(), description);
 		}
 	}
 	

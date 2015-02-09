@@ -75,7 +75,10 @@ public class DianneBuilder extends HttpServlet {
 		
 		JsonArray jsonModules = new JsonArray();
 		for(ModuleDescription module : modules){
-			jsonModules.add(new JsonPrimitive(module.getName()));
+			JsonObject jsonModule = new JsonObject();
+			jsonModule.add("type", new JsonPrimitive(module.getType()));
+			jsonModule.add("category", new JsonPrimitive(module.getCategory()));
+			jsonModules.add(jsonModule);
 		}
 		writer.write(jsonModules.toString());
 		writer.flush();

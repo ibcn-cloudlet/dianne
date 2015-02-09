@@ -79,9 +79,9 @@ $( document ).ready(function() {
 	// build toolbox
 	$.post("/dianne/builder", {action : "available-modules"}, 
 		function( data ) {
-			$.each(data, function(index, type){
+			$.each(data, function(index, module){
 				// TODO fetch name/type/category
-				addToolboxItem('toolbox-build', type, type, type, 'build');
+				addToolboxItem('toolbox-build', module.type, module.type, module.category, 'build');
 			});
 		}
 		, "json");
