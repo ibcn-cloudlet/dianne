@@ -194,13 +194,12 @@ footer {
  * Draggable modals
  */
  
-.modal
-{
+.module-modal {
     overflow: hidden;
     display: table;
 }
 
-.modal-dialog{
+.module-dialog {
     margin-right: 0;
     margin-left: 0;
 }

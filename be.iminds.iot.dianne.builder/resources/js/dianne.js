@@ -466,7 +466,40 @@ function checkRemoveConnection(connection){
  * Save and load 
  */
 
-function save(){
+function showSaveDialog(){
+	var dialog = renderTemplate("dialog", {
+		id : "save",
+		title : "Save your neural network ",
+		submit: "Save",
+		cancel: "Cancel"
+	}, $(document.body));
+	
+	dialog.find('.content').append("<p>Provide a name for your neural network.</p>")
+	
+	renderTemplate('form-item',
+		{
+			name: "Name",
+			id: "name",
+			value: ""
+		}, dialog.find('.form-items'));
+	
+	// submit button callback
+	dialog.find(".submit").click(function(e){
+		var name = $(this).closest('.modal').find('.form-control').val();
+		save(name);
+	});
+	
+	// remove cancel button
+	dialog.find('.cancel').remove();
+	// remove module-modal specific stuff
+	dialog.removeClass("module-modal");
+	dialog.find('.module-dialog').removeClass("module-dialog");
+	// show dialog
+	dialog.modal('show');
+	
+}
+
+function save(name){
 	console.log("save");
 	// save modules
 	var modulesJson = JSON.stringify(nn);
@@ -476,8 +509,9 @@ function save(){
     var layoutJson = JSON.stringify(layout);
     console.log(layoutJson);
     
-	$.post("/dianne/save", {"modules":modulesJson, "layout":layoutJson}, 
+	$.post("/dianne/save", {"name":name, "modules":modulesJson, "layout":layoutJson}, 
 		function( data ) {
+			$('#dialog-save').remove();
 			console.log("Succesfully saved");
 		}
 		, "json");
@@ -524,14 +558,54 @@ function saveLayout(){
     return layout;
 }
 
-function load(){
+function showLoadDialog(){
+	var dialog = renderTemplate("dialog", {
+		id : "load",
+		title : "Load a neural network ",
+		submit: "Load",
+		cancel: "Cancel"
+	}, $(document.body));
+	
+	dialog.find('.content').append("<p>Select a neural network to load.</p>")
+	
+	renderTemplate("form-dropdown", 
+			{	
+				name: "Neural network: "
+			},
+			dialog.find('.form-items'));
+	$.post("/dianne/load", {"action" : "list"}, 
+			function( data ) {
+				$.each(data, function(index, name){
+					dialog.find('.options').append("<option value="+name+">"+name+"</option>")
+				});
+			}
+			, "json");
+	
+	// submit button callback
+	dialog.find(".submit").click(function(e){
+		var name = $(this).closest('.modal').find('.options').val();
+		load(name);
+	});
+	
+	// remove cancel button
+	dialog.find('.cancel').remove();
+	// remove module-modal specific stuff
+	dialog.removeClass("module-modal");
+	dialog.find('.module-dialog').removeClass("module-dialog");
+	// show dialog
+	dialog.modal('show');
+	
+}
+
+function load(name){
 	console.log("load");
 	
-	$.post("/dianne/load", {}, 
+	$.post("/dianne/load", {"action":"load", "name":name}, 
 			function( data ) {
 				nn = data.modules;
 				loadLayout(data.layout);
 		
+				$('#dialog-load').remove();
 				console.log("Succesfully loaded");
 			}
 			, "json");

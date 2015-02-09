@@ -35,8 +35,8 @@
 				
 				<nav class='controls'>
 	                <ul id="save-load" class="nav save-load-nav control-group">
-						<li><a href="#" id="menu-load" onclick="save();return false;">Save</a></li>
-						<li><a href="#" id="menu-save" onclick="load();return false;">Load</a></li>
+						<li><a href="#" id="menu-load" onclick="showLoadDialog();return false;">Load</a></li>
+						<li><a href="#" id="menu-save" onclick="showSaveDialog();return false;">Save</a></li>
 	                </ul>
                 </nav>
 				
@@ -72,7 +72,6 @@
 		</footer>
 	</div>
 
-
 	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 	<script src="js/lib/jquery.min.js"></script>
 	<!-- Include all compiled plugins (below), or include individual files as needed -->
@@ -99,8 +98,8 @@
 	</script>
 
 	<script type="x-tmpl-mustache" id="dialog">
-	<div class="modal fade" id="dialog-{{id}}" tabindex="-1" role="dialog">
-		<div class="modal-dialog">
+	<div class="modal fade module-modal" id="dialog-{{id}}" tabindex="-1" role="dialog">
+		<div class="modal-dialog module-dialog">
 			<div class="modal-content">
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal">
