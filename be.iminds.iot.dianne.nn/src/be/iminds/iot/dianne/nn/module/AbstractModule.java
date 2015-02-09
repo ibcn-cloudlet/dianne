@@ -33,9 +33,9 @@ public abstract class AbstractModule implements Module {
 	protected Tensor gradOutput;
 	
 	// The next module reference
-	protected Module[] next;
+	protected Runnable[] next;
 	// The prev module references
-	protected Module[] prev;
+	protected Runnable[] prev;
 	
 	// Thread executor to perform calculations on
 	protected ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -67,31 +67,15 @@ public abstract class AbstractModule implements Module {
 	public UUID getId() {
 		return id;
 	}
-
-	protected final Runnable forward = new Runnable(){
-		public void run(){
-			if(next!=null){
-				callNext();
-			}
-		}
-	};
 	
 	protected void callNext(){
 		// default AbstractModule just assumes one next and one previous, use Fork otherwise
-		next[0].forward(this.id, this.output);
+		executor.execute(next[0]);
 	}
-	
-	protected final Runnable backward = new Runnable(){
-		public void run(){
-			if(prev!=null){
-				callPrevious();
-			}
-		}
-	};
 	
 	protected void callPrevious(){
 		// default AbstractModule just assumes one next and one previous, use Join otherwise
-		prev[0].backward(this.id, this.gradInput);
+		executor.execute(prev[0]);
 	}
 	
 	@Override
@@ -101,7 +85,8 @@ public abstract class AbstractModule implements Module {
 		// calculates new outputs
 		forward();
 		
-		executor.execute(forward);
+		if(next!=null)
+			callNext();
 	
 		if(fwdListeners.size()>0)
 			notifyForwardListeners();
@@ -117,7 +102,8 @@ public abstract class AbstractModule implements Module {
 		backward();
 		
 		// backward on separate thread
-		executor.execute(backward);
+		if(prev!=null)
+			callPrevious();
 		
 		if(bwListeners.size()>0)
 			notifyBackwardListeners();
@@ -130,7 +116,10 @@ public abstract class AbstractModule implements Module {
 		if(next==null){
 			this.next = null;
 		} else {
-			this.next = next;
+			this.next = new ForwardRunnable[next.length];
+			for(int i=0;i<next.length;i++){
+				this.next[i] = new ForwardRunnable(next[i]);
+			}
 		}
 	}
 
@@ -139,7 +128,10 @@ public abstract class AbstractModule implements Module {
 		if(prev==null){
 			this.prev = null;
 		} else {
-			this.prev = prev;
+			this.prev = new BackwardRunnable[prev.length];
+			for(int i=0;i<prev.length;i++){
+				this.prev[i] = new BackwardRunnable(prev[i]);
+			}
 		}
 	}
 
@@ -185,5 +177,29 @@ public abstract class AbstractModule implements Module {
 			}
 		};
 		executor.execute(r);
+	}
+	
+	private final class ForwardRunnable implements Runnable {
+		private final Module m;
+		
+		public ForwardRunnable(Module m){
+			this.m = m;
+		}
+		
+		public void run(){
+			m.forward(id, output);
+		}
+	}
+	
+	private final class BackwardRunnable implements Runnable {
+		private final Module m;
+		
+		public BackwardRunnable(Module m){
+			this.m = m;
+		}
+		
+		public void run(){
+			m.backward(id, gradInput);
+		}
 	}
 }
