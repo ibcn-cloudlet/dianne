@@ -29,12 +29,12 @@ public class OutputImpl extends AbstractModule implements Output {
 	}
 	
 	@Override
-	protected void forward() {
+	protected void forward(UUID from) {
 		output = input;
 	}
 
 	@Override
-	protected void backward() {
+	protected void backward(UUID from) {
 		gradInput = gradOutput;
 	}
 	
