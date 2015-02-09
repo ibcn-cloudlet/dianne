@@ -22,7 +22,7 @@ public class Accumulate extends Join {
 	protected void forward() {
 		// accumulate inputs
 		if(tempAcc==null){
-			factory.createTensor(inputs.values().iterator().next().dims());
+			tempAcc = factory.createTensor(inputs.values().iterator().next().dims());
 		}
 		tempAcc.fill(0.0f);
 		for(Tensor t : inputs.values()){

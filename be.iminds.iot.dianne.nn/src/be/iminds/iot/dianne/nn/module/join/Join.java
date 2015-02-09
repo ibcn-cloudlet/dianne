@@ -17,7 +17,7 @@ public abstract class Join extends AbstractModule {
 	
 	// this will make sure that one will wait until all prev have given input before forwarding
 	protected boolean sync = true;
-	protected Map<UUID, AtomicBoolean> prevLock;
+	protected Map<UUID, AtomicBoolean> prevLock = new HashMap<UUID, AtomicBoolean>();
 	
 	public Join(TensorFactory factory) {
 		super(factory);
@@ -69,7 +69,13 @@ public abstract class Join extends AbstractModule {
 		} else {
 			this.prev = new BackwardJoinRunnable[prev.length];
 			for(int i=0;i<prev.length;i++){
-				this.prev[i] = new BackwardJoinRunnable(prev[i]);
+				// make sure that UUIDs are in keys
+				// TODO better fix for this?
+				UUID id = prev[i].getId();
+				inputs.put(id, null);
+				gradInputs.put(id, null);
+				prevLock.put(id, new AtomicBoolean(false));
+				this.prev[i] = new BackwardJoinRunnable(prev[i], id);
 			}
 		}
 	}
@@ -78,9 +84,9 @@ public abstract class Join extends AbstractModule {
 		private final Module m;
 		private final UUID prevId;
 		
-		public BackwardJoinRunnable(Module m){
+		public BackwardJoinRunnable(Module m, UUID id){
 			this.m = m;
-			this.prevId = m.getId();
+			this.prevId = id;
 		}
 		
 		public void run(){

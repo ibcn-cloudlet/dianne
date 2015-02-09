@@ -17,7 +17,7 @@ public abstract class Fork extends AbstractModule {
 	
 	// this will make sure that one will wait until all prev have given input before forwarding
 	protected boolean sync = true;
-	protected Map<UUID, AtomicBoolean> nextLock;
+	protected Map<UUID, AtomicBoolean> nextLock = new HashMap<UUID, AtomicBoolean>();
 	
 	public Fork(TensorFactory factory) {
 		super(factory);
@@ -63,13 +63,31 @@ public abstract class Fork extends AbstractModule {
 			notifyBackwardListeners();
 	}
 	
+	@Override
+	public void setNext(final Module... next) {
+		if(next==null){
+			this.next = null;
+		} else {
+			this.next = new ForwardForkRunnable[next.length];
+			for(int i=0;i<next.length;i++){
+				UUID id = next[i].getId();
+				// make sure that UUIDs are in keys
+				// TODO better fix for this?
+				this.outputs.put(id, null);
+				this.gradOutputs.put(id, null);
+				this.nextLock.put(id, new AtomicBoolean(false));
+				this.next[i] = new ForwardForkRunnable(next[i], id);
+			}
+		}
+	}
+	
 	private final class ForwardForkRunnable implements Runnable {
 		private final Module m;
 		private final UUID nextId;
 		
-		public ForwardForkRunnable(Module m){
+		public ForwardForkRunnable(Module m, UUID id){
 			this.m = m;
-			this.nextId = m.getId();
+			this.nextId = id;
 		}
 		
 		public void run(){
