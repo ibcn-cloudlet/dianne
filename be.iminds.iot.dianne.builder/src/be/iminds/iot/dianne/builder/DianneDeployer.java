@@ -118,10 +118,40 @@ public class DianneDeployer extends HttpServlet {
 		properties.put("module.type", type);
 		
 		if(moduleJson.has("next")){
-			properties.put("module.next", moduleJson.get("next").getAsString());
+			String next;
+			if(moduleJson.get("next").isJsonArray()){
+				JsonArray nextJson = moduleJson.get("next").getAsJsonArray();
+				next = "";
+				Iterator<JsonElement> it = nextJson.iterator();
+				while(it.hasNext()){
+					JsonElement e = it.next();
+					next+=e.getAsString();
+					if(it.hasNext()){
+						next+=",";
+					}
+				}
+			} else {
+				next = moduleJson.get("next").getAsString();
+			}
+			properties.put("module.next", next);
 		}
 		if(moduleJson.has("prev")){
-			properties.put("module.prev", moduleJson.get("prev").getAsString());
+			String prev;
+			if(moduleJson.get("prev").isJsonArray()){
+				JsonArray prevJson = moduleJson.get("prev").getAsJsonArray();
+				prev = "";
+				Iterator<JsonElement> it = prevJson.iterator();
+				while(it.hasNext()){
+					JsonElement e = it.next();
+					prev+=e.getAsString();
+					if(it.hasNext()){
+						prev+=",";
+					}
+				}
+			} else {
+				prev = moduleJson.get("prev").getAsString();
+			}
+			properties.put("module.prev", prev);
 		}
 		if(moduleJson.has("parameters")){
 			properties.put("module.parameters", moduleJson.get("parameters").getAsString());

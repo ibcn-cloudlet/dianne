@@ -20,8 +20,10 @@ import be.iminds.iot.dianne.nn.module.activation.Tanh;
 import be.iminds.iot.dianne.nn.module.activation.Threshold;
 import be.iminds.iot.dianne.nn.module.description.ModuleDescription;
 import be.iminds.iot.dianne.nn.module.description.ModuleProperty;
+import be.iminds.iot.dianne.nn.module.fork.Duplicate;
 import be.iminds.iot.dianne.nn.module.io.InputImpl;
 import be.iminds.iot.dianne.nn.module.io.OutputImpl;
+import be.iminds.iot.dianne.nn.module.join.Accumulate;
 import be.iminds.iot.dianne.nn.module.layer.Linear;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -76,6 +78,16 @@ public class DianneModuleFactory implements ModuleFactory {
 			ModuleDescription description = new ModuleDescription("Output", "Output", properties);
 			supportedModules.put(description.getType(), description);
 		}
+		{
+			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
+			ModuleDescription description = new ModuleDescription("Duplicate", "Fork", properties);
+			supportedModules.put(description.getType(), description);
+		}
+		{
+			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
+			ModuleDescription description = new ModuleDescription("Accumulate", "Join", properties);
+			supportedModules.put(description.getType(), description);
+		}
 	}
 	
 	@Override
@@ -87,7 +99,7 @@ public class DianneModuleFactory implements ModuleFactory {
 		// for now just hard code an if/else for each known module
 		String type = (String)config.get("module.type");
 		UUID id = UUID.fromString((String)config.get("module.id"));
-		
+
 		switch(type){
 		case "Linear":
 			int input = Integer.parseInt((String)config.get("module.linear.input"));
@@ -115,6 +127,12 @@ public class DianneModuleFactory implements ModuleFactory {
 			break;
 		case "Output":
 			module = new OutputImpl(factory, id);
+			break;
+		case "Duplicate":
+			module = new Duplicate(factory, id);
+			break;
+		case "Accumulate":
+			module = new Accumulate(factory, id);
 			break;
 		default:
 			throw new InstantiationException("Could not instantiate module of type "+type);

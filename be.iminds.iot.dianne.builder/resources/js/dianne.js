@@ -290,6 +290,12 @@ function setupModule(moduleItem, type, category){
 		jsPlumb.addEndpoint(moduleItem, sourceStyle, {endpoint:"Rectangle"});
 	} else if(category==="RunOutput"){ 
 		jsPlumb.addEndpoint(moduleItem, targetStyle, {endpoint:"Rectangle"});
+	} else if(category==="Fork") {
+		jsPlumb.addEndpoint(moduleItem, sourceStyle, {maxConnections:-1});
+		jsPlumb.addEndpoint(moduleItem, targetStyle);
+	} else if(category==="Join") {
+		jsPlumb.addEndpoint(moduleItem, sourceStyle);
+		jsPlumb.addEndpoint(moduleItem, targetStyle, {maxConnections:-1});
 	} else {
 		jsPlumb.addEndpoint(moduleItem, sourceStyle);
 		jsPlumb.addEndpoint(moduleItem, targetStyle);
@@ -328,11 +334,15 @@ function removeModule(moduleItem){
 
 	// remove from modules
 	if(mode==="nn"){
-		if(nn[nn[id].next]!==undefined){
-			delete nn[nn[id].next].prev;
+		if(nn[id].next!==undefined){
+			$.each(nn[id].next, function( index, next ) {
+				removePrevious(next, id);
+			});
 		}
-		if(nn[nn[id].prev]!==undefined){
-			delete nn[nn[id].prev].next;
+		if(nn[id].prev!==undefined){
+			$.each(nn[id].prev, function(index, prev){
+				removeNext(prev, id);
+			});
 		}
 		delete nn[id];
 	} else if(mode==="learn"){
@@ -364,8 +374,8 @@ function addConnection(connection){
 			running[connection.targetId].output = connection.sourceId; 
 		}
 	} else {
-		nn[connection.sourceId].next = connection.targetId;
-		nn[connection.targetId].prev = connection.sourceId;
+		addNext(connection.sourceId, connection.targetId);
+		addPrevious(connection.targetId, connection.sourceId);
 	}
 }
 
@@ -389,8 +399,42 @@ function removeConnection(connection){
 			delete running[connection.targetId].output; 
 		}
 	} else {
-		delete nn[connection.sourceId].next;
-		delete nn[connection.targetId].prev;
+		removeNext(connection.sourceId, connection.targetId);	
+		removePrevious(connection.targetId, connection.sourceId);
+	}
+}
+
+function addNext(id, next){
+	if(nn[id].next === undefined){
+		nn[id].next = [next];
+	} else { 
+		nn[id].next.push(next);
+	}
+}
+
+function removeNext(id, next){
+	if(nn[id].next.length==1){
+		delete nn[id].next;
+	} else {
+		var i = nn[id].next.indexOf(next);
+		nn[id].next.splice(i, 1);
+	} 
+}
+
+function addPrevious(id, prev){
+	if(nn[id].prev === undefined){
+		nn[id].prev = [prev];
+	} else { 
+		nn[id].prev.push(prev);
+	}
+}
+
+function removePrevious(id, prev){
+	if(nn[id].prev.length==1){	
+		delete nn[id].prev;
+	} else {
+		var i = nn[id].prev.indexOf(prev);
+		nn[id].prev.splice(i, 1);
 	}
 }
 
@@ -500,14 +544,12 @@ function showSaveDialog(){
 }
 
 function save(name){
-	console.log("save");
 	// save modules
 	var modulesJson = JSON.stringify(nn);
 	
 	// save layout
 	var layout = saveLayout();
     var layoutJson = JSON.stringify(layout);
-    console.log(layoutJson);
     
 	$.post("/dianne/save", {"name":name, "modules":modulesJson, "layout":layoutJson}, 
 		function( data ) {
