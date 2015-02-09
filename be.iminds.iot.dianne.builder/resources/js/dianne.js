@@ -333,7 +333,7 @@ function removeModule(moduleItem){
 	moduleItem.remove();
 
 	// remove from modules
-	if(mode==="nn"){
+	if(mode==="build"){
 		if(nn[id].next!==undefined){
 			$.each(nn[id].next, function( index, next ) {
 				removePrevious(next, id);
