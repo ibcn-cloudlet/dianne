@@ -602,6 +602,9 @@ function load(name){
 	
 	$.post("/dianne/load", {"action":"load", "name":name}, 
 			function( data ) {
+				// empty canvas?
+				$('#canvas').empty();
+		
 				nn = data.modules;
 				loadLayout(data.layout);
 		
@@ -640,6 +643,7 @@ function redrawElement(id, posX, posY){
 			}, 
 			$('#canvas'));
 	
+	moduleItem.addClass("build");
 	moduleItem.attr("id", id);
 	moduleItem.draggable();
 	moduleItem.css('position','absolute');
