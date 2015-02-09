@@ -122,7 +122,8 @@ public abstract class AbstractModule implements Module {
 		
 		executor.execute(forward);
 	
-		notifyForwardListeners();
+		if(fwdListeners.size()>0)
+			notifyForwardListeners();
 	}
 	
 	protected abstract void forward(UUID from);
@@ -152,7 +153,8 @@ public abstract class AbstractModule implements Module {
 		// backward on separate thread
 		executor.execute(backward);
 		
-		notifyBackwardListeners();
+		if(bwListeners.size()>0)
+			notifyBackwardListeners();
 	}
 	
 	protected abstract void backward(UUID from);
@@ -203,11 +205,9 @@ public abstract class AbstractModule implements Module {
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
-				if(fwdListeners.size()>0){
-					synchronized (fwdListeners) {
-						for(ForwardListener f : fwdListeners){
-							f.onForward(AbstractModule.this.output);
-						}
+				synchronized (fwdListeners) {
+					for(ForwardListener f : fwdListeners){
+						f.onForward(AbstractModule.this.output);
 					}
 				}
 			}
@@ -227,11 +227,9 @@ public abstract class AbstractModule implements Module {
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
-				if(bwListeners.size()>0){
-					synchronized (bwListeners) {
-						for(BackwardListener b : bwListeners){
-							b.onBackward(AbstractModule.this.output);
-						}
+				synchronized (bwListeners) {
+					for(BackwardListener b : bwListeners){
+						b.onBackward(AbstractModule.this.gradInput);
 					}
 				}
 			}
