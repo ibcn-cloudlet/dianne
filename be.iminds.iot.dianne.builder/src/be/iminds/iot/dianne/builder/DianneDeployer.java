@@ -69,7 +69,7 @@ public class DianneDeployer extends HttpServlet {
 				
 				for(Entry<String, JsonElement> module : modulesJson.entrySet()){
 					JsonObject moduleJson = (JsonObject) module.getValue();
-					deployModule(moduleJson, runtimes.keySet().iterator().next());
+					deployModule(moduleJson, "local");
 				}
 				// TODO only return deployment of deployed modules?
 				returnDeployment(response.getWriter());
