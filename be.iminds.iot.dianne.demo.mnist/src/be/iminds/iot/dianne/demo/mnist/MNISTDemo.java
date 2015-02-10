@@ -69,7 +69,7 @@ public class MNISTDemo {
 	@Reference
 	public void setOutput(Output output){
 		this.output = output;
-		((AbstractModule)this.output).addForwardListener(outputLog);
+		this.output.addForwardListener(outputLog);
 	}
 
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
@@ -96,7 +96,7 @@ public class MNISTDemo {
 			return;
 		}
 		// disable log when training
-		((AbstractModule)this.output).removeForwardListener(outputLog);
+		this.output.removeForwardListener(outputLog);
 		
 		System.out.println("Training ...");
 		Criterion loss = new MSECriterion(factory);
@@ -111,7 +111,7 @@ public class MNISTDemo {
 		trainer.train(input, output, toTrain, loss, dataTrain);
 		System.out.println("Trained!");
 		
-		((AbstractModule)this.output).addForwardListener(outputLog);
+		this.output.addForwardListener(outputLog);
 	}
 	
 	public void evaluate(){
@@ -121,7 +121,7 @@ public class MNISTDemo {
 		}
 		
 		// disable log when evaluating
-		((AbstractModule)this.output).removeForwardListener(outputLog);
+		this.output.removeForwardListener(outputLog);
 		
 		System.out.println("Evaluating...");
 		ArgMaxEvaluator eval = new ArgMaxEvaluator(factory);
@@ -134,7 +134,7 @@ public class MNISTDemo {
 		Evaluation result = eval.evaluate(input, output, dataTest);
 		System.out.println("Accuracy: "+result.accuracy());
 		
-		((AbstractModule)this.output).addForwardListener(outputLog);
+		this.output.addForwardListener(outputLog);
 	}
 	
 	public void sample(){

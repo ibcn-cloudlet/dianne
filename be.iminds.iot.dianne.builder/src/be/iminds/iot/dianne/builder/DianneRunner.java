@@ -50,7 +50,7 @@ public class DianneRunner extends HttpServlet {
 	public void setOutput(Output output){
 		this.output = output;
 		
-		((AbstractModule)output).addForwardListener(new ForwardListener() {
+		this.output.addForwardListener(new ForwardListener() {
 			@Override
 			public void onForward(Tensor output) {
 				if(sse!=null){

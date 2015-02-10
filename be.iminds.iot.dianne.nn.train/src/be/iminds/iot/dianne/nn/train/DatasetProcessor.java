@@ -3,7 +3,6 @@ package be.iminds.iot.dianne.nn.train;
 import java.util.concurrent.CountDownLatch;
 
 import be.iminds.iot.dianne.dataset.Dataset;
-import be.iminds.iot.dianne.nn.module.AbstractModule;
 import be.iminds.iot.dianne.nn.module.BackwardListener;
 import be.iminds.iot.dianne.nn.module.ForwardListener;
 import be.iminds.iot.dianne.nn.module.Input;
@@ -57,7 +56,7 @@ public abstract class DatasetProcessor {
 				}
 			}
 		};
-		((AbstractModule)input).addBackwardListener(inputListener);
+		input.addBackwardListener(inputListener);
 		
 		ForwardListener outputListener = new ForwardListener() {
 			
@@ -77,7 +76,7 @@ public abstract class DatasetProcessor {
 				}
 			}
 		};
-		((AbstractModule)output).addForwardListener(outputListener);
+		output.addForwardListener(outputListener);
 		
 		// forward first item
 		Tensor in = data.getInputSample(index);
@@ -91,8 +90,8 @@ public abstract class DatasetProcessor {
 		
 		
 		// remove listeners again
-		((AbstractModule)input).removeBackwardListener(inputListener);
-		((AbstractModule)output).removeForwardListener(outputListener);
+		input.removeBackwardListener(inputListener);
+		output.removeForwardListener(outputListener);
 		// reset index
 		index = 0;
 	}

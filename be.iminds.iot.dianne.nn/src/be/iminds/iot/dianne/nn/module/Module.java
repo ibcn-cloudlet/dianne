@@ -17,4 +17,12 @@ public interface Module {
 	public void setPrevious(final Module... prev);
 
 	
+	public void addForwardListener(ForwardListener listener);
+	
+	public void removeForwardListener(ForwardListener listener);
+	
+	public void addBackwardListener(BackwardListener listener);
+	
+	public void removeBackwardListener(BackwardListener listener);
+	
 }
