@@ -36,4 +36,5 @@
 	
 -runproperties:\
 	org.osgi.service.http.port=8080,\
-	org.apache.felix.http.jetty.maxFormSize=999999999
+	org.apache.felix.http.jetty.maxFormSize=999999999,\
+	be.iminds.iot.dianne.storage="../tools/nn"

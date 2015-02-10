@@ -14,6 +14,7 @@ jclouds.version='[1.8.0,1.9.0)'
 	org.apache.felix.http.api;version='[2.3.2,2.4)',\
 	org.apache.felix.http.jetty;version='[2.3.2,2.4)',\
 	org.apache.felix.http.servlet-api;version='[1.0.1,1.1)',\
+	org.apache.felix.http.whiteboard;version='[2.3.2,2.4)',\
 	org.apache.felix.webconsole,\
 	org.apache.felix.webconsole.plugins.gogo,\
 	org.apache.felix.configadmin;version=1.6.0,\
@@ -72,9 +73,8 @@ jclouds.version='[1.8.0,1.9.0)'
 	be.iminds.iot.dianne.nn;version=latest,\
 	be.iminds.iot.dianne.nn.runtime;version=latest,\
 	be.iminds.iot.dianne.nn.train;version=latest,\
-	be.iminds.iot.dianne.demo.mnist.input;version=latest,\
-	be.iminds.iot.dianne.demo.mnist.output;version=latest,\
-	be.iminds.iot.dianne.demo.mnist.core;version=latest
+	be.iminds.iot.dianne.dataset.mnist;version=latest,\
+	be.iminds.iot.dianne.builder;version=latest
 	
 
 -runstorage: generated/mgmt
@@ -84,4 +84,5 @@ jclouds.version='[1.8.0,1.9.0)'
 -runproperties: org.apache.felix.log.storeDebug=true,\
 	felix.fileinstall.dir=resources,\
 	org.osgi.service.http.port=8080,\
+	org.apache.felix.http.jetty.maxFormSize=999999999,\
 	logback.configurationFile=resources/logback.xml
