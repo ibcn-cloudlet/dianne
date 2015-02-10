@@ -203,6 +203,19 @@ public class JavaTensor implements Tensor<JavaTensor> {
 		}
 		return true;
 	}
+	
+	@Override
+	public boolean hasDim(final int... dims){
+		if(this.dims.length!=dims.length){
+			return false;
+		}
+		for(int i=0;i<dims.length;i++){
+			if(this.dims[i] != dims[i]){
+				return false;
+			}
+		}
+		return true;
+	}
 
 	@Override
 	public JavaTensor copyInto(JavaTensor other) {
