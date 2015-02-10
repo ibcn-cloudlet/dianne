@@ -279,4 +279,21 @@ public class TensorMathTest<T extends Tensor<T>> {
 		t1.set(5, 3);
 		Assert.assertEquals(0, math.argmin(t1));
 	}
+	
+	@Test
+	public void testConvolution(){
+		T t1 = factory.createTensor(5,5);
+		T t2 = factory.createTensor(3,3);
+		T result = factory.createTensor(3,3);
+		
+		t1.fill(1.0f);
+		t1.set(2.0f, 0, 0);
+		t1.set(2.0f, 4, 4);
+		t2.fill(2.0f);
+		result.fill(18.0f);
+		result.set(20.0f, 0, 0);
+		result.set(20.0f, 2, 2);
+		
+		Assert.assertEquals(result, math.convolution2D(null, t1, t2));
+	}
 }

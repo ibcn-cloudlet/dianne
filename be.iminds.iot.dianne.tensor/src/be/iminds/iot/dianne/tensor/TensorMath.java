@@ -203,4 +203,9 @@ public interface TensorMath<T extends Tensor<T>> {
 	 * Return index of the min element (treats T as 1 dim vector)
 	 */
 	public int argmin(final T tensor);
+	
+	/**
+	 * Calculate 2D convolution mat1 * mat2
+	 */
+	public T convolution2D(T res, final T mat1, final T mat2);
 }
