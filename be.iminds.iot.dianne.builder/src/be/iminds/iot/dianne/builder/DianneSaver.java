@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 
@@ -21,8 +22,8 @@ public class DianneSaver extends HttpServlet {
 	private String storage = "nn";
 	
 	@Activate
-	public void activate(Map<String, Object> properties){
-		String s = (String) properties.get("be.iminds.iot.dianne.storage");
+	public void activate(BundleContext context){
+		String s = context.getProperty("be.iminds.iot.dianne.storage");
 		if(s!=null){
 			storage = s;
 		}
