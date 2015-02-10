@@ -19,6 +19,9 @@ public abstract class Join extends AbstractModule {
 	protected boolean sync = true;
 	protected Map<UUID, AtomicBoolean> prevLock = new HashMap<UUID, AtomicBoolean>();
 	
+	// might need the order of id
+	protected UUID[] prevIds;
+	
 	public Join(TensorFactory factory) {
 		super(factory);
 	}
@@ -66,12 +69,15 @@ public abstract class Join extends AbstractModule {
 	public void setPrevious(final Module... prev) {
 		if(prev==null){
 			this.prev = null;
+			this.prevIds = null;
 		} else {
 			this.prev = new BackwardJoinRunnable[prev.length];
+			this.prevIds = new UUID[prev.length];
 			for(int i=0;i<prev.length;i++){
 				// make sure that UUIDs are in keys
 				// TODO better fix for this?
 				UUID id = prev[i].getId();
+				prevIds[i] = id;
 				inputs.put(id, null);
 				gradInputs.put(id, null);
 				prevLock.put(id, new AtomicBoolean(false));

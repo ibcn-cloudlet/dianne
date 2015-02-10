@@ -19,6 +19,8 @@ public abstract class Fork extends AbstractModule {
 	protected boolean sync = true;
 	protected Map<UUID, AtomicBoolean> nextLock = new HashMap<UUID, AtomicBoolean>();
 	
+	protected UUID[] nextIds;
+	
 	public Fork(TensorFactory factory) {
 		super(factory);
 	}
@@ -67,12 +69,15 @@ public abstract class Fork extends AbstractModule {
 	public void setNext(final Module... next) {
 		if(next==null){
 			this.next = null;
+			this.nextIds = null;
 		} else {
 			this.next = new ForwardForkRunnable[next.length];
+			this.nextIds = new UUID[next.length];
 			for(int i=0;i<next.length;i++){
 				UUID id = next[i].getId();
 				// make sure that UUIDs are in keys
 				// TODO better fix for this?
+				this.nextIds[i] = id;
 				this.outputs.put(id, null);
 				this.gradOutputs.put(id, null);
 				this.nextLock.put(id, new AtomicBoolean(false));

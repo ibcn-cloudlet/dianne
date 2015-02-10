@@ -21,9 +21,11 @@ import be.iminds.iot.dianne.nn.module.activation.Threshold;
 import be.iminds.iot.dianne.nn.module.description.ModuleDescription;
 import be.iminds.iot.dianne.nn.module.description.ModuleProperty;
 import be.iminds.iot.dianne.nn.module.fork.Duplicate;
+import be.iminds.iot.dianne.nn.module.fork.Split;
 import be.iminds.iot.dianne.nn.module.io.InputImpl;
 import be.iminds.iot.dianne.nn.module.io.OutputImpl;
 import be.iminds.iot.dianne.nn.module.join.Accumulate;
+import be.iminds.iot.dianne.nn.module.join.Concat;
 import be.iminds.iot.dianne.nn.module.layer.Linear;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -88,6 +90,16 @@ public class DianneModuleFactory implements ModuleFactory {
 			ModuleDescription description = new ModuleDescription("Accumulate", "Join", properties);
 			supportedModules.put(description.getType(), description);
 		}
+		{
+			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
+			ModuleDescription description = new ModuleDescription("Split", "Fork", properties);
+			supportedModules.put(description.getType(), description);
+		}
+		{
+			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
+			ModuleDescription description = new ModuleDescription("Concat", "Join", properties);
+			supportedModules.put(description.getType(), description);
+		}
 	}
 	
 	@Override
@@ -133,6 +145,12 @@ public class DianneModuleFactory implements ModuleFactory {
 			break;
 		case "Accumulate":
 			module = new Accumulate(factory, id);
+			break;
+		case "Split":
+			module = new Split(factory, id);
+			break;
+		case "Concat":
+			module = new Concat(factory, id);
 			break;
 		default:
 			throw new InstantiationException("Could not instantiate module of type "+type);
