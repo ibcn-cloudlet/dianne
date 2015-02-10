@@ -100,7 +100,7 @@ public interface Tensor<T extends Tensor<T>> {
 	public T narrow(final int... ranges);
 	
 	/**
-	 * Return a slice at the given index in dimension dim
+	 * Return a slice at the given index in dimension dim, dimension dim will be removed
 	 */
 	public T select(final int dim, final int index);
 	

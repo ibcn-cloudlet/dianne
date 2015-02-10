@@ -26,18 +26,22 @@ public class JavaTensor implements Tensor<JavaTensor> {
 	}
 	
 	private void init(final float[] data, final int[] dims){
-		this.dims = dims;
 		this.data = data;
 
+		initDims(dims);
+		
+		if(data!=null){
+			assert data.length == size();
+		}
+	}
+	
+	private void initDims(final int[] dims){
+		this.dims = dims;
 		this.strides = new int[dims.length];
 		int stride = 1;
 		for(int i=dims.length-1;i>=0;i--){
 			strides[i] = stride;
 			stride*= dims[i];
-		}
-		
-		if(data!=null){
-			assert data.length == size();
 		}
 	}
 	
@@ -123,8 +127,15 @@ public class JavaTensor implements Tensor<JavaTensor> {
 				s+="\n";
 			}
 			return s;
+		} else {
+			String s = "[";
+			for(int i=0;i< (indices==null? data.length : indices.length);i++){
+				s+=data[(indices==null ? i : indices[i])]+", ";
+			}
+			s = s.substring(0, s.length()-2);
+			s+="]";
+			return s;
 		}
-		return Arrays.toString(data);
 	}
 
 	@Override
@@ -239,7 +250,17 @@ public class JavaTensor implements Tensor<JavaTensor> {
 
 	@Override
 	public JavaTensor select(final int dim, final int index) {
-		return narrow(dim, index, 1);
+		JavaTensor result = narrow(dim, index, 1); 
+		int[] newDims = new int[result.dims.length-1];
+		int k = 0;
+		for(int i=0;i<result.dims.length;i++){
+			if(i!=dim){
+				newDims[k++] = result.dims[i];
+			}
+		}
+		// fix strides
+		result.initDims(newDims);
+		return result;
 	}
 	
 	@Override

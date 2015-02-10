@@ -1,5 +1,7 @@
 package be.iminds.iot.dianne.tensor;
 
+import java.util.Arrays;
+
 import junit.framework.Assert;
 
 import org.junit.Before;
@@ -178,6 +180,34 @@ public class TensorTest<T extends Tensor<T>> {
 		
 		Assert.assertEquals(true, t3.equals(t2));
 		Assert.assertEquals(3, t3.size());
+	}
+	
+	@Test
+	public void testSelect(){
+		T t = factory.createTensor(3,3);
+		for(int i = 0; i < 3; i++)
+			for(int j = 0; j < 3; j++)
+				t.set(i*2+j, i, j);
+		
+		T row1 = t.select(0, 1);
+		T expected = factory.createTensor(3);
+		expected.set(2.0f, 0);
+		expected.set(3.0f, 1);
+		expected.set(4.0f, 2);
+		
+		Assert.assertEquals(1, row1.dim());
+		Assert.assertEquals(3, row1.dims()[0]);
+		Assert.assertEquals(expected, row1);
+		
+		T col1 = t.select(1, 1);
+		
+		expected.set(1.0f, 0);
+		expected.set(3.0f, 1);
+		expected.set(5.0f, 2);
+		
+		Assert.assertEquals(1, col1.dim());
+		Assert.assertEquals(3, col1.dims()[0]);
+		Assert.assertEquals(expected, col1);
 	}
 	
 	@Test
