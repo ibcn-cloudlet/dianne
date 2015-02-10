@@ -167,7 +167,7 @@ function createDeployModuleDialog(id, moduleItem){
 			
 			deploy(id, target);
 			
-			$(this).closest(".modal").modal('hide');
+			$(this).closest(".modal").remove();
 		});
 		dialog.find(".cancel").prop('disabled', true);
 	} else {
@@ -176,8 +176,7 @@ function createDeployModuleDialog(id, moduleItem){
 			var id = $(this).closest(".modal").find(".module-id").val();
 			undeploy(id);
 			
-			// remove dialog when module is removed, else keep it for reuse
-			$(this).closest(".modal").modal('hide');
+			$(this).closest(".modal").remove();
 		});
 		dialog.find(".submit").prop('disabled', true);
 	}
