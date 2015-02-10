@@ -196,16 +196,12 @@ public class JavaTensor implements Tensor<JavaTensor> {
 	@Override
 	public JavaTensor copyInto(JavaTensor other) {
 		if(other == null
-				|| this.data.length != other.data.length)
+				|| this.size() != other.size())
 			other = new JavaTensor(dims);
 		
-		if(indices==null){
-			for(int i=0;i<data.length;i++)
-				other.data[i] = data[i];
-		} else {
-			for(int i=0;i<indices.length;i++){
-				other.data[i] = data[indices[i]];
-			}
+		for(int i=0;i<(indices==null?data.length:indices.length);i++){
+			other.data[(other.indices==null ? i : other.indices[i])] 
+					= data[(indices==null ? i : indices[i])];
 		}
 		
 		return other;
