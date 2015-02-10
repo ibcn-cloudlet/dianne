@@ -510,11 +510,10 @@ function deploy(id, target){
 			function( data ) {
 				$.each( data, function(id,target){
 					deployment[id] = target;
-					// TODO separate color per node?
 					var c = deploymentColors[target]; 
-					if(c==undefined){
+					if(c === undefined){
 						c = nextColor();
-						 deploymentColors[target] = c;
+						deploymentColors[target] = c;
 					}
 					$("#"+id).css('background-color', c);
 				});
