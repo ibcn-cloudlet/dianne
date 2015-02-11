@@ -296,4 +296,22 @@ public class TensorMathTest<T extends Tensor<T>> {
 		
 		Assert.assertEquals(result, math.convolution2D(null, t1, t2));
 	}
+	
+	@Test
+	public void testMaxpool(){
+		T t1 = factory.createTensor(4,4);
+		t1.fill(0.0f);
+		t1.set(1.0f, 0, 0);
+		t1.set(1.0f, 0, 3);
+		t1.set(2.0f, 2, 0);
+		
+		T result = factory.createTensor(2,2);
+		result.set(1.0f, 0, 0);
+		result.set(1.0f, 0, 1);
+		result.set(2.0f, 1, 0);
+		result.set(0.0f, 1, 1);
+		
+		Assert.assertEquals(result, math.maxpool2D(null, t1, 2, 2));
+
+	}
 }
