@@ -69,7 +69,7 @@ public class SpatialConvolution extends AbstractTrainableModule {
 				
 				// TODO convadd operation to avoid temp?
 				temp = factory.getTensorMath().convolution2D(temp,
-						noInputPlanes== 1 ? input : input.select(0, j), kernel);
+						noInputPlanes== 1 ? input : input.select(0, j), kernel, false);
 				factory.getTensorMath().add(outputPlane, outputPlane, temp);
 			}
 		}
@@ -95,7 +95,7 @@ public class SpatialConvolution extends AbstractTrainableModule {
 				// TODO update gradInput
 				// this should be "full" convolution and transformed? kernel?
 				temp = factory.getTensorMath().convolution2D(temp,
-						gradOutput.select(0, j), kernel);
+						gradOutput.select(0, j), kernel, true);
 				factory.getTensorMath().add(inputPlane, inputPlane, temp);
 			}
 		}
@@ -105,6 +105,8 @@ public class SpatialConvolution extends AbstractTrainableModule {
 	public void accGradParameters() {
 		// calculate grad parameters based on http://andrew.gibiansky.com/blog/machine-learning/convolutional-neural-networks/
 		
+		Tensor temp = null;
+		
 		for(int i=0;i<noOutputPlanes;i++){
 			Tensor planeGradKernels = gradParameters.select(0, i);
 		
@@ -112,8 +114,9 @@ public class SpatialConvolution extends AbstractTrainableModule {
 				Tensor gradKernel = planeGradKernels.select(0, j);
 				
 				// TODO update gradKernel
-				factory.getTensorMath().convolution2D(gradKernel, 
-						noInputPlanes== 1 ? input : input.select(0, j), gradOutput.select(0, i));
+				factory.getTensorMath().convolution2D(temp, 
+						noInputPlanes== 1 ? input : input.select(0, j), gradOutput.select(0, i), false);
+				factory.getTensorMath().add(gradKernel, gradKernel, temp);
 			}
 		}
 	}

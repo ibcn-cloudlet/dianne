@@ -476,30 +476,42 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 
 	@Override
-	public JavaTensor convolution2D(JavaTensor res, JavaTensor mat1, JavaTensor mat2) {
+	public JavaTensor convolution2D(JavaTensor res, JavaTensor mat1, JavaTensor mat2, boolean full) {
 		// TODO stride?
 		int h = mat2.size(0);
 		int w = mat2.size(1);
 		
+		int sx = 0;
+		int sy = 0;
 		int y = mat1.size(0) - h + 1;
 		int x = mat1.size(1) - w + 1;
+		
+		if(full){
+			sx -= (w-1);
+			sy -= (h-1);
+			x += (w-1);
+			y += (h-1);
+		}
 		
 		int skip = mat1.size(1);
 		
 		if(res==null){
-			res = factory.createTensor(y, x);
+			res = factory.createTensor(y-sy, x-sx);
 		}
 		
 		// TODO check dims?
 		int a = 0;
-		for(int i=0;i<y;i++){
-			for(int j=0;j<x;j++){
+		for(int i=sy;i<y;i++){
+			for(int j=sx;j<x;j++){
 				float r = 0;
 				int f = 0;
 				for(int k=0;k<h;k++){
 					for(int l=0;l<w;l++){
-						int index = (i+k)*skip+(j+l);
-						r += mat1.data[mat1.indices==null ? index : mat1.indices[index]]
+						int s = i+k;
+						int t = j+l;
+						int index = s*skip+t;
+						if(s>=0 && s<mat1.size(0) && t>=0 && t<mat1.size(1))
+							r += mat1.data[mat1.indices==null ? index : mat1.indices[index]]
 								* mat2.data[mat2.indices==null? f++ : mat2.indices[f++]];
 					}
 				}
