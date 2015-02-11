@@ -476,7 +476,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 
 	@Override
-	public JavaTensor convolution2D(JavaTensor res, JavaTensor mat1, JavaTensor mat2, boolean full) {
+	public JavaTensor convolution2D(JavaTensor res, JavaTensor mat1, JavaTensor mat2, boolean full, boolean flip) {
 		// TODO stride?
 		int h = mat2.size(0);
 		int w = mat2.size(1);
@@ -505,6 +505,9 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 			for(int j=sx;j<x;j++){
 				float r = 0;
 				int f = 0;
+				if(flip){
+					f = mat2.size()-1;
+				}
 				for(int k=0;k<h;k++){
 					for(int l=0;l<w;l++){
 						int s = i+k;
@@ -512,7 +515,12 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 						int index = s*skip+t;
 						if(s>=0 && s<mat1.size(0) && t>=0 && t<mat1.size(1))
 							r += mat1.data[mat1.indices==null ? index : mat1.indices[index]]
-								* mat2.data[mat2.indices==null? f++ : mat2.indices[f++]];
+								* mat2.data[mat2.indices==null? f : mat2.indices[f]];
+						if(flip){
+							f--;
+						} else {
+							f++;
+						}
 					}
 				}
 				res.data[(res.indices==null? a++ : res.indices[a++])] = r;

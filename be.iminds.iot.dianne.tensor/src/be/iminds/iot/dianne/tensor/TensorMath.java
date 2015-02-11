@@ -207,7 +207,7 @@ public interface TensorMath<T extends Tensor<T>> {
 	/**
 	 * Calculate 2D convolution mat1 * mat2
 	 */
-	public T convolution2D(T res, final T mat1, final T mat2, boolean full);
+	public T convolution2D(T res, final T mat1, final T mat2, boolean full, boolean flip);
 	
 	/**
 	 * Max pooling of tensor mat and put result in res

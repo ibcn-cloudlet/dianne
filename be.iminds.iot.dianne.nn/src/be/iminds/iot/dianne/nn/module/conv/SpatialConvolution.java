@@ -69,7 +69,7 @@ public class SpatialConvolution extends AbstractTrainableModule {
 				
 				// TODO convadd operation to avoid temp?
 				temp = factory.getTensorMath().convolution2D(temp,
-						noInputPlanes== 1 ? input : input.select(0, j), kernel, false);
+						noInputPlanes== 1 ? input : input.select(0, j), kernel, false, false);
 				factory.getTensorMath().add(outputPlane, outputPlane, temp);
 			}
 		}
@@ -93,9 +93,9 @@ public class SpatialConvolution extends AbstractTrainableModule {
 				Tensor kernel = planeKernels.select(0, j);
 				
 				// TODO update gradInput
-				// this should be "full" convolution and transformed? kernel?
+				// this should be "full" convolution and flipped kernel?
 				temp = factory.getTensorMath().convolution2D(temp,
-						gradOutput.select(0, j), kernel, true);
+						gradOutput.select(0, j), kernel, true, true);
 				factory.getTensorMath().add(inputPlane, inputPlane, temp);
 			}
 		}
@@ -115,7 +115,7 @@ public class SpatialConvolution extends AbstractTrainableModule {
 				
 				// TODO update gradKernel
 				factory.getTensorMath().convolution2D(temp, 
-						noInputPlanes== 1 ? input : input.select(0, j), gradOutput.select(0, i), false);
+						noInputPlanes== 1 ? input : input.select(0, j), gradOutput.select(0, i), false, false);
 				factory.getTensorMath().add(gradKernel, gradKernel, temp);
 			}
 		}
