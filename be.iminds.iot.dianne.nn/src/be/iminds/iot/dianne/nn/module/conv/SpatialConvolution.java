@@ -87,12 +87,12 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		
 		for(int i=0;i<noInputPlanes;i++){
 			Tensor planeKernels = parameters.select(1, i);
-			Tensor inputPlane = gradInput.select(0, i);
+			Tensor inputPlane = noInputPlanes== 1 ? gradInput : gradInput.select(0, i);
 			inputPlane.fill(0.0f);
 			for(int j=0;j<noOutputPlanes;j++){
 				Tensor kernel = planeKernels.select(0, j);
 				
-				// TODO update gradInput
+				// update gradInput
 				// this should be "full" convolution and flipped kernel?
 				temp = factory.getTensorMath().convolution2D(temp,
 						gradOutput.select(0, j), kernel, true, true);
@@ -113,9 +113,10 @@ public class SpatialConvolution extends AbstractTrainableModule {
 			for(int j=0;j<noInputPlanes;j++){
 				Tensor gradKernel = planeGradKernels.select(0, j);
 				
-				// TODO update gradKernel
-				factory.getTensorMath().convolution2D(temp, 
+				//  update gradKernel
+				temp = factory.getTensorMath().convolution2D(temp, 
 						noInputPlanes== 1 ? input : input.select(0, j), gradOutput.select(0, i), false, false);
+				
 				factory.getTensorMath().add(gradKernel, gradKernel, temp);
 			}
 		}
