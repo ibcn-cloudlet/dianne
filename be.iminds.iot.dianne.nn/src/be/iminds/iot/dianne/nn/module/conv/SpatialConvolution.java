@@ -36,7 +36,8 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		this.kernelHeight = kernelHeight;
 		
 		parameters = factory.createTensor(noOutputPlanes, noInputPlanes, kernelWidth, kernelHeight);
-		
+		gradParameters = factory.createTensor(noOutputPlanes, noInputPlanes, kernelWidth, kernelHeight);
+
 		parameters.randn();
 	}
 	
@@ -76,14 +77,45 @@ public class SpatialConvolution extends AbstractTrainableModule {
 
 	@Override
 	protected void backward() {
-		// TODO Auto-generated method stub
+		// backward based on http://andrew.gibiansky.com/blog/machine-learning/convolutional-neural-networks/
+		if(gradInput == null || !gradInput.sameDim(input)){
+			gradInput = factory.createTensor(input.dims());
+		}
 		
+		// TODO create subtensors once and reuse?
+		Tensor temp = null;
+		
+		for(int i=0;i<noInputPlanes;i++){
+			Tensor planeKernels = parameters.select(1, i);
+			Tensor inputPlane = gradInput.select(0, i);
+			inputPlane.fill(0.0f);
+			for(int j=0;j<noOutputPlanes;j++){
+				Tensor kernel = planeKernels.select(0, j);
+				
+				// TODO update gradInput
+				// this should be "full" convolution and transformed? kernel?
+				temp = factory.getTensorMath().convolution2D(temp,
+						gradOutput.select(0, j), kernel);
+				factory.getTensorMath().add(inputPlane, inputPlane, temp);
+			}
+		}
 	}
 
 	@Override
 	public void accGradParameters() {
-		// TODO Auto-generated method stub
+		// calculate grad parameters based on http://andrew.gibiansky.com/blog/machine-learning/convolutional-neural-networks/
 		
+		for(int i=0;i<noOutputPlanes;i++){
+			Tensor planeGradKernels = gradParameters.select(0, i);
+		
+			for(int j=0;j<noInputPlanes;j++){
+				Tensor gradKernel = planeGradKernels.select(0, j);
+				
+				// TODO update gradKernel
+				factory.getTensorMath().convolution2D(gradKernel, 
+						noInputPlanes== 1 ? input : input.select(0, j), gradOutput.select(0, i));
+			}
+		}
 	}
 
 }
