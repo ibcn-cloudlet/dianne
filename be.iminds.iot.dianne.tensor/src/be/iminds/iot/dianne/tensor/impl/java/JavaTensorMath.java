@@ -484,7 +484,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		int y = mat1.size(0) - 2*h;
 		int x = mat1.size(1) - 2*w;
 		
-		int skip = mat1.size(0);
+		int skip = mat1.size(1);
 		
 		if(res==null){
 			res = factory.createTensor(y, x);
@@ -512,10 +512,10 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 
 	@Override
 	public JavaTensor maxpool2D(JavaTensor res, JavaTensor mat1, int w, int h) {
-		int r_h = mat1.dims[1]/h;
-		int r_w = mat1.dims[0]/w;
-		int skip = mat1.dims[0];
-		if(res==null || !res.hasDim(r_w, r_h)){
+		int r_h = mat1.size(0)/h;
+		int r_w = mat1.size(1)/w;
+		int skip = mat1.size(1);
+		if(res==null){
 			res = factory.createTensor(r_h, r_w);
 		}
 	

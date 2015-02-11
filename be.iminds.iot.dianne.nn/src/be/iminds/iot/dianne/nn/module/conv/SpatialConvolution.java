@@ -1,6 +1,5 @@
 package be.iminds.iot.dianne.nn.module.conv;
 
-import java.util.Arrays;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.nn.module.AbstractTrainableModule;
@@ -36,15 +35,26 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		this.kernelWidth = kernelWidth;
 		this.kernelHeight = kernelHeight;
 		
-		parameters = factory.createTensor(noOutputPlanes, noInputPlanes, kernelWidth, kernelHeight); 
+		parameters = factory.createTensor(noOutputPlanes, noInputPlanes, kernelWidth, kernelHeight);
+		
+		parameters.randn();
 	}
 	
 	@Override
 	protected void forward() {
-		if(output==null || !output.hasDim(noOutputPlanes, input.dims()[1]-kernelWidth+1, input.dims()[2]-kernelHeight+1)){
-			output = factory.createTensor(noOutputPlanes, input.dims()[1]-kernelWidth+1, input.dims()[2]-kernelHeight+1);
+		int[] outDims = new int[3];
+		outDims[0] = noOutputPlanes;
+		if(input.dim()==2){
+			outDims[1] = input.size(0) - kernelHeight + 1;
+			outDims[2] = input.size(1) - kernelWidth + 1;
+		} else if(input.dim()==3){
+			outDims[1] = input.size(1) - kernelHeight + 1;
+			outDims[2] = input.size(2) - kernelWidth + 1;
+		} // else error?
+		if(output==null || !output.hasDim(outDims)){
+			output = factory.createTensor(outDims);
 		}
-		// TODO check input planes dim?
+		// TODO check input planes dim? // check kernel sizes?
 	
 		// TODO create subtensors once and reuse?
 		Tensor temp = null;
@@ -57,7 +67,8 @@ public class SpatialConvolution extends AbstractTrainableModule {
 				Tensor kernel = planeKernels.select(0, j);
 				
 				// TODO convadd operation to avoid temp?
-				temp = factory.getTensorMath().convolution2D(temp, input.select(0, j), kernel);
+				temp = factory.getTensorMath().convolution2D(temp,
+						noInputPlanes== 1 ? input : input.select(0, j), kernel);
 				factory.getTensorMath().add(outputPlane, outputPlane, temp);
 			}
 		}
