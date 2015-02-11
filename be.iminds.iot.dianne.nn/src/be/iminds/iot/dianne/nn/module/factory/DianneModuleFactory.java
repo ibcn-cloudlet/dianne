@@ -19,6 +19,8 @@ import be.iminds.iot.dianne.nn.module.activation.Sigmoid;
 import be.iminds.iot.dianne.nn.module.activation.Softmax;
 import be.iminds.iot.dianne.nn.module.activation.Tanh;
 import be.iminds.iot.dianne.nn.module.activation.Threshold;
+import be.iminds.iot.dianne.nn.module.conv.SpatialConvolution;
+import be.iminds.iot.dianne.nn.module.conv.SpatialMaxPooling;
 import be.iminds.iot.dianne.nn.module.description.ModuleDescription;
 import be.iminds.iot.dianne.nn.module.description.ModuleProperty;
 import be.iminds.iot.dianne.nn.module.fork.Duplicate;
@@ -106,6 +108,22 @@ public class DianneModuleFactory implements ModuleFactory {
 			ModuleDescription description = new ModuleDescription("Concat", "Join", properties);
 			supportedModules.put(description.getType(), description);
 		}
+		{
+			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
+			properties.add(new ModuleProperty("Input planes", "noInputPlanes"));
+			properties.add(new ModuleProperty("Output planes", "noOutputPlanes"));
+			properties.add(new ModuleProperty("Kernel width", "kernelWidth"));
+			properties.add(new ModuleProperty("Kernel height", "kernelHeight"));
+			ModuleDescription description = new ModuleDescription("Convolution", "Convolution", properties);
+			supportedModules.put(description.getType(), description);
+		}
+		{
+			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
+			properties.add(new ModuleProperty("Width", "width"));
+			properties.add(new ModuleProperty("Height", "height"));
+			ModuleDescription description = new ModuleDescription("MaxPooling", "Convolution", properties);
+			supportedModules.put(description.getType(), description);
+		}
 	}
 	
 	@Override
@@ -161,6 +179,20 @@ public class DianneModuleFactory implements ModuleFactory {
 		case "Concat":
 			module = new Concat(factory, id);
 			break;
+		case "Convolution":
+			int noInputPlanes = Integer.parseInt((String)config.get("module.convolution.noInputPlanes"));
+			int noOutputPlanes = Integer.parseInt((String)config.get("module.convolution.noOutputPlanes"));
+			int kernelWidth = Integer.parseInt((String)config.get("module.convolution.kernelWidth"));
+			int kernelHeight = Integer.parseInt((String)config.get("module.convolution.kernelHeight"));
+
+			module = new SpatialConvolution(factory, id, noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight);
+			break;
+		case "MaxPooling":
+			int width = Integer.parseInt((String)config.get("module.maxpooling.width"));
+			int height = Integer.parseInt((String)config.get("module.maxpooling.height"));
+
+			module = new SpatialMaxPooling(factory, id, width, height);
+			break;	
 		default:
 			throw new InstantiationException("Could not instantiate module of type "+type);
 		}
