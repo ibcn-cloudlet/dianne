@@ -40,7 +40,13 @@ public class SpatialMaxPooling extends AbstractModule {
 
 	@Override
 	protected void backward() {
-		// TODO 
+		if(gradInput == null || !gradInput.sameDim(input)){
+			gradInput = factory.createTensor(input.dims());
+		}
+		int noPlanes = input.size(0);
+		for(int i=0;i<noPlanes;i++){
+			factory.getTensorMath().dmaxpool2D(gradInput.select(0, i), gradOutput, input, w, h);
+		}
 	}
 	
 }

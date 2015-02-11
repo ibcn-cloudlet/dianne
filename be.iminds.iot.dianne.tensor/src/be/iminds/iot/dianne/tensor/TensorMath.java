@@ -212,5 +212,11 @@ public interface TensorMath<T extends Tensor<T>> {
 	/**
 	 * Max pooling of tensor mat and put result in res
 	 */
-	public T maxpool2D(T res, final T mat, int w, int h);
+	public T maxpool2D(T res, final T mat, final int w, final int h);
+	
+	/**
+	 * Backward of max pooling: calculate each max index in wxh block of mat1, and 
+	 * put value of subsampled mat2 into res on that position 
+	 */
+	public T dmaxpool2D(T res, final T mat2, final T mat1, final int w, final int h);
 }

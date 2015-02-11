@@ -537,4 +537,37 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 
 		return res;
 	}
+	
+	@Override
+	public JavaTensor dmaxpool2D(JavaTensor res, JavaTensor mat2, JavaTensor mat1, int w, int h) {
+		int r_h = mat1.size(0)/h;
+		int r_w = mat1.size(1)/w;
+		int skip = mat1.size(1);
+		
+		if(res==null){
+			res = factory.createTensor(mat1.size(0), mat1.size(1));
+		}
+	
+		for(int i=0;i<r_h;i++){
+			for(int j=0;j<r_w;j++){
+				float max = -Float.MAX_VALUE;
+				int maxIndex = -1;
+				int rindex = i*r_w+j;
+				for(int k=0;k<h;k++){
+					for(int l=0;l<w;l++){
+						int index = (i*w+k)*skip+(j*w+l);
+						float val = mat1.data[(mat1.indices==null? index : mat1.indices[index])];
+						if(val>max){
+							max = val;
+							maxIndex  = index;
+						}
+					}
+				}
+				res.data[(res.indices==null? maxIndex : res.indices[maxIndex])] = 
+						mat2.data[(mat2.indices==null? rindex : mat2.indices[rindex])];
+			}
+		}
+
+		return res;
+	}
 }
