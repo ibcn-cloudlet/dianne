@@ -358,7 +358,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 
 	@Override
 	public float max(final JavaTensor tensor) {
-		float max = Float.MIN_VALUE;
+		float max = -Float.MAX_VALUE;
 		for(int i=0;i<(tensor.indices==null?tensor.data.length : tensor.indices.length);i++){
 			float val = tensor.data[(tensor.indices==null? i : tensor.indices[i])];
 			if(val > max)
@@ -387,7 +387,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 
 	@Override
 	public int argmax(final JavaTensor tensor) {
-		float max = Float.MIN_VALUE;
+		float max = -Float.MAX_VALUE;
 		int index = -1;
 		for(int i=0;i<(tensor.indices==null?tensor.data.length : tensor.indices.length);i++){
 			float val = tensor.data[(tensor.indices==null? i : tensor.indices[i])];
