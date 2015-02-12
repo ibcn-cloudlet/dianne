@@ -9,6 +9,7 @@ import javax.imageio.ImageIO;
 
 import org.junit.Test;
 
+import be.iminds.iot.dianne.nn.module.BackwardListener;
 import be.iminds.iot.dianne.nn.module.ForwardListener;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;
@@ -45,12 +46,17 @@ public class SpatialConvolutionTest {
 	
 	@Test
 	public void testSpatialConvolution() throws InterruptedException {
-		int noInputPlanes = 3;
+		int noInputPlanes = 1;
 		int noOutputPlanes = 2;
-		int kernelWidth = 5;
-		int kernelHeight = 5;
+		int kernelWidth = 3;
+		int kernelHeight = 3;
 		
+		// create conv-pool combo
 		SpatialConvolution conv = new SpatialConvolution(factory, noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight);
+		SpatialMaxPooling pool = new SpatialMaxPooling(factory, 2, 2);
+		conv.setNext(pool);
+		pool.setPrevious(conv);
+		
 		
 		Tensor t = conv.getParameters();
 		System.out.println(Arrays.toString(t.dims()));
@@ -60,28 +66,69 @@ public class SpatialConvolutionTest {
 			for(int j=0;j<noInputPlanes;j++){
 				Tensor sub2 = sub1.select(0, j);
 				System.out.println("Kernel:");
-				sub2.randn();
+				// some self induced kernels
+				switch(i){
+				case 0:
+					sub2.fill(0.0f);
+					sub2.set(1.0f, 1, 1);
+					break;
+				case 1:
+					sub2.fill(0.0f);
+					sub2.set(-1.0f, 1, 0);
+					sub2.set(1.0f, 1, 2);
+					break;
+				}
 				System.out.println(sub2);
 				System.out.println("===");
 			}
 		}
 		
-		System.out.println(t);
+		//System.out.println(t);
 
-		Tensor input = factory.createTensor(3, 32, 32);
-		input.rand();
+		Tensor input = factory.createTensor(5,5);
+		float k = 0;
+		for(int i=0;i<5;i++){
+			for(int j=0;j<5;j++){
+				input.set(k++, i,j);
+			}
+		}
+		System.out.println("INPUT ");
+		System.out.println(input);
 		
 		conv.addForwardListener(new ForwardListener() {
-			
 			@Override
 			public void onForward(Tensor output) {
-				System.out.println("OUTPUT ");
-				System.out.println(output);
+				System.out.println("OUTPUT CONV "+output);
+			}
+		});
+		
+		pool.addForwardListener(new ForwardListener() {
+			@Override
+			public void onForward(Tensor output) {
+				System.out.println("OUTPUT POOL "+output);
+				output.fill(0.001f);
+				pool.backward(UUID.randomUUID(), output);
+			}
+		});
+		
+		pool.addBackwardListener(new BackwardListener() {
+			@Override
+			public void onBackward(Tensor gradInput) {
+				System.out.println("BACKWARD POOL "+gradInput);
+			}
+		});
+		
+		conv.addBackwardListener(new BackwardListener() {
+			@Override
+			public void onBackward(Tensor gradInput) {
+				System.out.println("BACKWARD CONV "+gradInput);
 			}
 		});
 		conv.forward(UUID.randomUUID(), input);
 		
-		Thread.sleep(100);
+		Thread.sleep(200);
+		conv.accGradParameters();
+		
 	}
 	
 	@Test
