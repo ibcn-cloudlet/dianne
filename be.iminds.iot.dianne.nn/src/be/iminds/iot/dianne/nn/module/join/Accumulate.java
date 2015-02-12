@@ -8,8 +8,6 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public class Accumulate extends Join {
 
-	private Tensor tempAcc = null;
-	
 	public Accumulate(TensorFactory factory) {
 		super(factory);
 	}
@@ -21,14 +19,13 @@ public class Accumulate extends Join {
 	@Override
 	protected void forward() {
 		// accumulate inputs
-		if(tempAcc==null){
-			tempAcc = factory.createTensor(inputs.values().iterator().next().dims());
+		if(output==null){
+			output = factory.createTensor(inputs.values().iterator().next().dims());
 		}
-		tempAcc.fill(0.0f);
+		output.fill(0.0f);
 		for(Tensor t : inputs.values()){
-			tempAcc = factory.getTensorMath().add(tempAcc, tempAcc, t);
+			output = factory.getTensorMath().add(output, output, t);
 		}
-		output = tempAcc.copyInto(output);
 	}
 
 	@Override

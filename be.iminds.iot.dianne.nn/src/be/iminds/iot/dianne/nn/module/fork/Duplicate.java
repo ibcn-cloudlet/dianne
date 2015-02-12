@@ -8,8 +8,6 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public class Duplicate extends Fork {
 
-	private Tensor tempAcc = null;
-	
 	public Duplicate(TensorFactory factory) {
 		super(factory);
 	}
@@ -30,14 +28,13 @@ public class Duplicate extends Fork {
 	@Override
 	protected void backward() {
 		// accumulate gradOutputs in gradInput
-		if(tempAcc==null){
-			tempAcc = factory.createTensor(input.dims());
+		if(gradInput==null){
+			gradInput = factory.createTensor(input.dims());
 		}
-		tempAcc.fill(0.0f);
+		gradInput.fill(0.0f);
 		for(Tensor t : gradOutputs.values()){
-			tempAcc = factory.getTensorMath().add(tempAcc, tempAcc, t);
+			gradInput = factory.getTensorMath().add(gradInput, gradInput, t);
 		}
-		gradInput = tempAcc.copyInto(gradInput);
 	}
 	
 }
