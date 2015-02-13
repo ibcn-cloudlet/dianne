@@ -119,7 +119,12 @@ public interface TensorMath<T extends Tensor<T>> {
 	public T addmm(T res, final T mat, final T mat1, final T mat2);
 
 	/**
-	 * Put the tanh of each element into res
+	 * Calculates element-wise exp function
+	 */
+	public T exp(T res, final T tensor);
+	
+	/**
+	 * Calculates element-wise tanh function
 	 */
 	public T tanh(T res, final T tensor);
 	
@@ -147,6 +152,16 @@ public interface TensorMath<T extends Tensor<T>> {
 	 * All elements smaller than thresh are set to 0, 1 otherwise
 	 */
 	public T dthresh(T res, final T tensor, final float thresh);
+	
+	/**
+	 * Calculates element-wise softmax function
+	 */
+	public T softmax(T res, final T tensor);
+	
+	/**
+	 * Calculates element-wise logsoftmax function
+	 */
+	public T logsoftmax(T res, final T tensor);
 	
 	/**
 	 * Return the sum of all elements

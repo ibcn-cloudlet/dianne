@@ -282,6 +282,17 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 
 	@Override
+	public JavaTensor exp(JavaTensor res, final JavaTensor tensor) {
+		Operator tanh = new Operator(){
+			@Override
+			public float apply(float... params) {
+				return (float) Math.exp(params[0]);
+			}
+		};
+		return apply(res, tanh, tensor);
+	}
+	
+	@Override
 	public JavaTensor tanh(JavaTensor res, final JavaTensor tensor) {
 		Operator tanh = new Operator(){
 			@Override
@@ -345,6 +356,39 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 			}
 		};
 		return apply(res, threshOp, tensor);
+	}
+	
+	@Override
+	public JavaTensor softmax(JavaTensor res, final JavaTensor tensor){
+		float max = max(tensor);
+		Operator op = new Operator(){
+			@Override
+			public float apply(float... params) {
+				return (float) Math.exp(params[0]-max);
+			}
+		};
+		res = apply(res, op, tensor);
+		
+		float sum = sum(res);
+		res = div(res, res, sum);
+		
+		return res;
+	}
+	
+	@Override
+	public JavaTensor logsoftmax(JavaTensor res, final JavaTensor tensor){
+		float max = max(tensor);
+		Operator op = new Operator(){
+			@Override
+			public float apply(float... params) {
+				return (float) Math.exp(params[0]-max);
+			}
+		};
+		res = apply(res, op, tensor);
+		
+		float logsum = max + sum(res);
+	
+		return sub(res, tensor, logsum);
 	}
 	
 	@Override
