@@ -2,7 +2,6 @@ package be.iminds.iot.dianne.nn.module.join;
 
 import java.util.UUID;
 
-import sun.font.CreatedFontTracker;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public class Concat extends Join {
