@@ -360,7 +360,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	
 	@Override
 	public JavaTensor softmax(JavaTensor res, final JavaTensor tensor){
-		float max = max(tensor);
+		final float max = max(tensor);
 		Operator op = new Operator(){
 			@Override
 			public float apply(float... params) {
@@ -377,7 +377,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	
 	@Override
 	public JavaTensor logsoftmax(JavaTensor res, final JavaTensor tensor){
-		float max = max(tensor);
+		final float max = max(tensor);
 		Operator op = new Operator(){
 			@Override
 			public float apply(float... params) {
@@ -386,7 +386,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		};
 		res = apply(res, op, tensor);
 		
-		float logsum = max + sum(res);
+		float logsum = max + (float)Math.log(sum(res));
 	
 		return sub(res, tensor, logsum);
 	}
