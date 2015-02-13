@@ -258,7 +258,7 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 	}
 	
 	private void unconfigureNext(Module m){
-		m.setNext(null);
+		m.setNext((Module[]) null);
 	}
 	
 	private void configurePrevious(Module m){
