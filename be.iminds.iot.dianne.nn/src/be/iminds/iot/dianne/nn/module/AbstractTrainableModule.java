@@ -28,7 +28,7 @@ public abstract class AbstractTrainableModule extends AbstractModule implements 
 
 	@Override
 	public void updateParameters(float learningRate) {
-		factory.getTensorMath().add(parameters, parameters, learningRate, gradParameters);
+		factory.getTensorMath().sub(parameters, parameters, learningRate, gradParameters);
 	}
 
 	@Override

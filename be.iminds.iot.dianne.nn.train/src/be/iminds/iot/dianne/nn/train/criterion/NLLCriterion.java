@@ -18,18 +18,15 @@ public class NLLCriterion implements Criterion {
 	
 	@Override
 	public Tensor forward(final Tensor output, final Tensor target) {
-		nll.set(-output.get(factory.getTensorMath().argmax(target)), 0);
+		float ll = factory.getTensorMath().dot(factory.getTensorMath().log(null, output), target);
+		nll.set(-ll, 0);
 		return nll;
 	}
 
 	@Override
 	public Tensor backward(final Tensor output, final Tensor target) {
-		if(gradInput == null){
-			gradInput = factory.createTensor(target.dims());
-		}
-		gradInput.fill(0.0f);
-		gradInput.set(-1.0f, factory.getTensorMath().argmax(target));
-		
+		gradInput = factory.getTensorMath().div(gradInput, target, output);
+		gradInput = factory.getTensorMath().mul(gradInput, gradInput, -1.0f);
 		return gradInput;
 	}
 }

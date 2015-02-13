@@ -100,6 +100,17 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 	
 	@Override
+	public JavaTensor sub(JavaTensor res, final JavaTensor tensor1, final float value, final JavaTensor tensor2) {
+		Operator sub = new Operator(){
+			@Override
+			public float apply(float... params) {
+				return params[0] - value * params[1];
+			}
+		};
+		return apply(res, sub, tensor1, tensor2);
+	}
+	
+	@Override
 	public JavaTensor mul(JavaTensor res, final JavaTensor tensor, final float value) {
 		Operator mul = new Operator(){
 			@Override
@@ -132,6 +143,17 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		return apply(res, div, tensor);
 	}
 
+	@Override
+	public JavaTensor div(JavaTensor res, final JavaTensor tensor1, final JavaTensor tensor2) {
+		Operator div = new Operator(){
+			@Override
+			public float apply(float... params) {
+				return params[0] / params[1];
+			}
+		};
+		return apply(res, div, tensor1, tensor2);
+	}
+	
 	@Override
 	public JavaTensor cdiv(JavaTensor res, final JavaTensor tensor1, final JavaTensor tensor2) {
 		Operator cdiv = new Operator(){
@@ -283,13 +305,24 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 
 	@Override
 	public JavaTensor exp(JavaTensor res, final JavaTensor tensor) {
-		Operator tanh = new Operator(){
+		Operator exp = new Operator(){
 			@Override
 			public float apply(float... params) {
 				return (float) Math.exp(params[0]);
 			}
 		};
-		return apply(res, tanh, tensor);
+		return apply(res, exp, tensor);
+	}
+
+	@Override
+	public JavaTensor log(JavaTensor res, final JavaTensor tensor) {
+		Operator log = new Operator(){
+			@Override
+			public float apply(float... params) {
+				return (float) Math.log(params[0]);
+			}
+		};
+		return apply(res, log, tensor);
 	}
 	
 	@Override

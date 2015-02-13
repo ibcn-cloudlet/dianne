@@ -40,6 +40,12 @@ public interface TensorMath<T extends Tensor<T>> {
 	public T sub(T res, final T tensor1, final T tensor2);
 	
 	/**
+	 * Multiply elements of tensor2 by the scalar value and subtract it from tensor1. 
+	 * The number of elements must match, but sizes do not matter.
+	 */
+	public T sub(T res, final T tensor1, final float value, final T tensor2);
+	
+	/**
 	 * Multiply all elements in the T by the given value.
 	 */
 	public T mul(T res, final T tensor1, final float value);
@@ -54,6 +60,11 @@ public interface TensorMath<T extends Tensor<T>> {
 	 * Divide all elements in the T by the given value.
 	 */
 	public T div(T res, final T tensor1, final float value);
+
+	/**
+	 * Element-wise division res = t1/t2
+	 */
+	public T div(T res, final T tensor1, final T  tensor2);
 	
 	/**
 	 * Element-wise division of tensor1 by tensor2. 
@@ -122,6 +133,11 @@ public interface TensorMath<T extends Tensor<T>> {
 	 * Calculates element-wise exp function
 	 */
 	public T exp(T res, final T tensor);
+
+	/**
+	 * Calculates element-wise log function
+	 */
+	public T log(T res, final T tensor);
 	
 	/**
 	 * Calculates element-wise tanh function

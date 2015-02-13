@@ -19,7 +19,7 @@ public class MSECriterion implements Criterion {
 	
 	@Override
 	public Tensor forward(final Tensor output, final Tensor target) {
-		error = factory.getTensorMath().sub(error, target, output);
+		error = factory.getTensorMath().sub(error, output, target);
 		sqerror = factory.getTensorMath().cmul(sqerror, error, error);
 		mse.set(factory.getTensorMath().sum(sqerror)*0.5f, 0);
 		return mse;
