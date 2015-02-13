@@ -175,11 +175,6 @@ public interface TensorMath<T extends Tensor<T>> {
 	public T softmax(T res, final T tensor);
 	
 	/**
-	 * Calculates element-wise logsoftmax function
-	 */
-	public T logsoftmax(T res, final T tensor);
-	
-	/**
 	 * Return the sum of all elements
 	 */
 	public float sum(final T tensor);

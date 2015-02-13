@@ -14,7 +14,6 @@ import org.osgi.service.component.annotations.Component;
 
 import be.iminds.iot.dianne.nn.module.AbstractModule;
 import be.iminds.iot.dianne.nn.module.Module;
-import be.iminds.iot.dianne.nn.module.activation.LogSoftmax;
 import be.iminds.iot.dianne.nn.module.activation.ReLU;
 import be.iminds.iot.dianne.nn.module.activation.Sigmoid;
 import be.iminds.iot.dianne.nn.module.activation.Softmax;
@@ -65,11 +64,6 @@ public class DianneModuleFactory implements ModuleFactory {
 			ModuleDescription description = new ModuleDescription("Softmax", "Activation", properties);
 			supportedModules.put(description.getType(), description);
 		}		
-		{
-			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleDescription description = new ModuleDescription("LogSoftmax", "Activation", properties);
-			supportedModules.put(description.getType(), description);
-		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
 			ModuleDescription description = new ModuleDescription("ReLU", "Activation", properties);
@@ -139,9 +133,6 @@ public class DianneModuleFactory implements ModuleFactory {
 			break;
 		case "Softmax":
 			module = new Softmax(factory, id);
-			break;
-		case "LogSoftmax":
-			module = new LogSoftmax(factory, id);
 			break;
 		case "ReLU":
 			module = new ReLU(factory, id);

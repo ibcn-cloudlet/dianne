@@ -409,22 +409,6 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 	
 	@Override
-	public JavaTensor logsoftmax(JavaTensor res, final JavaTensor tensor){
-		final float max = max(tensor);
-		Operator op = new Operator(){
-			@Override
-			public float apply(float... params) {
-				return (float) Math.exp(params[0]-max);
-			}
-		};
-		res = apply(res, op, tensor);
-		
-		float logsum = max + (float)Math.log(sum(res));
-	
-		return sub(res, tensor, logsum);
-	}
-	
-	@Override
 	public float sum(final JavaTensor tensor) {
 		float sum = 0;
 		for(int i=0;i<(tensor.indices==null?tensor.data.length : tensor.indices.length);i++){

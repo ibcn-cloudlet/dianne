@@ -135,23 +135,4 @@ public class ActivationTest {
 
 		testActivation(m, input, gradOutput, expOutput, expGradInput);
 	}
-
-	@Test
-	public void testLogSoftmax() throws Exception {
-		float[] eo = new float[] { -10.4587f, -9.4587f, -8.4587f, -7.4587f,
-				-6.4587f, -5.4587f, -4.4587f, -3.4587f, -2.4587f, -1.4587f,
-				-0.4587f
-		};
-		Tensor expOutput = factory.createTensor(eo, 11);
-
-		float[] eg = new float[] { 0.9997f, 0.9991f, 0.9977f, 0.9937f, 0.9828f,
-				0.9532f, 0.8727f, 0.6538f, 0.0590f, -1.5578f, -5.9529f
-		};
-
-		Tensor expGradInput = factory.createTensor(eg, 11);
-
-		Module m = new LogSoftmax(factory);
-
-		testActivation(m, input, gradOutput, expOutput, expGradInput);
-	}
 }
