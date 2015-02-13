@@ -4,13 +4,16 @@
 ## Default settings are in ext/*.bnd and they will be overridden by anything
 ## you specify in this file.
 
+javac.source: 1.8
+javac.target: 1.8
 
 ## Properties from ext/*.bnd can be referenced in order to extend them.
 ## For example, to add one addtional plugin to the list defined in ext/repositories.bnd:
 # -plugin: ${ext.repositories.-plugin}, org.example.MyPlugin
 
--pluginpath:	${ext.repositories.-pluginpath}, ${workspace}/cnf/plugins/be.iminds.bnd.plugin.android/be.iminds.bnd.plugin.android.jar
--plugin: 		${ext.repositories.-plugin}, be.iminds.bnd.plugin.android.AndroidPlugin
+# AndrOSGi plugin not compatible with Java 8
+# -pluginpath:	${ext.repositories.-pluginpath}, ${workspace}/cnf/plugins/be.iminds.bnd.plugin.android/be.iminds.bnd.plugin.android.jar
+# -plugin: 		${ext.repositories.-plugin}, be.iminds.bnd.plugin.android.AndroidPlugin
 
 ## If you use git, you might want to uncomment the following lines:
 # Git-Descriptor: ${system-allow-fail;git describe --dirty --always}
