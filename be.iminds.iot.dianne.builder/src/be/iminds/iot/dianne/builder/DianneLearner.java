@@ -31,6 +31,7 @@ import be.iminds.iot.dianne.nn.train.Evaluation;
 import be.iminds.iot.dianne.nn.train.Evaluator;
 import be.iminds.iot.dianne.nn.train.Trainer;
 import be.iminds.iot.dianne.nn.train.criterion.MSECriterion;
+import be.iminds.iot.dianne.nn.train.criterion.NLLCriterion;
 import be.iminds.iot.dianne.nn.train.eval.ArgMaxEvaluator;
 import be.iminds.iot.dianne.nn.train.eval.EvalProgressListener;
 import be.iminds.iot.dianne.nn.train.strategy.StochasticGradient;
@@ -199,7 +200,9 @@ public class DianneLearner extends HttpServlet {
 		String loss = trainerConfig.get("loss").getAsString();
 		if(loss.equals("MSE")){
 			criterion = new MSECriterion(factory);
-		} // TODO also support other criterions
+		} else if(loss.equals("NLL")){
+			criterion = new NLLCriterion(factory);
+		}
 		return criterion;
 	}
 	

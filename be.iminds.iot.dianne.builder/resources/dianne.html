@@ -186,7 +186,10 @@
 		<div class="form-group">
 			<label class="col-sm-3 control-label">Loss:</label>
 			<div class="col-sm-7">
-				<input type="text" class="form-control" id="loss" name="loss" value="{{loss}}" />
+				<select class="form-control options" id="loss" name="loss">
+					<option value="MSE">Mean Squared Error</option>
+					<option value="NLL">Negative Log Likelihood</option>
+				</select>
 			</div>
 		</div>
 		<div class="form-group">
