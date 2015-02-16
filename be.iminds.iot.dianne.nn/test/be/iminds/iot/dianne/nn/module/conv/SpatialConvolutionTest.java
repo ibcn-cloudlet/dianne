@@ -26,12 +26,9 @@ public class SpatialConvolutionTest {
 		int kernelHeight = 3;
 		
 		SpatialConvolution conv = new SpatialConvolution(factory, noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight);
-		
-		Tensor t = conv.getParameters();
-		System.out.println(Arrays.toString(t.dims()));
-
+	
 		for(int i=0;i<noOutputPlanes;i++){
-			Tensor sub1 = t.select(0, i);
+			Tensor sub1 = conv.weights.select(0, i);
 			for(int j=0;j<noInputPlanes;j++){
 				Tensor sub2 = sub1.select(0, j);
 				System.out.println("Kernel:");
@@ -41,7 +38,7 @@ public class SpatialConvolutionTest {
 			}
 		}
 		
-		System.out.println(t);
+		System.out.println(conv.getParameters());
 	}
 	
 	@Test
@@ -56,13 +53,9 @@ public class SpatialConvolutionTest {
 		SpatialMaxPooling pool = new SpatialMaxPooling(factory, 2, 2);
 		conv.setNext(pool);
 		pool.setPrevious(conv);
-		
-		
-		Tensor t = conv.getParameters();
-		System.out.println(Arrays.toString(t.dims()));
 
 		for(int i=0;i<noOutputPlanes;i++){
-			Tensor sub1 = t.select(0, i);
+			Tensor sub1 = conv.weights.select(0, i);
 			for(int j=0;j<noInputPlanes;j++){
 				Tensor sub2 = sub1.select(0, j);
 				System.out.println("Kernel:");
@@ -147,9 +140,8 @@ public class SpatialConvolutionTest {
 		SpatialConvolution conv = new SpatialConvolution(factory, 
 				noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight);
 		
-		Tensor t = conv.getParameters();
 		for(int i=0;i<noOutputPlanes;i++){
-			Tensor sub = t.select(0, i);
+			Tensor sub = conv.weights.select(0, i);
 			for(int j=0;j<noInputPlanes;j++){
 				Tensor kernel = sub.select(0, j);
 				// TODO kernel for each outputplane
@@ -186,6 +178,8 @@ public class SpatialConvolutionTest {
 			}
 		}
 		
+		System.out.println(conv.getParameters());
+	
 		Object lock = new Object();
 		conv.addForwardListener(new ForwardListener() {
 			

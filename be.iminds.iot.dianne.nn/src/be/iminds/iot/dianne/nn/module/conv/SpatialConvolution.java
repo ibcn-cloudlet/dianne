@@ -13,6 +13,12 @@ public class SpatialConvolution extends AbstractTrainableModule {
 	private int kernelWidth;
 	private int kernelHeight;
 	
+	// subtensors for weights / bias
+	Tensor weights;
+	Tensor gradWeights;
+	Tensor bias;
+	Tensor gradBias;
+	
 	public SpatialConvolution(TensorFactory factory,
 			int noInputPlanes, int noOutputPlanes, 
 			int kernelWidth, int kernelHeight){
@@ -35,9 +41,17 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		this.kernelWidth = kernelWidth;
 		this.kernelHeight = kernelHeight;
 		
-		parameters = factory.createTensor(noOutputPlanes, noInputPlanes, kernelWidth, kernelHeight);
-		gradParameters = factory.createTensor(noOutputPlanes, noInputPlanes, kernelWidth, kernelHeight);
-
+		parameters = factory.createTensor(noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight+noOutputPlanes);
+		weights = parameters.narrow(0, 0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight);
+		weights.reshape(noOutputPlanes, noInputPlanes, kernelWidth, kernelHeight);
+		bias = parameters.narrow(0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight, noOutputPlanes);
+		
+		gradParameters = factory.createTensor(noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight+noOutputPlanes);
+		gradWeights = gradParameters.narrow(0, 0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight);
+		gradWeights.reshape(noOutputPlanes, noInputPlanes, kernelWidth, kernelHeight);
+		gradBias = gradParameters.narrow(0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight, noOutputPlanes);
+		
+		
 		parameters.randn();
 	}
 	
@@ -61,7 +75,7 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		Tensor temp = null;
 		
 		for(int i=0;i<noOutputPlanes;i++){
-			Tensor planeKernels = parameters.select(0, i);
+			Tensor planeKernels = weights.select(0, i);
 			Tensor outputPlane = output.select(0, i);
 			outputPlane.fill(0.0f);
 			for(int j=0;j<noInputPlanes;j++){
@@ -72,6 +86,9 @@ public class SpatialConvolution extends AbstractTrainableModule {
 						noInputPlanes== 1 ? input : input.select(0, j), kernel, false, false);
 				factory.getTensorMath().add(outputPlane, outputPlane, temp);
 			}
+			
+			// add bias
+			factory.getTensorMath().add(outputPlane, outputPlane, bias.get(i));
 		}
 	}
 
@@ -86,7 +103,7 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		Tensor temp = null;
 		
 		for(int i=0;i<noInputPlanes;i++){
-			Tensor planeKernels = parameters.select(1, i);
+			Tensor planeKernels = weights.select(1, i);
 			Tensor gradInputPlane = noInputPlanes== 1 ? gradInput : gradInput.select(0, i);
 			gradInputPlane.fill(0.0f);
 			for(int j=0;j<noOutputPlanes;j++){
@@ -103,12 +120,12 @@ public class SpatialConvolution extends AbstractTrainableModule {
 
 	@Override
 	public void accGradParameters() {
-		// calculate grad parameters based on http://andrew.gibiansky.com/blog/machine-learning/convolutional-neural-networks/
+		// calculate grad weights based on http://andrew.gibiansky.com/blog/machine-learning/convolutional-neural-networks/
 		
 		Tensor temp = null;
 		
 		for(int i=0;i<noOutputPlanes;i++){
-			Tensor planeGradKernels = gradParameters.select(0, i);
+			Tensor planeGradKernels = gradWeights.select(0, i);
 		
 			for(int j=0;j<noInputPlanes;j++){
 				Tensor gradKernel = planeGradKernels.select(0, j);
@@ -119,6 +136,12 @@ public class SpatialConvolution extends AbstractTrainableModule {
 
 				factory.getTensorMath().add(gradKernel, gradKernel, temp);
 			}
+		}
+		
+		// grad bias
+		for(int i=0;i<noOutputPlanes;i++){
+			float sum = factory.getTensorMath().sum(gradOutput.select(0, i));
+			bias.set(bias.get(i)+sum, i);
 		}
 	}
 
