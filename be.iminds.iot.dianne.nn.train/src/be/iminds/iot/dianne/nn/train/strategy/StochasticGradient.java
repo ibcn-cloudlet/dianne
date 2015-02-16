@@ -42,8 +42,8 @@ public class StochasticGradient implements Trainer {
 			@Override
 			protected void onForward(int index, Tensor out) {
 				// forward done,  now back propagate
-				Tensor mse = criterion.forward(out, data.getOutputSample(index));
-				error+= mse.get(0);
+				Tensor e = criterion.forward(out, data.getOutputSample(index));
+				error+= e.get(0);
 				
 				// Backward through output module
 				output.backpropagate(criterion.backward(out, data.getOutputSample(index)));
@@ -68,6 +68,7 @@ public class StochasticGradient implements Trainer {
 				
 				if(sample % 500 == 0){
 					error /= 500;
+					System.out.println(error);
 					notifyListeners();
 					error = 0;
 				}
