@@ -57,6 +57,9 @@ public class DianneLearner extends HttpServlet {
 	private Output output;
 	private List<Trainable> trainable = new ArrayList<Trainable>();
 	
+	// TODO support multiple datasets
+	private Dataset mnist = null;
+	
 	private AsyncContext sse = null;
 	
 	@Reference
@@ -82,6 +85,11 @@ public class DianneLearner extends HttpServlet {
 	
 	public void removeTrainable(Trainable t){
 		this.trainable.remove(t);
+	}
+	
+	@Reference
+	public void setDataset(Dataset dataset){
+		this.mnist = dataset;
 	}
 	
 	@Override
@@ -237,37 +245,18 @@ public class DianneLearner extends HttpServlet {
 	}
 	
 	private Dataset createTestDataset(JsonObject datasetConfig){
-		Dataset dataset = createDataset(datasetConfig);
+		// TODO check which dataset to pick
+		Dataset dataset = mnist;
 		int start = datasetConfig.get("train").getAsInt();
 		int end = start+datasetConfig.get("test").getAsInt();
 		return new DatasetAdapter(dataset, start, end);
 	}
 	
 	private Dataset createTrainDataset(JsonObject datasetConfig){
-		Dataset dataset = createDataset(datasetConfig);
+		// TODO check which dataset to pick
+		Dataset dataset = mnist;
 		int start = 0;
 		int end = datasetConfig.get("train").getAsInt();
 		return new DatasetAdapter(dataset, start, end);
-	}
-	
-	// Share this with runner ... FIXME VERY DIRTY
-	public static Dataset mnist = null;
-	
-	// TODO this should be done better..
-	@Activate
-	public void activate(){
-		mnist = new MNISTDataset(factory, "/home/tverbele/MNIST/");
-	}
-	
-	private Dataset createDataset(JsonObject datasetConfig){
-		String set = datasetConfig.get("dataset").getAsString();
-		if(set.equals("MNIST")){
-			if(mnist==null){
-				 // TODO this should be done much better..
-				mnist = new MNISTDataset(factory, "/home/tverbele/MNIST/");
-			}
-			return mnist;
-		}
-		return null;
 	}
 }

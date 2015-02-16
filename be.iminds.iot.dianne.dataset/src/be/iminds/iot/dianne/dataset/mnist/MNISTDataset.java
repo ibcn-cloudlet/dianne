@@ -8,13 +8,19 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 import be.iminds.iot.dianne.dataset.Dataset;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
+@Component(immediate=true)
 public class MNISTDataset implements Dataset{
 
-	private final TensorFactory factory;
+	private TensorFactory factory;
 	
 	List<Sample> data = new ArrayList<Sample>();
 	
@@ -38,9 +44,18 @@ public class MNISTDataset implements Dataset{
 		}
 	}
 	
-	public MNISTDataset(TensorFactory factory, String dir) {
-		this.factory = factory;
-		this.dir = dir;
+	
+	@Reference
+	void setTensorFactory(TensorFactory f){
+		this.factory = f;
+	}
+	
+	@Activate
+	public void activate(BundleContext context){
+		String d = context.getProperty("be.iminds.iot.dianne.dataset.mnist.location");
+		if(d!=null){
+			this.dir = d;
+		}
 
 		// merge train and test samples into one dataset
 		read("train-images.idx3-ubyte", "train-labels.idx1-ubyte");
@@ -174,4 +189,5 @@ public class MNISTDataset implements Dataset{
 		}
 		
 	}
+	
 }

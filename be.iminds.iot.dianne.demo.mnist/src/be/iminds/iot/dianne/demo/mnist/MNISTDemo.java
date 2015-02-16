@@ -82,12 +82,10 @@ public class MNISTDemo {
 		this.toTrain.remove(t);
 	}
 	
-	public void data(String dir){
-		System.out.println("Loading MNIST dataset ...");
-		Dataset mnist = new MNISTDataset(factory, dir);
-		this.dataTrain = new DatasetAdapter(mnist, 0, 60000);
-		this.dataTest = new DatasetAdapter(mnist, 60000, 70000);
-		System.out.println("Loaded!");
+	@Reference
+	public void setDataset(Dataset dataset){
+		this.dataTrain = new DatasetAdapter(dataset, 0, 60000);
+		this.dataTest = new DatasetAdapter(dataset, 60000, 70000);
 	}
 	
 	public void train(int batchSize, int noEpochs){

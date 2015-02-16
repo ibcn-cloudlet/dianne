@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
-import be.iminds.iot.dianne.nn.module.AbstractModule;
+import be.iminds.iot.dianne.dataset.Dataset;
 import be.iminds.iot.dianne.nn.module.ForwardListener;
 import be.iminds.iot.dianne.nn.module.Input;
 import be.iminds.iot.dianne.nn.module.Output;
@@ -32,6 +32,9 @@ public class DianneRunner extends HttpServlet {
 	private Input input;
 	private Output output;
 
+	// TODO support multiple datasets
+	private Dataset mnist = null;
+	
 	private AsyncContext sse = null;
 	
 	private Random rand = new Random(System.currentTimeMillis());
@@ -67,6 +70,12 @@ public class DianneRunner extends HttpServlet {
 		});
 	}
 	
+	
+	@Reference
+	public void setDataset(Dataset dataset){
+		this.mnist = dataset;
+	}
+	
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
@@ -88,7 +97,7 @@ public class DianneRunner extends HttpServlet {
 			Tensor t = factory.createTensor(data, 28, 28);
 			input.input(t);
 		} else if(request.getParameter("sample")!=null){
-			Tensor t = DianneLearner.mnist.getInputSample(rand.nextInt(70000));
+			Tensor t = mnist.getInputSample(rand.nextInt(70000));
 			response.getWriter().println(Arrays.toString(t.get()));
 			response.getWriter().flush();
 		}
