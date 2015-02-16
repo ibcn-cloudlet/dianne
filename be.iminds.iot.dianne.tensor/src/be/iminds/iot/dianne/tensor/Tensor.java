@@ -34,6 +34,11 @@ public interface Tensor<T extends Tensor<T>> {
 	 */
 	public int size(final int d);
 	
+	/**
+	 * reshape the dimensions of this tensor, the underlying data remains te same
+	 */
+	public void reshape(final int... d);
+	
 	/** 
 	 * get a value of the tensor
 	 * @param d indices of the element

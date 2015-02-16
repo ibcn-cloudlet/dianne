@@ -28,20 +28,10 @@ public class JavaTensor implements Tensor<JavaTensor> {
 	private void init(final float[] data, final int[] dims){
 		this.data = data;
 
-		initDims(dims);
+		reshape(dims);
 		
 		if(data!=null){
 			assert data.length == size();
-		}
-	}
-	
-	private void initDims(final int[] dims){
-		this.dims = dims;
-		this.strides = new int[dims.length];
-		int stride = 1;
-		for(int i=dims.length-1;i>=0;i--){
-			strides[i] = stride;
-			stride*= dims[i];
 		}
 	}
 	
@@ -67,6 +57,18 @@ public class JavaTensor implements Tensor<JavaTensor> {
 	@Override
 	public int size(final int d) {
 		return dims[d];
+	}
+	
+	@Override
+	public void reshape(final int... d){
+		// TODO check whether to total data length is ok with these dimensions?
+		this.dims = d;
+		this.strides = new int[dims.length];
+		int stride = 1;
+		for(int i=dims.length-1;i>=0;i--){
+			strides[i] = stride;
+			stride*= dims[i];
+		}
 	}
 	
 	@Override
@@ -272,7 +274,7 @@ public class JavaTensor implements Tensor<JavaTensor> {
 			}
 		}
 		// fix strides
-		result.initDims(newDims);
+		result.reshape(newDims);
 		return result;
 	}
 	
