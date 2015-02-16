@@ -5,8 +5,8 @@ import java.io.Writer;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
@@ -22,11 +22,10 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.nn.runtime.ModuleManager;
+import be.iminds.iot.dianne.nn.runtime.util.DianneJSONParser;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
 @Component(service = { javax.servlet.Servlet.class }, 
@@ -65,19 +64,18 @@ public class DianneDeployer extends HttpServlet {
 		if(action.equals("deploy")){
 			if(request.getParameter("modules")!=null){
 				String modulesJsonString = request.getParameter("modules");
-				JsonObject modulesJson = new JsonParser().parse(modulesJsonString).getAsJsonObject();
-				
-				for(Entry<String, JsonElement> module : modulesJson.entrySet()){
-					JsonObject moduleJson = (JsonObject) module.getValue();
-					deployModule(moduleJson, "local");
+				List<Dictionary<String, Object>> modules = DianneJSONParser.parseJSON(modulesJsonString); 
+						
+				for(Dictionary<String, Object> module : modules){
+					deployModule(module, "local");
 				}
 				// TODO only return deployment of deployed modules?
 				returnDeployment(response.getWriter());
 			} else if(request.getParameter("module")!=null){
 				String moduleJsonString = request.getParameter("module");
 				String target = request.getParameter("target");
-				JsonObject moduleJson = new JsonParser().parse(moduleJsonString).getAsJsonObject();
-				deployModule(moduleJson, target);
+				Dictionary<String, Object> module = DianneJSONParser.parseModuleJSON(moduleJsonString); 
+				deployModule(module, target);
 				// TODO only return deployment of deployed modules?
 				returnDeployment(response.getWriter());
 			}
@@ -101,83 +99,18 @@ public class DianneDeployer extends HttpServlet {
 		
 	}
 	
-	private void deployModule(JsonObject moduleJson, String target){
-		// new module
-		Dictionary<String, Object> properties = new Hashtable<String, Object>();
-		
-		String id = moduleJson.get("id").getAsString();
+	private void deployModule(Dictionary<String, Object> config, String target){
+		String id = (String)config.get("module.id");
 		if(deployment.containsKey(id)){
 			// already deployed... TODO exception or something?
 			return;
-		}
-		
-		String type = moduleJson.get("type").getAsString();
-		
-		// TODO standardize a configuration key-value format and key names
-		properties.put("module.id", id);
-		properties.put("module.type", type);
-		
-		if(moduleJson.has("next")){
-			String next;
-			if(moduleJson.get("next").isJsonArray()){
-				JsonArray nextJson = moduleJson.get("next").getAsJsonArray();
-				next = "";
-				Iterator<JsonElement> it = nextJson.iterator();
-				while(it.hasNext()){
-					JsonElement e = it.next();
-					next+=e.getAsString();
-					if(it.hasNext()){
-						next+=",";
-					}
-				}
-			} else {
-				next = moduleJson.get("next").getAsString();
-			}
-			properties.put("module.next", next);
-		}
-		if(moduleJson.has("prev")){
-			String prev;
-			if(moduleJson.get("prev").isJsonArray()){
-				JsonArray prevJson = moduleJson.get("prev").getAsJsonArray();
-				prev = "";
-				Iterator<JsonElement> it = prevJson.iterator();
-				while(it.hasNext()){
-					JsonElement e = it.next();
-					prev+=e.getAsString();
-					if(it.hasNext()){
-						prev+=",";
-					}
-				}
-			} else {
-				prev = moduleJson.get("prev").getAsString();
-			}
-			properties.put("module.prev", prev);
-		}
-		if(moduleJson.has("parameters")){
-			properties.put("module.parameters", moduleJson.get("parameters").getAsString());
-		}
-
-		// key prefix
-		String prefix = "module."+type.toLowerCase()+"."; 
-			
-		for(Entry<String, JsonElement> property : moduleJson.entrySet()){
-			String key = property.getKey();
-			if(key.equals("id")
-				|| key.equals("type")
-				|| key.equals("prev")
-				|| key.equals("next")){
-				continue;
-				// this is only for module-specific properties
-			}
-			// TODO already infer type here?
-			properties.put(prefix+property.getKey(), property.getValue().getAsString());
 		}
 		
 		// for now deploy all modules on one runtime
 		try {
 			ModuleManager runtime = runtimes.get(target);
 			if(runtime!=null){
-				runtime.deployModule(properties);
+				runtime.deployModule(config);
 				deployment.put(id, target);
 			}
 		} catch (Exception e) {
