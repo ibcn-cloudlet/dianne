@@ -61,21 +61,21 @@ public class DianneTest extends TestCase {
     }
     
     public void testLinearSigmoid() throws Exception {
-    	sgd("test-mnist-linear-sigmoid", 10, 1, new MSECriterion(factory));
+    	sgd("test-mnist-linear-sigmoid", 10, 1, 0.5f, new MSECriterion(factory));
     }
     
     public void testLinearSoftmax() throws Exception {
-    	sgd("test-mnist-linear-softmax", 10, 1, new NLLCriterion(factory));
+    	sgd("test-mnist-linear-softmax", 10, 1, 0.5f, new NLLCriterion(factory));
     }
     
     public void testConv() throws Exception {
-    	sgd("test-mnist-conv", 10, 1, new NLLCriterion(factory));
+    	sgd("test-mnist-conv", 10, 50, 0.01f, new NLLCriterion(factory));
     }
     
-    private void sgd(String config, int batch, int epochs, Criterion loss) throws Exception {
+    private void sgd(String config, int batch, int epochs, float learningRate, Criterion loss) throws Exception {
     	modules = deployNN("nn/"+config+".txt");
     	
-    	StochasticGradient trainer = new StochasticGradient(batch, epochs);
+    	StochasticGradient trainer = new StochasticGradient(batch, epochs, learningRate);
     	
     	Input input = getInput();
     	Output output = getOutput();

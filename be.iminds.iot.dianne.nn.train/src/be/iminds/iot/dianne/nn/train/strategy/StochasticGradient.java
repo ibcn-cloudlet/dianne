@@ -17,18 +17,21 @@ public class StochasticGradient implements Trainer {
 
 	private final int batchSize;
 	private final int noEpochs;
+	private final float learningRate;
 	
 	private int sample = 0;
 	private int epoch = 0;
 	private float error = 0;
 	
 	public StochasticGradient() {
-		this(1,1);
+		this(1,1, 0.01f);
 	}
 	
-	public StochasticGradient(int batchSize, int noEpochs) {
+	public StochasticGradient(int batchSize, int noEpochs, float learningRate) {
 		this.batchSize = batchSize;
 		this.noEpochs = noEpochs;
+		this.learningRate = learningRate;
+		
 	}
 	
 	// TODO can now only do one call at a time cause mse/epoch/batch is counted in class
@@ -61,7 +64,7 @@ public class StochasticGradient implements Trainer {
 				sample++;
 				if(sample % batchSize == 0){
 					for(Trainable m : modules){
-						m.updateParameters(0.5f);
+						m.updateParameters(learningRate);
 						m.zeroGradParameters();
 					}
 				}

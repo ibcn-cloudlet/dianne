@@ -256,6 +256,7 @@ function addModule(moduleItem){
 		//module.strategy = "Stochastic Gradient Descent";
 		module.batch = 10;
 		module.epochs = 1;
+		module.learningRate = 0.5;
 		module.loss = "MSE";
 	}
 	
