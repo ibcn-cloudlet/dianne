@@ -14,6 +14,7 @@ import org.osgi.service.component.annotations.Component;
 
 import be.iminds.iot.dianne.nn.module.AbstractModule;
 import be.iminds.iot.dianne.nn.module.Module;
+import be.iminds.iot.dianne.nn.module.activation.PReLU;
 import be.iminds.iot.dianne.nn.module.activation.ReLU;
 import be.iminds.iot.dianne.nn.module.activation.Sigmoid;
 import be.iminds.iot.dianne.nn.module.activation.Softmax;
@@ -70,6 +71,11 @@ public class DianneModuleFactory implements ModuleFactory {
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
 			ModuleDescription description = new ModuleDescription("ReLU", "Activation", properties);
+			supportedModules.put(description.getType(), description);
+		}
+		{
+			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
+			ModuleDescription description = new ModuleDescription("PReLU", "Activation", properties);
 			supportedModules.put(description.getType(), description);
 		}
 		{
@@ -160,6 +166,9 @@ public class DianneModuleFactory implements ModuleFactory {
 			break;
 		case "ReLU":
 			module = new ReLU(factory, id);
+			break;
+		case "PReLU":
+			module = new PReLU(factory, id);
 			break;
 		case "Threshold":
 			float thresh = Float.parseFloat((String)config.get("module.threshold.thresh"));

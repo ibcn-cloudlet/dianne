@@ -45,6 +45,39 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		return res;
 	}
 	
+	private JavaTensor apply(JavaTensor res, final Operator op, final JavaTensor t1, final JavaTensor t2, final JavaTensor t3){
+		// TODO check dims?
+		if(res == null){
+			res = factory.createTensor(t1.dims);
+		}
+
+		for(int i=0;i<(t1.indices==null? t1.data.length : t1.indices.length);i++){
+			res.data[(res.indices==null? i : res.indices[i])] 
+					= op.apply(t1.data[(t1.indices==null? i : t1.indices[i])], 
+							t2.data[(t2.indices==null? i : t2.indices[i])],
+							t3.data[(t3.indices==null? i : t3.indices[i])]);
+		}
+		
+		return res;
+	}
+	
+	private JavaTensor apply(JavaTensor res, final Operator op, final JavaTensor t1, final JavaTensor t2, final JavaTensor t3, final JavaTensor t4){
+		// TODO check dims?
+		if(res == null){
+			res = factory.createTensor(t1.dims);
+		}
+
+		for(int i=0;i<(t1.indices==null? t1.data.length : t1.indices.length);i++){
+			res.data[(res.indices==null? i : res.indices[i])] 
+					= op.apply(t1.data[(t1.indices==null? i : t1.indices[i])], 
+							t2.data[(t2.indices==null? i : t2.indices[i])],
+							t3.data[(t3.indices==null? i : t3.indices[i])],
+							t4.data[(t4.indices==null? i : t4.indices[i])]);
+		}
+		
+		return res;
+	}
+	
 	@Override
 	public JavaTensor add(JavaTensor res, final JavaTensor tensor, final float value) {
 		return apply(res, params ->  params[0] + value, tensor);
@@ -259,8 +292,13 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 
 	@Override
-	public JavaTensor thresh(JavaTensor res, final JavaTensor tensor, final float thresh, final float val) {
-		return apply(res, params -> params[0] > thresh ? params[0] : val, tensor);
+	public JavaTensor thresh(JavaTensor res, final JavaTensor tensor, final float thresh, final float coeff, final float offset) {
+		return apply(res, params -> params[0] > thresh ? params[0] : coeff * params[0] + offset, tensor);
+	}
+	
+	@Override
+	public JavaTensor thresh(JavaTensor res, final JavaTensor tensor, final JavaTensor threshs, final JavaTensor coeffs, final JavaTensor offsets) {
+		return apply(res, params -> params[0] > params[1] ? params[0] : params[2] * params[0] + params[3], tensor, threshs, coeffs, offsets);
 	}
 	
 	@Override
@@ -274,10 +312,15 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 
 	@Override
-	public JavaTensor dthresh(JavaTensor res, final JavaTensor tensor, final float thresh) {
-		return apply(res, params -> params[0] > thresh ? 1 : 0, tensor);
+	public JavaTensor dthresh(JavaTensor res, final JavaTensor tensor, final float thresh, final float coeff) {
+		return apply(res, params -> params[0] > thresh ? 1 : coeff, tensor);
 	}
 	
+	@Override
+	public JavaTensor dthresh(JavaTensor res, final JavaTensor tensor, final JavaTensor threshs, final JavaTensor coeffs) {
+		return apply(res, params -> params[0] > params[1] ? 1 : params[2], tensor, threshs, coeffs);
+	}
+
 	@Override
 	public JavaTensor softmax(JavaTensor res, final JavaTensor tensor){
 		final float max = max(tensor);

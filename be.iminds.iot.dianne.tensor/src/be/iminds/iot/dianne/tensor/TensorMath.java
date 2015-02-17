@@ -160,14 +160,24 @@ public interface TensorMath<T extends Tensor<T>> {
 	public T dsigmoid(T res, final T tensor);
 	
 	/**
-	 * All elements smaller than thresh are set to val
+	 * All elements smaller than thresh are set to coeff * val + offset
 	 */
-	public T thresh(T res, final T tensor, final float thresh, final float val);
+	public T thresh(T res, final T tensor, final float thresh, final float coeff, final float offset);
 	
 	/**
-	 * All elements smaller than thresh are set to 0, 1 otherwise
+	 * All elements smaller than thresh are set to coeff * val + offset
 	 */
-	public T dthresh(T res, final T tensor, final float thresh);
+	public T thresh(T res, final T tensor, final T threshs, final T coeffs, final T offsets);
+	
+	/**
+	 * All elements smaller than thresh are set to coeff, 1 otherwise
+	 */
+	public T dthresh(T res, final T tensor, final float thresh, final float coeff);
+	
+	/**
+	 * All elements smaller than thresh are set to coeff, 1 otherwise
+	 */
+	public T dthresh(T res, final T tensor, final T threshs, final T coeffs);
 	
 	/**
 	 * Calculates element-wise softmax function
