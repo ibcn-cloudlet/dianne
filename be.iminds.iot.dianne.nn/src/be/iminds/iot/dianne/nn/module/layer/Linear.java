@@ -33,9 +33,10 @@ public class Linear extends AbstractTrainableModule {
 
 		gradWeights = gradParameters.narrow(1, 0, inSize);
 		gradBias = gradParameters.narrow(1, inSize, 1);
-				
-		weights.randn();
-		bias.randn();
+		
+		// initialize with small weights (mean 0, stdev 0.05)
+		parameters.randn();
+		parameters = factory.getTensorMath().mul(parameters, parameters, 0.05f);
 	}
 	
 	@Override

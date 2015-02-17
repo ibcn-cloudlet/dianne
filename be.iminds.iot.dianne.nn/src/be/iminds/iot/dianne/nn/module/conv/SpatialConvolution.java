@@ -53,6 +53,7 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		
 		
 		parameters.randn();
+		weights = factory.getTensorMath().div(weights, weights, kernelWidth*kernelHeight*noInputPlanes);
 	}
 	
 	@Override
