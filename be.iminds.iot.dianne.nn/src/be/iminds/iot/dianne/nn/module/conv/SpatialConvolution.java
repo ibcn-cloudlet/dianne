@@ -141,8 +141,7 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		// grad bias
 		for(int i=0;i<noOutputPlanes;i++){
 			float sum = factory.getTensorMath().sum(gradOutput.select(0, i));
-			bias.set(bias.get(i)+sum, i);
+			gradBias.set(gradBias.get(i)+sum, i);
 		}
 	}
-
 }
