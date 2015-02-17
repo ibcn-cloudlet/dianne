@@ -52,8 +52,7 @@ public class PReLU extends AbstractTrainableModule{
 		temp = factory.getTensorMath().thresh(temp, temp, 0f, 0f, 0f);
 		temp = factory.getTensorMath().mul(temp, temp, -1f);
 		
-		temp = factory.getTensorMath().cmul(temp, temp, gradOutput);
 		gradParameters = factory.getTensorMath().add(gradParameters, gradParameters,
-				factory.getTensorMath().sum(temp));
+				factory.getTensorMath().dot(temp, gradOutput));
 	}
 }
