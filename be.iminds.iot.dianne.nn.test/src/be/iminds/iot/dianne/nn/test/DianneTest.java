@@ -36,8 +36,12 @@ public class DianneTest extends TestCase {
     private TensorFactory factory;
     private Dataset mnist;
     private ModuleManager mm;
+
+    private List<UUID> modules = null;
     
     public void setUp(){
+    	// get references to required services
+    	// TODO should only be done once?
     	ServiceReference rf = context.getServiceReference(TensorFactory.class.getName());
     	factory = (TensorFactory) context.getService(rf);
     	
@@ -48,37 +52,30 @@ public class DianneTest extends TestCase {
     	mm = (ModuleManager) context.getService(rmm);
     }
     
+    public void tearDown(){
+    	// tear down deployed NN modules after each test
+    	if(modules!=null){
+    		undeployNN(modules);
+    		modules = null;
+    	}
+    }
+    
     public void testLinearSigmoid() throws Exception {
-    	List<UUID> nn = deployNN("nn/test-mnist-linear-sigmoid.txt");
-    	
-    	int batch = 10;
-    	int epochs = 1;
-    	StochasticGradient trainer = new StochasticGradient(batch, epochs);
-    	Criterion loss = new MSECriterion(factory);
-    	
-    	Input input = getInput();
-    	Output output = getOutput();
-    	
-    	Dataset train = new DatasetAdapter(mnist, 0, 60000);
-    	trainer.train(input, output, getTrainable(), loss, train);
-
-    	ArgMaxEvaluator evaluator = new ArgMaxEvaluator(factory);
-    	Dataset test = new DatasetAdapter(mnist, 60000, 70000);
-    	
-    	Evaluation eval = evaluator.evaluate(input, output, test);
-    	System.out.println("Accuracy "+eval.accuracy());
-    	Assert.assertTrue(eval.accuracy()>0.8);
-    	
-    	undeployNN(nn);
+    	sgd("test-mnist-linear-sigmoid", 10, 1, new MSECriterion(factory));
     }
     
     public void testLinearSoftmax() throws Exception {
-    	List<UUID> nn = deployNN("nn/test-mnist-linear-softmax.txt");
+    	sgd("test-mnist-linear-softmax", 10, 1, new NLLCriterion(factory));
+    }
+    
+    public void testConv() throws Exception {
+    	sgd("test-mnist-conv", 10, 1, new NLLCriterion(factory));
+    }
+    
+    private void sgd(String config, int batch, int epochs, Criterion loss) throws Exception {
+    	modules = deployNN("nn/"+config+".txt");
     	
-    	int batch = 10;
-    	int epochs = 1;
     	StochasticGradient trainer = new StochasticGradient(batch, epochs);
-    	Criterion loss = new NLLCriterion(factory);
     	
     	Input input = getInput();
     	Output output = getOutput();
@@ -92,8 +89,6 @@ public class DianneTest extends TestCase {
     	Evaluation eval = evaluator.evaluate(input, output, test);
     	System.out.println("Accuracy "+eval.accuracy());
     	Assert.assertTrue(eval.accuracy()>0.8);
-    	
-    	undeployNN(nn);
     }
     
     private Input getInput(){
