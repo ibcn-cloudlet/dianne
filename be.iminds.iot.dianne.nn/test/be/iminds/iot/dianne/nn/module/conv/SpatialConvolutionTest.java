@@ -7,6 +7,8 @@ import java.util.UUID;
 
 import javax.imageio.ImageIO;
 
+import junit.framework.Assert;
+
 import org.junit.Test;
 
 import be.iminds.iot.dianne.nn.module.BackwardListener;
@@ -48,11 +50,7 @@ public class SpatialConvolutionTest {
 		int kernelWidth = 3;
 		int kernelHeight = 3;
 		
-		// create conv-pool combo
 		SpatialConvolution conv = new SpatialConvolution(factory, noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight);
-		SpatialMaxPooling pool = new SpatialMaxPooling(factory, 2, 2);
-		conv.setNext(pool);
-		pool.setPrevious(conv);
 
 		for(int i=0;i<noOutputPlanes;i++){
 			Tensor sub1 = conv.weights.select(0, i);
@@ -76,7 +74,10 @@ public class SpatialConvolutionTest {
 			}
 		}
 		
-		//System.out.println(t);
+		conv.bias.set(0.1f, 0);
+		conv.bias.set(0.1f, 1);
+		
+		System.out.println("PARAMS: "+conv.getParameters());
 
 		Tensor input = factory.createTensor(5,5);
 		float k = 0;
@@ -88,32 +89,23 @@ public class SpatialConvolutionTest {
 		System.out.println("INPUT ");
 		System.out.println(input);
 		
+		final Tensor output = factory.createTensor(2,3,3);
+		final Tensor gradInput = factory.createTensor(5,5);
+		
 		conv.addForwardListener(new ForwardListener() {
 			@Override
-			public void onForward(Tensor output) {
+			public void onForward(Tensor o) {
+				o.copyInto(output);
 				System.out.println("OUTPUT CONV "+output);
-			}
-		});
-		
-		pool.addForwardListener(new ForwardListener() {
-			@Override
-			public void onForward(Tensor output) {
-				System.out.println("OUTPUT POOL "+output);
-				output.fill(0.001f);
-				pool.backward(UUID.randomUUID(), output);
-			}
-		});
-		
-		pool.addBackwardListener(new BackwardListener() {
-			@Override
-			public void onBackward(Tensor gradInput) {
-				System.out.println("BACKWARD POOL "+gradInput);
+				o.fill(0.1f);
+				conv.backward(UUID.randomUUID(), o);
 			}
 		});
 		
 		conv.addBackwardListener(new BackwardListener() {
 			@Override
-			public void onBackward(Tensor gradInput) {
+			public void onBackward(Tensor gi) {
+				gi.copyInto(gradInput);
 				System.out.println("BACKWARD CONV "+gradInput);
 			}
 		});
@@ -122,6 +114,19 @@ public class SpatialConvolutionTest {
 		Thread.sleep(200);
 		conv.accGradParameters();
 		
+		float[] expOutput = new float[]{6.1f, 7.1f, 8.1f, 11.1f, 12.1f, 13.1f, 16.1f, 17.1f,
+				18.1f, 2.1f, 2.1f, 2.1f, 2.1f, 2.1f, 2.1f, 2.1f, 2.1f, 2.1f};
+
+		float[] expGradInput = new float[]{0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+				-0.1f, 0.0f, 0.1f, 0.2f, 0.1f, -0.1f, 0.0f, 0.1f, 0.2f, 0.1f,
+				-0.1f, 0.0f, 0.1f, 0.2f, 0.1f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+		
+		for (int i = 0; i < expOutput.length; i++) {
+			Assert.assertEquals(expOutput[i], output.get()[i], 0.001f);
+		}
+		for (int i = 0; i < expGradInput.length; i++) {
+			Assert.assertEquals(expGradInput[i], gradInput.get()[i], 0.001f);
+		}
 	}
 	
 	@Test
