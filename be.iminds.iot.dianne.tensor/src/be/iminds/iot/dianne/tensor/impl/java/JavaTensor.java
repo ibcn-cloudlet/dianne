@@ -29,10 +29,6 @@ public class JavaTensor implements Tensor<JavaTensor> {
 		this.data = data;
 
 		reshape(dims);
-		
-		if(data!=null){
-			assert data.length == size();
-		}
 	}
 	
 	@Override
