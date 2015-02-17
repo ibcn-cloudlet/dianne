@@ -3,7 +3,6 @@ package be.iminds.iot.dianne.builder;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -13,6 +12,10 @@ import javax.servlet.http.HttpServletResponse;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonParser;
 
 @Component(service = { javax.servlet.Servlet.class }, 
 	property = { "alias:String=/dianne/save","aiolos.proxy=false" }, 
@@ -41,10 +44,15 @@ public class DianneSaver extends HttpServlet {
 			dir.mkdirs();
 		}
 		
+		// Parse and rewrite to get pretty output format
+		JsonParser parser = new JsonParser();
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		String jsonOutput = gson.toJson(parser.parse(modules));
+		
 		// TODO which formats to save?
 		File m = new File(storage+"/"+name+"/modules.txt");
 		PrintWriter p = new PrintWriter(m);
-		p.write(modules);
+		p.write(jsonOutput);
 		p.close();
 		
 		File l = new File(storage+"/"+name+"/layout.txt");
