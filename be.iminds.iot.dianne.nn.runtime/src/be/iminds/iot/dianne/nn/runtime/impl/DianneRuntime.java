@@ -27,6 +27,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import be.iminds.iot.dianne.nn.module.Input;
 import be.iminds.iot.dianne.nn.module.Module;
 import be.iminds.iot.dianne.nn.module.Output;
+import be.iminds.iot.dianne.nn.module.Preprocessor;
 import be.iminds.iot.dianne.nn.module.Trainable;
 import be.iminds.iot.dianne.nn.module.description.ModuleDescription;
 import be.iminds.iot.dianne.nn.module.factory.ModuleFactory;
@@ -170,6 +171,8 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 			float[] weights = parseWeights(parameters);
 			if(module instanceof Trainable){
 				((Trainable)module).setParameters(weights);
+			} else if(module instanceof Preprocessor){
+				((Preprocessor)module).setParameters(weights);
 			}
 		}
 		
@@ -180,6 +183,8 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 			classes = new String[]{Module.class.getName(),Output.class.getName()};
 		} else if(module instanceof Trainable){
 			classes = new String[]{Module.class.getName(),Trainable.class.getName()};
+		} else if(module instanceof Preprocessor){
+			classes = new String[]{Module.class.getName(),Preprocessor.class.getName()};
 		} else {
 			classes = new String[]{Module.class.getName()};
 		}

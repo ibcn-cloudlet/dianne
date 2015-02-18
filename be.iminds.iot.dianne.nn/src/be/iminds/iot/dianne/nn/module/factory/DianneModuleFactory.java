@@ -30,6 +30,7 @@ import be.iminds.iot.dianne.nn.module.io.OutputImpl;
 import be.iminds.iot.dianne.nn.module.join.Accumulate;
 import be.iminds.iot.dianne.nn.module.join.Concat;
 import be.iminds.iot.dianne.nn.module.layer.Linear;
+import be.iminds.iot.dianne.nn.module.preprocessing.Normalization;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component(property={"aiolos.export=false"})
@@ -124,6 +125,11 @@ public class DianneModuleFactory implements ModuleFactory {
 			ModuleDescription description = new ModuleDescription("MaxPooling", "Convolution", properties);
 			supportedModules.put(description.getType(), description);
 		}
+		{
+			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
+			ModuleDescription description = new ModuleDescription("Normalization", "Preprocessing", properties);
+			supportedModules.put(description.getType(), description);
+		}
 	}
 	
 	@Override
@@ -192,7 +198,10 @@ public class DianneModuleFactory implements ModuleFactory {
 			int height = Integer.parseInt((String)config.get("module.maxpooling.height"));
 
 			module = new SpatialMaxPooling(factory, id, width, height);
-			break;	
+			break;
+		case "Normalization":
+			module = new Normalization(factory, id);
+			break;
 		default:
 			throw new InstantiationException("Could not instantiate module of type "+type);
 		}

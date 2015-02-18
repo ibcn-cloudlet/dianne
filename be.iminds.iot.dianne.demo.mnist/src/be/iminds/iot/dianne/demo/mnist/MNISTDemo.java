@@ -11,16 +11,13 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.dataset.Dataset;
 import be.iminds.iot.dianne.dataset.DatasetAdapter;
-import be.iminds.iot.dianne.dataset.mnist.MNISTDataset;
-import be.iminds.iot.dianne.nn.module.AbstractModule;
 import be.iminds.iot.dianne.nn.module.ForwardListener;
 import be.iminds.iot.dianne.nn.module.Input;
 import be.iminds.iot.dianne.nn.module.Output;
+import be.iminds.iot.dianne.nn.module.Preprocessor;
 import be.iminds.iot.dianne.nn.module.Trainable;
 import be.iminds.iot.dianne.nn.train.Criterion;
 import be.iminds.iot.dianne.nn.train.Evaluation;
-import be.iminds.iot.dianne.nn.train.Evaluator;
-import be.iminds.iot.dianne.nn.train.Trainer;
 import be.iminds.iot.dianne.nn.train.criterion.MSECriterion;
 import be.iminds.iot.dianne.nn.train.eval.ArgMaxEvaluator;
 import be.iminds.iot.dianne.nn.train.eval.EvalProgressListener;
@@ -41,6 +38,7 @@ public class MNISTDemo {
 	private Input input;
 	private Output output;
 	private List<Trainable> toTrain = new ArrayList<Trainable>();
+	private List<Preprocessor> preprocessors = new ArrayList<Preprocessor>();
 
 	private Dataset dataTrain = null;
 	private Dataset dataTest = null;
@@ -82,6 +80,16 @@ public class MNISTDemo {
 		this.toTrain.remove(t);
 	}
 	
+	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
+			policy=ReferencePolicy.DYNAMIC)
+	public void addPreprocessor(Preprocessor p){
+		this.preprocessors.add(p);
+	}
+	
+	public void removePreprocessor(Preprocessor p){
+		this.preprocessors.remove(p);
+	}
+	
 	@Reference
 	public void setDataset(Dataset dataset){
 		this.dataTrain = new DatasetAdapter(dataset, 0, 60000);
@@ -106,7 +114,7 @@ public class MNISTDemo {
 				System.out.println(epoch+"\t"+batch+"\t"+error);
 			}
 		});
-		trainer.train(input, output, toTrain, loss, dataTrain);
+		trainer.train(input, output, toTrain, preprocessors, loss, dataTrain);
 		System.out.println("Trained!");
 		
 		this.output.addForwardListener(outputLog);

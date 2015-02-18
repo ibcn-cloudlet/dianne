@@ -13,7 +13,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
@@ -21,10 +20,10 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.dataset.Dataset;
 import be.iminds.iot.dianne.dataset.DatasetAdapter;
-import be.iminds.iot.dianne.dataset.mnist.MNISTDataset;
 import be.iminds.iot.dianne.nn.module.Input;
 import be.iminds.iot.dianne.nn.module.Module;
 import be.iminds.iot.dianne.nn.module.Output;
+import be.iminds.iot.dianne.nn.module.Preprocessor;
 import be.iminds.iot.dianne.nn.module.Trainable;
 import be.iminds.iot.dianne.nn.train.Criterion;
 import be.iminds.iot.dianne.nn.train.Evaluation;
@@ -56,6 +55,7 @@ public class DianneLearner extends HttpServlet {
 	private Input input;
 	private Output output;
 	private List<Trainable> trainable = new ArrayList<Trainable>();
+	private List<Preprocessor> preprocessors = new ArrayList<Preprocessor>();
 	
 	// TODO support multiple datasets
 	private Dataset mnist = null;
@@ -85,6 +85,16 @@ public class DianneLearner extends HttpServlet {
 	
 	public void removeTrainable(Trainable t){
 		this.trainable.remove(t);
+	}
+	
+	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
+			policy=ReferencePolicy.DYNAMIC)
+	public void addPreprocessor(Preprocessor p){
+		this.preprocessors.add(p);
+	}
+	
+	public void removePreprocessor(Preprocessor p){
+		this.preprocessors.remove(p);
 	}
 	
 	@Reference
@@ -130,6 +140,9 @@ public class DianneLearner extends HttpServlet {
 					for(Trainable t : trainable){
 						parameters.add(((Module)t).getId().toString(), new JsonPrimitive(Arrays.toString(t.getParameters().get())));;
 					}
+					for(Preprocessor p : preprocessors){
+						parameters.add(((Module)p).getId().toString(), new JsonPrimitive(Arrays.toString(p.getParameters().get())));;
+					}
 					
 					response.getWriter().write(parameters.toString());
 					response.getWriter().flush();
@@ -157,7 +170,7 @@ public class DianneLearner extends HttpServlet {
 		for(Trainable t : trainable){
 			System.out.println("Trainable: "+((Module)t).getId());
 		}
-		trainer.train(input, output, trainable, loss, trainSet);
+		trainer.train(input, output, trainable, preprocessors, loss, trainSet);
 	}
 	
 	private Evaluation evaluate(JsonObject datasetConfig, JsonObject evaluatorConfig){
