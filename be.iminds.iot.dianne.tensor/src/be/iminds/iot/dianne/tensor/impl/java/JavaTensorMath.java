@@ -476,19 +476,19 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 
 	@Override
-	public JavaTensor convolution2D(JavaTensor res, JavaTensor mat1, JavaTensor mat2, boolean full, boolean flip) {
+	public JavaTensor convolution2D(JavaTensor res, JavaTensor mat1, JavaTensor mat2, int stride_x, int stride_y, boolean full, boolean flip) {
 		// TODO stride?
 		int h = mat2.size(0);
 		int w = mat2.size(1);
 		
-		int sx = 0;
-		int sy = 0;
+		int start_x = 0;
+		int start_y = 0;
 		int y = mat1.size(0) - h + 1;
 		int x = mat1.size(1) - w + 1;
 		
 		if(full){
-			sx -= (w-1);
-			sy -= (h-1);
+			start_x -= (w-1);
+			start_y -= (h-1);
 			x += (w-1);
 			y += (h-1);
 		}
@@ -496,13 +496,13 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		int skip = mat1.size(1);
 		
 		if(res==null){
-			res = factory.createTensor(y-sy, x-sx);
+			res = factory.createTensor((int)Math.ceil((y-start_y)/(float)stride_y), (int)Math.ceil((x-start_x)/(float)stride_x));
 		}
-		
+
 		// TODO check dims?
 		int a = 0;
-		for(int i=sy;i<y;i++){
-			for(int j=sx;j<x;j++){
+		for(int i=start_y;i<y;i+=stride_y){
+			for(int j=start_x;j<x;j+=stride_x){
 				float r = 0;
 				int f = 0;
 				if(flip){

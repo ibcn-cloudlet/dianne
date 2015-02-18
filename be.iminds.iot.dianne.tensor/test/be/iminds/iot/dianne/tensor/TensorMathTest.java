@@ -293,8 +293,8 @@ public class TensorMathTest<T extends Tensor<T>> {
 		result.fill(18.0f);
 		result.set(20.0f, 0, 0);
 		result.set(20.0f, 2, 2);
-		
-		Assert.assertEquals(result, math.convolution2D(null, t1, t2, false, false));
+	
+		Assert.assertEquals(result, math.convolution2D(null, t1, t2, 1, 1, false, false));
 	}
 	
 	@Test
