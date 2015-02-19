@@ -146,6 +146,12 @@ footer {
 	position: relative;
 }
 
+.tool {
+	margin: 0px;
+	padding-left: 10px;
+	width: 110px;
+}
+
 .learn {
 	background-color: #adc2ff;	
 }

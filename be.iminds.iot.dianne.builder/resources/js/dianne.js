@@ -93,8 +93,8 @@ $( document ).ready(function() {
 	addToolboxItem('toolbox-learn','Arg Max Evaluator','ArgMax','Evaluator','learn');
 	
 	addToolboxItem('toolbox-run','MNIST input','MNIST','Dataset','run');
-	addToolboxItem('toolbox-run','Canvas input','CanvasInput','RunInput','run');
-	addToolboxItem('toolbox-run','Output probabilities','ProbabilityOutput','RunOutput','run');
+	addToolboxItem('toolbox-run','Canvas input','CanvasInput','Source','run');
+	addToolboxItem('toolbox-run','Output probabilities','ProbabilityOutput','Visualize','run');
 	
 	// show correct mode
 	setModus(currentMode);
@@ -105,7 +105,17 @@ $( document ).ready(function() {
  * add a toolbox item name to toolbox with id toolboxId and add category
  */
 function addToolboxItem(toolboxId, name, type, category, mode){
-
+	var panel = $('#'+toolboxId).find('.'+category);
+	if(panel.length===0){
+		$("<div>"  +
+			"<h4 data-toggle=\"collapse\" data-target=\"."+category+"\">"+category+"</h4>"+	
+			"<div class=\""+category+" collapse in row\"></div>" +
+		  "</div>").appendTo($('#'+toolboxId));
+		panel = $('#'+toolboxId).find('.'+category);
+	}
+	
+	var div = $("<div class=\"tool col-xs-6\"></div>").appendTo(panel);
+	
 	var module = renderTemplate("module",
 		{	
 			name: name,
@@ -113,10 +123,10 @@ function addToolboxItem(toolboxId, name, type, category, mode){
 			category: category,
 			mode: mode
 		}, 
-		$('#'+toolboxId));
+		div);
 	
 
-			// make toolbox modules draggable to instantiate using drag-and-drop
+	// make toolbox modules draggable to instantiate using drag-and-drop
 	module.draggable({helper: "clone"});
 	module.bind('dragstop', function(event, ui) {
 		if(checkAddModule($(this))){
@@ -287,9 +297,9 @@ function setupModule(moduleItem, type, category){
 		jsPlumb.addEndpoint(moduleItem, targetStyle, {endpoint:"Rectangle"});
 	} else if(category==="Dataset"){ 
 		jsPlumb.addEndpoint(moduleItem, sourceStyle, {endpoint:"Rectangle"});
-	} else if(category==="RunInput"){ 
+	} else if(category==="Source"){ 
 		jsPlumb.addEndpoint(moduleItem, sourceStyle, {endpoint:"Rectangle"});
-	} else if(category==="RunOutput"){ 
+	} else if(category==="Visualize"){ 
 		jsPlumb.addEndpoint(moduleItem, targetStyle, {endpoint:"Rectangle"});
 	} else if(category==="Fork") {
 		jsPlumb.addEndpoint(moduleItem, sourceStyle, {maxConnections:-1});

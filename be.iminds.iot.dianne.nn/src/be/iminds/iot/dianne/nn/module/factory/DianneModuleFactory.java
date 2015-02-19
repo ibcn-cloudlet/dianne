@@ -19,8 +19,6 @@ import be.iminds.iot.dianne.nn.module.activation.Sigmoid;
 import be.iminds.iot.dianne.nn.module.activation.Softmax;
 import be.iminds.iot.dianne.nn.module.activation.Tanh;
 import be.iminds.iot.dianne.nn.module.activation.Threshold;
-import be.iminds.iot.dianne.nn.module.conv.SpatialConvolution;
-import be.iminds.iot.dianne.nn.module.conv.SpatialMaxPooling;
 import be.iminds.iot.dianne.nn.module.description.ModuleDescription;
 import be.iminds.iot.dianne.nn.module.description.ModuleProperty;
 import be.iminds.iot.dianne.nn.module.fork.Duplicate;
@@ -30,6 +28,8 @@ import be.iminds.iot.dianne.nn.module.io.OutputImpl;
 import be.iminds.iot.dianne.nn.module.join.Accumulate;
 import be.iminds.iot.dianne.nn.module.join.Concat;
 import be.iminds.iot.dianne.nn.module.layer.Linear;
+import be.iminds.iot.dianne.nn.module.layer.SpatialConvolution;
+import be.iminds.iot.dianne.nn.module.layer.SpatialMaxPooling;
 import be.iminds.iot.dianne.nn.module.preprocessing.Normalization;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -49,7 +49,7 @@ public class DianneModuleFactory implements ModuleFactory {
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
 			properties.add(new ModuleProperty("Input size", "input"));
 			properties.add(new ModuleProperty("Output size", "output"));
-			ModuleDescription description = new ModuleDescription("Linear", "Linear", properties);
+			ModuleDescription description = new ModuleDescription("Linear", "Layer", properties);
 			supportedModules.put(description.getType(), description);
 		}
 		{
@@ -81,12 +81,12 @@ public class DianneModuleFactory implements ModuleFactory {
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleDescription description = new ModuleDescription("Input", "Input", properties);
+			ModuleDescription description = new ModuleDescription("Input", "Input-Output", properties);
 			supportedModules.put(description.getType(), description);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleDescription description = new ModuleDescription("Output", "Output", properties);
+			ModuleDescription description = new ModuleDescription("Output", "Input-Output", properties);
 			supportedModules.put(description.getType(), description);
 		}
 		{
@@ -115,14 +115,14 @@ public class DianneModuleFactory implements ModuleFactory {
 			properties.add(new ModuleProperty("Output planes", "noOutputPlanes"));
 			properties.add(new ModuleProperty("Kernel width", "kernelWidth"));
 			properties.add(new ModuleProperty("Kernel height", "kernelHeight"));
-			ModuleDescription description = new ModuleDescription("Convolution", "Convolution", properties);
+			ModuleDescription description = new ModuleDescription("Convolution", "Layer", properties);
 			supportedModules.put(description.getType(), description);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
 			properties.add(new ModuleProperty("Width", "width"));
 			properties.add(new ModuleProperty("Height", "height"));
-			ModuleDescription description = new ModuleDescription("MaxPooling", "Convolution", properties);
+			ModuleDescription description = new ModuleDescription("MaxPooling", "Layer", properties);
 			supportedModules.put(description.getType(), description);
 		}
 		{
