@@ -18,6 +18,7 @@ import be.iminds.iot.dianne.dataset.Dataset;
 import be.iminds.iot.dianne.dataset.DatasetAdapter;
 import be.iminds.iot.dianne.nn.module.Input;
 import be.iminds.iot.dianne.nn.module.Output;
+import be.iminds.iot.dianne.nn.module.Preprocessor;
 import be.iminds.iot.dianne.nn.module.Trainable;
 import be.iminds.iot.dianne.nn.runtime.ModuleManager;
 import be.iminds.iot.dianne.nn.runtime.util.DianneJSONParser;
@@ -61,15 +62,35 @@ public class DianneTest extends TestCase {
     }
     
     public void testLinearSigmoid() throws Exception {
-    	sgd("test-mnist-linear-sigmoid", 10, 1, 0.5f, new MSECriterion(factory));
+    	sgd("test-mnist-linear-sigmoid", 10, 1, 0.05f, new MSECriterion(factory));
     }
     
     public void testLinearSoftmax() throws Exception {
-    	sgd("test-mnist-linear-softmax", 10, 1, 0.5f, new NLLCriterion(factory));
+    	sgd("test-mnist-linear-softmax", 10, 1, 0.001f, new NLLCriterion(factory));
+    }
+
+    public void testLinearSigmoidNorm() throws Exception {
+    	sgd("test-mnist-linear-sigmoid-norm", 10, 1, 0.05f, new MSECriterion(factory));
+    }
+    
+    public void testLinearSoftmaxNorm() throws Exception {
+    	sgd("test-mnist-linear-softmax-norm", 10, 1, 0.001f, new NLLCriterion(factory));
     }
     
     public void testConv() throws Exception {
-    	sgd("test-mnist-conv", 10, 50, 0.01f, new NLLCriterion(factory));
+    	sgd("test-mnist-conv", 10, 1, 0.001f, new NLLCriterion(factory));
+    }
+    
+    public void testConvNorm() throws Exception {
+    	sgd("test-mnist-conv-norm", 10, 1, 0.001f, new NLLCriterion(factory));
+    }
+
+    public void testConvTanh() throws Exception {
+    	sgd("test-mnist-conv-tanh", 10, 1, 0.001f, new NLLCriterion(factory));
+    }
+    
+    public void testConvTanhNorm() throws Exception {
+    	sgd("test-mnist-conv-tanh-norm", 10, 1, 0.001f, new NLLCriterion(factory));
     }
     
     private void sgd(String config, int batch, int epochs, float learningRate, Criterion loss) throws Exception {
@@ -81,14 +102,14 @@ public class DianneTest extends TestCase {
     	Output output = getOutput();
     	
     	Dataset train = new DatasetAdapter(mnist, 0, 60000);
-    	trainer.train(input, output, getTrainable(), loss, train);
+    	trainer.train(input, output, getTrainable(), getPreprocessors(), loss, train);
 
     	ArgMaxEvaluator evaluator = new ArgMaxEvaluator(factory);
     	Dataset test = new DatasetAdapter(mnist, 60000, 70000);
     	
     	Evaluation eval = evaluator.evaluate(input, output, test);
     	System.out.println("Accuracy "+eval.accuracy());
-    	Assert.assertTrue(eval.accuracy()>0.8);
+    	Assert.assertTrue(eval.accuracy()>0.6);
     }
     
     private Input getInput(){
@@ -110,6 +131,17 @@ public class DianneTest extends TestCase {
     	ServiceReference[] refs = context.getAllServiceReferences(Trainable.class.getName(), null);
     	for(ServiceReference r : refs){
     		modules.add((Trainable)context.getService(r));
+    	}
+    	return modules;
+    }
+    
+    private List<Preprocessor> getPreprocessors() throws Exception {
+    	List<Preprocessor> modules = new ArrayList<Preprocessor>();
+    	ServiceReference[] refs = context.getAllServiceReferences(Preprocessor.class.getName(), null);
+    	if(refs!=null){
+	    	for(ServiceReference r : refs){
+	    		modules.add((Preprocessor)context.getService(r));
+	    	}
     	}
     	return modules;
     }
