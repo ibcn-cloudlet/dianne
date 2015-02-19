@@ -1,8 +1,7 @@
-package be.iminds.iot.dianne.nn.module.conv;
+package be.iminds.iot.dianne.nn.module.layer;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.Arrays;
 import java.util.UUID;
 
 import javax.imageio.ImageIO;
@@ -13,6 +12,7 @@ import org.junit.Test;
 
 import be.iminds.iot.dianne.nn.module.BackwardListener;
 import be.iminds.iot.dianne.nn.module.ForwardListener;
+import be.iminds.iot.dianne.nn.module.layer.SpatialConvolution;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;
 

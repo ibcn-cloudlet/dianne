@@ -1,4 +1,4 @@
-package be.iminds.iot.dianne.nn.module.conv;
+package be.iminds.iot.dianne.nn.module.layer;
 
 import java.util.UUID;
 

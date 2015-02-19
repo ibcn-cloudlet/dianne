@@ -14,7 +14,6 @@ Export-Package: \
 Private-Package: \
 	be.iminds.iot.dianne.nn.module.activation,\
 	be.iminds.iot.dianne.nn.module.preprocessing,\
-	be.iminds.iot.dianne.nn.module.conv,\
 	be.iminds.iot.dianne.nn.module.join,\
 	be.iminds.iot.dianne.nn.module.fork,\
 	be.iminds.iot.dianne.nn.module.io,\
