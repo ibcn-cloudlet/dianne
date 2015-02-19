@@ -12,6 +12,7 @@ public class SpatialConvolution extends AbstractTrainableModule {
 	private int noOutputPlanes;
 	private int kernelWidth;
 	private int kernelHeight;
+	// TODO strides support?
 	
 	// subtensors for weights / bias
 	Tensor weights;
@@ -33,7 +34,6 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		init(noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight);
 	}
 	
-	// TODO strides support?
 	protected void init(int noInputPlanes, int noOutputPlanes, 
 			int kernelWidth, int kernelHeight){
 		this.noInputPlanes = noInputPlanes;
@@ -52,8 +52,11 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		gradBias = gradParameters.narrow(0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight, noOutputPlanes);
 		
 		
-		parameters.randn();
-		weights = factory.getTensorMath().div(weights, weights, kernelWidth*kernelHeight*noInputPlanes);
+		// initialize weights uniform [-std, std] with std = 1/sqrt(kW*kH*noInputPlanes)  [from torch]
+		parameters.rand();
+		float std = (float) (1f/Math.sqrt(kernelWidth*kernelHeight*noInputPlanes));
+		parameters = factory.getTensorMath().mul(parameters, parameters, 2*std);
+		parameters = factory.getTensorMath().sub(parameters, parameters, std);
 	}
 	
 	@Override
@@ -64,7 +67,7 @@ public class SpatialConvolution extends AbstractTrainableModule {
 			outDims[1] = input.size(0) - kernelHeight + 1;
 			outDims[2] = input.size(1) - kernelWidth + 1;
 		} else if(input.dim()==3){
-			outDims[1] = input.size(1) - kernelHeight + 1;
+			outDims[1] = input.size(1) - kernelHeight+ 1;
 			outDims[2] = input.size(2) - kernelWidth + 1;
 		} // else error?
 		if(output==null || !output.hasDim(outDims)){
@@ -84,7 +87,7 @@ public class SpatialConvolution extends AbstractTrainableModule {
 				
 				// TODO convadd operation to avoid temp?
 				temp = factory.getTensorMath().convolution2D(temp,
-						noInputPlanes== 1 ? input : input.select(0, j), kernel, false, false);
+						noInputPlanes== 1 ? input : input.select(0, j), kernel, 1, 1, false, false);
 				factory.getTensorMath().add(outputPlane, outputPlane, temp);
 			}
 			
@@ -113,7 +116,7 @@ public class SpatialConvolution extends AbstractTrainableModule {
 				// update gradInput
 				// this should be "full" convolution and flipped kernel?
 				temp = factory.getTensorMath().convolution2D(temp,
-						gradOutput.select(0, j), kernel, true, true);
+						gradOutput.select(0, j), kernel, 1, 1, true, true);
 				factory.getTensorMath().add(gradInputPlane, gradInputPlane, temp);
 			}
 		}
@@ -133,7 +136,7 @@ public class SpatialConvolution extends AbstractTrainableModule {
 				
 				//  update gradKernel
 				temp = factory.getTensorMath().convolution2D(temp, 
-						noInputPlanes== 1 ? input : input.select(0, j), gradOutput.select(0, i), false, false);
+						noInputPlanes== 1 ? input : input.select(0, j), gradOutput.select(0, i), 1, 1, false, false);
 
 				factory.getTensorMath().add(gradKernel, gradKernel, temp);
 			}
