@@ -77,20 +77,12 @@ public class DianneTest extends TestCase {
     	sgd("test-mnist-linear-softmax-norm", 10, 1, 0.001f, new NLLCriterion(factory));
     }
     
-    public void testConv() throws Exception {
-    	sgd("test-mnist-conv", 10, 1, 0.001f, new NLLCriterion(factory));
-    }
-    
-    public void testConvNorm() throws Exception {
-    	sgd("test-mnist-conv-norm", 10, 1, 0.001f, new NLLCriterion(factory));
+    public void testConvReLUNorm() throws Exception {
+    	sgd("test-mnist-conv-relu-norm", 10, 2, 0.0001f, new NLLCriterion(factory));
     }
 
-    public void testConvTanh() throws Exception {
-    	sgd("test-mnist-conv-tanh", 10, 1, 0.001f, new NLLCriterion(factory));
-    }
-    
     public void testConvTanhNorm() throws Exception {
-    	sgd("test-mnist-conv-tanh-norm", 10, 1, 0.001f, new NLLCriterion(factory));
+    	sgd("test-mnist-conv-tanh-norm", 10, 2, 0.0001f, new NLLCriterion(factory));
     }
     
     private void sgd(String config, int batch, int epochs, float learningRate, Criterion loss) throws Exception {
@@ -103,7 +95,7 @@ public class DianneTest extends TestCase {
     	
     	Dataset train = new DatasetAdapter(mnist, 0, 60000);
     	trainer.train(input, output, getTrainable(), getPreprocessors(), loss, train);
-
+    	
     	ArgMaxEvaluator evaluator = new ArgMaxEvaluator(factory);
     	Dataset test = new DatasetAdapter(mnist, 60000, 70000);
     	
