@@ -79,11 +79,21 @@ public abstract class AbstractModule implements Module {
 	}
 	
 	@Override
-	public void forward(final UUID moduleId, final Tensor input) {
+	public synchronized void forward(final UUID moduleId, final Tensor input) {
 		this.input = input;
 		
 		// calculates new outputs
-		forward();
+		if(output!=null){
+			synchronized(output){
+				synchronized(input){
+					forward();
+				}
+			}
+		} else {
+			synchronized(input){
+				forward();
+			}
+		}
 		
 		if(next!=null)
 			callNext();
