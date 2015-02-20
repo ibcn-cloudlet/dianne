@@ -1,5 +1,7 @@
 package be.iminds.iot.dianne.nn.train;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 
 import be.iminds.iot.dianne.dataset.Dataset;
@@ -12,18 +14,26 @@ import be.iminds.iot.dianne.tensor.Tensor;
 // convenience class to process a dataset with a neural network one by one
 public abstract class DatasetProcessor {
 
-	private int index = 0;
-	
 	protected Input input;
 	protected Output output;
 	protected Dataset data;
 	private boolean backpropagate;
 	
-	public DatasetProcessor(Input input, Output output, Dataset data, boolean backpropagate){
+	private int index = 0;
+	private boolean shuffle;
+	private ArrayList<Integer> indices = null;
+	
+	public DatasetProcessor(Input input, Output output, Dataset data, boolean backpropagate, boolean shuffle){
 		this.input = input;
 		this.output = output;
 		this.data = data;
 		this.backpropagate = backpropagate;
+		
+		this.shuffle = shuffle;
+		this.indices = new ArrayList<Integer>(data.size());
+		for(int i=0;i<data.size();i++){
+			this.indices.add(new Integer(i));
+		}
 	}
 	
 	/**
@@ -34,6 +44,10 @@ public abstract class DatasetProcessor {
 	  */
 	public synchronized void process(){
 		
+		if(shuffle){
+			Collections.shuffle(indices);
+		}
+		
 		final CountDownLatch latch = new CountDownLatch(data.size());
 		
 		// add input and output listeners
@@ -41,7 +55,7 @@ public abstract class DatasetProcessor {
 			
 			@Override
 			public void onBackward(Tensor gradInput) {
-				DatasetProcessor.this.onBackward(index, gradInput);
+				DatasetProcessor.this.onBackward(indices.get(index), gradInput);
 				
 				// if backpropagate, forward next
 				if(backpropagate){
@@ -50,7 +64,7 @@ public abstract class DatasetProcessor {
 					
 					index++;
 					if(index < data.size()){
-						Tensor in = data.getInputSample(index);
+						Tensor in = data.getInputSample(indices.get(index));
 						input.input(in);
 					} 
 				}
@@ -62,7 +76,7 @@ public abstract class DatasetProcessor {
 			
 			@Override
 			public void onForward(Tensor output) {
-				DatasetProcessor.this.onForward(index, output);
+				DatasetProcessor.this.onForward(indices.get(index), output);
 				
 				if(!backpropagate){
 					// next
@@ -70,7 +84,7 @@ public abstract class DatasetProcessor {
 					
 					index++;
 					if(index < data.size()){
-						Tensor in = data.getInputSample(index);
+						Tensor in = data.getInputSample(indices.get(index));
 						input.input(in);
 					} 
 				}
@@ -79,7 +93,7 @@ public abstract class DatasetProcessor {
 		output.addForwardListener(outputListener);
 		
 		// forward first item
-		Tensor in = data.getInputSample(index);
+		Tensor in = data.getInputSample(indices.get(index));
 		input.input(in);
 		
 		// wait

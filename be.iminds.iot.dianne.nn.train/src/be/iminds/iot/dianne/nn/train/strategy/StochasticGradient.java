@@ -47,7 +47,7 @@ public class StochasticGradient implements Trainer {
 			p.preprocess(data);
 		}
 		
-		DatasetProcessor processor = new DatasetProcessor(input, output, data, true) {
+		DatasetProcessor processor = new DatasetProcessor(input, output, data, true, true) {
 			
 			@Override
 			protected void onForward(int index, Tensor out) {
@@ -90,6 +90,8 @@ public class StochasticGradient implements Trainer {
 		for(epoch=0;epoch<noEpochs;epoch++){			
 			System.out.println(epoch);
 			sample = 0;
+			
+			//Collections.shuffle(shuffle, new Random(0));
 			
 			long t1 = System.currentTimeMillis();
 			processor.process();

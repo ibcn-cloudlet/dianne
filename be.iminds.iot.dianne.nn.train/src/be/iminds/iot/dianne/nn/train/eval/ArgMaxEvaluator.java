@@ -10,7 +10,6 @@ import be.iminds.iot.dianne.nn.module.Output;
 import be.iminds.iot.dianne.nn.train.DatasetProcessor;
 import be.iminds.iot.dianne.nn.train.Evaluation;
 import be.iminds.iot.dianne.nn.train.Evaluator;
-import be.iminds.iot.dianne.nn.train.strategy.TrainProgressListener;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -29,9 +28,7 @@ public class ArgMaxEvaluator implements Evaluator {
 		final Tensor confusion = factory.createTensor(data.outputSize(), data.outputSize());
 		confusion.fill(0.0f);
 		
-		
-		
-		final DatasetProcessor processor = new DatasetProcessor(input, output, data, false) {
+		final DatasetProcessor processor = new DatasetProcessor(input, output, data, false, false) {
 			
 			@Override
 			protected void onForward(int index, Tensor out) {
