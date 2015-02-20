@@ -7,7 +7,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 public class JavaTensor implements Tensor<JavaTensor> {
 
-	static Random random = new Random(System.currentTimeMillis());
+	static Random random = new Random(1234);
 	
 	int[] dims;
 	float[] data;

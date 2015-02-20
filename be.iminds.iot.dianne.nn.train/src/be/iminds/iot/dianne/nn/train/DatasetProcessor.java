@@ -2,6 +2,7 @@ package be.iminds.iot.dianne.nn.train;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 
 import be.iminds.iot.dianne.dataset.Dataset;
@@ -22,6 +23,7 @@ public abstract class DatasetProcessor {
 	private int index = 0;
 	private boolean shuffle;
 	private ArrayList<Integer> indices = null;
+	private Random rand = new Random(1234);
 	
 	public DatasetProcessor(Input input, Output output, Dataset data, boolean backpropagate, boolean shuffle){
 		this.input = input;
@@ -45,7 +47,7 @@ public abstract class DatasetProcessor {
 	public synchronized void process(){
 		
 		if(shuffle){
-			Collections.shuffle(indices);
+			Collections.shuffle(indices, rand);
 		}
 		
 		final CountDownLatch latch = new CountDownLatch(data.size());
