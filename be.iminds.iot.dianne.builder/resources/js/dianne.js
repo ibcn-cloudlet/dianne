@@ -9,6 +9,9 @@ var learning = {};
 // keep a map of all run blocks
 var running = {};
 
+// keep a map of known datasets
+var datasets = {};
+
 // keep map module id -> deployment node
 var deployment = {};
 
@@ -86,13 +89,24 @@ $( document ).ready(function() {
 		}
 		, "json");
 	
+	$.post("/dianne/datasets", {action : "available-datasets"}, 
+			function( data ) {
+				$.each(data, function(index, dataset){
+					// add datasets to learn/run toolboxes
+					datasets[dataset.dataset] = dataset;
+					addToolboxItem('toolbox-learn', dataset.dataset, dataset.dataset, 'Dataset', 'learn');
+					addToolboxItem('toolbox-run', dataset.dataset, dataset.dataset, 'Dataset', 'run');
+				});
+			}
+			, "json");
+	
 	// learn toolbox
 	// TODO this is hard coded for now, as this does not map to factories/module impls
-	addToolboxItem('toolbox-learn','MNIST Dataset','MNIST','Dataset','learn');
+	//addToolboxItem('toolbox-learn','MNIST Dataset','MNIST','Dataset','learn');
 	addToolboxItem('toolbox-learn','SGD Trainer','StochasticGradientDescent','Trainer','learn');
 	addToolboxItem('toolbox-learn','Arg Max Evaluator','ArgMax','Evaluator','learn');
 	
-	addToolboxItem('toolbox-run','MNIST input','MNIST','Dataset','run');
+	//addToolboxItem('toolbox-run','MNIST input','MNIST','Dataset','run');
 	addToolboxItem('toolbox-run','Canvas input','CanvasInput','Source','run');
 	addToolboxItem('toolbox-run','Output probabilities','ProbabilityOutput','Visualize','run');
 	
@@ -255,10 +269,10 @@ function addModule(moduleItem){
 	// some hard coded shit here... should be changed
 	if(category==="Dataset"){
 		// TODO this is hard coded for MNIST
-		module.dataset = "MNIST";
-		module.total = 70000;
-		module.train = 60000;
+		module.dataset = module.type;
+		module.total = datasets[module.type].size;
 		module.test = 10000;
+		module.train = module.total - 10000;
 		module.validation = 0;
 		
 	} else if(category==="Trainer"){

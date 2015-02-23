@@ -2,8 +2,6 @@ package be.iminds.iot.dianne.builder;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.Random;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletException;
@@ -14,12 +12,14 @@ import javax.servlet.http.HttpServletResponse;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
-import be.iminds.iot.dianne.dataset.Dataset;
 import be.iminds.iot.dianne.nn.module.ForwardListener;
 import be.iminds.iot.dianne.nn.module.Input;
 import be.iminds.iot.dianne.nn.module.Output;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 @Component(service = { javax.servlet.Servlet.class }, 
 	property = { "alias:String=/dianne/run","aiolos.proxy=false" }, 
@@ -28,16 +28,13 @@ public class DianneRunner extends HttpServlet {
 	
 	private TensorFactory factory;
 	
+	private JsonParser parser = new JsonParser();
+	
 	// for now fixed 1 input, 1 output, and trainable modules
 	private Input input;
 	private Output output;
 
-	// TODO support multiple datasets
-	private Dataset mnist = null;
-	
 	private AsyncContext sse = null;
-	
-	private Random rand = new Random(System.currentTimeMillis());
 	
 	@Reference
 	public void setTensorFactory(TensorFactory factory){
@@ -70,12 +67,6 @@ public class DianneRunner extends HttpServlet {
 		});
 	}
 	
-	
-	@Reference
-	public void setDataset(Dataset dataset){
-		this.mnist = dataset;
-	}
-	
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
@@ -93,15 +84,15 @@ public class DianneRunner extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		if(request.getParameter("forward")!=null){
-			float[] data = parseInput(request.getParameter("forward"));
-			Tensor t = factory.createTensor(data, 28, 28);
-			input.input(t);
-		} else if(request.getParameter("sample")!=null){
-			Tensor t = mnist.getInputSample(rand.nextInt(70000));
-			response.getWriter().println(Arrays.toString(t.get()));
-			response.getWriter().flush();
-		}
+			JsonObject sample = parser.parse(request.getParameter("forward")).getAsJsonObject();
+			int channels = sample.get("channels").getAsInt();
+			int width = sample.get("width").getAsInt();
+			int height = sample.get("height").getAsInt();
 
+			float[] data = parseInput(sample.get("data").getAsJsonArray().toString());
+			Tensor t = factory.createTensor(data, channels, height, width);
+			input.input(t);
+		} 
 	}
 	
 	private float[] parseInput(String string){

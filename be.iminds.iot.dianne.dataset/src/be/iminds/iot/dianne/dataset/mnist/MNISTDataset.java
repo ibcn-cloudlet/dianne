@@ -96,6 +96,11 @@ public class MNISTDataset implements Dataset{
 	}
 	
 	@Override
+	public String getName(){
+		return "MNIST";
+	}
+	
+	@Override
 	public int size() {
 		return noSamples;
 	}

@@ -107,6 +107,11 @@ public class Cifar10Dataset implements Dataset {
 	}
 	
 	@Override
+	public String getName(){
+		return "CIFAR-10";
+	}
+	
+	@Override
 	public int size() {
 		return noSamples;
 	}

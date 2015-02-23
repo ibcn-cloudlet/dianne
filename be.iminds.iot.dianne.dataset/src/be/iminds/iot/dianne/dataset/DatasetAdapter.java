@@ -17,6 +17,11 @@ public class DatasetAdapter implements Dataset {
 	}
 	
 	@Override
+	public String getName(){
+		return data.getName();
+	}
+	
+	@Override
 	public int size() {
 		return end-start;
 	}

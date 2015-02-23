@@ -372,8 +372,8 @@ function createRunModuleDialog(id, moduleItem){
 			cancel: "Delete"
 		}, $(document.body));
 		
-		dialog.find(".content").append("<canvas class='sampleCanvas' width='224' height='224' style=\"border:1px solid #000000; margin-left:150px\"></canvas>");
-		dialog.find(".content").append("<button class='btn' onclick='sample()' style=\"margin-left:10px\">Sample</button>");
+		dialog.find(".content").append("<canvas class='sampleCanvas' width='256' height='256' style=\"border:1px solid #000000; margin-left:150px\"></canvas>");
+		dialog.find(".content").append("<button class='btn' onclick='sample(\""+module.type+"\")' style=\"margin-left:10px\">Sample</button>");
 		
 		sampleCanvas = dialog.find('.sampleCanvas')[0];
 		sampleCanvasCtx = sampleCanvas.getContext('2d');
@@ -460,22 +460,45 @@ function forwardCanvasInput(){
 			, "json");
 }
 
-function sample(){
-	$.post("/dianne/run", {"sample":"random"}, 
-			function( data ) {
-				var imageData = sampleCanvasCtx.createImageData(224, 224);
-				for (var y = 0; y < 224; y++) {
-			        for (var x = 0; x < 224; x++) {
-			        	// collect alpha values
-			        	var x_s = Math.floor(x/8);
-			        	var y_s = Math.floor(y/8);
-			        	var index = y_s*28+x_s;
-			        	imageData.data[y*224*4+x*4+3] = Math.floor(data[index]*255);
-			        }
-			    }
+function sample(dataset){
+	$.post("/dianne/datasets", {"action":"sample","dataset":dataset}, 
+			function( sample ) {
+				var scale = 8;
+				var width = sample.width*scale;
+				var height = sample.height*scale;
+				var imageData = sampleCanvasCtx.createImageData(width, height);
+				if(sample.channels===1){
+					for (var y = 0; y < height; y++) {
+				        for (var x = 0; x < width; x++) {
+				        	// collect alpha values
+				        	var x_s = Math.floor(x/scale);
+				        	var y_s = Math.floor(y/scale);
+				        	var index = y_s*sample.width+x_s;
+				        	imageData.data[y*width*4+x*4+3] = Math.floor(sample.data[index]*255);
+				        }
+				    }
+				} else if(sample.channels===3){
+					// RGB
+					for(var c = 0; c < 3; c++){
+						for (var y = 0; y < height; y++) {
+					        for (var x = 0; x < width; x++) {
+					        	var x_s = Math.floor(x/scale);
+					        	var y_s = Math.floor(y/scale);
+					        	var index = c*sample.width*sample.height + y_s*sample.width+x_s;
+					        	imageData.data[y*width*4+x*4+c] = Math.floor(sample.data[index]*255);
+					        }
+					    }		
+					}
+					for (var y = 0; y < height; y++) {
+				        for (var x = 0; x < width; x++) {
+				        	imageData.data[y*width*4+x*4+3] = 255;
+				        }
+					}
+				}
+				
 				sampleCanvasCtx.putImageData(imageData, 0, 0); 
 				
-				$.post("/dianne/run", {"forward":JSON.stringify(data)}, 
+				$.post("/dianne/run", {"forward":JSON.stringify(sample)}, 
 						function( data ) {
 						}
 						, "json");

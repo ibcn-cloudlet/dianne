@@ -4,7 +4,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.servlet.AsyncContext;
@@ -56,10 +59,8 @@ public class DianneLearner extends HttpServlet {
 	private Output output;
 	private List<Trainable> trainable = new ArrayList<Trainable>();
 	private List<Preprocessor> preprocessors = new ArrayList<Preprocessor>();
-	
-	// TODO support multiple datasets
-	private Dataset mnist = null;
-	
+	private Map<String, Dataset> datasets = new HashMap<String, Dataset>();
+
 	private AsyncContext sse = null;
 	
 	@Reference
@@ -97,9 +98,20 @@ public class DianneLearner extends HttpServlet {
 		this.preprocessors.remove(p);
 	}
 	
-	@Reference
-	public void setDataset(Dataset dataset){
-		this.mnist = dataset;
+	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
+			policy=ReferencePolicy.DYNAMIC)
+	public void addDataset(Dataset dataset){
+		this.datasets.put(dataset.getName(), dataset);
+	}
+	
+	public void removeDataset(Dataset dataset){
+		Iterator<Entry<String, Dataset>> it = datasets.entrySet().iterator();
+		while(it.hasNext()){
+			Entry<String, Dataset> e = it.next();
+			if(e.getValue()==dataset){
+				it.remove();
+			}
+		}
 	}
 	
 	@Override
@@ -260,18 +272,20 @@ public class DianneLearner extends HttpServlet {
 	}
 	
 	private Dataset createTestDataset(JsonObject datasetConfig){
-		// TODO check which dataset to pick
-		Dataset dataset = mnist;
+		// TODO check if dataset exists?
+		String dataset = datasetConfig.get("dataset").getAsString();
+		Dataset d = datasets.get(dataset);
 		int start = datasetConfig.get("train").getAsInt();
 		int end = start+datasetConfig.get("test").getAsInt();
-		return new DatasetAdapter(dataset, start, end);
+		return new DatasetAdapter(d, start, end);
 	}
 	
 	private Dataset createTrainDataset(JsonObject datasetConfig){
-		// TODO check which dataset to pick
-		Dataset dataset = mnist;
+		// TODO check if dataset exists?
+		String dataset = datasetConfig.get("dataset").getAsString();
+		Dataset d = datasets.get(dataset);
 		int start = 0;
 		int end = datasetConfig.get("train").getAsInt();
-		return new DatasetAdapter(dataset, start, end);
+		return new DatasetAdapter(d, start, end);
 	}
 }
