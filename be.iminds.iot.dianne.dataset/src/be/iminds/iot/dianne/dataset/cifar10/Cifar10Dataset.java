@@ -1,9 +1,12 @@
-package be.iminds.iot.dianne.dataset.mnist;
+package be.iminds.iot.dianne.dataset.cifar10;
 
+import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -19,19 +22,19 @@ import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 /**
- * The MNIST dataset, uses the images form LeCun's website:
- * http://yann.lecun.com/exdb/mnist/
+ * The CIFAR-10 dataset, uses the binary images from:
+ * http://www.cs.toronto.edu/~kriz/cifar.html
  * 
  * @author tverbele
  *
  */
 @Component(immediate=true)
-public class MNISTDataset implements Dataset{
+public class Cifar10Dataset implements Dataset {
 
 	private TensorFactory factory;
 	
 	private List<Sample> data = new ArrayList<Sample>();
-	private String[] labels = new String[]{"0","1","2","3","4","5","6","7","8","9"};
+	private String[] labels;
 	
 	private int noRows;
 	private int noColumns;
@@ -50,44 +53,52 @@ public class MNISTDataset implements Dataset{
 	
 	@Activate
 	public void activate(BundleContext context){
-		String d = context.getProperty("be.iminds.iot.dianne.dataset.mnist.location");
+		String d = context.getProperty("be.iminds.iot.dianne.dataset.cifar10.location");
 		if(d!=null){
 			this.dir = d;
 		}
-
-		// merge train and test samples into one dataset
-		read("train-images.idx3-ubyte", "train-labels.idx1-ubyte");
-		read("t10k-images.idx3-ubyte", "t10k-labels.idx1-ubyte");
+		
+		noRows = 32;
+		noColumns = 32;
+		inputSize = noRows*noColumns*3;
+		outputSize = 10;
+		noSamples = 60000;
+		
+		readLabels("batches.meta.txt");
+		// merge all samples into one dataset
+		read("data_batch_1.bin");
+		read("data_batch_2.bin");
+		read("data_batch_3.bin");
+		read("data_batch_4.bin");
+		read("data_batch_5.bin");
+		read("test_batch.bin");
 	}
 	
-	private void read(String images, String labels){
+	private void readLabels(String file){
 		try {
-			InputStream imageInput = new FileInputStream(dir+images);
-
-			int magic = readInt(imageInput);
-			assert magic == 2051;
-			int noImages = readInt(imageInput);
-			noRows = readInt(imageInput);
-			noColumns = readInt(imageInput);
+			InputStream labelInput = new FileInputStream(dir+file);
 			
-			InputStream labelInput = new FileInputStream(dir+labels);
-			magic = readInt(labelInput);
-			assert magic == 2049;
-			int noLabels = readInt(labelInput);
-
-			System.out.println("Reading MNIST dataset");
-			System.out.println("#Images: "+noImages+" #Rows: "+noRows+" #Columns: "+noColumns+" #Labels: "+noLabels);
-
-			assert noLabels == noImages;
+			labels = new String[10];
+			BufferedReader reader = new BufferedReader(new InputStreamReader(labelInput));
+			for(int i=0;i<10;i++){
+				labels[i] = reader.readLine();
+			}
+			reader.close();
 			
-			noSamples += noImages;
-			inputSize = noRows*noColumns;
-			outputSize = 10;
+			System.out.println(Arrays.toString(labels));
+		} catch(IOException e){
+			e.printStackTrace();
+		}
+	}
+	
+	private void read(String file){
+		try {
+			InputStream input = new FileInputStream(dir+file);
 			
 			loader.execute(new Runnable() {
 				@Override
 				public void run() {
-					parse(imageInput, labelInput, noImages);
+					parse(input, 10000);
 				}
 			});
 		} catch(IOException e){
@@ -143,12 +154,12 @@ public class MNISTDataset implements Dataset{
 		}
 		return data.get(index).output;
 	}
-
+	
 	@Override
 	public String[] getLabels(){
 		return labels;
 	}
-	
+
 	private int readInt(InputStream is) throws IOException{
 		byte[] b = new byte[4];
 		is.read(b, 0, 4);
@@ -164,23 +175,22 @@ public class MNISTDataset implements Dataset{
 		return i;
 	}
 	
-	private void parse(InputStream imageInput, InputStream labelInput, int count) {
+	private void parse(InputStream input, int count) {
 		try {
 			for(int read = 0;read<count;read++){
-				//Tensor input = factory.createTensor(inputSize);
-				Tensor output = factory.createTensor(outputSize);
-				output.fill(0.0f);
+				Tensor out = factory.createTensor(10);
+				out.fill(0.0f);
+				
+				int i = readUByte(input);
+				out.set(1.0f, i);
 				
 				float inputData[] = new float[inputSize];
 				for(int j=0;j<inputSize;j++){
-					inputData[j] = (float)readUByte(imageInput)/255f;
+					inputData[j] = (float)readUByte(input)/255f;
 				}
-				Tensor input = factory.createTensor(inputData, noRows, noColumns);
+				Tensor in = factory.createTensor(inputData, 3, noRows, noColumns);
 				
-				int i = readUByte(labelInput);
-				output.set(1.0f, i);
-				
-				Sample s = new Sample(input, output);
+				Sample s = new Sample(in, out);
 				synchronized(data){
 					data.add(s);
 					data.notifyAll();

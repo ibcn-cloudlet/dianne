@@ -40,5 +40,10 @@ public class DatasetAdapter implements Dataset {
 	public Tensor getOutputSample(int index) {
 		return data.getOutputSample(start+index);
 	}
+	
+	@Override
+	public String[] getLabels(){
+		return data.getLabels();
+	}
 
 }

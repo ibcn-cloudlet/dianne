@@ -13,5 +13,6 @@ public interface Dataset {
 	public Tensor getInputSample(final int index);
 		
 	public Tensor getOutputSample(final int index);
-		
+	
+	public String[] getLabels();
 }
