@@ -19,20 +19,22 @@ public class StochasticGradient implements Trainer {
 	private final int batchSize;
 	private final int noEpochs;
 	private final float learningRate;
+	private final float learningRateDecay;
 	
 	private int sample = 0;
+	private int batch = 0;
 	private int epoch = 0;
 	private float error = 0;
 	
 	public StochasticGradient() {
-		this(1,1, 0.01f);
+		this(1,1, 0.01f,0);
 	}
 	
-	public StochasticGradient(int batchSize, int noEpochs, float learningRate) {
+	public StochasticGradient(int batchSize, int noEpochs, float learningRate, float learningRateDecay) {
 		this.batchSize = batchSize;
 		this.noEpochs = noEpochs;
 		this.learningRate = learningRate;
-		
+		this.learningRateDecay = learningRateDecay;
 	}
 	
 	// TODO can now only do one call at a time cause mse/epoch/batch is counted in class
@@ -41,6 +43,7 @@ public class StochasticGradient implements Trainer {
 			final List<Trainable> modules, final List<Preprocessor> preprocessors,
 			final Criterion criterion, final Dataset data) {
 		System.out.println("Starting training");
+		batch = 0;
 		
 		// first preprocess
 		for(Preprocessor p : preprocessors){
@@ -70,10 +73,15 @@ public class StochasticGradient implements Trainer {
 				// updateParameters after batch
 				sample++;
 				if(sample % batchSize == 0){
+					// anneal learning rate
+					float lr = learningRate / (1 + batch*learningRateDecay);
+					
 					for(Trainable m : modules){
-						m.updateParameters(learningRate);
+						m.updateParameters(lr);
 						m.zeroGradParameters();
 					}
+					
+					batch++;
 				}
 				
 				if(sample % 500 == 0){

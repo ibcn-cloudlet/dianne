@@ -267,6 +267,7 @@ function addModule(moduleItem){
 		module.batch = 10;
 		module.epochs = 1;
 		module.learningRate = 0.5;
+		module.learningRateDecay = 0.0;
 		module.loss = "MSE";
 	}
 	

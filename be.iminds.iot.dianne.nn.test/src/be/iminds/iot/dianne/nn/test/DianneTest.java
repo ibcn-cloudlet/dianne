@@ -88,7 +88,7 @@ public class DianneTest extends TestCase {
     private void sgd(String config, int batch, int epochs, float learningRate, Criterion loss) throws Exception {
     	modules = deployNN("nn/"+config+".txt");
     	
-    	StochasticGradient trainer = new StochasticGradient(batch, epochs, learningRate);
+    	StochasticGradient trainer = new StochasticGradient(batch, epochs, learningRate, 0.0f);
     	
     	Input input = getInput();
     	Output output = getOutput();

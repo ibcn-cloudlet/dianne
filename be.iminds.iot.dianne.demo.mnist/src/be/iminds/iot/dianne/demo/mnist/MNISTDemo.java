@@ -106,7 +106,7 @@ public class MNISTDemo {
 		
 		System.out.println("Training ...");
 		Criterion loss = new MSECriterion(factory);
-		StochasticGradient trainer = new StochasticGradient(batchSize, noEpochs, 0.5f);
+		StochasticGradient trainer = new StochasticGradient(batchSize, noEpochs, 0.5f, 0f);
 		trainer.addProgressListener(new TrainProgressListener() {
 			
 			@Override

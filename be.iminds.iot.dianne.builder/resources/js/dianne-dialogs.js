@@ -253,7 +253,8 @@ function createLearnModuleDialog(id, moduleItem){
 				loss : module.loss,
 				batch: module.batch,
 				epochs: module.epochs,
-				learningRate: module.learningRate
+				learningRate: module.learningRate,
+				learningRateDecay: module.learningRateDecay
 			},
 			dialog.find('.form-items'));
 		
@@ -266,6 +267,7 @@ function createLearnModuleDialog(id, moduleItem){
 			trainer.batch = $(this).closest(".modal").find("#batch").val();
 			trainer.epochs = $(this).closest(".modal").find("#epochs").val();
 			trainer.learningRate = $(this).closest(".modal").find("#learningRate").val();
+			trainer.learningRateDecay = $(this).closest(".modal").find("#learningRateDecay").val();
 
 			learn(id);
 		});

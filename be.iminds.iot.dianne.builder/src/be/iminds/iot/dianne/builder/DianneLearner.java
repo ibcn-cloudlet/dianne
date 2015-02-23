@@ -231,7 +231,8 @@ public class DianneLearner extends HttpServlet {
 		int batch = trainerConfig.get("batch").getAsInt();
 		int epochs = trainerConfig.get("epochs").getAsInt();
 		float learningRate = trainerConfig.get("learningRate").getAsFloat();
-		StochasticGradient trainer = new StochasticGradient(batch, epochs, learningRate);
+		float learningRateDecay = trainerConfig.get("learningRateDecay").getAsFloat();
+		StochasticGradient trainer = new StochasticGradient(batch, epochs, learningRate, learningRateDecay);
 		
 		trainer.addProgressListener(new TrainProgressListener() {
 			
