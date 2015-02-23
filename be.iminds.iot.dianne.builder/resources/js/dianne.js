@@ -132,6 +132,14 @@ function addToolboxItem(toolboxId, name, type, category, mode){
 		if(checkAddModule($(this))){
 			// clone the toolbox item
 		    var moduleItem = $(ui.helper).clone().addClass(mode);
+		    
+			// append to canvas
+			moduleItem.appendTo("#canvas");
+		    
+		    // fix offset after drag
+			moduleItem.offset(ui.offset);
+		    
+			// add module
 			addModule(moduleItem);
 		}
 	});
@@ -227,15 +235,7 @@ jsPlumb.ready(function() {
  * @param toolboxItem the toolbox DOM element the moduleItem was cloned from
  */
 function addModule(moduleItem){
-	// only if comes from toolbox, could also be loaded from file
-	moduleItem.appendTo("#canvas");
-		
-	// fix offset of toolbox 
-	var offset = {};
-	offset.left = moduleItem.offset().left - ($("#canvas").offset().left - $(".toolbox.active").offset().left);
-	offset.top = moduleItem.offset().top - ($("#canvas").offset().top - $(".toolbox.active").offset().top);
-	moduleItem.offset(offset);
-	  
+
 	// get type from toolbox item and generate new UUID
 	var type = moduleItem.attr("type");
 	var category = moduleItem.attr("category");
