@@ -1,4 +1,4 @@
-package be.iminds.iot.dianne.dataset.cifar10;
+package be.iminds.iot.dianne.dataset.cifar100;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -22,14 +22,14 @@ import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 /**
- * The CIFAR-10 dataset, uses the binary images from:
+ * The CIFAR-100 dataset, uses the binary images from:
  * http://www.cs.toronto.edu/~kriz/cifar.html
  * 
  * @author tverbele
  *
  */
 @Component(immediate=true)
-public class Cifar10Dataset implements Dataset {
+public class Cifar100Dataset implements Dataset {
 
 	private TensorFactory factory;
 	
@@ -53,39 +53,53 @@ public class Cifar10Dataset implements Dataset {
 	
 	@Activate
 	public void activate(BundleContext context){
-		String d = context.getProperty("be.iminds.iot.dianne.dataset.cifar10.location");
+		String d = context.getProperty("be.iminds.iot.dianne.dataset.cifar100.location");
 		if(d!=null){
 			this.dir = d;
+		}
+		// TODO should be able to have the two at the same time?
+		String l = context.getProperty("be.iminds.iot.dianne.dataset.cifar100.labels");
+		if(l!=null){
+			if(l.equals("coarse")){
+				outputSize = 20;
+			} else if(l.equals("fine")){
+				outputSize = 100;
+			}
+		} else {
+			outputSize = 100;
 		}
 		
 		noRows = 32;
 		noColumns = 32;
 		inputSize = noRows*noColumns*3;
-		outputSize = 10;
 		noSamples = 60000;
 		
-		readLabels("batches.meta.txt");
+		if(outputSize==100){
+			readLabels("fine_label_names.txt");
+		} else {
+			readLabels("coarse_label_names.txt");
+		}
+
 		// merge all samples into one dataset
-		read("data_batch_1.bin");
-		read("data_batch_2.bin");
-		read("data_batch_3.bin");
-		read("data_batch_4.bin");
-		read("data_batch_5.bin");
-		read("test_batch.bin");
+		read("test.bin");
+		read("train.bin");
 	}
 	
 	private void readLabels(String file){
 		try {
 			InputStream labelInput = new FileInputStream(dir+file);
 			
-			labels = new String[10];
+			ArrayList<String> l = new ArrayList<String>();
 			BufferedReader reader = new BufferedReader(new InputStreamReader(labelInput));
-			for(int i=0;i<10;i++){
-				labels[i] = reader.readLine();
+			String s;
+			while((s = reader.readLine()) != null ){
+				l.add(s);
+			}
+			labels = new String[l.size()];
+			for(int i=0;i<l.size();i++){
+				labels[i] = l.get(i);
 			}
 			reader.close();
-			
-			System.out.println(Arrays.toString(labels));
 		} catch(IOException e){
 			e.printStackTrace();
 		}
@@ -94,6 +108,7 @@ public class Cifar10Dataset implements Dataset {
 	private void read(String file){
 		try {
 			InputStream input = new FileInputStream(dir+file);
+			
 			
 			loader.execute(new Runnable() {
 				@Override
@@ -108,7 +123,7 @@ public class Cifar10Dataset implements Dataset {
 	
 	@Override
 	public String getName(){
-		return "CIFAR-10";
+		return "CIFAR-100";
 	}
 	
 	@Override
@@ -183,11 +198,16 @@ public class Cifar10Dataset implements Dataset {
 	private void parse(InputStream input) {
 		try {
 			while(input.available()>0){
-				Tensor out = factory.createTensor(10);
+				Tensor out = factory.createTensor(outputSize);
 				out.fill(0.0f);
 				
-				int i = readUByte(input);
-				out.set(1.0f, i);
+				int i1 = readUByte(input);
+				int i2 = readUByte(input);
+				if(outputSize==100){
+					out.set(1.0f, i2);
+				} else {
+					out.set(1.0f, i1);
+				}
 				
 				float inputData[] = new float[inputSize];
 				for(int j=0;j<inputSize;j++){
