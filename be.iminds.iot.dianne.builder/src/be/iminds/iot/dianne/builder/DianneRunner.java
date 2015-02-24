@@ -2,6 +2,10 @@ package be.iminds.iot.dianne.builder;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletException;
@@ -11,15 +15,19 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.nn.module.ForwardListener;
 import be.iminds.iot.dianne.nn.module.Input;
+import be.iminds.iot.dianne.nn.module.Module;
 import be.iminds.iot.dianne.nn.module.Output;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 
 @Component(service = { javax.servlet.Servlet.class }, 
 	property = { "alias:String=/dianne/run","aiolos.proxy=false" }, 
@@ -31,8 +39,7 @@ public class DianneRunner extends HttpServlet {
 	private JsonParser parser = new JsonParser();
 	
 	// for now fixed 1 input, 1 output, and trainable modules
-	private Input input;
-	private Output output;
+	private Map<String, Module> modules = new HashMap<String, Module>();
 
 	private AsyncContext sse = null;
 	
@@ -41,31 +48,45 @@ public class DianneRunner extends HttpServlet {
 		this.factory = factory;
 	}
 	
-	@Reference
-	public void setInput(Input input){
-		this.input = input;
+	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
+			policy=ReferencePolicy.DYNAMIC)
+	public void addModule(Module m){
+		this.modules.put(m.getId().toString(), m);
+		if(m instanceof Output){
+			final Output output = (Output) m;
+			final String id  = m.getId().toString();
+			output.addForwardListener(new ForwardListener() {
+				@Override
+				public void onForward(Tensor output) {
+					if(sse!=null){
+						try {
+							JsonObject data = new JsonObject();
+							data.add("output", new JsonPrimitive(output.toString()));
+							data.add("id", new JsonPrimitive(id));
+							
+							StringBuilder builder = new StringBuilder();
+							builder.append("data: ").append(data.toString()).append("\n\n");
+			
+							PrintWriter writer = sse.getResponse().getWriter();
+							writer.write(builder.toString());
+							writer.flush();
+						} catch(Exception e){}
+					}
+				}
+			});
+		}
 	}
 	
-	@Reference
-	public void setOutput(Output output){
-		this.output = output;
-		
-		this.output.addForwardListener(new ForwardListener() {
-			@Override
-			public void onForward(Tensor output) {
-				if(sse!=null){
-					try {
-						StringBuilder builder = new StringBuilder();
-						builder.append("data: ").append(output.toString()).append("\n\n");
-		
-						PrintWriter writer = sse.getResponse().getWriter();
-						writer.write(builder.toString());
-						writer.flush();
-					} catch(Exception e){}
-				}
+	public void removeModule(Module m){
+		Iterator<Entry<String, Module>> it = modules.entrySet().iterator();
+		while(it.hasNext()){
+			Entry<String, Module> e = it.next();
+			if(e.getValue()==m){
+				it.remove();
 			}
-		});
+		}
 	}
+		
 	
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -84,6 +105,9 @@ public class DianneRunner extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		if(request.getParameter("forward")!=null){
+			String inputId = request.getParameter("input");
+			Input input = (Input) modules.get(inputId);
+			
 			JsonObject sample = parser.parse(request.getParameter("forward")).getAsJsonObject();
 			int channels = sample.get("channels").getAsInt();
 			int width = sample.get("width").getAsInt();

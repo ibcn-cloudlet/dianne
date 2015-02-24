@@ -353,15 +353,26 @@ function createRunModuleDialog(id, moduleItem){
 		}, $(document.body));
 		
 		createOutputChart(dialog.find(".content"));
-		eventsource = new EventSource("run");
-		eventsource.onmessage = function(event){
-			var data = JSON.parse(event.data);
-			var index = Number($("#dialog-"+id).find(".content").attr("data-highcharts-chart"));
-			Highcharts.charts[index].series[0].setData(data, true, true, true);
-		};
+		if(eventsource===undefined){
+			eventsource = new EventSource("run");
+			eventsource.onmessage = function(event){
+				var data = JSON.parse(event.data);
+				$.each(running, function(id, module){
+					// choose right RunOutput to set the chart of
+					if(module.output===data.id){
+						var index = Number($("#dialog-"+module.id).find(".content").attr("data-highcharts-chart"));
+						// data.output is tensor representation as string, should be parsed first
+						Highcharts.charts[index].series[0].setData(JSON.parse(data.output), true, true, true);
+					}
+				});
+			};
+		}
 		
 		dialog.on('hidden.bs.modal', function () {
+			// TODO what if multiple dialogs?
 		    eventsource.close();
+		    eventsource = undefined;
+		    $(this).closest(".modal").remove();
 		});
 		
 	} else if(module.category==="Dataset"){
@@ -373,7 +384,7 @@ function createRunModuleDialog(id, moduleItem){
 		}, $(document.body));
 		
 		dialog.find(".content").append("<canvas class='sampleCanvas' width='256' height='256' style=\"border:1px solid #000000; margin-left:150px\"></canvas>");
-		dialog.find(".content").append("<button class='btn' onclick='sample(\""+module.type+"\")' style=\"margin-left:10px\">Sample</button>");
+		dialog.find(".content").append("<button class='btn' onclick='sample(\""+module.type+"\",\""+module.input+"\")' style=\"margin-left:10px\">Sample</button>");
 		
 		sampleCanvas = dialog.find('.sampleCanvas')[0];
 		sampleCanvasCtx = sampleCanvas.getContext('2d');
@@ -417,7 +428,9 @@ function downListener(e) {
 function upListener(e) {
 	inputCanvas.removeEventListener('mousemove', onPaint, false);
 	inputCanvas.removeEventListener('touchmove', onPaint, false);
-	forwardCanvasInput();
+	// get input 
+	var canvasInputId = $(e.target.closest('.modal-body')).find('.module-id').val();
+	forwardCanvasInput(running[canvasInputId].input);
 }
 
 function moveListener(e) {
@@ -443,7 +456,7 @@ function clearCanvas() {
 	inputCanvasCtx.clearRect(0, 0, 224, 224);
 }
 
-function forwardCanvasInput(){
+function forwardCanvasInput(input){
 	var array = [];
 	var imageData = inputCanvasCtx.getImageData(0, 0, 224, 224);
     var data = imageData.data;
@@ -462,13 +475,13 @@ function forwardCanvasInput(){
     }
 	sample.data = array;
 	
-	$.post("/dianne/run", {"forward":JSON.stringify(sample)}, 
+	$.post("/dianne/run", {"forward":JSON.stringify(sample), "input":input}, 
 			function( data ) {
 			}
 			, "json");
 }
 
-function sample(dataset){
+function sample(dataset, input){
 	$.post("/dianne/datasets", {"action":"sample","dataset":dataset}, 
 			function( sample ) {
 				var scale = Math.ceil(256/sample.width);
@@ -506,7 +519,7 @@ function sample(dataset){
 				
 				sampleCanvasCtx.putImageData(imageData, 0, 0); 
 				
-				$.post("/dianne/run", {"forward":JSON.stringify(sample)}, 
+				$.post("/dianne/run", {"forward":JSON.stringify(sample), "input":input}, 
 						function( data ) {
 						}
 						, "json");
