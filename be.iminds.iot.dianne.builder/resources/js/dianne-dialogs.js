@@ -447,6 +447,12 @@ function forwardCanvasInput(){
 	var array = [];
 	var imageData = inputCanvasCtx.getImageData(0, 0, 224, 224);
     var data = imageData.data;
+    
+    // TODO hard coded for MNIST right now
+    var sample = {};
+    sample.width = 28;
+    sample.height = 28;
+    sample.channels = 1;
 
 	for (var y = 0; y < 224; y+=8) {
         for (var x = 0; x < 224; x+=8) {
@@ -454,7 +460,9 @@ function forwardCanvasInput(){
         	array.push(imageData.data[y*224*4+x*4+3]/255);
         }
     }
-	$.post("/dianne/run", {"forward":JSON.stringify(array)}, 
+	sample.data = array;
+	
+	$.post("/dianne/run", {"forward":JSON.stringify(sample)}, 
 			function( data ) {
 			}
 			, "json");
