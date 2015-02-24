@@ -15,8 +15,8 @@ public abstract class Join extends AbstractModule {
 	protected Map<UUID, Tensor> inputs = new HashMap<UUID, Tensor>();
 	protected Map<UUID, Tensor> gradInputs = new HashMap<UUID, Tensor>();
 	
-	// this will make sure that one will wait until all prev have given input before forwarding
-	protected boolean sync = true;
+	// this will make sure that one will wait until all prev have given input before forwarding 
+	// during training
 	protected Map<UUID, AtomicBoolean> prevLock = new HashMap<UUID, AtomicBoolean>();
 	
 	// might need the order of id
@@ -41,8 +41,8 @@ public abstract class Join extends AbstractModule {
 	public void forward(final UUID moduleId, final Tensor input) {
 		this.inputs.put(moduleId, input);
 		
-		// when syncing, wait for input from each prev
-		if(sync && prev!=null && prev.length>1){
+		// when training, wait for input from each prev
+		if(mode==Mode.TRAINING && prev!=null && prev.length>1){
 			synchronized(prevLock){
 				prevLock.get(moduleId).set(true);
 				for(AtomicBoolean b : prevLock.values()){

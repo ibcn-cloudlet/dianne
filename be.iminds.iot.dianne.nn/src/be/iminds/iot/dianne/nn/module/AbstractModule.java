@@ -7,6 +7,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import be.iminds.iot.dianne.nn.module.Module.Mode;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -36,6 +37,9 @@ public abstract class AbstractModule implements Module {
 	protected Runnable[] next;
 	// The prev module references
 	protected Runnable[] prev;
+	
+	// Training or Evaluation mode
+	protected Mode mode;
 	
 	// Thread executor to perform calculations on
 	protected ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -143,6 +147,11 @@ public abstract class AbstractModule implements Module {
 				this.prev[i] = new BackwardRunnable(prev[i]);
 			}
 		}
+	}
+	
+	@Override
+	public void setMode(Mode m){
+		this.mode = m;
 	}
 
 	public void addForwardListener(ForwardListener listener){

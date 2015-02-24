@@ -9,12 +9,12 @@ import be.iminds.iot.dianne.nn.module.Input;
 import be.iminds.iot.dianne.nn.module.Output;
 import be.iminds.iot.dianne.nn.module.Preprocessor;
 import be.iminds.iot.dianne.nn.module.Trainable;
+import be.iminds.iot.dianne.nn.train.AbstractTrainer;
 import be.iminds.iot.dianne.nn.train.Criterion;
 import be.iminds.iot.dianne.nn.train.DatasetProcessor;
-import be.iminds.iot.dianne.nn.train.Trainer;
 import be.iminds.iot.dianne.tensor.Tensor;
 
-public class StochasticGradient implements Trainer {
+public class StochasticGradient extends AbstractTrainer {
 
 	private final int batchSize;
 	private final int noEpochs;
@@ -39,7 +39,7 @@ public class StochasticGradient implements Trainer {
 	
 	// TODO can now only do one call at a time cause mse/epoch/batch is counted in class
 	@Override
-	public synchronized void train(final Input input, final Output output, 
+	public void train(final Input input, final Output output, 
 			final List<Trainable> modules, final List<Preprocessor> preprocessors,
 			final Criterion criterion, final Dataset data) {
 		System.out.println("Starting training");

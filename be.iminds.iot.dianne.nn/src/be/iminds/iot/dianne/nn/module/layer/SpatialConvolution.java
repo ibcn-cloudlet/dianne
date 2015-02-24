@@ -125,27 +125,28 @@ public class SpatialConvolution extends AbstractTrainableModule {
 	@Override
 	public void accGradParameters() {
 		// calculate grad weights based on http://andrew.gibiansky.com/blog/machine-learning/convolutional-neural-networks/
-		
-		Tensor temp = null;
-		
-		for(int i=0;i<noOutputPlanes;i++){
-			Tensor planeGradKernels = gradWeights.select(0, i);
-		
-			for(int j=0;j<noInputPlanes;j++){
-				Tensor gradKernel = planeGradKernels.select(0, j);
-				
-				//  update gradKernel
-				temp = factory.getTensorMath().convolution2D(temp, 
-						noInputPlanes== 1 ? input : input.select(0, j), gradOutput.select(0, i), 1, 1, false, false);
-
-				factory.getTensorMath().add(gradKernel, gradKernel, temp);
+		if(gradOutput!=null){
+			Tensor temp = null;
+			
+			for(int i=0;i<noOutputPlanes;i++){
+				Tensor planeGradKernels = gradWeights.select(0, i);
+			
+				for(int j=0;j<noInputPlanes;j++){
+					Tensor gradKernel = planeGradKernels.select(0, j);
+					
+					//  update gradKernel
+					temp = factory.getTensorMath().convolution2D(temp, 
+							noInputPlanes== 1 ? input : input.select(0, j), gradOutput.select(0, i), 1, 1, false, false);
+	
+					factory.getTensorMath().add(gradKernel, gradKernel, temp);
+				}
 			}
-		}
-		
-		// grad bias
-		for(int i=0;i<noOutputPlanes;i++){
-			float sum = factory.getTensorMath().sum(gradOutput.select(0, i));
-			gradBias.set(gradBias.get(i)+sum, i);
+			
+			// grad bias
+			for(int i=0;i<noOutputPlanes;i++){
+				float sum = factory.getTensorMath().sum(gradOutput.select(0, i));
+				gradBias.set(gradBias.get(i)+sum, i);
+			}
 		}
 	}
 }

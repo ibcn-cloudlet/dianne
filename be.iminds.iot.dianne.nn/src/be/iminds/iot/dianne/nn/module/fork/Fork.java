@@ -16,7 +16,7 @@ public abstract class Fork extends AbstractModule {
 	protected Map<UUID, Tensor> gradOutputs = new HashMap<UUID, Tensor>();
 	
 	// this will make sure that one will wait until all prev have given input before forwarding
-	protected boolean sync = true;
+	// during training
 	protected Map<UUID, AtomicBoolean> nextLock = new HashMap<UUID, AtomicBoolean>();
 	
 	protected UUID[] nextIds;
@@ -40,8 +40,8 @@ public abstract class Fork extends AbstractModule {
 	public void backward(final UUID moduleId, final Tensor gradOutput) {
 		this.gradOutputs.put(moduleId, gradOutput);
 		
-		// when synchronized, wait until all gradOutput is updated
-		if(sync && next!=null && next.length>1){
+		// when training, wait until all gradOutput is updated
+		if(mode==Mode.TRAINING && next!=null && next.length>1){
 			synchronized(nextLock){
 				nextLock.get(moduleId).set(true);
 				for(AtomicBoolean b : nextLock.values()){

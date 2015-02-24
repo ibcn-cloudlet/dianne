@@ -589,8 +589,10 @@ function learn(id){
         var y = Number(data.error); 
 		Highcharts.charts[index].series[0].addPoint([x, y], true, true, false);
 	};
+	console.log(JSON.stringify(nn));
 	$.post("/dianne/learner", {"action":"learn",
 		"config":JSON.stringify(learning),
+		"modules":JSON.stringify(Object.keys(nn)),
 		"target": id}, 
 			function( data ) {
 				$.each(data, function(id, parameters){
@@ -612,7 +614,7 @@ function evaluate(id){
 		var data = JSON.parse(event.data);
 		var index = Number($("#dialog-"+id).find(".content").attr("data-highcharts-chart"));
 		Highcharts.charts[index].series[0].setData(data, true, true, false);
-	};
+	}
 	$.post("/dianne/learner", {"action":"evaluate",
 		"config":JSON.stringify(learning),
 		"target": id}, 

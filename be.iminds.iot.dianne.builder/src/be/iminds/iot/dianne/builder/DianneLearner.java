@@ -54,11 +54,9 @@ public class DianneLearner extends HttpServlet {
 
 	private TensorFactory factory;
 	
-	// for now fixed 1 input, 1 output, and trainable modules
-	private Input input;
-	private Output output;
-	private List<Trainable> trainable = new ArrayList<Trainable>();
-	private List<Preprocessor> preprocessors = new ArrayList<Preprocessor>();
+	private static final JsonParser parser = new JsonParser();
+	
+	private Map<String, Module> modules = new HashMap<String, Module>();
 	private Map<String, Dataset> datasets = new HashMap<String, Dataset>();
 
 	private AsyncContext sse = null;
@@ -68,34 +66,20 @@ public class DianneLearner extends HttpServlet {
 		this.factory = factory;
 	}
 	
-	@Reference
-	public void setInput(Input input){
-		this.input = input;
-	}
-	
-	@Reference
-	public void setOutput(Output output){
-		this.output = output;
-	}
-	
-	@Reference(cardinality=ReferenceCardinality.MULTIPLE,
-			policy=ReferencePolicy.DYNAMIC)
-	public void addTrainable(Trainable t){
-		this.trainable.add(t);
-	}
-	
-	public void removeTrainable(Trainable t){
-		this.trainable.remove(t);
-	}
-	
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
-	public void addPreprocessor(Preprocessor p){
-		this.preprocessors.add(p);
+	public void addModule(Module m){
+		this.modules.put(m.getId().toString(), m);
 	}
 	
-	public void removePreprocessor(Preprocessor p){
-		this.preprocessors.remove(p);
+	public void removeModule(Module m){
+		Iterator<Entry<String, Module>> it = modules.entrySet().iterator();
+		while(it.hasNext()){
+			Entry<String, Module> e = it.next();
+			if(e.getValue()==m){
+				it.remove();
+			}
+		}
 	}
 	
 	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
@@ -133,10 +117,11 @@ public class DianneLearner extends HttpServlet {
 		// TODO check if parameters exist and are correct!
 		String action = request.getParameter("action");
 		String target = request.getParameter("target");
+		String modulesJsonString = request.getParameter("modules");
 		String configJsonString = request.getParameter("config");
 		
-		JsonObject configJson = new JsonParser().parse(configJsonString).getAsJsonObject();
-	
+		JsonObject configJson = parser.parse(configJsonString).getAsJsonObject();
+		
 		JsonObject processorConfig = (JsonObject) configJson.get(target);
 		
 		for(Entry<String, JsonElement> configs : configJson.entrySet()){
@@ -146,8 +131,48 @@ public class DianneLearner extends HttpServlet {
 				// found a dataset
 				// TODO what in case of multiple datasets?
 				if(action.equals("learn")){
-					learn(datasetConfig, processorConfig);
-
+					Dataset trainSet = createTrainDataset(datasetConfig);
+					Trainer trainer = createTrainer(processorConfig);
+					Criterion loss = createLoss(processorConfig);
+					
+					// TODO check if modules are present
+					JsonArray moduleIds = parser.parse(modulesJsonString).getAsJsonArray();
+					
+					Input input = null;
+					Output output = null;
+					List<Trainable> trainable = new ArrayList<Trainable>();
+					List<Preprocessor> preprocessors = new ArrayList<Preprocessor>();
+					
+					List<Module> toTrain = new ArrayList<Module>();
+					Iterator<JsonElement> it = moduleIds.iterator();
+					while(it.hasNext()){
+						String id = it.next().getAsString();
+						Module m = modules.get(id);
+						if(m instanceof Input){
+							// only include the input module connected to the dataset
+							if(datasetConfig.get("input").getAsString().equals(id)){
+								input = (Input) m;
+								toTrain.add(m);
+							}
+						} else if(m instanceof Output){
+							// only include the output module connected to the trainer
+							if(processorConfig.get("output").getAsString().equals(id)){
+								output = (Output) m;
+								toTrain.add(m);
+							}
+						} else {
+							if(m instanceof Trainable){
+								trainable.add((Trainable) m);
+							} else if(m instanceof Preprocessor){
+								preprocessors.add((Preprocessor) m);
+							}
+							
+							toTrain.add(m);
+						}
+					}
+					System.out.println(input.getId()+" -> "+output.getId());
+					trainer.train(toTrain, loss, trainSet);
+					
 					JsonObject parameters = new JsonObject();
 					for(Trainable t : trainable){
 						parameters.add(((Module)t).getId().toString(), new JsonPrimitive(Arrays.toString(t.getParameters().get())));;
@@ -159,7 +184,15 @@ public class DianneLearner extends HttpServlet {
 					response.getWriter().write(parameters.toString());
 					response.getWriter().flush();
 				}else if(action.equals("evaluate")){
-					Evaluation result = evaluate(datasetConfig, processorConfig);
+					Dataset testSet = createTestDataset(datasetConfig);
+					Evaluator e = createEvaluator(processorConfig);
+					
+					Input input = (Input) modules.get(datasetConfig.get("input").getAsString());
+					Output output = (Output) modules.get(processorConfig.get("output").getAsString());
+					
+					// Evaluate
+					Evaluation result = e.evaluate(input, output, testSet);
+					
 					JsonObject eval = new JsonObject();
 					eval.add("accuracy", new JsonPrimitive(result.accuracy()*100));
 					response.getWriter().write(eval.toString());
@@ -168,30 +201,6 @@ public class DianneLearner extends HttpServlet {
 				break;
 			}
 		}
-	}
-	
-	private void learn(JsonObject datasetConfig, JsonObject trainerConfig){
-		Dataset trainSet = createTrainDataset(datasetConfig);
-		Trainer trainer = createTrainer(trainerConfig);
-		Criterion loss = createLoss(trainerConfig);
-		
-		// Train
-		System.out.println("Train");
-		System.out.println("Input: "+input.getId());
-		System.out.println("Output: "+output.getId());
-		for(Trainable t : trainable){
-			System.out.println("Trainable: "+((Module)t).getId());
-		}
-		trainer.train(input, output, trainable, preprocessors, loss, trainSet);
-	}
-	
-	private Evaluation evaluate(JsonObject datasetConfig, JsonObject evaluatorConfig){
-		Dataset testSet = createTestDataset(datasetConfig);
-		Evaluator eval = createEvaluator(evaluatorConfig);
-		
-		// Evaluate
-		Evaluation result = eval.evaluate(input, output, testSet);
-		return result;
 	}
 	
 	private Evaluator createEvaluator(JsonObject evaluatorConfig){
