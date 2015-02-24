@@ -23,7 +23,7 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 	be.iminds.iot.dianne.dataset.mnist;version=latest
 	
 -runproperties:\
-	be.iminds.iot.dianne.dataset.mnist.location="/home/tverbele/datasets/MNIST/"
+	be.iminds.iot.dianne.dataset.mnist.location="/home/tverbele/Documents/datasets/MNIST/"
 	
 -runfw: org.eclipse.concierge
 -runsystempackages: sun.reflect

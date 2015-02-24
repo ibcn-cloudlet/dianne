@@ -463,7 +463,7 @@ function forwardCanvasInput(){
 function sample(dataset){
 	$.post("/dianne/datasets", {"action":"sample","dataset":dataset}, 
 			function( sample ) {
-				var scale = 8;
+				var scale = Math.ceil(256/sample.width);
 				var width = sample.width*scale;
 				var height = sample.height*scale;
 				var imageData = sampleCanvasCtx.createImageData(width, height);

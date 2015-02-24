@@ -1,4 +1,4 @@
-package be.iminds.iot.dianne.dataset.cifar10;
+package be.iminds.iot.dianne.dataset.stl10;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -29,7 +29,7 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
  *
  */
 @Component(immediate=true)
-public class Cifar10Dataset implements Dataset {
+public class STL10Dataset implements Dataset {
 
 	private TensorFactory factory;
 	
@@ -53,25 +53,21 @@ public class Cifar10Dataset implements Dataset {
 	
 	@Activate
 	public void activate(BundleContext context){
-		String d = context.getProperty("be.iminds.iot.dianne.dataset.cifar10.location");
+		String d = context.getProperty("be.iminds.iot.dianne.dataset.stl10.location");
 		if(d!=null){
 			this.dir = d;
 		}
 		
-		noRows = 32;
-		noColumns = 32;
+		noRows = 96;
+		noColumns = 96;
 		inputSize = noRows*noColumns*3;
 		outputSize = 10;
-		noSamples = 60000;
+		noSamples = 13000;
 		
-		readLabels("batches.meta.txt");
+		readLabels("class_names.txt");
 		// merge all samples into one dataset
-		read("data_batch_1.bin");
-		read("data_batch_2.bin");
-		read("data_batch_3.bin");
-		read("data_batch_4.bin");
-		read("data_batch_5.bin");
-		read("test_batch.bin");
+		read("train");
+		read("test");
 	}
 	
 	private void readLabels(String file){
@@ -91,12 +87,13 @@ public class Cifar10Dataset implements Dataset {
 	
 	private void read(String file){
 		try {
-			InputStream input = new FileInputStream(dir+file);
+			InputStream imageInput = new FileInputStream(dir+file+"_X.bin");
+			InputStream labelInput = new FileInputStream(dir+file+"_y.bin");
 			
 			loader.execute(new Runnable() {
 				@Override
 				public void run() {
-					parse(input);
+					parse(imageInput, labelInput);
 				}
 			});
 		} catch(IOException e){
@@ -106,7 +103,7 @@ public class Cifar10Dataset implements Dataset {
 	
 	@Override
 	public String getName(){
-		return "CIFAR-10";
+		return "STL-10";
 	}
 	
 	@Override
@@ -178,18 +175,25 @@ public class Cifar10Dataset implements Dataset {
 		return i;
 	}
 	
-	private void parse(InputStream input) {
+	private void parse(InputStream imageInput, InputStream labelInput) {
 		try {
-			while(input.available()>0){
+			while(imageInput.available()>0
+					&& labelInput.available()>0){
 				Tensor out = factory.createTensor(10);
 				out.fill(0.0f);
 				
-				int i = readUByte(input);
-				out.set(1.0f, i);
+				int i = readUByte(labelInput);
+				// categories are from 1..10
+				out.set(1.0f, i-1);
 				
 				float inputData[] = new float[inputSize];
-				for(int j=0;j<inputSize;j++){
-					inputData[j] = (float)readUByte(input)/255f;
+				// STL10 is formatted column-major, convert to row-major
+				for(int c=0;c<3;c++){
+					for(int y=0;y<96;y++){
+						for(int x=0;x<96;x++){
+							inputData[c*96*96+x*96+y] = (float)readUByte(imageInput)/255f;
+						}
+					}
 				}
 				Tensor in = factory.createTensor(inputData, 3, noRows, noColumns);
 				
