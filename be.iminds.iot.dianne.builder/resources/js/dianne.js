@@ -219,7 +219,7 @@ jsPlumb.ready(function() {
 		// listen for connection add/removes
 		//
 		jsPlumb.bind("beforeDrop", function(connection) {
-			if(!checkAddConnection(connection)){
+			if(!checkAddConnection(connection.connection)){
 				return false;
 			}
 			addConnection(connection);
@@ -492,14 +492,14 @@ function checkAddConnection(connection){
 				|| deployment[connection.targetId]!==undefined){
 				return false;
 		}
-		if(connection.connection.endpoints[0].type!=="Dot" 
-			|| connection.connection.endpoints[1].type!=="Dot"){
+		if(connection.endpoints[0].type!=="Dot" 
+			|| connection.endpoints[1].type!=="Dot"){
 				return false;
 		}
 	}
 	if(currentMode==="learn"){
-		if(connection.connection.endpoints[0].type!=="Rectangle" 
-			|| connection.connection.endpoints[1].type!=="Rectangle"){
+		if(connection.endpoints[0].type!=="Rectangle" 
+			|| connection.endpoints[1].type!=="Rectangle"){
 				return false;
 		}
 		//TODO dont allow connecting output to input
@@ -512,8 +512,8 @@ function checkAddConnection(connection){
  */
 function checkRemoveConnection(connection){
 	if(currentMode==="build"){
-		if(connection.connection.endpoints[0].type!=="Dot" 
-			|| connection.connection.endpoints[1].type!=="Dot"){
+		if(connection.endpoints[0].type!=="Dot" 
+			|| connection.endpoints[1].type!=="Dot"){
 				return false;
 		}
 		if(deployment[connection.sourceId]!==undefined
@@ -522,8 +522,8 @@ function checkRemoveConnection(connection){
 		}
 	}
 	if(currentMode==="learn" || currentMode==="run"){
-		if(connection.connection.endpoints[0].type!=="Rectangle" 
-			|| connection.connection.endpoints[1].type!=="Rectangle"){
+		if(connection.endpoints[0].type!=="Rectangle" 
+			|| connection.endpoints[1].type!=="Rectangle"){
 				return false;
 		}
 	}
