@@ -10,6 +10,8 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public class OutputImpl extends AbstractModule implements Output {
 
+	protected String[] labels;
+	
 	public OutputImpl(TensorFactory factory) {
 		super(factory);
 	}
@@ -41,5 +43,15 @@ public class OutputImpl extends AbstractModule implements Output {
 	@Override
 	public void setNext(final Module... next) {
 		System.out.println("Output cannot have next modules");
+	}
+
+	@Override
+	public String[] getOutputLabels() {
+		return labels;
+	}
+
+	@Override
+	public void setOutputLabels(String[] labels) {
+		this.labels = labels;
 	}
 }

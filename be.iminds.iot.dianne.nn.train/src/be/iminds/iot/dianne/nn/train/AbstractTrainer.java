@@ -45,6 +45,9 @@ public abstract class AbstractTrainer implements Trainer  {
 		for(Module m : modules){
 			m.setMode(Mode.EVALUATION);
 		}
+		
+		// set labels for the output
+		output.setOutputLabels(data.getLabels());
 	}
 	
 	protected abstract void train(final Input input, final Output output, 
