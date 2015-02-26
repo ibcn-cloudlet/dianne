@@ -170,7 +170,6 @@ public class DianneLearner extends HttpServlet {
 							toTrain.add(m);
 						}
 					}
-					System.out.println(input.getId()+" -> "+output.getId());
 					trainer.train(toTrain, loss, trainSet);
 					
 					JsonObject parameters = new JsonObject();
@@ -180,6 +179,7 @@ public class DianneLearner extends HttpServlet {
 					for(Preprocessor p : preprocessors){
 						parameters.add(((Module)p).getId().toString(), new JsonPrimitive(Arrays.toString(p.getParameters().get())));;
 					}
+					parameters.add(output.getId().toString(), new JsonPrimitive(Arrays.toString(output.getOutputLabels())));
 					
 					response.getWriter().write(parameters.toString());
 					response.getWriter().flush();

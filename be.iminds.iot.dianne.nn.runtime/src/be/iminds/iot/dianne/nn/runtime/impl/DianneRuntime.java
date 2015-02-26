@@ -168,11 +168,16 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 		// set parameters
 		String parameters = (String)properties.get("module.parameters");
 		if(parameters!=null){
-			float[] weights = parseWeights(parameters);
+			
 			if(module instanceof Trainable){
+				float[] weights = parseWeights(parameters);
 				((Trainable)module).setParameters(weights);
 			} else if(module instanceof Preprocessor){
+				float[] weights = parseWeights(parameters);
 				((Preprocessor)module).setParameters(weights);
+			} else if(module instanceof Output){
+				String[] labels = parseStrings(parameters);
+				((Output)module).setOutputLabels(labels);
 			}
 		}
 		
@@ -319,11 +324,16 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 	}
 	
 	private float[] parseWeights(String string){
-		String[] strings = string.replace("[", "").replace("]", "").split(", ");
+		String[] strings = parseStrings(string);
 		float weights[] = new float[strings.length];
 		for (int i = 0; i < weights.length; i++) {
 			weights[i] = Float.parseFloat(strings[i]);
 		}
 		return weights;
+	}
+	
+	private String[] parseStrings(String string){
+		String[] strings = string.replace("[", "").replace("]", "").split(", ");
+		return strings;
 	}
 }

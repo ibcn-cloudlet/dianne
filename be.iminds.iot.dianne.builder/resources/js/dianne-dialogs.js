@@ -669,7 +669,10 @@ function createOutputChart(container) {
             text: null
         },
         xAxis: {
-            type: 'category'
+            type: 'category',
+            labels: {
+                rotation: -45
+            }
         },
         yAxis: {
             min: 0,
