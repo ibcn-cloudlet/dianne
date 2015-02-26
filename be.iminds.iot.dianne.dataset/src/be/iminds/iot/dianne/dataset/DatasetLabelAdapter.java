@@ -52,7 +52,7 @@ public class DatasetLabelAdapter implements Dataset {
 
 	@Override
 	public int outputSize() {
-		return data.outputSize();
+		return labels.length;
 	}
 
 	@Override
