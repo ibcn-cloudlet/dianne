@@ -10,7 +10,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.dataset.Dataset;
-import be.iminds.iot.dianne.dataset.DatasetAdapter;
+import be.iminds.iot.dianne.dataset.DatasetRangeAdapter;
 import be.iminds.iot.dianne.nn.module.ForwardListener;
 import be.iminds.iot.dianne.nn.module.Input;
 import be.iminds.iot.dianne.nn.module.Output;
@@ -92,8 +92,8 @@ public class MNISTDemo {
 	
 	@Reference
 	public void setDataset(Dataset dataset){
-		this.dataTrain = new DatasetAdapter(dataset, 0, 60000);
-		this.dataTest = new DatasetAdapter(dataset, 60000, 70000);
+		this.dataTrain = new DatasetRangeAdapter(dataset, 0, 60000);
+		this.dataTest = new DatasetRangeAdapter(dataset, 60000, 70000);
 	}
 	
 	public void train(int batchSize, int noEpochs){

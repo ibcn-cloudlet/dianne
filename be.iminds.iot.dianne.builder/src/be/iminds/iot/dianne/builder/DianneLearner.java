@@ -22,7 +22,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.dataset.Dataset;
-import be.iminds.iot.dianne.dataset.DatasetAdapter;
+import be.iminds.iot.dianne.dataset.DatasetRangeAdapter;
 import be.iminds.iot.dianne.nn.module.Input;
 import be.iminds.iot.dianne.nn.module.Module;
 import be.iminds.iot.dianne.nn.module.Output;
@@ -286,7 +286,7 @@ public class DianneLearner extends HttpServlet {
 		Dataset d = datasets.get(dataset);
 		int start = datasetConfig.get("train").getAsInt();
 		int end = start+datasetConfig.get("test").getAsInt();
-		return new DatasetAdapter(d, start, end);
+		return new DatasetRangeAdapter(d, start, end);
 	}
 	
 	private Dataset createTrainDataset(JsonObject datasetConfig){
@@ -295,6 +295,6 @@ public class DianneLearner extends HttpServlet {
 		Dataset d = datasets.get(dataset);
 		int start = 0;
 		int end = datasetConfig.get("train").getAsInt();
-		return new DatasetAdapter(d, start, end);
+		return new DatasetRangeAdapter(d, start, end);
 	}
 }

@@ -15,7 +15,7 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 
 import be.iminds.iot.dianne.dataset.Dataset;
-import be.iminds.iot.dianne.dataset.DatasetAdapter;
+import be.iminds.iot.dianne.dataset.DatasetRangeAdapter;
 import be.iminds.iot.dianne.nn.module.Input;
 import be.iminds.iot.dianne.nn.module.Output;
 import be.iminds.iot.dianne.nn.module.Preprocessor;
@@ -93,11 +93,11 @@ public class DianneTest extends TestCase {
     	Input input = getInput();
     	Output output = getOutput();
     	
-    	Dataset train = new DatasetAdapter(mnist, 0, 60000);
+    	Dataset train = new DatasetRangeAdapter(mnist, 0, 60000);
     	trainer.train(input, output, getTrainable(), getPreprocessors(), loss, train);
     	
     	ArgMaxEvaluator evaluator = new ArgMaxEvaluator(factory);
-    	Dataset test = new DatasetAdapter(mnist, 60000, 70000);
+    	Dataset test = new DatasetRangeAdapter(mnist, 60000, 70000);
     	
     	Evaluation eval = evaluator.evaluate(input, output, test);
     	System.out.println("Accuracy "+eval.accuracy());

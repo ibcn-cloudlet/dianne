@@ -2,7 +2,7 @@ package be.iminds.iot.dianne.dataset;
 
 import be.iminds.iot.dianne.tensor.Tensor;
 
-public class DatasetAdapter implements Dataset {
+public class DatasetRangeAdapter implements Dataset {
 
 	private Dataset data;
 	
@@ -10,7 +10,7 @@ public class DatasetAdapter implements Dataset {
 	private int start;
 	private int end;
 	
-	public DatasetAdapter(Dataset data, int start, int end) {
+	public DatasetRangeAdapter(Dataset data, int start, int end) {
 		this.start = start;
 		this.end = end;
 		this.data = data;
