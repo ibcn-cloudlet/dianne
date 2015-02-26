@@ -22,6 +22,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.dataset.Dataset;
+import be.iminds.iot.dianne.dataset.DatasetLabelAdapter;
 import be.iminds.iot.dianne.dataset.DatasetRangeAdapter;
 import be.iminds.iot.dianne.nn.module.Input;
 import be.iminds.iot.dianne.nn.module.Module;
@@ -281,20 +282,40 @@ public class DianneLearner extends HttpServlet {
 	}
 	
 	private Dataset createTestDataset(JsonObject datasetConfig){
-		// TODO check if dataset exists?
-		String dataset = datasetConfig.get("dataset").getAsString();
-		Dataset d = datasets.get(dataset);
+		Dataset d = createDataset(datasetConfig);
 		int start = datasetConfig.get("train").getAsInt();
 		int end = start+datasetConfig.get("test").getAsInt();
 		return new DatasetRangeAdapter(d, start, end);
 	}
 	
 	private Dataset createTrainDataset(JsonObject datasetConfig){
-		// TODO check if dataset exists?
-		String dataset = datasetConfig.get("dataset").getAsString();
-		Dataset d = datasets.get(dataset);
+		Dataset d = createDataset(datasetConfig);
 		int start = 0;
 		int end = datasetConfig.get("train").getAsInt();
 		return new DatasetRangeAdapter(d, start, end);
+	}
+	
+	private Dataset createDataset(JsonObject datasetConfig){
+		// TODO check if dataset exists?
+		String dataset = datasetConfig.get("dataset").getAsString();
+		Dataset d = datasets.get(dataset);
+		
+		JsonArray l = datasetConfig.get("labels").getAsJsonArray();
+		String[] labels = new String[l.size()];
+		int i = 0;
+		Iterator<JsonElement> it = l.iterator();
+		while(it.hasNext()){
+			String label = it.next().getAsString();
+			labels[i++] = label;
+		}
+		if(Arrays.equals(d.getLabels(), labels)){
+			return d;
+		} else {
+			boolean other = labels[labels.length-1].equals("other");
+			if(other){
+				labels = Arrays.copyOfRange(labels, 0, labels.length-1);
+			}
+			return new DatasetLabelAdapter(factory, d, labels, other);
+		}
 	}
 }

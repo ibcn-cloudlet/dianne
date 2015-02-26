@@ -212,6 +212,33 @@ function createLearnModuleDialog(id, moduleItem){
 			},
 			dialog.find('.content')
 		);
+		
+	
+		$.each(datasets[module.dataset].labels, function(index, label){
+			if($.inArray(label, module.labels) > -1){
+				dialog.find('.labels').append(
+					'<label class="checkbox-inline"><input type="checkbox" checked value="'+label+'">'+label+'</label>'
+				);
+			} else {
+				dialog.find('.labels').append(
+					'<label class="checkbox-inline"><input type="checkbox" value="'+label+'">'+label+'</label>'
+				);		
+			}
+		});
+		dialog.find('.labels').append(
+			'<label class="checkbox-inline"><input type="checkbox" value="other">other</label>'
+		);
+		dialog.find(':checkbox').change(function() {
+			var labels = [];
+			var dialog = $(this.closest('.modal'));
+			var id = dialog.find('.module-id').val();
+			dialog.find(':checkbox').each(function(index, checkbox){
+				if($(checkbox).is(':checked')){
+					labels.push($(checkbox).val());
+				}
+			});
+			learning[id].labels = labels;
+		});
 	
 		dialog.find(".slider").slider({
 			orientation: "vertical",
@@ -612,6 +639,7 @@ function learn(id){
 					nn[id].parameters = parameters;
 				});
 				eventsource.close();
+				eventsource = undefined;
 			}
 			, "json");
 }
@@ -633,6 +661,7 @@ function evaluate(id){
 		"target": id}, 
 			function( data ) {
 				eventsource.close();
+				eventsource = undefined;
 				$("#dialog-"+id).find(".accuracy").text("Accuracy: "+data.accuracy+" %");
 			}
 			, "json");

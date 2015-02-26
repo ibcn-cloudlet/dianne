@@ -70,6 +70,7 @@ public class DianneDatasets extends HttpServlet {
 					JsonObject r = new JsonObject();
 					r.add("dataset", new JsonPrimitive(d.getName()));
 					r.add("size", new JsonPrimitive(d.size()));
+					r.add("labels", new JsonPrimitive(Arrays.toString(d.getLabels())));
 					result.add(r);
 				}
 			}
@@ -79,7 +80,6 @@ public class DianneDatasets extends HttpServlet {
 			String dataset = request.getParameter("dataset");
 			Dataset d = datasets.get(dataset);
 			if(d!=null){
-				// TODO specify format?
 				JsonObject sample = new JsonObject();
 				
 				Tensor t = d.getInputSample(rand.nextInt(d.size()));

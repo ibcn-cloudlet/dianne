@@ -93,6 +93,8 @@ $( document ).ready(function() {
 			function( data ) {
 				$.each(data, function(index, dataset){
 					// add datasets to learn/run toolboxes
+					// parse labels to JSON array
+					dataset.labels = JSON.parse(dataset.labels);
 					datasets[dataset.dataset] = dataset;
 					addToolboxItem('toolbox-learn', dataset.dataset, dataset.dataset, 'Dataset', 'learn');
 					addToolboxItem('toolbox-run', dataset.dataset, dataset.dataset, 'Dataset', 'run');
@@ -268,13 +270,12 @@ function addModule(moduleItem){
 	
 	// some hard coded shit here... should be changed
 	if(category==="Dataset"){
-		// TODO this is hard coded for MNIST
 		module.dataset = module.type;
 		module.total = datasets[module.type].size;
+		module.labels = datasets[module.type].labels;
 		module.test = 10000;
 		module.train = module.total - 10000;
 		module.validation = 0;
-		
 	} else if(category==="Trainer"){
 		// TODO this is hard coded
 		//module.strategy = "Stochastic Gradient Descent";
