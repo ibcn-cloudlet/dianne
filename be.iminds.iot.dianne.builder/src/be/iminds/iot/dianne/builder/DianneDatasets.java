@@ -70,7 +70,11 @@ public class DianneDatasets extends HttpServlet {
 					JsonObject r = new JsonObject();
 					r.add("dataset", new JsonPrimitive(d.getName()));
 					r.add("size", new JsonPrimitive(d.size()));
-					r.add("labels", new JsonPrimitive(Arrays.toString(d.getLabels())));
+					JsonArray labels = new JsonArray();
+					for(String l : d.getLabels()){
+						labels.add(new JsonPrimitive(l));
+					}
+					r.add("labels", labels);
 					result.add(r);
 				}
 			}

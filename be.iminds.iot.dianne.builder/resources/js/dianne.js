@@ -93,8 +93,6 @@ $( document ).ready(function() {
 			function( data ) {
 				$.each(data, function(index, dataset){
 					// add datasets to learn/run toolboxes
-					// parse labels to JSON array
-					dataset.labels = JSON.parse(dataset.labels);
 					datasets[dataset.dataset] = dataset;
 					addToolboxItem('toolbox-learn', dataset.dataset, dataset.dataset, 'Dataset', 'learn');
 					addToolboxItem('toolbox-run', dataset.dataset, dataset.dataset, 'Dataset', 'run');
