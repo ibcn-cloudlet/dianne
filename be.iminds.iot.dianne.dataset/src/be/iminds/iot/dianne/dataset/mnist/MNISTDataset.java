@@ -25,7 +25,7 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
  * @author tverbele
  *
  */
-@Component(immediate=true)
+@Component(immediate=true, property={"aiolos.callback=be.iminds.iot.dianne.dataset.Dataset"})
 public class MNISTDataset implements Dataset{
 
 	private TensorFactory factory;

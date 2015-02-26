@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -28,7 +27,7 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
  * @author tverbele
  *
  */
-@Component(immediate=true)
+@Component(immediate=true, property={"aiolos.callback=be.iminds.iot.dianne.dataset.Dataset"})
 public class STL10Dataset implements Dataset {
 
 	private TensorFactory factory;
