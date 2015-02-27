@@ -15,6 +15,9 @@ var datasets = {};
 // keep map module id -> deployment node
 var deployment = {};
 
+// keep a map of all trainable module types
+var trainable = {};
+
 /*
  * UI Mode
  */
@@ -83,7 +86,11 @@ $( document ).ready(function() {
 	$.post("/dianne/builder", {action : "available-modules"}, 
 		function( data ) {
 			$.each(data, function(index, module){
+				console.log(module);
 				// TODO fetch name/type/category
+				if(module.trainable!==undefined){
+					trainable[module.type] = true;
+				}
 				addToolboxItem('toolbox-build', module.type, module.type, module.category, 'build');
 			});
 		}
@@ -265,6 +272,9 @@ function addModule(moduleItem){
 	module.type = type;
 	module.category = category;
 	module.id = id;
+	if(trainable[type]!==undefined){
+		module.trainable = trainable[module.type];
+	}
 	
 	// some hard coded shit here... should be changed
 	if(category==="Dataset"){

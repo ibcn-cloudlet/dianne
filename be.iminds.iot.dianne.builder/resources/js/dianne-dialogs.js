@@ -39,17 +39,16 @@ function showConfigureModuleDialog(moduleItem) {
 	}
 }
 
-/**
- * Create dialog for configuring module in build mode
+/*
+ * Helper function to create base dialog and show the Module div
+ * Base for each NN configure module dialog in each mode
  */
-function createBuildModuleDialog(id, moduleItem){
-	var module = nn[id];
-	
+function createNNModuleDialog(module, title, submit, cancel){
 	var dialog = renderTemplate("dialog", {
-		id : id,
-		title : "Configure module ",
-		submit: "Configure",
-		cancel: "Delete"
+		'id' : module.id,
+		'title' : title,
+		'submit': submit,
+		'cancel': cancel
 	}, $(document.body));
 	
 	// add module div to dialog to show which module to configure
@@ -60,6 +59,17 @@ function createBuildModuleDialog(id, moduleItem){
 				category: module.category
 			}, 
 			dialog.find('.content'));
+	
+	return dialog;
+}
+
+/**
+ * Create dialog for configuring module in build mode
+ */
+function createBuildModuleDialog(id, moduleItem){
+	var module = nn[id];
+	
+	var dialog = createNNModuleDialog(module, "Configure module ", "Configure", "Delete");
 	
 	// then fill in properties
 	$.post("/dianne/builder", {"action" : "module-properties","type" : module.type}, 
@@ -124,21 +134,7 @@ function createBuildModuleDialog(id, moduleItem){
 function createDeployModuleDialog(id, moduleItem){
 	var module = nn[id];
 	
-	var dialog = renderTemplate("dialog", {
-		id : id,
-		title : "Deploy module ",
-		submit: "Deploy",
-		cancel: "Undeploy"
-	}, $(document.body));
-	
-	// add module div to dialog to show which module to configure
-	renderTemplate("module",
-			{	
-				name: module.type,
-				type: module.type, 
-				category: module.category
-			}, 
-			dialog.find('.content'));
+	var dialog = createNNModuleDialog(module, "Deploy module ", "Deploy", "Undeploy");
 	
 	// fill in deployment options
 	if(deployment[id]===undefined){
@@ -191,7 +187,43 @@ function createDeployModuleDialog(id, moduleItem){
 function createLearnModuleDialog(id, moduleItem){
 	var module = learning[id];
 	if(module===undefined){
-		return undefined; // no dialogs for build modules
+		module = nn[id];
+		
+		if(module.trainable!==undefined){
+			var dialog = createNNModuleDialog(module, "Configure module", "Save", "");
+			
+			dialog.find(".cancel").remove();
+			
+			var fixed = "checked";
+			if(module.trainable){
+				fixed = "";
+			}
+			renderTemplate("form-checkbox", 
+					{	
+						name: "Fix weights",
+						id: "trainable",
+						checked: fixed
+					},
+					dialog.find('.form-items'));
+			
+			dialog.find(".submit").click(function(e){
+				// apply training configuration
+				var id = $(this).closest(".modal").find(".module-id").val();
+				var fix = $(this).closest(".modal").find(".trainable").is(':checked');
+				if(fix){
+					nn[id].trainable = false;
+				} else {
+					nn[id].trainable = true;
+				}
+				
+				$(this).closest(".modal").modal('hide');
+			});
+			
+			return dialog; 
+		} else {
+			// no dialogs for untrainable modules
+			return undefined;
+		}
 	}
 	
 	var dialog;

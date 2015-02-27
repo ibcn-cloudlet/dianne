@@ -17,6 +17,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.http.HttpService;
 
+import be.iminds.iot.dianne.nn.module.Trainable;
 import be.iminds.iot.dianne.nn.module.description.ModuleDescription;
 import be.iminds.iot.dianne.nn.module.description.ModuleProperty;
 import be.iminds.iot.dianne.nn.module.factory.ModuleFactory;
@@ -78,6 +79,9 @@ public class DianneBuilder extends HttpServlet {
 			JsonObject jsonModule = new JsonObject();
 			jsonModule.add("type", new JsonPrimitive(module.getType()));
 			jsonModule.add("category", new JsonPrimitive(module.getCategory()));
+			if(module.isTrainable()){
+				jsonModule.add("trainable", new JsonPrimitive(true));
+			}
 			jsonModules.add(jsonModule);
 		}
 		writer.write(jsonModules.toString());

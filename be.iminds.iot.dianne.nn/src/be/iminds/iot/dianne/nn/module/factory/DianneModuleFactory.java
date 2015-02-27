@@ -49,64 +49,64 @@ public class DianneModuleFactory implements ModuleFactory {
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
 			properties.add(new ModuleProperty("Input size", "input"));
 			properties.add(new ModuleProperty("Output size", "output"));
-			ModuleDescription description = new ModuleDescription("Linear", "Layer", properties);
+			ModuleDescription description = new ModuleDescription("Linear", "Layer", properties, true);
 			supportedModules.put(description.getType(), description);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleDescription description = new ModuleDescription("Sigmoid", "Activation", properties);
+			ModuleDescription description = new ModuleDescription("Sigmoid", "Activation", properties, false);
 			supportedModules.put(description.getType(), description);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleDescription description = new ModuleDescription("Tanh", "Activation", properties);
+			ModuleDescription description = new ModuleDescription("Tanh", "Activation", properties, false);
 			supportedModules.put(description.getType(), description);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleDescription description = new ModuleDescription("Softmax", "Activation", properties);
+			ModuleDescription description = new ModuleDescription("Softmax", "Activation", properties, false);
 			supportedModules.put(description.getType(), description);
 		}		
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleDescription description = new ModuleDescription("ReLU", "Activation", properties);
+			ModuleDescription description = new ModuleDescription("ReLU", "Activation", properties, false);
 			supportedModules.put(description.getType(), description);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
 			properties.add(new ModuleProperty("Threshold value", "thresh"));
 			properties.add(new ModuleProperty("Replacement value", "val"));
-			ModuleDescription description = new ModuleDescription("Threshold", "Activation", properties);
+			ModuleDescription description = new ModuleDescription("Threshold", "Activation", properties, false);
 			supportedModules.put(description.getType(), description);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleDescription description = new ModuleDescription("Input", "Input-Output", properties);
+			ModuleDescription description = new ModuleDescription("Input", "Input-Output", properties, false);
 			supportedModules.put(description.getType(), description);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleDescription description = new ModuleDescription("Output", "Input-Output", properties);
+			ModuleDescription description = new ModuleDescription("Output", "Input-Output", properties, false);
 			supportedModules.put(description.getType(), description);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleDescription description = new ModuleDescription("Duplicate", "Fork", properties);
+			ModuleDescription description = new ModuleDescription("Duplicate", "Fork", properties, false);
 			supportedModules.put(description.getType(), description);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleDescription description = new ModuleDescription("Accumulate", "Join", properties);
+			ModuleDescription description = new ModuleDescription("Accumulate", "Join", properties, false);
 			supportedModules.put(description.getType(), description);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleDescription description = new ModuleDescription("Split", "Fork", properties);
+			ModuleDescription description = new ModuleDescription("Split", "Fork", properties, false);
 			supportedModules.put(description.getType(), description);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleDescription description = new ModuleDescription("Concat", "Join", properties);
+			ModuleDescription description = new ModuleDescription("Concat", "Join", properties, false);
 			supportedModules.put(description.getType(), description);
 		}
 		{
@@ -115,19 +115,19 @@ public class DianneModuleFactory implements ModuleFactory {
 			properties.add(new ModuleProperty("Output planes", "noOutputPlanes"));
 			properties.add(new ModuleProperty("Kernel width", "kernelWidth"));
 			properties.add(new ModuleProperty("Kernel height", "kernelHeight"));
-			ModuleDescription description = new ModuleDescription("Convolution", "Layer", properties);
+			ModuleDescription description = new ModuleDescription("Convolution", "Layer", properties, true);
 			supportedModules.put(description.getType(), description);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
 			properties.add(new ModuleProperty("Width", "width"));
 			properties.add(new ModuleProperty("Height", "height"));
-			ModuleDescription description = new ModuleDescription("MaxPooling", "Layer", properties);
+			ModuleDescription description = new ModuleDescription("MaxPooling", "Layer", properties, true);
 			supportedModules.put(description.getType(), description);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleDescription description = new ModuleDescription("Normalization", "Preprocessing", properties);
+			ModuleDescription description = new ModuleDescription("Normalization", "Preprocessing", properties, false);
 			supportedModules.put(description.getType(), description);
 		}
 	}
