@@ -9,6 +9,7 @@ public abstract class AbstractTrainableModule extends AbstractModule implements 
 
 	protected Tensor parameters;
 	protected Tensor gradParameters;
+	protected boolean fixed = false;
 	
 	public AbstractTrainableModule(TensorFactory factory) {
 		super(factory);
@@ -19,6 +20,12 @@ public abstract class AbstractTrainableModule extends AbstractModule implements 
 	}
 	
 	@Override
+	public void accumulateGradParameters(){
+		if(!fixed){
+			accGradParameters();
+		}
+	}
+	
 	public abstract void accGradParameters();
 
 	@Override
@@ -28,7 +35,9 @@ public abstract class AbstractTrainableModule extends AbstractModule implements 
 
 	@Override
 	public void updateParameters(float learningRate) {
-		factory.getTensorMath().sub(parameters, parameters, learningRate, gradParameters);
+		if(!fixed){
+			factory.getTensorMath().sub(parameters, parameters, learningRate, gradParameters);
+		}
 	}
 
 	@Override
@@ -41,5 +50,10 @@ public abstract class AbstractTrainableModule extends AbstractModule implements 
 		if(parameters != null && weights.length == parameters.size()){
 			parameters.set(weights);
 		}
+	}
+	
+	@Override
+	public void setFixed(boolean fixed){
+		this.fixed = fixed;
 	}
 }
