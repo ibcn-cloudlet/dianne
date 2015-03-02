@@ -191,7 +191,6 @@ function createLearnModuleDialog(id, moduleItem){
 		
 		if(module.trainable!==undefined){
 			var dialog = createNNModuleDialog(module, "Configure module", "Save", "");
-			
 			dialog.find(".cancel").remove();
 			
 			var train = "";
@@ -220,6 +219,35 @@ function createLearnModuleDialog(id, moduleItem){
 			});
 			
 			return dialog; 
+			
+		} else if(module.category==="Fork"
+					|| module.category==="Join"){
+			
+			var dialog = createNNModuleDialog(module, "Configure module", "Save", "");
+			dialog.find(".cancel").remove();
+
+			renderTemplate("form-dropdown", 
+				{	
+					name: "Mode"
+				},
+				dialog.find('.form-items'));
+			
+			dialog.find('.options').append("<option value=\"FORWARD_ON_CHANGE\">Forward on change</option>");
+			dialog.find('.options').append("<option value=\"WAIT_FOR_ALL\">Wait for all input/gradOutput</option>");
+			dialog.find('.options').change(function(event){
+				var selected = dialog.find( "option:selected" ).val();
+				var id = dialog.find(".module-id").val();
+
+				// weird to do this with run, but actually makes sense to set runtime mode in run servlet?
+				$.post("/dianne/run", {"mode":selected, "target":id}, 
+						function( data ) {
+						}
+						, "json");
+				
+				$(this).closest(".modal").modal('hide');
+			});
+			
+			return dialog;
 		} else {
 			// no dialogs for untrainable modules
 			return undefined;

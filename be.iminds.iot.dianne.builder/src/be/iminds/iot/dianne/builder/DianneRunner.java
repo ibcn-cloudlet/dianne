@@ -23,6 +23,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import be.iminds.iot.dianne.nn.module.ForwardListener;
 import be.iminds.iot.dianne.nn.module.Input;
 import be.iminds.iot.dianne.nn.module.Module;
+import be.iminds.iot.dianne.nn.module.Module.Mode;
 import be.iminds.iot.dianne.nn.module.Output;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
@@ -157,7 +158,15 @@ public class DianneRunner extends HttpServlet {
 			float[] data = parseInput(sample.get("data").getAsJsonArray().toString());
 			Tensor t = factory.createTensor(data, channels, height, width);
 			input.input(t);
-		} 
+		} else if(request.getParameter("mode")!=null){
+			String mode = request.getParameter("mode");
+			String targetId = request.getParameter("target");
+
+			Module m = modules.get(targetId);
+			if(m!=null){
+				m.setMode(Mode.valueOf(mode));
+			}
+		}
 	}
 	
 	private float[] parseInput(String string){
