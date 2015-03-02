@@ -20,12 +20,6 @@ public abstract class AbstractTrainableModule extends AbstractModule implements 
 	}
 	
 	@Override
-	public void accumulateGradParameters(){
-		if(!fixed){
-			accGradParameters();
-		}
-	}
-	
 	public abstract void accGradParameters();
 
 	@Override
@@ -50,10 +44,5 @@ public abstract class AbstractTrainableModule extends AbstractModule implements 
 		if(parameters != null && weights.length == parameters.size()){
 			parameters.set(weights);
 		}
-	}
-	
-	@Override
-	public void setFixed(boolean fixed){
-		this.fixed = fixed;
 	}
 }

@@ -67,7 +67,7 @@ public class StochasticGradient extends AbstractTrainer {
 				// back propagation done, now update params
 				// accGradParameters for all trainable modules
 				for(Trainable m : modules){
-					m.accumulateGradParameters();
+					m.accGradParameters();
 				}
 			
 				// updateParameters after batch
