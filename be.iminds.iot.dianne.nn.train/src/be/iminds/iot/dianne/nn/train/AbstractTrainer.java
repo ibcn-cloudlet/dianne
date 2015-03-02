@@ -6,7 +6,6 @@ import java.util.List;
 import be.iminds.iot.dianne.dataset.Dataset;
 import be.iminds.iot.dianne.nn.module.Input;
 import be.iminds.iot.dianne.nn.module.Module;
-import be.iminds.iot.dianne.nn.module.Module.Mode;
 import be.iminds.iot.dianne.nn.module.Output;
 import be.iminds.iot.dianne.nn.module.Preprocessor;
 import be.iminds.iot.dianne.nn.module.Trainable;
@@ -31,8 +30,6 @@ public abstract class AbstractTrainer implements Trainer  {
 			} else if(m instanceof Preprocessor){
 				preprocessors.add((Preprocessor) m);
 			}
-			
-			m.setMode(Mode.TRAINING);
 		}
 		
 		// TODO check if module list is valid for training
@@ -41,10 +38,6 @@ public abstract class AbstractTrainer implements Trainer  {
 		
 		// TODO maybe better separation between strategy and abstract trainer ?
 		train(input, output, trainables, preprocessors, criterion, data);
-		
-		for(Module m : modules){
-			m.setMode(Mode.EVALUATION);
-		}
 		
 		// set labels for the output
 		output.setOutputLabels(data.getLabels());

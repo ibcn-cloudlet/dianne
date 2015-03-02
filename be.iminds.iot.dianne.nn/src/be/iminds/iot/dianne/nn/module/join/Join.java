@@ -19,6 +19,9 @@ public abstract class Join extends AbstractModule {
 	// during training
 	protected Map<UUID, AtomicBoolean> prevLock = new HashMap<UUID, AtomicBoolean>();
 	
+	// sync mode = wait for all inputs to be updated before further forward
+	protected boolean sync = true;
+	
 	// might need the order of id
 	protected UUID[] prevIds;
 	
@@ -42,7 +45,7 @@ public abstract class Join extends AbstractModule {
 		this.inputs.put(moduleId, input);
 		
 		// when training, wait for input from each prev
-		if(mode==Mode.TRAINING && prev!=null && prev.length>1){
+		if(sync && prev!=null && prev.length>1){
 			synchronized(prevLock){
 				prevLock.get(moduleId).set(true);
 				for(AtomicBoolean b : prevLock.values()){

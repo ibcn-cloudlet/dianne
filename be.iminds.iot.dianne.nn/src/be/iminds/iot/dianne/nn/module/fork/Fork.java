@@ -19,6 +19,9 @@ public abstract class Fork extends AbstractModule {
 	// during training
 	protected Map<UUID, AtomicBoolean> nextLock = new HashMap<UUID, AtomicBoolean>();
 	
+	// sync mode = wait for all gradOutputs to be updated before further backward
+	protected boolean sync = true;
+	
 	protected UUID[] nextIds;
 	
 	public Fork(TensorFactory factory) {
@@ -40,8 +43,8 @@ public abstract class Fork extends AbstractModule {
 	public void backward(final UUID moduleId, final Tensor gradOutput) {
 		this.gradOutputs.put(moduleId, gradOutput);
 		
-		// when training, wait until all gradOutput is updated
-		if(mode==Mode.TRAINING && next!=null && next.length>1){
+		// when sync mode, wait until all gradOutput is updated
+		if(sync && next!=null && next.length>1){
 			synchronized(nextLock){
 				nextLock.get(moduleId).set(true);
 				for(AtomicBoolean b : nextLock.values()){

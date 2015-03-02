@@ -6,8 +6,6 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 public interface Module {
 	
-	public enum Mode {TRAINING, EVALUATION};
-	
 	public UUID getId();
 
 	public void forward(final UUID moduleId, final Tensor input);
@@ -18,8 +16,6 @@ public interface Module {
 	
 	public void setPrevious(final Module... prev);
 
-	public void setMode(Mode m);
-	
 	public void addForwardListener(ForwardListener listener);
 	
 	public void removeForwardListener(ForwardListener listener);
