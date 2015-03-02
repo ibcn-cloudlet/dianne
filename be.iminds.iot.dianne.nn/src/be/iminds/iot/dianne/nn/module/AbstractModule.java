@@ -7,6 +7,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import be.iminds.iot.dianne.nn.module.Module.Mode;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -44,6 +45,8 @@ public abstract class AbstractModule implements Module {
 	protected List<ForwardListener> fwdListeners = Collections.synchronizedList(new ArrayList<ForwardListener>());
 	protected List<BackwardListener> bwListeners = Collections.synchronizedList(new ArrayList<BackwardListener>());
 
+	// Mode
+	protected Mode mode;
 	
 	public void setExecutorService(ExecutorService executor){
 		List<Runnable> todo = this.executor.shutdownNow();
@@ -145,6 +148,11 @@ public abstract class AbstractModule implements Module {
 		}
 	}
 
+	@Override
+	public void setMode(Mode mode){
+		this.mode = mode;
+	}
+	
 	public void addForwardListener(ForwardListener listener){
 		fwdListeners.add(listener);
 	}

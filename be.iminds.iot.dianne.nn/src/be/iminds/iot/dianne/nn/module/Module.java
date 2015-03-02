@@ -6,6 +6,8 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 public interface Module {
 	
+	public enum Mode {FORWARD_ON_CHANGE, WAIT_FOR_ALL}
+	
 	public UUID getId();
 
 	public void forward(final UUID moduleId, final Tensor input);
@@ -24,4 +26,5 @@ public interface Module {
 	
 	public void removeBackwardListener(BackwardListener listener);
 	
+	public void setMode(Mode mode);
 }
