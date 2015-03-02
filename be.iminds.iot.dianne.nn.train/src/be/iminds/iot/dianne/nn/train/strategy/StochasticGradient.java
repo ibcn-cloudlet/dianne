@@ -9,12 +9,12 @@ import be.iminds.iot.dianne.nn.module.Input;
 import be.iminds.iot.dianne.nn.module.Output;
 import be.iminds.iot.dianne.nn.module.Preprocessor;
 import be.iminds.iot.dianne.nn.module.Trainable;
-import be.iminds.iot.dianne.nn.train.AbstractTrainer;
 import be.iminds.iot.dianne.nn.train.Criterion;
 import be.iminds.iot.dianne.nn.train.DatasetProcessor;
+import be.iminds.iot.dianne.nn.train.Trainer;
 import be.iminds.iot.dianne.tensor.Tensor;
 
-public class StochasticGradient extends AbstractTrainer {
+public class StochasticGradient implements Trainer {
 
 	private final int batchSize;
 	private final int noEpochs;

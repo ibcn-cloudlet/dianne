@@ -144,7 +144,6 @@ public class DianneLearner extends HttpServlet {
 					List<Trainable> trainable = new ArrayList<Trainable>();
 					List<Preprocessor> preprocessors = new ArrayList<Preprocessor>();
 					
-					List<Module> toTrain = new ArrayList<Module>();
 					Iterator<JsonElement> it = moduleIds.iterator();
 					while(it.hasNext()){
 						String id = it.next().getAsString();
@@ -153,13 +152,11 @@ public class DianneLearner extends HttpServlet {
 							// only include the input module connected to the dataset
 							if(datasetConfig.get("input").getAsString().equals(id)){
 								input = (Input) m;
-								toTrain.add(m);
 							}
 						} else if(m instanceof Output){
 							// only include the output module connected to the trainer
 							if(processorConfig.get("output").getAsString().equals(id)){
 								output = (Output) m;
-								toTrain.add(m);
 							}
 						} else {
 							if(m instanceof Trainable){
@@ -167,11 +164,9 @@ public class DianneLearner extends HttpServlet {
 							} else if(m instanceof Preprocessor){
 								preprocessors.add((Preprocessor) m);
 							}
-							
-							toTrain.add(m);
 						}
 					}
-					trainer.train(toTrain, loss, trainSet);
+					trainer.train(input, output, trainable, preprocessors, loss, trainSet);
 					
 					JsonObject parameters = new JsonObject();
 					for(Trainable t : trainable){
