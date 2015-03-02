@@ -118,6 +118,8 @@ public class DianneLearner extends HttpServlet {
 		// TODO check if parameters exist and are correct!
 		String action = request.getParameter("action");
 		String target = request.getParameter("target");
+		// this list consists of all ids of modules that are needed for trainer:
+		// the input, output, trainable and preprocessor modules
 		String modulesJsonString = request.getParameter("modules");
 		String configJsonString = request.getParameter("config");
 		

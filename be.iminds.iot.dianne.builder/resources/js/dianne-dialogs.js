@@ -194,26 +194,26 @@ function createLearnModuleDialog(id, moduleItem){
 			
 			dialog.find(".cancel").remove();
 			
-			var fixed = "checked";
-			if(module.trainable){
-				fixed = "";
+			var train = "";
+			if(module.trainable===true){
+				train = "checked";
 			}
 			renderTemplate("form-checkbox", 
 					{	
-						name: "Fix weights",
+						name: "Train",
 						id: "trainable",
-						checked: fixed
+						checked: train
 					},
 					dialog.find('.form-items'));
 			
 			dialog.find(".submit").click(function(e){
 				// apply training configuration
 				var id = $(this).closest(".modal").find(".module-id").val();
-				var fix = $(this).closest(".modal").find(".trainable").is(':checked');
-				if(fix){
-					nn[id].trainable = false;
-				} else {
+				var train = $(this).closest(".modal").find(".trainable").is(':checked');
+				if(train){
 					nn[id].trainable = true;
+				} else {
+					nn[id].trainable = false;
 				}
 				
 				$(this).closest(".modal").modal('hide');
@@ -661,10 +661,22 @@ function learn(id){
         var y = Number(data.error); 
 		Highcharts.charts[index].series[0].addPoint([x, y], true, true, false);
 	};
-	console.log(JSON.stringify(nn));
+	
+	var modules = [];
+	$.each(nn, function(id, module){
+		if(module.category==="Input-Output" 
+			|| module.category==="Preprocessing"){
+			modules.push(id);
+		} else {
+			if(module.trainable===true){
+				modules.push(id);
+			}
+		}
+	});
+	
 	$.post("/dianne/learner", {"action":"learn",
 		"config":JSON.stringify(learning),
-		"modules":JSON.stringify(Object.keys(nn)),
+		"modules": JSON.stringify(modules),
 		"target": id}, 
 			function( data ) {
 				$.each(data, function(id, parameters){
