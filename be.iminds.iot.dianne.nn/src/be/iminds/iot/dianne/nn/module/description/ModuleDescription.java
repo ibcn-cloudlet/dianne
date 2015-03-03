@@ -1,36 +1,30 @@
 package be.iminds.iot.dianne.nn.module.description;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class ModuleDescription {
 
-	private final String type;
-	private final String category;
-	private final List<ModuleProperty> properties;
-	private final boolean trainable;
+	private final UUID id;
+	private final ModuleType type;
+	private final Map<ModuleProperty, Object> parameters;
 	
-	public ModuleDescription(String type, String category, List<ModuleProperty> properties, boolean trainable){
+	public ModuleDescription(UUID id, ModuleType type, Map<ModuleProperty, Object> parameters){
+		this.id = id;
 		this.type = type;
-		this.category = category;
-		this.properties = Collections.unmodifiableList(properties);
-		this.trainable = trainable;
+		this.parameters = parameters;
 	}
-
-	public String getType() {
+	
+	public UUID getId(){
+		return id;
+	}
+	
+	public ModuleType getType(){
 		return type;
 	}
 	
-	public String getCategory(){
-		return category;
+	public Object getParameter(String id){
+		// ModuleProperty is hashed by its id
+		return parameters.get(id);
 	}
-
-	public List<ModuleProperty> getProperties() {
-		return properties;
-	}
-	
-	public boolean isTrainable(){
-		return trainable;
-	}
-	
 }

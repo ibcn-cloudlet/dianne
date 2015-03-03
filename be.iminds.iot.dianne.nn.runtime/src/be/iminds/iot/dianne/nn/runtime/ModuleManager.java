@@ -4,7 +4,7 @@ import java.util.Dictionary;
 import java.util.List;
 import java.util.UUID;
 
-import be.iminds.iot.dianne.nn.module.description.ModuleDescription;
+import be.iminds.iot.dianne.nn.module.description.ModuleType;
 
 public interface ModuleManager {
 
@@ -12,7 +12,7 @@ public interface ModuleManager {
 	
 	public void undeployModule(UUID moduleId);
 	
-	public List<ModuleDescription> getSupportedModules();
+	public List<ModuleType> getSupportedModules();
 	
 	// TODO list deployed modules?
 }

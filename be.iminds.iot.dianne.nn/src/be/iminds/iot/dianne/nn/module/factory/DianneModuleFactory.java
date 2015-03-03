@@ -19,7 +19,7 @@ import be.iminds.iot.dianne.nn.module.activation.Sigmoid;
 import be.iminds.iot.dianne.nn.module.activation.Softmax;
 import be.iminds.iot.dianne.nn.module.activation.Tanh;
 import be.iminds.iot.dianne.nn.module.activation.Threshold;
-import be.iminds.iot.dianne.nn.module.description.ModuleDescription;
+import be.iminds.iot.dianne.nn.module.description.ModuleType;
 import be.iminds.iot.dianne.nn.module.description.ModuleProperty;
 import be.iminds.iot.dianne.nn.module.fork.Duplicate;
 import be.iminds.iot.dianne.nn.module.fork.Split;
@@ -38,7 +38,7 @@ public class DianneModuleFactory implements ModuleFactory {
 
 	private ExecutorService executor = Executors.newCachedThreadPool();
 	
-	private final Map<String, ModuleDescription> supportedModules = new HashMap<String, ModuleDescription>();
+	private final Map<String, ModuleType> supportedModules = new HashMap<String, ModuleType>();
 	
 	@Activate
 	public void activate(){
@@ -49,65 +49,65 @@ public class DianneModuleFactory implements ModuleFactory {
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
 			properties.add(new ModuleProperty("Input size", "input"));
 			properties.add(new ModuleProperty("Output size", "output"));
-			ModuleDescription description = new ModuleDescription("Linear", "Layer", properties, true);
-			supportedModules.put(description.getType(), description);
+			ModuleType type = new ModuleType("Linear", "Layer", properties, true);
+			supportedModules.put(type.getType(), type);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleDescription description = new ModuleDescription("Sigmoid", "Activation", properties, false);
-			supportedModules.put(description.getType(), description);
+			ModuleType type = new ModuleType("Sigmoid", "Activation", properties, false);
+			supportedModules.put(type.getType(), type);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleDescription description = new ModuleDescription("Tanh", "Activation", properties, false);
-			supportedModules.put(description.getType(), description);
+			ModuleType type = new ModuleType("Tanh", "Activation", properties, false);
+			supportedModules.put(type.getType(), type);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleDescription description = new ModuleDescription("Softmax", "Activation", properties, false);
-			supportedModules.put(description.getType(), description);
+			ModuleType type = new ModuleType("Softmax", "Activation", properties, false);
+			supportedModules.put(type.getType(), type);
 		}		
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleDescription description = new ModuleDescription("ReLU", "Activation", properties, false);
-			supportedModules.put(description.getType(), description);
+			ModuleType type = new ModuleType("ReLU", "Activation", properties, false);
+			supportedModules.put(type.getType(), type);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
 			properties.add(new ModuleProperty("Threshold value", "thresh"));
 			properties.add(new ModuleProperty("Replacement value", "val"));
-			ModuleDescription description = new ModuleDescription("Threshold", "Activation", properties, false);
-			supportedModules.put(description.getType(), description);
+			ModuleType type = new ModuleType("Threshold", "Activation", properties, false);
+			supportedModules.put(type.getType(), type);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleDescription description = new ModuleDescription("Input", "Input-Output", properties, false);
-			supportedModules.put(description.getType(), description);
+			ModuleType type = new ModuleType("Input", "Input-Output", properties, false);
+			supportedModules.put(type.getType(), type);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleDescription description = new ModuleDescription("Output", "Input-Output", properties, false);
-			supportedModules.put(description.getType(), description);
+			ModuleType type = new ModuleType("Output", "Input-Output", properties, false);
+			supportedModules.put(type.getType(), type);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleDescription description = new ModuleDescription("Duplicate", "Fork", properties, false);
-			supportedModules.put(description.getType(), description);
+			ModuleType type = new ModuleType("Duplicate", "Fork", properties, false);
+			supportedModules.put(type.getType(), type);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleDescription description = new ModuleDescription("Accumulate", "Join", properties, false);
-			supportedModules.put(description.getType(), description);
+			ModuleType type = new ModuleType("Accumulate", "Join", properties, false);
+			supportedModules.put(type.getType(), type);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleDescription description = new ModuleDescription("Split", "Fork", properties, false);
-			supportedModules.put(description.getType(), description);
+			ModuleType type = new ModuleType("Split", "Fork", properties, false);
+			supportedModules.put(type.getType(), type);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleDescription description = new ModuleDescription("Concat", "Join", properties, false);
-			supportedModules.put(description.getType(), description);
+			ModuleType type = new ModuleType("Concat", "Join", properties, false);
+			supportedModules.put(type.getType(), type);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
@@ -115,20 +115,20 @@ public class DianneModuleFactory implements ModuleFactory {
 			properties.add(new ModuleProperty("Output planes", "noOutputPlanes"));
 			properties.add(new ModuleProperty("Kernel width", "kernelWidth"));
 			properties.add(new ModuleProperty("Kernel height", "kernelHeight"));
-			ModuleDescription description = new ModuleDescription("Convolution", "Layer", properties, true);
-			supportedModules.put(description.getType(), description);
+			ModuleType type = new ModuleType("Convolution", "Layer", properties, true);
+			supportedModules.put(type.getType(), type);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
 			properties.add(new ModuleProperty("Width", "width"));
 			properties.add(new ModuleProperty("Height", "height"));
-			ModuleDescription description = new ModuleDescription("MaxPooling", "Layer", properties, true);
-			supportedModules.put(description.getType(), description);
+			ModuleType type = new ModuleType("MaxPooling", "Layer", properties, true);
+			supportedModules.put(type.getType(), type);
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleDescription description = new ModuleDescription("Normalization", "Preprocessing", properties, false);
-			supportedModules.put(description.getType(), description);
+			ModuleType type = new ModuleType("Normalization", "Preprocessing", properties, false);
+			supportedModules.put(type.getType(), type);
 		}
 	}
 	
@@ -213,12 +213,12 @@ public class DianneModuleFactory implements ModuleFactory {
 	}
 
 	@Override
-	public List<ModuleDescription> getAvailableModules() {
-		return new ArrayList<ModuleDescription>(supportedModules.values());
+	public List<ModuleType> getAvailableModuleTypes() {
+		return new ArrayList<ModuleType>(supportedModules.values());
 	}
 
 	@Override
-	public ModuleDescription getModuleDescription(String name) {
+	public ModuleType getModuleType(String name) {
 		return supportedModules.get(name);
 	}
 	

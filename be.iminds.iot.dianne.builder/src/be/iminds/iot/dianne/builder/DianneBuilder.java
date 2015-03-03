@@ -18,7 +18,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.http.HttpService;
 
 import be.iminds.iot.dianne.nn.module.Trainable;
-import be.iminds.iot.dianne.nn.module.description.ModuleDescription;
+import be.iminds.iot.dianne.nn.module.description.ModuleType;
 import be.iminds.iot.dianne.nn.module.description.ModuleProperty;
 import be.iminds.iot.dianne.nn.module.factory.ModuleFactory;
 
@@ -67,19 +67,19 @@ public class DianneBuilder extends HttpServlet {
 	}
 	
 	private void getAvailableModules(PrintWriter writer){
-		List<ModuleDescription> modules = new ArrayList<ModuleDescription>();
+		List<ModuleType> moduleTypes = new ArrayList<ModuleType>();
 		synchronized(factories){
 			for(ModuleFactory f : factories){
-				modules.addAll(f.getAvailableModules());
+				moduleTypes.addAll(f.getAvailableModuleTypes());
 			}
 		}
 		
 		JsonArray jsonModules = new JsonArray();
-		for(ModuleDescription module : modules){
+		for(ModuleType moduleType : moduleTypes){
 			JsonObject jsonModule = new JsonObject();
-			jsonModule.add("type", new JsonPrimitive(module.getType()));
-			jsonModule.add("category", new JsonPrimitive(module.getCategory()));
-			if(module.isTrainable()){
+			jsonModule.add("type", new JsonPrimitive(moduleType.getType()));
+			jsonModule.add("category", new JsonPrimitive(moduleType.getCategory()));
+			if(moduleType.isTrainable()){
 				jsonModule.add("trainable", new JsonPrimitive(true));
 			}
 			jsonModules.add(jsonModule);
@@ -89,10 +89,10 @@ public class DianneBuilder extends HttpServlet {
 	}
 	
 	private void getModuleProperties(String type, PrintWriter writer){
-		ModuleDescription module = null;
+		ModuleType module = null;
 		synchronized(factories){
 			for(ModuleFactory f : factories){
-				module = f.getModuleDescription(type);
+				module = f.getModuleType(type);
 				if(module!=null)
 					break;
 			}

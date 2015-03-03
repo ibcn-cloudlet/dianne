@@ -29,7 +29,7 @@ import be.iminds.iot.dianne.nn.module.Module;
 import be.iminds.iot.dianne.nn.module.Output;
 import be.iminds.iot.dianne.nn.module.Preprocessor;
 import be.iminds.iot.dianne.nn.module.Trainable;
-import be.iminds.iot.dianne.nn.module.description.ModuleDescription;
+import be.iminds.iot.dianne.nn.module.description.ModuleType;
 import be.iminds.iot.dianne.nn.module.factory.ModuleFactory;
 import be.iminds.iot.dianne.nn.runtime.ModuleManager;
 import be.iminds.iot.dianne.tensor.TensorFactory;
@@ -236,11 +236,11 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 	}
 
 	@Override
-	public List<ModuleDescription> getSupportedModules() {
-		List<ModuleDescription> supported = new ArrayList<ModuleDescription>();
+	public List<ModuleType> getSupportedModules() {
+		List<ModuleType> supported = new ArrayList<ModuleType>();
 		synchronized(mFactories){
 			for(ModuleFactory f : mFactories){
-				supported.addAll(f.getAvailableModules());
+				supported.addAll(f.getAvailableModuleTypes());
 			}
 		}
 		return Collections.unmodifiableList(supported);
