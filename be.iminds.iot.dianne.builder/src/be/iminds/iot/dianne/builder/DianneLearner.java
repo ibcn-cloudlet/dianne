@@ -39,7 +39,7 @@ import be.iminds.iot.dianne.nn.train.eval.ArgMaxEvaluator;
 import be.iminds.iot.dianne.nn.train.eval.EvalProgressListener;
 import be.iminds.iot.dianne.nn.train.strategy.StochasticGradient;
 import be.iminds.iot.dianne.nn.train.strategy.TrainProgressListener;
-import be.iminds.iot.dianne.storage.DianneStorage;
+import be.iminds.iot.dianne.repository.DianneRepository;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -55,7 +55,7 @@ import com.google.gson.JsonPrimitive;
 public class DianneLearner extends HttpServlet {
 
 	private TensorFactory factory;
-	private DianneStorage storage;
+	private DianneRepository repository;
 	
 	private static final JsonParser parser = new JsonParser();
 	
@@ -70,8 +70,8 @@ public class DianneLearner extends HttpServlet {
 	}
 	
 	@Reference
-	public void setDianneStorage(DianneStorage storage){
-		this.storage = storage;
+	public void setDianneRepository(DianneRepository repo){
+		this.repository = repo;
 	}
 	
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
@@ -181,7 +181,7 @@ public class DianneLearner extends HttpServlet {
 					for(Trainable t : trainable){
 //						parameters.add(((Module)t).getId().toString(), new JsonPrimitive(Arrays.toString(t.getParameters().get())));;
 						//store in storage instead of json at client side
-						storage.storeWeights(((Module)t).getId(), t.getParameters().get());
+						repository.storeWeights(((Module)t).getId(), t.getParameters().get());
 					}
 					for(Preprocessor p : preprocessors){
 						parameters.add(((Module)p).getId().toString(), new JsonPrimitive(Arrays.toString(p.getParameters().get())));;

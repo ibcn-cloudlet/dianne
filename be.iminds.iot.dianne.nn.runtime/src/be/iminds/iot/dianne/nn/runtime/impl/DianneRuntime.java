@@ -33,7 +33,7 @@ import be.iminds.iot.dianne.nn.module.Trainable;
 import be.iminds.iot.dianne.nn.module.description.ModuleType;
 import be.iminds.iot.dianne.nn.module.factory.ModuleFactory;
 import be.iminds.iot.dianne.nn.runtime.ModuleManager;
-import be.iminds.iot.dianne.storage.DianneStorage;
+import be.iminds.iot.dianne.repository.DianneRepository;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component(immediate=true, 
@@ -47,7 +47,7 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 	private TensorFactory tFactory;
 	private List<ModuleFactory> mFactories = Collections.synchronizedList(new ArrayList<ModuleFactory>());
 	
-	private DianneStorage storage;
+	private DianneRepository repository;
 	
 	// All module UUIDs by their PID
 	private Map<String, UUID> uuids = new HashMap<String, UUID>();
@@ -92,8 +92,8 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 	}
 	
 	@Reference
-	public void setDianneStorage(DianneStorage storage){
-		this.storage = storage;
+	public void setDianneRepository(DianneRepository repo){
+		this.repository = repo;
 	}
 	
 	@Reference(
@@ -194,7 +194,7 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 		
 		if(module instanceof Trainable){
 			try {
-				float[] weights = storage.loadWeights(module.getId());
+				float[] weights = repository.loadWeights(module.getId());
 				((Trainable)module).setParameters(weights);
 			} catch(IOException e){}
 		}
