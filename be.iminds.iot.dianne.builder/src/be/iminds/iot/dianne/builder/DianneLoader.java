@@ -49,11 +49,14 @@ public class DianneLoader extends HttpServlet {
 			response.getWriter().flush();
 		} else if("load".equals(action)){
 			String name = request.getParameter("name");
-			String modules = new String(Files.readAllBytes(Paths.get(storage+"/"+name+"/modules.txt")));
-			String layout = new String(Files.readAllBytes(Paths.get(storage+"/"+name+"/layout.txt")));
 			
-			String result = "{\"modules\":"+modules+", \"layout\":"+layout+"}";
-			response.getWriter().write(result);
+			response.getWriter().write("{\"modules\":");
+			String modules = new String(Files.readAllBytes(Paths.get(storage+"/"+name+"/modules.txt")));
+			response.getWriter().write(modules);
+			response.getWriter().write(", \"layout\":");
+			String layout = new String(Files.readAllBytes(Paths.get(storage+"/"+name+"/layout.txt")));
+			response.getWriter().write(layout);
+			response.getWriter().write("}");
 			response.getWriter().flush();
 		}
 		
