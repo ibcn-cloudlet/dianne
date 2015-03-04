@@ -48,7 +48,10 @@ public class DianneFileRepository implements DianneRepository {
 		File d = new File(dir);
 		for(File f : d.listFiles()){
 			if(f.isDirectory()){
-				networks.add(f.getName());
+				String name = f.getName();
+				if(!name.equals("weights")){
+					networks.add(f.getName());
+				}
 			}
 		}
 		return networks;
