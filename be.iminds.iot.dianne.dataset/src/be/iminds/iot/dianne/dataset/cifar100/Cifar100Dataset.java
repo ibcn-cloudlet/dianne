@@ -27,7 +27,7 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
  * @author tverbele
  *
  */
-@Component(immediate=true, property={"aiolos.callback=be.iminds.iot.dianne.dataset.Dataset"})
+@Component(immediate=true, property={"aiolos.callback=be.iminds.iot.dianne.api.dataset.Dataset"})
 public class Cifar100Dataset implements Dataset {
 
 	private TensorFactory factory;

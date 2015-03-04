@@ -38,7 +38,7 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component(immediate=true, 
 	property={"service.pid=be.iminds.iot.dianne.nn.module",
-			  "aiolos.callback=be.iminds.iot.dianne.nn.runtime.ModuleManager"})
+			  "aiolos.callback=be.iminds.iot.dianne.api.nn.runtime.ModuleManager"})
 public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 
 	private BundleContext context;
