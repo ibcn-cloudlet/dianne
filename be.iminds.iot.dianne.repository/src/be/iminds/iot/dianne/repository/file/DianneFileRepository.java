@@ -12,11 +12,16 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import be.iminds.iot.dianne.repository.DianneRepository;
 
@@ -24,6 +29,8 @@ import be.iminds.iot.dianne.repository.DianneRepository;
 public class DianneFileRepository implements DianneRepository {
 
 	private String dir = "nn";
+	
+	private final JsonParser parser = new JsonParser();
 	
 	@Activate
 	public void activate(BundleContext context){
@@ -55,12 +62,27 @@ public class DianneFileRepository implements DianneRepository {
 	
 	@Override
 	public void storeNetwork(String network, String modules){
+		File d = new File(dir+"/"+network);
+		d.mkdirs();
+		
 		File n = new File(dir+"/"+network+"/modules.txt");
+		
+		// also look for weights and move these to the network folder
+		JsonObject json = (JsonObject)parser.parse(modules);
+		for(Entry<String, JsonElement> e : json.entrySet()){
+			File weights = new File(dir+"/weights/"+e.getKey());
+			if(weights.exists()){
+				// move to network folder
+				weights.renameTo(new File(dir+"/"+network+"/"+e.getKey()));
+			}
+		}
+		
 		PrintWriter p = null;
 		try {
 			p = new PrintWriter(n);
 			p.write(modules);
 		} catch(Exception e){
+			e.printStackTrace();
 		} finally{
 			if(p!=null){
 				p.close();
@@ -82,6 +104,7 @@ public class DianneFileRepository implements DianneRepository {
 			p = new PrintWriter(l);
 			p.write(layout);
 		} catch(Exception e){
+			e.printStackTrace();
 		} finally{
 			if(p!=null){
 				p.close();
@@ -91,8 +114,17 @@ public class DianneFileRepository implements DianneRepository {
 	
 	@Override
 	public float[] loadWeights(UUID id) throws IOException {
-		File f = new File(dir+"/weights/"+id.toString());
-		if(f.exists()){
+		File d = new File(dir);
+		File f = null;
+		for(String l : d.list()){
+			f = new File(l+"/"+id.toString());
+			if(f.exists()){
+				break;
+			} else {
+				f = null;
+			}
+		}
+		if(f!=null){
 			DataInputStream is = new DataInputStream(new FileInputStream(f));
 			int count = is.readInt();
 			float[] weights = new float[count];
@@ -102,7 +134,7 @@ public class DianneFileRepository implements DianneRepository {
 			is.close();
 			return weights;
 		}
-		throw new FileNotFoundException(f.getAbsolutePath());
+		throw new FileNotFoundException();
 	}
 
 	@Override
