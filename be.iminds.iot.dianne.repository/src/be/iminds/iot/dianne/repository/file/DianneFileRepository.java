@@ -117,7 +117,7 @@ public class DianneFileRepository implements DianneRepository {
 		File d = new File(dir);
 		File f = null;
 		for(String l : d.list()){
-			f = new File(l+"/"+id.toString());
+			f = new File(dir+"/"+l+"/"+id.toString());
 			if(f.exists()){
 				break;
 			} else {
