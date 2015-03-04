@@ -7,6 +7,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -33,6 +36,60 @@ public class DianneFileRepository implements DianneRepository {
 	}
 
 	@Override
+	public List<String> networks() {
+		List<String> networks = new ArrayList<String>();
+		File d = new File(dir);
+		for(File f : d.listFiles()){
+			if(f.isDirectory()){
+				networks.add(f.getName());
+			}
+		}
+		return networks;
+	}
+
+	@Override
+	public String loadNetwork(String network) throws IOException {
+		String modules = new String(Files.readAllBytes(Paths.get(dir+"/"+network+"/modules.txt")));
+		return modules;
+	}
+	
+	@Override
+	public void storeNetwork(String network, String modules){
+		File n = new File(dir+"/"+network+"/modules.txt");
+		PrintWriter p = null;
+		try {
+			p = new PrintWriter(n);
+			p.write(modules);
+		} catch(Exception e){
+		} finally{
+			if(p!=null){
+				p.close();
+			}
+		}
+	}
+
+	@Override
+	public String loadLayout(String network) throws IOException {
+		String layout = new String(Files.readAllBytes(Paths.get(dir+"/"+network+"/layout.txt")));
+		return layout;
+	}
+	
+	@Override
+	public void storeLayout(String network, String layout){
+		File l = new File(dir+"/"+network+"/layout.txt");
+		PrintWriter p = null;
+		try {
+			p = new PrintWriter(l);
+			p.write(layout);
+		} catch(Exception e){
+		} finally{
+			if(p!=null){
+				p.close();
+			}
+		}		
+	}
+	
+	@Override
 	public float[] loadWeights(UUID id) throws IOException {
 		File f = new File(dir+"/weights/"+id.toString());
 		if(f.exists()){
@@ -51,8 +108,9 @@ public class DianneFileRepository implements DianneRepository {
 	@Override
 	public void storeWeights(UUID id, float[] weights) {
 		File f = new File(dir+"/weights/"+id.toString());
+		DataOutputStream os = null;
 		try {
-			DataOutputStream os = new DataOutputStream(new FileOutputStream(f));
+			os = new DataOutputStream(new FileOutputStream(f));
 			os.writeInt(weights.length);
 			for(int i=0;i<weights.length;i++){
 				os.writeFloat(weights[i]);
@@ -61,18 +119,13 @@ public class DianneFileRepository implements DianneRepository {
 			os.close();
 		} catch(IOException e){
 			e.printStackTrace();
+		} finally {
+			if(os!=null){
+				try {
+					os.close();
+				} catch (IOException e) {}
+			}
 		}
 	}
 
-	@Override
-	public List<String> networks() {
-		List<String> networks = new ArrayList<String>();
-		File d = new File(dir);
-		for(File f : d.listFiles()){
-			if(f.isDirectory()){
-				networks.add(f.getName());
-			}
-		}
-		return networks;
-	}
 }
