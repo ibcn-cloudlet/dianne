@@ -36,9 +36,9 @@ public class DianneFileRepository implements DianneRepository {
 	public void activate(BundleContext context){
 		String s = context.getProperty("be.iminds.iot.dianne.storage");
 		if(s!=null){
-			dir = s+"";
+			dir = s;
 		}
-		File d = new File(dir);
+		File d = new File(dir+"/weights/");
 		d.mkdirs();
 	}
 
