@@ -1,0 +1,115 @@
+{
+  "f3ce7326-e8c8-b0a2-225d-f6aa9d10cfcd": {
+    "type": "Input",
+    "category": "Input-Output",
+    "id": "f3ce7326-e8c8-b0a2-225d-f6aa9d10cfcd",
+    "next": [
+      "9cdb4a36-1d24-9a72-d4cb-38bb9b8df64b"
+    ]
+  },
+  "56ba7e40-e5ba-9140-c833-e507284369d4": {
+    "type": "Linear",
+    "category": "Layer",
+    "id": "56ba7e40-e5ba-9140-c833-e507284369d4",
+    "trainable": true,
+    "prev": [
+      "9cdb4a36-1d24-9a72-d4cb-38bb9b8df64b"
+    ],
+    "next": [
+      "fb222aed-8ab9-6256-1194-a8e75f87e404"
+    ],
+    "input": "784",
+    "output": "2"
+  },
+  "9cdb4a36-1d24-9a72-d4cb-38bb9b8df64b": {
+    "type": "Duplicate",
+    "category": "Fork",
+    "id": "9cdb4a36-1d24-9a72-d4cb-38bb9b8df64b",
+    "prev": [
+      "f3ce7326-e8c8-b0a2-225d-f6aa9d10cfcd"
+    ],
+    "next": [
+      "56ba7e40-e5ba-9140-c833-e507284369d4",
+      "187bdb95-9b3f-5342-8213-7c6262f22594"
+    ]
+  },
+  "fb222aed-8ab9-6256-1194-a8e75f87e404": {
+    "type": "Sigmoid",
+    "category": "Activation",
+    "id": "fb222aed-8ab9-6256-1194-a8e75f87e404",
+    "prev": [
+      "56ba7e40-e5ba-9140-c833-e507284369d4"
+    ],
+    "next": [
+      "3e0c854f-ccc3-6ee5-851f-02b8b46ecebf"
+    ]
+  },
+  "3e0c854f-ccc3-6ee5-851f-02b8b46ecebf": {
+    "type": "Output",
+    "category": "Input-Output",
+    "id": "3e0c854f-ccc3-6ee5-851f-02b8b46ecebf",
+    "prev": [
+      "fb222aed-8ab9-6256-1194-a8e75f87e404"
+    ],
+    "labels": "[1, other]"
+  },
+  "187bdb95-9b3f-5342-8213-7c6262f22594": {
+    "type": "Linear",
+    "category": "Layer",
+    "id": "187bdb95-9b3f-5342-8213-7c6262f22594",
+    "trainable": true,
+    "next": [
+      "cbd2e8ca-8ee9-62aa-04b8-198bde9b6709"
+    ],
+    "prev": [
+      "9cdb4a36-1d24-9a72-d4cb-38bb9b8df64b"
+    ],
+    "input": "784",
+    "output": "20"
+  },
+  "cbd2e8ca-8ee9-62aa-04b8-198bde9b6709": {
+    "type": "Sigmoid",
+    "category": "Activation",
+    "id": "cbd2e8ca-8ee9-62aa-04b8-198bde9b6709",
+    "next": [
+      "86e9ce7f-4d20-eec6-c3aa-200b1ad4e679"
+    ],
+    "prev": [
+      "187bdb95-9b3f-5342-8213-7c6262f22594"
+    ]
+  },
+  "86e9ce7f-4d20-eec6-c3aa-200b1ad4e679": {
+    "type": "Linear",
+    "category": "Layer",
+    "id": "86e9ce7f-4d20-eec6-c3aa-200b1ad4e679",
+    "trainable": true,
+    "next": [
+      "39ab5014-27c3-1ae5-7cc2-9d7bb1d12555"
+    ],
+    "prev": [
+      "cbd2e8ca-8ee9-62aa-04b8-198bde9b6709"
+    ],
+    "input": "20",
+    "output": "10"
+  },
+  "39ab5014-27c3-1ae5-7cc2-9d7bb1d12555": {
+    "type": "Sigmoid",
+    "category": "Activation",
+    "id": "39ab5014-27c3-1ae5-7cc2-9d7bb1d12555",
+    "next": [
+      "c36d211d-425f-39f1-7356-f8dde2d4bca7"
+    ],
+    "prev": [
+      "86e9ce7f-4d20-eec6-c3aa-200b1ad4e679"
+    ]
+  },
+  "c36d211d-425f-39f1-7356-f8dde2d4bca7": {
+    "type": "Output",
+    "category": "Input-Output",
+    "id": "c36d211d-425f-39f1-7356-f8dde2d4bca7",
+    "prev": [
+      "39ab5014-27c3-1ae5-7cc2-9d7bb1d12555"
+    ],
+    "labels": "[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]"
+  }
+}

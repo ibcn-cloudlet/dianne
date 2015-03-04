@@ -1,0 +1,186 @@
+{
+  "9e8363c4-7c0a-0516-8700-d0d097c8bff4": {
+    "type": "Input",
+    "category": "Input-Output",
+    "id": "9e8363c4-7c0a-0516-8700-d0d097c8bff4",
+    "next": [
+      "a70b6f5b-c728-d420-f31e-ecbb251cc2c5"
+    ]
+  },
+  "800bd472-2c32-5cb7-b7c0-ad1da59bac4f": {
+    "type": "Linear",
+    "category": "Layer",
+    "id": "800bd472-2c32-5cb7-b7c0-ad1da59bac4f",
+    "trainable": true,
+    "prev": [
+      "a70b6f5b-c728-d420-f31e-ecbb251cc2c5"
+    ],
+    "next": [
+      "58871ffe-5b2f-8d00-7b18-555c8a48d016"
+    ],
+    "input": "784",
+    "output": "10"
+  },
+  "a70b6f5b-c728-d420-f31e-ecbb251cc2c5": {
+    "type": "Duplicate",
+    "category": "Fork",
+    "id": "a70b6f5b-c728-d420-f31e-ecbb251cc2c5",
+    "prev": [
+      "9e8363c4-7c0a-0516-8700-d0d097c8bff4"
+    ],
+    "next": [
+      "800bd472-2c32-5cb7-b7c0-ad1da59bac4f",
+      "e5794329-b7e8-5925-5179-adddc98c963a"
+    ]
+  },
+  "3a2e1e60-ee90-fe0a-7d45-07f61bbdd61a": {
+    "type": "Output",
+    "category": "Input-Output",
+    "id": "3a2e1e60-ee90-fe0a-7d45-07f61bbdd61a",
+    "prev": [
+      "58871ffe-5b2f-8d00-7b18-555c8a48d016"
+    ],
+    "labels":"[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]"
+  },
+  "e5794329-b7e8-5925-5179-adddc98c963a": {
+    "type": "Linear",
+    "category": "Layer",
+    "id": "e5794329-b7e8-5925-5179-adddc98c963a",
+    "trainable": true,
+    "prev": [
+      "a70b6f5b-c728-d420-f31e-ecbb251cc2c5"
+    ],
+    "input": "784",
+    "output": "900",
+    "next": [
+      "9cc1dd0d-d3ab-046c-bc3e-3b2fddb2188b"
+    ]
+  },
+  "672ac593-aea6-d0bf-53f9-542087b237dd": {
+    "type": "Duplicate",
+    "category": "Fork",
+    "id": "672ac593-aea6-d0bf-53f9-542087b237dd",
+    "next": [
+      "28961045-d6cd-82bf-bbe5-8093bad7f04f",
+      "2b445763-b022-5056-5df7-197ed068b887"
+    ],
+    "prev": [
+      "9cc1dd0d-d3ab-046c-bc3e-3b2fddb2188b"
+    ]
+  },
+  "28961045-d6cd-82bf-bbe5-8093bad7f04f": {
+    "type": "Linear",
+    "category": "Layer",
+    "id": "28961045-d6cd-82bf-bbe5-8093bad7f04f",
+    "trainable": true,
+    "prev": [
+      "672ac593-aea6-d0bf-53f9-542087b237dd"
+    ],
+    "next": [
+      "960bde81-b6a9-fe3c-da21-9f0bbdb964fb"
+    ],
+    "input": "900",
+    "output": "10"
+  },
+  "58871ffe-5b2f-8d00-7b18-555c8a48d016": {
+    "type": "Softmax",
+    "category": "Activation",
+    "id": "58871ffe-5b2f-8d00-7b18-555c8a48d016",
+    "prev": [
+      "800bd472-2c32-5cb7-b7c0-ad1da59bac4f"
+    ],
+    "next": [
+      "3a2e1e60-ee90-fe0a-7d45-07f61bbdd61a"
+    ]
+  },
+  "960bde81-b6a9-fe3c-da21-9f0bbdb964fb": {
+    "type": "Softmax",
+    "category": "Activation",
+    "id": "960bde81-b6a9-fe3c-da21-9f0bbdb964fb",
+    "prev": [
+      "28961045-d6cd-82bf-bbe5-8093bad7f04f"
+    ],
+    "next": [
+      "52d60dea-132a-c637-e7df-afd21fc98096"
+    ]
+  },
+  "52d60dea-132a-c637-e7df-afd21fc98096": {
+    "type": "Output",
+    "category": "Input-Output",
+    "id": "52d60dea-132a-c637-e7df-afd21fc98096",
+    "prev": [
+      "960bde81-b6a9-fe3c-da21-9f0bbdb964fb"
+    ],
+    "labels":"[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]"
+  },
+  "2b445763-b022-5056-5df7-197ed068b887": {
+    "type": "Linear",
+    "category": "Layer",
+    "id": "2b445763-b022-5056-5df7-197ed068b887",
+    "trainable": true,
+    "prev": [
+      "672ac593-aea6-d0bf-53f9-542087b237dd"
+    ],
+    "next": [
+      "f4db70e5-9b49-5978-c88a-3b8896dae6fd"
+    ],
+    "input": "900",
+    "output": "1500"
+  },
+  "0d2789b3-34dd-6f5f-8b55-8dd5683fc81e": {
+    "type": "Linear",
+    "category": "Layer",
+    "id": "0d2789b3-34dd-6f5f-8b55-8dd5683fc81e",
+    "trainable": true,
+    "next": [
+      "7f05583b-6e14-e503-8029-ead8589c6c53"
+    ],
+    "prev": [
+      "f4db70e5-9b49-5978-c88a-3b8896dae6fd"
+    ],
+    "input": "1500",
+    "output": "10"
+  },
+  "7f05583b-6e14-e503-8029-ead8589c6c53": {
+    "type": "Softmax",
+    "category": "Activation",
+    "id": "7f05583b-6e14-e503-8029-ead8589c6c53",
+    "next": [
+      "3603e055-750e-3d30-3cd5-6a4e15edf273"
+    ],
+    "prev": [
+      "0d2789b3-34dd-6f5f-8b55-8dd5683fc81e"
+    ]
+  },
+  "3603e055-750e-3d30-3cd5-6a4e15edf273": {
+    "type": "Output",
+    "category": "Input-Output",
+    "id": "3603e055-750e-3d30-3cd5-6a4e15edf273",
+    "prev": [
+      "7f05583b-6e14-e503-8029-ead8589c6c53"
+    ],
+    "labels":"[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]"
+  },
+  "9cc1dd0d-d3ab-046c-bc3e-3b2fddb2188b": {
+    "type": "ReLU",
+    "category": "Activation",
+    "id": "9cc1dd0d-d3ab-046c-bc3e-3b2fddb2188b",
+    "prev": [
+      "e5794329-b7e8-5925-5179-adddc98c963a"
+    ],
+    "next": [
+      "672ac593-aea6-d0bf-53f9-542087b237dd"
+    ]
+  },
+  "f4db70e5-9b49-5978-c88a-3b8896dae6fd": {
+    "type": "ReLU",
+    "category": "Activation",
+    "id": "f4db70e5-9b49-5978-c88a-3b8896dae6fd",
+    "prev": [
+      "2b445763-b022-5056-5df7-197ed068b887"
+    ],
+    "next": [
+      "0d2789b3-34dd-6f5f-8b55-8dd5683fc81e"
+    ]
+  }
+}
