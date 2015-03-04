@@ -19,11 +19,13 @@ import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 
+import be.iminds.iot.dianne.repository.DianneRepository;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-
-import be.iminds.iot.dianne.repository.DianneRepository;
 
 @Component(immediate=true)
 public class DianneFileRepository implements DianneRepository {
@@ -80,10 +82,13 @@ public class DianneFileRepository implements DianneRepository {
 			}
 		}
 		
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		String output = gson.toJson(json);
+		
 		PrintWriter p = null;
 		try {
 			p = new PrintWriter(n);
-			p.write(modules);
+			p.write(output);
 		} catch(Exception e){
 			e.printStackTrace();
 		} finally{
