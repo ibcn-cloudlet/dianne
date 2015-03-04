@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
-import be.iminds.iot.dianne.repository.DianneRepository;
+import be.iminds.iot.dianne.api.repository.DianneRepository;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;

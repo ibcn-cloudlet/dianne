@@ -17,10 +17,9 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.http.HttpService;
 
-import be.iminds.iot.dianne.nn.module.Trainable;
-import be.iminds.iot.dianne.nn.module.description.ModuleType;
-import be.iminds.iot.dianne.nn.module.description.ModuleProperty;
-import be.iminds.iot.dianne.nn.module.factory.ModuleFactory;
+import be.iminds.iot.dianne.api.nn.module.description.ModuleProperty;
+import be.iminds.iot.dianne.api.nn.module.description.ModuleType;
+import be.iminds.iot.dianne.api.nn.module.factory.ModuleFactory;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;

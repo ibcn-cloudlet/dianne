@@ -20,11 +20,11 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
-import be.iminds.iot.dianne.nn.module.ForwardListener;
-import be.iminds.iot.dianne.nn.module.Input;
-import be.iminds.iot.dianne.nn.module.Module;
-import be.iminds.iot.dianne.nn.module.Module.Mode;
-import be.iminds.iot.dianne.nn.module.Output;
+import be.iminds.iot.dianne.api.nn.module.ForwardListener;
+import be.iminds.iot.dianne.api.nn.module.Input;
+import be.iminds.iot.dianne.api.nn.module.Module;
+import be.iminds.iot.dianne.api.nn.module.Output;
+import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 

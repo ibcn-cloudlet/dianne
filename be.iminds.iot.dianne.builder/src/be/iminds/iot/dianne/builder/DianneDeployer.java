@@ -21,7 +21,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
-import be.iminds.iot.dianne.nn.runtime.ModuleManager;
+import be.iminds.iot.dianne.api.nn.runtime.ModuleManager;
 import be.iminds.iot.dianne.nn.runtime.util.DianneJSONParser;
 
 import com.google.gson.JsonArray;

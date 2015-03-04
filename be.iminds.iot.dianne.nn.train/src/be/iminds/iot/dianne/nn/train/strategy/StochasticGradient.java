@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import be.iminds.iot.dianne.dataset.Dataset;
-import be.iminds.iot.dianne.nn.module.Input;
-import be.iminds.iot.dianne.nn.module.Output;
-import be.iminds.iot.dianne.nn.module.Preprocessor;
-import be.iminds.iot.dianne.nn.module.Trainable;
-import be.iminds.iot.dianne.nn.train.Criterion;
-import be.iminds.iot.dianne.nn.train.DatasetProcessor;
-import be.iminds.iot.dianne.nn.train.Trainer;
+import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.nn.module.Input;
+import be.iminds.iot.dianne.api.nn.module.Output;
+import be.iminds.iot.dianne.api.nn.module.Preprocessor;
+import be.iminds.iot.dianne.api.nn.module.Trainable;
+import be.iminds.iot.dianne.api.nn.train.api.Criterion;
+import be.iminds.iot.dianne.api.nn.train.api.DatasetProcessor;
+import be.iminds.iot.dianne.api.nn.train.api.Trainer;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 public class StochasticGradient implements Trainer {

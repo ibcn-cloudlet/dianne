@@ -10,8 +10,8 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
-import be.iminds.iot.dianne.nn.module.BackwardListener;
-import be.iminds.iot.dianne.nn.module.ForwardListener;
+import be.iminds.iot.dianne.api.nn.module.BackwardListener;
+import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.nn.module.layer.SpatialConvolution;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;

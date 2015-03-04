@@ -25,15 +25,15 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
-import be.iminds.iot.dianne.nn.module.Input;
-import be.iminds.iot.dianne.nn.module.Module;
-import be.iminds.iot.dianne.nn.module.Output;
-import be.iminds.iot.dianne.nn.module.Preprocessor;
-import be.iminds.iot.dianne.nn.module.Trainable;
-import be.iminds.iot.dianne.nn.module.description.ModuleType;
-import be.iminds.iot.dianne.nn.module.factory.ModuleFactory;
-import be.iminds.iot.dianne.nn.runtime.ModuleManager;
-import be.iminds.iot.dianne.repository.DianneRepository;
+import be.iminds.iot.dianne.api.nn.module.Input;
+import be.iminds.iot.dianne.api.nn.module.Module;
+import be.iminds.iot.dianne.api.nn.module.Output;
+import be.iminds.iot.dianne.api.nn.module.Preprocessor;
+import be.iminds.iot.dianne.api.nn.module.Trainable;
+import be.iminds.iot.dianne.api.nn.module.description.ModuleType;
+import be.iminds.iot.dianne.api.nn.module.factory.ModuleFactory;
+import be.iminds.iot.dianne.api.nn.runtime.ModuleManager;
+import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component(immediate=true, 

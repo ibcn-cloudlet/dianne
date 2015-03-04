@@ -19,7 +19,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 
-import be.iminds.iot.dianne.repository.DianneRepository;
+import be.iminds.iot.dianne.api.repository.DianneRepository;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
