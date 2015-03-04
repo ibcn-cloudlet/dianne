@@ -707,8 +707,9 @@ function learn(id){
 		"modules": JSON.stringify(modules),
 		"target": id}, 
 			function( data ) {
-				$.each(data, function(id, parameters){
-					nn[id].parameters = parameters;
+				// only returns labels of output module
+				$.each(data, function(id, labels){
+					nn[id].labels = labels;
 				});
 				eventsource.close();
 				eventsource = undefined;

@@ -177,18 +177,18 @@ public class DianneLearner extends HttpServlet {
 					}
 					trainer.train(input, output, trainable, preprocessors, loss, trainSet);
 					
-					JsonObject parameters = new JsonObject();
+					//store in repository instead of json at client side
 					for(Trainable t : trainable){
-//						parameters.add(((Module)t).getId().toString(), new JsonPrimitive(Arrays.toString(t.getParameters().get())));;
-						//store in storage instead of json at client side
 						repository.storeWeights(((Module)t).getId(), t.getParameters().get());
 					}
 					for(Preprocessor p : preprocessors){
-						parameters.add(((Module)p).getId().toString(), new JsonPrimitive(Arrays.toString(p.getParameters().get())));;
+						repository.storeWeights(((Module)p).getId(), p.getParameters().get());
 					}
-					parameters.add(output.getId().toString(), new JsonPrimitive(Arrays.toString(output.getOutputLabels())));
 					
-					response.getWriter().write(parameters.toString());
+					JsonObject labels = new JsonObject();
+					labels.add(output.getId().toString(), new JsonPrimitive(Arrays.toString(output.getOutputLabels())));
+					
+					response.getWriter().write(labels.toString());
 					response.getWriter().flush();
 				}else if(action.equals("evaluate")){
 					Dataset testSet = createTestDataset(datasetConfig);

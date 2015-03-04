@@ -174,21 +174,12 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 		prevMap.put(module.getId(), prevIDs);
 		configurePrevious(module);
 
-		// set parameters
-		String parameters = (String)properties.get("module.parameters");
-		if(parameters!=null){
-			
-//			if(module instanceof Trainable){
-//				float[] weights = parseWeights(parameters);
-//				((Trainable)module).setParameters(weights);
-//			} else 
-				
-			if(module instanceof Preprocessor){
-				float[] weights = parseWeights(parameters);
-				((Preprocessor)module).setParameters(weights);
-			} else if(module instanceof Output){
-				String[] labels = parseStrings(parameters);
-				((Output)module).setOutputLabels(labels);
+		// set labels in case of output
+		if(module instanceof Output){
+			String labels = (String)properties.get("module.labels");
+			if(labels!=null){
+				String[] l = parseStrings(labels);
+				((Output)module).setOutputLabels(l);
 			}
 		}
 		
@@ -197,7 +188,12 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 				float[] weights = repository.loadWeights(module.getId());
 				((Trainable)module).setParameters(weights);
 			} catch(IOException e){}
-		}
+		} else if(module instanceof Preprocessor){
+			try {
+				float[] weights = repository.loadWeights(module.getId());
+				((Preprocessor)module).setParameters(weights);
+			} catch(IOException e){}
+		} 
 		
 		String[] classes;
 		if(module instanceof Input){
