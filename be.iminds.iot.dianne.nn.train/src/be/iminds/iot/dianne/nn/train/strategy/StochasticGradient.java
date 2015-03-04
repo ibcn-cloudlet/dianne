@@ -45,6 +45,9 @@ public class StochasticGradient implements Trainer {
 		System.out.println("Starting training");
 		batch = 0;
 		
+		// fix output labels
+		output.setOutputLabels(data.getLabels());
+		
 		// first preprocess
 		for(Preprocessor p : preprocessors){
 			p.preprocess(data);

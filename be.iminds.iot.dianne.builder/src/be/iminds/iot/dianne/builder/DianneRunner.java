@@ -65,8 +65,7 @@ public class DianneRunner extends HttpServlet {
 					if(sse!=null){
 						try {
 							JsonObject data = new JsonObject();
-							
-							
+
 							// format output as [['label', val],['label2',val2],...] for in highcharts
 							JsonArray result = new JsonArray();
 							String[] labels;
