@@ -33,7 +33,8 @@ public class Duplicate extends Fork {
 		}
 		gradInput.fill(0.0f);
 		for(Tensor t : gradOutputs.values()){
-			gradInput = factory.getTensorMath().add(gradInput, gradInput, t);
+			if(t!=null)
+				gradInput = factory.getTensorMath().add(gradInput, gradInput, t);
 		}
 	}
 	
