@@ -8,7 +8,8 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 	com.google.gson;version=2.2,\
 	biz.aQute.junit,\
 	osgi.core;version=5.0,\
-	osgi.enterprise;version=5.0
+	osgi.enterprise;version=5.0,\
+	be.iminds.iot.dianne.storage;version=latest
 Private-Package: be.iminds.iot.dianne.nn.runtime.impl
 -dsannotations: *
 Export-Package: \

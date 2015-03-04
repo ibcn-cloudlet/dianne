@@ -1,5 +1,6 @@
 package be.iminds.iot.dianne.nn.runtime.impl;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Dictionary;
@@ -32,6 +33,7 @@ import be.iminds.iot.dianne.nn.module.Trainable;
 import be.iminds.iot.dianne.nn.module.description.ModuleType;
 import be.iminds.iot.dianne.nn.module.factory.ModuleFactory;
 import be.iminds.iot.dianne.nn.runtime.ModuleManager;
+import be.iminds.iot.dianne.storage.DianneStorage;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component(immediate=true, 
@@ -44,6 +46,8 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 	// TODO support multiple factories in the future?!
 	private TensorFactory tFactory;
 	private List<ModuleFactory> mFactories = Collections.synchronizedList(new ArrayList<ModuleFactory>());
+	
+	private DianneStorage storage;
 	
 	// All module UUIDs by their PID
 	private Map<String, UUID> uuids = new HashMap<String, UUID>();
@@ -85,6 +89,11 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 	
 	public void removeModuleFactory(ModuleFactory factory){
 		this.mFactories.remove(factory);
+	}
+	
+	@Reference
+	public void setDianneStorage(DianneStorage storage){
+		this.storage = storage;
 	}
 	
 	@Reference(
@@ -169,16 +178,25 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 		String parameters = (String)properties.get("module.parameters");
 		if(parameters!=null){
 			
-			if(module instanceof Trainable){
-				float[] weights = parseWeights(parameters);
-				((Trainable)module).setParameters(weights);
-			} else if(module instanceof Preprocessor){
+//			if(module instanceof Trainable){
+//				float[] weights = parseWeights(parameters);
+//				((Trainable)module).setParameters(weights);
+//			} else 
+				
+			if(module instanceof Preprocessor){
 				float[] weights = parseWeights(parameters);
 				((Preprocessor)module).setParameters(weights);
 			} else if(module instanceof Output){
 				String[] labels = parseStrings(parameters);
 				((Output)module).setOutputLabels(labels);
 			}
+		}
+		
+		if(module instanceof Trainable){
+			try {
+				float[] weights = storage.loadWeights(module.getId());
+				((Trainable)module).setParameters(weights);
+			} catch(IOException e){}
 		}
 		
 		String[] classes;
