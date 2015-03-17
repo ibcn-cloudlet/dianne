@@ -476,7 +476,9 @@ function createRunModuleDialog(id, moduleItem){
 		sampleCanvas = dialog.find('.sampleCanvas')[0];
 		sampleCanvasCtx = sampleCanvas.getContext('2d');
 		
-	} 
+	} else {
+		dialog = createNNModuleDialog(module, "Configure run module", "", "Delete");
+	}
 	
 	dialog.find(".cancel").click(function(e){
 		// remove object
