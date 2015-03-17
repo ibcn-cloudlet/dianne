@@ -25,6 +25,8 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
+import be.iminds.iot.dianne.api.nn.module.ForwardListener;
+import be.iminds.iot.dianne.api.nn.module.BackwardListener;
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.Output;
@@ -58,6 +60,9 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 	
 	private Map<UUID, List<UUID>> nextMap = new HashMap<UUID, List<UUID>>();
 	private Map<UUID, List<UUID>> prevMap = new HashMap<UUID, List<UUID>>();
+	
+	private Map<ForwardListener, List<UUID>> forwardListeners = new HashMap<ForwardListener, List<UUID>>();
+	private Map<BackwardListener, List<UUID>> backwardListeners = new HashMap<BackwardListener, List<UUID>>();
 	
 	@Override
 	public String getName() {
@@ -122,6 +127,77 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 		}
 		for(Module m : findDependingModules(id, prevMap)){
 			unconfigurePrevious(m);
+		}
+	}
+	
+	@Reference(
+			cardinality=ReferenceCardinality.MULTIPLE, 
+			policy=ReferencePolicy.DYNAMIC)
+	public synchronized void addForwardListener(ForwardListener l, Map<String, Object> properties){
+		String[] targets = (String[])properties.get("targets");
+		if(targets!=null){
+			List<UUID> ids = new ArrayList<UUID>();
+			for(String t : targets){
+				UUID id = UUID.fromString(t);
+				ids.add(id);
+				if(registrations.containsKey(id)){
+					Module m = modules.get(id);
+					if(m!=null){ // should not be null?
+						m.addForwardListener(l);
+					}
+				}
+			}
+			forwardListeners.put(l, ids);
+		}
+	}
+	
+	public synchronized void removeForwardListener(ForwardListener l){
+		List<UUID> ids = forwardListeners.remove(l);
+		if(ids!=null){
+			for(UUID id : ids){
+				if(registrations.containsKey(id)){
+					Module m = modules.get(id);
+					if(m!=null){ // should not be null?
+						m.removeForwardListener(l);
+					}
+				}
+			}
+		}
+	}
+	
+	
+	@Reference(
+			cardinality=ReferenceCardinality.MULTIPLE, 
+			policy=ReferencePolicy.DYNAMIC)
+	public synchronized void addBackwardListener(BackwardListener l, Map<String, Object> properties){
+		String[] targets = (String[])properties.get("targets");
+		if(targets!=null){
+			List<UUID> ids = new ArrayList<UUID>();
+			for(String t : targets){
+				UUID id = UUID.fromString(t);
+				ids.add(id);
+				if(registrations.containsKey(id)){
+					Module m = modules.get(id);
+					if(m!=null){ // should not be null?
+						m.addBackwardListener(l);
+					}
+				}
+			}
+			backwardListeners.put(l, ids);
+		}
+	}
+	
+	public synchronized void removeBackwardListener(BackwardListener l){
+		List<UUID> ids = backwardListeners.remove(l);
+		if(ids!=null){
+			for(UUID id : ids){
+				if(registrations.containsKey(id)){
+					Module m = modules.get(id);
+					if(m!=null){ // should not be null?
+						m.removeBackwardListener(l);
+					}
+				}
+			}
 		}
 	}
 	
