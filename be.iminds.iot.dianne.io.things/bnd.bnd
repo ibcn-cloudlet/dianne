@@ -7,5 +7,7 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 	osgi.core,\
 	osgi.enterprise;version=5.0
 -dsannotations: *
-Private-Package: be.iminds.iot.dianne.things.light
+Private-Package: \
+	be.iminds.iot.dianne.things.light,\
+	be.iminds.iot.dianne.things.camera
 Export-Package: be.iminds.iot.dianne.api.io
