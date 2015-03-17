@@ -16,3 +16,6 @@ Include-Resource: res=resources
 	
 -dsannotations: *
 Private-Package: be.iminds.iot.dianne.builder
+Import-Package: \
+	be.iminds.iot.dianne.api.io;resolution:=optional,\
+	*

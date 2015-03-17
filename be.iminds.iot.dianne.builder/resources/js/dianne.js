@@ -132,6 +132,14 @@ function setupRunToolbox(){
 			}
 			, "json");
 	
+	$.post("/dianne/output", {action : "available-outputs"}, 
+			function( data ) {
+				$.each(data, function(index, output){
+					addToolboxItem(output, output, 'Output', 'run');
+				});
+			}
+			, "json");
+	
 	addToolboxItem('Canvas input','CanvasInput','Source','run');
 	addToolboxItem('Output probabilities','ProbabilityOutput','Visualize','run');
 }
@@ -339,6 +347,8 @@ function setupModule(moduleItem, type, category){
 		jsPlumb.addEndpoint(moduleItem, sourceStyle, {endpoint:"Rectangle"});
 	} else if(category==="Visualize"){ 
 		jsPlumb.addEndpoint(moduleItem, targetStyle, {endpoint:"Rectangle"});
+	} else if(category==="Output"){ 
+		jsPlumb.addEndpoint(moduleItem, targetStyle, {endpoint:"Rectangle"});
 	} else if(category==="Fork") {
 		jsPlumb.addEndpoint(moduleItem, sourceStyle, {maxConnections:-1});
 		jsPlumb.addEndpoint(moduleItem, targetStyle);
@@ -420,7 +430,10 @@ function addConnection(connection){
 		if(learning[connection.targetId]!==undefined){
 			learning[connection.targetId].output = connection.sourceId; 
 		} else {
-			running[connection.targetId].output = connection.sourceId; 
+			running[connection.targetId].output = connection.sourceId;
+			$.post("/dianne/output", {action : "setoutput",
+				outputId : connection.sourceId,
+				output : running[connection.targetId].type});
 		}
 	} else {
 		addNext(connection.sourceId, connection.targetId);
@@ -445,7 +458,10 @@ function removeConnection(connection){
 		if(learning[connection.targetId]!==undefined){
 			delete learning[connection.targetId].output; 
 		} else {
-			delete running[connection.targetId].output; 
+			delete running[connection.targetId].output;
+			$.post("/dianne/output", {action : "unsetoutput",
+				outputId : connection.sourceId,
+				output : running[connection.targetId].type});
 		}
 	} else {
 		removeNext(connection.sourceId, connection.targetId);	
