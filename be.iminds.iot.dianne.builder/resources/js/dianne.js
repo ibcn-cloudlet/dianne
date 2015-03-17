@@ -40,22 +40,19 @@ function setModus(m){
 	currentMode = m;
 	if(currentMode === "build"){
 		console.log("switch to build");
-		$(".toolbox").hide();
 		$("#menu-build").addClass("active");
-		$("#toolbox-build").show();
-		$("#toolbox-build").addClass("active");
+		
+		setupBuildToolbox();
 	} else if(currentMode === "deploy"){
 		console.log("switch to deploy");
-		$(".toolbox").hide();
 		$("#menu-deploy").addClass("active");
-		$("#toolbox-deploy").show();
-		$("#toolbox-deploy").addClass("active");
+
+		setupDeployToolbox();
 	} else if(currentMode === "learn"){
 		console.log("switch to learn");
-		$(".toolbox").hide();
 		$("#menu-learn").addClass("active");
-		$("#toolbox-learn").show();
-		$("#toolbox-learn").addClass("active");
+
+		setupLearnToolbox();
 		// only show learn modules in learn mode
 		$(".learn").each(function( index ) {
 			jsPlumb.show($(this).attr('id'),true);
@@ -63,11 +60,10 @@ function setModus(m){
 		});
 	} else if(currentMode === "run"){
 		console.log("switch to run");
-		$(".toolbox").hide();
 		$("#menu-run").addClass("active");
-		$("#toolbox-run").show();
-		$("#toolbox-run").addClass("active");
-		// only show run modules in learn mode
+		
+		setupRunToolbox();
+		// only show run modules in run mode
 		$(".run").each(function( index ) {
 			jsPlumb.show($(this).attr('id'),true);
 			$(this).show();
@@ -81,58 +77,76 @@ function setModus(m){
  * On ready, fill the toolbox with available supported modules
  */
 $( document ).ready(function() {
-	// initialize toolboxes
-	// build toolbox
-	$.post("/dianne/builder", {action : "available-modules"}, 
-		function( data ) {
-			$.each(data, function(index, module){
-				console.log(module);
-				// TODO fetch name/type/category
-				if(module.trainable!==undefined){
-					trainable[module.type] = true;
-				}
-				addToolboxItem('toolbox-build', module.type, module.type, module.category, 'build');
-			});
-		}
-		, "json");
-	
-	$.post("/dianne/datasets", {action : "available-datasets"}, 
-			function( data ) {
-				$.each(data, function(index, dataset){
-					// add datasets to learn/run toolboxes
-					datasets[dataset.dataset] = dataset;
-					addToolboxItem('toolbox-learn', dataset.dataset, dataset.dataset, 'Dataset', 'learn');
-					addToolboxItem('toolbox-run', dataset.dataset, dataset.dataset, 'Dataset', 'run');
-				});
-			}
-			, "json");
-	
-	// learn toolbox
-	// TODO this is hard coded for now, as this does not map to factories/module impls
-	//addToolboxItem('toolbox-learn','MNIST Dataset','MNIST','Dataset','learn');
-	addToolboxItem('toolbox-learn','SGD Trainer','StochasticGradientDescent','Trainer','learn');
-	addToolboxItem('toolbox-learn','Arg Max Evaluator','ArgMax','Evaluator','learn');
-	
-	//addToolboxItem('toolbox-run','MNIST input','MNIST','Dataset','run');
-	addToolboxItem('toolbox-run','Canvas input','CanvasInput','Source','run');
-	addToolboxItem('toolbox-run','Output probabilities','ProbabilityOutput','Visualize','run');
-	
 	// show correct mode
 	setModus(currentMode);
 });
 
 
+function setupBuildToolbox(){
+	$('#toolbox').empty();
+	$.post("/dianne/builder", {action : "available-modules"}, 
+			function( data ) {
+				$.each(data, function(index, module){
+					console.log(module);
+					// TODO fetch name/type/category
+					if(module.trainable!==undefined){
+						trainable[module.type] = true;
+					}
+					addToolboxItem(module.type, module.type, module.category, 'build');
+				});
+			}
+			, "json");
+}
+
+function setupDeployToolbox(){
+	$('#toolbox').empty();
+	$('<button id="deployAll" class="btn btn-default" onclick="deployAll();return false;">Deploy all</button>').appendTo($('#toolbox'));
+	$('<button id="undeployAll" class="btn btn-default"  onclick="undeployAll();return false;">Undeploy all</button>').appendTo($('#toolbox'));
+}
+
+function setupLearnToolbox(){
+	$('#toolbox').empty();
+	$.post("/dianne/datasets", {action : "available-datasets"}, 
+			function( data ) {
+				$.each(data, function(index, dataset){
+					// add datasets to learn/run toolboxes
+					datasets[dataset.dataset] = dataset;
+					addToolboxItem(dataset.dataset, dataset.dataset, 'Dataset', 'learn');
+				});
+			}
+			, "json");
+	
+	addToolboxItem('SGD Trainer','StochasticGradientDescent','Trainer','learn');
+	addToolboxItem('Arg Max Evaluator','ArgMax','Evaluator','learn');
+}
+
+function setupRunToolbox(){
+	$('#toolbox').empty();
+	$.post("/dianne/datasets", {action : "available-datasets"}, 
+			function( data ) {
+				$.each(data, function(index, dataset){
+					// add datasets to learn/run toolboxes
+					datasets[dataset.dataset] = dataset;
+					addToolboxItem(dataset.dataset, dataset.dataset, 'Dataset', 'run');
+				});
+			}
+			, "json");
+	
+	addToolboxItem('Canvas input','CanvasInput','Source','run');
+	addToolboxItem('Output probabilities','ProbabilityOutput','Visualize','run');
+}
+
 /**
- * add a toolbox item name to toolbox with id toolboxId and add category
+ * add a toolbox item name to toolbox and add category
  */
-function addToolboxItem(toolboxId, name, type, category, mode){
-	var panel = $('#'+toolboxId).find('.'+category);
+function addToolboxItem(name, type, category, mode){
+	var panel = $('#toolbox').find('.'+category);
 	if(panel.length===0){
 		$("<div>"  +
 			"<h4 data-toggle=\"collapse\" data-target=\"."+category+"\">"+category+"</h4>"+	
 			"<div class=\""+category+" collapse in row\"></div>" +
-		  "</div>").appendTo($('#'+toolboxId));
-		panel = $('#'+toolboxId).find('.'+category);
+		  "</div>").appendTo($('#toolbox'));
+		panel = $('#toolbox').find('.'+category);
 	}
 	
 	var div = $("<div class=\"tool col-xs-6\"></div>").appendTo(panel);
