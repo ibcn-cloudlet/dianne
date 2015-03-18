@@ -476,6 +476,32 @@ function createRunModuleDialog(id, moduleItem){
 		sampleCanvas = dialog.find('.sampleCanvas')[0];
 		sampleCanvasCtx = sampleCanvas.getContext('2d');
 		
+	} else if(module.type==="Camera"){
+		dialog = renderTemplate("dialog", {
+			id : id,
+			title : "Camera input from "+module.name,
+			submit: "",
+			cancel: "Delete"
+		}, $(document.body));
+		
+		dialog.find(".content").append("<canvas class='cameraCanvas' width='256' height='256' style=\"border:1px solid #000000; margin-left:150px\"></canvas>");
+
+		cameraCanvas = dialog.find('.cameraCanvas')[0];
+		cameraCanvasCtx = cameraCanvas.getContext('2d');
+		
+		if(cameraEventsource===undefined){
+			cameraEventsource = new EventSource("input");
+			cameraEventsource.onmessage = function(event){
+				var data = JSON.parse(event.data);
+				render(data, cameraCanvasCtx);
+			};
+		}
+		
+		dialog.on('hidden.bs.modal', function () {
+		    cameraEventsource.close();
+		    cameraEventsource = undefined;
+		    $(this).closest(".modal").remove();
+		});
 	} else {
 		dialog = createNNModuleDialog(module, "Configure run module", "", "Delete");
 	}
@@ -505,6 +531,10 @@ var mousePos = {x: 0, y:0};
 
 var sampleCanvas;
 var sampleCanvasCtx;
+
+// TODO can have multiple camera inputs...
+var cameraCanvas;
+var cameraCanvasCtx;
 
 function downListener(e) {
 	e.preventDefault();
@@ -573,40 +603,7 @@ function forwardCanvasInput(input){
 function sample(dataset, input){
 	$.post("/dianne/datasets", {"action":"sample","dataset":dataset}, 
 			function( sample ) {
-				var scale = Math.ceil(256/sample.width);
-				var width = sample.width*scale;
-				var height = sample.height*scale;
-				var imageData = sampleCanvasCtx.createImageData(width, height);
-				if(sample.channels===1){
-					for (var y = 0; y < height; y++) {
-				        for (var x = 0; x < width; x++) {
-				        	// collect alpha values
-				        	var x_s = Math.floor(x/scale);
-				        	var y_s = Math.floor(y/scale);
-				        	var index = y_s*sample.width+x_s;
-				        	imageData.data[y*width*4+x*4+3] = Math.floor(sample.data[index]*255);
-				        }
-				    }
-				} else if(sample.channels===3){
-					// RGB
-					for(var c = 0; c < 3; c++){
-						for (var y = 0; y < height; y++) {
-					        for (var x = 0; x < width; x++) {
-					        	var x_s = Math.floor(x/scale);
-					        	var y_s = Math.floor(y/scale);
-					        	var index = c*sample.width*sample.height + y_s*sample.width+x_s;
-					        	imageData.data[y*width*4+x*4+c] = Math.floor(sample.data[index]*255);
-					        }
-					    }		
-					}
-					for (var y = 0; y < height; y++) {
-				        for (var x = 0; x < width; x++) {
-				        	imageData.data[y*width*4+x*4+3] = 255;
-				        }
-					}
-				}
-				
-				sampleCanvasCtx.putImageData(imageData, 0, 0); 
+				render(sample, sampleCanvasCtx);
 				
 				$.post("/dianne/run", {"forward":JSON.stringify(sample), "input":input}, 
 						function( data ) {
@@ -614,7 +611,43 @@ function sample(dataset, input){
 						, "json");
 			}
 			, "json");
+}
+
+function render(tensor, canvasCtx){
+	var scale = Math.ceil(256/tensor.width);
+	var width = tensor.width*scale;
+	var height = tensor.height*scale;
+	var imageData = canvasCtx.createImageData(width, height);
+	if(tensor.channels===1){
+		for (var y = 0; y < height; y++) {
+	        for (var x = 0; x < width; x++) {
+	        	// collect alpha values
+	        	var x_s = Math.floor(x/scale);
+	        	var y_s = Math.floor(y/scale);
+	        	var index = y_s*tensor.width+x_s;
+	        	imageData.data[y*width*4+x*4+3] = Math.floor(tensor.data[index]*255);
+	        }
+	    }
+	} else if(tensor.channels===3){
+		// RGB
+		for(var c = 0; c < 3; c++){
+			for (var y = 0; y < height; y++) {
+		        for (var x = 0; x < width; x++) {
+		        	var x_s = Math.floor(x/scale);
+		        	var y_s = Math.floor(y/scale);
+		        	var index = c*tensor.width*tensor.height + y_s*tensor.width+x_s;
+		        	imageData.data[y*width*4+x*4+c] = Math.floor(tensor.data[index]*255);
+		        }
+		    }		
+		}
+		for (var y = 0; y < height; y++) {
+	        for (var x = 0; x < width; x++) {
+	        	imageData.data[y*width*4+x*4+3] = 255;
+	        }
+		}
+	}
 	
+	canvasCtx.putImageData(imageData, 0, 0); 
 }
 
 
@@ -746,6 +779,7 @@ function evaluate(id){
  * SSE for feedback when training/running
  */
 var eventsource;
+var cameraEventsource
 
 if(typeof(EventSource) === "undefined") {
 	// load polyfill eventsource library
