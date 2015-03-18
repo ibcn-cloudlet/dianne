@@ -36,9 +36,15 @@ public class LightOutputManager implements OutputManager {
 	
 	private Map<UUID, ServiceRegistration> registrations =  Collections.synchronizedMap(new HashMap<UUID, ServiceRegistration>());
 	
+	private int magicNumber = -1;
+	
 	@Activate
 	public void activate(BundleContext context){
 		this.context = context;
+		String number = context.getProperty("be.iminds.iot.dianne.things.light.index");
+		if(number!=null){
+			magicNumber = Integer.parseInt(number);
+		}
 	}
 	
 	@Reference
@@ -78,7 +84,7 @@ public class LightOutputManager implements OutputManager {
 	public void setOutput(UUID outputId, String output) {
 		Light l = lights.get(output);
 		if(l!=null){
-			LightOutput o = new LightOutput(factory, l);
+			LightOutput o = new LightOutput(factory, l, magicNumber);
 			Dictionary<String, Object> properties = new Hashtable<String, Object>();
 			properties.put("targets", new String[]{outputId.toString()});
 			properties.put("aiolos.unique", true);
