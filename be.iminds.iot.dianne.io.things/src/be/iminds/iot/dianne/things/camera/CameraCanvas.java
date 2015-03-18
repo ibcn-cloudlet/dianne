@@ -34,7 +34,7 @@ public class CameraCanvas extends Canvas {
 		int k = 0;
 		for (int j = 0; j < t.size(0); j++) {
 			for (int i = 0; i < t.size(1); i++) {
-				int v = (int)(data[k++]*255);
+				int v = 255-(int)(data[k++]*255);
 				final int r = v;
 				final int g = v;
 				final int b = v;

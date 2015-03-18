@@ -1,16 +1,6 @@
 package be.iminds.iot.dianne.things.camera;
 
-import java.awt.BorderLayout;
 import java.awt.Canvas;
-import java.awt.Frame;
-import java.awt.Graphics2D;
-import java.awt.Toolkit;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.awt.image.BufferStrategy;
-import java.awt.image.BufferedImage;
 
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -40,24 +30,28 @@ public class CameraInput extends Canvas implements CameraListener {
 		// for now fixed coded for MNIST
 		
 		// take a window of 224x244 and subsample by 8
+		int w = 28;
+		int h = 28;
+		int subsample = 2;
+		
 		int stride = 320;
 		
-		int startX = (320-224)/2;
-		int endX = startX+224;
+		int startX = (320-w*subsample)/2;
+		int endX = startX+w*subsample;
 		
-		int startY = (240-224)/2;
-		int endY = startY+224;
+		int startY = (240-h*subsample)/2;
+		int endY = startY+h*subsample;
 		
 
 		int k = 0;
-		for(int y=startY;y<endY;y+=8){
-			for(int x=startX;x<endX;x+=8){
-				buffer[k++] = (data[y*stride+x] & 0xFF)/255f;
+		for(int y=startY;y<endY;y+=subsample){
+			for(int x=startX;x<endX;x+=subsample){
+				float val = (data[y*stride+x] & 0xFF)/255f;
+				buffer[k++] = val > 0.5f ? 0.0f : 1.0f;
 			}
 		}
-		Tensor in = factory.createTensor(buffer, 28,28);
+		Tensor in = factory.createTensor(buffer, w, h);
 		input.input(in);
-		
 		canvas.render(in);
 	}
 
