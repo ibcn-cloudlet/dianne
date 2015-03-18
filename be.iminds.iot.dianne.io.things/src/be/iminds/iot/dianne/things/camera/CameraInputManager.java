@@ -17,15 +17,13 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
-import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.api.io.InputDescription;
 import be.iminds.iot.dianne.api.io.InputManager;
-import be.iminds.iot.dianne.api.nn.module.Module;
+import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.thing.Thing;
 import be.iminds.iot.thing.camera.Camera;
 import be.iminds.iot.thing.camera.CameraListener;
-import be.iminds.iot.thing.light.Light;
 
 @Component(immediate=true)
 public class CameraInputManager implements InputManager {

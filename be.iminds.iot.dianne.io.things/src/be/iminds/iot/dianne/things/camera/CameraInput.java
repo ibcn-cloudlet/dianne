@@ -1,27 +1,21 @@
 package be.iminds.iot.dianne.things.camera;
 
-import java.awt.Canvas;
-
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.thing.camera.CameraListener;
 
-public class CameraInput extends Canvas implements CameraListener {
+public class CameraInput implements CameraListener {
 
 	private final TensorFactory factory;
 	private final Input input;
 	
 	private float[] buffer;
 	
-	private CameraCanvas canvas;
-	
 	public CameraInput(TensorFactory factory, Input input){
 		this.factory = factory;
 		this.input = input;
 		this.buffer = new float[28*28];
-		
-		canvas = new CameraCanvas();
 	}
 	
 	@Override
@@ -32,7 +26,7 @@ public class CameraInput extends Canvas implements CameraListener {
 		// take a window of 224x244 and subsample by 8
 		int w = 28;
 		int h = 28;
-		int subsample = 2;
+		int subsample = 4;
 		
 		int stride = 320;
 		
@@ -52,10 +46,6 @@ public class CameraInput extends Canvas implements CameraListener {
 		}
 		Tensor in = factory.createTensor(buffer, w, h);
 		input.input(in);
-		canvas.render(in);
 	}
-
-	
-
 	
 }
