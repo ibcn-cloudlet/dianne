@@ -18,6 +18,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.nn.module.Input;
+import be.iminds.iot.dianne.api.io.InputDescription;
 import be.iminds.iot.dianne.api.io.InputManager;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.tensor.TensorFactory;
@@ -91,10 +92,12 @@ public class CameraInputManager implements InputManager {
 	}
 	
 	@Override
-	public List<String> getAvailableInputs() {
-		ArrayList<String> inputs = new ArrayList<String>();
+	public List<InputDescription> getAvailableInputs() {
+		ArrayList<InputDescription> inputs = new ArrayList<InputDescription>();
 		synchronized(cameraIds){
-			inputs.addAll(cameraIds.keySet());
+			for(String id : cameraIds.keySet()){
+				inputs.add(new InputDescription(id, "Camera"));
+			}
 		}
 		return inputs;
 	}

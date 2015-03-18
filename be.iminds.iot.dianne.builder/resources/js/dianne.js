@@ -135,7 +135,7 @@ function setupRunToolbox(){
 	$.post("/dianne/output", {action : "available-outputs"}, 
 			function( data ) {
 				$.each(data, function(index, output){
-					addToolboxItem(output, output, 'Output', 'run');
+					addToolboxItem(output.name, output.type, 'Output', 'run');
 				});
 			}
 			, "json");
@@ -143,7 +143,7 @@ function setupRunToolbox(){
 	$.post("/dianne/input", {action : "available-inputs"}, 
 			function( data ) {
 				$.each(data, function(index, input){
-					addToolboxItem(input, input, 'Input', 'run');
+					addToolboxItem(input.name, input.type, 'Input', 'run');
 				});
 			}
 			, "json");
@@ -288,6 +288,7 @@ jsPlumb.ready(function() {
 function addModule(moduleItem){
 
 	// get type from toolbox item and generate new UUID
+	var name = moduleItem.attr("name");
 	var type = moduleItem.attr("type");
 	var category = moduleItem.attr("category");
 	var mode = moduleItem.attr("mode");
@@ -299,6 +300,7 @@ function addModule(moduleItem){
 
 	// create module object
 	var module = {};
+	module.name = name;
 	module.type = type;
 	module.category = category;
 	module.id = id;
@@ -435,7 +437,7 @@ function addConnection(connection){
 			running[connection.sourceId].input = connection.targetId;
 			$.post("/dianne/input", {action : "setinput",
 				inputId : connection.targetId,
-				input : running[connection.sourceId].type});
+				input : running[connection.sourceId].name});
 		}
 	} else if(nn[connection.targetId]===undefined){
 		if(learning[connection.targetId]!==undefined){
@@ -444,7 +446,7 @@ function addConnection(connection){
 			running[connection.targetId].output = connection.sourceId;
 			$.post("/dianne/output", {action : "setoutput",
 				outputId : connection.sourceId,
-				output : running[connection.targetId].type});
+				output : running[connection.targetId].name});
 		}
 	} else {
 		addNext(connection.sourceId, connection.targetId);
@@ -466,7 +468,7 @@ function removeConnection(connection){
 			delete running[connection.sourceId].input; 
 			$.post("/dianne/input", {action : "unsetinput",
 				inputId : connection.targetId,
-				input : running[connection.sourceId].type});
+				input : running[connection.sourceId].name});
 		}
 	} else if(nn[connection.targetId]===undefined){
 		if(learning[connection.targetId]!==undefined){
@@ -475,7 +477,7 @@ function removeConnection(connection){
 			delete running[connection.targetId].output;
 			$.post("/dianne/output", {action : "unsetoutput",
 				outputId : connection.sourceId,
-				output : running[connection.targetId].type});
+				output : running[connection.targetId].name});
 		}
 	} else {
 		removeNext(connection.sourceId, connection.targetId);	

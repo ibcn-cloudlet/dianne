@@ -5,7 +5,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -27,6 +26,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
+import be.iminds.iot.dianne.api.io.InputDescription;
 import be.iminds.iot.dianne.api.io.InputManager;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -87,8 +87,11 @@ public class DianneInput extends HttpServlet {
 			JsonArray inputs = new JsonArray();
 			synchronized(inputManagers){
 				for(InputManager m : inputManagers){
-					for(String input : m.getAvailableInputs()){
-						inputs.add(new JsonPrimitive(input));
+					for(InputDescription input : m.getAvailableInputs()){
+						JsonObject o = new JsonObject();
+						o.add("name", new JsonPrimitive(input.getName()));
+						o.add("type", new JsonPrimitive(input.getType()));
+						inputs.add(o);
 					}
 				}
 			}

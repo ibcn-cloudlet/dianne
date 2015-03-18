@@ -6,7 +6,7 @@ import java.util.UUID;
 // link Input modules to actual inputs
 public interface InputManager {
 
-	public List<String> getAvailableInputs();
+	public List<InputDescription> getAvailableInputs();
 	
 	public void setInput(UUID inputId, String input);
 	

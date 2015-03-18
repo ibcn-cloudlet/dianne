@@ -16,9 +16,11 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
+import be.iminds.iot.dianne.api.io.OutputDescription;
 import be.iminds.iot.dianne.api.io.OutputManager;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 @Component(service = { javax.servlet.Servlet.class }, 
@@ -47,8 +49,11 @@ public class DianneOutput extends HttpServlet {
 			JsonArray outputs = new JsonArray();
 			synchronized(outputManagers){
 				for(OutputManager m : outputManagers){
-					for(String output : m.getAvailableOutputs()){
-						outputs.add(new JsonPrimitive(output));
+					for(OutputDescription output : m.getAvailableOutputs()){
+						JsonObject o = new JsonObject();
+						o.add("name", new JsonPrimitive(output.getName()));
+						o.add("type", new JsonPrimitive(output.getType()));
+						outputs.add(o);
 					}
 				}
 			}

@@ -17,6 +17,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
+import be.iminds.iot.dianne.api.io.OutputDescription;
 import be.iminds.iot.dianne.api.io.OutputManager;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.tensor.TensorFactory;
@@ -63,10 +64,12 @@ public class LightOutputManager implements OutputManager {
 	}
 
 	@Override
-	public List<String> getAvailableOutputs() {
-		ArrayList<String> outputs = new ArrayList<String>();
+	public List<OutputDescription> getAvailableOutputs() {
+		ArrayList<OutputDescription> outputs = new ArrayList<OutputDescription>();
 		synchronized(lights){
-			outputs.addAll(lights.keySet());
+			for(String id : lights.keySet()){
+				outputs.add(new OutputDescription(id, "Light"));
+			}
 		}
 		return outputs;
 	}
