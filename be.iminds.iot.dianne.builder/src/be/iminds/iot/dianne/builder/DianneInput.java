@@ -55,7 +55,7 @@ public class DianneInput extends HttpServlet {
 		this.context = context;
 	}
 	
-	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
+	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
 			policy=ReferencePolicy.DYNAMIC)
 	public void addInputManager(InputManager mgr){
 		this.inputManagers.add(mgr);

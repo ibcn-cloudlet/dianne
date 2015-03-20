@@ -30,7 +30,7 @@ public class DianneOutput extends HttpServlet {
 	
 	private List<OutputManager> outputManagers = Collections.synchronizedList(new ArrayList<OutputManager>());
 	
-	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
+	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
 			policy=ReferencePolicy.DYNAMIC)
 	public void addOutputManager(OutputManager mgr){
 		this.outputManagers.add(mgr);
