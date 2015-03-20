@@ -43,6 +43,9 @@ public class DianneDeployer extends HttpServlet {
 		String uuid = (String) properties.get("aiolos.framework.uuid"); 
 		if(uuid==null){
 			uuid = "local"; // TODO for now just fixed item for local runtime
+		} else {
+			// shorten it a bit TODO use human readable name
+			uuid = uuid.substring(0, uuid.indexOf('-'));
 		}
 		runtimes.put(uuid, m);
 	}
@@ -51,6 +54,8 @@ public class DianneDeployer extends HttpServlet {
 		String uuid = (String) properties.get("aiolos.framework.uuid"); 
 		if(uuid==null){
 			uuid = "local"; // TODO for now just fixed item for local runtime
+		} else {
+			uuid = uuid.substring(0, uuid.indexOf('-'));
 		}
 		runtimes.remove(uuid);
 	}
@@ -101,17 +106,28 @@ public class DianneDeployer extends HttpServlet {
 	
 	private void deployModule(Dictionary<String, Object> config, String target){
 		String id = (String)config.get("module.id");
+		String migrateFrom = null;
 		if(deployment.containsKey(id)){
 			// already deployed... TODO exception or something?
-			return;
+			migrateFrom = deployment.get(id); 
+			if(target.equals(migrateFrom)){
+				return;
+			}
 		}
 		
-		// for now deploy all modules on one runtime
 		try {
 			ModuleManager runtime = runtimes.get(target);
 			if(runtime!=null){
 				runtime.deployModule(config);
 				deployment.put(id, target);
+			}
+			
+			// when migrating, undeploy module from previous
+			if(migrateFrom!=null){
+				runtime = runtimes.get(migrateFrom);
+				if(runtime!=null){
+					runtime.undeployModule(UUID.fromString(id));
+				}
 			}
 		} catch (Exception e) {
 			System.err.println("Failed to deploy module "+id);

@@ -700,13 +700,6 @@ function undeploy(id){
 			, "json");
 }
 
-var deploymentColors = {};
-var colors = ['#FF6CDA','#81F781','#AC58FA','#FA5858'];
-var colorIndex = 0;
-
-function nextColor(){
-	return colors[colorIndex++];
-}
 
 /*
  * Learning functions

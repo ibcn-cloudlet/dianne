@@ -102,6 +102,16 @@ function setupDeployToolbox(){
 	$('#toolbox').empty();
 	$('<button id="deployAll" class="btn btn-default" onclick="deployAll();return false;">Deploy all</button>').appendTo($('#toolbox'));
 	$('<button id="undeployAll" class="btn btn-default"  onclick="undeployAll();return false;">Undeploy all</button>').appendTo($('#toolbox'));
+	
+	selectedTarget = undefined;
+	
+	$.post("/dianne/deployer", {"action" : "targets"}, 
+			function( data ) {
+				$.each(data, function(index, target){
+					addToolboxItem(target, target, 'Targets','deploy');
+				});
+			}
+			, "json");
 }
 
 function setupLearnToolbox(){
@@ -178,25 +188,51 @@ function addToolboxItem(name, type, category, mode){
 	
 
 	// make toolbox modules draggable to instantiate using drag-and-drop
-	module.draggable({helper: "clone"});
-	module.bind('dragstop', function(event, ui) {
-		if(checkAddModule($(this))){
-			// clone the toolbox item
-		    var moduleItem = $(ui.helper).clone().addClass(mode);
-		    
-			// append to canvas
-			moduleItem.appendTo("#canvas");
-		    
-		    // fix offset after drag
-			moduleItem.offset(ui.offset);
-		    
-			// add module
-			addModule(moduleItem);
+	if(mode!=="deploy"){ // not in deploy mode however
+		module.draggable({helper: "clone"});
+		module.bind('dragstop', function(event, ui) {
+			if(checkAddModule($(this))){
+				// clone the toolbox item
+			    var moduleItem = $(ui.helper).clone().addClass(mode);
+			    
+				// append to canvas
+				moduleItem.appendTo("#canvas");
+			    
+			    // fix offset after drag
+				moduleItem.offset(ui.offset);
+				
+				// add module
+				addModule(moduleItem);
+			}
+		});
+	} else {
+		var c = deploymentColors[name]; 
+		if(c === undefined){
+			c = nextColor();
+			deploymentColors[name] = c;
 		}
-	});
-
-	
+		module.css('background-color', c);
+		module.css('opacity', 0.5);
+		module.click(function() {
+			$('#toolbox').find('.module').css('opacity',0.5);
+			$(this).css('opacity',0.8);
+			selectedTarget = $(this).attr('name');
+		});
+	}
 }
+
+
+// colors for deployed modules
+var selectedTarget;
+var deploymentColors = {};
+var colors = ['#FF6CDA','#81F781','#AC58FA','#FA5858'];
+var colorIndex = 0;
+
+function nextColor(){
+	return colors[colorIndex++];
+}
+
+
 
 /*
  * jsPlumb rendering and setup
@@ -373,6 +409,17 @@ function setupModule(moduleItem, type, category){
 	// show dialog on double click
 	moduleItem.dblclick(function() {
 		showConfigureModuleDialog($(this));
+	});
+	
+	// add click behavior in deploy mode
+	moduleItem.click(function() {
+		if(currentMode==='deploy'){
+			if(selectedTarget!==undefined){
+				var id = $(this).attr('id');
+				var target = selectedTarget;
+				deploy(id, target);
+			}
+		}
 	});
 	
 	// make draggable
