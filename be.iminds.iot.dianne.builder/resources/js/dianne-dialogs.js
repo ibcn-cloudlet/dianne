@@ -656,7 +656,7 @@ function render(tensor, canvasCtx){
  */
 
 function deployAll(){
-	$.post("/dianne/deployer", {"action":"deploy","modules":JSON.stringify(nn)}, 
+	$.post("/dianne/deployer", {"action":"deploy","modules":JSON.stringify(nn),"target":selectedTarget}, 
 			function( data ) {
 				$.each( data, function(id,target){
 					deployment[id] = target;

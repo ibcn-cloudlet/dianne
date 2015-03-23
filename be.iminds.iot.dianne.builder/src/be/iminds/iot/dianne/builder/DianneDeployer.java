@@ -69,10 +69,14 @@ public class DianneDeployer extends HttpServlet {
 		if(action.equals("deploy")){
 			if(request.getParameter("modules")!=null){
 				String modulesJsonString = request.getParameter("modules");
+				String target = request.getParameter("target");
+				if(target == null){
+					target = "local"; // if no target specified, hard coded local target for now
+				}
 				List<Dictionary<String, Object>> modules = DianneJSONParser.parseJSON(modulesJsonString); 
 						
 				for(Dictionary<String, Object> module : modules){
-					deployModule(module, "local");
+					deployModule(module, target);
 				}
 				// TODO only return deployment of deployed modules?
 				returnDeployment(response.getWriter());
