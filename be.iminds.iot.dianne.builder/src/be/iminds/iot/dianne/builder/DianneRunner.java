@@ -3,8 +3,11 @@ package be.iminds.iot.dianne.builder;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -15,6 +18,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
@@ -23,8 +29,8 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.api.nn.module.Module;
-import be.iminds.iot.dianne.api.nn.module.Output;
 import be.iminds.iot.dianne.api.nn.module.Module.Mode;
+import be.iminds.iot.dianne.api.nn.module.Output;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -38,6 +44,8 @@ import com.google.gson.JsonPrimitive;
 	immediate = true)
 public class DianneRunner extends HttpServlet {
 	
+	private BundleContext context;
+	
 	private TensorFactory factory;
 	
 	private JsonParser parser = new JsonParser();
@@ -45,7 +53,15 @@ public class DianneRunner extends HttpServlet {
 	// for now fixed 1 input, 1 output, and trainable modules
 	private Map<String, Module> modules = new HashMap<String, Module>();
 
+	// register a forwardlistener for each output?
+	private Map<Output, ServiceRegistration> forwardListeners = Collections.synchronizedMap(new HashMap<Output, ServiceRegistration>());
+	
 	private AsyncContext sse = null;
+	
+	@Activate
+	public void activate(BundleContext c){
+		this.context = c;
+	}
 	
 	@Reference
 	public void setTensorFactory(TensorFactory factory){
@@ -59,7 +75,12 @@ public class DianneRunner extends HttpServlet {
 		if(m instanceof Output){
 			final Output output = (Output) m;
 			final String id  = m.getId().toString();
-			output.addForwardListener(new ForwardListener() {
+			
+			Dictionary<String, Object> properties = new Hashtable<String, Object>();
+			properties.put("targets", new String[]{id});
+			properties.put("aiolos.unique", true);
+			
+			ForwardListener listener = new ForwardListener() {
 				@Override
 				public void onForward(Tensor t) {
 					if(sse!=null){
@@ -114,7 +135,11 @@ public class DianneRunner extends HttpServlet {
 						} catch(Exception e){}
 					}
 				}
-			});
+			};
+			
+			ServiceRegistration r = context.registerService(ForwardListener.class.getName(), listener, properties);
+			
+			forwardListeners.put(output, r);
 		}
 	}
 	
@@ -124,6 +149,13 @@ public class DianneRunner extends HttpServlet {
 			Entry<String, Module> e = it.next();
 			if(e.getValue()==m){
 				it.remove();
+			}
+		}
+		
+		if(m instanceof Output){
+			ServiceRegistration r = forwardListeners.get(m);
+			if(r!=null){
+				r.unregister();
 			}
 		}
 	}

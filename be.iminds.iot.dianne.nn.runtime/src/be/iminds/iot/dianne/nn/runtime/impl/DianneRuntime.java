@@ -115,6 +115,33 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 		for(Module m : findDependingModules(id, prevMap)){
 			configurePrevious(m);
 		}
+		
+		if(registrations.containsKey(id)){
+			// check if someone is listening for this (locally registered) module
+			synchronized(forwardListeners){
+				Iterator<Entry<ForwardListener, List<UUID>>> it = forwardListeners.entrySet().iterator();
+				while(it.hasNext()){
+					Entry<ForwardListener, List<UUID>> e = it.next();
+					for(UUID i : e.getValue()){
+						if(id.equals(i)){
+							module.addForwardListener(e.getKey());
+						}
+					}
+				}
+			}
+			
+			synchronized(backwardListeners){
+				Iterator<Entry<BackwardListener, List<UUID>>> it = backwardListeners.entrySet().iterator();
+				while(it.hasNext()){
+					Entry<BackwardListener, List<UUID>> e = it.next();
+					for(UUID i : e.getValue()){
+						if(id.equals(i)){
+							module.addBackwardListener(e.getKey());
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	public synchronized void removeModule(Module module, Map<String, Object> properties){
@@ -301,12 +328,16 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 			c = context.getBundle(bundleId).getBundleContext();
 		}
 		
+		UUID id = module.getId();
+		// allready add a null registration, in order to allow registrations.contains()
+		// to return true in the addModule call of this class
+		this.registrations.put(id, null);
 		ServiceRegistration reg = c.registerService(classes, module, props);
-		this.registrations.put(module.getId(), reg);
+		this.registrations.put(id, reg);
 		
 		
-		System.out.println("Registered module "+module.getClass().getName()+" "+module.getId());
-		return null;
+		System.out.println("Registered module "+module.getClass().getName()+" "+id);
+		return id;
 	}
 
 	@Override
