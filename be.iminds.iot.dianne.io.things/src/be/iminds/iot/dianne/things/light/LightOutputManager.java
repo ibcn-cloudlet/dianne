@@ -58,6 +58,12 @@ public class LightOutputManager implements OutputManager {
 	public void addLight(Light l, Map<String, Object> properties){
 		UUID id = UUID.fromString((String)properties.get(Thing.ID));
 		String service = (String) properties.get(Thing.SERVICE);
+		
+		// TODO hard coded Hue for now...
+		if(service.startsWith("philips")){
+			service = "Philips Hue";
+		}
+		
 		// TODO only handle local thing services?
 		// TODO use id-service combo?
 		lights.put(service, l);
