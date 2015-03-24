@@ -42,7 +42,16 @@ public class DianneDeployer extends HttpServlet {
 	public void addModuleManager(ModuleManager m, Map<String, Object> properties){
 		String uuid = (String) properties.get("aiolos.framework.uuid"); 
 		if(uuid==null){
-			uuid = "local"; // TODO for now just fixed item for local runtime
+			uuid = "Laptop"; // TODO for now just fixed item for local runtime
+		} else if(uuid.equals("00000000-0000-0000-0000-000000000001")){
+			// some hard coded values for demo
+			uuid = "Raspberry Pi";
+		} else if(uuid.equals("00000000-0000-0000-0000-000000000002")){
+			// some hard coded values for demo
+			uuid = "Laptop";
+		} else if(uuid.equals("00000000-0000-0000-0000-000000000003")){
+			// some hard coded values for demo
+			uuid = "Intel Edison";
 		} else {
 			// shorten it a bit TODO use human readable name
 			uuid = uuid.substring(0, uuid.indexOf('-'));
