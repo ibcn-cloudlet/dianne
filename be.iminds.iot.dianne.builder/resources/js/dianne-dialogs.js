@@ -447,9 +447,12 @@ function createRunModuleDialog(id, moduleItem){
 				$.each(running, function(id, module){
 					// choose right RunOutput to set the chart of
 					if(module.output===data.id){
-						var index = Number($("#dialog-"+module.id).find(".content").attr("data-highcharts-chart"));
-						// data.output is tensor representation as string, should be parsed first
-						Highcharts.charts[index].series[0].setData(JSON.parse(data.output), true, true, true);
+						var attr = $("#dialog-"+module.id).find(".content").attr("data-highcharts-chart");
+						if(attr!==undefined){
+							var index = Number(attr);
+							// data.output is tensor representation as string, should be parsed first
+							Highcharts.charts[index].series[0].setData(JSON.parse(data.output), true, true, true);
+						}
 					}
 				});
 			};
