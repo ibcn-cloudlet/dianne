@@ -10,3 +10,5 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 -dsannotations: *
 Private-Package: be.iminds.iot.dianne.repository.file
 Export-Package: be.iminds.iot.dianne.api.repository
+Bundle-Name: Dianne NN Repository
+Bundle-Description: Dianne Neural Network description repository

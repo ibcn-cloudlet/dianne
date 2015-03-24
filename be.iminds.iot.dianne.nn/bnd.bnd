@@ -19,3 +19,5 @@ Private-Package: \
 	be.iminds.iot.dianne.nn.module.fork,\
 	be.iminds.iot.dianne.nn.module.io,\
 	be.iminds.iot.dianne.nn.module.layer
+Bundle-Name: Dianne NN modules
+Bundle-Description: Dianne Neural Network module implementations

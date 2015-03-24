@@ -19,3 +19,5 @@ Private-Package: be.iminds.iot.dianne.builder
 Import-Package: \
 	be.iminds.iot.dianne.api.io;resolution:=optional,\
 	*
+Bundle-Name: Dianne Builder UI
+Bundle-Description: User interface for building, training and running a neural network

@@ -11,3 +11,4 @@ Private-Package: \
 	be.iminds.iot.dianne.things.light,\
 	be.iminds.iot.dianne.things.camera
 Export-Package: be.iminds.iot.dianne.api.io
+Bundle-Name: Dianne Thing I/O adapters

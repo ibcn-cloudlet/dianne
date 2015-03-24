@@ -1,3 +1,4 @@
 Export-Package: be.iminds.iot.dianne.api.dataset
 -dsannotations: *
 Private-Package: be.iminds.iot.dianne.dataset.mnist
+Bundle-Name: Dianne MNIST dataset

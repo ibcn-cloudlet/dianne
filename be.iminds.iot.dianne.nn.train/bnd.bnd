@@ -12,3 +12,4 @@ Export-Package: \
 	be.iminds.iot.dianne.nn.train.eval,\
 	be.iminds.iot.dianne.nn.train.strategy
 -dsannotations: *
+Bundle-Name: Dianne Training Utilities
