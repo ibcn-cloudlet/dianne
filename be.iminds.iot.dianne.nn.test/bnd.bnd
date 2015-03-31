@@ -4,11 +4,12 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 -buildpath: \
 	be.iminds.iot.dianne.tensor;version=latest,\
 	be.iminds.iot.dianne.nn;version=latest,\
-	be.iminds.iot.dianne.nn.runtime;version=latest,\
 	be.iminds.iot.dianne.nn.train;version=latest,\
 	osgi.core;version='[4.2,5)',\
 	osgi.cmpn,\
-	biz.aQute.junit
+	biz.aQute.junit,\
+	be.iminds.iot.dianne.api;version=latest,\
+	be.iminds.iot.dianne.nn.runtime;version=latest
 	
 -runbundles: \
 	osgi.enterprise;version='[5.0.0,5.1.0)',\
