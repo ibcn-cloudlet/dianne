@@ -115,7 +115,16 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 		for(Module m : findDependingModules(id, prevMap)){
 			configurePrevious(m);
 		}
-		
+	
+		configureModuleListeners(id, module);
+	}
+	
+	public synchronized void updatedModule(Module module, Map<String, Object> properties){
+		UUID id = UUID.fromString((String)properties.get("module.id"));
+		configureModuleListeners(id, module);
+	}
+	
+	private void configureModuleListeners(UUID id, Module module){
 		if(registrations.containsKey(id)){
 			// check if someone is listening for this (locally registered) module
 			synchronized(forwardListeners){
@@ -378,6 +387,7 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 		int i = 0;
 		for(UUID nextID : nextIDs){
 			Module nextModule = modules.get(nextID);
+			// TODO also allow only partly deployed NNs?
 			if(nextModule== null)
 				return;
 			
