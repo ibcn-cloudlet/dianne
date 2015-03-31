@@ -117,6 +117,12 @@ footer {
 	background-color: #E7E7E7;
 }
 
+.footer-image {
+	float: right;
+	margin: 0px 10px 0px 10px;
+	height: 75px;
+}
+
 /*
  * jsPlumb
  */
