@@ -12,7 +12,8 @@ public class SpatialConvolution extends AbstractTrainableModule {
 	private int noOutputPlanes;
 	private int kernelWidth;
 	private int kernelHeight;
-	// TODO strides support?
+	private int strideX;
+	private int strideY;
 	
 	// subtensors for weights / bias
 	Tensor weights;
@@ -22,24 +23,28 @@ public class SpatialConvolution extends AbstractTrainableModule {
 	
 	public SpatialConvolution(TensorFactory factory,
 			int noInputPlanes, int noOutputPlanes, 
-			int kernelWidth, int kernelHeight){
+			int kernelWidth, int kernelHeight,
+			int strideX, int strideY){
 		super(factory);
-		init(noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight);
+		init(noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY);
 	}
 	
 	public SpatialConvolution(TensorFactory factory, UUID id,
 			int noInputPlanes, int noOutputPlanes, 
-			int kernelWidth, int kernelHeight){
+			int kernelWidth, int kernelHeight,
+			int strideX, int strideY){
 		super(factory, id);
-		init(noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight);
+		init(noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY);
 	}
 	
 	protected void init(int noInputPlanes, int noOutputPlanes, 
-			int kernelWidth, int kernelHeight){
+			int kernelWidth, int kernelHeight, int strideX, int strideY){
 		this.noInputPlanes = noInputPlanes;
 		this.noOutputPlanes = noOutputPlanes;
 		this.kernelWidth = kernelWidth;
 		this.kernelHeight = kernelHeight;
+		this.strideX = strideX;
+		this.strideY = strideY;
 		
 		parameters = factory.createTensor(noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight+noOutputPlanes);
 		weights = parameters.narrow(0, 0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight);
@@ -87,7 +92,7 @@ public class SpatialConvolution extends AbstractTrainableModule {
 				
 				// TODO convadd operation to avoid temp?
 				temp = factory.getTensorMath().convolution2D(temp,
-						noInputPlanes== 1 ? input : input.select(0, j), kernel, 1, 1, false, false);
+						noInputPlanes== 1 ? input : input.select(0, j), kernel, strideX, strideY, false, false);
 				factory.getTensorMath().add(outputPlane, outputPlane, temp);
 			}
 			
@@ -98,6 +103,11 @@ public class SpatialConvolution extends AbstractTrainableModule {
 
 	@Override
 	protected void backward() {
+		if(strideX!=1 || strideY!=1){
+			// TODO also implement this for strides != 1
+			throw new UnsupportedOperationException();
+		}
+		
 		// backward based on http://andrew.gibiansky.com/blog/machine-learning/convolutional-neural-networks/
 		if(gradInput == null || !gradInput.sameDim(input)){
 			gradInput = factory.createTensor(input.dims());
@@ -124,6 +134,11 @@ public class SpatialConvolution extends AbstractTrainableModule {
 
 	@Override
 	public void accGradParameters() {
+		if(strideX!=1 || strideY!=1){
+			// TODO also implement this for strides != 1
+			throw new UnsupportedOperationException();
+		}
+		
 		// calculate grad weights based on http://andrew.gibiansky.com/blog/machine-learning/convolutional-neural-networks/
 		if(gradOutput!=null){
 			Tensor temp = null;
