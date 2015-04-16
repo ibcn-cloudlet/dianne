@@ -207,16 +207,16 @@ public interface TensorMath<T extends Tensor<T>> {
 	/**
 	 * Calculate 2D convolution mat1 * mat2
 	 */
-	public T convolution2D(T res, final T mat1, final T mat2, int sx, int sy, boolean full, boolean flip);
+	public T convolution2D(T res, final T mat1, final T mat2, final int sx, final int sy, final boolean full, final boolean flip);
 	
 	/**
-	 * Max pooling of tensor mat and put result in res
+	 * Max pooling of tensor mat and put result in res, with strides sx and sy
 	 */
-	public T maxpool2D(T res, final T mat, final int w, final int h);
+	public T maxpool2D(T res, final T mat, final int w, final int h, final int sx, final int sy);
 	
 	/**
 	 * Backward of max pooling: calculate each max index in wxh block of mat1, and 
-	 * put value of subsampled mat2 into res on that position 
+	 * put value of subsampled mat2 into res on that position, custom strides sx and sy are currently unsupported
 	 */
-	public T dmaxpool2D(T res, final T mat2, final T mat1, final int w, final int h);
+	public T dmaxpool2D(T res, final T mat2, final T mat1, final int w, final int h, final int sx, final int sy);
 }

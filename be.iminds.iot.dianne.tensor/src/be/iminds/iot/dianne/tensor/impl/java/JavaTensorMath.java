@@ -477,7 +477,6 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 
 	@Override
 	public JavaTensor convolution2D(JavaTensor res, JavaTensor mat1, JavaTensor mat2, int stride_x, int stride_y, boolean full, boolean flip) {
-		// TODO stride?
 		int h = mat2.size(0);
 		int w = mat2.size(1);
 		
@@ -531,9 +530,9 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 
 	@Override
-	public JavaTensor maxpool2D(JavaTensor res, JavaTensor mat1, int w, int h) {
-		int r_h = mat1.size(0)/h;
-		int r_w = mat1.size(1)/w;
+	public JavaTensor maxpool2D(JavaTensor res, JavaTensor mat1, int w, int h, int stride_x, int stride_y) {
+		int r_h = (int)Math.ceil((mat1.size(0) - h + 1)/(float)stride_y);
+		int r_w = (int)Math.ceil((mat1.size(1) - w + 1)/(float)stride_x);
 		int skip = mat1.size(1);
 		if(res==null){
 			res = factory.createTensor(r_h, r_w);
@@ -545,7 +544,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 				int rindex = i*r_w+j;
 				for(int k=0;k<h;k++){
 					for(int l=0;l<w;l++){
-						int index = (i*w+k)*skip+(j*w+l);
+						int index = (i*stride_y+k)*skip+(j*stride_x+l);
 						float val = mat1.data[(mat1.indices==null? index : mat1.indices[index])];
 						if(val>max)
 							max = val;
@@ -559,9 +558,9 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 	
 	@Override
-	public JavaTensor dmaxpool2D(JavaTensor res, JavaTensor mat2, JavaTensor mat1, int w, int h) {
-		int r_h = mat1.size(0)/h;
-		int r_w = mat1.size(1)/w;
+	public JavaTensor dmaxpool2D(JavaTensor res, JavaTensor mat2, JavaTensor mat1, int w, int h, int stride_x, int stride_y) {
+		int r_h = (int)Math.ceil((mat1.size(0) - h + 1)/(float)stride_y);
+		int r_w = (int)Math.ceil((mat1.size(1) - w + 1)/(float)stride_x);
 		int skip = mat1.size(1);
 		
 		if(res==null){
@@ -575,7 +574,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 				int rindex = i*r_w+j;
 				for(int k=0;k<h;k++){
 					for(int l=0;l<w;l++){
-						int index = (i*w+k)*skip+(j*w+l);
+						int index = (i*stride_y+k)*skip+(j*stride_x+l);
 						float val = mat1.data[(mat1.indices==null? index : mat1.indices[index])];
 						if(val>max){
 							max = val;

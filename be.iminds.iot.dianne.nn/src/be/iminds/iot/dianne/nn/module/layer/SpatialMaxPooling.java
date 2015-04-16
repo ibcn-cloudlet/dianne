@@ -34,7 +34,7 @@ public class SpatialMaxPooling extends AbstractModule {
 		}
 		
 		for(int i=0;i<noPlanes;i++){
-			factory.getTensorMath().maxpool2D(output.select(0, i), input.select(0,i), w, h);
+			factory.getTensorMath().maxpool2D(output.select(0, i), input.select(0,i), w, h, w, h);
 		}
 	}
 
@@ -46,7 +46,7 @@ public class SpatialMaxPooling extends AbstractModule {
 		int noPlanes = input.size(0);
 		for(int i=0;i<noPlanes;i++){
 			factory.getTensorMath().dmaxpool2D(gradInput.select(0, i), 
-					gradOutput.sameDim(input)? gradOutput.select(0, i):gradOutput, input.select(0, i), w, h);
+					gradOutput.sameDim(input)? gradOutput.select(0, i):gradOutput, input.select(0, i), w, h, w, h);
 		}
 	}
 	
