@@ -617,7 +617,7 @@ function sample(dataset, input){
 }
 
 function render(tensor, canvasCtx){
-	var scale = Math.ceil(256/tensor.width);
+	var scale = 256/tensor.width;
 	var width = tensor.width*scale;
 	var height = tensor.height*scale;
 	var imageData = canvasCtx.createImageData(width, height);
