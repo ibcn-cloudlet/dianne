@@ -175,7 +175,7 @@ function addToolboxItem(name, type, category, mode){
 		panel = $('#toolbox').find('.'+category);
 	}
 	
-	var div = $("<div class=\"tool col-xs-6\"></div>").appendTo(panel);
+	var div = $("<div class=\"tool\"></div>").appendTo(panel);
 	
 	var module = renderTemplate("module",
 		{	
@@ -189,7 +189,7 @@ function addToolboxItem(name, type, category, mode){
 
 	// make toolbox modules draggable to instantiate using drag-and-drop
 	if(mode!=="deploy"){ // not in deploy mode however
-		module.draggable({helper: "clone"});
+		module.draggable({helper: "clone", scroll: false, appendTo: "#builder", containment: '#builder'});
 		module.bind('dragstop', function(event, ui) {
 			if(checkAddModule($(this))){
 				// clone the toolbox item

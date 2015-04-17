@@ -27,9 +27,28 @@ html, body {
 	padding: 150px 0 90px 0;
 }
 
+/*
+* fix for scrollbars
+*/
+.container-fluid, #builder, #toolbox, #canvas {
+	height: 100%;
+}
+#toolbox {
+	overflow-y: auto;
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+#canvas {
+	overflow: auto;
+}
+/*
+* end fix scrollbars
+*/
+
+
 @media ( min-width : 768px) {
 	.site-wrapper {
-		padding: 100px 0 90px 0;
+		padding: 75px 0 90px 0;
 	}
 }
 
@@ -155,7 +174,7 @@ footer {
 .tool {
 	margin: 0px;
 	padding-left: 10px;
-	width: 110px;
+	float: left;
 }
 
 .learn {
