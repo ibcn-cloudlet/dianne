@@ -83,7 +83,7 @@ $( document ).ready(function() {
 
 
 function setupBuildToolbox(){
-	$('#toolbox').empty();
+	$('#toolbox .mCSB_container').empty();
 	$.post("/dianne/builder", {action : "available-modules"}, 
 			function( data ) {
 				$.each(data, function(index, module){
@@ -99,9 +99,9 @@ function setupBuildToolbox(){
 }
 
 function setupDeployToolbox(){
-	$('#toolbox').empty();
-	$('<button id="deployAll" class="btn btn-default" onclick="deployAll();return false;">Deploy all</button>').appendTo($('#toolbox'));
-	$('<button id="undeployAll" class="btn btn-default"  onclick="undeployAll();return false;">Undeploy all</button>').appendTo($('#toolbox'));
+	$('#toolbox .mCSB_container').empty();
+	$('<button id="deployAll" class="btn btn-default" onclick="deployAll();return false;">Deploy all</button>').appendTo($('#toolbox .mCSB_container'));
+	$('<button id="undeployAll" class="btn btn-default"  onclick="undeployAll();return false;">Undeploy all</button>').appendTo($('#toolbox .mCSB_container'));
 	
 	selectedTarget = undefined;
 	
@@ -115,7 +115,7 @@ function setupDeployToolbox(){
 }
 
 function setupLearnToolbox(){
-	$('#toolbox').empty();
+	$('#toolbox .mCSB_container').empty();
 	$.post("/dianne/datasets", {action : "available-datasets"}, 
 			function( data ) {
 				$.each(data, function(index, dataset){
@@ -131,7 +131,7 @@ function setupLearnToolbox(){
 }
 
 function setupRunToolbox(){
-	$('#toolbox').empty();
+	$('#toolbox .mCSB_container').empty();
 	$.post("/dianne/datasets", {action : "available-datasets"}, 
 			function( data ) {
 				$.each(data, function(index, dataset){
@@ -171,7 +171,7 @@ function addToolboxItem(name, type, category, mode){
 		$("<div>"  +
 			"<h4 data-toggle=\"collapse\" data-target=\"."+category+"\">"+category+"</h4>"+	
 			"<div class=\""+category+" collapse in row\"></div>" +
-		  "</div>").appendTo($('#toolbox'));
+		  "</div>").appendTo($('#toolbox .mCSB_container'));
 		panel = $('#toolbox').find('.'+category);
 	}
 	

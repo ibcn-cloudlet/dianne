@@ -35,6 +35,8 @@ html, body {
 }
 #toolbox {
 	overflow-y: auto;
+}
+#toolbox .mCSB_container {
 	padding-top: 10px;
 	padding-bottom: 10px;
 }
