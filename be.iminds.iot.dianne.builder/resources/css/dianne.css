@@ -24,7 +24,7 @@ html, body {
 	min-height: 100%;
 	-webkit-box-shadow: inset 0 0 100px rgba(0, 0, 0, .5);
 	box-shadow: inset 0 0 100px rgba(0, 0, 0, .5);
-	padding: 150px 0 90px 0;
+	padding: 196px 0 90px 0;
 }
 
 /*
@@ -46,7 +46,22 @@ html, body {
 */
 
 
+@media ( min-width : 466px) {
+	.site-wrapper {
+		padding: 170px 0 90px 0;
+	}
+}
+@media ( min-width : 640px) {
+	.site-wrapper {
+		padding: 128px 0 90px 0;
+	}
+}
 @media ( min-width : 768px) {
+	.site-wrapper {
+		padding: 112px 0 90px 0;
+	}
+}
+@media ( min-width : 981px) {
 	.site-wrapper {
 		padding: 75px 0 90px 0;
 	}
