@@ -117,7 +117,8 @@ public class DianneModuleFactory implements ModuleFactory {
 			properties.add(new ModuleProperty("Kernel width", "kernelWidth"));
 			properties.add(new ModuleProperty("Kernel height", "kernelHeight"));
 			properties.add(new ModuleProperty("Stride X", "strideX"));
-			properties.add(new ModuleProperty("Stride Y", "strideY"));				
+			properties.add(new ModuleProperty("Stride Y", "strideY"));	
+			properties.add(new ModuleProperty("Full (add zero padding)", "full"));	
 			ModuleType type = new ModuleType("Convolution", "Layer", properties, true);
 			supportedModules.put(type.getType(), type);
 		}
@@ -198,8 +199,10 @@ public class DianneModuleFactory implements ModuleFactory {
 			
 			int strideX = hasProperty(config,"module.convolution.strideX") ? Integer.parseInt((String)config.get("module.convolution.strideX")) : 1;
 			int strideY = hasProperty(config,"module.convolution.strideY") ? Integer.parseInt((String)config.get("module.convolution.strideY")) : 1;
-			
-			module = new SpatialConvolution(factory, id, noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY);
+
+			boolean full = hasProperty(config,"module.convolution.full") ? Boolean.parseBoolean((String)config.get("module.convolution.full")) : false;
+
+			module = new SpatialConvolution(factory, id, noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY, full);
 			break;
 		case "MaxPooling":
 			int width = Integer.parseInt((String)config.get("module.maxpooling.width"));

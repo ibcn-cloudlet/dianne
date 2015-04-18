@@ -14,6 +14,7 @@ public class SpatialConvolution extends AbstractTrainableModule {
 	private int kernelHeight;
 	private int strideX;
 	private int strideY;
+	private boolean full;
 	
 	// subtensors for weights / bias
 	Tensor weights;
@@ -24,27 +25,28 @@ public class SpatialConvolution extends AbstractTrainableModule {
 	public SpatialConvolution(TensorFactory factory,
 			int noInputPlanes, int noOutputPlanes, 
 			int kernelWidth, int kernelHeight,
-			int strideX, int strideY){
+			int strideX, int strideY, boolean full){
 		super(factory);
-		init(noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY);
+		init(noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY, full);
 	}
 	
 	public SpatialConvolution(TensorFactory factory, UUID id,
 			int noInputPlanes, int noOutputPlanes, 
 			int kernelWidth, int kernelHeight,
-			int strideX, int strideY){
+			int strideX, int strideY, boolean full){
 		super(factory, id);
-		init(noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY);
+		init(noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY, full);
 	}
 	
 	protected void init(int noInputPlanes, int noOutputPlanes, 
-			int kernelWidth, int kernelHeight, int strideX, int strideY){
+			int kernelWidth, int kernelHeight, int strideX, int strideY, boolean full){
 		this.noInputPlanes = noInputPlanes;
 		this.noOutputPlanes = noOutputPlanes;
 		this.kernelWidth = kernelWidth;
 		this.kernelHeight = kernelHeight;
 		this.strideX = strideX;
 		this.strideY = strideY;
+		this.full = full;
 		
 		parameters = factory.createTensor(noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight+noOutputPlanes);
 		weights = parameters.narrow(0, 0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight);
@@ -69,11 +71,11 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		int[] outDims = new int[3];
 		outDims[0] = noOutputPlanes;
 		if(input.dim()==2){
-			outDims[1] = (int)Math.ceil((input.size(0) - kernelHeight + 1)/(float)strideY);
-			outDims[2] = (int)Math.ceil((input.size(1) - kernelWidth + 1)/(float)strideX);
+			outDims[1] = full ? (int)Math.ceil(input.size(0)/(float)strideY) : (int)Math.ceil((input.size(0) - kernelHeight + 1)/(float)strideY);
+			outDims[2] = full ? (int)Math.ceil(input.size(1)/(float)strideX) : (int)Math.ceil((input.size(1) - kernelWidth + 1)/(float)strideX);
 		} else if(input.dim()==3){
-			outDims[1] = (int)Math.ceil((input.size(1) - kernelHeight + 1)/(float)strideY);
-			outDims[2] = (int)Math.ceil((input.size(2) - kernelWidth + 1)/(float)strideX);
+			outDims[1] = full ? (int)Math.ceil(input.size(1)/(float)strideY) : (int)Math.ceil((input.size(1) - kernelHeight + 1)/(float)strideY);
+			outDims[2] = full ? (int)Math.ceil(input.size(2)/(float)strideX) : (int)Math.ceil((input.size(2) - kernelWidth + 1)/(float)strideX);
 		} // else error?
 		if(output==null || !output.hasDim(outDims)){
 			output = factory.createTensor(outDims);
@@ -92,7 +94,7 @@ public class SpatialConvolution extends AbstractTrainableModule {
 				
 				// TODO convadd operation to avoid temp?
 				temp = factory.getTensorMath().convolution2D(temp,
-						noInputPlanes== 1 ? input : input.select(0, j), kernel, strideX, strideY, false, false);
+						noInputPlanes== 1 ? input : input.select(0, j), kernel, strideX, strideY, full, false);
 				factory.getTensorMath().add(outputPlane, outputPlane, temp);
 			}
 			
