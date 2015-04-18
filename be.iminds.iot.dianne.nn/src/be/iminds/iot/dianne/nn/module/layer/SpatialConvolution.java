@@ -69,11 +69,11 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		int[] outDims = new int[3];
 		outDims[0] = noOutputPlanes;
 		if(input.dim()==2){
-			outDims[1] = input.size(0) - kernelHeight + 1;
-			outDims[2] = input.size(1) - kernelWidth + 1;
+			outDims[1] = (int)Math.ceil((input.size(0) - kernelHeight + 1)/(float)strideY);
+			outDims[2] = (int)Math.ceil((input.size(1) - kernelWidth + 1)/(float)strideX);
 		} else if(input.dim()==3){
-			outDims[1] = input.size(1) - kernelHeight+ 1;
-			outDims[2] = input.size(2) - kernelWidth + 1;
+			outDims[1] = (int)Math.ceil((input.size(1) - kernelHeight + 1)/(float)strideY);
+			outDims[2] = (int)Math.ceil((input.size(2) - kernelWidth + 1)/(float)strideX);
 		} // else error?
 		if(output==null || !output.hasDim(outDims)){
 			output = factory.createTensor(outDims);
