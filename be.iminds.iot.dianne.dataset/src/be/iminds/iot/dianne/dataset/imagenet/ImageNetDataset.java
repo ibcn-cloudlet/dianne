@@ -151,7 +151,7 @@ public class ImageNetDataset implements Dataset {
 	public Tensor getInputSample(int index) {
 		// Open JPEG file and convert to size
 		String file = dir + "images/" + "ILSVRC2012_val_"
-				+ String.format("%08d", index) + ".JPEG";
+				+ String.format("%08d", index+1) + ".JPEG";
 		System.out.println("Read file " + file);
 		float[] imageData = new float[inputSize];
 		try {
