@@ -451,7 +451,8 @@ function createRunModuleDialog(id, moduleItem){
 						if(attr!==undefined){
 							var index = Number(attr);
 							// data.output is tensor representation as string, should be parsed first
-							Highcharts.charts[index].series[0].setData(JSON.parse(data.output), true, true, true);
+							Highcharts.charts[index].series[0].setData(data.output, true, true, true);
+							Highcharts.charts[index].xAxis[0].setCategories(data.labels);
 						}
 					}
 				});

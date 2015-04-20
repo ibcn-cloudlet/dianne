@@ -88,7 +88,6 @@ public class DianneRunner extends HttpServlet {
 							JsonObject data = new JsonObject();
 
 							// format output as [['label', val],['label2',val2],...] for in highcharts
-							JsonArray result = new JsonArray();
 							String[] labels;
 							float[] values;
 							if(t.size()>10){
@@ -109,21 +108,26 @@ public class DianneRunner extends HttpServlet {
 								labels = new String[10];
 								values = new float[10];
 								for(int i=0;i<10;i++){
-									labels[i] = output.getOutputLabels()[indices[i]];
+									labels[i] = output.getOutputLabels()!=null ? output.getOutputLabels()[indices[i]] : ""+indices[i];
 									values[i] = t.get(indices[i]);
 								}
 							} else {
 								labels = output.getOutputLabels();
 								values = t.get();
 							}
-							for(int i=0;i<t.size();i++){
-								JsonArray item = new JsonArray();
-								item.add(new JsonPrimitive(labels[i]));
-								item.add(new JsonPrimitive(values[i]));
-								result.add(item);
+							
+							JsonArray result = new JsonArray();
+							for(int i=0;i<values.length;i++){
+								result.add(new JsonPrimitive(values[i]));
 							}
-														
-							data.add("output", new JsonPrimitive(result.toString()));
+							data.add("output", result);
+							
+							JsonArray l = new JsonArray();
+							for(int i=0;i<labels.length;i++){
+								l.add(new JsonPrimitive(labels[i]));
+							}
+							data.add("labels", l);
+							
 							data.add("id", new JsonPrimitive(id));
 							
 							StringBuilder builder = new StringBuilder();
@@ -132,7 +136,9 @@ public class DianneRunner extends HttpServlet {
 							PrintWriter writer = sse.getResponse().getWriter();
 							writer.write(builder.toString());
 							writer.flush();
-						} catch(Exception e){}
+						} catch(Exception e){
+							e.printStackTrace();
+						}
 					}
 				}
 			};
