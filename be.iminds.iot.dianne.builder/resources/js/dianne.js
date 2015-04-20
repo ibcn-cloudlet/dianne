@@ -279,7 +279,7 @@ var targetStyle = {
 
 // jsPlumb init code
 jsPlumb.ready(function() {       
-    jsPlumb.setContainer($("canvas"));
+    jsPlumb.setContainer($("#canvas"));
     jsPlumb.importDefaults({
     	ConnectionOverlays : [[ "Arrow", { location : 1 } ]],
     	Connector : [ "Flowchart", { stub:[40, 60], gap:10, cornerRadius:5, alwaysRespectStubs:true } ],
@@ -308,6 +308,10 @@ jsPlumb.ready(function() {
 		});
 	});
 
+    $('#canvas').on("scroll",function() {
+        jsPlumb.repaintEverything();
+    });	
+	
 });
 
 
