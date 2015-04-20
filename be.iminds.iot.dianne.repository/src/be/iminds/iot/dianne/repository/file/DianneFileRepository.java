@@ -1,5 +1,7 @@
 package be.iminds.iot.dianne.repository.file;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -133,7 +135,7 @@ public class DianneFileRepository implements DianneRepository {
 			}
 		}
 		if(f!=null){
-			DataInputStream is = new DataInputStream(new FileInputStream(f));
+			DataInputStream is = new DataInputStream(new BufferedInputStream(new FileInputStream(f)));
 			int count = is.readInt();
 			float[] weights = new float[count];
 			for(int i=0;i<count;i++){
@@ -150,7 +152,7 @@ public class DianneFileRepository implements DianneRepository {
 		File f = new File(dir+"/weights/"+id.toString());
 		DataOutputStream os = null;
 		try {
-			os = new DataOutputStream(new FileOutputStream(f));
+			os = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(f)));
 			os.writeInt(weights.length);
 			for(int i=0;i<weights.length;i++){
 				os.writeFloat(weights[i]);
