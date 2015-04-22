@@ -1,0 +1,5 @@
+Bundle-Version: 0.1.0.${tstamp}
+
+Export-Package: \
+	be.iminds.iot.dianne.tensor
+Bundle-Name: Dianne Tensor Library API

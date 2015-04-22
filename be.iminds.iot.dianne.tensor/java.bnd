@@ -1,0 +1,9 @@
+Bundle-Version: 0.1.0.${tstamp}
+
+Export-Package: \
+	be.iminds.iot.dianne.tensor,\
+	be.iminds.iot.dianne.tensor.impl.java
+-dsannotations: *
+Private-Package: be.iminds.iot.dianne.tensor.serializer
+Import-Package: com.esotericsoftware.kryo.*;resolution:=optional
+Bundle-Name: Dianne Java Tensor Library

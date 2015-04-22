@@ -2,9 +2,9 @@ Bundle-Version: 0.1.0.${tstamp}
 
 Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 -buildpath: \
-	be.iminds.iot.dianne.tensor;version=latest,\
 	biz.aQute.junit,\
 	osgi.enterprise;version=5.0,\
+	be.iminds.iot.dianne.tensor.api;version=latest,\
 	be.iminds.iot.dianne.api;version=latest
 Export-Package: \
 	be.iminds.iot.dianne.api.nn.train.api,\

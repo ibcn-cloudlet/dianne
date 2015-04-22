@@ -2,13 +2,13 @@ Bundle-Version: 0.1.0.${tstamp}
 
 Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 -buildpath: \
-	be.iminds.iot.dianne.tensor;version=latest,\
-	be.iminds.iot.dianne.nn;version=latest,\
-	be.iminds.iot.dianne.nn.train;version=latest,\
 	osgi.core;version='[4.2,5)',\
 	osgi.cmpn,\
 	biz.aQute.junit,\
+	be.iminds.iot.dianne.tensor.api;version=latest,\
 	be.iminds.iot.dianne.api;version=latest,\
+	be.iminds.iot.dianne.nn;version=latest,\
+	be.iminds.iot.dianne.nn.train;version=latest,\
 	be.iminds.iot.dianne.nn.runtime;version=latest
 	
 -runbundles: \
@@ -17,7 +17,7 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 	kxml;version='[2.2.2,2.2.3)',\
 	org.apache.felix.scr;version='[1.8.2,1.8.3)',\
 	com.google.gson;version='[2.2.4,2.3)',\
-	be.iminds.iot.dianne.tensor;version=latest,\
+	be.iminds.iot.dianne.tensor.java;version=latest,\
 	be.iminds.iot.dianne.nn;version=latest,\
 	be.iminds.iot.dianne.nn.runtime;version=latest,\
 	be.iminds.iot.dianne.nn.train;version=latest,\
