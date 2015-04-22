@@ -1,13 +1,19 @@
 package be.iminds.iot.dianne.tensor;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
-import be.iminds.iot.dianne.tensor.impl.java.JavaTensor;
 import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;
-import be.iminds.iot.dianne.tensor.impl.java.JavaTensorMath;
+import be.iminds.iot.dianne.tensor.impl.nd4j.ND4JTensorFactory;
 
+@RunWith(Parameterized.class)
 public class TensorPerformanceTest<T extends Tensor<T>> {
 
 	private TensorFactory<T> factory;
@@ -28,9 +34,20 @@ public class TensorPerformanceTest<T extends Tensor<T>> {
 	private T gradInput;
 	private T gradOutput;
 	
+	public TensorPerformanceTest(TensorFactory<T> f, String name) {
+		this.factory = f;
+	}
+
+	@Parameters(name="{1}")
+	public static Collection<Object[]> data() {
+		return Arrays.asList(new Object[][] { 
+				{ new JavaTensorFactory(), "Java Tensor" },
+				{ new ND4JTensorFactory(), "ND4J Tensor" } 
+		});
+	}
+
     @Before
     public void setUp() {
-        factory = (TensorFactory<T>) new JavaTensorFactory();
         math = factory.getTensorMath();
         
 		parameters = factory.createTensor(outSize, inSize+1);
