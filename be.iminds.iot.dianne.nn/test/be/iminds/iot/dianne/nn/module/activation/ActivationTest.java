@@ -118,6 +118,20 @@ public class ActivationTest {
 
 		testActivation(m, input, gradOutput, expOutput, expGradInput);
 	}
+	
+	@Test
+	public void testPReLU() throws Exception {
+		float[] eo = new float[] { -0.5f, -0.4f, -0.3f, -0.2f, -0.1f, 0f, 1f, 2f, 3f, 4f, 5f };
+		Tensor expOutput = factory.createTensor(eo, 11);
+
+		float[] eg = new float[] { 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 1f, 1f, 1f, 1f, 1f };
+
+		Tensor expGradInput = factory.createTensor(eg, 11);
+
+		Module m = new PReLU(factory, 0.1f);
+
+		testActivation(m, input, gradOutput, expOutput, expGradInput);
+	}
 
 	@Test
 	public void testSoftmax() throws Exception {

@@ -11,6 +11,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		this.factory = factory;
 	}
 
+	@FunctionalInterface
 	private interface Operator {
 		public float apply(final float... params);
 	}
@@ -44,125 +45,92 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		return res;
 	}
 	
+	private JavaTensor apply(JavaTensor res, final Operator op, final JavaTensor t1, final JavaTensor t2, final JavaTensor t3){
+		// TODO check dims?
+		if(res == null){
+			res = factory.createTensor(t1.dims);
+		}
+
+		for(int i=0;i<(t1.indices==null? t1.data.length : t1.indices.length);i++){
+			res.data[(res.indices==null? i : res.indices[i])] 
+					= op.apply(t1.data[(t1.indices==null? i : t1.indices[i])], 
+							t2.data[(t2.indices==null? i : t2.indices[i])],
+							t3.data[(t3.indices==null? i : t3.indices[i])]);
+		}
+		
+		return res;
+	}
+	
+	private JavaTensor apply(JavaTensor res, final Operator op, final JavaTensor t1, final JavaTensor t2, final JavaTensor t3, final JavaTensor t4){
+		// TODO check dims?
+		if(res == null){
+			res = factory.createTensor(t1.dims);
+		}
+
+		for(int i=0;i<(t1.indices==null? t1.data.length : t1.indices.length);i++){
+			res.data[(res.indices==null? i : res.indices[i])] 
+					= op.apply(t1.data[(t1.indices==null? i : t1.indices[i])], 
+							t2.data[(t2.indices==null? i : t2.indices[i])],
+							t3.data[(t3.indices==null? i : t3.indices[i])],
+							t4.data[(t4.indices==null? i : t4.indices[i])]);
+		}
+		
+		return res;
+	}
+	
 	@Override
 	public JavaTensor add(JavaTensor res, final JavaTensor tensor, final float value) {
-		Operator add = new Operator(){
-			@Override
-			public float apply(float... params) {
-				return params[0] + value;
-			}
-		};
-		return apply(res, add, tensor);
+		return apply(res, params ->  params[0] + value, tensor);
 	}
 
 	@Override
 	public JavaTensor add(JavaTensor res, final JavaTensor tensor1, final JavaTensor tensor2) {
-		Operator add = new Operator(){
-			@Override
-			public float apply(float... params) {
-				return params[0] + params[1];
-			}
-		};
-		return apply(res, add, tensor1, tensor2);
+		return apply(res, params -> params[0] + params[1], tensor1, tensor2);
 	}
 
 	@Override
 	public JavaTensor add(JavaTensor res, final JavaTensor tensor1, final float value, final JavaTensor tensor2) {
-		Operator add = new Operator(){
-			@Override
-			public float apply(float... params) {
-				return params[0] + value * params[1];
-			}
-		};
-		return apply(res, add, tensor1, tensor2);
+		return apply(res, params -> params[0] + value * params[1], tensor1, tensor2);
 	}
 
 	@Override
 	public JavaTensor sub(JavaTensor res, final JavaTensor tensor, final float value) {
-		Operator sub = new Operator(){
-			@Override
-			public float apply(float... params) {
-				return params[0] - value;
-			}
-		};
-		return apply(res, sub, tensor);
+		return apply(res, params -> params[0] - value, tensor);
 	}
 
 	@Override
 	public JavaTensor sub(JavaTensor res, final JavaTensor tensor1, final JavaTensor tensor2) {
-		Operator sub = new Operator(){
-			@Override
-			public float apply(float... params) {
-				return params[0] - params[1];
-			}
-		};
-		return apply(res, sub, tensor1, tensor2);
+		return apply(res, params -> params[0] - params[1], tensor1, tensor2);
 	}
 	
 	@Override
 	public JavaTensor sub(JavaTensor res, final JavaTensor tensor1, final float value, final JavaTensor tensor2) {
-		Operator sub = new Operator(){
-			@Override
-			public float apply(float... params) {
-				return params[0] - value * params[1];
-			}
-		};
-		return apply(res, sub, tensor1, tensor2);
+		return apply(res, params -> params[0] - value * params[1], tensor1, tensor2);
 	}
 	
 	@Override
 	public JavaTensor mul(JavaTensor res, final JavaTensor tensor, final float value) {
-		Operator mul = new Operator(){
-			@Override
-			public float apply(float... params) {
-				return params[0] * value;
-			}
-		};
-		return apply(res, mul, tensor);
+		return apply(res, params -> params[0] * value, tensor);
 	}
 
 	@Override
 	public JavaTensor cmul(JavaTensor res, final JavaTensor tensor1, final JavaTensor tensor2) {
-		Operator cmul = new Operator(){
-			@Override
-			public float apply(float... params) {
-				return params[0] * params[1];
-			}
-		};
-		return apply(res, cmul, tensor1, tensor2);
+		return apply(res, params -> params[0] * params[1], tensor1, tensor2);
 	}
 
 	@Override
 	public JavaTensor div(JavaTensor res, final JavaTensor tensor, final float value) {
-		Operator div = new Operator(){
-			@Override
-			public float apply(float... params) {
-				return params[0] / value;
-			}
-		};
-		return apply(res, div, tensor);
+		return apply(res, params -> params[0] / value, tensor);
 	}
 
 	@Override
 	public JavaTensor div(JavaTensor res, final JavaTensor tensor1, final JavaTensor tensor2) {
-		Operator div = new Operator(){
-			@Override
-			public float apply(float... params) {
-				return params[0] / params[1];
-			}
-		};
-		return apply(res, div, tensor1, tensor2);
+		return apply(res, params -> params[0] / params[1], tensor1, tensor2);
 	}
 	
 	@Override
 	public JavaTensor cdiv(JavaTensor res, final JavaTensor tensor1, final JavaTensor tensor2) {
-		Operator cdiv = new Operator(){
-			@Override
-			public float apply(float... params) {
-				return params[0] / params[1];
-			}
-		};
-		return apply(res, cdiv, tensor1, tensor2);
+		return apply(res, params -> params[0] / params[1], tensor1, tensor2);
 	}
 
 	@Override
@@ -305,102 +273,58 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 
 	@Override
 	public JavaTensor exp(JavaTensor res, final JavaTensor tensor) {
-		Operator exp = new Operator(){
-			@Override
-			public float apply(float... params) {
-				return (float) Math.exp(params[0]);
-			}
-		};
-		return apply(res, exp, tensor);
+		return apply(res, params -> (float) Math.exp(params[0]), tensor);
 	}
 
 	@Override
 	public JavaTensor log(JavaTensor res, final JavaTensor tensor) {
-		Operator log = new Operator(){
-			@Override
-			public float apply(float... params) {
-				return (float) Math.log(params[0]);
-			}
-		};
-		return apply(res, log, tensor);
+		return apply(res, params -> (float) Math.log(params[0]), tensor);
 	}
 	
 	@Override
 	public JavaTensor tanh(JavaTensor res, final JavaTensor tensor) {
-		Operator tanh = new Operator(){
-			@Override
-			public float apply(float... params) {
-				return (float) Math.tanh(params[0]);
-			}
-		};
-		return apply(res, tanh, tensor);
+		return apply(res, params -> (float) Math.tanh(params[0]), tensor);
 	}
 
 	@Override
 	public JavaTensor sigmoid(JavaTensor res, final JavaTensor tensor) {
-		Operator sigmoid = new Operator(){
-			@Override
-			public float apply(float... params) {
-				return (float)(1.0/(1+Math.exp(-params[0])));
-			}
-		};
-		return apply(res, sigmoid, tensor);
+		return apply(res, params -> (float)(1.0/(1+Math.exp(-params[0]))), tensor);
 	}
 
 	@Override
-	public JavaTensor thresh(JavaTensor res, final JavaTensor tensor, final float thresh, final float val) {
-		Operator threshOp = new Operator(){
-			@Override
-			public float apply(float... params) {
-				return params[0] > thresh ? params[0] : val;
-			}
-		};
-		return apply(res, threshOp, tensor);
+	public JavaTensor thresh(JavaTensor res, final JavaTensor tensor, final float thresh, final float coeff, final float offset) {
+		return apply(res, params -> params[0] > thresh ? params[0] : coeff * params[0] + offset, tensor);
+	}
+	
+	@Override
+	public JavaTensor thresh(JavaTensor res, final JavaTensor tensor, final JavaTensor threshs, final JavaTensor coeffs, final JavaTensor offsets) {
+		return apply(res, params -> params[0] > params[1] ? params[0] : params[2] * params[0] + params[3], tensor, threshs, coeffs, offsets);
 	}
 	
 	@Override
 	public JavaTensor dtanh(JavaTensor res, final JavaTensor tensor) {
-		Operator dtanh = new Operator(){
-			@Override
-			public float apply(float... params) {
-				return (1.0f - params[0]*params[0]);
-			}
-		};
-		return apply(res, dtanh, tensor);
+		return apply(res, params -> (1.0f - params[0]*params[0]), tensor);
 	}
 
 	@Override
 	public JavaTensor dsigmoid(JavaTensor res, final JavaTensor tensor) {
-		Operator dsigmoid = new Operator(){
-			@Override
-			public float apply(float... params) {
-				return params[0]*(1.0f - params[0]);
-			}
-		};
-		return apply(res, dsigmoid, tensor);
+		return apply(res, params -> params[0]*(1.0f - params[0]), tensor);
 	}
 
 	@Override
-	public JavaTensor dthresh(JavaTensor res, final JavaTensor tensor, final float thresh) {
-		Operator threshOp = new Operator(){
-			@Override
-			public float apply(float... params) {
-				return params[0] > thresh ? 1 : 0;
-			}
-		};
-		return apply(res, threshOp, tensor);
+	public JavaTensor dthresh(JavaTensor res, final JavaTensor tensor, final float thresh, final float coeff) {
+		return apply(res, params -> params[0] > thresh ? 1 : coeff, tensor);
 	}
 	
 	@Override
+	public JavaTensor dthresh(JavaTensor res, final JavaTensor tensor, final JavaTensor threshs, final JavaTensor coeffs) {
+		return apply(res, params -> params[0] > params[1] ? 1 : params[2], tensor, threshs, coeffs);
+	}
+
+	@Override
 	public JavaTensor softmax(JavaTensor res, final JavaTensor tensor){
 		final float max = max(tensor);
-		Operator op = new Operator(){
-			@Override
-			public float apply(float... params) {
-				return (float) Math.exp(params[0]-max);
-			}
-		};
-		res = apply(res, op, tensor);
+		res = apply(res, params -> (float) Math.exp(params[0]-max), tensor);
 		
 		float sum = sum(res);
 		res = div(res, res, sum);
