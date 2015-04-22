@@ -39,17 +39,16 @@ function showConfigureModuleDialog(moduleItem) {
 	}
 }
 
-/**
- * Create dialog for configuring module in build mode
+/*
+ * Helper function to create base dialog and show the Module div
+ * Base for each NN configure module dialog in each mode
  */
-function createBuildModuleDialog(id, moduleItem){
-	var module = nn[id];
-	
+function createNNModuleDialog(module, title, submit, cancel){
 	var dialog = renderTemplate("dialog", {
-		id : id,
-		title : "Configure module ",
-		submit: "Configure",
-		cancel: "Delete"
+		'id' : module.id,
+		'title' : title,
+		'submit': submit,
+		'cancel': cancel
 	}, $(document.body));
 	
 	// add module div to dialog to show which module to configure
@@ -60,6 +59,17 @@ function createBuildModuleDialog(id, moduleItem){
 				category: module.category
 			}, 
 			dialog.find('.content'));
+	
+	return dialog;
+}
+
+/**
+ * Create dialog for configuring module in build mode
+ */
+function createBuildModuleDialog(id, moduleItem){
+	var module = nn[id];
+	
+	var dialog = createNNModuleDialog(module, "Configure module ", "Configure", "Delete");
 	
 	// then fill in properties
 	$.post("/dianne/builder", {"action" : "module-properties","type" : module.type}, 
@@ -124,21 +134,7 @@ function createBuildModuleDialog(id, moduleItem){
 function createDeployModuleDialog(id, moduleItem){
 	var module = nn[id];
 	
-	var dialog = renderTemplate("dialog", {
-		id : id,
-		title : "Deploy module ",
-		submit: "Deploy",
-		cancel: "Undeploy"
-	}, $(document.body));
-	
-	// add module div to dialog to show which module to configure
-	renderTemplate("module",
-			{	
-				name: module.type,
-				type: module.type, 
-				category: module.category
-			}, 
-			dialog.find('.content'));
+	var dialog = createNNModuleDialog(module, "Deploy module ", "Deploy", "Undeploy");
 	
 	// fill in deployment options
 	if(deployment[id]===undefined){
@@ -191,7 +187,71 @@ function createDeployModuleDialog(id, moduleItem){
 function createLearnModuleDialog(id, moduleItem){
 	var module = learning[id];
 	if(module===undefined){
-		return undefined; // no dialogs for build modules
+		module = nn[id];
+		
+		if(module.trainable!==undefined){
+			var dialog = createNNModuleDialog(module, "Configure module", "Save", "");
+			dialog.find(".cancel").remove();
+			
+			var train = "";
+			if(module.trainable===true){
+				train = "checked";
+			}
+			renderTemplate("form-checkbox", 
+					{	
+						name: "Train",
+						id: "trainable",
+						checked: train
+					},
+					dialog.find('.form-items'));
+			
+			dialog.find(".submit").click(function(e){
+				// apply training configuration
+				var id = $(this).closest(".modal").find(".module-id").val();
+				var train = $(this).closest(".modal").find(".trainable").is(':checked');
+				if(train){
+					nn[id].trainable = true;
+				} else {
+					nn[id].trainable = false;
+				}
+				
+				$(this).closest(".modal").modal('hide');
+			});
+			
+			return dialog; 
+			
+		} else if(module.category==="Fork"
+					|| module.category==="Join"){
+			
+			var dialog = createNNModuleDialog(module, "Configure module", "Save", "");
+			dialog.find(".cancel").remove();
+
+			renderTemplate("form-dropdown", 
+				{	
+					name: "Mode"
+				},
+				dialog.find('.form-items'));
+			
+			dialog.find('.options').append("<option value=\"FORWARD_ON_CHANGE\">Forward on change</option>");
+			dialog.find('.options').append("<option value=\"WAIT_FOR_ALL\">Wait for all input/gradOutput</option>");
+			dialog.find('.options').change(function(event){
+				var selected = dialog.find( "option:selected" ).val();
+				var id = dialog.find(".module-id").val();
+
+				// weird to do this with run, but actually makes sense to set runtime mode in run servlet?
+				$.post("/dianne/run", {"mode":selected, "target":id}, 
+						function( data ) {
+						}
+						, "json");
+				
+				$(this).closest(".modal").modal('hide');
+			});
+			
+			return dialog;
+		} else {
+			// no dialogs for untrainable modules
+			return undefined;
+		}
 	}
 	
 	var dialog;
@@ -387,9 +447,13 @@ function createRunModuleDialog(id, moduleItem){
 				$.each(running, function(id, module){
 					// choose right RunOutput to set the chart of
 					if(module.output===data.id){
-						var index = Number($("#dialog-"+module.id).find(".content").attr("data-highcharts-chart"));
-						// data.output is tensor representation as string, should be parsed first
-						Highcharts.charts[index].series[0].setData(JSON.parse(data.output), true, true, true);
+						var attr = $("#dialog-"+module.id).find(".content").attr("data-highcharts-chart");
+						if(attr!==undefined){
+							var index = Number(attr);
+							// data.output is tensor representation as string, should be parsed first
+							Highcharts.charts[index].series[0].setData(data.output, true, true, true);
+							Highcharts.charts[index].xAxis[0].setCategories(data.labels);
+						}
 					}
 				});
 			};
@@ -416,7 +480,35 @@ function createRunModuleDialog(id, moduleItem){
 		sampleCanvas = dialog.find('.sampleCanvas')[0];
 		sampleCanvasCtx = sampleCanvas.getContext('2d');
 		
-	} 
+	} else if(module.type==="Camera"){
+		dialog = renderTemplate("dialog", {
+			id : id,
+			title : "Camera input from "+module.name,
+			submit: "",
+			cancel: "Delete"
+		}, $(document.body));
+		
+		dialog.find(".content").append("<canvas class='cameraCanvas' width='256' height='256' style=\"border:1px solid #000000; margin-left:150px\"></canvas>");
+
+		cameraCanvas = dialog.find('.cameraCanvas')[0];
+		cameraCanvasCtx = cameraCanvas.getContext('2d');
+		
+		if(cameraEventsource===undefined){
+			cameraEventsource = new EventSource("input");
+			cameraEventsource.onmessage = function(event){
+				var data = JSON.parse(event.data);
+				render(data, cameraCanvasCtx);
+			};
+		}
+		
+		dialog.on('hidden.bs.modal', function () {
+		    cameraEventsource.close();
+		    cameraEventsource = undefined;
+		    $(this).closest(".modal").remove();
+		});
+	} else {
+		dialog = createNNModuleDialog(module, "Configure run module", "", "Delete");
+	}
 	
 	dialog.find(".cancel").click(function(e){
 		// remove object
@@ -443,6 +535,10 @@ var mousePos = {x: 0, y:0};
 
 var sampleCanvas;
 var sampleCanvasCtx;
+
+// TODO can have multiple camera inputs...
+var cameraCanvas;
+var cameraCanvasCtx;
 
 function downListener(e) {
 	e.preventDefault();
@@ -511,40 +607,7 @@ function forwardCanvasInput(input){
 function sample(dataset, input){
 	$.post("/dianne/datasets", {"action":"sample","dataset":dataset}, 
 			function( sample ) {
-				var scale = Math.ceil(256/sample.width);
-				var width = sample.width*scale;
-				var height = sample.height*scale;
-				var imageData = sampleCanvasCtx.createImageData(width, height);
-				if(sample.channels===1){
-					for (var y = 0; y < height; y++) {
-				        for (var x = 0; x < width; x++) {
-				        	// collect alpha values
-				        	var x_s = Math.floor(x/scale);
-				        	var y_s = Math.floor(y/scale);
-				        	var index = y_s*sample.width+x_s;
-				        	imageData.data[y*width*4+x*4+3] = Math.floor(sample.data[index]*255);
-				        }
-				    }
-				} else if(sample.channels===3){
-					// RGB
-					for(var c = 0; c < 3; c++){
-						for (var y = 0; y < height; y++) {
-					        for (var x = 0; x < width; x++) {
-					        	var x_s = Math.floor(x/scale);
-					        	var y_s = Math.floor(y/scale);
-					        	var index = c*sample.width*sample.height + y_s*sample.width+x_s;
-					        	imageData.data[y*width*4+x*4+c] = Math.floor(sample.data[index]*255);
-					        }
-					    }		
-					}
-					for (var y = 0; y < height; y++) {
-				        for (var x = 0; x < width; x++) {
-				        	imageData.data[y*width*4+x*4+3] = 255;
-				        }
-					}
-				}
-				
-				sampleCanvasCtx.putImageData(imageData, 0, 0); 
+				render(sample, sampleCanvasCtx);
 				
 				$.post("/dianne/run", {"forward":JSON.stringify(sample), "input":input}, 
 						function( data ) {
@@ -552,7 +615,43 @@ function sample(dataset, input){
 						, "json");
 			}
 			, "json");
+}
+
+function render(tensor, canvasCtx){
+	var scale = 256/tensor.width;
+	var width = tensor.width*scale;
+	var height = tensor.height*scale;
+	var imageData = canvasCtx.createImageData(width, height);
+	if(tensor.channels===1){
+		for (var y = 0; y < height; y++) {
+	        for (var x = 0; x < width; x++) {
+	        	// collect alpha values
+	        	var x_s = Math.floor(x/scale);
+	        	var y_s = Math.floor(y/scale);
+	        	var index = y_s*tensor.width+x_s;
+	        	imageData.data[y*width*4+x*4+3] = Math.floor(tensor.data[index]*255);
+	        }
+	    }
+	} else if(tensor.channels===3){
+		// RGB
+		for(var c = 0; c < 3; c++){
+			for (var y = 0; y < height; y++) {
+		        for (var x = 0; x < width; x++) {
+		        	var x_s = Math.floor(x/scale);
+		        	var y_s = Math.floor(y/scale);
+		        	var index = c*tensor.width*tensor.height + y_s*tensor.width+x_s;
+		        	imageData.data[y*width*4+x*4+c] = Math.floor(tensor.data[index]*255);
+		        }
+		    }		
+		}
+		for (var y = 0; y < height; y++) {
+	        for (var x = 0; x < width; x++) {
+	        	imageData.data[y*width*4+x*4+3] = 255;
+	        }
+		}
+	}
 	
+	canvasCtx.putImageData(imageData, 0, 0); 
 }
 
 
@@ -561,12 +660,16 @@ function sample(dataset, input){
  */
 
 function deployAll(){
-	$.post("/dianne/deployer", {"action":"deploy","modules":JSON.stringify(nn)}, 
+	$.post("/dianne/deployer", {"action":"deploy","modules":JSON.stringify(nn),"target":selectedTarget}, 
 			function( data ) {
 				$.each( data, function(id,target){
 					deployment[id] = target;
-					// TODO separate color per node?
-					$("#"+id).css('background-color', '#FF6CDA');
+					var c = deploymentColors[target]; 
+					if(c === undefined){
+						c = nextColor();
+						deploymentColors[target] = c;
+					}
+					$("#"+id).css('background-color', c);
 				});
 			}
 			, "json");
@@ -605,13 +708,6 @@ function undeploy(id){
 			, "json");
 }
 
-var deploymentColors = {};
-var colors = ['#FF6CDA','#81F781','#AC58FA','#FA5858'];
-var colorIndex = 0;
-
-function nextColor(){
-	return colors[colorIndex++];
-}
 
 /*
  * Learning functions
@@ -629,14 +725,27 @@ function learn(id){
         var y = Number(data.error); 
 		Highcharts.charts[index].series[0].addPoint([x, y], true, true, false);
 	};
-	console.log(JSON.stringify(nn));
+	
+	var modules = [];
+	$.each(nn, function(id, module){
+		if(module.category==="Input-Output" 
+			|| module.category==="Preprocessing"){
+			modules.push(id);
+		} else {
+			if(module.trainable===true){
+				modules.push(id);
+			}
+		}
+	});
+	
 	$.post("/dianne/learner", {"action":"learn",
 		"config":JSON.stringify(learning),
-		"modules":JSON.stringify(Object.keys(nn)),
+		"modules": JSON.stringify(modules),
 		"target": id}, 
 			function( data ) {
-				$.each(data, function(id, parameters){
-					nn[id].parameters = parameters;
+				// only returns labels of output module
+				$.each(data, function(id, labels){
+					nn[id].labels = labels;
 				});
 				eventsource.close();
 				eventsource = undefined;
@@ -671,6 +780,7 @@ function evaluate(id){
  * SSE for feedback when training/running
  */
 var eventsource;
+var cameraEventsource
 
 if(typeof(EventSource) === "undefined") {
 	// load polyfill eventsource library

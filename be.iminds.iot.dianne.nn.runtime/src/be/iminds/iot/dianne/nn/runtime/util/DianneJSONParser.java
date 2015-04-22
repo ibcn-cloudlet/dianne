@@ -85,8 +85,9 @@ public class DianneJSONParser {
 			}
 			config.put("module.prev", prev);
 		}
-		if(moduleJson.has("parameters")){
-			config.put("module.parameters", moduleJson.get("parameters").getAsString());
+		// output labels
+		if(moduleJson.has("labels")){
+			config.put("module.labels", moduleJson.get("labels").getAsString());
 		}
 
 		// key prefix

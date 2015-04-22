@@ -24,7 +24,8 @@ public class Accumulate extends Join {
 		}
 		output.fill(0.0f);
 		for(Tensor t : inputs.values()){
-			output = factory.getTensorMath().add(output, output, t);
+			if(t!=null)
+				output = factory.getTensorMath().add(output, output, t);
 		}
 	}
 

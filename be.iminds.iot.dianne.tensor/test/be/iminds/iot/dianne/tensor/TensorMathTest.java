@@ -293,8 +293,52 @@ public class TensorMathTest<T extends Tensor<T>> {
 		result.fill(18.0f);
 		result.set(20.0f, 0, 0);
 		result.set(20.0f, 2, 2);
+		
+		Assert.assertEquals(result, math.convolution2D(null, t1, t2, 1, 1, 0, false));
+	}
 	
-		Assert.assertEquals(result, math.convolution2D(null, t1, t2, 1, 1, false, false));
+	@Test
+	public void testConvolutionFull(){
+		T t1 = factory.createTensor(5,5);
+		T t2 = factory.createTensor(3,3);
+		t1.fill(1.0f);
+		t1.set(2.0f, 0, 0);
+		t1.set(2.0f, 4, 4);
+		t2.fill(2.0f);
+		
+		float[] data = new float[]{
+			4.0f, 6.0f,  8.0f,  6.0f,  6.0f,  4.0f,  2.0f,
+			6.0f, 10.0f, 14.0f, 12.0f, 12.0f, 8.0f,  4.0f,
+			8.0f, 14.0f, 20.0f, 18.0f, 18.0f, 12.0f, 6.0f,
+			6.0f, 12.0f, 18.0f, 18.0f, 18.0f, 12.0f, 6.0f,
+			6.0f, 12.0f, 18.0f, 18.0f, 20.0f, 14.0f, 8.0f,
+			4.0f, 8.0f,  12.0f, 12.0f, 14.0f, 10.0f, 6.0f,
+			2.0f, 4.0f,  6.0f,  6.0f,  8.0f,  6.0f,  4.0f
+		};
+		T result = factory.createTensor(data, 7,7);
+		
+		Assert.assertEquals(result, math.convolution2D(null, t1, t2, 1, 1, 1, false));
+	}
+	
+	@Test
+	public void testConvolutionSame(){
+		T t1 = factory.createTensor(5,5);
+		T t2 = factory.createTensor(3,3);
+		t1.fill(1.0f);
+		t1.set(2.0f, 0, 0);
+		t1.set(2.0f, 4, 4);
+		t2.fill(2.0f);
+		
+		float[] data = new float[]{
+				10.0f, 14.0f, 12.0f, 12.0f, 8.0f,
+				14.0f, 20.0f, 18.0f, 18.0f, 12.0f,
+				12.0f, 18.0f, 18.0f, 18.0f, 12.0f,
+				12.0f, 18.0f, 18.0f, 20.0f, 14.0f,
+				8.0f,  12.0f, 12.0f, 14.0f, 10.0f,
+		};
+		T result = factory.createTensor(data, 5, 5);
+	
+		Assert.assertEquals(result, math.convolution2D(null, t1, t2, 1, 1, 2, false));
 	}
 	
 	@Test
@@ -313,7 +357,27 @@ public class TensorMathTest<T extends Tensor<T>> {
 		result.set(0.0f, 1, 1);
 		result.set(4.0f, 0, 2);
 		
-		Assert.assertEquals(result, math.maxpool2D(null, t1, 2, 2));
+		Assert.assertEquals(result, math.maxpool2D(null, t1, 2, 2, 2, 2));
+	}
+	
+	@Test
+	public void testMaxpoolStride(){
+		T t1 = factory.createTensor(4,6);
+		t1.fill(0.0f);
+		t1.set(1.0f, 0, 0);
+		t1.set(1.0f, 0, 3);
+		t1.set(2.0f, 2, 0);
+		t1.set(4.0f, 0, 5);
+		
+		T result = factory.createTensor(3,5);
+		result.set(1.0f, 0, 0);
+		result.set(1.0f, 0, 2);
+		result.set(1.0f, 0, 3);
+		result.set(4.0f, 0, 4);
+		result.set(2.0f, 1, 0);
+		result.set(2.0f, 2, 0);
+
+		Assert.assertEquals(result, math.maxpool2D(null, t1, 2, 2, 1, 1));
 	}
 	
 	
@@ -340,6 +404,6 @@ public class TensorMathTest<T extends Tensor<T>> {
 		result.set(1.0f, 2, 0);
 		result.set(1.0f, 0, 5);
 	
-		Assert.assertEquals(result, math.dmaxpool2D(null, grad, t1, 2, 2));
+		Assert.assertEquals(result, math.dmaxpool2D(null, grad, t1, 2, 2, 2 ,2));
 	}
 }

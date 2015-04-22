@@ -10,8 +10,8 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
-import be.iminds.iot.dianne.nn.module.BackwardListener;
-import be.iminds.iot.dianne.nn.module.ForwardListener;
+import be.iminds.iot.dianne.api.nn.module.BackwardListener;
+import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.nn.module.layer.SpatialConvolution;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;
@@ -27,7 +27,7 @@ public class SpatialConvolutionTest {
 		int kernelWidth = 3;
 		int kernelHeight = 3;
 		
-		SpatialConvolution conv = new SpatialConvolution(factory, noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight);
+		SpatialConvolution conv = new SpatialConvolution(factory, noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, 1 ,1, false);
 	
 		for(int i=0;i<noOutputPlanes;i++){
 			Tensor sub1 = conv.weights.select(0, i);
@@ -50,7 +50,7 @@ public class SpatialConvolutionTest {
 		int kernelWidth = 3;
 		int kernelHeight = 3;
 		
-		SpatialConvolution conv = new SpatialConvolution(factory, noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight);
+		SpatialConvolution conv = new SpatialConvolution(factory, noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, 1 ,1, false);
 
 		for(int i=0;i<noOutputPlanes;i++){
 			Tensor sub1 = conv.weights.select(0, i);
@@ -143,7 +143,7 @@ public class SpatialConvolutionTest {
 		int kernelWidth = 3;
 		int kernelHeight = 3;
 		SpatialConvolution conv = new SpatialConvolution(factory, 
-				noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight);
+				noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, 1, 1, false);
 		
 		for(int i=0;i<noOutputPlanes;i++){
 			Tensor sub = conv.weights.select(0, i);

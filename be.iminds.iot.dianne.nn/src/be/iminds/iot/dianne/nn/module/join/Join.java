@@ -5,8 +5,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import be.iminds.iot.dianne.nn.module.AbstractModule;
-import be.iminds.iot.dianne.nn.module.Module;
+import be.iminds.iot.dianne.api.nn.module.AbstractModule;
+import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -41,8 +41,8 @@ public abstract class Join extends AbstractModule {
 	public void forward(final UUID moduleId, final Tensor input) {
 		this.inputs.put(moduleId, input);
 		
-		// when training, wait for input from each prev
-		if(mode==Mode.TRAINING && prev!=null && prev.length>1){
+		// when in wait-for-all mode, wait for input from each prev
+		if(mode==Mode.WAIT_FOR_ALL && prev!=null && prev.length>1){
 			synchronized(prevLock){
 				prevLock.get(moduleId).set(true);
 				for(AtomicBoolean b : prevLock.values()){

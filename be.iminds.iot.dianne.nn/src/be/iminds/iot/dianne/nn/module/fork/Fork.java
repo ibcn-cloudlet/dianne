@@ -5,8 +5,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import be.iminds.iot.dianne.nn.module.AbstractModule;
-import be.iminds.iot.dianne.nn.module.Module;
+import be.iminds.iot.dianne.api.nn.module.AbstractModule;
+import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -40,8 +40,8 @@ public abstract class Fork extends AbstractModule {
 	public void backward(final UUID moduleId, final Tensor gradOutput) {
 		this.gradOutputs.put(moduleId, gradOutput);
 		
-		// when training, wait until all gradOutput is updated
-		if(mode==Mode.TRAINING && next!=null && next.length>1){
+		// when wait-for-all mode, wait until all gradOutput is updated
+		if(mode==Mode.WAIT_FOR_ALL && next!=null && next.length>1){
 			synchronized(nextLock){
 				nextLock.get(moduleId).set(true);
 				for(AtomicBoolean b : nextLock.values()){

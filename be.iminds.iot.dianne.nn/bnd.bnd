@@ -5,16 +5,19 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 	be.iminds.iot.dianne.tensor;version=latest,\
 	biz.aQute.junit,\
 	osgi.enterprise;version=5.0,\
-	be.iminds.iot.dianne.dataset.mnist;version=latest
+	be.iminds.iot.dianne.api;version=latest
 Export-Package: \
-	be.iminds.iot.dianne.nn.module,\
-	be.iminds.iot.dianne.nn.module.factory,\
-	be.iminds.iot.dianne.nn.module.description
+	be.iminds.iot.dianne.api.nn.module,\
+	be.iminds.iot.dianne.api.nn.module.factory,\
+	be.iminds.iot.dianne.api.nn.module.description
 -dsannotations: *
 Private-Package: \
 	be.iminds.iot.dianne.nn.module.activation,\
+	be.iminds.iot.dianne.nn.module.factory,\
 	be.iminds.iot.dianne.nn.module.preprocessing,\
 	be.iminds.iot.dianne.nn.module.join,\
 	be.iminds.iot.dianne.nn.module.fork,\
 	be.iminds.iot.dianne.nn.module.io,\
 	be.iminds.iot.dianne.nn.module.layer
+Bundle-Name: Dianne NN modules
+Bundle-Description: Dianne Neural Network module implementations

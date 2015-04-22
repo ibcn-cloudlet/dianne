@@ -74,7 +74,7 @@ public class JavaTensor implements Tensor<JavaTensor> {
 			i = new int[dims.length];
 			int l = 0;
 			for(int k=0;k<dims.length;k++){
-				if(dims[k]==1){
+				if(dims[k]==1 || l >= d.length){
 					i[k] = 0;
 				} else {
 					i[k] = d[l];

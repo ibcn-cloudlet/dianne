@@ -19,7 +19,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
-import be.iminds.iot.dianne.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 import com.google.gson.JsonArray;

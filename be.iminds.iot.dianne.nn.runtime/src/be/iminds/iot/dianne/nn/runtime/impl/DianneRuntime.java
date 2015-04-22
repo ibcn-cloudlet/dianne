@@ -1,5 +1,6 @@
 package be.iminds.iot.dianne.nn.runtime.impl;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Dictionary;
@@ -24,19 +25,22 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
-import be.iminds.iot.dianne.nn.module.Input;
-import be.iminds.iot.dianne.nn.module.Module;
-import be.iminds.iot.dianne.nn.module.Output;
-import be.iminds.iot.dianne.nn.module.Preprocessor;
-import be.iminds.iot.dianne.nn.module.Trainable;
-import be.iminds.iot.dianne.nn.module.description.ModuleDescription;
-import be.iminds.iot.dianne.nn.module.factory.ModuleFactory;
-import be.iminds.iot.dianne.nn.runtime.ModuleManager;
+import be.iminds.iot.dianne.api.nn.module.ForwardListener;
+import be.iminds.iot.dianne.api.nn.module.BackwardListener;
+import be.iminds.iot.dianne.api.nn.module.Input;
+import be.iminds.iot.dianne.api.nn.module.Module;
+import be.iminds.iot.dianne.api.nn.module.Output;
+import be.iminds.iot.dianne.api.nn.module.Preprocessor;
+import be.iminds.iot.dianne.api.nn.module.Trainable;
+import be.iminds.iot.dianne.api.nn.module.description.ModuleType;
+import be.iminds.iot.dianne.api.nn.module.factory.ModuleFactory;
+import be.iminds.iot.dianne.api.nn.runtime.ModuleManager;
+import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component(immediate=true, 
 	property={"service.pid=be.iminds.iot.dianne.nn.module",
-			  "aiolos.callback=be.iminds.iot.dianne.nn.runtime.ModuleManager"})
+			  "aiolos.callback=be.iminds.iot.dianne.api.nn.runtime.ModuleManager"})
 public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 
 	private BundleContext context;
@@ -44,6 +48,8 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 	// TODO support multiple factories in the future?!
 	private TensorFactory tFactory;
 	private List<ModuleFactory> mFactories = Collections.synchronizedList(new ArrayList<ModuleFactory>());
+	
+	private DianneRepository repository;
 	
 	// All module UUIDs by their PID
 	private Map<String, UUID> uuids = new HashMap<String, UUID>();
@@ -54,6 +60,9 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 	
 	private Map<UUID, List<UUID>> nextMap = new HashMap<UUID, List<UUID>>();
 	private Map<UUID, List<UUID>> prevMap = new HashMap<UUID, List<UUID>>();
+	
+	private Map<ForwardListener, List<UUID>> forwardListeners = new HashMap<ForwardListener, List<UUID>>();
+	private Map<BackwardListener, List<UUID>> backwardListeners = new HashMap<BackwardListener, List<UUID>>();
 	
 	@Override
 	public String getName() {
@@ -87,6 +96,11 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 		this.mFactories.remove(factory);
 	}
 	
+	@Reference
+	public void setDianneRepository(DianneRepository repo){
+		this.repository = repo;
+	}
+	
 	@Reference(
 			cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
@@ -101,6 +115,42 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 		for(Module m : findDependingModules(id, prevMap)){
 			configurePrevious(m);
 		}
+	
+		configureModuleListeners(id, module);
+	}
+	
+	public synchronized void updatedModule(Module module, Map<String, Object> properties){
+		UUID id = UUID.fromString((String)properties.get("module.id"));
+		configureModuleListeners(id, module);
+	}
+	
+	private void configureModuleListeners(UUID id, Module module){
+		if(registrations.containsKey(id)){
+			// check if someone is listening for this (locally registered) module
+			synchronized(forwardListeners){
+				Iterator<Entry<ForwardListener, List<UUID>>> it = forwardListeners.entrySet().iterator();
+				while(it.hasNext()){
+					Entry<ForwardListener, List<UUID>> e = it.next();
+					for(UUID i : e.getValue()){
+						if(id.equals(i)){
+							module.addForwardListener(e.getKey());
+						}
+					}
+				}
+			}
+			
+			synchronized(backwardListeners){
+				Iterator<Entry<BackwardListener, List<UUID>>> it = backwardListeners.entrySet().iterator();
+				while(it.hasNext()){
+					Entry<BackwardListener, List<UUID>> e = it.next();
+					for(UUID i : e.getValue()){
+						if(id.equals(i)){
+							module.addBackwardListener(e.getKey());
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	public synchronized void removeModule(Module module, Map<String, Object> properties){
@@ -113,6 +163,77 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 		}
 		for(Module m : findDependingModules(id, prevMap)){
 			unconfigurePrevious(m);
+		}
+	}
+	
+	@Reference(
+			cardinality=ReferenceCardinality.MULTIPLE, 
+			policy=ReferencePolicy.DYNAMIC)
+	public synchronized void addForwardListener(ForwardListener l, Map<String, Object> properties){
+		String[] targets = (String[])properties.get("targets");
+		if(targets!=null){
+			List<UUID> ids = new ArrayList<UUID>();
+			for(String t : targets){
+				UUID id = UUID.fromString(t);
+				ids.add(id);
+				if(registrations.containsKey(id)){
+					Module m = modules.get(id);
+					if(m!=null){ // should not be null?
+						m.addForwardListener(l);
+					}
+				}
+			}
+			forwardListeners.put(l, ids);
+		}
+	}
+	
+	public synchronized void removeForwardListener(ForwardListener l){
+		List<UUID> ids = forwardListeners.remove(l);
+		if(ids!=null){
+			for(UUID id : ids){
+				if(registrations.containsKey(id)){
+					Module m = modules.get(id);
+					if(m!=null){ // should not be null?
+						m.removeForwardListener(l);
+					}
+				}
+			}
+		}
+	}
+	
+	
+	@Reference(
+			cardinality=ReferenceCardinality.MULTIPLE, 
+			policy=ReferencePolicy.DYNAMIC)
+	public synchronized void addBackwardListener(BackwardListener l, Map<String, Object> properties){
+		String[] targets = (String[])properties.get("targets");
+		if(targets!=null){
+			List<UUID> ids = new ArrayList<UUID>();
+			for(String t : targets){
+				UUID id = UUID.fromString(t);
+				ids.add(id);
+				if(registrations.containsKey(id)){
+					Module m = modules.get(id);
+					if(m!=null){ // should not be null?
+						m.addBackwardListener(l);
+					}
+				}
+			}
+			backwardListeners.put(l, ids);
+		}
+	}
+	
+	public synchronized void removeBackwardListener(BackwardListener l){
+		List<UUID> ids = backwardListeners.remove(l);
+		if(ids!=null){
+			for(UUID id : ids){
+				if(registrations.containsKey(id)){
+					Module m = modules.get(id);
+					if(m!=null){ // should not be null?
+						m.removeBackwardListener(l);
+					}
+				}
+			}
 		}
 	}
 	
@@ -165,21 +286,26 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 		prevMap.put(module.getId(), prevIDs);
 		configurePrevious(module);
 
-		// set parameters
-		String parameters = (String)properties.get("module.parameters");
-		if(parameters!=null){
-			
-			if(module instanceof Trainable){
-				float[] weights = parseWeights(parameters);
-				((Trainable)module).setParameters(weights);
-			} else if(module instanceof Preprocessor){
-				float[] weights = parseWeights(parameters);
-				((Preprocessor)module).setParameters(weights);
-			} else if(module instanceof Output){
-				String[] labels = parseStrings(parameters);
-				((Output)module).setOutputLabels(labels);
+		// set labels in case of output
+		if(module instanceof Output){
+			String labels = (String)properties.get("module.labels");
+			if(labels!=null){
+				String[] l = parseStrings(labels);
+				((Output)module).setOutputLabels(l);
 			}
 		}
+		
+		if(module instanceof Trainable){
+			try {
+				float[] weights = repository.loadWeights(module.getId());
+				((Trainable)module).setParameters(weights);
+			} catch(IOException e){}
+		} else if(module instanceof Preprocessor){
+			try {
+				float[] weights = repository.loadWeights(module.getId());
+				((Preprocessor)module).setParameters(weights);
+			} catch(IOException e){}
+		} 
 		
 		String[] classes;
 		if(module instanceof Input){
@@ -211,12 +337,16 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 			c = context.getBundle(bundleId).getBundleContext();
 		}
 		
+		UUID id = module.getId();
+		// allready add a null registration, in order to allow registrations.contains()
+		// to return true in the addModule call of this class
+		this.registrations.put(id, null);
 		ServiceRegistration reg = c.registerService(classes, module, props);
-		this.registrations.put(module.getId(), reg);
+		this.registrations.put(id, reg);
 		
 		
-		System.out.println("Registered module "+module.getClass().getName()+" "+module.getId());
-		return null;
+		System.out.println("Registered module "+module.getClass().getName()+" "+id);
+		return id;
 	}
 
 	@Override
@@ -236,11 +366,11 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 	}
 
 	@Override
-	public List<ModuleDescription> getSupportedModules() {
-		List<ModuleDescription> supported = new ArrayList<ModuleDescription>();
+	public List<ModuleType> getSupportedModules() {
+		List<ModuleType> supported = new ArrayList<ModuleType>();
 		synchronized(mFactories){
 			for(ModuleFactory f : mFactories){
-				supported.addAll(f.getAvailableModules());
+				supported.addAll(f.getAvailableModuleTypes());
 			}
 		}
 		return Collections.unmodifiableList(supported);
@@ -257,6 +387,7 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 		int i = 0;
 		for(UUID nextID : nextIDs){
 			Module nextModule = modules.get(nextID);
+			// TODO also allow only partly deployed NNs?
 			if(nextModule== null)
 				return;
 			

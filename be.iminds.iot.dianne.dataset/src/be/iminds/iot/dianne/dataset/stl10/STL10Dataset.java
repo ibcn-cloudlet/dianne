@@ -15,8 +15,8 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
-import be.iminds.iot.dianne.dataset.Dataset;
-import be.iminds.iot.dianne.dataset.Sample;
+import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -27,7 +27,7 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
  * @author tverbele
  *
  */
-@Component(immediate=true, property={"aiolos.callback=be.iminds.iot.dianne.dataset.Dataset"})
+@Component(immediate=true, property={"aiolos.callback=be.iminds.iot.dianne.api.dataset.Dataset"})
 public class STL10Dataset implements Dataset {
 
 	private TensorFactory factory;

@@ -15,6 +15,9 @@ var datasets = {};
 // keep map module id -> deployment node
 var deployment = {};
 
+// keep a map of all trainable module types
+var trainable = {};
+
 /*
  * UI Mode
  */
@@ -37,22 +40,19 @@ function setModus(m){
 	currentMode = m;
 	if(currentMode === "build"){
 		console.log("switch to build");
-		$(".toolbox").hide();
 		$("#menu-build").addClass("active");
-		$("#toolbox-build").show();
-		$("#toolbox-build").addClass("active");
+		
+		setupBuildToolbox();
 	} else if(currentMode === "deploy"){
 		console.log("switch to deploy");
-		$(".toolbox").hide();
 		$("#menu-deploy").addClass("active");
-		$("#toolbox-deploy").show();
-		$("#toolbox-deploy").addClass("active");
+
+		setupDeployToolbox();
 	} else if(currentMode === "learn"){
 		console.log("switch to learn");
-		$(".toolbox").hide();
 		$("#menu-learn").addClass("active");
-		$("#toolbox-learn").show();
-		$("#toolbox-learn").addClass("active");
+
+		setupLearnToolbox();
 		// only show learn modules in learn mode
 		$(".learn").each(function( index ) {
 			jsPlumb.show($(this).attr('id'),true);
@@ -60,11 +60,10 @@ function setModus(m){
 		});
 	} else if(currentMode === "run"){
 		console.log("switch to run");
-		$(".toolbox").hide();
 		$("#menu-run").addClass("active");
-		$("#toolbox-run").show();
-		$("#toolbox-run").addClass("active");
-		// only show run modules in learn mode
+		
+		setupRunToolbox();
+		// only show run modules in run mode
 		$(".run").each(function( index ) {
 			jsPlumb.show($(this).attr('id'),true);
 			$(this).show();
@@ -78,57 +77,106 @@ function setModus(m){
  * On ready, fill the toolbox with available supported modules
  */
 $( document ).ready(function() {
-	// initialize toolboxes
-	// build toolbox
+	// show correct mode
+	setModus(currentMode);
+	$("#toolbox").mCustomScrollbar({ theme: "minimal" });
+});
+
+
+function setupBuildToolbox(){
+	$('#toolbox .mCSB_container').empty();
 	$.post("/dianne/builder", {action : "available-modules"}, 
-		function( data ) {
-			$.each(data, function(index, module){
-				// TODO fetch name/type/category
-				addToolboxItem('toolbox-build', module.type, module.type, module.category, 'build');
-			});
-		}
-		, "json");
+			function( data ) {
+				$.each(data, function(index, module){
+					console.log(module);
+					// TODO fetch name/type/category
+					if(module.trainable!==undefined){
+						trainable[module.type] = true;
+					}
+					addToolboxItem(module.type, module.type, module.category, 'build');
+				});
+			}
+			, "json");
+}
+
+function setupDeployToolbox(){
+	$('#toolbox .mCSB_container').empty();
+	$('<button id="deployAll" class="btn btn-default" onclick="deployAll();return false;">Deploy all</button>').appendTo($('#toolbox .mCSB_container'));
+	$('<button id="undeployAll" class="btn btn-default"  onclick="undeployAll();return false;">Undeploy all</button>').appendTo($('#toolbox .mCSB_container'));
 	
+	selectedTarget = undefined;
+	
+	$.post("/dianne/deployer", {"action" : "targets"}, 
+			function( data ) {
+				$.each(data, function(index, target){
+					addToolboxItem(target, target, 'Targets','deploy');
+				});
+			}
+			, "json");
+}
+
+function setupLearnToolbox(){
+	$('#toolbox .mCSB_container').empty();
 	$.post("/dianne/datasets", {action : "available-datasets"}, 
 			function( data ) {
 				$.each(data, function(index, dataset){
 					// add datasets to learn/run toolboxes
 					datasets[dataset.dataset] = dataset;
-					addToolboxItem('toolbox-learn', dataset.dataset, dataset.dataset, 'Dataset', 'learn');
-					addToolboxItem('toolbox-run', dataset.dataset, dataset.dataset, 'Dataset', 'run');
+					addToolboxItem(dataset.dataset, dataset.dataset, 'Dataset', 'learn');
 				});
 			}
 			, "json");
 	
-	// learn toolbox
-	// TODO this is hard coded for now, as this does not map to factories/module impls
-	//addToolboxItem('toolbox-learn','MNIST Dataset','MNIST','Dataset','learn');
-	addToolboxItem('toolbox-learn','SGD Trainer','StochasticGradientDescent','Trainer','learn');
-	addToolboxItem('toolbox-learn','Arg Max Evaluator','ArgMax','Evaluator','learn');
-	
-	//addToolboxItem('toolbox-run','MNIST input','MNIST','Dataset','run');
-	addToolboxItem('toolbox-run','Canvas input','CanvasInput','Source','run');
-	addToolboxItem('toolbox-run','Output probabilities','ProbabilityOutput','Visualize','run');
-	
-	// show correct mode
-	setModus(currentMode);
-});
+	addToolboxItem('SGD Trainer','StochasticGradientDescent','Trainer','learn');
+	addToolboxItem('Arg Max Evaluator','ArgMax','Evaluator','learn');
+}
 
+function setupRunToolbox(){
+	$('#toolbox .mCSB_container').empty();
+	$.post("/dianne/datasets", {action : "available-datasets"}, 
+			function( data ) {
+				$.each(data, function(index, dataset){
+					// add datasets to learn/run toolboxes
+					datasets[dataset.dataset] = dataset;
+					addToolboxItem(dataset.dataset, dataset.dataset, 'Dataset', 'run');
+				});
+			}
+			, "json");
+	
+	$.post("/dianne/output", {action : "available-outputs"}, 
+			function( data ) {
+				$.each(data, function(index, output){
+					addToolboxItem(output.name, output.type, 'Output', 'run');
+				});
+			}
+			, "json");
+	
+	$.post("/dianne/input", {action : "available-inputs"}, 
+			function( data ) {
+				$.each(data, function(index, input){
+					addToolboxItem(input.name, input.type, 'Input', 'run');
+				});
+			}
+			, "json");
+	
+	addToolboxItem('Canvas input','CanvasInput','Input','run');
+	addToolboxItem('Output probabilities','ProbabilityOutput','Visualize','run');
+}
 
 /**
- * add a toolbox item name to toolbox with id toolboxId and add category
+ * add a toolbox item name to toolbox and add category
  */
-function addToolboxItem(toolboxId, name, type, category, mode){
-	var panel = $('#'+toolboxId).find('.'+category);
+function addToolboxItem(name, type, category, mode){
+	var panel = $('#toolbox').find('.'+category);
 	if(panel.length===0){
 		$("<div>"  +
 			"<h4 data-toggle=\"collapse\" data-target=\"."+category+"\">"+category+"</h4>"+	
 			"<div class=\""+category+" collapse in row\"></div>" +
-		  "</div>").appendTo($('#'+toolboxId));
-		panel = $('#'+toolboxId).find('.'+category);
+		  "</div>").appendTo($('#toolbox .mCSB_container'));
+		panel = $('#toolbox').find('.'+category);
 	}
 	
-	var div = $("<div class=\"tool col-xs-6\"></div>").appendTo(panel);
+	var div = $("<div class=\"tool\"></div>").appendTo(panel);
 	
 	var module = renderTemplate("module",
 		{	
@@ -141,25 +189,51 @@ function addToolboxItem(toolboxId, name, type, category, mode){
 	
 
 	// make toolbox modules draggable to instantiate using drag-and-drop
-	module.draggable({helper: "clone"});
-	module.bind('dragstop', function(event, ui) {
-		if(checkAddModule($(this))){
-			// clone the toolbox item
-		    var moduleItem = $(ui.helper).clone().addClass(mode);
-		    
-			// append to canvas
-			moduleItem.appendTo("#canvas");
-		    
-		    // fix offset after drag
-			moduleItem.offset(ui.offset);
-		    
-			// add module
-			addModule(moduleItem);
+	if(mode!=="deploy"){ // not in deploy mode however
+		module.draggable({helper: "clone", scroll: false, appendTo: "#builder", containment: '#builder'});
+		module.bind('dragstop', function(event, ui) {
+			if(checkAddModule($(this))){
+				// clone the toolbox item
+			    var moduleItem = $(ui.helper).clone().addClass(mode);
+			    
+				// append to canvas
+				moduleItem.appendTo("#canvas");
+			    
+			    // fix offset after drag
+				moduleItem.offset(ui.offset);
+				
+				// add module
+				addModule(moduleItem);
+			}
+		});
+	} else {
+		var c = deploymentColors[name]; 
+		if(c === undefined){
+			c = nextColor();
+			deploymentColors[name] = c;
 		}
-	});
-
-	
+		module.css('background-color', c);
+		module.css('opacity', 0.5);
+		module.click(function() {
+			$('#toolbox').find('.module').css('opacity',0.5);
+			$(this).css('opacity',0.8);
+			selectedTarget = $(this).attr('name');
+		});
+	}
 }
+
+
+// colors for deployed modules
+var selectedTarget;
+var deploymentColors = {};
+var colors = ['#FF6CDA','#81F781','#AC58FA','#FA5858'];
+var colorIndex = 0;
+
+function nextColor(){
+	return colors[colorIndex++];
+}
+
+
 
 /*
  * jsPlumb rendering and setup
@@ -206,7 +280,7 @@ var targetStyle = {
 
 // jsPlumb init code
 jsPlumb.ready(function() {       
-    jsPlumb.setContainer($("canvas"));
+    jsPlumb.setContainer($("#canvas"));
     jsPlumb.importDefaults({
     	ConnectionOverlays : [[ "Arrow", { location : 1 } ]],
     	Connector : [ "Flowchart", { stub:[40, 60], gap:10, cornerRadius:5, alwaysRespectStubs:true } ],
@@ -235,6 +309,10 @@ jsPlumb.ready(function() {
 		});
 	});
 
+    $('#canvas').on("scroll",function() {
+        jsPlumb.repaintEverything();
+    });	
+	
 });
 
 
@@ -251,6 +329,7 @@ jsPlumb.ready(function() {
 function addModule(moduleItem){
 
 	// get type from toolbox item and generate new UUID
+	var name = moduleItem.attr("name");
 	var type = moduleItem.attr("type");
 	var category = moduleItem.attr("category");
 	var mode = moduleItem.attr("mode");
@@ -262,9 +341,13 @@ function addModule(moduleItem){
 
 	// create module object
 	var module = {};
+	module.name = name;
 	module.type = type;
 	module.category = category;
 	module.id = id;
+	if(trainable[type]!==undefined){
+		module.trainable = trainable[module.type];
+	}
 	
 	// some hard coded shit here... should be changed
 	if(category==="Dataset"){
@@ -311,9 +394,11 @@ function setupModule(moduleItem, type, category){
 		jsPlumb.addEndpoint(moduleItem, targetStyle, {endpoint:"Rectangle"});
 	} else if(category==="Dataset"){ 
 		jsPlumb.addEndpoint(moduleItem, sourceStyle, {endpoint:"Rectangle"});
-	} else if(category==="Source"){ 
+	} else if(category==="Input"){ 
 		jsPlumb.addEndpoint(moduleItem, sourceStyle, {endpoint:"Rectangle"});
 	} else if(category==="Visualize"){ 
+		jsPlumb.addEndpoint(moduleItem, targetStyle, {endpoint:"Rectangle"});
+	} else if(category==="Output"){ 
 		jsPlumb.addEndpoint(moduleItem, targetStyle, {endpoint:"Rectangle"});
 	} else if(category==="Fork") {
 		jsPlumb.addEndpoint(moduleItem, sourceStyle, {maxConnections:-1});
@@ -329,6 +414,17 @@ function setupModule(moduleItem, type, category){
 	// show dialog on double click
 	moduleItem.dblclick(function() {
 		showConfigureModuleDialog($(this));
+	});
+	
+	// add click behavior in deploy mode
+	moduleItem.click(function() {
+		if(currentMode==='deploy'){
+			if(selectedTarget!==undefined){
+				var id = $(this).attr('id');
+				var target = selectedTarget;
+				deploy(id, target);
+			}
+		}
 	});
 	
 	// make draggable
@@ -390,13 +486,19 @@ function addConnection(connection){
 		if(learning[connection.sourceId]!==undefined){
 			learning[connection.sourceId].input = connection.targetId; 
 		} else {
-			running[connection.sourceId].input = connection.targetId; 
+			running[connection.sourceId].input = connection.targetId;
+			$.post("/dianne/input", {action : "setinput",
+				inputId : connection.targetId,
+				input : running[connection.sourceId].name});
 		}
 	} else if(nn[connection.targetId]===undefined){
 		if(learning[connection.targetId]!==undefined){
 			learning[connection.targetId].output = connection.sourceId; 
 		} else {
-			running[connection.targetId].output = connection.sourceId; 
+			running[connection.targetId].output = connection.sourceId;
+			$.post("/dianne/output", {action : "setoutput",
+				outputId : connection.sourceId,
+				output : running[connection.targetId].name});
 		}
 	} else {
 		addNext(connection.sourceId, connection.targetId);
@@ -416,12 +518,18 @@ function removeConnection(connection){
 			delete learning[connection.sourceId].input; 
 		} else {
 			delete running[connection.sourceId].input; 
+			$.post("/dianne/input", {action : "unsetinput",
+				inputId : connection.targetId,
+				input : running[connection.sourceId].name});
 		}
 	} else if(nn[connection.targetId]===undefined){
 		if(learning[connection.targetId]!==undefined){
 			delete learning[connection.targetId].output; 
 		} else {
-			delete running[connection.targetId].output; 
+			delete running[connection.targetId].output;
+			$.post("/dianne/output", {action : "unsetoutput",
+				outputId : connection.sourceId,
+				output : running[connection.targetId].name});
 		}
 	} else {
 		removeNext(connection.sourceId, connection.targetId);	

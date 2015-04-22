@@ -12,7 +12,8 @@ repourl="http://aiolos.intec.ugent.be/repositories"
 	aQute.bnd.deployer.repository.FixedIndexedRepo; name=Concierge; locations=${repourl}/concierge/index.xml,\
 	aQute.bnd.deployer.repository.FixedIndexedRepo; name=Androsgi; locations=${repourl}/androsgi/index.xml,\
 	aQute.bnd.deployer.repository.FixedIndexedRepo; name=Jetty; locations=${repourl}/jetty/index.xml,\
-	aQute.bnd.deployer.repository.FixedIndexedRepo; name=AIOLOS; locations=${repourl}/aiolos/index.xml
+	aQute.bnd.deployer.repository.FixedIndexedRepo; name=AIOLOS; locations=${repourl}/aiolos/index.xml,\
+	aQute.bnd.deployer.repository.FixedIndexedRepo; name=DYAMAND; locations=${repourl}/dyamand/index.xml
 	
 
 -releaserepo: Release

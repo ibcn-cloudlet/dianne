@@ -1,0 +1,15 @@
+Bundle-Version: 0.1.0.${tstamp}
+
+Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
+Export-Package: \
+	be.iminds.iot.dianne.api.dataset,\
+	be.iminds.iot.dianne.api.nn.runtime,\
+	be.iminds.iot.dianne.api.repository,\
+	be.iminds.iot.dianne.api.nn.train.api,\
+	be.iminds.iot.dianne.api.nn.module,\
+	be.iminds.iot.dianne.api.nn.module.description,\
+	be.iminds.iot.dianne.api.io,\
+	be.iminds.iot.dianne.api.nn.module.factory
+-buildpath: be.iminds.iot.dianne.tensor;version=latest
+Bundle-Name: Dianne API
+Bundle-Description: API bundle for the Dianne project

@@ -21,18 +21,19 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
-import be.iminds.iot.dianne.dataset.Dataset;
-import be.iminds.iot.dianne.dataset.DatasetLabelAdapter;
-import be.iminds.iot.dianne.dataset.DatasetRangeAdapter;
-import be.iminds.iot.dianne.nn.module.Input;
-import be.iminds.iot.dianne.nn.module.Module;
-import be.iminds.iot.dianne.nn.module.Output;
-import be.iminds.iot.dianne.nn.module.Preprocessor;
-import be.iminds.iot.dianne.nn.module.Trainable;
-import be.iminds.iot.dianne.nn.train.Criterion;
-import be.iminds.iot.dianne.nn.train.Evaluation;
-import be.iminds.iot.dianne.nn.train.Evaluator;
-import be.iminds.iot.dianne.nn.train.Trainer;
+import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.DatasetLabelAdapter;
+import be.iminds.iot.dianne.api.dataset.DatasetRangeAdapter;
+import be.iminds.iot.dianne.api.nn.module.Input;
+import be.iminds.iot.dianne.api.nn.module.Module;
+import be.iminds.iot.dianne.api.nn.module.Output;
+import be.iminds.iot.dianne.api.nn.module.Preprocessor;
+import be.iminds.iot.dianne.api.nn.module.Trainable;
+import be.iminds.iot.dianne.api.nn.train.api.Criterion;
+import be.iminds.iot.dianne.api.nn.train.api.Evaluation;
+import be.iminds.iot.dianne.api.nn.train.api.Evaluator;
+import be.iminds.iot.dianne.api.nn.train.api.Trainer;
+import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.nn.train.criterion.MSECriterion;
 import be.iminds.iot.dianne.nn.train.criterion.NLLCriterion;
 import be.iminds.iot.dianne.nn.train.eval.ArgMaxEvaluator;
@@ -54,6 +55,7 @@ import com.google.gson.JsonPrimitive;
 public class DianneLearner extends HttpServlet {
 
 	private TensorFactory factory;
+	private DianneRepository repository;
 	
 	private static final JsonParser parser = new JsonParser();
 	
@@ -65,6 +67,11 @@ public class DianneLearner extends HttpServlet {
 	@Reference
 	public void setTensorFactory(TensorFactory factory){
 		this.factory = factory;
+	}
+	
+	@Reference
+	public void setDianneRepository(DianneRepository repo){
+		this.repository = repo;
 	}
 	
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
@@ -118,6 +125,8 @@ public class DianneLearner extends HttpServlet {
 		// TODO check if parameters exist and are correct!
 		String action = request.getParameter("action");
 		String target = request.getParameter("target");
+		// this list consists of all ids of modules that are needed for trainer:
+		// the input, output, trainable and preprocessor modules
 		String modulesJsonString = request.getParameter("modules");
 		String configJsonString = request.getParameter("config");
 		
@@ -144,7 +153,6 @@ public class DianneLearner extends HttpServlet {
 					List<Trainable> trainable = new ArrayList<Trainable>();
 					List<Preprocessor> preprocessors = new ArrayList<Preprocessor>();
 					
-					List<Module> toTrain = new ArrayList<Module>();
 					Iterator<JsonElement> it = moduleIds.iterator();
 					while(it.hasNext()){
 						String id = it.next().getAsString();
@@ -153,13 +161,11 @@ public class DianneLearner extends HttpServlet {
 							// only include the input module connected to the dataset
 							if(datasetConfig.get("input").getAsString().equals(id)){
 								input = (Input) m;
-								toTrain.add(m);
 							}
 						} else if(m instanceof Output){
 							// only include the output module connected to the trainer
 							if(processorConfig.get("output").getAsString().equals(id)){
 								output = (Output) m;
-								toTrain.add(m);
 							}
 						} else {
 							if(m instanceof Trainable){
@@ -167,22 +173,22 @@ public class DianneLearner extends HttpServlet {
 							} else if(m instanceof Preprocessor){
 								preprocessors.add((Preprocessor) m);
 							}
-							
-							toTrain.add(m);
 						}
 					}
-					trainer.train(toTrain, loss, trainSet);
+					trainer.train(input, output, trainable, preprocessors, loss, trainSet);
 					
-					JsonObject parameters = new JsonObject();
+					//store in repository instead of json at client side
 					for(Trainable t : trainable){
-						parameters.add(((Module)t).getId().toString(), new JsonPrimitive(Arrays.toString(t.getParameters().get())));;
+						repository.storeWeights(((Module)t).getId(), t.getParameters().get());
 					}
 					for(Preprocessor p : preprocessors){
-						parameters.add(((Module)p).getId().toString(), new JsonPrimitive(Arrays.toString(p.getParameters().get())));;
+						repository.storeWeights(((Module)p).getId(), p.getParameters().get());
 					}
-					parameters.add(output.getId().toString(), new JsonPrimitive(Arrays.toString(output.getOutputLabels())));
 					
-					response.getWriter().write(parameters.toString());
+					JsonObject labels = new JsonObject();
+					labels.add(output.getId().toString(), new JsonPrimitive(Arrays.toString(output.getOutputLabels())));
+					
+					response.getWriter().write(labels.toString());
 					response.getWriter().flush();
 				}else if(action.equals("evaluate")){
 					Dataset testSet = createTestDataset(datasetConfig);

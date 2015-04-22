@@ -1,5 +1,5 @@
 -runfw: org.apache.felix.framework;version='[4.2.1,4.2.1]'
--runee: JavaSE-1.6
+-runee: JavaSE-1.7
 
 aiolos.version='[0.5.0,0.6.0)'
 
@@ -35,6 +35,7 @@ aiolos.version='[0.5.0,0.6.0)'
 	be.iminds.aiolos.proxymanager;version=${aiolos.version},\
 	be.iminds.aiolos.topologymanager;version=${aiolos.version},\
 	be.iminds.aiolos.configurer;version=${aiolos.version},\
+	be.iminds.iot.dianne.api;version=latest,\
 	be.iminds.iot.dianne.tensor;version=latest,\
 	be.iminds.iot.dianne.nn;version=latest,\
 	be.iminds.iot.dianne.nn.runtime;version=latest

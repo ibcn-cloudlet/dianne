@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="css/bootstrap.min.css">
 <link rel="stylesheet" href="css/jquery-ui.css">
 <!-- Styles -->
+<link rel="stylesheet" href="css/jquery.mCustomScrollbar.min.css">
 <link rel="stylesheet" href="css/dianne.css">
 
 <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -54,45 +55,22 @@
 
 		<div class="container-fluid">
 			<div id="builder" class="row">
-				<div id="toolbox-build" class="toolbox col-xs-4 col-md-2"></div>
-				<div id="toolbox-deploy" class="toolbox col-xs-4 col-md-2">
-					<button id="deployAll" class="btn btn-default" onclick="deployAll();return false;">Deploy all</button>
-					<button id="undeployAll" class="btn btn-default"  onclick="undeployAll();return false;">Undeploy all</button>
-				</div>
-				<div id="toolbox-learn" class="toolbox col-xs-4 col-md-2"></div>
-				<div id="toolbox-run" class="toolbox col-xs-4 col-md-2"></div>
+				<div id="toolbox" class="col-xs-4 col-md-2"></div>
 				<div id="canvas" class="col-xs-8 col-md-10"></div>
 			</div>
 		</div>
 
 		<footer class="navbar-fixed-bottom custom-footer">
+			<img class="footer-image" src="images/iminds.png" />
 			<div class="inner">
 				<p>Copyright &copy; iMinds IoT lab, 2014</p>
 			</div>
 		</footer>
 	</div>
 
-	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-	<script src="js/lib/jquery.min.js"></script>
-	<!-- Include all compiled plugins (below), or include individual files as needed -->
-	<!-- Latest compiled and minified JavaScript -->
-	<script src="js/lib/bootstrap.min.js"></script>
-	<!-- jQuery UI and jsPlumb for NN module builder and drag-and-drop -->
-	<script src="js/lib/jquery-ui.min.js"></script>
-	<script src="js/lib/jquery.jsPlumb-1.7.2.min.js"></script>
-	<!-- Mustache Template Script  -->
-	<script src="js/lib/mustache.js"></script>
-	<!-- Hicharts Script  -->
-	<script src="js/lib/highcharts.js"></script>
-	<script src="js/lib/heatmap.js"></script>
-	<!-- Our own scripts -->
-	<script src="js/dianne.js"></script>
-	<script src="js/dianne-dialogs.js"></script>
-	
-	
 	<!-- Templates -->
 	<script type="x-tmpl-mustache" id="module">
-	<div class="module" type="{{type}}" category="{{category}}" mode="{{mode}}">
+	<div class="module" type="{{type}}" category="{{category}}" mode="{{mode}}" name="{{name}}">
 		<strong>{{name}}</strong>
 	</div>
 	</script>
@@ -141,6 +119,15 @@
 			</select>
 		</div>
 	</div>
+	</script>
+	
+	<script type="x-tmpl-mustache" id="form-checkbox">
+	<div class="form-group">
+		<div class="col-sm-6 checkbox">
+        <label>
+          <input type="checkbox" class="{{id}}" {{checked}}>{{name}}
+        </label>
+    </div>
 	</script>
 	
 	<script type="x-tmpl-mustache" id="dataset-learn">
@@ -228,6 +215,25 @@
 		</div>
 	</div>
 	</script>
-
+	
+	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+	<script src="js/lib/jquery.min.js"></script>
+	<!-- Include all compiled plugins (below), or include individual files as needed -->
+	<!-- Latest compiled and minified JavaScript -->
+	<script src="js/lib/bootstrap.min.js"></script>
+	<!-- jQuery UI and jsPlumb for NN module builder and drag-and-drop -->
+	<script src="js/lib/jquery-ui.min.js"></script>
+	<script src="js/lib/jquery.jsPlumb-1.7.2.min.js"></script>
+	<!-- Mustache Template Script  -->
+	<script src="js/lib/mustache.js"></script>
+	<!-- Hicharts Script  -->
+	<script src="js/lib/highcharts.js"></script>
+	<script src="js/lib/heatmap.js"></script>
+	<!-- Custom scrollbar -->
+	<script src="js/lib/jquery.mCustomScrollbar.concat.min.js"></script>
+	<!-- Our own scripts -->
+	<script src="js/dianne.js"></script>
+	<script src="js/dianne-dialogs.js"></script>
+	
 </body>
 </html>

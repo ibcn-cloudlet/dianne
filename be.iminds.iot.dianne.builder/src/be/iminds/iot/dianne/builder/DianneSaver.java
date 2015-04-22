@@ -1,17 +1,16 @@
 package be.iminds.iot.dianne.builder;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
+import be.iminds.iot.dianne.api.repository.DianneRepository;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -22,14 +21,11 @@ import com.google.gson.JsonParser;
 	immediate = true)
 public class DianneSaver extends HttpServlet {
 
-	private String storage = "nn";
+	private DianneRepository repository;
 	
-	@Activate
-	public void activate(BundleContext context){
-		String s = context.getProperty("be.iminds.iot.dianne.storage");
-		if(s!=null){
-			storage = s;
-		}
+	@Reference
+	public void setDianneRepository(DianneRepository repo){
+		this.repository = repo;
 	}
 	
 	@Override
@@ -39,26 +35,14 @@ public class DianneSaver extends HttpServlet {
 		String modules = request.getParameter("modules");
 		String layout = request.getParameter("layout");
 		
-		File dir = new File(storage+"/"+name);
-		if(!dir.exists()){
-			dir.mkdirs();
-		}
-		
 		// Parse and rewrite to get pretty output format
 		JsonParser parser = new JsonParser();
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		String jsonOutput = gson.toJson(parser.parse(modules));
 		
 		// TODO which formats to save?
-		File m = new File(storage+"/"+name+"/modules.txt");
-		PrintWriter p = new PrintWriter(m);
-		p.write(jsonOutput);
-		p.close();
-		
-		File l = new File(storage+"/"+name+"/layout.txt");
-		PrintWriter p2 = new PrintWriter(l);
-		p2.write(layout);
-		p2.close();		
+		repository.storeNetwork(name, modules);
+		repository.storeLayout(name, layout);
 		
 		response.getWriter().println("{}");
 		response.getWriter().flush();

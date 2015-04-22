@@ -2,7 +2,7 @@ package be.iminds.iot.dianne.nn.module.activation;
 
 import java.util.UUID;
 
-import be.iminds.iot.dianne.nn.module.AbstractModule;
+import be.iminds.iot.dianne.api.nn.module.AbstractModule;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public class Threshold extends AbstractModule {
