@@ -476,7 +476,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 
 	@Override
-	public JavaTensor convolution2D(JavaTensor res, JavaTensor mat1, JavaTensor mat2, int stride_x, int stride_y, boolean full, boolean flip) {
+	public JavaTensor convolution2D(JavaTensor res, JavaTensor mat1, JavaTensor mat2, int stride_x, int stride_y, int mode, boolean flip) {
 		int h = mat2.size(0);
 		int w = mat2.size(1);
 		
@@ -485,11 +485,18 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		int y = mat1.size(0) - h + 1;
 		int x = mat1.size(1) - w + 1;
 		
-		if(full){
+		if(mode == 1){
+			// full
 			start_x -= (w-1);
 			start_y -= (h-1);
 			x += (w-1);
 			y += (h-1);
+		} else if(mode == 2){
+			// same
+			start_x -= Math.ceil((w-1)/2.0f);
+			start_y -= Math.ceil((h-1)/2.0f);
+			x += Math.ceil((w-1)/2.0f);
+			y += Math.ceil((h-1)/2.0f);
 		}
 		
 		int skip = mat1.size(1);
