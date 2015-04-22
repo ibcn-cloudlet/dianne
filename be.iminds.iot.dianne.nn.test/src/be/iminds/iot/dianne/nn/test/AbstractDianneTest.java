@@ -15,6 +15,7 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 
 import be.iminds.iot.dianne.api.nn.module.Input;
+import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.Output;
 import be.iminds.iot.dianne.api.nn.module.Preprocessor;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
@@ -99,6 +100,25 @@ public class AbstractDianneTest extends TestCase {
     	if(refs!=null){
 	    	for(ServiceReference r : refs){
 	    		modules.add((Preprocessor)context.getService(r));
+	    	}
+    	}
+    	return modules;
+    }
+    
+    protected Module getModule(String id) throws Exception {
+    	ServiceReference[] refs = context.getAllServiceReferences(Module.class.getName(), "(module.id="+id+")");
+    	if(refs!=null){
+	    	return (Module) context.getService(refs[0]);
+    	}
+    	return null;
+    }
+    
+    protected List<Module> getModules() throws Exception {
+    	List<Module> modules = new ArrayList<Module>();
+    	ServiceReference[] refs = context.getAllServiceReferences(Module.class.getName(), null);
+    	if(refs!=null){
+	    	for(ServiceReference r : refs){
+	    		modules.add((Module)context.getService(r));
 	    	}
     	}
     	return modules;

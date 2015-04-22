@@ -26,6 +26,7 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 	be.iminds.iot.dianne.dataset.imagenet;version=latest
 	
 -runproperties:\
+	be.iminds.iot.dianne.storage="../tools/nn",\
 	be.iminds.iot.dianne.dataset.mnist.location="/home/tverbele/Documents/datasets/MNIST/",\
 	be.iminds.iot.dianne.dataset.imagenet.location="/home/tverbele/Documents/datasets/ImageNet/"
 	

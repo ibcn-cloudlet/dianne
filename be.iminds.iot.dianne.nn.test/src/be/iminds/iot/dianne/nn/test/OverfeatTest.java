@@ -1,11 +1,16 @@
 package be.iminds.iot.dianne.nn.test;
 
+import java.io.File;
+import java.io.PrintWriter;
+import java.util.Arrays;
+
 import junit.framework.Assert;
 
 import org.osgi.framework.ServiceReference;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
+import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 
@@ -28,8 +33,9 @@ public class OverfeatTest extends AbstractDianneTest {
 	public void testOverfeat() throws Exception {
 		deployNN("../tools/nn/overfeat_fast/modules.txt");
 		
-		final Tensor sample = imagenet.getInputSample(0);
+		final Tensor sample = imagenet.getInputSample(0);		
 		final Tensor result = factory.createTensor(1000);
+	
 		
 		// wait for output
 		final Object lock = new Object();
@@ -44,6 +50,28 @@ public class OverfeatTest extends AbstractDianneTest {
 				}
 			}
 		});
+
+		// Write intermediate output to file
+		for(Module m : getModules()){
+			m.addForwardListener(new ForwardListener() {
+				@Override
+				public void onForward(Tensor output) {
+					try {
+						File f = new File("out_"+m.getId()+".txt");
+						PrintWriter writer = new PrintWriter(f);
+						writer.println(Arrays.toString(output.dims()));
+						
+						float[] data = output.get();
+						for(int i=0;i<data.length;i++){
+							writer.write(data[i]+" ");
+						}
+						writer.close();
+					} catch(Exception e){
+					}
+				}
+			});
+		}
+		
 		synchronized(lock){
 			getInput().input(sample);
 			lock.wait();
