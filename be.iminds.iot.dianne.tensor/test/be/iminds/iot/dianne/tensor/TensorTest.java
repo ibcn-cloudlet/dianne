@@ -3,8 +3,7 @@ package be.iminds.iot.dianne.tensor;
 import java.util.Arrays;
 import java.util.Collection;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -37,9 +36,9 @@ public class TensorTest<T extends Tensor<T>> {
 		Assert.assertEquals(4, t.size());
 		Assert.assertEquals(4, t.size(0));
 
-		Assert.assertEquals(0.0f, t.get(1));
+		Assert.assertEquals(0.0f, t.get(1), 0.01);
 		t.set(1.0f, 1);
-		Assert.assertEquals(1.0f, t.get(1));
+		Assert.assertEquals(1.0f, t.get(1), 0.01);
 	}
 
 	@Test
@@ -50,9 +49,9 @@ public class TensorTest<T extends Tensor<T>> {
 		Assert.assertEquals(3, t.size(0));
 		Assert.assertEquals(4, t.size(1));
 
-		Assert.assertEquals(0.0f, t.get(1, 2));
+		Assert.assertEquals(0.0f, t.get(1, 2), 0.01);
 		t.set(1.0f, 1, 2);
-		Assert.assertEquals(1.0f, t.get(1, 2));
+		Assert.assertEquals(1.0f, t.get(1, 2), 0.01);
 
 	}
 
@@ -65,9 +64,9 @@ public class TensorTest<T extends Tensor<T>> {
 		Assert.assertEquals(3, t.size(1));
 		Assert.assertEquals(4, t.size(2));
 
-		Assert.assertEquals(0.0f, t.get(1, 2, 3));
+		Assert.assertEquals(0.0f, t.get(1, 2, 3), 0.01);
 		t.set(1.0f, 1, 2, 3);
-		Assert.assertEquals(1.0f, t.get(1, 2, 3));
+		Assert.assertEquals(1.0f, t.get(1, 2, 3), 0.01);
 
 	}
 
@@ -100,7 +99,7 @@ public class TensorTest<T extends Tensor<T>> {
 
 		T t3 = factory.createTensor(4);
 		t.copyInto(t3);
-
+		
 		Assert.assertEquals(0f, t3.get(0), 0.1f);
 		Assert.assertEquals(1f, t3.get(1), 0.1f);
 		Assert.assertEquals(2f, t3.get(2), 0.1f);

@@ -3,8 +3,7 @@ package be.iminds.iot.dianne.tensor;
 import java.util.Arrays;
 import java.util.Collection;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -173,7 +172,7 @@ public class TensorMathTest<T extends Tensor<T>> {
 		
 		float dot = math.dot(t1, t2);
 		
-		Assert.assertEquals(24f, dot);
+		Assert.assertEquals(24f, dot, 0.01);
 	}
 	
 	@Test
