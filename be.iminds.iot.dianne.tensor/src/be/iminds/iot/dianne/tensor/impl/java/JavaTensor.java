@@ -15,7 +15,7 @@ public class JavaTensor implements Tensor<JavaTensor> {
 	int[] strides;
 	int[] indices = null;
 	
-	public JavaTensor(final int... d){
+	JavaTensor(final int... d){
 		init(null, d);
 	
 		data = new float[size()];
@@ -276,7 +276,8 @@ public class JavaTensor implements Tensor<JavaTensor> {
 	
 	@Override
 	public JavaTensor transpose(JavaTensor res, final int d1, final int d2) {
-		res = this.copyInto(res);
+		if(this!=res)
+			res = this.copyInto(res);
 		
 		if(res.dims.length <= d1 || res.dims.length <= d2){
 			int maxd = d1 < d2 ? d2 : d1;
