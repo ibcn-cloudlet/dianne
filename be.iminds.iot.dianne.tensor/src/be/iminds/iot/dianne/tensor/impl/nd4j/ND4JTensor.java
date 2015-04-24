@@ -3,6 +3,7 @@ package be.iminds.iot.dianne.tensor.impl.nd4j;
 import java.util.Arrays;
 import java.util.Random;
 
+import org.nd4j.linalg.api.buffer.FloatBuffer;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
@@ -60,7 +61,7 @@ public class ND4JTensor implements Tensor<ND4JTensor> {
 
 	@Override
 	public void set(float[] data) {
-		this.data.setData(data);
+		this.data.data().assign(new FloatBuffer(data));
 	}
 
 	@Override
