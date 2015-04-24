@@ -4,9 +4,7 @@ import java.util.Arrays;
 import java.util.Random;
 
 import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.api.ops.impl.scalar.ScalarAdd;
 import org.nd4j.linalg.factory.Nd4j;
-import org.nd4j.linalg.indexing.NDArrayIndex;
 
 import be.iminds.iot.dianne.tensor.Tensor;
 
@@ -14,7 +12,7 @@ public class ND4JTensor implements Tensor<ND4JTensor> {
 
 	static Random random = new Random(1234);
 	
-	private INDArray data;
+	INDArray data;
 	
 	ND4JTensor(INDArray d) {
 		this.data = d;
