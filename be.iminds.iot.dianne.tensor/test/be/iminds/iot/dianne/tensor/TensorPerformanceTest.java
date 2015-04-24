@@ -10,7 +10,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import be.iminds.iot.dianne.tensor.impl.java.JavaTensor;
 import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;
+import be.iminds.iot.dianne.tensor.impl.nd4j.ND4JTensor;
 import be.iminds.iot.dianne.tensor.impl.nd4j.ND4JTensorFactory;
 
 @RunWith(Parameterized.class)
@@ -20,8 +22,8 @@ public class TensorPerformanceTest<T extends Tensor<T>> {
 	private TensorMath<T> math;
 	private int count = 10;
 	
-	private int outSize = 1500;
-	private int inSize = 28*28;
+	private int outSize = 1000;
+	private int inSize = 231*231;
 	
 	private T parameters;
 	private T gradParameters;
@@ -72,6 +74,18 @@ public class TensorPerformanceTest<T extends Tensor<T>> {
 		
     }
 	
+    @Test
+    public void testMv(){
+    	long t1 = System.currentTimeMillis();
+		for(int i=0;i<count;i++)
+			output = math.mv(output, weights, input);
+		long t2 = System.currentTimeMillis();
+		
+		float time = (float)(t2-t1)/count;
+		System.out.println("mv: "+time+" ms");
+		Assert.assertTrue((time)<5);
+    }
+    
 	@Test
 	public void testAddmv() {
 		long t1 = System.currentTimeMillis();
@@ -108,4 +122,10 @@ public class TensorPerformanceTest<T extends Tensor<T>> {
 		Assert.assertTrue((time)<5);
 	}
 
+	// main method for visualvm profiling
+	public static void main(String[] args) throws InterruptedException{
+		TensorPerformanceTest<ND4JTensor> test = new TensorPerformanceTest(new ND4JTensorFactory(), "ND4J");
+		test.setUp();
+		test.testMv();
+	}
 }
