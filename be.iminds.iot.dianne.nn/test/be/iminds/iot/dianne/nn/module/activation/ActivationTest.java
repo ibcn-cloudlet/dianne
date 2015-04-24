@@ -1,23 +1,42 @@
 package be.iminds.iot.dianne.nn.module.activation;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.UUID;
 
 import junit.framework.Assert;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
 import be.iminds.iot.dianne.api.nn.module.BackwardListener;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;
+import be.iminds.iot.dianne.tensor.impl.nd4j.ND4JTensorFactory;
 
 // These tests are based on input/output of corresponding Torch7 modules
-
+@RunWith(Parameterized.class)
 public class ActivationTest {
 
-	private JavaTensorFactory factory = new JavaTensorFactory();
+	private TensorFactory factory;
+
+	public ActivationTest(TensorFactory f, String name) {
+		this.factory = f;
+	}
+
+	@Parameters(name="{1}")
+	public static Collection<Object[]> data() {
+		return Arrays.asList(new Object[][] { 
+				{ new JavaTensorFactory(), "Java Tensor" },
+				{ new ND4JTensorFactory(), "ND4J Tensor" } 
+		});
+	}
 
 	private void testActivation(Module m, Tensor input, Tensor gradOutput,
 			Tensor expOutput, Tensor expGradInput) throws Exception {

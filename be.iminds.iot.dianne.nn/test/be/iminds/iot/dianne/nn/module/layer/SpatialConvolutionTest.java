@@ -2,6 +2,8 @@ package be.iminds.iot.dianne.nn.module.layer;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.UUID;
 
 import javax.imageio.ImageIO;
@@ -9,16 +11,33 @@ import javax.imageio.ImageIO;
 import junit.framework.Assert;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
 import be.iminds.iot.dianne.api.nn.module.BackwardListener;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
-import be.iminds.iot.dianne.nn.module.layer.SpatialConvolution;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;
+import be.iminds.iot.dianne.tensor.impl.nd4j.ND4JTensorFactory;
 
+@RunWith(Parameterized.class)
 public class SpatialConvolutionTest {
 
-	private JavaTensorFactory factory = new JavaTensorFactory();
+	private TensorFactory factory;
+
+	public SpatialConvolutionTest(TensorFactory f, String name) {
+		this.factory = f;
+	}
+
+	@Parameters(name="{1}")
+	public static Collection<Object[]> data() {
+		return Arrays.asList(new Object[][] { 
+				{ new JavaTensorFactory(), "Java Tensor" },
+				{ new ND4JTensorFactory(), "ND4J Tensor" } 
+		});
+	}
 	
 	@Test
 	public void testSpatialConvolutionConstructor1() {
