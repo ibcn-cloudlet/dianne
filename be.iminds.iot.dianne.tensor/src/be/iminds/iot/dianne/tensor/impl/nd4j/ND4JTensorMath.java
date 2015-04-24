@@ -359,14 +359,32 @@ public class ND4JTensorMath implements TensorMath<ND4JTensor> {
 
 	@Override
 	public int argmax(ND4JTensor tensor) {
-		// TODO Auto-generated method stub
-		return 0;
+		float max = -Float.MAX_VALUE;
+		int index = -1;
+		INDArray data = tensor.data.linearView();
+		for(int i=0;i<data.length();i++){
+			float val =  data.getFloat(i);
+			if(val > max){
+				max = val;
+				index = i;
+			}
+		}
+		return index;
 	}
 
 	@Override
 	public int argmin(ND4JTensor tensor) {
-		// TODO Auto-generated method stub
-		return -1;
+		float min = Float.MAX_VALUE;
+		int index = -1;
+		INDArray data = tensor.data.linearView();
+		for(int i=0;i<data.length();i++){
+			float val =  data.getFloat(i);
+			if(val < min){
+				min = val;
+				index = i;
+			}
+		}
+		return index;
 	}
 
 	@Override
