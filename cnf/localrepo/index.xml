@@ -1,3 +1,1075 @@
 <?xml version='1.0' encoding='utf-8'?>
-<repository increment='1381846512647' name='Local' xmlns='http://www.osgi.org/xmlns/repository/v1.0.0'>
+<repository increment='1429883636981' name='Local' xmlns='http://www.osgi.org/xmlns/repository/v1.0.0'>
+  <resource>
+    <capability namespace='osgi.identity'>
+      <attribute name='osgi.identity' value='nd4j-jblas'/>
+      <attribute name='type' value='osgi.bundle'/>
+      <attribute name='version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+    </capability>
+    <capability namespace='osgi.content'>
+      <attribute name='osgi.content' value='ef112cd54e9fc4a702de434621ae6db8bb54378dc21193dcca4018b8676d51e4'/>
+      <attribute name='url' value='nd4j-jblas/nd4j-jblas-0.0.3.jar'/>
+      <attribute name='size' type='Long' value='36097'/>
+      <attribute name='mime' value='application/vnd.osgi.bundle'/>
+    </capability>
+    <capability namespace='osgi.wiring.bundle'>
+      <attribute name='osgi.wiring.bundle' value='nd4j-jblas'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+    </capability>
+    <capability namespace='osgi.wiring.host'>
+      <attribute name='osgi.wiring.host' value='nd4j-jblas'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.jblas.util'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-jblas'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.nd4j.linalg.api.ndarray'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.jblas.complex'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-jblas'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.jblas,org.nd4j.linalg.api.buffer,org.nd4j.linalg.api.complex,org.nd4j.linalg.api.ndarray'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.jblas.io'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-jblas'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.nd4j.linalg.api.complex,org.nd4j.linalg.api.io,org.nd4j.linalg.api.ndarray'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.jblas'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-jblas'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.jblas,org.nd4j.linalg.api.buffer,org.nd4j.linalg.api.complex,org.nd4j.linalg.api.ndarray,org.nd4j.linalg.factory'/>
+    </capability>
+    <capability namespace='osgi.service'>
+      <attribute name='objectClass' value='org.nd4j.linalg.factory.Nd4jBackend'/>
+      <directive name='effective' value='active'/>
+    </capability>
+    <requirement namespace='osgi.wiring.package'>
+      <directive name='filter' value='(osgi.wiring.package=org.jblas)'/>
+    </requirement>
+    <requirement namespace='osgi.wiring.package'>
+      <directive name='filter' value='(osgi.wiring.package=org.jblas.exceptions)'/>
+    </requirement>
+    <requirement namespace='osgi.wiring.package'>
+      <directive name='filter' value='(osgi.wiring.package=org.jblas.util)'/>
+    </requirement>
+    <requirement namespace='osgi.wiring.package'>
+      <directive name='filter' value='(&amp;(osgi.wiring.package=org.nd4j.linalg.api.buffer)(version&gt;=0.0.0)(!(version&gt;=1.0.0)))'/>
+    </requirement>
+    <requirement namespace='osgi.wiring.package'>
+      <directive name='filter' value='(&amp;(osgi.wiring.package=org.nd4j.linalg.api.complex)(version&gt;=0.0.0)(!(version&gt;=1.0.0)))'/>
+    </requirement>
+    <requirement namespace='osgi.wiring.package'>
+      <directive name='filter' value='(&amp;(osgi.wiring.package=org.nd4j.linalg.api.io)(version&gt;=0.0.0)(!(version&gt;=1.0.0)))'/>
+    </requirement>
+    <requirement namespace='osgi.wiring.package'>
+      <directive name='filter' value='(&amp;(osgi.wiring.package=org.nd4j.linalg.api.ndarray)(version&gt;=0.0.0)(!(version&gt;=1.0.0)))'/>
+    </requirement>
+    <requirement namespace='osgi.wiring.package'>
+      <directive name='filter' value='(&amp;(osgi.wiring.package=org.nd4j.linalg.factory)(version&gt;=0.0.0)(!(version&gt;=1.0.0)))'/>
+    </requirement>
+    <requirement namespace='osgi.wiring.package'>
+      <directive name='filter' value='(&amp;(osgi.wiring.package=org.nd4j.linalg.util)(version&gt;=0.0.0)(!(version&gt;=1.0.0)))'/>
+    </requirement>
+    <requirement namespace='osgi.wiring.package'>
+      <directive name='filter' value='(&amp;(osgi.wiring.package=org.slf4j)(version&gt;=1.7.0)(!(version&gt;=2.0.0)))'/>
+    </requirement>
+    <requirement namespace='osgi.extender'>
+      <directive name='filter' value='(&amp;(osgi.extender=osgi.ds)(version&gt;=1.2.0)(!(version&gt;=2.0.0)))'/>
+      <directive name='effective' value='active'/>
+    </requirement>
+  </resource>
+  <resource>
+    <capability namespace='osgi.identity'>
+      <attribute name='osgi.identity' value='org.jblas'/>
+      <attribute name='type' value='osgi.bundle'/>
+      <attribute name='version' type='Version' value='1.2.3'/>
+    </capability>
+    <capability namespace='osgi.content'>
+      <attribute name='osgi.content' value='b3dd2bd96a0e67a6b6ca355f8aa1da6da4bf2543f9c3db6d79beffbdcb658c82'/>
+      <attribute name='url' value='org.jblas/org.jblas-1.2.3.jar'/>
+      <attribute name='size' type='Long' value='7511280'/>
+      <attribute name='mime' value='application/vnd.osgi.bundle'/>
+    </capability>
+    <capability namespace='osgi.wiring.bundle'>
+      <attribute name='osgi.wiring.bundle' value='org.jblas'/>
+      <attribute name='bundle-version' type='Version' value='1.2.3'/>
+    </capability>
+    <capability namespace='osgi.wiring.host'>
+      <attribute name='osgi.wiring.host' value='org.jblas'/>
+      <attribute name='bundle-version' type='Version' value='1.2.3'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.jblas'/>
+      <attribute name='version' type='Version' value='0.0.0'/>
+      <attribute name='bundle-symbolic-name' value='org.jblas'/>
+      <attribute name='bundle-version' type='Version' value='1.2.3'/>
+      <directive name='uses' value='org.jblas.ranges'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.jblas.exceptions'/>
+      <attribute name='version' type='Version' value='0.0.0'/>
+      <attribute name='bundle-symbolic-name' value='org.jblas'/>
+      <attribute name='bundle-version' type='Version' value='1.2.3'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.jblas.ranges'/>
+      <attribute name='version' type='Version' value='0.0.0'/>
+      <attribute name='bundle-symbolic-name' value='org.jblas'/>
+      <attribute name='bundle-version' type='Version' value='1.2.3'/>
+      <directive name='uses' value='org.jblas'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.jblas.util'/>
+      <attribute name='version' type='Version' value='0.0.0'/>
+      <attribute name='bundle-symbolic-name' value='org.jblas'/>
+      <attribute name='bundle-version' type='Version' value='1.2.3'/>
+      <directive name='uses' value='org.jblas'/>
+    </capability>
+    <requirement namespace='osgi.native'>
+      <directive name='filter' value='(|(&amp;(osgi.native.osname~=Linux)(osgi.native.processor~=x86_64))(&amp;(osgi.native.osname~=Linux)(osgi.native.processor~=x86)))'/>
+    </requirement>
+  </resource>
+  <resource>
+    <capability namespace='osgi.identity'>
+      <attribute name='osgi.identity' value='nd4j-api'/>
+      <attribute name='type' value='osgi.bundle'/>
+      <attribute name='version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+    </capability>
+    <capability namespace='osgi.content'>
+      <attribute name='osgi.content' value='8be98b1ba0871c8b3a51d068241740e09a8d6e05c8655baf1b58919bd3776168'/>
+      <attribute name='url' value='nd4j-api/nd4j-api-0.0.3.jar'/>
+      <attribute name='size' type='Long' value='423960'/>
+      <attribute name='mime' value='application/vnd.osgi.bundle'/>
+    </capability>
+    <capability namespace='osgi.wiring.bundle'>
+      <attribute name='osgi.wiring.bundle' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+    </capability>
+    <capability namespace='osgi.wiring.host'>
+      <attribute name='osgi.wiring.host' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.api.buffer'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.nd4j.linalg.api.complex,org.nd4j.linalg.api.ndarray'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.api.buffer.factory'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.nd4j.linalg.api.buffer'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.api.complex'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.nd4j.linalg.api.buffer,org.nd4j.linalg.api.ndarray,org.nd4j.linalg.indexing,org.nd4j.linalg.indexing.conditions'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.api.instrumentation'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.nd4j.linalg.api.buffer,org.nd4j.linalg.api.ndarray'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.api.io'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.nd4j.linalg.api.complex,org.nd4j.linalg.api.ndarray'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.api.ndarray'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.nd4j.linalg.api.buffer,org.nd4j.linalg.api.complex,org.nd4j.linalg.indexing,org.nd4j.linalg.indexing.conditions'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.api.ops'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.nd4j.linalg.api.complex,org.nd4j.linalg.api.ndarray'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.api.ops.exception'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.api.ops.executioner'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.nd4j.linalg.api.ndarray,org.nd4j.linalg.api.ops'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.api.ops.factory'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.nd4j.linalg.api.ndarray,org.nd4j.linalg.api.ops'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.api.ops.impl.accum'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.nd4j.linalg.api.complex,org.nd4j.linalg.api.ndarray,org.nd4j.linalg.api.ops'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.api.ops.impl.accum.distances'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.nd4j.linalg.api.complex,org.nd4j.linalg.api.ndarray,org.nd4j.linalg.api.ops'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.api.ops.impl.scalar'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.nd4j.linalg.api.complex,org.nd4j.linalg.api.ndarray,org.nd4j.linalg.api.ops'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.api.ops.impl.scalar.comparison'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.nd4j.linalg.api.complex,org.nd4j.linalg.api.ndarray,org.nd4j.linalg.api.ops'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.api.ops.impl.transforms'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.nd4j.linalg.api.complex,org.nd4j.linalg.api.ndarray,org.nd4j.linalg.api.ops'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.api.ops.impl.transforms.arithmetic'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.nd4j.linalg.api.complex,org.nd4j.linalg.api.ndarray,org.nd4j.linalg.api.ops'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.api.ops.impl.transforms.comparison'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.nd4j.linalg.api.complex,org.nd4j.linalg.api.ndarray,org.nd4j.linalg.api.ops'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.api.resources'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='com.google.common.util.concurrent,org.nd4j.linalg.api.ndarray'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.api.rng'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.apache.commons.math3.random,org.nd4j.linalg.api.ndarray'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.api.rng.distribution'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.apache.commons.math3.exception,org.nd4j.linalg.api.ndarray,org.nd4j.linalg.api.rng'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.api.rng.distribution.factory'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.nd4j.linalg.api.ndarray,org.nd4j.linalg.api.rng.distribution'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.api.rng.distribution.impl'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.apache.commons.math3.exception,org.nd4j.linalg.api.ndarray,org.nd4j.linalg.api.rng,org.nd4j.linalg.api.rng.distribution'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.convolution'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.nd4j.linalg.api.complex,org.nd4j.linalg.api.ndarray'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.dataset'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='com.google.common.base,org.nd4j.linalg.api.ndarray,org.nd4j.linalg.api.rng,org.nd4j.linalg.dataset.api,org.nd4j.linalg.indexing.conditions'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.dataset.api'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='com.google.common.base,org.nd4j.linalg.api.ndarray,org.nd4j.linalg.api.rng,org.nd4j.linalg.dataset,org.nd4j.linalg.indexing.conditions'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.dataset.api.iterator'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.nd4j.linalg.dataset,org.nd4j.linalg.dataset.api,org.nd4j.linalg.dataset.api.iterator.fetcher'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.dataset.api.iterator.fetcher'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.nd4j.linalg.api.ndarray,org.nd4j.linalg.dataset,org.slf4j'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.dimensionalityreduction'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.nd4j.linalg.api.ndarray'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.eigen'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.nd4j.linalg.api.complex,org.nd4j.linalg.api.ndarray'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.factory'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='com.google.common.base,org.nd4j.linalg.api.buffer,org.nd4j.linalg.api.buffer.factory,org.nd4j.linalg.api.complex,org.nd4j.linalg.api.instrumentation,org.nd4j.linalg.api.ndarray,org.nd4j.linalg.api.ops.executioner,org.nd4j.linalg.api.ops.factory,org.nd4j.linalg.api.resources,org.nd4j.linalg.api.rng,org.nd4j.linalg.api.rng.distribution,org.nd4j.linalg.api.rng.distribution.factory,org.nd4j.linalg.convolution,org.nd4j.linalg.fft'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.fft'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.nd4j.linalg.api.complex,org.nd4j.linalg.api.ndarray'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.indexing'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='com.google.common.base,org.nd4j.linalg.api.complex,org.nd4j.linalg.api.ndarray,org.nd4j.linalg.indexing.conditions'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.indexing.conditions'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='com.google.common.base,org.nd4j.linalg.api.complex'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.indexing.functions'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='com.google.common.base'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.learning'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.nd4j.linalg.api.ndarray'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.lossfunctions'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.nd4j.linalg.api.ndarray'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.ops.transforms'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.nd4j.linalg.api.ndarray'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.nd4j.linalg.util'/>
+      <attribute name='version' type='Version' value='0.0.3'/>
+      <attribute name='bundle-symbolic-name' value='nd4j-api'/>
+      <attribute name='bundle-version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
+      <directive name='uses' value='org.apache.commons.math3.random,org.nd4j.linalg.api.complex,org.nd4j.linalg.api.ndarray'/>
+    </capability>
+    <requirement namespace='osgi.wiring.package'>
+      <directive name='filter' value='(&amp;(osgi.wiring.package=com.google.common.base)(version&gt;=18.0.0)(!(version&gt;=19.0.0)))'/>
+    </requirement>
+    <requirement namespace='osgi.wiring.package'>
+      <directive name='filter' value='(&amp;(osgi.wiring.package=com.google.common.collect)(version&gt;=18.0.0)(!(version&gt;=19.0.0)))'/>
+    </requirement>
+    <requirement namespace='osgi.wiring.package'>
+      <directive name='filter' value='(&amp;(osgi.wiring.package=com.google.common.primitives)(version&gt;=18.0.0)(!(version&gt;=19.0.0)))'/>
+    </requirement>
+    <requirement namespace='osgi.wiring.package'>
+      <directive name='filter' value='(&amp;(osgi.wiring.package=com.google.common.util.concurrent)(version&gt;=18.0.0)(!(version&gt;=19.0.0)))'/>
+    </requirement>
+    <requirement namespace='osgi.wiring.package'>
+      <directive name='filter' value='(&amp;(osgi.wiring.package=org.apache.commons.math3.analysis)(version&gt;=3.4.0)(!(version&gt;=4.0.0)))'/>
+    </requirement>
+    <requirement namespace='osgi.wiring.package'>
+      <directive name='filter' value='(&amp;(osgi.wiring.package=org.apache.commons.math3.analysis.solvers)(version&gt;=3.4.0)(!(version&gt;=4.0.0)))'/>
+    </requirement>
+    <requirement namespace='osgi.wiring.package'>
+      <directive name='filter' value='(&amp;(osgi.wiring.package=org.apache.commons.math3.complex)(version&gt;=3.4.0)(!(version&gt;=4.0.0)))'/>
+    </requirement>
+    <requirement namespace='osgi.wiring.package'>
+      <directive name='filter' value='(&amp;(osgi.wiring.package=org.apache.commons.math3.distribution)(version&gt;=3.4.0)(!(version&gt;=4.0.0)))'/>
+    </requirement>
+    <requirement namespace='osgi.wiring.package'>
+      <directive name='filter' value='(&amp;(osgi.wiring.package=org.apache.commons.math3.exception)(version&gt;=3.4.0)(!(version&gt;=4.0.0)))'/>
+    </requirement>
+    <requirement namespace='osgi.wiring.package'>
+      <directive name='filter' value='(&amp;(osgi.wiring.package=org.apache.commons.math3.exception.util)(version&gt;=3.4.0)(!(version&gt;=4.0.0)))'/>
+    </requirement>
+    <requirement namespace='osgi.wiring.package'>
+      <directive name='filter' value='(&amp;(osgi.wiring.package=org.apache.commons.math3.random)(version&gt;=3.4.0)(!(version&gt;=4.0.0)))'/>
+    </requirement>
+    <requirement namespace='osgi.wiring.package'>
+      <directive name='filter' value='(&amp;(osgi.wiring.package=org.apache.commons.math3.special)(version&gt;=3.4.0)(!(version&gt;=4.0.0)))'/>
+    </requirement>
+    <requirement namespace='osgi.wiring.package'>
+      <directive name='filter' value='(&amp;(osgi.wiring.package=org.apache.commons.math3.util)(version&gt;=3.4.0)(!(version&gt;=4.0.0)))'/>
+    </requirement>
+    <requirement namespace='osgi.wiring.package'>
+      <directive name='filter' value='(&amp;(osgi.wiring.package=org.slf4j)(version&gt;=1.7.0)(!(version&gt;=2.0.0)))'/>
+    </requirement>
+    <requirement namespace='osgi.service'>
+      <directive name='effective' value='active'/>
+      <directive name='filter' value='(objectClass=org.nd4j.linalg.factory.Nd4jBackend)'/>
+    </requirement>
+    <requirement namespace='osgi.extender'>
+      <directive name='filter' value='(&amp;(osgi.extender=osgi.ds)(version&gt;=1.2.0)(!(version&gt;=2.0.0)))'/>
+      <directive name='effective' value='active'/>
+    </requirement>
+  </resource>
+  <resource>
+    <capability namespace='osgi.identity'>
+      <attribute name='osgi.identity' value='com.google.guava'/>
+      <attribute name='type' value='osgi.bundle'/>
+      <attribute name='version' type='Version' value='18.0.0'/>
+    </capability>
+    <capability namespace='osgi.content'>
+      <attribute name='osgi.content' value='d664fbfc03d2e5ce9cab2a44fb01f1d0bf9dfebeccc1a473b1f9ea31f79f6f99'/>
+      <attribute name='url' value='com.google.guava/com.google.guava-18.0.0.jar'/>
+      <attribute name='size' type='Long' value='2256213'/>
+      <attribute name='mime' value='application/vnd.osgi.bundle'/>
+    </capability>
+    <capability namespace='osgi.wiring.bundle'>
+      <attribute name='osgi.wiring.bundle' value='com.google.guava'/>
+      <attribute name='bundle-version' type='Version' value='18.0.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.host'>
+      <attribute name='osgi.wiring.host' value='com.google.guava'/>
+      <attribute name='bundle-version' type='Version' value='18.0.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='com.google.common.net'/>
+      <attribute name='version' type='Version' value='18.0.0'/>
+      <attribute name='bundle-symbolic-name' value='com.google.guava'/>
+      <attribute name='bundle-version' type='Version' value='18.0.0'/>
+      <directive name='uses' value='javax.annotation,com.google.common.base,com.google.common.hash,com.google.common.io,com.google.common.primitives,com.google.common.collect,com.google.common.escape'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='com.google.common.html'/>
+      <attribute name='version' type='Version' value='18.0.0'/>
+      <attribute name='bundle-symbolic-name' value='com.google.guava'/>
+      <attribute name='bundle-version' type='Version' value='18.0.0'/>
+      <directive name='uses' value='com.google.common.escape,javax.annotation'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='com.google.common.collect'/>
+      <attribute name='version' type='Version' value='18.0.0'/>
+      <attribute name='bundle-symbolic-name' value='com.google.guava'/>
+      <attribute name='bundle-version' type='Version' value='18.0.0'/>
+      <directive name='uses' value='com.google.common.base,javax.annotation,com.google.common.primitives,com.google.common.math'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='com.google.common.primitives'/>
+      <attribute name='version' type='Version' value='18.0.0'/>
+      <attribute name='bundle-symbolic-name' value='com.google.guava'/>
+      <attribute name='bundle-version' type='Version' value='18.0.0'/>
+      <directive name='uses' value='com.google.common.base,javax.annotation,sun.misc'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='com.google.common.base'/>
+      <attribute name='version' type='Version' value='18.0.0'/>
+      <attribute name='bundle-symbolic-name' value='com.google.guava'/>
+      <attribute name='bundle-version' type='Version' value='18.0.0'/>
+      <directive name='uses' value='javax.annotation'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='com.google.common.escape'/>
+      <attribute name='version' type='Version' value='18.0.0'/>
+      <attribute name='bundle-symbolic-name' value='com.google.guava'/>
+      <attribute name='bundle-version' type='Version' value='18.0.0'/>
+      <directive name='uses' value='com.google.common.base,javax.annotation'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='com.google.common.cache'/>
+      <attribute name='version' type='Version' value='18.0.0'/>
+      <attribute name='bundle-symbolic-name' value='com.google.guava'/>
+      <attribute name='bundle-version' type='Version' value='18.0.0'/>
+      <directive name='uses' value='com.google.common.collect,com.google.common.util.concurrent,javax.annotation,com.google.common.base,com.google.common.primitives,sun.misc'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='com.google.common.eventbus'/>
+      <attribute name='version' type='Version' value='18.0.0'/>
+      <attribute name='bundle-symbolic-name' value='com.google.guava'/>
+      <attribute name='bundle-version' type='Version' value='18.0.0'/>
+      <directive name='uses' value='com.google.common.collect,com.google.common.cache,javax.annotation,com.google.common.base,com.google.common.util.concurrent,com.google.common.reflect'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='com.google.common.util.concurrent'/>
+      <attribute name='version' type='Version' value='18.0.0'/>
+      <attribute name='bundle-symbolic-name' value='com.google.guava'/>
+      <attribute name='bundle-version' type='Version' value='18.0.0'/>
+      <directive name='uses' value='com.google.common.base,javax.annotation,com.google.common.collect,com.google.common.primitives,com.google.common.math'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='com.google.common.hash'/>
+      <attribute name='version' type='Version' value='18.0.0'/>
+      <attribute name='bundle-symbolic-name' value='com.google.guava'/>
+      <attribute name='bundle-version' type='Version' value='18.0.0'/>
+      <directive name='uses' value='com.google.common.primitives,com.google.common.base,javax.annotation,com.google.common.math'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='com.google.common.io'/>
+      <attribute name='version' type='Version' value='18.0.0'/>
+      <attribute name='bundle-symbolic-name' value='com.google.guava'/>
+      <attribute name='bundle-version' type='Version' value='18.0.0'/>
+      <directive name='uses' value='javax.annotation,com.google.common.base,com.google.common.math,com.google.common.hash,com.google.common.collect,com.google.common.primitives'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='com.google.common.xml'/>
+      <attribute name='version' type='Version' value='18.0.0'/>
+      <attribute name='bundle-symbolic-name' value='com.google.guava'/>
+      <attribute name='bundle-version' type='Version' value='18.0.0'/>
+      <directive name='uses' value='com.google.common.escape,javax.annotation'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='com.google.common.reflect'/>
+      <attribute name='version' type='Version' value='18.0.0'/>
+      <attribute name='bundle-symbolic-name' value='com.google.guava'/>
+      <attribute name='bundle-version' type='Version' value='18.0.0'/>
+      <directive name='uses' value='javax.annotation,com.google.common.base,com.google.common.collect,com.google.common.primitives'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='com.google.common.math'/>
+      <attribute name='version' type='Version' value='18.0.0'/>
+      <attribute name='bundle-symbolic-name' value='com.google.guava'/>
+      <attribute name='bundle-version' type='Version' value='18.0.0'/>
+      <directive name='uses' value='com.google.common.base,com.google.common.primitives,javax.annotation'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='com.google.common.annotations'/>
+      <attribute name='version' type='Version' value='18.0.0'/>
+      <attribute name='bundle-symbolic-name' value='com.google.guava'/>
+      <attribute name='bundle-version' type='Version' value='18.0.0'/>
+    </capability>
+    <requirement namespace='osgi.wiring.package'>
+      <directive name='filter' value='(osgi.wiring.package=javax.annotation)'/>
+      <directive name='resolution' value='optional'/>
+    </requirement>
+    <requirement namespace='osgi.wiring.package'>
+      <directive name='filter' value='(osgi.wiring.package=sun.misc)'/>
+      <directive name='resolution' value='optional'/>
+    </requirement>
+  </resource>
+  <resource>
+    <capability namespace='osgi.identity'>
+      <attribute name='osgi.identity' value='org.apache.commons.math3'/>
+      <attribute name='type' value='osgi.bundle'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.content'>
+      <attribute name='osgi.content' value='dcf9768726b82e8d7b8a928447b08bca7cfe2773d5120a63a41ec224207c1a29'/>
+      <attribute name='url' value='org.apache.commons.math3/org.apache.commons.math3-3.5.0.jar'/>
+      <attribute name='size' type='Long' value='2038489'/>
+      <attribute name='mime' value='application/vnd.osgi.bundle'/>
+    </capability>
+    <capability namespace='osgi.wiring.bundle'>
+      <attribute name='osgi.wiring.bundle' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.host'>
+      <attribute name='osgi.wiring.host' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.analysis'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.analysis.differentiation'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.analysis.function'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.analysis.integration'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.analysis.integration.gauss'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.analysis.interpolation'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.analysis.polynomials'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.analysis.solvers'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.complex'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.dfp'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.distribution'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.distribution.fitting'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.exception'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.exception.util'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.filter'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.fitting'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.fitting.leastsquares'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.fraction'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.genetics'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.geometry'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.geometry.enclosing'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.geometry.euclidean.oned'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.geometry.euclidean.threed'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.geometry.euclidean.twod'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.geometry.euclidean.twod.hull'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.geometry.hull'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.geometry.partitioning'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.geometry.partitioning.utilities'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.geometry.spherical.oned'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.geometry.spherical.twod'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.linear'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.ml.clustering'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.ml.clustering.evaluation'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.ml.distance'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.ml.neuralnet'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.ml.neuralnet.oned'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.ml.neuralnet.sofm'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.ml.neuralnet.sofm.util'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.ml.neuralnet.twod'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.ode'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.ode.events'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.ode.nonstiff'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.ode.sampling'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.optim'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.optim.linear'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.optim.nonlinear.scalar'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.optim.nonlinear.scalar.gradient'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.optim.nonlinear.scalar.noderiv'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.optim.nonlinear.vector'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.optim.nonlinear.vector.jacobian'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.optim.univariate'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.optimization'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.optimization.direct'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.optimization.fitting'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.optimization.general'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.optimization.linear'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.optimization.univariate'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.primes'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.random'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.special'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.stat'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.stat.clustering'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.stat.correlation'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.stat.descriptive'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.stat.descriptive.moment'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.stat.descriptive.rank'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.stat.descriptive.summary'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.stat.inference'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.stat.interval'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.stat.ranking'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.stat.regression'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.transform'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+    <capability namespace='osgi.wiring.package'>
+      <attribute name='osgi.wiring.package' value='org.apache.commons.math3.util'/>
+      <attribute name='version' type='Version' value='3.5.0'/>
+      <attribute name='bundle-symbolic-name' value='org.apache.commons.math3'/>
+      <attribute name='bundle-version' type='Version' value='3.5.0'/>
+    </capability>
+  </resource>
 </repository>
