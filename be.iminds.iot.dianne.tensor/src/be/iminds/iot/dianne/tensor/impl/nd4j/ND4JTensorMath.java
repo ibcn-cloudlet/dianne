@@ -186,24 +186,21 @@ public class ND4JTensorMath implements TensorMath<ND4JTensor> {
 	public ND4JTensor addvv(ND4JTensor res, ND4JTensor mat, ND4JTensor vec1,
 			ND4JTensor vec2) {
 		ND4JTensor t = vv(res, vec1, vec2);
-		add(res, mat, t);
-		return res;
+		return add(res, mat, t);
 	}
 
 	@Override
 	public ND4JTensor addmv(ND4JTensor res, ND4JTensor vec1, ND4JTensor mat,
 			ND4JTensor vec2) {
 		ND4JTensor t = mv(res, mat, vec2);
-		add(res, vec1, t);
-		return res;
+		return add(res, vec1, t);
 	}
 
 	@Override
 	public ND4JTensor addmm(ND4JTensor res, ND4JTensor mat, ND4JTensor mat1,
 			ND4JTensor mat2) {
 		ND4JTensor t = mm(res, mat1, mat2);
-		add(res, mat, t);
-		return res;
+		return add(res, mat, t);
 	}
 
 	@Override
