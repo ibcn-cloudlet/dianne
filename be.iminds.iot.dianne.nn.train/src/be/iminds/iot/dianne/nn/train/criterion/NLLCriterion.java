@@ -25,7 +25,7 @@ public class NLLCriterion implements Criterion {
 
 	@Override
 	public Tensor backward(final Tensor output, final Tensor target) {
-		gradInput = factory.getTensorMath().div(gradInput, target, output);
+		gradInput = factory.getTensorMath().cdiv(gradInput, target, output);
 		gradInput = factory.getTensorMath().mul(gradInput, gradInput, -1.0f);
 		return gradInput;
 	}

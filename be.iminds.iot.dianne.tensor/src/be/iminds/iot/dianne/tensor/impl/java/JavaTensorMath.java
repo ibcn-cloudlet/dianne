@@ -122,11 +122,6 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	public JavaTensor div(JavaTensor res, final JavaTensor tensor, final float value) {
 		return apply(res, params -> params[0] / value, tensor);
 	}
-
-	@Override
-	public JavaTensor div(JavaTensor res, final JavaTensor tensor1, final JavaTensor tensor2) {
-		return apply(res, params -> params[0] / params[1], tensor1, tensor2);
-	}
 	
 	@Override
 	public JavaTensor cdiv(JavaTensor res, final JavaTensor tensor1, final JavaTensor tensor2) {

@@ -60,11 +60,6 @@ public interface TensorMath<T extends Tensor<T>> {
 	 * Divide all elements in the T by the given value.
 	 */
 	public T div(T res, final T tensor1, final float value);
-
-	/**
-	 * Element-wise division res = t1/t2
-	 */
-	public T div(T res, final T tensor1, final T  tensor2);
 	
 	/**
 	 * Element-wise division of tensor1 by tensor2. 
