@@ -1,0 +1,10 @@
+Bundle-Version: 0.1.0.${tstamp}
+Private-Package: \
+	be.iminds.iot.dianne.tensor.impl.nd4j,\
+	be.iminds.iot.dianne.tensor.serializer
+Export-Package: be.iminds.iot.dianne.tensor
+Import-Package: \
+	com.esotericsoftware.kryo.*;resolution:=optional,\
+	*
+-dsannotations: *
+Bundle-Name: Dianne ND4j Tensor Library
