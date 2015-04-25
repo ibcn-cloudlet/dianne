@@ -78,6 +78,23 @@ public class TensorMathTest<T extends Tensor<T>> {
 		
 		Assert.assertEquals(exp, r);
 	}
+
+	@Test
+	public void testAdd4() {
+		T t1 = factory.createTensor(2,2);
+		t1.fill(2);
+		T t2 = factory.createTensor(4);
+		t2.fill(3);
+		
+		T r = factory.createTensor(2,2);
+		r.fill(1.0f);
+		math.add(r, t1, 2, t2);
+		
+		T exp = factory.createTensor(2,2);
+		exp.fill(8);
+		
+		Assert.assertEquals(exp, r);
+	}
 	
 	@Test
 	public void testSub1() {
@@ -106,6 +123,23 @@ public class TensorMathTest<T extends Tensor<T>> {
 		
 		Assert.assertEquals(exp, r);
 	}
+
+	@Test
+	public void testSub3() {
+		T t1 = factory.createTensor(2,2);
+		t1.fill(3);
+		T t2 = factory.createTensor(4);
+		t2.fill(1);
+		
+		T r = factory.createTensor(2,2);
+		r.fill(1.0f);
+		math.sub(r, t1, t2);
+		
+		T exp = factory.createTensor(2,2);
+		exp.fill(2);
+		
+		Assert.assertEquals(exp, r);
+	}
 	
 	@Test
 	public void testMul() {
@@ -113,6 +147,21 @@ public class TensorMathTest<T extends Tensor<T>> {
 		t1.fill(2);
 		
 		T r = math.mul(null, t1, 2);
+		
+		T exp = factory.createTensor(2,2);
+		exp.fill(4);
+		
+		Assert.assertEquals(exp, r);
+	}
+
+	@Test
+	public void testMul2() {
+		T t1 = factory.createTensor(2,2);
+		t1.fill(2);
+		
+		T r = factory.createTensor(2,2);
+		r.fill(1.0f);
+		math.mul(r, t1, 2);
 		
 		T exp = factory.createTensor(2,2);
 		exp.fill(4);
@@ -134,6 +183,23 @@ public class TensorMathTest<T extends Tensor<T>> {
 		
 		Assert.assertEquals(exp, r);
 	}
+
+	@Test
+	public void testCMul2() {
+		T t1 = factory.createTensor(2,2);
+		t1.fill(2);
+		T t2 = factory.createTensor(4);
+		t2.fill(3);
+		
+		T r = factory.createTensor(2,2);
+		r.fill(1.0f);
+		math.cmul(r, t1, t2);
+		
+		T exp = factory.createTensor(2,2);
+		exp.fill(6);
+		
+		Assert.assertEquals(exp, r);
+	}
 	
 	@Test
 	public void testDiv() {
@@ -141,6 +207,21 @@ public class TensorMathTest<T extends Tensor<T>> {
 		t1.fill(6);
 		
 		T r = math.div(null, t1, 2);
+		
+		T exp = factory.createTensor(2,2);
+		exp.fill(3);
+		
+		Assert.assertEquals(exp, r);
+	}
+
+	@Test
+	public void testDiv2() {
+		T t1 = factory.createTensor(2,2);
+		t1.fill(6);
+		
+		T r = factory.createTensor(2,2);
+		r.fill(1.0f);
+		math.div(r, t1, 2);
 		
 		T exp = factory.createTensor(2,2);
 		exp.fill(3);
@@ -156,6 +237,23 @@ public class TensorMathTest<T extends Tensor<T>> {
 		t2.fill(3);
 		
 		T r = math.cdiv(null, t1, t2);
+		
+		T exp = factory.createTensor(2,2);
+		exp.fill(2);
+		
+		Assert.assertEquals(exp, r);
+	}
+	
+	@Test
+	public void testCDiv2() {
+		T t1 = factory.createTensor(2,2);
+		t1.fill(6);
+		T t2 = factory.createTensor(4);
+		t2.fill(3);
+		
+		T r = factory.createTensor(2,2);
+		r.fill(1.0f);
+		math.cdiv(r, t1, t2);
 		
 		T exp = factory.createTensor(2,2);
 		exp.fill(2);
@@ -183,6 +281,23 @@ public class TensorMathTest<T extends Tensor<T>> {
 		t2.fill(3);
 		
 		T r = math.mv(null, t1, t2);
+		
+		T exp = factory.createTensor(2);
+		exp.fill(12);
+		
+		Assert.assertEquals(exp, r);
+	}
+	
+	@Test
+	public void testMv2() {
+		T t1 = factory.createTensor(2,2);
+		t1.fill(2);
+		T t2 = factory.createTensor(2);
+		t2.fill(3);
+		
+		T r = factory.createTensor(2);
+		r.fill(1.0f);
+		math.mv(r, t1, t2);
 		
 		T exp = factory.createTensor(2);
 		exp.fill(12);
@@ -237,6 +352,23 @@ public class TensorMathTest<T extends Tensor<T>> {
 		exp.set(29, 2, 0);
 		exp.set(40, 2, 1);
 		exp.set(51, 2, 2);
+		
+		Assert.assertEquals(exp, r);
+	}
+	
+	@Test
+	public void testMm3() {
+		T t1 = factory.createTensor(2,2);
+		t1.fill(2);
+		T t2 = factory.createTensor(2,2);
+		t2.fill(3);
+		
+		T r = factory.createTensor(2,2);
+		r.fill(1.0f);
+		math.mm(r, t1, t2);
+		
+		T exp = factory.createTensor(2,2);
+		exp.fill(12);
 		
 		Assert.assertEquals(exp, r);
 	}
@@ -302,17 +434,38 @@ public class TensorMathTest<T extends Tensor<T>> {
 	public void testConvolution(){
 		T t1 = factory.createTensor(5,5);
 		T t2 = factory.createTensor(3,3);
-		T result = factory.createTensor(3,3);
+		T exp = factory.createTensor(3,3);
 		
 		t1.fill(1.0f);
 		t1.set(2.0f, 0, 0);
 		t1.set(2.0f, 4, 4);
 		t2.fill(2.0f);
-		result.fill(18.0f);
-		result.set(20.0f, 0, 0);
-		result.set(20.0f, 2, 2);
+		exp.fill(18.0f);
+		exp.set(20.0f, 0, 0);
+		exp.set(20.0f, 2, 2);
 		
-		Assert.assertEquals(result, math.convolution2D(null, t1, t2, 1, 1, 0, false));
+		Assert.assertEquals(exp, math.convolution2D(null, t1, t2, 1, 1, 0, false));
+	}
+	
+	@Test
+	public void testConvolution2(){
+		T t1 = factory.createTensor(5,5);
+		T t2 = factory.createTensor(3,3);
+		T exp = factory.createTensor(3,3);
+		
+		t1.fill(1.0f);
+		t1.set(2.0f, 0, 0);
+		t1.set(2.0f, 4, 4);
+		t2.fill(2.0f);
+		exp.fill(18.0f);
+		exp.set(20.0f, 0, 0);
+		exp.set(20.0f, 2, 2);
+		
+		T r = factory.createTensor(3,3);
+		r.fill(1.0f);
+		math.convolution2D(r, t1, t2, 1, 1, 0, false);
+		
+		Assert.assertEquals(exp, r);
 	}
 	
 	@Test
@@ -333,9 +486,9 @@ public class TensorMathTest<T extends Tensor<T>> {
 			4.0f, 8.0f,  12.0f, 12.0f, 14.0f, 10.0f, 6.0f,
 			2.0f, 4.0f,  6.0f,  6.0f,  8.0f,  6.0f,  4.0f
 		};
-		T result = factory.createTensor(data, 7,7);
+		T exp = factory.createTensor(data, 7,7);
 		
-		Assert.assertEquals(result, math.convolution2D(null, t1, t2, 1, 1, 1, false));
+		Assert.assertEquals(exp, math.convolution2D(null, t1, t2, 1, 1, 1, false));
 	}
 	
 	@Test
@@ -354,9 +507,9 @@ public class TensorMathTest<T extends Tensor<T>> {
 				12.0f, 18.0f, 18.0f, 20.0f, 14.0f,
 				8.0f,  12.0f, 12.0f, 14.0f, 10.0f,
 		};
-		T result = factory.createTensor(data, 5, 5);
+		T exp = factory.createTensor(data, 5, 5);
 	
-		Assert.assertEquals(result, math.convolution2D(null, t1, t2, 1, 1, 2, false));
+		Assert.assertEquals(exp, math.convolution2D(null, t1, t2, 1, 1, 2, false));
 	}
 	
 	@Test
@@ -368,14 +521,37 @@ public class TensorMathTest<T extends Tensor<T>> {
 		t1.set(2.0f, 2, 0);
 		t1.set(4.0f, 0, 5);
 		
-		T result = factory.createTensor(2,3);
-		result.set(1.0f, 0, 0);
-		result.set(1.0f, 0, 1);
-		result.set(2.0f, 1, 0);
-		result.set(0.0f, 1, 1);
-		result.set(4.0f, 0, 2);
+		T exp = factory.createTensor(2,3);
+		exp.set(1.0f, 0, 0);
+		exp.set(1.0f, 0, 1);
+		exp.set(2.0f, 1, 0);
+		exp.set(0.0f, 1, 1);
+		exp.set(4.0f, 0, 2);
 		
-		Assert.assertEquals(result, math.maxpool2D(null, t1, 2, 2, 2, 2));
+		Assert.assertEquals(exp, math.maxpool2D(null, t1, 2, 2, 2, 2));
+	}
+
+	@Test
+	public void testMaxpool2(){
+		T t1 = factory.createTensor(4,6);
+		t1.fill(0.0f);
+		t1.set(1.0f, 0, 0);
+		t1.set(1.0f, 0, 3);
+		t1.set(2.0f, 2, 0);
+		t1.set(4.0f, 0, 5);
+		
+		T exp = factory.createTensor(2,3);
+		exp.set(1.0f, 0, 0);
+		exp.set(1.0f, 0, 1);
+		exp.set(2.0f, 1, 0);
+		exp.set(0.0f, 1, 1);
+		exp.set(4.0f, 0, 2);
+		
+		T r = factory.createTensor(2,3);
+		r.fill(1.0f);
+		math.maxpool2D(r, t1, 2, 2, 2, 2);
+		
+		Assert.assertEquals(exp, r);
 	}
 	
 	@Test
@@ -387,15 +563,15 @@ public class TensorMathTest<T extends Tensor<T>> {
 		t1.set(2.0f, 2, 0);
 		t1.set(4.0f, 0, 5);
 		
-		T result = factory.createTensor(3,5);
-		result.set(1.0f, 0, 0);
-		result.set(1.0f, 0, 2);
-		result.set(1.0f, 0, 3);
-		result.set(4.0f, 0, 4);
-		result.set(2.0f, 1, 0);
-		result.set(2.0f, 2, 0);
+		T exp = factory.createTensor(3,5);
+		exp.set(1.0f, 0, 0);
+		exp.set(1.0f, 0, 2);
+		exp.set(1.0f, 0, 3);
+		exp.set(4.0f, 0, 4);
+		exp.set(2.0f, 1, 0);
+		exp.set(2.0f, 2, 0);
 
-		Assert.assertEquals(result, math.maxpool2D(null, t1, 2, 2, 1, 1));
+		Assert.assertEquals(exp, math.maxpool2D(null, t1, 2, 2, 1, 1));
 	}
 	
 	
@@ -415,13 +591,13 @@ public class TensorMathTest<T extends Tensor<T>> {
 		grad.set(0.0f, 1, 1);
 		grad.set(1.0f, 0, 2);
 		
-		T result = factory.createTensor(4,6);
-		result.fill(0.0f);
-		result.set(1.0f, 0, 0);
-		result.set(1.0f, 0, 3);
-		result.set(1.0f, 2, 0);
-		result.set(1.0f, 0, 5);
+		T exp = factory.createTensor(4,6);
+		exp.fill(0.0f);
+		exp.set(1.0f, 0, 0);
+		exp.set(1.0f, 0, 3);
+		exp.set(1.0f, 2, 0);
+		exp.set(1.0f, 0, 5);
 	
-		Assert.assertEquals(result, math.dmaxpool2D(null, grad, t1, 2, 2, 2 ,2));
+		Assert.assertEquals(exp, math.dmaxpool2D(null, grad, t1, 2, 2, 2 ,2));
 	}
 }
