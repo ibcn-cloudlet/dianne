@@ -1,6 +1,7 @@
 package be.iminds.iot.dianne.nn.module.layer;
 
 import java.util.UUID;
+import java.util.stream.IntStream;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractTrainableModule;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -85,25 +86,30 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		}
 		// TODO check input planes dim? // check kernel sizes?
 	
-		// TODO create subtensors once and reuse?
-		Tensor temp = null;
-		
-		for(int i=0;i<noOutputPlanes;i++){
-			Tensor planeKernels = weights.select(0, i);
-			Tensor outputPlane = output.select(0, i);
-			outputPlane.fill(0.0f);
-			for(int j=0;j<noInputPlanes;j++){
-				Tensor kernel = planeKernels.select(0, j);
-				
-				// TODO convadd operation to avoid temp?
-				temp = factory.getTensorMath().convolution2D(temp,
-						noInputPlanes== 1 ? input : input.select(0, j), kernel, strideX, strideY, mode, false);
-				factory.getTensorMath().add(outputPlane, outputPlane, temp);
-			}
-			
-			// add bias
-			factory.getTensorMath().add(outputPlane, outputPlane, bias.get(i));
-		}
+		// TODO create subtensors once and reuse?	
+		IntStream
+				.range(0, noOutputPlanes)
+				.parallel()
+				.forEach(i -> {
+					Tensor planeKernels = weights.select(0, i);
+					Tensor outputPlane = output.select(0, i);
+					outputPlane.fill(0.0f);
+
+					Tensor temp = null;
+					for (int j = 0; j < noInputPlanes; j++) {
+						Tensor kernel = planeKernels.select(0, j);
+
+						// TODO convadd operation to avoid temp?
+						temp = factory.getTensorMath()
+								.convolution2D(temp,noInputPlanes == 1 ? input : input.select(0, j), 
+										kernel, strideX, strideY, mode, false);
+						factory.getTensorMath().add(outputPlane, outputPlane,
+								temp);
+					}
+
+					// add bias
+					factory.getTensorMath().add(outputPlane, outputPlane, bias.get(i));
+				});
 	}
 
 	@Override
