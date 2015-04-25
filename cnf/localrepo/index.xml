@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<repository increment='1429883636981' name='Local' xmlns='http://www.osgi.org/xmlns/repository/v1.0.0'>
+<repository increment='1429971413430' name='Local' xmlns='http://www.osgi.org/xmlns/repository/v1.0.0'>
   <resource>
     <capability namespace='osgi.identity'>
       <attribute name='osgi.identity' value='nd4j-jblas'/>
@@ -7,9 +7,9 @@
       <attribute name='version' type='Version' value='0.0.3.5_5_3-SNAPSHOT'/>
     </capability>
     <capability namespace='osgi.content'>
-      <attribute name='osgi.content' value='ef112cd54e9fc4a702de434621ae6db8bb54378dc21193dcca4018b8676d51e4'/>
+      <attribute name='osgi.content' value='a20f95e0e7f8b5932377086bd704242e6d91f40e6f0b6bc59eaf520f50f71081'/>
       <attribute name='url' value='nd4j-jblas/nd4j-jblas-0.0.3.jar'/>
-      <attribute name='size' type='Long' value='36097'/>
+      <attribute name='size' type='Long' value='36177'/>
       <attribute name='mime' value='application/vnd.osgi.bundle'/>
     </capability>
     <capability namespace='osgi.wiring.bundle'>
