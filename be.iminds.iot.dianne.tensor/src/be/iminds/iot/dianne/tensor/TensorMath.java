@@ -218,6 +218,12 @@ public interface TensorMath<T extends Tensor<T>> {
 	 * mode = 2 : same convolution, output size = input size
 	 */
 	public T convolution2D(T res, final T mat1, final T mat2, final int sx, final int sy, int mode, final boolean flip);
+
+	/**
+	 * Calculate 2D convolution mat1 * mat2 and add mat 
+	 */
+	public T addconvolution2D(T res, final T mat, final T mat1, final T mat2, final int sx, final int sy, int mode, final boolean flip);
+
 	
 	/**
 	 * Max pooling of tensor mat and put result in res, with strides sx and sy

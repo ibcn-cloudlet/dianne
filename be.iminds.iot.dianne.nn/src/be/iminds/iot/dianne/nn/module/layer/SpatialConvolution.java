@@ -95,16 +95,12 @@ public class SpatialConvolution extends AbstractTrainableModule {
 					Tensor outputPlane = output.select(0, i);
 					outputPlane.fill(0.0f);
 
-					Tensor temp = null;
 					for (int j = 0; j < noInputPlanes; j++) {
 						Tensor kernel = planeKernels.select(0, j);
 
-						// TODO convadd operation to avoid temp?
-						temp = factory.getTensorMath()
-								.convolution2D(temp,noInputPlanes == 1 ? input : input.select(0, j), 
+						factory.getTensorMath()
+								.addconvolution2D(outputPlane, outputPlane, noInputPlanes == 1 ? input : input.select(0, j), 
 										kernel, strideX, strideY, mode, false);
-						factory.getTensorMath().add(outputPlane, outputPlane,
-								temp);
 					}
 
 					// add bias
@@ -125,8 +121,6 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		}
 		
 		// TODO create subtensors once and reuse?
-		Tensor temp = null;
-		
 		for(int i=0;i<noInputPlanes;i++){
 			Tensor planeKernels = weights.select(1, i);
 			Tensor gradInputPlane = noInputPlanes== 1 ? gradInput : gradInput.select(0, i);
@@ -136,9 +130,8 @@ public class SpatialConvolution extends AbstractTrainableModule {
 				
 				// update gradInput
 				// this should be "full" convolution and flipped kernel?
-				temp = factory.getTensorMath().convolution2D(temp,
+				factory.getTensorMath().addconvolution2D(gradInputPlane, gradInputPlane,
 						gradOutput.select(0, j), kernel, 1, 1, 1, true);
-				factory.getTensorMath().add(gradInputPlane, gradInputPlane, temp);
 			}
 		}
 	}
@@ -152,8 +145,6 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		
 		// calculate grad weights based on http://andrew.gibiansky.com/blog/machine-learning/convolutional-neural-networks/
 		if(gradOutput!=null){
-			Tensor temp = null;
-			
 			for(int i=0;i<noOutputPlanes;i++){
 				Tensor planeGradKernels = gradWeights.select(0, i);
 			
@@ -161,10 +152,8 @@ public class SpatialConvolution extends AbstractTrainableModule {
 					Tensor gradKernel = planeGradKernels.select(0, j);
 					
 					//  update gradKernel
-					temp = factory.getTensorMath().convolution2D(temp, 
+					factory.getTensorMath().addconvolution2D(gradKernel, gradKernel, 
 							noInputPlanes== 1 ? input : input.select(0, j), gradOutput.select(0, i), 1, 1, 0, false);
-	
-					factory.getTensorMath().add(gradKernel, gradKernel, temp);
 				}
 			}
 			

@@ -412,6 +412,13 @@ public class ND4JTensorMath implements TensorMath<ND4JTensor> {
 			return res;
 		}
 	}
+	
+	@Override
+	public ND4JTensor addconvolution2D(ND4JTensor res, ND4JTensor mat, ND4JTensor mat1,
+			ND4JTensor mat2, int sx, int sy, int mode, boolean flip) {
+		ND4JTensor r = convolution2D(res, mat1, mat2, sx, sy, mode, flip);
+		return add(r, r, mat);
+	}
 
 	@Override
 	public ND4JTensor maxpool2D(ND4JTensor res, ND4JTensor mat, int w, int h,

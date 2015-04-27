@@ -1,5 +1,7 @@
 package be.iminds.iot.dianne.tensor.impl.java;
 
+import java.util.Arrays;
+
 import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.dianne.tensor.TensorMath;
 
@@ -396,65 +398,95 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 
 	@Override
 	public JavaTensor convolution2D(JavaTensor res, JavaTensor mat1, JavaTensor mat2, int stride_x, int stride_y, int mode, boolean flip) {
-		int h = mat2.size(0);
-		int w = mat2.size(1);
-		
-		int start_x = 0;
-		int start_y = 0;
-		int y = mat1.size(0) - h + 1;
-		int x = mat1.size(1) - w + 1;
-		
-		if(mode == 1){
-			// full
-			start_x -= (w-1);
-			start_y -= (h-1);
-			x += (w-1);
-			y += (h-1);
-		} else if(mode == 2){
-			// same
-			start_x -= Math.ceil((w-1)/2.0f);
-			start_y -= Math.ceil((h-1)/2.0f);
-			x += Math.ceil((w-1)/2.0f);
-			y += Math.ceil((h-1)/2.0f);
-		}
-		
-		int skip = mat1.size(1);
-		
-		if(res==null){
-			res = factory.createTensor((int)Math.ceil((y-start_y)/(float)stride_y), (int)Math.ceil((x-start_x)/(float)stride_x));
-		}
-
-		// TODO check dims?
-		int a = 0;
-		for(int i=start_y;i<y;i+=stride_y){
-			for(int j=start_x;j<x;j+=stride_x){
-				float r = 0;
-				int f = 0;
-				if(flip){
-					f = mat2.size()-1;
-				}
-				for(int k=0;k<h;k++){
-					for(int l=0;l<w;l++){
-						int s = i+k;
-						int t = j+l;
-						int index = s*skip+t;
-						if(s>=0 && s<mat1.size(0) && t>=0 && t<mat1.size(1))
-							r += mat1.data[mat1.indices==null ? index : mat1.indices[index]]
-								* mat2.data[mat2.indices==null? f : mat2.indices[f]];
-						if(flip){
-							f--;
-						} else {
-							f++;
-						}
-					}
-				}
-				res.data[(res.indices==null? a++ : res.indices[a++])] = r;
+		return addconvolution2D(res, null, mat1, mat2, stride_x, stride_y, mode, flip);
+	}
+	
+	@Override
+	public JavaTensor addconvolution2D(JavaTensor res, JavaTensor mat, JavaTensor mat1, JavaTensor mat2, int stride_x, int stride_y, int mode, boolean flip) {
+		JavaTensor kernel = mat2;
+		if(flip){
+			kernel = factory.createTensor(mat2.dims);
+			int k = kernel.data.length-1;
+			for(int i=0;i<kernel.data.length;i++){
+				kernel.data[i] = mat2.data[(mat2.indices==null? k-- : mat2.indices[k--])];
 			}
 		}
-		
-		return res;
+		if(mode == 1){
+			// full
+			JavaTensor padded = factory.createTensor(mat1.dims[0]+(mat2.dims[0]-1)*2, mat1.dims[1]+(mat2.dims[1]-1)*2);
+			int offset = (mat2.dims[1]-1) * padded.dims[0] + (mat2.dims[0]-1);
+			int skip = (mat2.dims[0]-1)*2;
+			int k = offset;
+			int l = 0;
+			for(int i=0;i<mat1.dims[0];i++){
+				for(int j=0;j<mat1.dims[1];j++){
+					padded.data[k++] = mat1.data[(mat1.indices==null? l++ : mat1.indices[l++])];
+				}
+				k+=skip;
+			}
+			return convValid(res, padded, kernel, mat, stride_x, stride_y);
+		} else if(mode == 2){
+			// same
+			JavaTensor padded = factory.createTensor(mat1.dims[0]+mat2.dims[0]-1, mat1.dims[1]+mat2.dims[1]-1);
+			int offset = (mat2.dims[1]-1)/2 * padded.dims[0] + ((mat2.dims[0]-1)/2);
+			int skip = mat2.dims[0]-1;
+			int k = offset;
+			int l = 0;
+			for(int i=0;i<mat1.dims[0];i++){
+				for(int j=0;j<mat1.dims[1];j++){
+					padded.data[k++] = mat1.data[(mat1.indices==null? l++ : mat1.indices[l++])];
+				}
+				k+=skip;
+			}
+			return convValid(res, padded, kernel, mat, stride_x, stride_y);
+		} else {
+			return convValid(res, mat1, kernel, mat, stride_x, stride_y);
+		}
 	}
 
+	private JavaTensor convValid(JavaTensor res, JavaTensor mat1, JavaTensor mat2, JavaTensor add, int stride_x, int stride_y){
+		int h = mat2.dims[0];
+		int w = mat2.dims[1];
+		
+		int y = mat1.dims[0] - h + 1;
+		int x = mat1.dims[1] - w + 1;
+		
+		JavaTensor r = res;
+		if(r==null){
+			r = factory.createTensor((int)Math.ceil(y/(float)stride_y), (int)Math.ceil(x/(float)stride_x));
+		} else if(add==null){
+			r.fill(0.0f);
+		}
+
+		if(add!=null){
+			add.copyInto(r);
+		}
+		
+		int a,f = 0;		
+		int skip = mat1.dims[1];
+		for(int k=0;k<h;k++){
+			for(int l=0;l<w;l++){
+				a = 0;
+
+				float c = mat2.data[mat2.indices==null? f : mat2.indices[f]];
+				
+				for(int i=0;i<r.dims[1];i++){
+					int index = (k+i*stride_y)*skip+l;
+					for(int j=0;j<r.dims[0];j++){
+						r.data[(r.indices==null? a : r.indices[a])]
+								+= mat1.data[mat1.indices==null ? index : mat1.indices[index]]
+										* c;
+						
+						index+=stride_x;
+						a++;
+					}
+				}
+				f++;
+			}
+		}
+		return r;
+	}
+	
 	@Override
 	public JavaTensor maxpool2D(JavaTensor res, JavaTensor mat1, int w, int h, int stride_x, int stride_y) {
 		int r_h = (int)Math.ceil((mat1.size(0) - h + 1)/(float)stride_y);
