@@ -464,10 +464,48 @@ public class TensorMathTest<T extends Tensor<T>> {
 		T r = factory.createTensor(3,3);
 		r.fill(1.0f);
 		math.convolution2D(r, t1, t2, 1, 1, 0, false);
-		
+
 		Assert.assertEquals(exp, r);
 	}
 	
+	@Test
+	public void testConvolution3(){
+		float[] data = new float[25];
+		for(int i=0;i<data.length;i++){
+			data[i] = i;
+		}
+		T t1 = factory.createTensor(data, 5,5);
+		T t2 = factory.createTensor(3,3);
+		t2.fill(2.0f);
+		
+		float[] e = new float[]{
+				108, 126, 144,
+				198, 216, 234,
+				288, 306, 324
+		};
+		T exp = factory.createTensor(e, 3,3);
+		
+		Assert.assertEquals(exp, math.convolution2D(null, t1, t2, 1, 1, 0, false));
+	}
+	
+	@Test
+	public void testConvolutionStride(){
+		float[] data = new float[25];
+		for(int i=0;i<data.length;i++){
+			data[i] = i;
+		}
+		T t1 = factory.createTensor(data, 5,5);
+		T t2 = factory.createTensor(3,3);
+		t2.fill(2.0f);
+		
+		float[] e = new float[]{
+				108, 144,
+				288, 324
+		};
+		T exp = factory.createTensor(e, 2,2);
+		
+		Assert.assertEquals(exp, math.convolution2D(null, t1, t2, 2, 2, 0, false));
+	}
 	@Test
 	public void testConvolutionFull(){
 		T t1 = factory.createTensor(5,5);
@@ -510,6 +548,28 @@ public class TensorMathTest<T extends Tensor<T>> {
 		T exp = factory.createTensor(data, 5, 5);
 	
 		Assert.assertEquals(exp, math.convolution2D(null, t1, t2, 1, 1, 2, false));
+	}
+	
+	@Test
+	public void testConvolutionAdd(){
+		float[] data = new float[25];
+		for(int i=0;i<data.length;i++){
+			data[i] = i;
+		}
+		T t1 = factory.createTensor(data, 5,5);
+		T t2 = factory.createTensor(3,3);
+		t2.fill(2.0f);
+		T t3 = factory.createTensor(3,3);
+		t3.fill(2.0f);
+		
+		float[] e = new float[]{
+				110, 128, 146,
+				200, 218, 236,
+				290, 308, 326
+		};
+		T exp = factory.createTensor(e, 3,3);
+		
+		Assert.assertEquals(exp, math.addconvolution2D(null, t3, t1, t2, 1, 1, 0, false));
 	}
 	
 	@Test
