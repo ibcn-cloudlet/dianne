@@ -17,6 +17,12 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 	kxml;version='[2.2.2,2.2.3)',\
 	org.apache.felix.scr;version='[1.8.2,1.8.3)',\
 	com.google.gson;version='[2.2.4,2.3)',\
+	slf4j.api;version='[1.7,1.8)',\
+	com.google.guava;version='[18,19)',\
+	org.apache.commons.math3;version='[3.4,4)',\
+	org.jblas;version='[1.2,1.3)',\
+	nd4j-api;version=latest,\
+	nd4j-jblas;version=latest,\
 	be.iminds.iot.dianne.tensor.java;version=latest,\
 	be.iminds.iot.dianne.nn;version=latest,\
 	be.iminds.iot.dianne.nn.runtime;version=latest,\
