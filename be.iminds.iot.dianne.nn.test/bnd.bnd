@@ -33,8 +33,8 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 	
 -runproperties:\
 	be.iminds.iot.dianne.storage="../tools/nn",\
-	be.iminds.iot.dianne.dataset.mnist.location="/home/tverbele/Documents/datasets/MNIST/",\
-	be.iminds.iot.dianne.dataset.imagenet.location="/home/tverbele/Documents/datasets/ImageNet/"
+	be.iminds.iot.dianne.dataset.mnist.location="../tools/datasets/MNIST/",\
+	be.iminds.iot.dianne.dataset.imagenet.location="../tools/datasets/ImageNet/"
 	
 -runfw: org.eclipse.concierge
 -runsystempackages:\

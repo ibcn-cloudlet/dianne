@@ -48,11 +48,11 @@
 	org.osgi.service.http.port=8080,\
 	org.apache.felix.http.jetty.maxFormSize=999999999,\
 	be.iminds.iot.dianne.storage="../tools/nn",\
-	be.iminds.iot.dianne.dataset.mnist.location="/home/tverbele/Documents/datasets/MNIST/",\
-	be.iminds.iot.dianne.dataset.imagenet.location="/home/tverbele/Documents/datasets/ImageNet/",\
-	be.iminds.iot.dianne.dataset.stl10.location="/home/tverbele/Documents/datasets/STL-10/",\
-	be.iminds.iot.dianne.dataset.cifar10.location="/home/tverbele/Documents/datasets/CIFAR-10/"
-	be.iminds.iot.dianne.dataset.cifar100.location="/home/tverbele/Documents/datasets/CIFAR-100/",\
+	be.iminds.iot.dianne.dataset.mnist.location="../tools/datasets/MNIST/",\
+	be.iminds.iot.dianne.dataset.imagenet.location="../tools/datasets/ImageNet/",\
+	be.iminds.iot.dianne.dataset.stl10.location="../tools/datasets/STL-10/",\
+	be.iminds.iot.dianne.dataset.cifar10.location="../tools/datasets/CIFAR-10/"
+	be.iminds.iot.dianne.dataset.cifar100.location="../tools/datasets/CIFAR-100/",\
 	be.iminds.iot.dianne.dataset.cifar100.labels="coarse",\
 
 -runvm: -d64 -Xms512m -Xmx4g
