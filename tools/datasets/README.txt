@@ -1,5 +1,7 @@
 Put your datasets in this folder.
 
+You can download some datasets at http://aiolos.intec.ugent.be/dianne/datasets/
+
 Supported datasets:
 
 MNIST
@@ -7,10 +9,10 @@ MNIST
 Hand written digit images of 28x28 pixels greyscale. 
 
 Provide the following files in the MNIST/ folder
-t10k-images.idx3-ubyte
-t10k-labels.idx1-ubyte
-train-images.idx3-ubyte
-train-labels.idx1-ubyte
+ t10k-images.idx3-ubyte
+ t10k-labels.idx1-ubyte
+ train-images.idx3-ubyte
+ train-labels.idx1-ubyte
 
 CIFAR-10
 --------
