@@ -4,3 +4,5 @@
 /run/
 /lib/
 /resources/
+/datasets/
+/nn/
