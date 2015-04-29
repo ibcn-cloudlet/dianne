@@ -1,108 +1,120 @@
 package be.iminds.iot.dianne.tensor.impl.th;
 
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+
 import be.iminds.iot.dianne.tensor.Tensor;
 
 public class THTensor implements Tensor<THTensor> {
 
-	private long address;
+	long address;
+	int[] dims;
 	
 	public THTensor(int[] dims) {
 		this(null, dims);
 	}
 	
 	public THTensor(float[] data, int[] dims) {
+		this.dims = dims;
 		this.address = init(data, dims);
-		System.out.println(address);
 	}
 	
 	@Override
 	public int dim() {
-		// TODO Auto-generated method stub
-		return 0;
+		return dims.length;
 	}
 
 	@Override
 	public int[] dims() {
-		// TODO Auto-generated method stub
-		return null;
+		return Arrays.copyOf(dims, dims.length);
 	}
 
 	@Override
 	public int size() {
-		// TODO Auto-generated method stub
-		return 0;
+		int size = 1;
+		for(int i=0;i<dims.length;i++){
+			size *= dims[i];
+		}
+		return size;
 	}
 
 	@Override
-	public int size(int d) {
-		// TODO Auto-generated method stub
-		return 0;
+	public int size(final int d) {
+		return dims[d];
 	}
-
+	
 	@Override
 	public void reshape(int... d) {
-		// TODO Auto-generated method stub
+		this.dims = d;
 		
 	}
 
 	@Override
 	public float get(int... d) {
-		// TODO Auto-generated method stub
-		return 0;
+		return get(address, d);
 	}
 
 	@Override
 	public float[] get() {
-		// TODO Auto-generated method stub
-		return null;
+		ByteBuffer b = get(address);
+		return b.asFloatBuffer().array();
 	}
 
 	@Override
 	public void set(float v, int... d) {
-		// TODO Auto-generated method stub
-		
+		set(address, v, d);
 	}
 
 	@Override
 	public void set(float[] data) {
-		// TODO Auto-generated method stub
-		
+		set(address, data);
 	}
 
 	@Override
 	public void fill(float v) {
-		// TODO Auto-generated method stub
-		
+		fill(address, v);
 	}
 
 	@Override
 	public void rand() {
-		// TODO Auto-generated method stub
-		
+		rand(address);
 	}
 
 	@Override
 	public void randn() {
-		// TODO Auto-generated method stub
-		
+		randn(address);
 	}
 
 	@Override
-	public boolean sameDim(Tensor<?> other) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean sameDim(final Tensor<?> other) {
+		if(dims.length!=other.dim()){
+			return false;
+		}
+		for(int i=0;i<dims.length;i++){
+			if(other.size(i) != dims[i]){
+				return false;
+			}
+		}
+		return true;
 	}
-
+	
 	@Override
-	public boolean hasDim(int... dims) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean hasDim(final int... dims){
+		if(this.dims.length!=dims.length){
+			return false;
+		}
+		for(int i=0;i<dims.length;i++){
+			if(this.dims[i] != dims[i]){
+				return false;
+			}
+		}
+		return true;
 	}
 
 	@Override
 	public THTensor copyInto(THTensor other) {
-		// TODO Auto-generated method stub
-		return null;
+		copyInto(address, other.address);
+		return other;
 	}
 
 	@Override
@@ -135,6 +147,20 @@ public class THTensor implements Tensor<THTensor> {
 		return null;
 	}
 
+	@Override
+	public boolean equals(Object other){
+		if(!(other instanceof THTensor)){
+			return false;
+		} 
+		THTensor o = (THTensor) other;
+		return equals(address, o.address);
+	}
+	
+	@Override
+	public int hashCode(){
+		return (int)address;
+	}
+	
 	public void finalize(){
 		free(address);
 	}
@@ -142,4 +168,32 @@ public class THTensor implements Tensor<THTensor> {
 	private native long init(float[] data, int[] dims);
 	
 	private native void free(long address);
+	
+	private native void reshape(long src, int... d);
+
+	private native float get(long src, int... d);
+
+	private native ByteBuffer get(long src);
+	
+	private native void set(long src, float v, int... d);
+
+	private native void set(long src, float[] data);
+	
+	private native void fill(long src, float v);
+
+	private native void rand(long src);
+
+	private native void randn(long src);
+
+	private native long copyInto(long src, long other);
+
+	private native long narrow(long src, int dim, int index, int size);
+
+	private native long select(long src, int dim, int index);
+
+	private native long transpose(long src, long res, int d1, int d2);
+
+	private native long diag(long src, long res);
+	
+	private native boolean equals(long src, long other);
 }
