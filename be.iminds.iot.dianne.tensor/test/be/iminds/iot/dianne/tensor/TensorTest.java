@@ -156,7 +156,7 @@ public class TensorTest<T extends Tensor<T>> {
 	@Test
 	public void testNarrow1() {
 		T t = factory.createTensor(5, 6);
-
+		t.fill(0.0f);
 		T t2 = t.narrow(0, 1, 3);
 		t2.set(1.0f, 0, 2);
 
@@ -172,7 +172,7 @@ public class TensorTest<T extends Tensor<T>> {
 	@Test
 	public void testNarrow2() {
 		T t = factory.createTensor(5, 6);
-
+		t.fill(0.0f);
 		T t2 = t.narrow(0, 1, 3);
 		t2.fill(1);
 
@@ -192,7 +192,7 @@ public class TensorTest<T extends Tensor<T>> {
 	@Test
 	public void testNarrow3() {
 		T t = factory.createTensor(5, 6);
-
+		t.fill(0.0f);
 		T t2 = t.narrow(1, 3, 2, 3);
 		t2.fill(1);
 
