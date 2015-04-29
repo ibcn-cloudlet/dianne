@@ -25,8 +25,8 @@ public class TensorTest<T extends Tensor<T>> {
 	@Parameters(name="{1}")
 	public static Collection<Object[]> data() {
 		return Arrays.asList(new Object[][] { 
-				{ new JavaTensorFactory(), "Java Tensor" },
-				{ new ND4JTensorFactory(), "ND4J Tensor" },
+//				{ new JavaTensorFactory(), "Java Tensor" },
+//				{ new ND4JTensorFactory(), "ND4J Tensor" },
 				{ new THTensorFactory(), "TH Tensor" }
 		});
 	}
@@ -34,6 +34,7 @@ public class TensorTest<T extends Tensor<T>> {
 	@Test
 	public void test1DTensor() {
 		T t = factory.createTensor(4);
+		t.fill(0.0f);
 		Assert.assertEquals(1, t.dim());
 		Assert.assertEquals(4, t.size());
 		Assert.assertEquals(4, t.size(0));
@@ -46,6 +47,7 @@ public class TensorTest<T extends Tensor<T>> {
 	@Test
 	public void test2DTensor() {
 		T t = factory.createTensor(3, 4);
+		t.fill(0.0f);
 		Assert.assertEquals(2, t.dim());
 		Assert.assertEquals(12, t.size());
 		Assert.assertEquals(3, t.size(0));
@@ -58,8 +60,25 @@ public class TensorTest<T extends Tensor<T>> {
 	}
 
 	@Test
+	public void test2DTensor2() {
+		float[] data = new float[]{1.0f, 2.0f, 3.0f, 4.0f};
+		T t = factory.createTensor(data, 2, 2);
+		Assert.assertEquals(2, t.dim());
+		Assert.assertEquals(4, t.size());
+		Assert.assertEquals(2, t.size(0));
+		Assert.assertEquals(2, t.size(1));
+
+		Assert.assertEquals(1.0f, t.get(0, 0), 0.01);
+		
+		float[] newdata = t.get();
+		Assert.assertArrayEquals(data, newdata, 0.01f);
+
+	}
+	
+	@Test
 	public void test3DTensor() {
 		T t = factory.createTensor(2, 3, 4);
+		t.fill(0.0f);
 		Assert.assertEquals(3, t.dim());
 		Assert.assertEquals(24, t.size());
 		Assert.assertEquals(2, t.size(0));
@@ -75,14 +94,27 @@ public class TensorTest<T extends Tensor<T>> {
 	@Test
 	public void testEquals() {
 		T t = factory.createTensor(2, 2);
+		t.fill(1.0f);
 		T t2 = factory.createTensor(2, 2);
+		t2.fill(1.0f);
 		T t3 = factory.createTensor(4);
+		t3.fill(1.0f);
 
 		Assert.assertEquals(true, t.equals(t2));
 		Assert.assertEquals(false, t.equals(t3));
-		t.set(1.0f, 0, 0);
+		t.set(2.0f, 0, 0);
 		Assert.assertEquals(false, t.equals(t2));
+	}
+	
+	@Test
+	public void testReshape() {
+		T t = factory.createTensor(2, 2);
+		t.fill(1.0f);
+		T t2 = factory.createTensor(4);
+		t2.fill(1.0f);
 
+		t.reshape(4);
+		Assert.assertEquals(t2, t);
 	}
 
 	@Test
