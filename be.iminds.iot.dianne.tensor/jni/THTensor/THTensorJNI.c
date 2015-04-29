@@ -215,13 +215,17 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensor_copyIn
 
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensor_narrow
   (JNIEnv * env, jobject o, jlong src, jint dim, jint index, jint size){
-
+	THTensor* tensor = (THTensor*) src;
+	THTensor* narrow = THTensor_(newNarrow)(tensor, dim, index, size);
+	return narrow;
 }
 
 
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensor_select
   (JNIEnv * env, jobject o, jlong src, jint dim, jint index){
-
+	THTensor* tensor = (THTensor*) src;
+	THTensor* select = THTensor_(newSelect)(tensor, dim, index);
+	return select;
 }
 
 

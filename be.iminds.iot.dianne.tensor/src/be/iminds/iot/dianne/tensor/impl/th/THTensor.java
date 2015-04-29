@@ -126,20 +126,23 @@ public class THTensor implements Tensor<THTensor> {
 
 	@Override
 	public THTensor narrow(int dim, int index, int size) {
-		// TODO Auto-generated method stub
-		return null;
+		long n = narrow(address, dim, index, size);
+		return new THTensor(n);
 	}
 
 	@Override
 	public THTensor narrow(int... ranges) {
-		// TODO Auto-generated method stub
-		return null;
+		THTensor n = this;
+		for(int i=0;i<ranges.length-1;i+=2){
+			n = n.narrow(i/2, ranges[i], ranges[i+1]); 
+		}
+		return n;
 	}
 
 	@Override
 	public THTensor select(int dim, int index) {
-		// TODO Auto-generated method stub
-		return null;
+		long s = select(address, dim, index);
+		return new THTensor(s);
 	}
 
 	@Override
