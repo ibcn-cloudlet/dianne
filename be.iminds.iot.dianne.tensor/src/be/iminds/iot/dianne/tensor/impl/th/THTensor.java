@@ -1,6 +1,5 @@
 package be.iminds.iot.dianne.tensor.impl.th;
 
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -10,13 +9,18 @@ public class THTensor implements Tensor<THTensor> {
 	long address;
 	int[] dims;
 	
-	public THTensor(int[] dims) {
+	THTensor(int[] dims) {
 		this(null, dims);
 	}
 	
-	public THTensor(float[] data, int[] dims) {
+	THTensor(float[] data, int[] dims) {
 		this.dims = dims;
 		this.address = init(data, dims);
+	}
+	
+	THTensor(long address) {
+		this.address = address;
+		this.dims = dims(address);
 	}
 	
 	@Override
@@ -56,8 +60,7 @@ public class THTensor implements Tensor<THTensor> {
 
 	@Override
 	public float[] get() {
-		ByteBuffer b = get(address);
-		return b.asFloatBuffer().array();
+		return get(address);
 	}
 
 	@Override
@@ -113,8 +116,12 @@ public class THTensor implements Tensor<THTensor> {
 
 	@Override
 	public THTensor copyInto(THTensor other) {
-		copyInto(address, other.address);
-		return other;
+		THTensor copy = other;
+		if(copy==null){
+			copy = new THTensor(dims);
+		}
+		copyInto(address, copy.address);
+		return copy;
 	}
 
 	@Override
@@ -137,14 +144,21 @@ public class THTensor implements Tensor<THTensor> {
 
 	@Override
 	public THTensor transpose(THTensor res, int d1, int d2) {
-		// TODO Auto-generated method stub
-		return null;
+		long l = transpose(address, d1, d2);
+		// TH does not do transpose to res vector, just copy here
+		THTensor t = new THTensor(l);
+		if(res!=null){
+			t.copyInto(res);
+			return res;
+		} else {
+			return t;
+		}
 	}
 
 	@Override
 	public THTensor diag(THTensor res) {
-		// TODO Auto-generated method stub
-		return null;
+		long l = diag(address, res == null ?  0 : res.address);
+		return res==null ? new THTensor(l) : res;
 	}
 
 	@Override
@@ -153,6 +167,9 @@ public class THTensor implements Tensor<THTensor> {
 			return false;
 		} 
 		THTensor o = (THTensor) other;
+		if(!this.sameDim(o)){
+			return false;
+		}
 		return equals(address, o.address);
 	}
 	
@@ -169,11 +186,13 @@ public class THTensor implements Tensor<THTensor> {
 	
 	private native void free(long address);
 	
+	private native int[] dims(long src);
+	
 	private native void reshape(long src, int... d);
 
 	private native float get(long src, int... d);
 
-	private native ByteBuffer get(long src);
+	private native float[] get(long src);
 	
 	private native void set(long src, float v, int... d);
 
@@ -191,9 +210,9 @@ public class THTensor implements Tensor<THTensor> {
 
 	private native long select(long src, int dim, int index);
 
-	private native long transpose(long src, long res, int d1, int d2);
+	private native long transpose(long src, int d1, int d2);
 
-	private native long diag(long src, long res);
+	private native long diag(long src, long dst);
 	
 	private native boolean equals(long src, long other);
 }
