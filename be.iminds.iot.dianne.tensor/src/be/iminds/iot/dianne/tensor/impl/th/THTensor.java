@@ -4,6 +4,17 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 public class THTensor implements Tensor<THTensor> {
 
+	private long address;
+	
+	public THTensor(int[] dims) {
+		this(null, dims);
+	}
+	
+	public THTensor(float[] data, int[] dims) {
+		this.address = init(data, dims);
+		System.out.println(address);
+	}
+	
 	@Override
 	public int dim() {
 		// TODO Auto-generated method stub
@@ -124,5 +135,11 @@ public class THTensor implements Tensor<THTensor> {
 		return null;
 	}
 
-
+	public void finalize(){
+		free(address);
+	}
+	
+	private native long init(float[] data, int[] dims);
+	
+	private native void free(long address);
 }
