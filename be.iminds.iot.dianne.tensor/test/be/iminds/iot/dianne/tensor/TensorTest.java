@@ -25,8 +25,8 @@ public class TensorTest<T extends Tensor<T>> {
 	@Parameters(name="{1}")
 	public static Collection<Object[]> data() {
 		return Arrays.asList(new Object[][] { 
-//				{ new JavaTensorFactory(), "Java Tensor" },
-//				{ new ND4JTensorFactory(), "ND4J Tensor" },
+				{ new JavaTensorFactory(), "Java Tensor" },
+				{ new ND4JTensorFactory(), "ND4J Tensor" },
 				{ new THTensorFactory(), "TH Tensor" }
 		});
 	}
