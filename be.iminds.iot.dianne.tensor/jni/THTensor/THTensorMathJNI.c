@@ -2,17 +2,44 @@
 
 #include "THTensorJNI.h"
 
-THTensor* getTHTensor(jlong l){
-	return l==0 ? THTensor_(new)() : (THTensor*)l;
+THTensor* getTHTensor(THTensor* l){
+	return l==0 ? THTensor_(new)() : l;
 }
 
-THTensor* getTHTensor1(jlong l, long d1){
-	return l==0 ? THTensor_(newWithSize1d)(d1) : (THTensor*)l;
+THTensor* getTHTensor1(THTensor* l, long d1){
+	return l==0 ? THTensor_(newWithSize1d)(d1) : l;
 }
 
-THTensor* getTHTensor2(jlong l, long d1, long d2){
-	return l==0 ? THTensor_(newWithSize2d)(d1, d2) : (THTensor*)l;
+THTensor* getTHTensor2(THTensor* l, long d1, long d2){
+	return l==0 ? THTensor_(newWithSize2d)(d1, d2) : l;
 }
+
+long int getSize(THTensor* t){
+	long int size = 1;
+	long* ptr = t->size;
+	int i=0;
+	for(i=0;i<t->nDimension;i++){
+		size =size*(*(ptr++));
+	}
+	return size;
+}
+
+THTensor* getVector(THTensor* l){
+	if(l->nDimension==1){
+		return l;
+	} else {
+		THTensor* v = THTensor_(newWithTensor)(l);
+		THTensor_(resize1d)(v , getSize(l));
+		return v;
+	}
+}
+
+void releaseVector(THTensor* l, THTensor* v){
+	if(v!=l){
+		THTensor_(free)(v);
+	}
+}
+
 
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_add__JJF(
 		JNIEnv * env, jobject o, jlong dst, jlong src, jfloat val) {
@@ -109,32 +136,48 @@ JNIEXPORT jfloat JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_d
 
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_vv(
 		JNIEnv * env, jobject o, jlong dst, jlong v1, jlong v2) {
-	THTensor* vec1= (THTensor*) v1;
-	THTensor* vec2 = (THTensor*) v2;
+	THTensor* vec1= getVector(v1);
+	THTensor* vec2 = getVector(v2);
 	THTensor* r = getTHTensor2(dst, vec1->size[0], vec2->size[0]);
 
 	THTensor_(addr)(r, 0.0f, r, 1.0f, vec1, vec2);
+
+	releaseVector(v1, vec1);
+	releaseVector(v2, vec2);
 	return r;
 }
 
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_mv(
 		JNIEnv * env, jobject o, jlong dst, jlong m, jlong v) {
 	THTensor* mat = (THTensor*) m;
-	THTensor* vec = (THTensor*) v;
+	THTensor* vec = getVector(v);
 
 	THTensor* r = getTHTensor1(dst, mat->size[0]);
+	THTensor* rv = getVector(r);
 
-	THTensor_(addmv)(r, 0.0f, r, 1.0f, mat, vec);
+
+	THTensor_(addmv)(rv, 0.0f, rv, 1.0f, mat, vec);
+
+	releaseVector(v, vec);
+	//releaseVector(rv, r);
 	return r;
 }
 
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_tmv(
 		JNIEnv * env, jobject o, jlong dst, jlong m, jlong v) {
 	THTensor* mat = (THTensor*) m;
-	THTensor* vec = (THTensor*) v;
+	THTensor* vec = getVector(v);
 	THTensor* r = getTHTensor1(dst, mat->size[1]);
+	THTensor* rv = getVector(r);
 
-	THTensor_(addmv)(r, 0.0f, r, 1.0f, THTensor_(newTranspose)(mat, 0, 1), vec);
+	THTensor* transpose = THTensor_(newTranspose)(mat, 0, 1);
+
+	THTensor_(addmv)(rv, 0.0f, rv, 1.0f, transpose, vec);
+
+	releaseVector(v, vec);
+	//releaseVector(rv, r);
+	THTensor_(free)(transpose);
+
 	return r;
 }
 
@@ -151,22 +194,30 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_mm
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_addvv(
 		JNIEnv * env, jobject o, jlong dst, jlong m, jlong v1, jlong v2) {
 	THTensor* mat = (THTensor*) m;
-	THTensor* vec1 = (THTensor*) v1;
-	THTensor* vec2 = (THTensor*) v2;
+	THTensor* vec1 = getVector(v1);
+	THTensor* vec2 = getVector(v2);
 	THTensor* r = getTHTensor2(dst, mat->size[0], mat->size[1]);
 
 	THTensor_(addr)(r, 1.0f, mat, 1.0f, vec1, vec2);
+
+	releaseVector(v1, vec1);
+	releaseVector(v2, vec2);
 	return r;
 }
 
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_addmv(
 		JNIEnv * env, jobject o, jlong dst, jlong v1, jlong m, jlong v2) {
 	THTensor* mat = (THTensor*) m;
-	THTensor* vec1 = (THTensor*) v1;
-	THTensor* vec2 = (THTensor*) v2;
+	THTensor* vec1 = getVector(v1);
+	THTensor* vec2 = getVector(v2);
 	THTensor* r = getTHTensor1(dst, vec1->size[0]);
+	THTensor* rv = getVector(r);
 
-	THTensor_(addmv)(r, 1.0f, vec1, 1.0f, mat, vec2);
+	THTensor_(addmv)(rv, 1.0f, vec1, 1.0f, mat, vec2);
+
+	releaseVector(v1, vec1);
+	releaseVector(v2, vec2);
+	//releaseVector(rv, r);
 	return r;
 }
 
