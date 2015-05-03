@@ -7,8 +7,8 @@ JAVAH := be.iminds.iot.dianne.tensor.impl.th.THTensor be.iminds.iot.dianne.tenso
 SRC := THTensorJNI.c THTensorMathJNI.c 
 INCLUDES := -I/usr/lib/jvm/jdk1.8.0_25/include/ -I/usr/lib/jvm
 OBJECT := THTensorJNI.o THTensorMathJNI.o 
-FLAGS := -O3
-LINKS := libTH.a
+FLAGS := -O3 -w
+LINKS := libTH.a -lgomp -lopenblas
 LIB := libTHTensor.so
 ARCH := x86_64
 

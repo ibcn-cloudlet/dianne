@@ -181,6 +181,15 @@ public class THTensor implements Tensor<THTensor> {
 		return (int)address;
 	}
 	
+	@Override
+	public String toString(){
+		StringBuilder b = new StringBuilder();
+		b.append(Arrays.toString(dims));
+		b.append("\n");
+		b.append(Arrays.toString(get()));
+		return b.toString();
+	}
+	
 	public void finalize(){
 		free(address);
 	}

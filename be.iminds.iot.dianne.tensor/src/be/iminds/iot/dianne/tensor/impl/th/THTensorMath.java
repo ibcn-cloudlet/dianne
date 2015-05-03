@@ -1,5 +1,7 @@
 package be.iminds.iot.dianne.tensor.impl.th;
 
+import javax.naming.OperationNotSupportedException;
+
 import be.iminds.iot.dianne.tensor.TensorMath;
 
 public class THTensorMath implements TensorMath<THTensor> {
@@ -208,42 +210,48 @@ public class THTensorMath implements TensorMath<THTensor> {
 
 	@Override
 	public int argmax(THTensor tensor) {
-		return argmax(tensor.address);
+		throw new UnsupportedOperationException();
+//		return argmax(tensor.address);
 	}
 
 	@Override
 	public int argmin(THTensor tensor) {
-		return argmin(tensor.address);
+		throw new UnsupportedOperationException();
+//		return argmin(tensor.address);
 	}
 
 	@Override
 	public THTensor convolution2D(THTensor res, THTensor mat1, THTensor mat2,
 			int sx, int sy, int mode, boolean flip) {
-		long l = convolution2D(res==null ? 0 : res.address, mat1.address, mat2.address,
-				sx, sy, mode, flip);
-		return res==null ? new THTensor(l) : res;
+		throw new UnsupportedOperationException();
+//		long l = convolution2D(res==null ? 0 : res.address, mat1.address, mat2.address,
+//				sx, sy, mode, flip);
+//		return res==null ? new THTensor(l) : res;
 	}
 
 	@Override
 	public THTensor addconvolution2D(THTensor res, THTensor mat, THTensor mat1,
 			THTensor mat2, int sx, int sy, int mode, boolean flip) {
-		long l = addconvolution2D(res==null ? 0 : res.address, mat.address, mat1.address, mat2.address,
-				sx, sy, mode, flip);
-		return res==null ? new THTensor(l) : res;
+		throw new UnsupportedOperationException();
+//		long l = addconvolution2D(res==null ? 0 : res.address, mat.address, mat1.address, mat2.address,
+//				sx, sy, mode, flip);
+//		return res==null ? new THTensor(l) : res;
 	}
 
 	@Override
 	public THTensor maxpool2D(THTensor res, THTensor mat, int w, int h, int sx,
 			int sy) {
-		long l = maxpool2D(res==null ? 0 : res.address, mat.address, w, h, sx, sy);
-		return res==null ? new THTensor(l) : res;
+		throw new UnsupportedOperationException();
+//		long l = maxpool2D(res==null ? 0 : res.address, mat.address, w, h, sx, sy);
+//		return res==null ? new THTensor(l) : res;
 	}
 
 	@Override
 	public THTensor dmaxpool2D(THTensor res, THTensor mat2, THTensor mat1,
 			int w, int h, int sx, int sy) {
-		long l = dmaxpool2D(res==null ? 0 : res.address, mat2.address, mat1.address, w, h, sx, sy);
-		return res==null ? new THTensor(l) : res;
+		throw new UnsupportedOperationException();
+//		long l = dmaxpool2D(res==null ? 0 : res.address, mat2.address, mat1.address, w, h, sx, sy);
+//		return res==null ? new THTensor(l) : res;
 	}
 	
 	private native long add(long res, long tensor, float value);
