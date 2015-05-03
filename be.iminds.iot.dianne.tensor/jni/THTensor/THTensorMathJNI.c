@@ -236,6 +236,7 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ex
 		JNIEnv * env, jobject o, jlong dst, jlong src) {
 	THTensor* r = getTHTensor(dst);
 	THTensor* t = (THTensor*) src;
+	THTensor_(resizeAs)(r, t);
 	THTensor_(exp)(r, t);
 	return r;
 }
@@ -244,6 +245,7 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_lo
 		JNIEnv * env, jobject o, jlong dst, jlong src) {
 	THTensor* r = getTHTensor(dst);
 	THTensor* t = (THTensor*) src;
+	THTensor_(resizeAs)(r, t);
 	THTensor_(log)(r, t);
 	return r;
 }
@@ -252,6 +254,7 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ta
 		JNIEnv * env, jobject o, jlong dst, jlong src) {
 	THTensor* r = getTHTensor(dst);
 	THTensor* t = (THTensor*) src;
+	THTensor_(resizeAs)(r, t);
 	THTensor_(tanh)(r, t);
 	return r;
 }
@@ -259,18 +262,50 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ta
 
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_dtanh(
 		JNIEnv * env, jobject o, jlong dst, jlong src) {
+	THTensor* r = getTHTensor(dst);
+	THTensor* t = (THTensor*) src;
+	THTensor_(resizeAs)(r, t);
+
+	TH_TENSOR_APPLY2(real, r, real, t, real z = *t_data; *r_data = 1.- z * z;)
+
+	return r;
 }
 
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sigmoid(
 		JNIEnv * env, jobject o, jlong dst, jlong src) {
+	THTensor* r = getTHTensor(dst);
+	THTensor* t = (THTensor*) src;
+	THTensor_(resizeAs)(r, t);
+
+	TH_TENSOR_APPLY2(real, r, real, t, *r_data = 1./(1.+ exp(- *t_data));)
+
+	return r;
 }
 
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_dsigmoid(
 		JNIEnv * env, jobject o, jlong dst, jlong src) {
+	THTensor* r = getTHTensor(dst);
+	THTensor* t = (THTensor*) src;
+	THTensor_(resizeAs)(r, t);
+
+	TH_TENSOR_APPLY2(real, r, real, t,\
+	                   real z = *t_data; \
+	                   *r_data = (1. - z) * z;)
+
+	return r;
 }
 
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_thresh__JJFFF(
-		JNIEnv * env, jobject o, jlong dst, jlong src, jfloat t, jfloat c, jfloat of) {
+		JNIEnv * env, jobject o, jlong dst, jlong src, jfloat thres, jfloat coeff, jfloat of) {
+	THTensor* r = getTHTensor(dst);
+	THTensor* t = (THTensor*) src;
+	THTensor_(resizeAs)(r, t);
+
+	TH_TENSOR_APPLY2(real, r, real, t,\
+	                   real z = *t_data; \
+	                   *r_data = z > thres ? z : coeff * z + of;)
+
+	return r;
 }
 
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_thresh__JJJJJ(
@@ -278,7 +313,16 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_th
 }
 
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_dthresh__JJFF(
-		JNIEnv * env, jobject o, jlong dst, jlong src, jfloat t, jfloat c) {
+		JNIEnv * env, jobject o, jlong dst, jlong src, jfloat thres, jfloat coeff) {
+	THTensor* r = getTHTensor(dst);
+	THTensor* t = (THTensor*) src;
+	THTensor_(resizeAs)(r, t);
+
+	TH_TENSOR_APPLY2(real, r, real, t,\
+	                   real z = *t_data; \
+	                   *r_data = z > thres ? 1 : coeff;)
+
+	return r;
 }
 
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_dthresh__JJJJ(
@@ -287,6 +331,18 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_dt
 
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_softmax(
 		JNIEnv * env, jobject o, jlong dst, jlong src) {
+	THTensor* r = getTHTensor(dst);
+	THTensor* t = (THTensor*) src;
+	THTensor_(resizeAs)(r, t);
+	float max = THTensor_(maxall)(t);
+
+	TH_TENSOR_APPLY2(real, r, real, t,\
+	                   *r_data = exp(*t_data - max);)
+
+	float sum = THTensor_(sumall)(r);
+	THTensor_(div)(r, r, sum);
+
+	return r;
 }
 
 JNIEXPORT jfloat JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sum(

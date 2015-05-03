@@ -19,6 +19,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;
 import be.iminds.iot.dianne.tensor.impl.nd4j.ND4JTensorFactory;
+import be.iminds.iot.dianne.tensor.impl.th.THTensorFactory;
 
 // These tests are based on input/output of corresponding Torch7 modules
 @RunWith(Parameterized.class)
@@ -34,7 +35,8 @@ public class ActivationTest {
 	public static Collection<Object[]> data() {
 		return Arrays.asList(new Object[][] { 
 				{ new JavaTensorFactory(), "Java Tensor" },
-				{ new ND4JTensorFactory(), "ND4J Tensor" } 
+				{ new ND4JTensorFactory(), "ND4J Tensor" },
+				{ new THTensorFactory(), "TH Tensor" }
 		});
 	}
 
