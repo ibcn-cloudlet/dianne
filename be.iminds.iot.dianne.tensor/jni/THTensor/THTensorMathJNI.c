@@ -371,10 +371,44 @@ JNIEXPORT jfloat JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_m
 
 JNIEXPORT jint JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_argmax(
 		JNIEnv * env, jobject o, jlong src) {
+	// only works for 1 dim tensors
+	THTensor* t = (THTensor*) src;
+	real* data_ptr = THTensor_(data)(t);
+
+	real max = data_ptr[0];
+	int index = 0;
+	long size = t->size[0];
+	long stride = t->stride[0];
+	int i = 0;
+	for(i=0;i<size;i++){
+		if(max < *data_ptr){
+			max = *data_ptr;
+			index = i;
+		}
+		data_ptr += stride;
+	}
+	return index;
 }
 
 JNIEXPORT jint JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_argmin(
 		JNIEnv * env, jobject o, jlong src) {
+	// only works for 1 dim tensors
+	THTensor* t = (THTensor*) src;
+	real* data_ptr = THTensor_(data)(t);
+
+	real min = data_ptr[0];
+	int index = 0;
+	long size = t->size[0];
+	long stride = t->stride[0];
+	int i = 0;
+	for(i=0;i<size;i++){
+		if(min > *data_ptr){
+			min = *data_ptr;
+			index = i;
+		}
+		data_ptr += stride;
+	}
+	return index;
 }
 
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_convolution2D(

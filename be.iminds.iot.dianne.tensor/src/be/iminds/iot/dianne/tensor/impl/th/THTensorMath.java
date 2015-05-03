@@ -1,6 +1,6 @@
 package be.iminds.iot.dianne.tensor.impl.th;
 
-import javax.naming.OperationNotSupportedException;
+import java.util.Arrays;
 
 import be.iminds.iot.dianne.tensor.TensorMath;
 
@@ -164,8 +164,10 @@ public class THTensorMath implements TensorMath<THTensor> {
 	@Override
 	public THTensor thresh(THTensor res, THTensor tensor, THTensor threshs,
 			THTensor coeffs, THTensor offsets) {
-		long l = thresh(res==null ? 0 : res.address, tensor.address, threshs.address, coeffs.address, offsets.address);
-		return res==null ? new THTensor(l) : res;
+		throw new UnsupportedOperationException();
+
+//		long l = thresh(res==null ? 0 : res.address, tensor.address, threshs.address, coeffs.address, offsets.address);
+//		return res==null ? new THTensor(l) : res;
 	}
 
 	@Override
@@ -178,8 +180,10 @@ public class THTensorMath implements TensorMath<THTensor> {
 	@Override
 	public THTensor dthresh(THTensor res, THTensor tensor, THTensor threshs,
 			THTensor coeffs) {
-		long l = dthresh(res==null ? 0 : res.address, tensor.address, threshs.address, coeffs.address);
-		return res==null ? new THTensor(l) : res;
+		throw new UnsupportedOperationException();
+
+//		long l = dthresh(res==null ? 0 : res.address, tensor.address, threshs.address, coeffs.address);
+//		return res==null ? new THTensor(l) : res;
 	}
 
 	@Override
@@ -210,14 +214,12 @@ public class THTensorMath implements TensorMath<THTensor> {
 
 	@Override
 	public int argmax(THTensor tensor) {
-		throw new UnsupportedOperationException();
-//		return argmax(tensor.address);
+		return argmax(tensor.address);
 	}
 
 	@Override
 	public int argmin(THTensor tensor) {
-		throw new UnsupportedOperationException();
-//		return argmin(tensor.address);
+		return argmin(tensor.address);
 	}
 
 	@Override
