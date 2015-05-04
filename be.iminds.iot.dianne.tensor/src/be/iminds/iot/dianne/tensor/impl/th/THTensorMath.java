@@ -225,19 +225,21 @@ public class THTensorMath implements TensorMath<THTensor> {
 	@Override
 	public THTensor convolution2D(THTensor res, THTensor mat1, THTensor mat2,
 			int sx, int sy, int mode, boolean flip) {
-		throw new UnsupportedOperationException();
-//		long l = convolution2D(res==null ? 0 : res.address, mat1.address, mat2.address,
-//				sx, sy, mode, flip);
-//		return res==null ? new THTensor(l) : res;
+		if(flip)
+			throw new UnsupportedOperationException();
+		long l = convolution2D(res==null ? 0 : res.address, mat1.address, mat2.address,
+				sx, sy, mode, flip);
+		return res==null ? new THTensor(l) : res;
 	}
 
 	@Override
 	public THTensor addconvolution2D(THTensor res, THTensor mat, THTensor mat1,
 			THTensor mat2, int sx, int sy, int mode, boolean flip) {
-		throw new UnsupportedOperationException();
-//		long l = addconvolution2D(res==null ? 0 : res.address, mat.address, mat1.address, mat2.address,
-//				sx, sy, mode, flip);
-//		return res==null ? new THTensor(l) : res;
+		if(flip)
+			throw new UnsupportedOperationException();
+		long l = addconvolution2D(res==null ? 0 : res.address, mat.address, mat1.address, mat2.address,
+				sx, sy, mode, flip);
+		return res==null ? new THTensor(l) : res;
 	}
 
 	@Override
@@ -339,6 +341,5 @@ public class THTensorMath implements TensorMath<THTensor> {
 
 	private native long dmaxpool2D(long res, long mat2, long mat1, int w,
 			int h, int sx, int sy);
-
-
+	
 }

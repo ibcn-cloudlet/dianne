@@ -414,11 +414,91 @@ JNIEXPORT jint JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_arg
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_convolution2D(
 		JNIEnv * env, jobject o, jlong dst, jlong src, jlong k, jint sx, jint sy, jint mode,
 		jboolean flip) {
+	Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_addconvolution2D(
+			env, o, dst, 0, src, k, sx, sy, mode, flip);
 }
 
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_addconvolution2D(
 		JNIEnv * env, jobject o, jlong dst, jlong add, jlong src, jlong k, jint sx, jint sy, jint mode,
 		jboolean flip) {
+	THTensor* r = getTHTensor(dst);
+
+	THTensor* t = (THTensor*) src;
+	THTensor* kernel = (THTensor*) k;
+
+	long kernelWidth = kernel->size[1];
+	long kernelHeight = kernel->size[0];
+	long inputWidth = t->size[1];
+	long inputHeight = t->size[0];
+
+	if(flip){
+		// TODO flip kernel?
+	}
+
+	if(mode==1){
+		// full
+		long outputWidth  = inputWidth + (kernelWidth - 1);
+		long outputHeight = inputHeight + (kernelHeight - 1);
+		THTensor_(resize2d)(r, outputHeight, outputWidth);
+	    if(add!=0){
+	    	THTensor_(copy)(r, add);
+	    } else {
+	    	THTensor_(fill)(r, 0.0f);
+	    }
+
+		THTensor_(fullConv2Dptr)(THTensor_(data)(r),
+				1.0f, THTensor_(data)(t), inputHeight, inputWidth,
+				THTensor_(data)(kernel), kernelHeight, kernelWidth,
+				sy, sx);
+	} else if(mode==2){
+		// same
+		// add zero padding first
+		int pad_h = (kernelHeight - 1)/2;
+		int pad_w = (kernelWidth - 1)/2;
+
+		int paddedWidth = inputWidth + 2*pad_w;
+		int paddedHeight = inputHeight + 2*pad_h;
+
+	    THTensor* padded = THTensor_(newWithSize2d)(paddedHeight,paddedWidth);
+	    THTensor_(fill)(padded, 0.0f);
+
+	    THTensor* pad_narrow = THTensor_(newWithTensor)(padded);
+	    THTensor_(narrow)(pad_narrow, padded, 0, pad_h, inputHeight);
+	    THTensor_(narrow)(pad_narrow, pad_narrow, 1, pad_w, inputWidth);
+	    THTensor_(copy)(pad_narrow, t);
+
+	    THTensor_(resize2d)(r, inputHeight, inputWidth);
+	    if(add!=0){
+	    	THTensor_(copy)(r, add);
+	    } else {
+	    	THTensor_(fill)(r, 0.0f);
+	    }
+
+	    THTensor_(validConv2Dptr)(THTensor_(data)(r),
+	    				1.0f, THTensor_(data)(padded), paddedHeight, paddedWidth,
+	    				THTensor_(data)(kernel), kernelHeight, kernelWidth,
+	    				sy, sx);
+
+	    THTensor_(free)(pad_narrow);
+	    THTensor_(free)(padded);
+
+	} else {
+		// valid
+		long outputWidth  = (inputWidth - kernelWidth) / sx + 1;
+		long outputHeight = (inputHeight - kernelHeight) / sy + 1;
+		THTensor_(resize2d)(r, outputHeight, outputWidth);
+	    if(add!=0){
+	    	THTensor_(copy)(r, add);
+	    } else {
+	    	THTensor_(fill)(r, 0.0f);
+	    }
+		THTensor_(validConv2Dptr)(THTensor_(data)(r),
+				1.0f, THTensor_(data)(t), inputHeight, inputWidth,
+				THTensor_(data)(kernel), kernelHeight, kernelWidth,
+				sy, sx);
+	}
+
+	return r;
 }
 
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_maxpool2D(
