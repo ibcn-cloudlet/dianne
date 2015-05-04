@@ -258,6 +258,23 @@ public class THTensorMath implements TensorMath<THTensor> {
 //		return res==null ? new THTensor(l) : res;
 	}
 	
+	@Override
+	public THTensor spatialconvolve(THTensor res, THTensor add, THTensor mat,
+			THTensor k, int sx, int sy) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public THTensor zeropad(THTensor res, THTensor t, int... paddings) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public THTensor spatialmaxpool(THTensor res, THTensor t,
+			int w, int h, int sx, int sy) {
+		throw new UnsupportedOperationException();
+	}
+	
 	private native long add(long res, long tensor, float value);
 
 	private native long add(long res, long tensor1, long tensor2);
@@ -341,5 +358,5 @@ public class THTensorMath implements TensorMath<THTensor> {
 
 	private native long dmaxpool2D(long res, long mat2, long mat1, int w,
 			int h, int sx, int sy);
-	
+
 }

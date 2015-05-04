@@ -547,4 +547,23 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 
 		return res;
 	}
+
+	@Override
+	public JavaTensor spatialconvolve(JavaTensor res, JavaTensor add,
+			JavaTensor mat, JavaTensor k, int sx, int sy) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public JavaTensor zeropad(JavaTensor res, JavaTensor t, int... paddings) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public JavaTensor spatialmaxpool(JavaTensor res, JavaTensor t, int w, int h, int sx, int sy) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

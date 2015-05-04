@@ -314,15 +314,13 @@ public class ND4JTensorMath implements TensorMath<ND4JTensor> {
 	@Override
 	public ND4JTensor dthresh(ND4JTensor res, ND4JTensor tensor, float thresh,
 			float coeff) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public ND4JTensor dthresh(ND4JTensor res, ND4JTensor tensor,
 			ND4JTensor threshs, ND4JTensor coeffs) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -441,8 +439,23 @@ public class ND4JTensorMath implements TensorMath<ND4JTensor> {
 	@Override
 	public ND4JTensor dmaxpool2D(ND4JTensor res, ND4JTensor mat2,
 			ND4JTensor mat1, int w, int h, int sx, int sy) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public ND4JTensor spatialconvolve(ND4JTensor res, ND4JTensor add,
+			ND4JTensor mat, ND4JTensor k, int sx, int sy) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public ND4JTensor zeropad(ND4JTensor res, ND4JTensor t, int... paddings) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public ND4JTensor spatialmaxpool(ND4JTensor res, ND4JTensor t, int w, int h, int sx, int sy) {
+		throw new UnsupportedOperationException();
 	}
 
 }

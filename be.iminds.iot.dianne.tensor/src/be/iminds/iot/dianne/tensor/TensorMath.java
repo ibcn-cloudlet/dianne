@@ -217,13 +217,26 @@ public interface TensorMath<T extends Tensor<T>> {
 	 * mode = 1 : full convolution
 	 * mode = 2 : same convolution, output size = input size
 	 */
-	public T convolution2D(T res, final T mat1, final T mat2, final int sx, final int sy, int mode, final boolean flip);
+	public T convolution2D(T res, final T mat1, final T mat2, final int sx, final int sy, final int mode, final boolean flip);
 
 	/**
 	 * Calculate 2D convolution mat1 * mat2 and add mat 
 	 */
-	public T addconvolution2D(T res, final T mat, final T mat1, final T mat2, final int sx, final int sy, int mode, final boolean flip);
+	public T addconvolution2D(T res, final T add, final T mat1, final T mat2, final int sx, final int sy, final int mode, final boolean flip);
 
+	/**
+	 * Spatial convolution
+	 * 
+	 * Takes a 3D mat, a 4D k tensor, and outputs a 3D res
+	 * 
+	 * For each input plane j it convolves with k[i][j] to get the output plane i and add add[i]
+	 */
+	public T spatialconvolve(T res, final T add, final T t, final T k, final int sx, final int sy);
+	
+	/**
+	 * Add paddings to tensor t, set padding size for each dimension
+	 */
+	public T zeropad(T res, final T t, int... paddings);
 	
 	/**
 	 * Max pooling of tensor mat and put result in res, with strides sx and sy
@@ -235,4 +248,11 @@ public interface TensorMath<T extends Tensor<T>> {
 	 * put value of subsampled mat2 into res on that position, custom strides sx and sy are currently unsupported
 	 */
 	public T dmaxpool2D(T res, final T mat2, final T mat1, final int w, final int h, final int sx, final int sy);
+	
+	/**
+	 * Spatial max pool
+	 * 
+	 * Takes a 3D tensor input and results 3D tensor with each individual plane maxpooled2D
+	 */
+	public T spatialmaxpool(T res, final T t, final int w, final int h, final int sx, final int sy);
 }
