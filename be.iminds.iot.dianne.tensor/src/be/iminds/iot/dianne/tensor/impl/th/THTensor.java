@@ -50,7 +50,7 @@ public class THTensor implements Tensor<THTensor> {
 	@Override
 	public void reshape(int... d) {
 		this.dims = d;
-		
+		reshape(address, d);
 	}
 
 	@Override
