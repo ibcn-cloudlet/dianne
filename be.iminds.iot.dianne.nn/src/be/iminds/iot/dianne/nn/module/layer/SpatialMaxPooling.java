@@ -39,9 +39,7 @@ public class SpatialMaxPooling extends AbstractModule {
 			output = factory.createTensor(noPlanes, y, x);
 		}
 		
-		for(int i=0;i<noPlanes;i++){
-			factory.getTensorMath().maxpool2D(output.select(0, i), input.select(0,i), w, h, sx, sy);
-		}
+		factory.getTensorMath().spatialmaxpool(output, input, w, h, sx, sy);
 	}
 
 	@Override

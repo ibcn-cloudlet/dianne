@@ -86,26 +86,17 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		}
 		// TODO check input planes dim? // check kernel sizes?
 	
-		// TODO create subtensors once and reuse?	
-		IntStream
-				.range(0, noOutputPlanes)
-				.parallel()
-				.forEach(i -> {
-					Tensor planeKernels = weights.select(0, i);
-					Tensor outputPlane = output.select(0, i);
-					outputPlane.fill(0.0f);
-
-					for (int j = 0; j < noInputPlanes; j++) {
-						Tensor kernel = planeKernels.select(0, j);
-
-						factory.getTensorMath()
-								.addconvolution2D(outputPlane, outputPlane, noInputPlanes == 1 ? input : input.select(0, j), 
-										kernel, strideX, strideY, mode, false);
-					}
-
-					// add bias
-					factory.getTensorMath().add(outputPlane, outputPlane, bias.get(i));
-				});
+		Tensor in = null;
+		if(mode==2){
+			if(input.dim()==2){
+				in = factory.getTensorMath().zeropad(in, input, (kernelHeight-1)/2, (kernelWidth-1)/2);
+			} else if(input.dim()==3){
+				in = factory.getTensorMath().zeropad(in, input, 0, (kernelHeight-1)/2, (kernelWidth-1)/2);
+			}
+		} else {
+			in = input;
+		}
+		factory.getTensorMath().spatialconvolve(output, bias, in, weights, strideX, strideY);
 	}
 
 	@Override
