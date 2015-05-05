@@ -1,7 +1,9 @@
 package be.iminds.iot.dianne.tensor.impl.java;
 
 import java.util.Arrays;
+import java.util.stream.IntStream;
 
+import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.dianne.tensor.TensorMath;
 
@@ -551,19 +553,87 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	@Override
 	public JavaTensor spatialconvolve(JavaTensor res, JavaTensor add,
 			JavaTensor mat, JavaTensor k, int sx, int sy) {
-		// TODO Auto-generated method stub
-		return null;
+		int noOutputPlanes = k.size(0);
+		int noInputPlanes = k.size(1);
+		int kernelHeight = k.size(2);
+		int kernelWidth = k.size(3);
+		
+		int[] outDims = new int[3];
+		outDims[0] = noOutputPlanes;
+		if(mat.dim()==2){
+			outDims[1] = (int)Math.ceil((mat.size(0) - kernelHeight + 1)/(float)sy);
+			outDims[2] = (int)Math.ceil((mat.size(1) - kernelWidth + 1)/(float)sx);
+		} else if(mat.dim()==3){
+			outDims[1] = (int)Math.ceil((mat.size(1) - kernelHeight + 1)/(float)sy);
+			outDims[2] = (int)Math.ceil((mat.size(2) - kernelWidth + 1)/(float)sx);
+		} // else error?
+		if(res==null || !res.hasDim(outDims)){
+			res = factory.createTensor(outDims);
+		}
+		
+		final JavaTensor output = res;
+		
+		IntStream
+		.range(0, noOutputPlanes)
+		.parallel()
+		.forEach(i -> {
+			JavaTensor planeKernels = k.select(0, i);
+			JavaTensor outputPlane = output.select(0, i);
+			outputPlane.fill(0.0f);
+
+			for (int j = 0; j < noInputPlanes; j++) {
+				JavaTensor kernel = planeKernels.select(0, j);
+
+				addconvolution2D(outputPlane, outputPlane, noInputPlanes == 1 ? mat : mat.select(0, j), 
+								kernel, sx, sy, 0, false);
+			}
+
+			// add bias
+			add(outputPlane, outputPlane, add.get(i));
+		});
+		
+		return res;
 	}
 
 	@Override
 	public JavaTensor zeropad(JavaTensor res, JavaTensor t, int... paddings) {
-		// TODO Auto-generated method stub
-		return null;
+		
+		int[] paddedDims = new int[t.dims.length];
+		for(int i=0;i<paddedDims.length;i++){
+			paddedDims[i] = t.dims[i] + paddings[i]*2;
+		}
+		if(res==null || !res.hasDim(paddedDims)){
+			res = factory.createTensor(paddedDims);
+		}
+		
+		int[] ranges = new int[paddedDims.length*2];
+		for(int i=0;i<paddedDims.length;i++){
+			ranges[i*2] = paddings[i];
+			ranges[i*2+1] = t.dims[i];
+		}
+		JavaTensor sub = res.narrow(ranges);
+		t.copyInto(sub);
+		
+		return res;
 	}
 
 	@Override
 	public JavaTensor spatialmaxpool(JavaTensor res, JavaTensor t, int w, int h, int sx, int sy) {
-		// TODO Auto-generated method stub
-		return null;
+		int noPlanes = t.size(0);
+		int y = t.size(1)/h;
+		int x = t.size(2)/w;
+		if(res==null || !res.hasDim(noPlanes, y, x)){
+			res = factory.createTensor(noPlanes, y, x);
+		}
+		
+		final JavaTensor pooled = res;
+		IntStream
+		.range(0, noPlanes)
+		.parallel()
+		.forEach(i -> {
+			factory.getTensorMath().maxpool2D(pooled.select(0, i), t.select(0,i), w, h, sx, sy);
+		});
+		
+		return res;
 	}
 }
