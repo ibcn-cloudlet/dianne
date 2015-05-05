@@ -260,7 +260,9 @@ public class THTensorMath implements TensorMath<THTensor> {
 	@Override
 	public THTensor spatialconvolve(THTensor res, THTensor add, THTensor mat,
 			THTensor k, int sx, int sy) {
-		throw new UnsupportedOperationException();
+		long l = spatialconvolve(res==null ? 0 : res.address, add.address, mat.address,
+				k.address, sx, sy);
+		return res==null ? new THTensor(l) : res;
 	}
 
 	@Override

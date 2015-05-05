@@ -551,7 +551,41 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_dm
 
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_spatialconvolve
   (JNIEnv * env, jobject o, jlong dst, jlong add, jlong src, jlong k, jint sx, jint sy){
+	// based on torch/overfeat impl
+	THTensor* output = getTHTensor(dst);
+	THTensor* input = (THTensor*) src;
+	THTensor* weight = (THTensor*) k;
+	THTensor* bias = (THTensor*) add;
 
+	long nOutputPlane = weight->size[0];
+	long kW = weight->size[3];
+	long kH = weight->size[2];
+	long inputWidth = input->size[2];
+	long inputHeight = input->size[1];
+	long outputWidth = (inputWidth - kW) / sx + 1;
+	long outputHeight = (inputHeight - kH) / sy + 1;
+
+	long i;
+	real* bias_data;
+	real* output_data;
+
+	THTensor_(resize3d)(output, nOutputPlane, outputHeight, outputWidth);
+	/* add bias */
+	bias_data = THTensor_(data)(bias);
+	output_data = THTensor_(data)(output);
+
+#pragma omp parallel for private(i)
+	for (i = 0; i < bias->size[0]; i++) {
+		real *ptr_output = output_data + i * outputWidth * outputHeight;
+		long j;
+		for (j = 0; j < outputWidth * outputHeight; j++)
+			ptr_output[j] = bias_data[i];
+	}
+
+	/* do convolutions */
+	THTensor_(conv2Dmv)(output, 1.0, 1.0, input, weight, sy, sx, "V", "X");
+
+	return output;
 }
 
 
