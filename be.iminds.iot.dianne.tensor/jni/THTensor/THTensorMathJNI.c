@@ -503,6 +503,44 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ad
 
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_maxpool2D(
 		JNIEnv * env, jobject o, jlong dst, jlong src, jint w, jint h, jint sx, jint sy) {
+
+	THTensor* t = (THTensor*) src;
+	int iwidth = t->size[1];
+	int iheight = t->size[0];
+
+	int owidth = (iwidth - w)/sx + 1;
+	int oheight = (iheight - h)/sy + 1;
+
+	THTensor* r = getTHTensor2(dst, oheight, owidth);
+
+	// impl from torch
+	real* input_p = THTensor_(data)(t);
+	real* output_p = THTensor_(data)(r);
+
+	long i, j;
+	for (i = 0; i < oheight; i++) {
+		for (j = 0; j < owidth; j++) {
+			real *ip = input_p + i * iwidth * sy + j * sx;
+			real *op = output_p + i * owidth + j;
+
+			real maxval = -THInf;
+			long tcntr = 0;
+			int x, y;
+			for (y = 0; y < h; y++) {
+				for (x = 0; x < w; x++) {
+					real val = *(ip + y * iwidth + x);
+					if (val > maxval) {
+						maxval = val;
+					}
+					tcntr++;
+				}
+			}
+
+			*op = maxval;
+		}
+	}
+
+	return r;
 }
 
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_dmaxpool2D(

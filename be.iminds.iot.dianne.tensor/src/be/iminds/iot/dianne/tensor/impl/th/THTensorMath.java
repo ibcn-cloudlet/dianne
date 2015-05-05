@@ -245,9 +245,8 @@ public class THTensorMath implements TensorMath<THTensor> {
 	@Override
 	public THTensor maxpool2D(THTensor res, THTensor mat, int w, int h, int sx,
 			int sy) {
-		throw new UnsupportedOperationException();
-//		long l = maxpool2D(res==null ? 0 : res.address, mat.address, w, h, sx, sy);
-//		return res==null ? new THTensor(l) : res;
+		long l = maxpool2D(res==null ? 0 : res.address, mat.address, w, h, sx, sy);
+		return res==null ? new THTensor(l) : res;
 	}
 
 	@Override
