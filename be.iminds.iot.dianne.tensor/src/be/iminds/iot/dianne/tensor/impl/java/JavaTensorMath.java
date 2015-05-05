@@ -450,12 +450,12 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		int h = mat2.dims[0];
 		int w = mat2.dims[1];
 		
-		int y = mat1.dims[0] - h + 1;
-		int x = mat1.dims[1] - w + 1;
+		int y = mat1.dims[0] - h ;
+		int x = mat1.dims[1] - w ;
 		
 		JavaTensor r = res;
 		if(r==null){
-			r = factory.createTensor((int)Math.ceil(y/(float)stride_y), (int)Math.ceil(x/(float)stride_x));
+			r = factory.createTensor(y/stride_y+1, x/stride_x+1);
 		} else if(add==null){
 			r.fill(0.0f);
 		}
@@ -491,8 +491,8 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	
 	@Override
 	public JavaTensor maxpool2D(JavaTensor res, JavaTensor mat1, int w, int h, int stride_x, int stride_y) {
-		int r_h = (int)Math.ceil((mat1.size(0) - h + 1)/(float)stride_y);
-		int r_w = (int)Math.ceil((mat1.size(1) - w + 1)/(float)stride_x);
+		int r_h = (mat1.size(0) - h )/stride_y + 1;
+		int r_w = (mat1.size(1) - w )/stride_x + 1;
 		int skip = mat1.size(1);
 		if(res==null){
 			res = factory.createTensor(r_h, r_w);
@@ -519,8 +519,8 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	
 	@Override
 	public JavaTensor dmaxpool2D(JavaTensor res, JavaTensor mat2, JavaTensor mat1, int w, int h, int stride_x, int stride_y) {
-		int r_h = (int)Math.ceil((mat1.size(0) - h + 1)/(float)stride_y);
-		int r_w = (int)Math.ceil((mat1.size(1) - w + 1)/(float)stride_x);
+		int r_h = (mat1.size(0) - h )/stride_y + 1;
+		int r_w = (mat1.size(1) - w )/stride_x + 1;
 		int skip = mat1.size(1);
 		
 		if(res==null){
@@ -561,11 +561,11 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		int[] outDims = new int[3];
 		outDims[0] = noOutputPlanes;
 		if(mat.dim()==2){
-			outDims[1] = (int)Math.ceil((mat.size(0) - kernelHeight + 1)/(float)sy);
-			outDims[2] = (int)Math.ceil((mat.size(1) - kernelWidth + 1)/(float)sx);
+			outDims[1] = (mat.size(0) - kernelHeight)/sy + 1;
+			outDims[2] = (mat.size(1) - kernelWidth)/sx + 1;
 		} else if(mat.dim()==3){
-			outDims[1] = (int)Math.ceil((mat.size(1) - kernelHeight + 1)/(float)sy);
-			outDims[2] = (int)Math.ceil((mat.size(2) - kernelWidth + 1)/(float)sx);
+			outDims[1] = (mat.size(1) - kernelHeight)/sy + 1;
+			outDims[2] = (mat.size(2) - kernelWidth)/sx + 1;
 		} // else error?
 		if(res==null || !res.hasDim(outDims)){
 			res = factory.createTensor(outDims);
@@ -618,10 +618,11 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	}
 
 	@Override
-	public JavaTensor spatialmaxpool(JavaTensor res, JavaTensor t, int w, int h, int sx, int sy) {
+	public JavaTensor spatialmaxpool(JavaTensor res, JavaTensor t, int w, int h, int stride_x, int stride_y) {
 		int noPlanes = t.size(0);
-		int y = t.size(1)/h;
-		int x = t.size(2)/w;
+		// requires 3d input tensor?
+		int y = (t.size(1) - h )/stride_y + 1;
+		int x = (t.size(2) - w )/stride_x + 1;
 		if(res==null || !res.hasDim(noPlanes, y, x)){
 			res = factory.createTensor(noPlanes, y, x);
 		}
@@ -631,7 +632,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		.range(0, noPlanes)
 		.parallel()
 		.forEach(i -> {
-			factory.getTensorMath().maxpool2D(pooled.select(0, i), t.select(0,i), w, h, sx, sy);
+			factory.getTensorMath().maxpool2D(pooled.select(0, i), t.select(0,i), w, h, stride_x, stride_y);
 		});
 		
 		return res;
