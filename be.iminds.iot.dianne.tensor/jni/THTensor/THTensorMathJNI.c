@@ -543,6 +543,51 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ma
 	return r;
 }
 
+
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_dmaxpool2D(
 		JNIEnv * env, jobject o, jlong dst, jlong m2, jlong m1, jint w, jint h, jint sx, jint sy) {
+}
+
+
+JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_spatialconvolve
+  (JNIEnv * env, jobject o, jlong dst, jlong add, jlong src, jlong k, jint sx, jint sy){
+
+}
+
+
+JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_zeropad
+  (JNIEnv * env, jobject o, jlong dst, jlong src, jintArray paddings){
+	THTensor* t = (THTensor*) src;
+	THTensor* r = getTHTensor(dst);
+
+	long newDims[t->nDimension];
+
+	jsize noDims = (*env)->GetArrayLength(env, paddings);
+	// TODO should equal t->nDimension
+	jint *p = (*env)->GetIntArrayElements(env, paddings, 0);
+
+	int i;
+	for(i=0;i<noDims;i++){
+		newDims[i] = t->size[i] + p[i]*2;
+	}
+
+	THTensor_(resizend)(r, noDims, newDims);
+
+	THTensor* narrowed = THTensor_(newWithTensor)(r);
+	// now narrow and copy
+	for(i=0;i<noDims;i++){
+		THTensor_(narrow)(narrowed, narrowed, i, p[i], t->size[i]);
+	}
+	THTensor_(copy)(narrowed, t);
+	THTensor_(free)(narrowed);
+
+	(*env)->ReleaseIntArrayElements(env, paddings, p, 0);
+
+	return r;
+}
+
+
+JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_spatialmaxpool
+  (JNIEnv * env, jobject o, jlong dst, jlong src, jint w, jint h, jint sx, jint sy){
+
 }

@@ -265,7 +265,8 @@ public class THTensorMath implements TensorMath<THTensor> {
 
 	@Override
 	public THTensor zeropad(THTensor res, THTensor t, int... paddings) {
-		throw new UnsupportedOperationException();
+		long l = zeropad(res==null ? 0 : res.address, t.address, paddings);
+		return res==null ? new THTensor(l) : res;
 	}
 
 	@Override
@@ -357,5 +358,12 @@ public class THTensorMath implements TensorMath<THTensor> {
 
 	private native long dmaxpool2D(long res, long mat2, long mat1, int w,
 			int h, int sx, int sy);
+	
+	private native long spatialconvolve(long res, long add, long t,
+			long k, int sx, int sy);
 
+	private native long zeropad(long res, long t, int... paddings);
+
+	private native long spatialmaxpool(long res, long t,
+			int w, int h, int sx, int sy);
 }
