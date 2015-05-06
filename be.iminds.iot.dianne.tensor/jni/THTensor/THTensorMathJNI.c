@@ -14,6 +14,10 @@ THTensor* getTHTensor2(THTensor* l, long d1, long d2){
 	return l==0 ? THTensor_(newWithSize2d)(d1, d2) : l;
 }
 
+THTensor* getTHTensor3(THTensor* l, long d1, long d2, long d3){
+	return l==0 ? THTensor_(newWithSize3d)(d1, d2, d3) : l;
+}
+
 long int getSize(THTensor* t){
 	long int size = 1;
 	long* ptr = t->size;
@@ -623,5 +627,47 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ze
 
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_spatialmaxpool
   (JNIEnv * env, jobject o, jlong dst, jlong src, jint w, jint h, jint sx, jint sy){
+	THTensor* t = (THTensor*) src;
+	int noPlanes = t->size[0];
+	int iwidth = t->size[2];
+	int iheight = t->size[1];
 
+	int owidth = (iwidth - w)/sx + 1;
+	int oheight = (iheight - h)/sy + 1;
+
+	THTensor* r = getTHTensor3(dst, noPlanes, oheight, owidth);
+
+	int k;
+#pragma omp parallel for private(k)
+	for (k = 0; k < noPlanes; k++) {
+
+		// TODO this is similar code as maxpool2d...
+		real* input_p = THTensor_(data)(t);
+		real* output_p = THTensor_(data)(r);
+
+		long i, j;
+		for (i = 0; i < oheight; i++) {
+			for (j = 0; j < owidth; j++) {
+				real *ip = input_p +  k*iwidth*iheight + i*iwidth*sy+ j*sx;
+				real *op = output_p + k*owidth*oheight + i*owidth + j;
+
+				real maxval = -THInf;
+				long tcntr = 0;
+				int x, y;
+				for (y = 0; y < h; y++) {
+					for (x = 0; x < w; x++) {
+						real val = *(ip + y * iwidth + x);
+						if (val > maxval) {
+							maxval = val;
+						}
+						tcntr++;
+					}
+				}
+
+				*op = maxval;
+			}
+		}
+	}
+
+	return r;
 }

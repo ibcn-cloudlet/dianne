@@ -274,7 +274,8 @@ public class THTensorMath implements TensorMath<THTensor> {
 	@Override
 	public THTensor spatialmaxpool(THTensor res, THTensor t,
 			int w, int h, int sx, int sy) {
-		throw new UnsupportedOperationException();
+		long l = spatialmaxpool(res==null ? 0 : res.address, t.address, w, h, sx, sy);
+		return res==null ? new THTensor(l) : res;
 	}
 	
 	private native long add(long res, long tensor, float value);
