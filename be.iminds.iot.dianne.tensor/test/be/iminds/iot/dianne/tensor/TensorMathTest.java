@@ -376,6 +376,42 @@ public class TensorMathTest<T extends Tensor<T>> {
 	}
 	
 	@Test
+	public void testAddmv() {
+		T t1 = factory.createTensor(2,2);
+		t1.fill(2);
+		T t2 = factory.createTensor(2);
+		t2.fill(3);
+		T t3 = factory.createTensor(2);
+		t3.fill(1.0f);
+		
+		T r = math.addmv(null, t3, t1, t2);
+		
+		T exp = factory.createTensor(2);
+		exp.fill(13);
+		
+		Assert.assertEquals(exp, r);
+	}
+	
+	@Test
+	public void testAddmv2() {
+		T t1 = factory.createTensor(2,2);
+		t1.fill(2);
+		T t2 = factory.createTensor(2);
+		t2.fill(3);
+		T t3 = factory.createTensor(2);
+		t3.fill(1.0f);
+		
+		T r = factory.createTensor(2);
+		r.fill(1.0f);
+		math.addmv(r, t3, t1, t2);
+		
+		T exp = factory.createTensor(2);
+		exp.fill(13);
+		
+		Assert.assertEquals(exp, r);
+	}
+	
+	@Test
 	public void testSum() {
 		T t1 = factory.createTensor(4);
 		t1.fill(2);
@@ -397,10 +433,10 @@ public class TensorMathTest<T extends Tensor<T>> {
 	public void testMin() {
 		T t1 = factory.createTensor(4);
 		t1.fill(2);
-		t1.set(0, 0);
+		t1.set(1, 1);
 		t1.set(5, 3);
-		
-		Assert.assertEquals(0.0, math.min(t1), 0.1f);
+
+		Assert.assertEquals(1.0, math.min(t1), 0.1f);
 	}
 	
 	@Test
@@ -661,5 +697,22 @@ public class TensorMathTest<T extends Tensor<T>> {
 		exp.set(1.0f, 0, 5);
 	
 		Assert.assertEquals(exp, math.dmaxpool2D(null, grad, t1, 2, 2, 2 ,2));
+	}
+	
+	@Test
+	public void testZeropad(){
+		T t1 = factory.createTensor(3,3);
+		t1.fill(2.0f);
+		
+		float[] data = new float[]{
+				0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+				0.0f, 2.0f, 2.0f, 2.0f, 0.0f,
+				0.0f, 2.0f, 2.0f, 2.0f, 0.0f,
+				0.0f, 2.0f, 2.0f, 2.0f, 0.0f,
+				0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+		};
+		T exp = factory.createTensor(data, 5, 5);
+	
+		Assert.assertEquals(exp, math.zeropad(null, t1, 1, 1));
 	}
 }

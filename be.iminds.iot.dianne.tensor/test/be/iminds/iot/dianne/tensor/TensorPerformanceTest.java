@@ -25,6 +25,8 @@ public class TensorPerformanceTest<T extends Tensor<T>> {
 	private int outSize = 1000;
 	private int inSize = 231;
 	private int kernelSize = 11;
+	private int noInputPlanes = 3;
+	private int noOutputPlanes = 100;
 	
 	private T parameters;
 	private T gradParameters;
@@ -37,6 +39,11 @@ public class TensorPerformanceTest<T extends Tensor<T>> {
 	private T gradInput;
 	private T gradOutput;
 	private T kernel;
+	
+	private T inputnd;
+	private T kernelsAndBias;
+	private T kernels;
+	private T biases;
 	
 	public TensorPerformanceTest(TensorFactory<T> f, String name) {
 		this.factory = f;
@@ -66,6 +73,8 @@ public class TensorPerformanceTest<T extends Tensor<T>> {
 
 		input = factory.createTensor(inSize, inSize);
 		input.rand();
+		inputnd = factory.createTensor(noInputPlanes, inSize, inSize);
+		inputnd.rand();
 		output = factory.createTensor(outSize);
 		output.rand();
 		
@@ -75,7 +84,13 @@ public class TensorPerformanceTest<T extends Tensor<T>> {
 		gradOutput.rand();
 		
 		kernel = factory.createTensor(kernelSize, kernelSize);
-				
+		kernelsAndBias = factory.createTensor(noOutputPlanes*noInputPlanes*kernelSize*kernelSize+noOutputPlanes);
+		kernelsAndBias.rand();
+		
+		kernels = kernelsAndBias.narrow(0, 0, noOutputPlanes*noInputPlanes*kernelSize*kernelSize);
+		kernels.reshape(noOutputPlanes, noInputPlanes, kernelSize, kernelSize);
+
+		biases = kernelsAndBias.narrow(0, noOutputPlanes*noInputPlanes*kernelSize*kernelSize, noOutputPlanes);
     }
 	
     @Test
@@ -135,6 +150,30 @@ public class TensorPerformanceTest<T extends Tensor<T>> {
 		
 		float time = (float)(t2-t1)/count;
 		System.out.println("conv: "+time+" ms");
+		Assert.assertTrue((time)<5);
+	}
+	
+	@Test
+	public void testSpatialConv(){
+		long t1 = System.currentTimeMillis();
+		for(int i=0;i<count;i++)
+			factory.getTensorMath().spatialconvolve(null, biases, inputnd, kernels, 5, 5);
+		long t2 = System.currentTimeMillis();
+		
+		float time = (float)(t2-t1)/count;
+		System.out.println("spatial conv: "+time+" ms");
+		Assert.assertTrue((time)<5);
+	}
+	
+	@Test
+	public void testSpatialPooling(){
+		long t1 = System.currentTimeMillis();
+		for(int i=0;i<count;i++)
+			factory.getTensorMath().spatialmaxpool(null, inputnd, 2, 2, 2, 2);
+		long t2 = System.currentTimeMillis();
+		
+		float time = (float)(t2-t1)/count;
+		System.out.println("spatial pool: "+time+" ms");
 		Assert.assertTrue((time)<5);
 	}
 	
