@@ -610,6 +610,7 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ze
 	}
 
 	THTensor_(resizend)(r, noDims, newDims);
+	THTensor_(fill)(r, 0.0f);
 
 	THTensor* narrowed = THTensor_(newWithTensor)(r);
 	// now narrow and copy
@@ -663,7 +664,6 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sp
 						tcntr++;
 					}
 				}
-
 				*op = maxval;
 			}
 		}
