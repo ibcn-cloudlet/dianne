@@ -447,7 +447,7 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ad
 	    if(add!=0){
 	    	THTensor_(copy)(r, add);
 	    } else {
-	    	THTensor_(fill)(r, 0.0f);
+	    	THTensor_(zero)(r);
 	    }
 
 		THTensor_(fullConv2Dptr)(THTensor_(data)(r),
@@ -464,7 +464,7 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ad
 		int paddedHeight = inputHeight + 2*pad_h;
 
 	    THTensor* padded = THTensor_(newWithSize2d)(paddedHeight,paddedWidth);
-	    THTensor_(fill)(padded, 0.0f);
+	    THTensor_(zero)(padded);
 
 	    THTensor* pad_narrow = THTensor_(newWithTensor)(padded);
 	    THTensor_(narrow)(pad_narrow, padded, 0, pad_h, inputHeight);
@@ -475,7 +475,7 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ad
 	    if(add!=0){
 	    	THTensor_(copy)(r, add);
 	    } else {
-	    	THTensor_(fill)(r, 0.0f);
+	    	THTensor_(zero)(r);
 	    }
 
 	    THTensor_(validConv2Dptr)(THTensor_(data)(r),
@@ -494,7 +494,7 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ad
 	    if(add!=0){
 	    	THTensor_(copy)(r, add);
 	    } else {
-	    	THTensor_(fill)(r, 0.0f);
+	    	THTensor_(zero)(r);
 	    }
 		THTensor_(validConv2Dptr)(THTensor_(data)(r),
 				1.0f, THTensor_(data)(t), inputHeight, inputWidth,
@@ -610,7 +610,7 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ze
 	}
 
 	THTensor_(resizend)(r, noDims, newDims);
-	THTensor_(fill)(r, 0.0f);
+	THTensor_(zero)(r);
 
 	THTensor* narrowed = THTensor_(newWithTensor)(r);
 	// now narrow and copy
