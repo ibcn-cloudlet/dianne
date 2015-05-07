@@ -39,7 +39,7 @@ public class SpatialMaxPooling extends AbstractModule {
 			output = factory.createTensor(noPlanes, y, x);
 		}
 		
-		factory.getTensorMath().spatialmaxpool(output, input, w, h, sx, sy);
+		output = factory.getTensorMath().spatialmaxpool(output, input, w, h, sx, sy);
 	}
 
 	@Override

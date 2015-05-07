@@ -1,7 +1,6 @@
 package be.iminds.iot.dianne.nn.module.layer;
 
 import java.util.UUID;
-import java.util.stream.IntStream;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractTrainableModule;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -96,7 +95,8 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		} else {
 			in = input;
 		}
-		factory.getTensorMath().spatialconvolve(output, bias, in, weights, strideX, strideY);
+		
+		output = factory.getTensorMath().spatialconvolve(output, bias, in, weights, strideX, strideY);
 	}
 
 	@Override
