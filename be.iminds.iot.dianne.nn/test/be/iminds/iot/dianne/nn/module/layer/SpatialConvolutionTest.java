@@ -21,6 +21,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;
 import be.iminds.iot.dianne.tensor.impl.nd4j.ND4JTensorFactory;
+import be.iminds.iot.dianne.tensor.impl.th.THTensorFactory;
 
 @RunWith(Parameterized.class)
 public class SpatialConvolutionTest {
@@ -35,7 +36,8 @@ public class SpatialConvolutionTest {
 	public static Collection<Object[]> data() {
 		return Arrays.asList(new Object[][] { 
 				{ new JavaTensorFactory(), "Java Tensor" },
-				{ new ND4JTensorFactory(), "ND4J Tensor" } 
+				{ new ND4JTensorFactory(), "ND4J Tensor" },
+				{ new THTensorFactory(), "TH Tensor" }
 		});
 	}
 	
@@ -75,7 +77,7 @@ public class SpatialConvolutionTest {
 			Tensor sub1 = conv.weights.select(0, i);
 			for(int j=0;j<noInputPlanes;j++){
 				Tensor sub2 = sub1.select(0, j);
-				System.out.println("Kernel:");
+//				System.out.println("Kernel:");
 				// some self induced kernels
 				switch(i){
 				case 0:
@@ -88,34 +90,34 @@ public class SpatialConvolutionTest {
 					sub2.set(1.0f, 1, 2);
 					break;
 				}
-				System.out.println(sub2);
-				System.out.println("===");
+//				System.out.println(sub2);
+//				System.out.println("===");
 			}
 		}
 		
 		conv.bias.set(0.1f, 0);
 		conv.bias.set(0.1f, 1);
 		
-		System.out.println("PARAMS: "+conv.getParameters());
+//		System.out.println("PARAMS: "+conv.getParameters());
 
-		Tensor input = factory.createTensor(5,5);
+		Tensor input = factory.createTensor(1,5,5);
 		float k = 0;
 		for(int i=0;i<5;i++){
 			for(int j=0;j<5;j++){
-				input.set(k++, i,j);
+				input.set(k++, 0, i,j);
 			}
 		}
-		System.out.println("INPUT ");
-		System.out.println(input);
+//		System.out.println("INPUT ");
+//		System.out.println(input);
 		
 		final Tensor output = factory.createTensor(2,3,3);
-		final Tensor gradInput = factory.createTensor(5,5);
+		final Tensor gradInput = factory.createTensor(1,5,5);
 		
 		conv.addForwardListener(new ForwardListener() {
 			@Override
 			public void onForward(Tensor o) {
 				o.copyInto(output);
-				System.out.println("OUTPUT CONV "+output);
+//				System.out.println("OUTPUT CONV "+output);
 				o.fill(0.1f);
 				conv.backward(UUID.randomUUID(), o);
 			}
@@ -125,7 +127,7 @@ public class SpatialConvolutionTest {
 			@Override
 			public void onBackward(Tensor gi) {
 				gi.copyInto(gradInput);
-				System.out.println("BACKWARD CONV "+gradInput);
+//				System.out.println("BACKWARD CONV "+gradInput);
 			}
 		});
 		conv.forward(UUID.randomUUID(), input);
@@ -153,9 +155,9 @@ public class SpatialConvolutionTest {
 		
 		Tensor input = readImage("lena.png");
 
-		writeImage(input.select(0, 0), "r.png");
-		writeImage(input.select(0, 1), "g.png");
-		writeImage(input.select(0, 2), "b.png");
+//		writeImage(input.select(0, 0), "r.png");
+//		writeImage(input.select(0, 1), "g.png");
+//		writeImage(input.select(0, 2), "b.png");
 
 		int noInputPlanes = 3;
 		int noOutputPlanes = 5;
@@ -202,7 +204,7 @@ public class SpatialConvolutionTest {
 			}
 		}
 		
-		System.out.println(conv.getParameters());
+//		System.out.println(conv.getParameters());
 	
 		Object lock = new Object();
 		conv.addForwardListener(new ForwardListener() {
@@ -211,7 +213,7 @@ public class SpatialConvolutionTest {
 			public void onForward(Tensor output) {
 				for(int i=0;i<noOutputPlanes;i++){
 					try {
-						writeImage(output.select(0, i), "output-"+i+".png");
+//						writeImage(output.select(0, i), "output-"+i+".png");
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
