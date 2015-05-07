@@ -10,6 +10,8 @@ import be.iminds.iot.dianne.tensor.TensorMath;
 @Component(property={"aiolos.export=false"})
 public class ND4JTensorFactory implements TensorFactory<ND4JTensor>{
 
+	private final ND4JTensorMath math = new ND4JTensorMath();
+	
 	public ND4JTensorFactory() {
 		Nd4j.factory().setOrder('c');
 	}
@@ -28,7 +30,7 @@ public class ND4JTensorFactory implements TensorFactory<ND4JTensor>{
 
 	@Override
 	public TensorMath<ND4JTensor> getTensorMath() {
-		return new ND4JTensorMath();
+		return math;
 	}
 
 }
