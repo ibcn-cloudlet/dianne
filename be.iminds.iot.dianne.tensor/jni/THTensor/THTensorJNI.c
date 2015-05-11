@@ -121,12 +121,7 @@ JNIEXPORT jfloatArray JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensor_
 	if (result == NULL) {
 	    return NULL;
 	}
-	int i;
-	jfloat fill[size];
-	for (i = 0; i < size; i++) {
-	    fill[i] = *(ptr++);
-	}
-	(*env)->SetFloatArrayRegion(env, result, 0, size, fill);
+	(*env)->SetFloatArrayRegion(env, result, 0, size, ptr);
 	return result;
 }
 
