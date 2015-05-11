@@ -620,6 +620,7 @@ public class TensorMathTest<T extends Tensor<T>> {
 		t1.set(4.0f, 0, 5);
 		
 		T exp = factory.createTensor(2,3);
+		exp.fill(0.0f);
 		exp.set(1.0f, 0, 0);
 		exp.set(1.0f, 0, 1);
 		exp.set(2.0f, 1, 0);
@@ -639,6 +640,7 @@ public class TensorMathTest<T extends Tensor<T>> {
 		t1.set(4.0f, 0, 5);
 		
 		T exp = factory.createTensor(2,3);
+		exp.fill(0.0f);
 		exp.set(1.0f, 0, 0);
 		exp.set(1.0f, 0, 1);
 		exp.set(2.0f, 1, 0);
@@ -662,6 +664,7 @@ public class TensorMathTest<T extends Tensor<T>> {
 		t1.set(4.0f, 0, 5);
 		
 		T exp = factory.createTensor(3,5);
+		exp.fill(0.0f);
 		exp.set(1.0f, 0, 0);
 		exp.set(1.0f, 0, 2);
 		exp.set(1.0f, 0, 3);
