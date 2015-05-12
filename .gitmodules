@@ -1,3 +1,3 @@
 [submodule "be.iminds.iot.dianne.tensor/jni/THTensor/TH"]
 	path = be.iminds.iot.dianne.tensor/jni/THTensor/TH
-	url = https://github.com/torch/TH.git
+	url = https://github.ugent.be/e-p/th.git
