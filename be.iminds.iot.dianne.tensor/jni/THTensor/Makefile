@@ -3,7 +3,8 @@
 CC=gcc
 CXX=g++
 
-JAVA_HOME := /usr/lib/jvm/jdk1.8.0_25
+JAVA_HOME := /usr/lib/jvm/java-8-oracle
+CUDA_HOME := /usr/local/cuda
 
 JAVAH := be.iminds.iot.dianne.tensor.impl.th.THTensor be.iminds.iot.dianne.tensor.impl.th.THTensorMath
 SRC := THTensorJNI.c THTensorMathJNI.c 
@@ -14,8 +15,8 @@ LINKS := libTH.a -lm -lgomp -lopenblas
 LIB := libTHTensor.so
 
 # cuda specific build parameters
-CUDA_INCLUDES := -ITHC -I/usr/local/cuda/include/
-CUDA_LINKS := libTHC.a
+CUDA_INCLUDES := -ITHC -I$(CUDA_HOME)/include/
+CUDA_LINKS := libTHC.a libTH.a -lgomp -L$(CUDA_HOME)/lib -lcudart -lcublas
 CUDA_FLAGS := -DCUDA
 
 ARCH := $(shell uname -m)
@@ -23,10 +24,10 @@ ARCH := $(shell uname -m)
 all: install  
 
 cuda: INCLUDES += $(CUDA_INCLUDES)
-cuda: LINKS += $(CUDA_LINKS)
+cuda: LINKS = $(CUDA_LINKS)
 cuda: FLAGS += $(CUDA_FLAGS)
 cuda: ARCH += "/cuda/"
-cuda: install	
+cuda: test	
 
 javah:
 	for file in $(JAVAH) ; do \
@@ -43,9 +44,9 @@ install: link
 	mkdir -p ../../native/$(ARCH)
 	cp $(LIB) ../../native/$(ARCH)/$(LIB)
 
-test: #cuda
-	$(CC) $(FLAGS) -DLINUX $(INCLUDES) -c Test.c
-	$(CC) $(FLAGS) Test.o $(LINKS) -o test
+test:
+	$(CXX) $(FLAGS) -DLINUX $(INCLUDES) -c Test.c
+	$(CXX) $(FLAGS) Test.o $(LINKS) -o test
 
 buildTH:
 	cd TH; mkdir -p build; cd build; rm -f libTH.a; cmake -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_C_COMPILER=${CC} ..; make; cp libTH.a ../..; cp THGeneral.h ..
