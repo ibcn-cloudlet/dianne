@@ -10,7 +10,7 @@ SRC := THTensorJNI.c THTensorMathJNI.c
 INCLUDES := -I$(JAVA_HOME)/include/ -I/usr/lib/jvm -ITH
 OBJECT := THTensorJNI.o THTensorMathJNI.o 
 FLAGS := -O3 -w
-LINKS := libTH.a -lgomp -lopenblas
+LINKS := libTH.a -lm -lgomp -lopenblas
 LIB := libTHTensor.so
 
 # cuda specific build parameters
@@ -43,6 +43,10 @@ install: link
 	mkdir -p ../../native/$(ARCH)
 	cp $(LIB) ../../native/$(ARCH)/$(LIB)
 
+test: #cuda
+	$(CC) $(FLAGS) -DLINUX $(INCLUDES) -c Test.c
+	$(CC) $(FLAGS) Test.o $(LINKS) -o test
+
 buildTH:
 	cd TH; mkdir -p build; cd build; rm -f libTH.a; cmake -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_C_COMPILER=${CC} ..; make; cp libTH.a ../..; cp THGeneral.h ..
 
@@ -56,4 +60,4 @@ cleanTHC:
 	rm -rf THC/build libTHC.a 
 
 clean:
-	rm -rf *.o ${LIB} be_*.h 
+	rm -rf *.o ${LIB} be_*.h test
