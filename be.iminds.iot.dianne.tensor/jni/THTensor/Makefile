@@ -3,16 +3,30 @@
 CC=gcc
 CXX=g++
 
+JAVA_HOME := /usr/lib/jvm/jdk1.8.0_25
+
 JAVAH := be.iminds.iot.dianne.tensor.impl.th.THTensor be.iminds.iot.dianne.tensor.impl.th.THTensorMath
 SRC := THTensorJNI.c THTensorMathJNI.c 
-INCLUDES := -I/usr/lib/jvm/jdk1.8.0_25/include/ -I/usr/lib/jvm
+INCLUDES := -I$(JAVA_HOME)/include/ -I/usr/lib/jvm -ITH
 OBJECT := THTensorJNI.o THTensorMathJNI.o 
 FLAGS := -O3 -w
 LINKS := libTH.a -lgomp -lopenblas
 LIB := libTHTensor.so
-ARCH := x86_64
+
+# cuda specific build parameters
+CUDA_INCLUDES := -ITHC -I/usr/local/cuda/include/
+CUDA_LINKS := libTHC.a
+CUDA_FLAGS := -DCUDA
+
+ARCH := $(shell uname -m)
 
 all: install  
+
+cuda: INCLUDES += $(CUDA_INCLUDES)
+cuda: LINKS += $(CUDA_LINKS)
+cuda: FLAGS += $(CUDA_FLAGS)
+cuda: ARCH += "/cuda/"
+cuda: install	
 
 javah:
 	for file in $(JAVAH) ; do \
@@ -34,6 +48,12 @@ buildTH:
 
 cleanTH:
 	rm -rf TH/build libTH.a 
+
+buildTHC:
+	cd TH; mkdir -p build; cd build; rm -f libTHC.a; cmake -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_C_COMPILER=${CC} ..; make; cp libTHC.a ../..
+
+cleanTHC:
+	rm -rf THC/build libTHC.a 
 
 clean:
 	rm -rf *.o ${LIB} be_*.h 

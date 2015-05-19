@@ -1,6 +1,10 @@
 #include "be_iminds_iot_dianne_tensor_impl_th_THTensorMath.h"
 
+#ifdef CUDA
+#include "THCudaTensorJNI.h"
+#else
 #include "THTensorJNI.h"
+#endif
 
 THTensor* getTHTensor(THTensor* l){
 	return l==0 ? THTensor_(new)() : l;

@@ -1,6 +1,10 @@
 #include "be_iminds_iot_dianne_tensor_impl_th_THTensor.h"
 
+#ifdef CUDA
+#include "THCudaTensorJNI.h"
+#else
 #include "THTensorJNI.h"
+#endif
 
 THGenerator* generator = 0;
 
