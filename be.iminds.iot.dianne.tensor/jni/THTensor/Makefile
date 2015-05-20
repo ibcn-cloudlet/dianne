@@ -11,7 +11,7 @@ SRC := THTensorJNI.c THTensorMathJNI.c
 INCLUDES := -I$(JAVA_HOME)/include/ -I/usr/lib/jvm -ITH
 OBJECT := THTensorJNI.o THTensorMathJNI.o 
 FLAGS := -O3 -w
-LINKS := libTH.a -lm -lgomp -lopenblas
+LINKS := libTH.a libopenblas.a -lm -lgomp
 LIB := libTHTensor.so
 
 # cuda specific build parameters
@@ -27,7 +27,7 @@ cuda: INCLUDES += $(CUDA_INCLUDES)
 cuda: LINKS = $(CUDA_LINKS)
 cuda: FLAGS += $(CUDA_FLAGS)
 cuda: ARCH += "/cuda/"
-cuda: test	
+cuda: libTHC.a test	
 
 javah:
 	for file in $(JAVAH) ; do \
@@ -40,7 +40,7 @@ compile: javah
 link: compile 
 	$(CC) $(FLAGS) -shared $(OBJECT) $(LINKS) -o $(LIB) 
 	
-install: link
+install: libopenblas.a libTH.a link 
 	mkdir -p ../../native/$(ARCH)
 	cp $(LIB) ../../native/$(ARCH)/$(LIB)
 
@@ -48,17 +48,18 @@ test:
 	$(CXX) $(FLAGS) -DLINUX $(INCLUDES) -c Test.c
 	$(CXX) $(FLAGS) Test.o $(LINKS) -o test
 
-buildTH:
+libTH.a:
 	cd TH; mkdir -p build; cd build; rm -f libTH.a; cmake -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_C_COMPILER=${CC} ..; make; cp libTH.a ../..; cp THGeneral.h ..
 
-cleanTH:
-	rm -rf TH/build libTH.a 
-
-buildTHC:
+libTHC.a:
 	cd THC; mkdir -p build; cd build; rm -f libTHC.a; cmake -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_C_COMPILER=${CC} ..; make; cp libTHC.a ../..
 
-cleanTHC:
-	rm -rf THC/build libTHC.a 
-
+libopenblas.a:
+	cd OpenBLAS; make; cp libopenblas.a ..
+	
 clean:
 	rm -rf *.o ${LIB} be_*.h test
+	
+cleanAll: clean
+	rm -rf TH/build libTH.a; rm -rf THC/build libTHC.a; rm libopenblas.a; cd OpenBLAS; make clean
+
