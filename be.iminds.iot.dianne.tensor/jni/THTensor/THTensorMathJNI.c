@@ -7,19 +7,35 @@
 #endif
 
 THTensor* getTHTensor(THTensor* l){
-	return l==0 ? THTensor_(new)() : l;
+	return l==0 ? THTensor_(new)(
+#ifdef CUDA
+			state
+#endif
+	) : l;
 }
 
 THTensor* getTHTensor1(THTensor* l, long d1){
-	return l==0 ? THTensor_(newWithSize1d)(d1) : l;
+	return l==0 ? THTensor_(newWithSize1d)(
+#ifdef CUDA
+			state,
+#endif
+			d1) : l;
 }
 
 THTensor* getTHTensor2(THTensor* l, long d1, long d2){
-	return l==0 ? THTensor_(newWithSize2d)(d1, d2) : l;
+	return l==0 ? THTensor_(newWithSize2d)(
+#ifdef CUDA
+			state,
+#endif
+			d1, d2) : l;
 }
 
 THTensor* getTHTensor3(THTensor* l, long d1, long d2, long d3){
-	return l==0 ? THTensor_(newWithSize3d)(d1, d2, d3) : l;
+	return l==0 ? THTensor_(newWithSize3d)(
+#ifdef CUDA
+			state,
+#endif
+			d1, d2, d3) : l;
 }
 
 long int getSize(THTensor* t){
@@ -36,15 +52,27 @@ THTensor* getVector(THTensor* l){
 	if(l->nDimension==1){
 		return l;
 	} else {
-		THTensor* v = THTensor_(newWithTensor)(l);
-		THTensor_(resize1d)(v , getSize(l));
+		THTensor* v = THTensor_(newWithTensor)(
+#ifdef CUDA
+				state,
+#endif
+				l);
+		THTensor_(resize1d)(
+#ifdef CUDA
+				state,
+#endif
+				v , getSize(l));
 		return v;
 	}
 }
 
 void releaseVector(THTensor* l, THTensor* v){
 	if(v!=l){
-		THTensor_(free)(v);
+		THTensor_(free)(
+#ifdef CUDA
+				state,
+#endif
+				v);
 	}
 }
 
@@ -53,7 +81,11 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ad
 		JNIEnv * env, jobject o, jlong dst, jlong src, jfloat val) {
 	THTensor* r = getTHTensor(dst);
 	THTensor* t = (THTensor*) src;
-	THTensor_(add)(r, t, val);
+	THTensor_(add)(
+#ifdef CUDA
+			state,
+#endif
+			r, t, val);
 	return r;
 }
 
@@ -62,7 +94,11 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ad
 	THTensor* r = getTHTensor(dst);
 	THTensor* t = (THTensor*) src;
 	THTensor* a = (THTensor*) add;
-	THTensor_(cadd)(r, t, 1, a);
+	THTensor_(cadd)(
+#ifdef CUDA
+			state,
+#endif
+			r, t, 1, a);
 	return r;
 }
 
@@ -71,7 +107,11 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ad
 	THTensor* r = getTHTensor(dst);
 	THTensor* t = (THTensor*) src;
 	THTensor* a = (THTensor*) add;
-	THTensor_(cadd)(r, t, val, a);
+	THTensor_(cadd)(
+#ifdef CUDA
+			state,
+#endif
+			r, t, val, a);
 	return r;
 }
 
@@ -79,7 +119,11 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_su
 		JNIEnv * env, jobject o, jlong dst, jlong src, jfloat val) {
 	THTensor* r = getTHTensor(dst);
 	THTensor* t = (THTensor*) src;
-	THTensor_(add)(r, t, -val);
+	THTensor_(add)(
+#ifdef CUDA
+			state,
+#endif
+			r, t, -val);
 	return r;
 }
 
@@ -88,7 +132,11 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_su
 	THTensor* r = getTHTensor(dst);
 	THTensor* t = (THTensor*) src;
 	THTensor* s = (THTensor*) sub;
-	THTensor_(cadd)(r, t, -1, s);
+	THTensor_(cadd)(
+#ifdef CUDA
+			state,
+#endif
+			r, t, -1, s);
 	return r;
 }
 
@@ -97,7 +145,11 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_su
 	THTensor* r = getTHTensor(dst);
 	THTensor* t = (THTensor*) src;
 	THTensor* s = (THTensor*) sub;
-	THTensor_(cadd)(r, t, -val, s);
+	THTensor_(cadd)(
+#ifdef CUDA
+			state,
+#endif
+			r, t, -val, s);
 	return r;
 }
 
@@ -105,7 +157,11 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_mu
 		JNIEnv * env, jobject o, jlong dst, jlong src, jfloat val) {
 	THTensor* r = getTHTensor(dst);
 	THTensor* t = (THTensor*) src;
-	THTensor_(mul)(r, t, val);
+	THTensor_(mul)(
+#ifdef CUDA
+			state,
+#endif
+			r, t, val);
 	return r;
 }
 
@@ -114,7 +170,11 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_cm
 	THTensor* r = getTHTensor(dst);
 	THTensor* t = (THTensor*) src;
 	THTensor* m = (THTensor*) mul;
-	THTensor_(cmul)(r, t, m);
+	THTensor_(cmul)(
+#ifdef CUDA
+			state,
+#endif
+			r, t, m);
 	return r;
 }
 
@@ -122,7 +182,11 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_di
 		JNIEnv * env, jobject o, jlong dst, jlong src, jfloat val) {
 	THTensor* r = getTHTensor(dst);
 	THTensor* t = (THTensor*) src;
-	THTensor_(div)(r, t, val);
+	THTensor_(div)(
+#ifdef CUDA
+			state,
+#endif
+			r, t, val);
 	return r;
 }
 
@@ -131,7 +195,11 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_cd
 	THTensor* r = getTHTensor(dst);
 	THTensor* t = (THTensor*) src;
 	THTensor* d = (THTensor*) div;
-	THTensor_(cdiv)(r, t, d);
+	THTensor_(cdiv)(
+#ifdef CUDA
+			state,
+#endif
+			r, t, d);
 	return r;
 }
 
@@ -139,7 +207,11 @@ JNIEXPORT jfloat JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_d
 		JNIEnv * env, jobject o, jlong v1, jlong v2) {
 	THTensor* vec1 = (THTensor*) v1;
 	THTensor* vec2 = (THTensor*) v2;
-	return THTensor_(dot)(vec1, vec2);
+	return THTensor_(dot)(
+#ifdef CUDA
+			state,
+#endif
+			vec1, vec2);
 }
 
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_vv(
@@ -148,7 +220,11 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_vv
 	THTensor* vec2 = getVector(v2);
 	THTensor* r = getTHTensor2(dst, vec1->size[0], vec2->size[0]);
 
-	THTensor_(addr)(r, 0.0f, r, 1.0f, vec1, vec2);
+	THTensor_(addr)(
+#ifdef CUDA
+			state,
+#endif
+			r, 0.0f, r, 1.0f, vec1, vec2);
 
 	releaseVector(v1, vec1);
 	releaseVector(v2, vec2);
@@ -164,7 +240,11 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_mv
 	THTensor* rv = getVector(r);
 
 
-	THTensor_(addmv)(rv, 0.0f, rv, 1.0f, mat, vec);
+	THTensor_(addmv)(
+#ifdef CUDA
+			state,
+#endif
+			rv, 0.0f, rv, 1.0f, mat, vec);
 
 	releaseVector(v, vec);
 	//releaseVector(rv, r);
@@ -178,13 +258,25 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_tm
 	THTensor* r = getTHTensor1(dst, mat->size[1]);
 	THTensor* rv = getVector(r);
 
-	THTensor* transpose = THTensor_(newTranspose)(mat, 0, 1);
+	THTensor* transpose = THTensor_(newTranspose)(
+#ifdef CUDA
+			state,
+#endif
+			mat, 0, 1);
 
-	THTensor_(addmv)(rv, 0.0f, rv, 1.0f, transpose, vec);
+	THTensor_(addmv)(
+#ifdef CUDA
+			state,
+#endif
+			rv, 0.0f, rv, 1.0f, transpose, vec);
 
 	releaseVector(v, vec);
 	//releaseVector(rv, r);
-	THTensor_(free)(transpose);
+	THTensor_(free)(
+#ifdef CUDA
+			state,
+#endif
+			transpose);
 
 	return r;
 }
@@ -195,7 +287,11 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_mm
 	THTensor* mat2 = (THTensor*) m2;
 	THTensor* r = getTHTensor2(dst, mat1->size[0], mat2->size[1]);
 
-	THTensor_(addmm)(r, 0.0f, r, 1.0f, mat1, mat2);
+	THTensor_(addmm)(
+#ifdef CUDA
+			state,
+#endif
+			r, 0.0f, r, 1.0f, mat1, mat2);
 	return r;
 }
 
@@ -206,7 +302,11 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ad
 	THTensor* vec2 = getVector(v2);
 	THTensor* r = getTHTensor2(dst, mat->size[0], mat->size[1]);
 
-	THTensor_(addr)(r, 1.0f, mat, 1.0f, vec1, vec2);
+	THTensor_(addr)(
+#ifdef CUDA
+			state,
+#endif
+			r, 1.0f, mat, 1.0f, vec1, vec2);
 
 	releaseVector(v1, vec1);
 	releaseVector(v2, vec2);
@@ -221,7 +321,11 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ad
 	THTensor* r = getTHTensor1(dst, vec1->size[0]);
 	THTensor* rv = getVector(r);
 
-	THTensor_(addmv)(rv, 1.0f, vec1, 1.0f, mat, vec2);
+	THTensor_(addmv)(
+#ifdef CUDA
+			state,
+#endif
+			rv, 1.0f, vec1, 1.0f, mat, vec2);
 
 	releaseVector(v1, vec1);
 	releaseVector(v2, vec2);
@@ -236,7 +340,11 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ad
 	THTensor* mat3 = (THTensor*) m3;
 	THTensor* r = getTHTensor2(dst, mat3->size[0], mat3->size[1]);
 
-	THTensor_(addmm)(r, 1.0f, mat1, 1.0f, mat2, mat3);
+	THTensor_(addmm)(
+#ifdef CUDA
+			state,
+#endif
+			r, 1.0f, mat1, 1.0f, mat2, mat3);
 	return r;
 }
 
@@ -244,8 +352,16 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ex
 		JNIEnv * env, jobject o, jlong dst, jlong src) {
 	THTensor* r = getTHTensor(dst);
 	THTensor* t = (THTensor*) src;
-	THTensor_(resizeAs)(r, t);
-	THTensor_(exp)(r, t);
+	THTensor_(resizeAs)(
+#ifdef CUDA
+			state,
+#endif
+			r, t);
+	THTensor_(exp)(
+#ifdef CUDA
+			state,
+#endif
+			r, t);
 	return r;
 }
 
@@ -253,8 +369,16 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_lo
 		JNIEnv * env, jobject o, jlong dst, jlong src) {
 	THTensor* r = getTHTensor(dst);
 	THTensor* t = (THTensor*) src;
-	THTensor_(resizeAs)(r, t);
-	THTensor_(log)(r, t);
+	THTensor_(resizeAs)(
+#ifdef CUDA
+			state,
+#endif
+			r, t);
+	THTensor_(log)(
+#ifdef CUDA
+			state,
+#endif
+			r, t);
 	return r;
 }
 
@@ -262,8 +386,16 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ta
 		JNIEnv * env, jobject o, jlong dst, jlong src) {
 	THTensor* r = getTHTensor(dst);
 	THTensor* t = (THTensor*) src;
-	THTensor_(resizeAs)(r, t);
-	THTensor_(tanh)(r, t);
+	THTensor_(resizeAs)(
+#ifdef CUDA
+			state,
+#endif
+			r, t);
+	THTensor_(tanh)(
+#ifdef CUDA
+			state,
+#endif
+			r, t);
 	return r;
 }
 
@@ -272,9 +404,17 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_dt
 		JNIEnv * env, jobject o, jlong dst, jlong src) {
 	THTensor* r = getTHTensor(dst);
 	THTensor* t = (THTensor*) src;
-	THTensor_(resizeAs)(r, t);
+	THTensor_(resizeAs)(
+#ifdef CUDA
+			state,
+#endif
+			r, t);
 
+#ifdef CUDA
+	//TODO implement CUDA?
+#else
 	TH_TENSOR_APPLY2(real, r, real, t, real z = *t_data; *r_data = 1.- z * z;)
+#endif
 
 	return r;
 }
@@ -283,9 +423,17 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_si
 		JNIEnv * env, jobject o, jlong dst, jlong src) {
 	THTensor* r = getTHTensor(dst);
 	THTensor* t = (THTensor*) src;
-	THTensor_(resizeAs)(r, t);
+	THTensor_(resizeAs)(
+#ifdef CUDA
+			state,
+#endif
+			r, t);
 
+#ifdef CUDA
+	//TODO implement CUDA?
+#else
 	TH_TENSOR_APPLY2(real, r, real, t, *r_data = 1./(1.+ exp(- *t_data));)
+#endif
 
 	return r;
 }
@@ -294,11 +442,19 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ds
 		JNIEnv * env, jobject o, jlong dst, jlong src) {
 	THTensor* r = getTHTensor(dst);
 	THTensor* t = (THTensor*) src;
-	THTensor_(resizeAs)(r, t);
+	THTensor_(resizeAs)(
+#ifdef CUDA
+			state,
+#endif
+			r, t);
 
+#ifdef CUDA
+	// TODO implement CUDA
+#else
 	TH_TENSOR_APPLY2(real, r, real, t,\
 	                   real z = *t_data; \
 	                   *r_data = (1. - z) * z;)
+#endif
 
 	return r;
 }
@@ -307,11 +463,20 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_th
 		JNIEnv * env, jobject o, jlong dst, jlong src, jfloat thres, jfloat coeff, jfloat of) {
 	THTensor* r = getTHTensor(dst);
 	THTensor* t = (THTensor*) src;
-	THTensor_(resizeAs)(r, t);
+	THTensor_(resizeAs)(
+#ifdef CUDA
+			state,
+#endif
+			r, t);
 
+#ifdef CUDA
+	// TODO implement CUDA
+
+#else
 	TH_TENSOR_APPLY2(real, r, real, t,\
 	                   real z = *t_data; \
 	                   *r_data = z > thres ? z : coeff * z + of;)
+#endif
 
 	return r;
 }
@@ -324,11 +489,19 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_dt
 		JNIEnv * env, jobject o, jlong dst, jlong src, jfloat thres, jfloat coeff) {
 	THTensor* r = getTHTensor(dst);
 	THTensor* t = (THTensor*) src;
-	THTensor_(resizeAs)(r, t);
+	THTensor_(resizeAs)(
+#ifdef CUDA
+			state,
+#endif
+			r, t);
 
+#ifdef CUDA
+	// TODO implement CUDA?
+#else
 	TH_TENSOR_APPLY2(real, r, real, t,\
 	                   real z = *t_data; \
 	                   *r_data = z > thres ? 1 : coeff;)
+#endif
 
 	return r;
 }
@@ -341,6 +514,11 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_so
 		JNIEnv * env, jobject o, jlong dst, jlong src) {
 	THTensor* r = getTHTensor(dst);
 	THTensor* t = (THTensor*) src;
+
+#ifdef CUDA
+	// TODO implement CUDA?
+#else
+
 	THTensor_(resizeAs)(r, t);
 	float max = THTensor_(maxall)(t);
 
@@ -349,6 +527,7 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_so
 
 	float sum = THTensor_(sumall)(r);
 	THTensor_(div)(r, r, sum);
+#endif
 
 	return r;
 }
@@ -356,35 +535,56 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_so
 JNIEXPORT jfloat JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sum(
 		JNIEnv * env, jobject o, jlong src) {
 	THTensor* t = (THTensor*) src;
-	return THTensor_(sumall)(t);
+	return THTensor_(sumall)(
+#ifdef CUDA
+			state,
+#endif
+			t);
 }
 
 JNIEXPORT jfloat JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_max(
 		JNIEnv * env, jobject o, jlong src) {
 	THTensor* t = (THTensor*) src;
-	return THTensor_(maxall)(t);
+	return THTensor_(maxall)(
+#ifdef CUDA
+			state,
+#endif
+			t);
 }
 
 JNIEXPORT jfloat JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_min(
 		JNIEnv * env, jobject o, jlong src) {
 	THTensor* t = (THTensor*) src;
-	return THTensor_(minall)(t);
+	return THTensor_(minall)(
+#ifdef CUDA
+			state,
+#endif
+			t);
 }
 
 JNIEXPORT jfloat JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_mean(
 		JNIEnv * env, jobject o, jlong src) {
 	THTensor* t = (THTensor*) src;
-	return THTensor_(meanall)(t);
+	return THTensor_(meanall)(
+#ifdef CUDA
+			state,
+#endif
+			t);
 }
 
 JNIEXPORT jint JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_argmax(
 		JNIEnv * env, jobject o, jlong src) {
 	// only works for 1 dim tensors
 	THTensor* t = (THTensor*) src;
-	real* data_ptr = THTensor_(data)(t);
 
-	real max = data_ptr[0];
+
 	int index = 0;
+
+#ifdef CUDA
+	// TODO implement CUDA
+#else
+	real* data_ptr = THTensor_(data)(t);
+	real max = data_ptr[0];
 	long size = t->size[0];
 	long stride = t->stride[0];
 	int i = 0;
@@ -395,6 +595,8 @@ JNIEXPORT jint JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_arg
 		}
 		data_ptr += stride;
 	}
+
+#endif
 	return index;
 }
 
@@ -402,10 +604,14 @@ JNIEXPORT jint JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_arg
 		JNIEnv * env, jobject o, jlong src) {
 	// only works for 1 dim tensors
 	THTensor* t = (THTensor*) src;
-	real* data_ptr = THTensor_(data)(t);
 
-	real min = data_ptr[0];
 	int index = 0;
+
+#ifdef CUDA
+	// TODO implement CUDA
+#else
+	real* data_ptr = THTensor_(data)(t);
+	real min = data_ptr[0];
 	long size = t->size[0];
 	long stride = t->stride[0];
 	int i = 0;
@@ -416,6 +622,8 @@ JNIEXPORT jint JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_arg
 		}
 		data_ptr += stride;
 	}
+
+#endif
 	return index;
 }
 
@@ -438,6 +646,10 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ad
 	long kernelHeight = kernel->size[0];
 	long inputWidth = t->size[1];
 	long inputHeight = t->size[0];
+
+#ifdef CUDA
+	// TODO implement CUDA?
+#else
 
 	if(flip){
 		// TODO flip kernel?
@@ -506,6 +718,8 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ad
 				sy, sx);
 	}
 
+#endif
+
 	return r;
 }
 
@@ -520,6 +734,10 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ma
 	int oheight = (iheight - h)/sy + 1;
 
 	THTensor* r = getTHTensor2(dst, oheight, owidth);
+
+#ifdef CUDA
+	// TODO implement CUDA
+#else
 
 	// impl from torch
 	real* input_p = THTensor_(data)(t);
@@ -547,7 +765,7 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ma
 			*op = maxval;
 		}
 	}
-
+#endif
 	return r;
 }
 
@@ -564,6 +782,10 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sp
 	THTensor* input = (THTensor*) src;
 	THTensor* weight = (THTensor*) k;
 	THTensor* bias = (THTensor*) add;
+
+#ifdef CUDA
+	// TODO implement CUDA
+#else
 
 	long nOutputPlane = weight->size[0];
 	long kW = weight->size[3];
@@ -593,6 +815,8 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sp
 	/* do convolutions */
 	THTensor_(conv2Dmv)(output, 1.0, 1.0, input, weight, sy, sx, "V", "X");
 
+#endif
+
 	return output;
 }
 
@@ -613,16 +837,40 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ze
 		newDims[i] = t->size[i] + p[i]*2;
 	}
 
-	THTensor_(resizend)(r, noDims, newDims);
-	THTensor_(zero)(r);
+	THTensor_(resizend)(
+#ifdef CUDA
+			state,
+#endif
+			r, noDims, newDims);
+	THTensor_(zero)(
+#ifdef CUDA
+			state,
+#endif
+			r);
 
-	THTensor* narrowed = THTensor_(newWithTensor)(r);
+	THTensor* narrowed = THTensor_(newWithTensor)(
+#ifdef CUDA
+			state,
+#endif
+			r);
 	// now narrow and copy
 	for(i=0;i<noDims;i++){
-		THTensor_(narrow)(narrowed, narrowed, i, p[i], t->size[i]);
+		THTensor_(narrow)(
+#ifdef CUDA
+				state,
+#endif
+				narrowed, narrowed, i, p[i], t->size[i]);
 	}
-	THTensor_(copy)(narrowed, t);
-	THTensor_(free)(narrowed);
+	THTensor_(copy)(
+#ifdef CUDA
+			state,
+#endif
+			narrowed, t);
+	THTensor_(free)(
+#ifdef CUDA
+			state,
+#endif
+			narrowed);
 
 	(*env)->ReleaseIntArrayElements(env, paddings, p, 0);
 
@@ -641,6 +889,10 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sp
 	int oheight = (iheight - h)/sy + 1;
 
 	THTensor* r = getTHTensor3(dst, noPlanes, oheight, owidth);
+
+#ifdef CUDA
+	// TODO implement CUDA
+#else
 
 	int k;
 #pragma omp parallel for private(k)
@@ -672,6 +924,6 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sp
 			}
 		}
 	}
-
+#endif
 	return r;
 }
