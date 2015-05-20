@@ -3,13 +3,13 @@
 CC=gcc
 CXX=g++
 
-JAVA_HOME := /usr/lib/jvm/java-8-oracle
+JAVA_HOME := /usr/lib/jvm/default-java
 CUDA_HOME := /usr/local/cuda
 
-JAVAH := be.iminds.iot.dianne.tensor.impl.th.THTensor be.iminds.iot.dianne.tensor.impl.th.THTensorMath
-SRC := THTensorJNI.c THTensorMathJNI.c 
+JAVAH := be.iminds.iot.dianne.tensor.impl.th.THTensor be.iminds.iot.dianne.tensor.impl.th.THTensorMath be.iminds.iot.dianne.tensor.impl.th.THTensorFactory
+SRC := THTensorFactoryJNI.c THTensorJNI.c THTensorMathJNI.c 
 INCLUDES := -I$(JAVA_HOME)/include/ -I/usr/lib/jvm -ITH
-OBJECT := THTensorJNI.o THTensorMathJNI.o 
+OBJECT := THTensorFactoryJNI.o THTensorJNI.o THTensorMathJNI.o 
 FLAGS := -O3 -w
 LINKS := libTH.a libopenblas.a -lm -lgomp
 LIB := libTHTensor.so
@@ -27,7 +27,7 @@ cuda: INCLUDES += $(CUDA_INCLUDES)
 cuda: LINKS = $(CUDA_LINKS)
 cuda: FLAGS += $(CUDA_FLAGS)
 cuda: ARCH += "/cuda/"
-cuda: libTHC.a test	
+cuda: libTHC.a install	
 
 javah:
 	for file in $(JAVAH) ; do \

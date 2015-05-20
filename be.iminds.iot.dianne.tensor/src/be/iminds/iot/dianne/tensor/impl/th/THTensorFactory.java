@@ -1,6 +1,8 @@
 package be.iminds.iot.dianne.tensor.impl.th;
 
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 
 import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.dianne.tensor.TensorMath;
@@ -16,6 +18,16 @@ public class THTensorFactory implements TensorFactory<THTensor>{
 		    throw e;
 		}
     }
+    
+	@Activate
+	public void activate(){
+		init();
+	}
+	
+	@Deactivate
+	public void deactivate(){
+		cleanup();
+	}
     
     private final THTensorMath math = new THTensorMath();
 	
@@ -34,4 +46,7 @@ public class THTensorFactory implements TensorFactory<THTensor>{
 		return math;
 	}
 
+	private native void init();
+	
+	private native void cleanup();
 }
