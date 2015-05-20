@@ -29,4 +29,6 @@ typedef THCudaStorage THStorage;
 #define THTensor_(x) THCudaTensor_##x
 #define THStorage_(x) THCudaStorage_##x
 
+THCState* state;
+
 #endif
