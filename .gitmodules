@@ -7,3 +7,6 @@
 	url = https://github.ugent.be/e-p/thc.git
 
 
+[submodule "be.iminds.iot.dianne.tensor/jni/THTensor/OpenBLAS"]
+	path = be.iminds.iot.dianne.tensor/jni/THTensor/OpenBLAS
+	url = https://github.com/xianyi/OpenBLAS.git

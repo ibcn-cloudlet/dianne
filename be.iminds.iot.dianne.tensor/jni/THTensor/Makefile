@@ -10,7 +10,7 @@ SRC := THTensorJNI.c THTensorMathJNI.c
 INCLUDES := -I$(JAVA_HOME)/include/ -I/usr/lib/jvm -ITH
 OBJECT := THTensorJNI.o THTensorMathJNI.o 
 FLAGS := -O3 -w
-LINKS := libTH.a -lm -lgomp -lopenblas
+LINKS := libTH.a libopenblas.a -lm -lgomp
 LIB := libTHTensor.so
 
 # cuda specific build parameters
@@ -58,6 +58,12 @@ buildTHC:
 
 cleanTHC:
 	rm -rf THC/build libTHC.a 
+	
+buildOpenBLAS:
+	cd OpenBLAS; make; cp libopenblas.a ..
+	
+cleanOpenBLAS:
+	rm libopenblas.a; cd OpenBLAS; make clean	
 
 clean:
 	rm -rf *.o ${LIB} be_*.h test
