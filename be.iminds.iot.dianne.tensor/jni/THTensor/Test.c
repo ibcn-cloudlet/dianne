@@ -11,29 +11,73 @@
  * This is a sample test program for testing compilation and linking of both Cuda/Float tensors
  */
 int main(){
-	printf("Tensor: \n");
 
+#ifdef CUDA
 	THCState* state = (THCState*)malloc(sizeof(THCState));
 	THCudaInit(state);
 
 	printf("Initialized CUDA %d %d \n", state->numDevices, state->numUserStreams);
+#endif
 
-//	THTensor* tensor = THTensor_(newWithSize2d)(2, 2);
-//	THTensor_(fill)(tensor, 1.0f);
-//	real* data = THTensor_(data)(tensor);
-//
-//	printf(" %f %f \n %f %f \n", data[0], data[1], data[2], data[3]);
-//
-//	THTensor_(add)(tensor, tensor, 1.0f);
-//
-//	printf("Add 1: \n");
-//
-//	data = THTensor_(data)(tensor);
-//	printf(" %f %f \n %f %f \n", data[0], data[1], data[2], data[3]);
-//
-//	THTensor_(free)(tensor);
 
+	THTensor* tensor = THTensor_(newWithSize2d)(
+#ifdef CUDA
+		state,
+#endif
+		2, 2);
+
+
+	THTensor_(fill)(
+#ifdef CUDA
+		state,
+#endif
+		tensor, 1.0f);
+
+#ifdef CUDA
+	long size = tensor->storage->size*sizeof(real);
+	real* data = (real*)malloc(size);
+	real* dataGPU = THTensor_(data)(
+		state,
+		tensor);
+	cudaMemcpy(data, dataGPU, size, cudaMemcpyDeviceToHost);
+#else 
+	real* data = THTensor_(data)(tensor);
+#endif
+	printf("Tensor: \n");
+	printf(" %f %f \n %f %f \n", data[0], data[1], data[2], data[3]);
+#ifdef CUDA
+	free(data);
+#endif
+
+	THTensor_(add)(
+#ifdef CUDA
+		state,
+#endif
+		tensor, tensor, 1.0f);
+
+#ifdef CUDA
+	data = (real*)malloc(size);
+ 	dataGPU = THTensor_(data)(state, tensor);
+	cudaMemcpy(data, dataGPU, size, cudaMemcpyDeviceToHost);
+#else
+	data = THTensor_(data)(tensor);
+#endif
+	printf("Add 1: \n");
+	printf(" %f %f \n %f %f \n", data[0], data[1], data[2], data[3]);
+#ifdef CUDA
+	free(data);
+#endif
+
+
+	THTensor_(free)(
+#ifdef CUDA
+		state,
+#endif
+		tensor);
+
+#ifdef CUDA
 	THCudaBlas_shutdown(state);
 	free(state);
+#endif
 	return 0;
 }
