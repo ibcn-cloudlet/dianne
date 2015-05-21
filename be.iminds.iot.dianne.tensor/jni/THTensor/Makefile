@@ -6,6 +6,7 @@ CXX=g++
 JAVA_HOME := /usr/lib/jvm/default-java
 CUDA_HOME := /usr/local/cuda
 
+ARCH := $(shell uname -m)
 JAVAH := be.iminds.iot.dianne.tensor.impl.th.THTensor be.iminds.iot.dianne.tensor.impl.th.THTensorMath be.iminds.iot.dianne.tensor.impl.th.THTensorFactory
 SRC := THTensorFactoryJNI.c THTensorJNI.c THTensorMathJNI.c 
 INCLUDES := -I$(JAVA_HOME)/include/ -I/usr/lib/jvm -ITH
@@ -13,20 +14,20 @@ OBJECT := THTensorFactoryJNI.o THTensorJNI.o THTensorMathJNI.o
 FLAGS := -O3 -w
 LINKS := libTH.a libopenblas.a -lm -lgomp
 LIB := libTHTensor.so
+DEPLOY_DIR := ../../native/$(ARCH)
 
 # cuda specific build parameters
 CUDA_INCLUDES := -ITHC -I$(CUDA_HOME)/include/
 CUDA_LINKS := libTHC.a libTH.a -lgomp -L$(CUDA_HOME)/lib -lcudart -lcublas
 CUDA_FLAGS := -DCUDA
 
-ARCH := $(shell uname -m)
 
 all: install  
 
 cuda: INCLUDES += $(CUDA_INCLUDES)
 cuda: LINKS = $(CUDA_LINKS)
 cuda: FLAGS += $(CUDA_FLAGS)
-cuda: ARCH += "/cuda/"
+cuda: DEPLOY_DIR := ../../native/$(ARCH)/cuda
 cuda: libTHC.a install	
 
 javah:
@@ -41,8 +42,8 @@ link: compile
 	$(CC) $(FLAGS) -shared $(OBJECT) $(LINKS) -o $(LIB) 
 	
 install: libopenblas.a libTH.a link 
-	mkdir -p ../../native/$(ARCH)
-	cp $(LIB) ../../native/$(ARCH)/$(LIB)
+	mkdir -p $(DEPLOY_DIR)
+	cp $(LIB) $(DEPLOY_DIR)/$(LIB)
 
 test:
 	$(CXX) $(FLAGS) -DLINUX $(INCLUDES) -c Test.c
