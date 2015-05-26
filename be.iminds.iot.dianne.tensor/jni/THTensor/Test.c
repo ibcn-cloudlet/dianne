@@ -75,6 +75,52 @@ int main(){
 #endif
 		tensor);
 
+	printf("Test dot\n");
+
+	THTensor* v1 = THTensor_(newWithSize1d)(
+#ifdef CUDA
+		state,
+#endif
+		4);
+
+	THTensor_(fill)(
+#ifdef CUDA
+		state,
+#endif
+		v1, 1.0f);
+
+	THTensor* v2 = THTensor_(newWithSize1d)(
+#ifdef CUDA
+		state,
+#endif
+		4);
+
+	THTensor_(fill)(
+#ifdef CUDA
+		state,
+#endif
+		v2, 1.0f);
+
+
+	real dot = THTensor_(dot)(
+#ifdef CUDA
+			state,
+#endif
+			v1, v2);
+
+	printf("Dot (expect 4): %f \n", dot);
+
+	THTensor_(free)(
+#ifdef CUDA
+		state,
+#endif
+		v1);
+
+	THTensor_(free)(
+#ifdef CUDA
+		state,
+#endif
+		v2);
 #ifdef CUDA
 	THCudaBlas_shutdown(state);
 	free(state);
