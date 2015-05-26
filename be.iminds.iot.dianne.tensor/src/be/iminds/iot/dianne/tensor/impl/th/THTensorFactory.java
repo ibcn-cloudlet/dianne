@@ -19,9 +19,14 @@ public class THTensorFactory implements TensorFactory<THTensor>{
 		}
     }
     
+    public THTensorFactory() {
+    	init();
+	}
+    
 	@Activate
 	public void activate(){
-		init();
+		// call init in constructor to also work in JUnit testing
+		//init();
 	}
 	
 	@Deactivate
