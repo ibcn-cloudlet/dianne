@@ -430,7 +430,7 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_si
 			r, t);
 
 #ifdef CUDA
-	//TODO implement CUDA?
+	THCudaTensor_sigmoid(state, r, t);
 #else
 	TH_TENSOR_APPLY2(real, r, real, t, *r_data = 1./(1.+ exp(- *t_data));)
 #endif
@@ -449,7 +449,7 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ds
 			r, t);
 
 #ifdef CUDA
-	// TODO implement CUDA
+	THCudaTensor_dsigmoid(state, r, t);
 #else
 	TH_TENSOR_APPLY2(real, r, real, t,\
 	                   real z = *t_data; \

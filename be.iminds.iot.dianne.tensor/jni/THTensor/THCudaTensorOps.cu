@@ -18,24 +18,53 @@ struct TensorDTanOp {
 	  }
 };
 
+struct TensorSigmoidOp {
+	  __device__ __forceinline__ void operator()(float* out, float* in) {
+	    *out = 1./(1.+ exp(- *in));
+	  }
+
+	  __device__ __forceinline__ void operator()(float* v) {
+	    *v = 1./(1.+ exp(- *v));
+	  }
+};
+
+struct TensorDSigmoidOp {
+	  __device__ __forceinline__ void operator()(float* out, float* in) {
+	    *out = (1. - *in) * (*in);
+	  }
+
+	  __device__ __forceinline__ void operator()(float* v) {
+	    *v = (1. - *v) * (*v);
+	  }
+};
+
 
 extern "C" {
 	void THCudaTensor_dtanh(THCState *state, THCudaTensor *dest, THCudaTensor *src)
 	{
-		THAssert(THCudaTensor_checkGPU(state, 2, dest, src));
 		if (dest == src) {
-			if (!THCudaTensor_pointwiseApply1(state, dest, TensorDTanOp())) {
-				THArgCheck(false, 2, CUTORCH_DIM_WARNING);
-			}
+			THCudaTensor_pointwiseApply1(state, dest, TensorDTanOp());
 		} else {
-			THCudaTensor_resizeAs(state, dest, src);
-	
-			if (!THCudaTensor_pointwiseApply2(state, dest, src, TensorDTanOp())) {
-				THArgCheck(false, 2, CUTORCH_DIM_WARNING);
-			}
+			THCudaTensor_pointwiseApply2(state, dest, src, TensorDTanOp());
 		}
+	}
 	
-		THCudaCheck(cudaGetLastError());
+	void THCudaTensor_sigmoid(THCState *state, THCudaTensor *dest, THCudaTensor *src)
+	{
+		if (dest == src) {
+			THCudaTensor_pointwiseApply1(state, dest, TensorSigmoidOp());
+		} else {
+			THCudaTensor_pointwiseApply2(state, dest, src, TensorSigmoidOp());
+		}
+	}
+	
+	void THCudaTensor_dsigmoid(THCState *state, THCudaTensor *dest, THCudaTensor *src)
+	{
+		if (dest == src) {
+			THCudaTensor_pointwiseApply1(state, dest, TensorDSigmoidOp());
+		} else {
+			THCudaTensor_pointwiseApply2(state, dest, src, TensorDSigmoidOp());
+		}
 	}
 }
 
