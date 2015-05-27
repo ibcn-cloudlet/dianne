@@ -573,6 +573,20 @@ public class TensorMathTest<T extends Tensor<T>> {
 	}
 	
 	@Test
+	public void testSoftmax(){
+		float[] data = new float[10];
+		for(int i=0;i<data.length;i++){
+			data[i] = i;
+		}
+		T t1 = factory.createTensor(data, 10);
+	
+		float[] expdata = new float[]{7.8013414E-5f, 2.1206246E-4f, 5.764455E-4f, 0.0015669414f, 0.004259388f, 0.011578218f, 0.031472858f, 0.0855521f, 0.23255472f, 0.6321493f};
+		T exp = factory.createTensor(expdata, 10);
+		
+		Assert.assertEquals(exp, math.softmax(null, t1));
+	}
+	
+	@Test
 	public void testConvolution(){
 		T t1 = factory.createTensor(5,5);
 		T t2 = factory.createTensor(3,3);
