@@ -718,4 +718,32 @@ public class TensorMathTest<T extends Tensor<T>> {
 	
 		Assert.assertEquals(exp, math.zeropad(null, t1, 1, 1));
 	}
+	
+	@Test
+	public void testSpatialConvolution(){
+		T t = factory.createTensor(3,5,5);
+		t.fill(1.0f);
+		
+		T add = factory.createTensor(5);
+		add.fill(1.0f);
+		T k = factory.createTensor(5, 3, 3, 3);
+		k.fill(1.0f);
+		
+		T exp = factory.createTensor(5, 3, 3);
+		exp.fill(28.0f);
+		
+		Assert.assertEquals(exp, math.spatialconvolve(null, add, t, k, 1, 1));
+	}
+	
+	@Test
+	public void testSpatialMaxpool(){
+		T t = factory.createTensor(3,5,5);
+		t.fill(1.0f);
+		
+	
+		T exp = factory.createTensor(3, 2, 2);
+		exp.fill(1.0f);
+
+		Assert.assertEquals(exp, math.spatialmaxpool(null, t, 2, 2, 2, 2));
+	}
 }
