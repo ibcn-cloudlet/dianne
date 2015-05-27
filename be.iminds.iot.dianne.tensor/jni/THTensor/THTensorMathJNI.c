@@ -796,10 +796,6 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sp
 	THTensor* weight = (THTensor*) k;
 	THTensor* bias = (THTensor*) add;
 
-#ifdef CUDA
-	// TODO implement CUDA
-#else
-
 	long nOutputPlane = weight->size[0];
 	long kW = weight->size[3];
 	long kH = weight->size[2];
@@ -807,29 +803,49 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sp
 	long inputHeight = input->size[1];
 	long outputWidth = (inputWidth - kW) / sx + 1;
 	long outputHeight = (inputHeight - kH) / sy + 1;
+	THTensor_(resize3d)(
+#ifdef CUDA
+			state,
+#endif
+			output, nOutputPlane, outputHeight, outputWidth);
 
+	/* set output to bias */
 	long i;
-	real* bias_data;
-	real* output_data;
-
-	THTensor_(resize3d)(output, nOutputPlane, outputHeight, outputWidth);
-	/* add bias */
-	bias_data = THTensor_(data)(bias);
-	output_data = THTensor_(data)(output);
-
-#pragma omp parallel for private(i)
-	for (i = 0; i < bias->size[0]; i++) {
-		real *ptr_output = output_data + i * outputWidth * outputHeight;
-		long j;
-		for (j = 0; j < outputWidth * outputHeight; j++)
-			ptr_output[j] = bias_data[i];
+	THTensor* temp = THTensor_(newWithSize2d)(
+#ifdef CUDA
+			state,
+#endif
+			outputHeight, outputWidth);
+	for (i=0; i<bias->size[0]; i++){
+		THTensor_(select)(
+#ifdef CUDA
+				state,
+#endif
+				temp, output, 0, i);
+		float b = THTensor_(get1d)(
+#ifdef CUDA
+				state,
+#endif
+				bias, i);
+		THTensor_(fill)(
+#ifdef CUDA
+				state,
+#endif
+				temp, b);
 	}
+	THTensor_(free)(
+#ifdef CUDA
+			state,
+#endif
+			temp);
 
 	/* do convolutions */
+#ifdef CUDA
+	char type[] = "vx";
+	THTensor_(conv2Dmv)(state, output, 1.0, input, weight, sy, sx, type);
+#else
 	THTensor_(conv2Dmv)(output, 1.0, 1.0, input, weight, sy, sx, "V", "X");
-
 #endif
-
 	return output;
 }
 
