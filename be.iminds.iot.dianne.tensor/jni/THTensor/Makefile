@@ -2,6 +2,7 @@
  
 CC=gcc
 CXX=g++
+NVCC=nvcc
 
 JAVA_HOME := /usr/lib/jvm/default-java
 CUDA_HOME := /usr/local/cuda
@@ -20,6 +21,9 @@ DEPLOY_DIR := ../../native/$(ARCH)
 CUDA_INCLUDES := -ITHC -I$(CUDA_HOME)/include/
 CUDA_LINKS := libTHC.a libTH.a -lgomp -L$(CUDA_HOME)/lib -lcudart -lcublas
 CUDA_FLAGS := -DCUDA
+NVCC_FLAGS := -Xcompiler -fPIC
+CUDA_SRC := THCudaTensorOps.cu
+CUDA_OBJECT := THCudaTensorOps.o
 
 
 all: install  
@@ -27,8 +31,9 @@ all: install
 cuda: INCLUDES += $(CUDA_INCLUDES)
 cuda: LINKS = $(CUDA_LINKS)
 cuda: FLAGS += $(CUDA_FLAGS)
+cuda: OBJECT += $(CUDA_OBJECT)
 cuda: DEPLOY_DIR := ../../native/$(ARCH)/cuda
-cuda: libTHC.a install	
+cuda: cudaops libTHC.a install	
 
 javah:
 	for file in $(JAVAH) ; do \
@@ -37,6 +42,9 @@ javah:
 	
 compile: javah
 	$(CC) $(FLAGS) -fPIC -DLINUX $(INCLUDES) -c $(SRC)
+
+cudaops:
+	$(NVCC) $(NVCC_FLAGS) $(INCLUDES) -c $(CUDA_SRC)
 
 link: compile 
 	$(CC) $(FLAGS) -shared $(OBJECT) $(LINKS) -o $(LIB) 
