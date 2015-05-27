@@ -514,19 +514,33 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_so
 	THTensor* r = getTHTensor(dst);
 	THTensor* t = (THTensor*) src;
 
+	THTensor_(resizeAs)(
 #ifdef CUDA
-	// TODO implement CUDA?
+			state,
+#endif
+			r, t);
+	float max = THTensor_(maxall)(
+#ifdef CUDA
+			state,
+#endif
+			t);
+#ifdef CUDA
+	THCudaTensor_expminus(state, r, t, max);
 #else
-
-	THTensor_(resizeAs)(r, t);
-	float max = THTensor_(maxall)(t);
-
 	TH_TENSOR_APPLY2(real, r, real, t,\
 	                   *r_data = exp(*t_data - max);)
-
-	float sum = THTensor_(sumall)(r);
-	THTensor_(div)(r, r, sum);
 #endif
+
+	float sum = THTensor_(sumall)(
+#ifdef CUDA
+			state,
+#endif
+			r);
+	THTensor_(div)(
+#ifdef CUDA
+			state,
+#endif
+			r, r, sum);
 
 	return r;
 }

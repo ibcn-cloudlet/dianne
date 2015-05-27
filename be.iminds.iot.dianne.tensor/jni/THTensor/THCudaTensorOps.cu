@@ -69,6 +69,20 @@ struct TensorDThresholdOp {
 	  const float coeff;
 };
 
+struct TensorExpMinusOp {
+	  TensorExpMinusOp(float m) : minus(m) {}
+
+	  __device__ __forceinline__ void operator()(float* out, float* in) {
+	    *out = exp( (*in) - minus);
+	  }
+
+	  __device__ __forceinline__ void operator()(float* v) {
+	    *v = exp( (*v) - minus);
+	  }
+	  
+	  const float minus;
+};
+
 
 extern "C" {
 	void THCudaTensor_dtanh(THCState *state, THCudaTensor *dest, THCudaTensor *src)
@@ -113,5 +127,15 @@ extern "C" {
 			THCudaTensor_pointwiseApply2(state, dest, src, TensorDThresholdOp(thresh, coeff));
 		}
 	}
+	
+	void THCudaTensor_expminus(THCState *state, THCudaTensor *dest, THCudaTensor* src, float min){
+		if (dest == src) {
+			THCudaTensor_pointwiseApply1(state, dest, TensorExpMinusOp(min));
+		} else {
+			THCudaTensor_pointwiseApply2(state, dest, src, TensorExpMinusOp(min));
+		}
+	}
+	
+	
 }
 #endif
