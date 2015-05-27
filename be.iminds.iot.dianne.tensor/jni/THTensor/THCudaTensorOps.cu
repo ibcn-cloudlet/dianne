@@ -38,6 +38,37 @@ struct TensorDSigmoidOp {
 	  }
 };
 
+struct TensorThresholdOp {
+	  TensorThresholdOp(float t, float c, float o) : thresh(t),coeff(c),offset(o) {}
+
+	  __device__ __forceinline__ void operator()(float* out, float* in) {
+	    *out = (*in) > thresh ? (*in) : coeff * (*in) + offset;
+	  }
+
+	  __device__ __forceinline__ void operator()(float* v) {
+	    *v = (*v) > thresh ? (*v) : coeff * (*v) + offset;
+	  }
+	  
+	  const float thresh;
+	  const float coeff;
+	  const float offset;
+};
+
+struct TensorDThresholdOp {
+	  TensorDThresholdOp(float t, float c) : thresh(t),coeff(c) {}
+
+	  __device__ __forceinline__ void operator()(float* out, float* in) {
+	    *out = (*in) > thresh ? 1 : coeff;
+	  }
+
+	  __device__ __forceinline__ void operator()(float* v) {
+	    *v = (*v) > thresh ? 1 : coeff;
+	  }
+	  
+	  const float thresh;
+	  const float coeff;
+};
+
 
 extern "C" {
 	void THCudaTensor_dtanh(THCState *state, THCudaTensor *dest, THCudaTensor *src)
@@ -66,6 +97,21 @@ extern "C" {
 			THCudaTensor_pointwiseApply2(state, dest, src, TensorDSigmoidOp());
 		}
 	}
-}
+	
+	void THCudaTensor_threshold(THCState *state, THCudaTensor *dest, THCudaTensor* src, float thresh, float coeff, float of){
+		if (dest == src) {
+			THCudaTensor_pointwiseApply1(state, dest, TensorThresholdOp(thresh, coeff, of));
+		} else {
+			THCudaTensor_pointwiseApply2(state, dest, src, TensorThresholdOp(thresh, coeff, of));
+		}
+	}
 
+	void THCudaTensor_dthreshold(THCState *state, THCudaTensor *dest, THCudaTensor* src, float thresh, float coeff){
+		if (dest == src) {
+			THCudaTensor_pointwiseApply1(state, dest, TensorDThresholdOp(thresh, coeff));
+		} else {
+			THCudaTensor_pointwiseApply2(state, dest, src, TensorDThresholdOp(thresh, coeff));
+		}
+	}
+}
 #endif

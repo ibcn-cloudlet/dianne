@@ -470,8 +470,7 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_th
 			r, t);
 
 #ifdef CUDA
-	// TODO implement CUDA
-
+	THCudaTensor_threshold(state, r, t, thres, coeff, of);
 #else
 	TH_TENSOR_APPLY2(real, r, real, t,\
 	                   real z = *t_data; \
@@ -496,7 +495,7 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_dt
 			r, t);
 
 #ifdef CUDA
-	// TODO implement CUDA?
+	THCudaTensor_dthreshold(state, r, t, thres, coeff);
 #else
 	TH_TENSOR_APPLY2(real, r, real, t,\
 	                   real z = *t_data; \
