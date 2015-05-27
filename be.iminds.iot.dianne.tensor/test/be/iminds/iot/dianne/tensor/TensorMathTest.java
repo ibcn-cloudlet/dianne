@@ -469,6 +469,110 @@ public class TensorMathTest<T extends Tensor<T>> {
 	}
 	
 	@Test
+	public void testTanh(){
+		float[] data = new float[10];
+		for(int i=0;i<data.length;i++){
+			data[i] = i;
+		}
+		T t1 = factory.createTensor(data, 10);
+	
+		float[] expdata = new float[10];
+		for(int i=0;i<expdata.length;i++){
+			expdata[i] = (float) Math.tanh((double)i);
+		}
+		T exp = factory.createTensor(expdata, 10);
+		
+		Assert.assertEquals(exp, math.tanh(null, t1));
+	}
+	
+	@Test
+	public void testDTanh(){
+		float[] data = new float[10];
+		for(int i=0;i<data.length;i++){
+			data[i] = i;
+		}
+		T t1 = factory.createTensor(data, 10);
+	
+		float[] expdata = new float[10];
+		for(int i=0;i<expdata.length;i++){
+			expdata[i] = 1-i*i;
+		}
+		T exp = factory.createTensor(expdata, 10);
+		
+		Assert.assertEquals(exp, math.dtanh(null, t1));
+	}
+	
+	@Test
+	public void testSigmoid(){
+		float[] data = new float[10];
+		for(int i=0;i<data.length;i++){
+			data[i] = i;
+		}
+		T t1 = factory.createTensor(data, 10);
+	
+		float[] expdata = new float[10];
+		for(int i=0;i<expdata.length;i++){
+			expdata[i] = (float) (1.0f/(1.0f + Math.exp(-i)));
+		}
+		T exp = factory.createTensor(expdata, 10);
+		
+		Assert.assertEquals(exp, math.sigmoid(null, t1));
+	}
+	
+	@Test
+	public void testDSigmoid(){
+		float[] data = new float[10];
+		for(int i=0;i<data.length;i++){
+			data[i] = i;
+		}
+		T t1 = factory.createTensor(data, 10);
+	
+		float[] expdata = new float[10];
+		for(int i=0;i<expdata.length;i++){
+			expdata[i] = (1.0f - i) * i;
+		}
+		T exp = factory.createTensor(expdata, 10);
+		
+		Assert.assertEquals(exp, math.dsigmoid(null, t1));
+	}
+	
+	@Test
+	public void testThreshold(){
+		float threshold = 5.5f;
+		float[] data = new float[10];
+		for(int i=0;i<data.length;i++){
+			data[i] = i;
+		}
+		T t1 = factory.createTensor(data, 10);
+	
+		float[] expdata = new float[10];
+		for(int i=0;i<expdata.length;i++){
+			expdata[i] = i > threshold ? i : 0;
+		}
+		T exp = factory.createTensor(expdata, 10);
+		
+		Assert.assertEquals(exp, math.thresh(null, t1, threshold, 0, 0));
+	}
+	
+	@Test
+	public void testDThreshold(){
+		float threshold = 5.5f;
+		float[] data = new float[10];
+		for(int i=0;i<data.length;i++){
+			data[i] = i;
+		}
+		T t1 = factory.createTensor(data, 10);
+	
+		float[] expdata = new float[10];
+		for(int i=0;i<expdata.length;i++){
+			expdata[i] = i > threshold ? 1 : 0;
+		}
+		T exp = factory.createTensor(expdata, 10);
+		
+		Assert.assertEquals(exp, math.dthresh(null, t1, threshold, 0));
+	}
+	
+	@Test
 	public void testConvolution(){
 		T t1 = factory.createTensor(5,5);
 		T t2 = factory.createTensor(3,3);
