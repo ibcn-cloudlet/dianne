@@ -10,6 +10,8 @@ void THCudaTensor_threshold(THCState *state, THCudaTensor *dst, THCudaTensor* sr
 void THCudaTensor_dthreshold(THCState *state, THCudaTensor *dst, THCudaTensor* src, float thresh, float coeff);
 void THCudaTensor_expminus(THCState *state, THCudaTensor *dst, THCudaTensor* src, float min);
 
+int THCudaTensor_argmax(THCState *state, THCudaTensor *t);
+int THCudaTensor_argmin(THCState *state, THCudaTensor *t);
 
 
 #endif

@@ -8,6 +8,10 @@ extern "C" {
 #include "THCudaTensorJNI.h"
 #include "THC/THCApply.cuh"
 
+#include <thrust/device_ptr.h>
+#include <thrust/device_vector.h>
+#include <thrust/extrema.h>
+
 struct TensorDTanOp {
 	  __device__ __forceinline__ void operator()(float* out, float* in) {
 	    *out = 1.- (*in) * (*in);
@@ -136,6 +140,32 @@ extern "C" {
 		}
 	}
 	
+	
+	int THCudaTensor_argmax(THCState *state, THCudaTensor *t){
+		t = THCudaTensor_newContiguous(state, t);
+		thrust::device_ptr<float> data(THCudaTensor_data(state, t));
+
+		thrust::device_vector<float>::iterator iter =
+			thrust::max_element(data, data + THCudaTensor_nElement(state, t));
+
+		int position = thrust::device_pointer_cast(&(iter[0])) - data;
+		THCudaTensor_free(state, t);
+
+		return position;
+	}
+
+	int THCudaTensor_argmin(THCState *state, THCudaTensor *t){
+		t = THCudaTensor_newContiguous(state, t);
+		thrust::device_ptr<float> data(THCudaTensor_data(state, t));
+
+		thrust::device_vector<float>::iterator iter =
+			thrust::min_element(data, data + THCudaTensor_nElement(state, t));
+
+		int position = thrust::device_pointer_cast(&(iter[0])) - data;
+		THCudaTensor_free(state, t);
+
+		return position;
+	}
 	
 }
 #endif

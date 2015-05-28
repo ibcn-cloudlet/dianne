@@ -590,11 +590,10 @@ JNIEXPORT jint JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_arg
 	// only works for 1 dim tensors
 	THTensor* t = (THTensor*) src;
 
-
 	int index = 0;
 
 #ifdef CUDA
-	// TODO implement CUDA
+	index = THCudaTensor_argmax(state, t);
 #else
 	real* data_ptr = THTensor_(data)(t);
 	real max = data_ptr[0];
@@ -621,7 +620,7 @@ JNIEXPORT jint JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_arg
 	int index = 0;
 
 #ifdef CUDA
-	// TODO implement CUDA
+	index = THCudaTensor_argmin(state, t);
 #else
 	real* data_ptr = THTensor_(data)(t);
 	real min = data_ptr[0];
