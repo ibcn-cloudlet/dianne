@@ -70,10 +70,11 @@ public class ImageNetDataset implements Dataset {
 		noColumns = 231;
 		inputSize = noRows * noColumns * 3;
 
+		File images = new File(dir + "images/");
+		noSamples = images.list().length;
+		
 		readLabels("classes.txt");
 		readOutputs("outputs.txt");
-
-		noSamples = outputs.length;
 	}
 
 	private void readLabels(String file) {
@@ -117,8 +118,9 @@ public class ImageNetDataset implements Dataset {
 														// to 0..999
 				l.add(clazz);
 			}
-			outputs = new int[l.size()];
-			for (int i = 0; i < l.size(); i++) {
+			// TODO this assumes one only has the first x samples...
+			outputs = new int[noSamples];
+			for (int i = 0; i < noSamples; i++) {
 				outputs[i] = l.get(i);
 			}
 			reader.close();
