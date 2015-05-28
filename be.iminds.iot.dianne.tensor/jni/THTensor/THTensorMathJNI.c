@@ -759,45 +759,33 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ma
 		JNIEnv * env, jobject o, jlong dst, jlong src, jint w, jint h, jint sx, jint sy) {
 
 	THTensor* t = (THTensor*) src;
-	int iwidth = t->size[1];
-	int iheight = t->size[0];
+	int inputWidth = t->size[1];
+	int inputHeight = t->size[0];
 
-	int owidth = (iwidth - w)/sx + 1;
-	int oheight = (iheight - h)/sy + 1;
+	int outputWidth = (inputWidth - w)/sx + 1;
+	int outputHeight = (inputHeight - h)/sy + 1;
 
-	THTensor* r = getTHTensor2(dst, oheight, owidth);
-
+	// use 3d tensor here to use spatialmaxpool function
+	THTensor* r = getTHTensor3(dst, 1, outputHeight, outputWidth);
+	THTensor_(resize3d)(
 #ifdef CUDA
-	// TODO implement CUDA
-#else
-
-	// impl from torch
-	real* input_p = THTensor_(data)(t);
-	real* output_p = THTensor_(data)(r);
-
-	long i, j;
-	for (i = 0; i < oheight; i++) {
-		for (j = 0; j < owidth; j++) {
-			real *ip = input_p + i * iwidth * sy + j * sx;
-			real *op = output_p + i * owidth + j;
-
-			real maxval = -THInf;
-			long tcntr = 0;
-			int x, y;
-			for (y = 0; y < h; y++) {
-				for (x = 0; x < w; x++) {
-					real val = *(ip + y * iwidth + x);
-					if (val > maxval) {
-						maxval = val;
-					}
-					tcntr++;
-				}
-			}
-
-			*op = maxval;
-		}
-	}
+			state,
 #endif
+			t, 1, inputHeight, inputWidth);
+
+	spatialmaxpool(r, t, w, h, sx, sy);
+
+	THTensor_(resize2d)(
+#ifdef CUDA
+			state,
+#endif
+			t, inputHeight, inputWidth);
+	THTensor_(resize2d)(
+#ifdef CUDA
+			state,
+#endif
+			r, outputHeight, outputWidth);
+
 	return r;
 }
 
@@ -929,18 +917,26 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ze
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_spatialmaxpool
   (JNIEnv * env, jobject o, jlong dst, jlong src, jint w, jint h, jint sx, jint sy){
 	THTensor* t = (THTensor*) src;
+	THTensor* r = getTHTensor3(dst, t->size[0], (t->size[1] - h)/sy+1, (t->size[2]-w)/sx + 1);
+
+	spatialmaxpool(r, t, w, h, sx, sy);
+
+	return r;
+}
+
+// convenience function for merging maxpool2d and spatialmaxpool
+void spatialmaxpool(THTensor* r, THTensor* t, int w, int h, int sx, int sy){
+
+
+#ifdef CUDA
+	// TODO implement CUDA
+#else
 	int noPlanes = t->size[0];
 	int iwidth = t->size[2];
 	int iheight = t->size[1];
 
 	int owidth = (iwidth - w)/sx + 1;
 	int oheight = (iheight - h)/sy + 1;
-
-	THTensor* r = getTHTensor3(dst, noPlanes, oheight, owidth);
-
-#ifdef CUDA
-	// TODO implement CUDA
-#else
 
 	int k;
 #pragma omp parallel for private(k)
@@ -973,5 +969,4 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sp
 		}
 	}
 #endif
-	return r;
 }
