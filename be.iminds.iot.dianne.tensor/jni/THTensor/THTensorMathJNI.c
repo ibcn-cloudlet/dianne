@@ -927,9 +927,8 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sp
 // convenience function for merging maxpool2d and spatialmaxpool
 void spatialmaxpool(THTensor* r, THTensor* t, int w, int h, int sx, int sy){
 
-
 #ifdef CUDA
-	// TODO implement CUDA
+	THCudaTensor_spatialmaxpool(state, r, t, w, h, sx, sy);
 #else
 	int noPlanes = t->size[0];
 	int iwidth = t->size[2];

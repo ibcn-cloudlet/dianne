@@ -13,5 +13,7 @@ void THCudaTensor_expminus(THCState *state, THCudaTensor *dst, THCudaTensor* src
 int THCudaTensor_argmax(THCState *state, THCudaTensor *t);
 int THCudaTensor_argmin(THCState *state, THCudaTensor *t);
 
+void THCudaTensor_spatialmaxpool(THCState *state, THCudaTensor *dst, THCudaTensor *src,
+		int kW, int kH, int dW, int dH);
 
 #endif
