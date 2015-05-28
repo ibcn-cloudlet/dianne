@@ -358,11 +358,19 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensor_diag
 	} else {
 		tensor2 = (THTensor*) dst;
 	}
-	THTensor_(diag)(
+
 #ifdef CUDA
-			state,
+	// This is very inefficient, but diag is not critical anyway
+	int size = tensor->size[0]; // should be square matrix, but is not checked here
+	int i = 0;
+	THTensor_(resize1d)(state, tensor2 , size);
+	for(i  = 0; i< size; i++){
+		float val = THTensor_(get2d)(state, tensor, i, i);
+		THTensor_(set1d)(state, tensor2, i, val);
+	}
+#else
+	THTensor_(diag)(tensor2, tensor, 0);
 #endif
-			tensor2, tensor, 0);
 	return tensor2;
 }
 
