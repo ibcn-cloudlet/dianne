@@ -11,3 +11,4 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 	org.apache.commons.math3
 Bundle-Name: Dianne Tensor Library API and implementations
 -sub: *.bnd
+-noee

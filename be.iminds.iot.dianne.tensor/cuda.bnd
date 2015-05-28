@@ -1,0 +1,15 @@
+Bundle-Version: 0.1.0.${tstamp}
+
+Export-Package: be.iminds.iot.dianne.tensor
+-dsannotations: *
+Private-Package: \
+	be.iminds.iot.dianne.tensor.serializer,\
+	be.iminds.iot.dianne.tensor.impl.th
+Import-Package: com.esotericsoftware.kryo.*;resolution:=optional
+Bundle-Name: Dianne Cuda Tensor Library
+Bundle-Description: Dianne Tensor implementation based on Torch's THC Cuda lib
+
+Bundle-NativeCode: armv7l/libTHTensor.so;osname=Linux;processor=arm
+	
+-includeresource: \
+	cuda

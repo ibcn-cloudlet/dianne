@@ -9,7 +9,7 @@ Import-Package: com.esotericsoftware.kryo.*;resolution:=optional
 Bundle-Name: Dianne TH Tensor Library
 Bundle-Description: Dianne Tensor implementation based on Torch's TH C lib
 
-Bundle-NativeCode: x86_64/libTHTensor.so;osname=Linux;processor=x86_64
+Bundle-NativeCode: x86_64/libTHTensor.so;osname=Linux;processor=x86_64,armv7l/libTHTensor.so;osname=Linux;processor=arm
 	
 -includeresource: \
 	native
