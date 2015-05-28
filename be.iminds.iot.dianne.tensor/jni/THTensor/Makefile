@@ -32,7 +32,7 @@ cuda: INCLUDES += $(CUDA_INCLUDES)
 cuda: LINKS = $(CUDA_LINKS)
 cuda: FLAGS += $(CUDA_FLAGS)
 cuda: OBJECT += $(CUDA_OBJECT)
-cuda: DEPLOY_DIR := ../../native/$(ARCH)/cuda
+cuda: DEPLOY_DIR := ../../cuda/$(ARCH)
 cuda: cudaops libTHC.a install	
 
 javah:
