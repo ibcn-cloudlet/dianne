@@ -660,47 +660,98 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ad
 	long inputWidth = t->size[1];
 	long inputHeight = t->size[0];
 
-#ifdef CUDA
-	// TODO implement CUDA?
-#else
-
 	if(flip){
 		// TODO flip kernel?
 	}
 
 	long outputWidth;
 	long outputHeight;
-	char type;
+	char type[2];
 
 	if(mode==1){
 		// full
 		outputWidth  = inputWidth + (kernelWidth - 1);
 		outputHeight = inputHeight + (kernelHeight - 1);
-		type = 'F';
+
+#ifdef CUDA
+		type[0] = 'f';
+		type[1] = 'x';
+#else
+		type[0] = 'F';
+#endif
+
 	} else {
 		// valid
 		outputWidth  = (inputWidth - kernelWidth) / sx + 1;
 		outputHeight = (inputHeight - kernelHeight) / sy + 1;
-		type = 'V';
-	}
-
-	THTensor_(resize2d)(r, outputHeight, outputWidth);
-	if(add!=0){
-		THTensor_(copy)(r, add);
-	} else {
-	    THTensor_(zero)(r);
-	}
-
-	THTensor_(resize3d)(r, 1, outputHeight, outputWidth);
-	THTensor_(resize3d)(t, 1, inputHeight, inputWidth);
-	THTensor_(resize4d)(kernel, 1, 1, kernelHeight, kernelWidth);
-
-	THTensor_(conv2Dmv)(r, 1.0, 1.0, t, kernel, sy, sx, &type, "X");
-
-	THTensor_(resize2d)(r, outputHeight, outputWidth);
-	THTensor_(resize2d)(t, inputHeight, inputWidth);
-	THTensor_(resize2d)(kernel, kernelHeight, kernelWidth);
+#ifdef CUDA
+		type[0] = 'v';
+		type[1] = 'x';
+#else
+		type[0] = 'V';
 #endif
+	}
+
+	// initialize output with add or zero
+	THTensor_(resize2d)(
+#ifdef CUDA
+			state,
+#endif
+			r, outputHeight, outputWidth);
+	if(add!=0){
+		THTensor_(copy)(
+#ifdef CUDA
+				state,
+#endif
+				r, add);
+	} else {
+	    THTensor_(zero)(
+#ifdef CUDA
+	    		state,
+#endif
+	    		r);
+	}
+
+	// resize to 3d in/out and use conv2Dmv
+	THTensor_(resize3d)(
+#ifdef CUDA
+			state,
+#endif
+			r, 1, outputHeight, outputWidth);
+	THTensor_(resize3d)(
+#ifdef CUDA
+			state,
+#endif
+			t, 1, inputHeight, inputWidth);
+	THTensor_(resize4d)(
+#ifdef CUDA
+			state,
+#endif
+			kernel, 1, 1, kernelHeight, kernelWidth);
+
+#ifdef CUDA
+	THTensor_(conv2Dmv)(state, r, 1.0, t, kernel, sy, sx, type);
+#else
+	THTensor_(conv2Dmv)(r, 1.0, 1.0, t, kernel, sy, sx, type, "X");
+#endif
+
+
+	// resize back to 2d tensors
+	THTensor_(resize2d)(
+#ifdef CUDA
+			state,
+#endif
+			r, outputHeight, outputWidth);
+	THTensor_(resize2d)(
+#ifdef CUDA
+			state,
+#endif
+			t, inputHeight, inputWidth);
+	THTensor_(resize2d)(
+#ifdef CUDA
+			state,
+#endif
+			kernel, kernelHeight, kernelWidth);
 
 	return r;
 }
