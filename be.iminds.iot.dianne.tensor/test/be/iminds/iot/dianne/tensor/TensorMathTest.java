@@ -694,6 +694,9 @@ public class TensorMathTest<T extends Tensor<T>> {
 		t1.set(2.0f, 4, 4);
 		t2.fill(2.0f);
 		
+		// add zero padding for same convolution
+		T padded = math.zeropad(null, t1, 1, 1);
+		
 		float[] data = new float[]{
 				10.0f, 14.0f, 12.0f, 12.0f, 8.0f,
 				14.0f, 20.0f, 18.0f, 18.0f, 12.0f,
@@ -703,7 +706,7 @@ public class TensorMathTest<T extends Tensor<T>> {
 		};
 		T exp = factory.createTensor(data, 5, 5);
 	
-		Assert.assertEquals(exp, math.convolution2D(null, t1, t2, 1, 1, 2, false));
+		Assert.assertEquals(exp, math.convolution2D(null, padded, t2, 1, 1, 0, false));
 	}
 	
 	@Test

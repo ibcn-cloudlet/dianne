@@ -668,69 +668,38 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ad
 		// TODO flip kernel?
 	}
 
+	long outputWidth;
+	long outputHeight;
+	char type;
+
 	if(mode==1){
 		// full
-		long outputWidth  = inputWidth + (kernelWidth - 1);
-		long outputHeight = inputHeight + (kernelHeight - 1);
-		THTensor_(resize2d)(r, outputHeight, outputWidth);
-	    if(add!=0){
-	    	THTensor_(copy)(r, add);
-	    } else {
-	    	THTensor_(zero)(r);
-	    }
-
-		THTensor_(fullConv2Dptr)(THTensor_(data)(r),
-				1.0f, THTensor_(data)(t), inputHeight, inputWidth,
-				THTensor_(data)(kernel), kernelHeight, kernelWidth,
-				sy, sx);
-	} else if(mode==2){
-		// same
-		// add zero padding first
-		int pad_h = (kernelHeight - 1)/2;
-		int pad_w = (kernelWidth - 1)/2;
-
-		int paddedWidth = inputWidth + 2*pad_w;
-		int paddedHeight = inputHeight + 2*pad_h;
-
-	    THTensor* padded = THTensor_(newWithSize2d)(paddedHeight,paddedWidth);
-	    THTensor_(zero)(padded);
-
-	    THTensor* pad_narrow = THTensor_(newWithTensor)(padded);
-	    THTensor_(narrow)(pad_narrow, padded, 0, pad_h, inputHeight);
-	    THTensor_(narrow)(pad_narrow, pad_narrow, 1, pad_w, inputWidth);
-	    THTensor_(copy)(pad_narrow, t);
-
-	    THTensor_(resize2d)(r, inputHeight, inputWidth);
-	    if(add!=0){
-	    	THTensor_(copy)(r, add);
-	    } else {
-	    	THTensor_(zero)(r);
-	    }
-
-	    THTensor_(validConv2Dptr)(THTensor_(data)(r),
-	    				1.0f, THTensor_(data)(padded), paddedHeight, paddedWidth,
-	    				THTensor_(data)(kernel), kernelHeight, kernelWidth,
-	    				sy, sx);
-
-	    THTensor_(free)(pad_narrow);
-	    THTensor_(free)(padded);
-
+		outputWidth  = inputWidth + (kernelWidth - 1);
+		outputHeight = inputHeight + (kernelHeight - 1);
+		type = 'F';
 	} else {
 		// valid
-		long outputWidth  = (inputWidth - kernelWidth) / sx + 1;
-		long outputHeight = (inputHeight - kernelHeight) / sy + 1;
-		THTensor_(resize2d)(r, outputHeight, outputWidth);
-	    if(add!=0){
-	    	THTensor_(copy)(r, add);
-	    } else {
-	    	THTensor_(zero)(r);
-	    }
-		THTensor_(validConv2Dptr)(THTensor_(data)(r),
-				1.0f, THTensor_(data)(t), inputHeight, inputWidth,
-				THTensor_(data)(kernel), kernelHeight, kernelWidth,
-				sy, sx);
+		outputWidth  = (inputWidth - kernelWidth) / sx + 1;
+		outputHeight = (inputHeight - kernelHeight) / sy + 1;
+		type = 'V';
 	}
 
+	THTensor_(resize2d)(r, outputHeight, outputWidth);
+	if(add!=0){
+		THTensor_(copy)(r, add);
+	} else {
+	    THTensor_(zero)(r);
+	}
+
+	THTensor_(resize3d)(r, 1, outputHeight, outputWidth);
+	THTensor_(resize3d)(t, 1, inputHeight, inputWidth);
+	THTensor_(resize4d)(kernel, 1, 1, kernelHeight, kernelWidth);
+
+	THTensor_(conv2Dmv)(r, 1.0, 1.0, t, kernel, sy, sx, &type, "X");
+
+	THTensor_(resize2d)(r, outputHeight, outputWidth);
+	THTensor_(resize2d)(t, inputHeight, inputWidth);
+	THTensor_(resize2d)(kernel, kernelHeight, kernelWidth);
 #endif
 
 	return r;

@@ -215,7 +215,6 @@ public interface TensorMath<T extends Tensor<T>> {
 	 * mode is an integer:
 	 * mode = 0 : valid convolution
 	 * mode = 1 : full convolution
-	 * mode = 2 : same convolution, output size = input size
 	 */
 	public T convolution2D(T res, final T mat1, final T mat2, final int sx, final int sy, final int mode, final boolean flip);
 
