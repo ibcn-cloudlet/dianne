@@ -1,11 +1,9 @@
--runfw: org.apache.felix.framework;version='[4.2.1,4.2.1]'
--runee: JavaSE-1.7
+-runfw: org.eclipse.concierge
 
-aiolos.version='[0.5.0,0.6.0)'
+aiolos.version='latest'
 
 -resolve.effective: active
 -runbundles: \
-	osgi.enterprise;version='[5.0.0,5.1.0)',\
 	ch.qos.logback.classic,\
 	ch.qos.logback.core,\
 	slf4j.api;version=1.7.2,\
@@ -13,38 +11,59 @@ aiolos.version='[0.5.0,0.6.0)'
 	org.apache.felix.http.api;version='[2.3.2,2.4)',\
 	org.apache.felix.http.jetty;version='[2.3.2,2.4)',\
 	org.apache.felix.http.servlet-api;version='[1.0.1,1.1)',\
-	org.apache.felix.webconsole,\
-	org.apache.felix.webconsole.plugins.gogo,\
-	org.apache.felix.configadmin;version=1.6.0,\
-	org.apache.felix.gogo.command;version='[0.12.0,0.12.1)',\
-	org.apache.felix.gogo.runtime;version='[0.10.0,0.10.1)',\
-	org.apache.felix.gogo.shell;version='[0.10.0,0.10.1)',\
+	org.apache.felix.http.whiteboard;version='[2.3.2,2.4)',\
+	org.apache.felix.webconsole;version='[4.2.8,4.3)',\
+	org.apache.felix.webconsole.plugins.gogo;version='[0.0.1,1.0)',\
+	org.apache.felix.configadmin;version='[1.8.2,1.9)',\
+	org.apache.felix.gogo.command;version='[0.14.0,0.15)',\
+	org.apache.felix.gogo.runtime;version='[0.16.2,0.17)',\
+	org.apache.felix.gogo.shell;version='[0.10.0,0.11)',\
+	org.apache.felix.eventadmin;version='[1.4.2,1.5)',\
 	org.apache.felix.log;version='[1.0.1,1.0.2)',\
+	org.apache.felix.metatype;version='[1.0.10,1.1)',\
 	org.apache.felix.scr;version='[1.8.2,1.8.3)',\
-	org.apache.felix.resolver,\
+	org.apache.felix.fileinstall;version='[3.5,3.6)',\
 	objectprofiler;version='[1.0.0,1.0.1)',\
+	com.googlecode.json-simple;version=1.1.1,\
+	com.google.gson;version='[2.2.4,3)',\
 	kxml;version='[2.2.2,2.2.3)',\
+	jslp,\
 	org.objenesis;version='[2.1.0,2.2.0)',\
 	com.esotericsoftware.kryo;version='[2.23,2.24)',\
 	de.javakaffee.kryo-serializers;version='[0.23,0.24)',\
-	be.iminds.aiolos.api;version=${aiolos.version},\
+	be.iminds.aiolos.repository.api;version=${aiolos.version},\
+	be.iminds.aiolos.discovery;version=${aiolos.version},\
 	be.iminds.aiolos.remoteserviceadmin;version=${aiolos.version},\
 	be.iminds.aiolos.deploymentmanager;version=${aiolos.version},\
 	be.iminds.aiolos.servicemonitor;version=${aiolos.version},\
 	be.iminds.aiolos.nodemonitor;version=${aiolos.version},\
-	be.iminds.aiolos.proxymanager;version=${aiolos.version},\
 	be.iminds.aiolos.topologymanager;version=${aiolos.version},\
+	be.iminds.aiolos.proxymanager;version=${aiolos.version},\
 	be.iminds.aiolos.configurer;version=${aiolos.version},\
 	be.iminds.iot.dianne.api;version=latest,\
-	be.iminds.iot.dianne.tensor.java;version=latest,\
+	be.iminds.iot.dianne.tensor.th;version=latest,\
 	be.iminds.iot.dianne.nn;version=latest,\
 	be.iminds.iot.dianne.nn.runtime;version=latest
 	
 
 -runstorage: generated/vm
 
--runsystempackages: sun.awt.image,sun.misc,sun.reflect
+-runsystempackages: javax.naming,\
+	javax.net,\
+	javax.net.ssl,\
+	javax.sql,\
+	javax.xml.parsers,\
+	org.xml.sax,\
+	org.xml.sax.helpers,\
+	javax.annotation,\
+	javax.management,\
+	javax.management.modelmbean,\
+	javax.management.remote,\
+	javax.security.auth,\
+	javax.security.cert,\
+	javax.imageio
 
--runproperties: org.apache.felix.log.storeDebug=true,\
+-runproperties:\
+	org.apache.felix.log.storeDebug=true,\
 	org.osgi.service.http.port=8081,\
 	logback.configurationFile=resources/logback.xml
