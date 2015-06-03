@@ -8,7 +8,7 @@ void THCudaTensor_sigoid(THCState *state, THCudaTensor *dst, THCudaTensor* src);
 void THCudaTensor_dsigmoid(THCState *state, THCudaTensor *dst, THCudaTensor* src);
 void THCudaTensor_threshold(THCState *state, THCudaTensor *dst, THCudaTensor* src, float thresh, float coeff, float of);
 void THCudaTensor_dthreshold(THCState *state, THCudaTensor *dst, THCudaTensor* src, float thresh, float coeff);
-void THCudaTensor_expminus(THCState *state, THCudaTensor *dst, THCudaTensor* src, float min);
+void THCudaTensor_softmax(THCState *state, THCudaTensor *dst, THCudaTensor* src);
 
 int THCudaTensor_argmax(THCState *state, THCudaTensor *t);
 int THCudaTensor_argmin(THCState *state, THCudaTensor *t);

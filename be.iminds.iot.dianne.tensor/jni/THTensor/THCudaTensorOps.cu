@@ -5,12 +5,13 @@
 extern "C" {
 #include "THCudaTensorOps.h"
 }
-#include "THCudaTensorJNI.h"
 #include "THC/THCApply.cuh"
 
 #include <thrust/device_ptr.h>
 #include <thrust/device_vector.h>
 #include <thrust/extrema.h>
+
+#define SOFTMAX_THREADS 128
 
 struct TensorDTanOp {
 	  __device__ __forceinline__ void operator()(float* out, float* in) {
@@ -73,20 +74,6 @@ struct TensorDThresholdOp {
 	  const float coeff;
 };
 
-struct TensorExpMinusOp {
-	  TensorExpMinusOp(float m) : minus(m) {}
-
-	  __device__ __forceinline__ void operator()(float* out, float* in) {
-	    *out = exp( (*in) - minus);
-	  }
-
-	  __device__ __forceinline__ void operator()(float* v) {
-	    *v = exp( (*v) - minus);
-	  }
-	  
-	  const float minus;
-};
-
 __global__ void maxpool(float *input, float *output,
                         int input_n, int input_h, int input_w,
                         int kH, int kW, int dH, int dW)
@@ -137,6 +124,72 @@ __global__ void maxpool(float *input, float *output,
 }
 
 
+// softmax kernel with 128 threads based on cunn Softmax.cu
+__global__ void softmax(float *output, float *input, int nframe, int dim)
+{
+  __shared__ float buffer[ SOFTMAX_THREADS + 1];
+  int k = blockIdx.x;
+  float *input_k = input + k*dim;
+  float *output_k = output + k*dim;
+
+  int i_start = threadIdx.x;
+  int i_end = dim;
+  int i_step = blockDim.x;
+
+  // max?
+  buffer[threadIdx.x] = -FLT_MAX;
+  for (int i=i_start; i<i_end; i+=i_step)
+  {
+    float z = input_k[i];
+    if(buffer[threadIdx.x] < z)
+      buffer[threadIdx.x] = z;
+  }
+
+  __syncthreads();
+
+  // reduce
+  if (threadIdx.x == 0)
+  {
+    float max_k = -FLT_MAX;
+    for (int i=0; i<blockDim.x; i++)
+    {
+      if(max_k < buffer[i])
+        max_k = buffer[i];
+    }
+    buffer[SOFTMAX_THREADS] = max_k;
+  }
+
+  __syncthreads();
+
+  // sum?
+  float max_k = buffer[SOFTMAX_THREADS];
+  buffer[threadIdx.x] = 0;
+  for (int i=i_start; i<i_end; i+=i_step) {
+    float z = __expf(input_k[i]-max_k);
+    buffer[threadIdx.x] += z;
+    output_k[i] = z;
+  }
+
+  __syncthreads();
+
+  // reduce
+  if (threadIdx.x == 0)
+  {
+    float sum_k = 0;
+    for (int i=0; i<blockDim.x; i++)
+      sum_k += buffer[i];
+    buffer[SOFTMAX_THREADS] = sum_k;
+  }
+
+  __syncthreads();
+
+  // softmax
+  float sum_k = buffer[SOFTMAX_THREADS];
+  for (int i=i_start; i<i_end; i+=i_step)
+    output_k[i] = output_k[i] / sum_k;
+}
+
+
 extern "C" {
 	void THCudaTensor_dtanh(THCState *state, THCudaTensor *dest, THCudaTensor *src)
 	{
@@ -180,15 +233,6 @@ extern "C" {
 			THCudaTensor_pointwiseApply2(state, dest, src, TensorDThresholdOp(thresh, coeff));
 		}
 	}
-	
-	void THCudaTensor_expminus(THCState *state, THCudaTensor *dest, THCudaTensor* src, float min){
-		if (dest == src) {
-			THCudaTensor_pointwiseApply1(state, dest, TensorExpMinusOp(min));
-		} else {
-			THCudaTensor_pointwiseApply2(state, dest, src, TensorExpMinusOp(min));
-		}
-	}
-	
 	
 	int THCudaTensor_argmax(THCState *state, THCudaTensor *t){
 		t = THCudaTensor_newContiguous(state, t);
@@ -245,5 +289,21 @@ extern "C" {
 		THCudaTensor_free(state, input);
 	}
 	
+	
+	void THCudaTensor_softmax(THCState *state, THCudaTensor *output, THCudaTensor *input){	
+    	input = THCudaTensor_newContiguous(state, input);
+    	float* input_data = THCudaTensor_data(state, input);
+    	float* output_data = THCudaTensor_data(state, output);
+
+    	// cuda blocks & threads:
+    	dim3 blocks(1);
+    	dim3 threads(SOFTMAX_THREADS);
+
+    	// run softmax kernel
+    	softmax<<<blocks,threads,0, THCState_getCurrentStream(state)>>>(
+    		output_data, input_data, 1, input->storage->size);
+    	
+		THCudaTensor_free(state, input);
+	}
 }
 #endif
