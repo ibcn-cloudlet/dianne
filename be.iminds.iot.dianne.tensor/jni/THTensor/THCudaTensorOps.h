@@ -15,5 +15,7 @@ int THCudaTensor_argmin(THCState *state, THCudaTensor *t);
 
 void THCudaTensor_spatialmaxpool(THCState *state, THCudaTensor *dst, THCudaTensor *src,
 		int kW, int kH, int dW, int dH);
+void THCudaTensor_spatialconvolve(THCState *state, THCudaTensor *dst, THCudaTensor *src,
+		THCudaTensor* weight, THCudaTensor* bias, int dW, int dH);
 
 #endif

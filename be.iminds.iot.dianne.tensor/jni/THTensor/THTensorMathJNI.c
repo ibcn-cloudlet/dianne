@@ -785,7 +785,6 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_dm
 
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_spatialconvolve
   (JNIEnv * env, jobject o, jlong dst, jlong add, jlong src, jlong k, jint sx, jint sy){
-	// based on torch/overfeat impl
 	THTensor* output = getTHTensor(dst);
 	THTensor* input = (THTensor*) src;
 	THTensor* weight = (THTensor*) k;
@@ -803,6 +802,13 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sp
 			state,
 #endif
 			output, nOutputPlane, outputHeight, outputWidth);
+
+#ifdef CUDA
+	// use separate cunn implementation
+	THCudaTensor_spatialconvolve(state, output, input,
+			weight, bias, sx,  sy);
+#else
+	// based on torch/overfeat impl
 
 	/* set output to bias */
 	long i;
@@ -840,6 +846,8 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sp
 	THTensor_(conv2Dmv)(state, output, 1.0, input, weight, sy, sx, type);
 #else
 	THTensor_(conv2Dmv)(output, 1.0, 1.0, input, weight, sy, sx, "V", "X");
+#endif
+
 #endif
 	return output;
 }

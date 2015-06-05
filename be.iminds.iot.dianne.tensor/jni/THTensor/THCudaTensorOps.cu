@@ -6,12 +6,22 @@ extern "C" {
 #include "THCudaTensorOps.h"
 }
 #include "THC/THCApply.cuh"
+#include "THC/THCTensorMath.h"
+#include "THC/THCBlas.h"
 
 #include <thrust/device_ptr.h>
 #include <thrust/device_vector.h>
 #include <thrust/extrema.h>
 
 #define SOFTMAX_THREADS 128
+// Use 1024 threads per block, which requires cuda sm_2x or above
+#define UNFOLD_THREADS 1024
+
+// CUDA: number of blocks for threads.
+inline int GET_BLOCKS(const int N) {
+  return (N + UNFOLD_THREADS - 1) / UNFOLD_THREADS;
+}
+
 
 struct TensorDTanOp {
 	  __device__ __forceinline__ void operator()(float* out, float* in) {
@@ -189,6 +199,37 @@ __global__ void softmax(float *output, float *input, int nframe, int dim)
     output_k[i] = output_k[i] / sum_k;
 }
 
+// Kernel for fast unfold+copy
+// (borrowed from Caffe: https://github.com/BVLC/caffe/blob/master/src/caffe/layers/conv_layer.cu)
+__global__ void im2col_kernel(const int n, const float* data_im,
+    const int height, const int width, const int ksize_h, const int ksize_w, const int pad_h,
+    const int pad_w, const int stride_h, const int stride_w, const int height_col, const int width_col,
+    float* data_col) {
+  for (int index = blockIdx.x * blockDim.x + threadIdx.x;
+      index < n;                                      
+      index += blockDim.x * gridDim.x){
+    int w_out = index % width_col;
+    index /= width_col;
+    int h_out = index % height_col;
+    int channel_in = index / height_col;
+    int channel_out = channel_in * ksize_h * ksize_w;
+    int h_in = h_out * stride_h - pad_h;
+    int w_in = w_out * stride_w - pad_w;
+    data_col += (channel_out * height_col + h_out) * width_col + w_out;
+    data_im += (channel_in * height + h_in) * width + w_in;
+    for (int i = 0; i < ksize_h; ++i) {
+      for (int j = 0; j < ksize_w; ++j) {
+        int h = h_in + i;
+        int w = w_in + j;
+        *data_col = (h >= 0 && w >= 0 && h < height && w < width) ?
+          data_im[i * width + j] : 0;
+          
+        data_col += height_col * width_col;
+      }
+    }
+  }
+}
+
 
 extern "C" {
 	void THCudaTensor_dtanh(THCState *state, THCudaTensor *dest, THCudaTensor *src)
@@ -304,6 +345,98 @@ extern "C" {
     		output_data, input_data, 1, input->storage->size);
     	
 		THCudaTensor_free(state, input);
+	}
+	
+	
+	// helper function for unfolding matrix for convolution
+	void im2col(THCState *state, const float* data_im, const int channels,
+	    const int height, const int width, const int ksize_h, const int ksize_w, const int pad_h,
+	    const int pad_w, const int stride_h, const int stride_w, float* data_col) {
+	  // We are going to launch channels * height_col * width_col kernels, each
+	  // kernel responsible for copying a single-channel grid.
+	  int height_col = (height + 2 * pad_h - ksize_h) / stride_h + 1;
+	  int width_col = (width + 2 * pad_w - ksize_w) / stride_w + 1;
+	  int num_kernels = channels * height_col * width_col;
+	  
+	  // Launch
+	  im2col_kernel <<<GET_BLOCKS(num_kernels), UNFOLD_THREADS, 0, THCState_getCurrentStream(state)>>> (
+	      num_kernels, data_im, height, width, ksize_h, ksize_w,
+	      pad_h, pad_w, stride_h, stride_w,
+	      height_col, width_col, data_col
+	  );
+	}
+	
+	void THCudaTensor_spatialconvolve(THCState *state, THCudaTensor *output, THCudaTensor *input,
+		THCudaTensor* weight, THCudaTensor* bias, int dW, int dH)
+	{
+		// for now don't use padding here
+		int padding = 0;
+		
+		long nOutputPlane = weight->size[0];
+		long kW = weight->size[3];
+		long kH = weight->size[2];
+		long inputWidth   = input->size[2];
+  		long inputHeight  = input->size[1];
+  		long nInputPlane = input->size[0];
+  		long outputWidth  = (inputWidth + 2*padding - kW) / dW + 1;
+  		long outputHeight = (inputHeight + 2*padding - kH) / dH + 1;
+		
+		// create temp tensors for unfolding
+		THCudaTensor* columns = THCudaTensor_newWithSize2d(state, nInputPlane*kW*kH, outputHeight*outputWidth);
+		THCudaTensor* ones = THCudaTensor_newWithSize2d(state, outputHeight, outputWidth);
+		THCudaTensor_fill(state, ones, 1);
+		
+		
+		// Do Bias first:
+	    // M,N,K are dims of matrix A and B
+	    // (see http://docs.nvidia.com/cuda/cublas/#cublas-lt-t-gt-gemm)
+	    long m_ = nOutputPlane;
+	    long n_ = outputHeight * outputWidth;
+	    long k_ = 1;
+	
+	    // Do GEMM (note: this is a bit confusing because gemm assumes column-major matrices)
+	    THCudaBlas_gemm(
+	        state,
+	        't', 'n',
+	        n_, m_, k_,
+	        1,
+	        THCudaTensor_data(state, ones), k_,
+	        THCudaTensor_data(state, bias), k_,
+	        0,
+	        THCudaTensor_data(state, output), n_
+	    );
+	
+	    // Extract columns:
+	    im2col(
+	      state,
+	      THCudaTensor_data(state, input),
+	      nInputPlane, inputHeight, inputWidth, kH, kW, padding, padding, dH, dW,
+	      THCudaTensor_data(state, columns)
+	    );
+	
+	    // M,N,K are dims of matrix A and B
+	    // (see http://docs.nvidia.com/cuda/cublas/#cublas-lt-t-gt-gemm)
+	    long m = weight->size[0];
+	    long n = columns->size[1];
+	    long k = columns->size[0];
+	
+	    // Do GEMM (note: this is a bit confusing because gemm assumes column-major matrices)
+	    THCudaBlas_gemm(
+	        state,
+	        'n', 'n',
+	        n, m, k,
+	        1,
+	        THCudaTensor_data(state, columns), n,
+	        THCudaTensor_data(state, weight), k,
+	        1,
+	        THCudaTensor_data(state, output), n
+	    );
+	  
+
+		// free temp tensors
+		THCudaTensor_free(state, columns);
+		THCudaTensor_free(state, ones);
+		
 	}
 }
 #endif
