@@ -161,20 +161,23 @@ public class ImageNetDataset implements Dataset {
 			// scale the smallest size to whished size and
 			// crop the central part of the other to get a square image patch
 			
-			float factor = 1.0f;
 			int xOffset = 0;
 			int yOffset = 0;
-			if (img.getWidth() <= img.getHeight()) {
-				factor = (float) noColumns / img.getWidth();
-				yOffset = (int)(img.getHeight()*factor - noRows)/2;
+			float factor = 1.0f;
+			
+			float factorX = (float) (noColumns +1)/ img.getWidth();
+			float factorY = (float) (noRows +1)/ img.getHeight();
+			if (factorX <= factorY) {
+				factor = factorY;
 			} else {
-				factor = (float) noRows / img.getHeight();
-				xOffset = (int)(img.getWidth()*factor - noColumns)/2;
+				factor = factorX;
 			}
+			
+			xOffset = (int)(img.getWidth()*factor - noColumns)/2;
+			yOffset = (int)(img.getHeight()*factor - noRows)/2;
 
 			BufferedImage scaled = getScaledInstance(img, factor);
 			BufferedImage cropped = scaled.getSubimage(xOffset, yOffset, noColumns, noRows);
-			
 		
 			float[] rgb = new float[3];
 			int a = 0;
