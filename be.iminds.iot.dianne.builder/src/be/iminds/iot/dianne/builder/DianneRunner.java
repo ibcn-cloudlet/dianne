@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Random;
 import java.util.Map.Entry;
 
 import javax.servlet.AsyncContext;
@@ -26,6 +27,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
+import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.api.nn.module.Module;
@@ -53,6 +55,10 @@ public class DianneRunner extends HttpServlet {
 	// for now fixed 1 input, 1 output, and trainable modules
 	private Map<String, Module> modules = new HashMap<String, Module>();
 
+	// also keep datasets to already forward random sample while sending sample to the ui
+	private Random rand = new Random(System.currentTimeMillis());
+	private Map<String, Dataset> datasets = Collections.synchronizedMap(new HashMap<String, Dataset>());
+
 	// register a forwardlistener for each output?
 	private Map<Output, ServiceRegistration> forwardListeners = Collections.synchronizedMap(new HashMap<Output, ServiceRegistration>());
 	
@@ -66,6 +72,24 @@ public class DianneRunner extends HttpServlet {
 	@Reference
 	public void setTensorFactory(TensorFactory factory){
 		this.factory = factory;
+	}
+	
+	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
+			policy=ReferencePolicy.DYNAMIC)
+	public void addDataset(Dataset dataset){
+		this.datasets.put(dataset.getName(), dataset);
+	}
+	
+	public void removeDataset(Dataset dataset){
+		synchronized(datasets){
+			Iterator<Entry<String, Dataset>> it = datasets.entrySet().iterator();
+			while(it.hasNext()){
+				Entry<String, Dataset> e = it.next();
+				if(e.getValue()==dataset){
+					it.remove();
+				}
+			}
+		}
 	}
 	
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
@@ -203,7 +227,32 @@ public class DianneRunner extends HttpServlet {
 			if(m!=null){
 				m.setMode(Mode.valueOf(mode));
 			}
-		}
+		} else if(request.getParameter("dataset")!=null){
+			String dataset = request.getParameter("dataset");
+			Dataset d = datasets.get(dataset);
+			
+			if(d!=null){
+				String inputId = request.getParameter("input");
+				Input input = (Input) modules.get(inputId);
+				
+				Tensor t = d.getInputSample(rand.nextInt(d.size()));
+				input.input(t);
+				
+				JsonObject sample = new JsonObject();
+				if(t.dims().length==3){
+					sample.add("channels", new JsonPrimitive(t.dims()[0]));
+					sample.add("height", new JsonPrimitive(t.dims()[1]));
+					sample.add("width", new JsonPrimitive(t.dims()[2]));
+				} else {
+					sample.add("channels", new JsonPrimitive(1));
+					sample.add("height", new JsonPrimitive(t.dims()[0]));
+					sample.add("width", new JsonPrimitive(t.dims()[1]));
+				}
+				sample.add("data", parser.parse(Arrays.toString(t.get())));
+				response.getWriter().println(sample.toString());
+				response.getWriter().flush();
+			}
+		} 
 	}
 	
 	private float[] parseInput(String string){

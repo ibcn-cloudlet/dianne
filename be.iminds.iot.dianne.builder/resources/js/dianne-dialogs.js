@@ -605,14 +605,9 @@ function forwardCanvasInput(input){
 }
 
 function sample(dataset, input){
-	$.post("/dianne/datasets", {"action":"sample","dataset":dataset}, 
+	$.post("/dianne/run", {"dataset":dataset,"input":input}, 
 			function( sample ) {
 				render(sample, sampleCanvasCtx);
-				
-				$.post("/dianne/run", {"forward":JSON.stringify(sample), "input":input}, 
-						function( data ) {
-						}
-						, "json");
 			}
 			, "json");
 }
