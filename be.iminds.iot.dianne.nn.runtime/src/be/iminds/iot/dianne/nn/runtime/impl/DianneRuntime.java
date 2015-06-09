@@ -323,7 +323,8 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 		Dictionary<String, Object> props = new Hashtable<String, Object>();
 		for(Enumeration<String> keys = properties.keys();keys.hasMoreElements();){
 			String key = keys.nextElement();
-			props.put(key, properties.get(key));
+			if(!key.equals("module.labels")) // don't put labels as service property
+				props.put(key, properties.get(key));
 		}
 		// make sure that for each module all interfaces are behind a single proxy 
 		// and that each module is uniquely proxied
