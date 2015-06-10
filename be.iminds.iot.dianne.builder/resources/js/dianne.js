@@ -354,8 +354,8 @@ function addModule(moduleItem){
 		module.dataset = module.type;
 		module.total = datasets[module.type].size;
 		module.labels = datasets[module.type].labels;
-		module.test = 10000;
-		module.train = module.total - 10000;
+		module.test = Math.round(module.total/10);
+		module.train = module.total - module.test;
 		module.validation = 0;
 	} else if(category==="Trainer"){
 		// TODO this is hard coded
