@@ -1,8 +1,9 @@
 package be.iminds.iot.dianne.api.nn.module;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -41,8 +42,8 @@ public abstract class AbstractModule implements Module {
 	protected ExecutorService executor = Executors.newSingleThreadExecutor();
 	
 	// Listeners
-	protected List<ForwardListener> fwdListeners = Collections.synchronizedList(new ArrayList<ForwardListener>());
-	protected List<BackwardListener> bwListeners = Collections.synchronizedList(new ArrayList<BackwardListener>());
+	protected Set<ForwardListener> fwdListeners = Collections.synchronizedSet(new HashSet<ForwardListener>());
+	protected Set<BackwardListener> bwListeners = Collections.synchronizedSet(new HashSet<BackwardListener>());
 
 	// Mode
 	protected Mode mode;
