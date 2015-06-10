@@ -14,7 +14,8 @@ public class SpatialConvolution extends AbstractTrainableModule {
 	private int kernelHeight;
 	private int strideX;
 	private int strideY;
-	private int mode;
+	private int padX = 0;
+	private int padY = 0;
 	
 	// subtensors for weights / bias
 	Tensor weights;
@@ -46,10 +47,10 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		this.kernelHeight = kernelHeight;
 		this.strideX = strideX;
 		this.strideY = strideY;
-		if(pad)
-			this.mode = 2;
-		else
-			this.mode = 0;
+		if(pad){
+			this.padX = (kernelWidth-1)/2;
+			this.padY = (kernelHeight-1)/2;
+		}
 		
 		parameters = factory.createTensor(noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight+noOutputPlanes);
 		weights = parameters.narrow(0, 0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight);
@@ -73,30 +74,20 @@ public class SpatialConvolution extends AbstractTrainableModule {
 	protected void forward() {
 		int[] outDims = new int[3];
 		outDims[0] = noOutputPlanes;
+
 		if(input.dim()==2){
-			outDims[1] = mode==2 ? input.size(0)/strideY  : (input.size(0) - kernelHeight)/strideY + 1;
-			outDims[2] = mode==2 ? input.size(1)/strideX  : (input.size(1) - kernelWidth)/strideX + 1;
+			outDims[1] = (input.size(0) + 2*padY - kernelHeight)/strideY + 1;
+			outDims[2] = (input.size(1) + 2*padX - kernelWidth)/strideX + 1;
 		} else if(input.dim()==3){
-			outDims[1] = mode==2 ? input.size(1)/strideY  : (input.size(1) - kernelHeight )/strideY + 1;
-			outDims[2] = mode==2 ? input.size(2)/strideX  : (input.size(2) - kernelWidth )/strideX + 1;
+			outDims[1] = (input.size(1) + 2*padY - kernelHeight )/strideY + 1;
+			outDims[2] = (input.size(2) + 2*padX - kernelWidth )/strideX + 1;
 		} // else error?
 		if(output==null || !output.hasDim(outDims)){
 			output = factory.createTensor(outDims);
 		}
 		// TODO check input planes dim? // check kernel sizes?
-	
-		Tensor in = null;
-		if(mode==2){
-			if(input.dim()==2){
-				in = factory.getTensorMath().zeropad(in, input, (kernelHeight-1)/2, (kernelWidth-1)/2);
-			} else if(input.dim()==3){
-				in = factory.getTensorMath().zeropad(in, input, 0, (kernelHeight-1)/2, (kernelWidth-1)/2);
-			}
-		} else {
-			in = input;
-		}
 		
-		output = factory.getTensorMath().spatialconvolve(output, bias, in, weights, strideX, strideY);
+		output = factory.getTensorMath().spatialconvolve(output, bias, input, weights, strideX, strideY, padX, padY);
 	}
 
 	@Override

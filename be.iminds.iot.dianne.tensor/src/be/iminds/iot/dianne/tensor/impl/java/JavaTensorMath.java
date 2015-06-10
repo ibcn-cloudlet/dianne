@@ -552,7 +552,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 
 	@Override
 	public JavaTensor spatialconvolve(JavaTensor res, JavaTensor add,
-			JavaTensor mat, JavaTensor k, int sx, int sy) {
+			JavaTensor mat, JavaTensor k, int sx, int sy, int px, int py) {
 		int noOutputPlanes = k.size(0);
 		int noInputPlanes = k.size(1);
 		int kernelHeight = k.size(2);
@@ -561,17 +561,23 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		int[] outDims = new int[3];
 		outDims[0] = noOutputPlanes;
 		if(mat.dim()==2){
-			outDims[1] = (mat.size(0) - kernelHeight)/sy + 1;
-			outDims[2] = (mat.size(1) - kernelWidth)/sx + 1;
+			outDims[1] = (mat.size(0) + 2*py - kernelHeight)/sy + 1;
+			outDims[2] = (mat.size(1) + 2*px - kernelWidth)/sx + 1;
 		} else if(mat.dim()==3){
-			outDims[1] = (mat.size(1) - kernelHeight)/sy + 1;
-			outDims[2] = (mat.size(2) - kernelWidth)/sx + 1;
+			outDims[1] = (mat.size(1) + 2*py - kernelHeight)/sy + 1;
+			outDims[2] = (mat.size(2) + 2*py - kernelWidth)/sx + 1;
 		} // else error?
 		if(res==null || !res.hasDim(outDims)){
 			res = factory.createTensor(outDims);
 		}
-		
+	
 		final JavaTensor output = res;
+	
+		JavaTensor padded = null;
+		if(px !=0 || py !=0){
+			padded = factory.getTensorMath().zeropad(padded, mat, 0, py, px);
+		}
+		final JavaTensor input = padded==null? mat : padded;
 		
 		IntStream
 		.range(0, noOutputPlanes)
@@ -584,7 +590,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 			for (int j = 0; j < noInputPlanes; j++) {
 				JavaTensor kernel = planeKernels.select(0, j);
 
-				addconvolution2D(outputPlane, outputPlane, noInputPlanes == 1 ? mat : mat.select(0, j), 
+				addconvolution2D(outputPlane, outputPlane, noInputPlanes == 1 ? input : input.select(0, j), 
 								kernel, sx, sy, 0, false);
 			}
 

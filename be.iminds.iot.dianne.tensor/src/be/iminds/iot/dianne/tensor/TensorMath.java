@@ -228,9 +228,9 @@ public interface TensorMath<T extends Tensor<T>> {
 	 * 
 	 * Takes a 3D mat, a 4D k tensor, and outputs a 3D res
 	 * 
-	 * For each input plane j it convolves with k[i][j] to get the output plane i and add add[i]
+	 * For each input plane j it convolves with k[i][j] to get the output plane i and add add[i], with strides sx,sy and padding px,py
 	 */
-	public T spatialconvolve(T res, final T add, final T t, final T k, final int sx, final int sy);
+	public T spatialconvolve(T res, final T add, final T t, final T k, final int sx, final int sy, final int px, final int py);
 	
 	/**
 	 * Add paddings to tensor t, set padding size for each dimension

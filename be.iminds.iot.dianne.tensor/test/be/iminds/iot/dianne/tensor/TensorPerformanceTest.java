@@ -24,7 +24,7 @@ public class TensorPerformanceTest<T extends Tensor<T>> {
 	
 	private int outSize = 1000;
 	private int inSize = 231;
-	private int kernelSize = 11;
+	private int kernelSize = 3;
 	private int noInputPlanes = 3;
 	private int noOutputPlanes = 100;
 	
@@ -157,7 +157,7 @@ public class TensorPerformanceTest<T extends Tensor<T>> {
 	public void testSpatialConv(){
 		long t1 = System.currentTimeMillis();
 		for(int i=0;i<count;i++)
-			factory.getTensorMath().spatialconvolve(null, biases, inputnd, kernels, 5, 5);
+			factory.getTensorMath().spatialconvolve(null, biases, inputnd, kernels, 5, 5, 0, 0);
 		long t2 = System.currentTimeMillis();
 		
 		float time = (float)(t2-t1)/count;

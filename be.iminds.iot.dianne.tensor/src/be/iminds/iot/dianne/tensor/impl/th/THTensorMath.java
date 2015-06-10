@@ -259,9 +259,9 @@ public class THTensorMath implements TensorMath<THTensor> {
 	
 	@Override
 	public THTensor spatialconvolve(THTensor res, THTensor add, THTensor mat,
-			THTensor k, int sx, int sy) {
+			THTensor k, int sx, int sy, int px, int py) {
 		long l = spatialconvolve(res==null ? 0 : res.address, add.address, mat.address,
-				k.address, sx, sy);
+				k.address, sx, sy, px, py);
 		return res==null ? new THTensor(l) : res;
 	}
 
@@ -363,7 +363,7 @@ public class THTensorMath implements TensorMath<THTensor> {
 			int h, int sx, int sy);
 	
 	private native long spatialconvolve(long res, long add, long t,
-			long k, int sx, int sy);
+			long k, int sx, int sy, int px, int py);
 
 	private native long zeropad(long res, long t, int... paddings);
 

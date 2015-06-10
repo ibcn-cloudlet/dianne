@@ -367,19 +367,16 @@ extern "C" {
 	}
 	
 	void THCudaTensor_spatialconvolve(THCState *state, THCudaTensor *output, THCudaTensor *input,
-		THCudaTensor* weight, THCudaTensor* bias, int dW, int dH)
+		THCudaTensor* weight, THCudaTensor* bias, int dW, int dH, int pW, int pH)
 	{
-		// for now don't use padding here
-		int padding = 0;
-		
 		long nOutputPlane = weight->size[0];
 		long kW = weight->size[3];
 		long kH = weight->size[2];
 		long inputWidth   = input->size[2];
   		long inputHeight  = input->size[1];
   		long nInputPlane = input->size[0];
-  		long outputWidth  = (inputWidth + 2*padding - kW) / dW + 1;
-  		long outputHeight = (inputHeight + 2*padding - kH) / dH + 1;
+  		long outputWidth  = (inputWidth + 2*pW - kW) / dW + 1;
+  		long outputHeight = (inputHeight + 2*pH - kH) / dH + 1;
 		
 		// create temp tensors for unfolding
 		THCudaTensor* columns = THCudaTensor_newWithSize2d(state, nInputPlane*kW*kH, outputHeight*outputWidth);
@@ -410,7 +407,7 @@ extern "C" {
 	    im2col(
 	      state,
 	      THCudaTensor_data(state, input),
-	      nInputPlane, inputHeight, inputWidth, kH, kW, padding, padding, dH, dW,
+	      nInputPlane, inputHeight, inputWidth, kH, kW, pH, pW, dH, dW,
 	      THCudaTensor_data(state, columns)
 	    );
 	

@@ -444,7 +444,7 @@ public class ND4JTensorMath implements TensorMath<ND4JTensor> {
 
 	@Override
 	public ND4JTensor spatialconvolve(ND4JTensor res, ND4JTensor add,
-			ND4JTensor mat, ND4JTensor k, int sx, int sy) {
+			ND4JTensor mat, ND4JTensor k, int sx, int sy, int px, int py) {
 		throw new UnsupportedOperationException();
 	}
 

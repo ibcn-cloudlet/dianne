@@ -784,7 +784,7 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_dm
 
 
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_spatialconvolve
-  (JNIEnv * env, jobject o, jlong dst, jlong add, jlong src, jlong k, jint sx, jint sy){
+  (JNIEnv * env, jobject o, jlong dst, jlong add, jlong src, jlong k, jint sx, jint sy, jint px, jint py){
 	THTensor* output = getTHTensor(dst);
 	THTensor* input = (THTensor*) src;
 	THTensor* weight = (THTensor*) k;
@@ -795,8 +795,8 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sp
 	long kH = weight->size[2];
 	long inputWidth = input->size[2];
 	long inputHeight = input->size[1];
-	long outputWidth = (inputWidth - kW) / sx + 1;
-	long outputHeight = (inputHeight - kH) / sy + 1;
+	long outputWidth = (inputWidth + 2*px - kW) / sx + 1;
+	long outputHeight = (inputHeight + 2*py - kH) / sy + 1;
 	THTensor_(resize3d)(
 #ifdef CUDA
 			state,
@@ -806,8 +806,20 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sp
 #ifdef CUDA
 	// use separate cunn implementation
 	THCudaTensor_spatialconvolve(state, output, input,
-			weight, bias, sx,  sy);
+			weight, bias, sx, sy, px, py);
 #else
+	// if px,py!=0 : add padding to input
+	if(px!=0 || py!=0){
+		THTensor* padded = THTensor_(new)(
+		#ifdef CUDA
+					state
+		#endif
+		);
+		int p[3] = {0, py, px};
+		zeropad(padded, input, p);
+		input = padded;
+	}
+
 	// based on torch/overfeat impl
 
 	/* set output to bias */
@@ -848,6 +860,15 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sp
 	THTensor_(conv2Dmv)(output, 1.0, 1.0, input, weight, sy, sx, "V", "X");
 #endif
 
+	// if padded, free padded input
+	if(px!=0 || py!=0){
+		THTensor_(free)(
+	#ifdef CUDA
+				state,
+	#endif
+				input);
+	}
+
 #endif
 	return output;
 }
@@ -864,29 +885,37 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ze
 	// TODO should equal t->nDimension
 	jint *p = (*env)->GetIntArrayElements(env, paddings, 0);
 
+	zeropad(r, t, p);
+
+	(*env)->ReleaseIntArrayElements(env, paddings, p, 0);
+
+	return r;
+}
+
+// convenience function to also use in spatialconvolve with padding
+void zeropad(THTensor* r, THTensor* t, int* p){
+	long newDims[t->nDimension];
 	int i;
-	for(i=0;i<noDims;i++){
+	for(i=0;i<t->nDimension;i++){
 		newDims[i] = t->size[i] + p[i]*2;
 	}
-
 	THTensor_(resizend)(
 #ifdef CUDA
 			state,
 #endif
-			r, noDims, newDims);
+			r, t->nDimension, newDims);
 	THTensor_(zero)(
 #ifdef CUDA
 			state,
 #endif
 			r);
-
 	THTensor* narrowed = THTensor_(newWithTensor)(
 #ifdef CUDA
 			state,
 #endif
 			r);
 	// now narrow and copy
-	for(i=0;i<noDims;i++){
+	for(i=0;i<t->nDimension;i++){
 		THTensor_(narrow)(
 #ifdef CUDA
 				state,
@@ -903,10 +932,6 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ze
 			state,
 #endif
 			narrowed);
-
-	(*env)->ReleaseIntArrayElements(env, paddings, p, 0);
-
-	return r;
 }
 
 
