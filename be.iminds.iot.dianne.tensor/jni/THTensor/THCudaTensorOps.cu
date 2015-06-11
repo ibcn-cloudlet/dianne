@@ -15,7 +15,11 @@ extern "C" {
 
 #define SOFTMAX_THREADS 128
 // Use 1024 threads per block, which requires cuda sm_2x or above
+#ifdef JETSON
+#define UNFOLD_THREADS 800
+#else
 #define UNFOLD_THREADS 1024
+#endif
 
 // CUDA: number of blocks for threads.
 inline int GET_BLOCKS(const int N) {
