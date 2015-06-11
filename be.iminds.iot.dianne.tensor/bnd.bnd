@@ -2,13 +2,7 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 -buildpath: \
 	osgi.enterprise;version=5.0,\
 	com.esotericsoftware.kryo;version=2.23,\
-	biz.aQute.junit;version=1.3,\
-	com.google.guava,\
-	slf4j.api,\
-	nd4j-api,\
-	nd4j-jblas,\
-	org.jblas,\
-	org.apache.commons.math3
+	biz.aQute.junit;version=1.3
 Bundle-Name: Dianne Tensor Library API and implementations
 -sub: *.bnd
 -noee

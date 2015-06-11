@@ -10,7 +10,6 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;
-import be.iminds.iot.dianne.tensor.impl.nd4j.ND4JTensorFactory;
 import be.iminds.iot.dianne.tensor.impl.th.THTensorFactory;
 
 @RunWith(Parameterized.class)
@@ -26,7 +25,6 @@ public class TensorTest<T extends Tensor<T>> {
 	public static Collection<Object[]> data() {
 		return Arrays.asList(new Object[][] { 
 				{ new JavaTensorFactory(), "Java Tensor" },
-				{ new ND4JTensorFactory(), "ND4J Tensor" },
 				{ new THTensorFactory(), "TH Tensor" }
 		});
 	}
