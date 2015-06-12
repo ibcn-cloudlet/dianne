@@ -2,6 +2,7 @@
 /bin_test/
 /generated/
 /native/
+/cuda/
 /jni/THTensor/*.o
 /jni/THTensor/*.so
 /jni/THTensor/*.a

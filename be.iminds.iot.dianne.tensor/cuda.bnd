@@ -9,7 +9,7 @@ Import-Package: com.esotericsoftware.kryo.*;resolution:=optional
 Bundle-Name: Dianne Cuda Tensor Library
 Bundle-Description: Dianne Tensor implementation based on Torch's THC Cuda lib
 
-Bundle-NativeCode: armv7l/libTHTensor.so;osname=Linux;processor=arm
+Bundle-NativeCode: x86_64/libTHTensor.so;osname=Linux;processor=x86_64,armv7l/libTHTensor.so;osname=Linux;processor=arm
 	
 -includeresource: \
 	cuda
