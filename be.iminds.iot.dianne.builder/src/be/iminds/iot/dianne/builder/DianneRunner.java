@@ -62,6 +62,8 @@ public class DianneRunner extends HttpServlet {
 	// register a forwardlistener for each output?
 	private Map<Output, ServiceRegistration> forwardListeners = Collections.synchronizedMap(new HashMap<Output, ServiceRegistration>());
 	
+	private long t1,t2;
+	
 	private AsyncContext sse = null;
 	
 	@Activate
@@ -103,10 +105,12 @@ public class DianneRunner extends HttpServlet {
 			Dictionary<String, Object> properties = new Hashtable<String, Object>();
 			properties.put("targets", new String[]{id});
 			properties.put("aiolos.unique", true);
-			
+		
 			ForwardListener listener = new ForwardListener() {
 				@Override
 				public void onForward(Tensor t) {
+					t2 = System.currentTimeMillis();
+					System.out.println("FORWARD TIME "+(t2-t1)+" ms.");
 					if(sse!=null){
 						try {
 							JsonObject data = new JsonObject();
@@ -166,7 +170,7 @@ public class DianneRunner extends HttpServlet {
 					}
 				}
 			};
-			
+
 			ServiceRegistration r = context.registerService(ForwardListener.class.getName(), listener, properties);
 			
 			forwardListeners.put(output, r);
@@ -218,6 +222,7 @@ public class DianneRunner extends HttpServlet {
 
 			float[] data = parseInput(sample.get("data").getAsJsonArray().toString());
 			Tensor t = factory.createTensor(data, channels, height, width);
+			t1 = System.currentTimeMillis();
 			input.input(t);
 		} else if(request.getParameter("mode")!=null){
 			String mode = request.getParameter("mode");
@@ -235,6 +240,7 @@ public class DianneRunner extends HttpServlet {
 				String inputId = request.getParameter("input");
 				Input input = (Input) modules.get(inputId);
 				
+				t1 = System.currentTimeMillis();
 				Tensor t = d.getInputSample(rand.nextInt(d.size()));
 				input.input(t);
 				
