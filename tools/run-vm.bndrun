@@ -4,6 +4,8 @@ aiolos.version='latest'
 
 -resolve.effective: active
 -runbundles: \
+	org.eclipse.concierge.service.startlevel;version='[1.0,2.0)',\
+	org.eclipse.concierge.service.packageadmin;version='[1.0,2.0)',\
 	ch.qos.logback.classic,\
 	ch.qos.logback.core,\
 	slf4j.api;version=1.7.2,\
@@ -43,7 +45,8 @@ aiolos.version='latest'
 	be.iminds.iot.dianne.api;version=latest,\
 	be.iminds.iot.dianne.tensor.th;version=latest,\
 	be.iminds.iot.dianne.nn;version=latest,\
-	be.iminds.iot.dianne.nn.runtime;version=latest
+	be.iminds.iot.dianne.nn.runtime;version=latest,\
+	be.iminds.iot.dianne.repository;version=latest
 	
 
 -runstorage: generated/vm
@@ -64,6 +67,5 @@ aiolos.version='latest'
 	javax.imageio
 
 -runproperties:\
-	org.apache.felix.log.storeDebug=true,\
 	org.osgi.service.http.port=8081,\
 	logback.configurationFile=resources/logback.xml
