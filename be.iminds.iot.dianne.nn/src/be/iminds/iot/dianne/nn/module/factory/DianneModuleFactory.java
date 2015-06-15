@@ -33,6 +33,7 @@ import be.iminds.iot.dianne.nn.module.join.Concat;
 import be.iminds.iot.dianne.nn.module.layer.Linear;
 import be.iminds.iot.dianne.nn.module.layer.SpatialConvolution;
 import be.iminds.iot.dianne.nn.module.layer.SpatialMaxPooling;
+import be.iminds.iot.dianne.nn.module.preprocessing.Narrow;
 import be.iminds.iot.dianne.nn.module.preprocessing.Normalization;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -143,6 +144,17 @@ public class DianneModuleFactory implements ModuleFactory {
 			ModuleType type = new ModuleType("Normalization", "Preprocessing", properties, false);
 			supportedModules.put(type.getType(), type);
 		}
+		{
+			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
+			properties.add(new ModuleProperty("Index Dim 0", "index0"));
+			properties.add(new ModuleProperty("Size Dim 0", "size0"));
+			properties.add(new ModuleProperty("Index Dim 1", "index1"));
+			properties.add(new ModuleProperty("Size Dim 1", "size1"));
+			properties.add(new ModuleProperty("Index Dim 2", "index2"));
+			properties.add(new ModuleProperty("Size Dim 2", "size2"));			
+			ModuleType type = new ModuleType("Narrow", "Preprocessing", properties, false);
+			supportedModules.put(type.getType(), type);
+		}		
 	}
 	
 	@Override
@@ -226,6 +238,26 @@ public class DianneModuleFactory implements ModuleFactory {
 		case "Normalization":
 			module = new Normalization(factory, id);
 			break;
+		case "Narrow":
+			int[] ranges;
+			
+			int index0 = Integer.parseInt((String)config.get("module.narrow.index0"));
+			int size0 = Integer.parseInt((String)config.get("module.narrow.size0"));
+			
+			int index1 = Integer.parseInt((String)config.get("module.narrow.index1"));
+			int size1 = Integer.parseInt((String)config.get("module.narrow.size1"));
+			
+			if(hasProperty(config, "module.maxpooling.index2")){
+				int index2 = Integer.parseInt((String)config.get("module.narrow.index2"));
+				int size2 = Integer.parseInt((String)config.get("module.narrow.size2"));
+				
+				ranges = new int[]{index0, size0, index1, size1, index2, size2};
+			} else {
+				ranges = new int[]{index0, size0, index1, size1};
+			}
+			
+			module = new Narrow(factory, id, ranges);
+			break;			
 		default:
 			throw new InstantiationException("Could not instantiate module of type "+type);
 		}
