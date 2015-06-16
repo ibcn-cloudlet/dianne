@@ -31,6 +31,7 @@ import be.iminds.iot.dianne.nn.module.io.OutputImpl;
 import be.iminds.iot.dianne.nn.module.join.Accumulate;
 import be.iminds.iot.dianne.nn.module.join.Concat;
 import be.iminds.iot.dianne.nn.module.layer.Linear;
+import be.iminds.iot.dianne.nn.module.layer.MaskedMaxPooling;
 import be.iminds.iot.dianne.nn.module.layer.SpatialConvolution;
 import be.iminds.iot.dianne.nn.module.layer.SpatialMaxPooling;
 import be.iminds.iot.dianne.nn.module.preprocessing.Narrow;
@@ -154,7 +155,14 @@ public class DianneModuleFactory implements ModuleFactory {
 			properties.add(new ModuleProperty("Size Dim 2", "size2"));			
 			ModuleType type = new ModuleType("Narrow", "Preprocessing", properties, false);
 			supportedModules.put(type.getType(), type);
-		}		
+		}	
+		{
+			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
+			properties.add(new ModuleProperty("noInputs", "noInputs"));
+			properties.add(new ModuleProperty("Masks", "masks"));			
+			ModuleType type = new ModuleType("Masked MaxPooling", "Layer", properties, true);
+			supportedModules.put(type.getType(), type);
+		}
 	}
 	
 	@Override
@@ -257,7 +265,13 @@ public class DianneModuleFactory implements ModuleFactory {
 			}
 			
 			module = new Narrow(factory, id, ranges);
-			break;			
+			break;	
+		case "Masked MaxPooling":
+			int noInputs = Integer.parseInt((String)config.get("module.maskedmaxpooling.noInputs"));
+			String masks = (String)config.get("module.maskedmaxpooling.masks");
+			
+			module = new MaskedMaxPooling(factory, id, noInputs, masks);
+			break;
 		default:
 			throw new InstantiationException("Could not instantiate module of type "+type);
 		}
