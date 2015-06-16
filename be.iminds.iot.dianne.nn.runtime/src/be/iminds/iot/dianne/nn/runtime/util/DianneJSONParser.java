@@ -91,7 +91,7 @@ public class DianneJSONParser {
 		}
 
 		// key prefix
-		String prefix = "module."+type.toLowerCase()+"."; 
+		String prefix = "module."+type.toLowerCase().replaceAll(" ", "")+"."; 
 			
 		for(Entry<String, JsonElement> property : moduleJson.entrySet()){
 			String key = property.getKey();
