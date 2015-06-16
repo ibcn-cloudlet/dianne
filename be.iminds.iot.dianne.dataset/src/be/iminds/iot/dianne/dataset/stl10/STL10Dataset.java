@@ -27,7 +27,7 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
  * @author tverbele
  *
  */
-@Component(immediate=true, property={"aiolos.callback=be.iminds.iot.dianne.api.dataset.Dataset"})
+@Component(immediate=true, property={"name=STL-10","aiolos.callback=be.iminds.iot.dianne.api.dataset.Dataset"})
 public class STL10Dataset implements Dataset {
 
 	private TensorFactory factory;
