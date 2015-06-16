@@ -242,7 +242,9 @@ public class DianneRunner extends HttpServlet {
 				
 				t1 = System.currentTimeMillis();
 				Tensor t = d.getInputSample(rand.nextInt(d.size()));
-				input.input(t);
+				if(input!=null){
+					input.input(t);
+				}
 				
 				JsonObject sample = new JsonObject();
 				if(t.dims().length==3){
