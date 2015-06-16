@@ -22,6 +22,7 @@ import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.Sample;
+import be.iminds.iot.dianne.dataset.util.ImageLoader;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -37,6 +38,7 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 public class ImageNetDataset implements Dataset {
 
 	private TensorFactory factory;
+	private ImageLoader imageLoader;
 
 	private List<Sample> data = new ArrayList<Sample>();
 	private String[] labels;
@@ -53,6 +55,7 @@ public class ImageNetDataset implements Dataset {
 	@Reference
 	void setTensorFactory(TensorFactory f) {
 		this.factory = f;
+		this.imageLoader = new ImageLoader(f);
 	}
 
 	@Activate
@@ -155,48 +158,7 @@ public class ImageNetDataset implements Dataset {
 		String file = dir + "images/" + "ILSVRC2012_val_"
 				+ String.format("%08d", index+1) + ".JPEG";
 		System.out.println("Read file " + file);
-		float[] imageData = new float[inputSize];
-		try {
-			BufferedImage img = ImageIO.read(new File(file));
-			// scale the smallest size to whished size and
-			// crop the central part of the other to get a square image patch
-			
-			int xOffset = 0;
-			int yOffset = 0;
-			float factor = 1.0f;
-			
-			float factorX = (float) (noColumns +1)/ img.getWidth();
-			float factorY = (float) (noRows +1)/ img.getHeight();
-			if (factorX <= factorY) {
-				factor = factorY;
-			} else {
-				factor = factorX;
-			}
-			
-			xOffset = (int)(img.getWidth()*factor - noColumns)/2;
-			yOffset = (int)(img.getHeight()*factor - noRows)/2;
-
-			BufferedImage scaled = getScaledInstance(img, factor);
-			BufferedImage cropped = scaled.getSubimage(xOffset, yOffset, noColumns, noRows);
-		
-			float[] rgb = new float[3];
-			int a = 0;
-			int b = noColumns*noRows;
-			int c = 2*noColumns*noRows;
-			for(int j=0;j<noRows;j++){
-				for(int i=0;i<noColumns;i++){
-					rgb = cropped.getRaster().getPixel(i, j, rgb);
-					imageData[a++] = rgb[0]/255f;
-					imageData[b++] = rgb[1]/255f;
-					imageData[c++] = rgb[2]/255f;
-				}
-			}
-			
-			// TODO also support multi-scale classification?
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return factory.createTensor(imageData, 3, noRows, noColumns);
+		return imageLoader.loadImageRGB(file, noColumns, noRows);
 	}
 
 	@Override
@@ -212,24 +174,5 @@ public class ImageNetDataset implements Dataset {
 		return labels;
 	}
 
-	// scaling method from https://today.java.net/article/2007/03/30/perils-imagegetscaledinstance
-	private BufferedImage getScaledInstance(BufferedImage img, float factor) {
-		int type = (img.getTransparency() == Transparency.OPAQUE) ? BufferedImage.TYPE_INT_RGB
-				: BufferedImage.TYPE_INT_ARGB;
-		BufferedImage ret = (BufferedImage) img;
 
-		int w = (int)(img.getWidth()*factor);
-		int h = (int)(img.getHeight()*factor);
-
-		BufferedImage tmp = new BufferedImage(w, h, type);
-		Graphics2D g2 = tmp.createGraphics();
-		g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-				RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-		g2.drawImage(ret, 0, 0, w, h, null);
-		g2.dispose();
-
-		ret = tmp;
-
-		return ret;
-	}
 }
