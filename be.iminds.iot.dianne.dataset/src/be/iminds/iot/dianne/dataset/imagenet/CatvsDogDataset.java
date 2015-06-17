@@ -123,7 +123,7 @@ public class CatvsDogDataset implements Dataset {
 
 	@Override
 	public Tensor getOutputSample(int index) {
-		Tensor output = factory.createTensor(2);
+		Tensor output = factory.createTensor(3);
 		output.fill(0.0f);
 		
 		Tensor imagenetOutput = imagenet.getOutputSample(index);
