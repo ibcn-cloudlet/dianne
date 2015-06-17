@@ -40,9 +40,11 @@ public class DianneDeployer extends HttpServlet {
 	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
 			policy=ReferencePolicy.DYNAMIC)
 	public void addModuleManager(ModuleManager m, Map<String, Object> properties){
-		String uuid = (String) properties.get("aiolos.framework.uuid"); 
-		if(uuid==null || uuid.equals("00000000-0000-0000-0000-000000000000")){
-			uuid = "Laptop"; // TODO for now just fixed item for local runtime
+		String uuid = (String) properties.get("aiolos.framework.uuid");
+		if(uuid == null){
+			uuid = "localhost";
+		} else if(uuid.equals("00000000-0000-0000-0000-000000000000")){
+			uuid = "Laptop";
 		} else if(uuid.equals("00000000-0000-0000-0000-000000000001")){
 			// some hard coded values for demo
 			uuid = "Raspberry Pi";
