@@ -76,7 +76,6 @@ public class CatvsDogDataset implements Dataset {
 	@Override
 	public Tensor getInputSample(int index) {
 		String file = files[index];
-		System.out.println(file);
 		return imageLoader.loadImageRGB(dir+"train/"+file, noColumns, noRows);
 	}
 
