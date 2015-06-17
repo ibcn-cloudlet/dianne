@@ -202,6 +202,20 @@ public class DianneLearner extends HttpServlet {
 					
 					JsonObject eval = new JsonObject();
 					eval.add("accuracy", new JsonPrimitive(result.accuracy()*100));
+					
+					Tensor confusionMatrix = result.getConfusionMatix();
+					JsonArray data = new JsonArray();
+					for(int i=0;i<confusionMatrix.size(0);i++){
+						for(int j=0;j<confusionMatrix.size(1);j++){
+							JsonArray element = new JsonArray();
+							element.add(new JsonPrimitive(i));
+							element.add(new JsonPrimitive(j));
+							element.add(new JsonPrimitive(confusionMatrix.get(i,j)));
+							data.add(element);
+						}
+					}
+					eval.add("confusionMatrix", data);
+					
 					response.getWriter().write(eval.toString());
 					response.getWriter().flush();
 				}

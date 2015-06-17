@@ -767,6 +767,9 @@ function evaluate(id){
 				eventsource.close();
 				eventsource = undefined;
 				$("#dialog-"+id).find(".accuracy").text("Accuracy: "+data.accuracy+" %");
+				
+				var index = Number($("#dialog-"+id).find(".content").attr("data-highcharts-chart"));
+				Highcharts.charts[index].series[0].setData(data.confusionMatrix, true, true, false);
 			}
 			, "json");
 }
