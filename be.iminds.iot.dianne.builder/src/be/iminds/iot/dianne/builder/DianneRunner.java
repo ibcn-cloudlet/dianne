@@ -109,9 +109,9 @@ public class DianneRunner extends HttpServlet {
 			ForwardListener listener = new ForwardListener() {
 				@Override
 				public void onForward(Tensor t) {
-					t2 = System.currentTimeMillis();
-					System.out.println("FORWARD TIME "+(t2-t1)+" ms.");
 					if(sse!=null){
+						t2 = System.currentTimeMillis();
+						System.out.println("FORWARD TIME "+(t2-t1)+" ms.");
 						try {
 							JsonObject data = new JsonObject();
 
@@ -164,8 +164,12 @@ public class DianneRunner extends HttpServlet {
 							PrintWriter writer = sse.getResponse().getWriter();
 							writer.write(builder.toString());
 							writer.flush();
+							if(writer.checkError()){
+								sse = null;
+							}
 						} catch(Exception e){
 							e.printStackTrace();
+							sse = null;
 						}
 					}
 				}
