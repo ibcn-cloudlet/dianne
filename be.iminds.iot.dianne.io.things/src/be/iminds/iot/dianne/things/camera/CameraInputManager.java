@@ -21,9 +21,9 @@ import be.iminds.iot.dianne.api.io.InputDescription;
 import be.iminds.iot.dianne.api.io.InputManager;
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.tensor.TensorFactory;
-import be.iminds.iot.thing.Thing;
-import be.iminds.iot.thing.camera.Camera;
-import be.iminds.iot.thing.camera.CameraListener;
+import be.iminds.iot.things.api.Thing;
+import be.iminds.iot.things.api.camera.Camera;
+import be.iminds.iot.things.api.camera.CameraListener;
 
 @Component(immediate=true)
 public class CameraInputManager implements InputManager {
@@ -54,7 +54,7 @@ public class CameraInputManager implements InputManager {
 			cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
 	public void addCamera(Camera c, Map<String, Object> properties){
-		UUID id = UUID.fromString((String)properties.get(Thing.ID));
+		UUID id = (UUID) properties.get(Thing.ID);
 		String service = (String) properties.get(Thing.SERVICE);
 		
 		String[] parts = service.split("_");
@@ -67,7 +67,7 @@ public class CameraInputManager implements InputManager {
 	}
 	
 	public void removeCamera(Camera c, Map<String, Object> properties){
-		UUID id = UUID.fromString((String)properties.get(Thing.ID));
+		UUID id = (UUID) properties.get(Thing.ID);
 		String service = (String) properties.get(Thing.SERVICE);
 		
 		String[] parts = service.split("_");
@@ -106,7 +106,7 @@ public class CameraInputManager implements InputManager {
 		if(cameraId!=null){
 			Camera camera = cameras.get(cameraId);
 			if(camera!=null){
-				camera.start(320, 240);
+				camera.start(320, 240, Camera.Format.GRAYSCALE);
 			}
 			
 			CameraInput i = new CameraInput(factory, inputs.get(inputId));

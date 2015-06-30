@@ -1,9 +1,12 @@
 package be.iminds.iot.dianne.things.camera;
 
+import java.util.UUID;
+
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
-import be.iminds.iot.thing.camera.CameraListener;
+import be.iminds.iot.things.api.camera.Camera.Format;
+import be.iminds.iot.things.api.camera.CameraListener;
 
 public class CameraInput implements CameraListener {
 
@@ -18,8 +21,9 @@ public class CameraInput implements CameraListener {
 		this.buffer = new float[28*28];
 	}
 	
+	
 	@Override
-	public void nextFrame(byte[] data) {
+	public void nextFrame(UUID id, Format format, byte[] data) {
 		// TODO should have a auto Reshape module
 		// for now fixed coded for MNIST
 		
@@ -47,5 +51,7 @@ public class CameraInput implements CameraListener {
 		Tensor in = factory.createTensor(buffer, w, h);
 		input.input(in);
 	}
+
+
 	
 }

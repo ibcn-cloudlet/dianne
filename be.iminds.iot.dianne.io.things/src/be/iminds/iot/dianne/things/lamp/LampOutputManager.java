@@ -1,4 +1,4 @@
-package be.iminds.iot.dianne.things.light;
+package be.iminds.iot.dianne.things.lamp;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,18 +21,18 @@ import be.iminds.iot.dianne.api.io.OutputDescription;
 import be.iminds.iot.dianne.api.io.OutputManager;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.tensor.TensorFactory;
-import be.iminds.iot.thing.Thing;
-import be.iminds.iot.thing.light.Light;
+import be.iminds.iot.things.api.Thing;
+import be.iminds.iot.things.api.lamp.Lamp;
 
 
 @Component(immediate=true)
-public class LightOutputManager implements OutputManager {
+public class LampOutputManager implements OutputManager {
 
 	private BundleContext context;
 	
 	private TensorFactory factory;
 	
-	private Map<String, Light> lights = Collections.synchronizedMap(new HashMap<String, Light>());
+	private Map<String, Lamp> lamps = Collections.synchronizedMap(new HashMap<String, Lamp>());
 	
 	private Map<UUID, ServiceRegistration> registrations =  Collections.synchronizedMap(new HashMap<UUID, ServiceRegistration>());
 	
@@ -55,8 +55,8 @@ public class LightOutputManager implements OutputManager {
 	@Reference(
 			cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
-	public void addLight(Light l, Map<String, Object> properties){
-		UUID id = UUID.fromString((String)properties.get(Thing.ID));
+	public void addLight(Lamp l, Map<String, Object> properties){
+		UUID id = (UUID) properties.get(Thing.ID);
 		String service = (String) properties.get(Thing.SERVICE);
 		
 		// TODO hard coded Hue for now...
@@ -66,21 +66,21 @@ public class LightOutputManager implements OutputManager {
 		
 		// TODO only handle local thing services?
 		// TODO use id-service combo?
-		lights.put(service, l);
+		lamps.put(service, l);
 	}
 	
-	public void removeLight(Light l, Map<String, Object> properties){
-		UUID id = UUID.fromString((String)properties.get(Thing.ID));
+	public void removeLight(Lamp l, Map<String, Object> properties){
+		UUID id =(UUID) properties.get(Thing.ID);
 		String service = (String) properties.get(Thing.SERVICE);
-		lights.remove(service);
+		lamps.remove(service);
 	}
 
 	@Override
 	public List<OutputDescription> getAvailableOutputs() {
 		ArrayList<OutputDescription> outputs = new ArrayList<OutputDescription>();
-		synchronized(lights){
-			for(String id : lights.keySet()){
-				outputs.add(new OutputDescription(id, "Light"));
+		synchronized(lamps){
+			for(String id : lamps.keySet()){
+				outputs.add(new OutputDescription(id, "Lamp"));
 			}
 		}
 		return outputs;
@@ -88,9 +88,9 @@ public class LightOutputManager implements OutputManager {
 
 	@Override
 	public void setOutput(UUID outputId, String output) {
-		Light l = lights.get(output);
+		Lamp l = lamps.get(output);
 		if(l!=null){
-			LightOutput o = new LightOutput(factory, l, magicNumber);
+			LampOutput o = new LampOutput(factory, l, magicNumber);
 			Dictionary<String, Object> properties = new Hashtable<String, Object>();
 			properties.put("targets", new String[]{outputId.toString()});
 			properties.put("aiolos.unique", true);
