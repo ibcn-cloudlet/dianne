@@ -109,10 +109,9 @@ public class CameraInputManager implements InputManager {
 				camera.start(320, 240, Camera.Format.GRAYSCALE);
 			}
 			
-			CameraInput i = new CameraInput(factory, inputs.get(inputId));
+			CameraInput i = new CameraInput(factory, inputs.get(inputId), 320, 240, 1);
 			Dictionary<String, Object> properties = new Hashtable<String, Object>();
 			properties.put(CameraListener.CAMERA_ID, cameraId.toString());
-			properties.put(CameraListener.CAMERA_FORMAT, Camera.Format.GRAYSCALE);
 			properties.put("aiolos.unique", true);
 			ServiceRegistration r = context.registerService(CameraListener.class.getName(), i, properties);
 			// TODO only works if outputId only forwards to one output
