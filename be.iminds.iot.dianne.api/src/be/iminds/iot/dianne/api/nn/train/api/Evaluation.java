@@ -22,6 +22,13 @@ public class Evaluation {
 	}
 	
 	/**
+	 * @return the confusion matrix
+	 */
+	public Tensor getConfusionMatix(){
+		return confusionMatrix;
+	}
+	
+	/**
 	 * @return accuracy on global dataset
 	 */
 	public float accuracy(){
