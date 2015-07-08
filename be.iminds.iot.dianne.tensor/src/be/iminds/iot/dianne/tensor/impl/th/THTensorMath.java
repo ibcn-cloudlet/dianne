@@ -278,6 +278,12 @@ public class THTensorMath implements TensorMath<THTensor> {
 		return res==null ? new THTensor(l) : res;
 	}
 	
+	@Override
+	public THTensor scale2D(THTensor res, THTensor t, int... dims) {
+		long l = scale2d(res==null? 0 : res.address, t.address, dims);
+		return res==null? new THTensor(l) : res;
+	}
+	
 	private native long add(long res, long tensor, float value);
 
 	private native long add(long res, long tensor1, long tensor2);
@@ -369,4 +375,6 @@ public class THTensorMath implements TensorMath<THTensor> {
 
 	private native long spatialmaxpool(long res, long t,
 			int w, int h, int sx, int sy);
+
+	private native long scale2d(long res, long t, int... dims);
 }

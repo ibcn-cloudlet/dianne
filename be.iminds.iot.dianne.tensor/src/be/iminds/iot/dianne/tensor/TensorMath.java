@@ -254,4 +254,11 @@ public interface TensorMath<T extends Tensor<T>> {
 	 * Takes a 3D tensor input and results 3D tensor with each individual plane maxpooled2D
 	 */
 	public T spatialmaxpool(T res, final T t, final int w, final int h, final int sx, final int sy);
+	
+	/**
+	 * Scale (bilinear interpollate) in 2 dimensions
+	 * In case of 3D tensor it will scale all 'channels'
+	 */
+	public T scale2D(T res, final T t, final int... dims);
 }
+

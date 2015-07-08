@@ -643,4 +643,69 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		
 		return res;
 	}
+
+	@Override
+	public JavaTensor scale2D(JavaTensor res, JavaTensor t, int... dims) {
+		if(res == null){
+			res = factory.createTensor(dims);
+		}
+		
+		// TODO what for n-d tensors
+		int y_in = t.dims[t.dims.length-2];
+		int x_in = t.dims[t.dims.length-1];
+		
+		int y_out = dims[dims.length-2];
+		int x_out = dims[dims.length-1];
+		
+		float s_y = (y_in-1)/(float)(y_out-1);
+		float s_x = (x_in-1)/(float)(x_out-1); 
+
+		int channels = t.dims.length == 3 ? t.dims[0] : 1;
+		
+		for(int c=0;c<channels;c++){
+			for(int y=0;y<y_out;y++){
+				for(int x=0;x<x_out;x++){
+					
+					float yy = y*s_y;
+					float xx = x*s_x;
+					
+					// bilinear interpolation
+					int x1 = (int)xx;
+					int x2 = x1+1;
+					if(x2==x_in)
+						x2--;
+					int y1 = (int)yy;
+					int y2 = y1+1;
+					if(y2==y_in)
+						y2--;
+					
+					float v1 = t.data[x_in*y_in*c + x_in*y1+x1];
+					float v2 = t.data[x_in*y_in*c + x_in*y1+x2];
+					float v3 = t.data[x_in*y_in*c + x_in*y2+x1];
+					float v4 = t.data[x_in*y_in*c + x_in*y2+x2];
+					
+					float dx = xx-x1;
+					float dy = yy-y1;
+					
+					float r = v1*(1-dy)*(1-dx)
+							 + v2 * (1-dy)*(dx)
+							 + v3 * (dy)*(1-dx)
+							 + v4 * (dx)*(dy);
+					
+					// nearest neighbor
+	//				int xr = Math.round(xx);
+	//				int yr = Math.round(yy);
+	//				if(xr==x_in)
+	//					xr--;
+	//				if(yr==y_in)
+	//					yr--;
+	//				float r = t.data[x_in*yr+xr];
+					
+					res.data[x_out*y_out*c + x_out*y + x] = r;
+				}
+			}
+		}
+		
+		return res;
+	}
 }

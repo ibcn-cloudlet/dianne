@@ -990,3 +990,82 @@ void spatialmaxpool(THTensor* r, THTensor* t, int w, int h, int sx, int sy){
 	}
 #endif
 }
+
+
+JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_scale2d
+  (JNIEnv * env, jobject o, jlong dst, jlong src, jintArray dims){
+	THTensor* t = (THTensor*) src;
+	THTensor* r;
+
+	jsize noDims = (*env)->GetArrayLength(env, dims);
+	// TODO should equal t->nDimension
+	jint *d = (*env)->GetIntArrayElements(env, dims, 0);
+
+	if(t->nDimension==2){
+		r = getTHTensor2(dst, d[0], d[1]);
+	} else {
+		r = getTHTensor3(dst, d[0], d[1], d[2]);
+	}
+
+#ifdef CUDA
+	// TODO use cuda kernel
+#else
+
+	int y_in = t->size[t->nDimension-2];
+	int x_in = t->size[t->nDimension-1];
+
+	int y_out = d[noDims-2];
+	int x_out = d[noDims-1];
+
+	float s_y = (y_in-1)/(float)(y_out-1);
+	float s_x = (x_in-1)/(float)(x_out-1);
+
+	int channels = t->nDimension == 3 ? t->size[0] : 1;
+
+	real* src_ptr = THTensor_(data)(t);
+	real* dst_ptr = THTensor_(data)(r);
+
+	int c,y,x;
+	float xx,yy,dx,dy;
+	real v1,v2,v3,v4,v;
+	int x1,x2,y1,y2;
+	for(c=0;c<channels;c++){
+		for(y=0;y<y_out;y++){
+			for(x=0;x<x_out;x++){
+
+				yy = y*s_y;
+				xx = x*s_x;
+
+				// bilinear interpolation
+				x1 = (int)xx;
+				x2 = x1+1;
+				if(x2==x_in)
+					x2--;
+				y1 = (int)yy;
+				y2 = y1+1;
+				if(y2==y_in)
+					y2--;
+
+				v1 = src_ptr[x_in*y_in*c + x_in*y1+x1];
+				v2 = src_ptr[x_in*y_in*c + x_in*y1+x2];
+				v3 = src_ptr[x_in*y_in*c + x_in*y2+x1];
+				v4 = src_ptr[x_in*y_in*c + x_in*y2+x2];
+
+				dx = xx-x1;
+				dy = yy-y1;
+
+				v = v1*(1-dy)*(1-dx)
+						 + v2 * (1-dy)*(dx)
+						 + v3 * (dy)*(1-dx)
+						 + v4 * (dx)*(dy);
+
+				dst_ptr[x_out*y_out*c + x_out*y + x] = v;
+			}
+		}
+	}
+#endif
+
+	(*env)->ReleaseIntArrayElements(env, dims, d, 0);
+
+	return r;
+}

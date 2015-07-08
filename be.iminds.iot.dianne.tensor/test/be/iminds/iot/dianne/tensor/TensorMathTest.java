@@ -881,4 +881,56 @@ public class TensorMathTest<T extends Tensor<T>> {
 
 		Assert.assertEquals(exp, math.spatialmaxpool(null, t, 2, 2, 2, 2));
 	}
+	
+	@Test
+	public void testScaleUp(){
+		float[] data = new float[]{0, 0, 0, 0, 1, 0, 0, 0, 0}; 
+		T t = factory.createTensor(data, 3, 3);
+		
+		float[] expData = new float[]{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.16000001f, 0.32000002f, 0.32f, 0.16f, 0.0f, 0.0f, 0.32000002f, 0.64000005f, 0.64f, 0.32f, 0.0f, 0.0f, 0.32f, 0.64f, 0.6399999f, 0.31999996f, 0.0f, 0.0f, 0.16f, 0.32f, 0.31999996f, 0.15999998f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+		T exp = factory.createTensor(expData, 6, 6);
+		
+		T result = factory.getTensorMath().scale2D(null, t, new int[]{6, 6});
+		Assert.assertEquals(exp, result);
+	}
+	
+	@Test
+	public void testScaleUp2(){
+		float[] data = new float[]{0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0}; 
+		T t = factory.createTensor(data, 2, 3, 3);
+		
+		float[] expData = new float[]{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.16000001f, 0.32000002f, 0.32f, 0.16f, 0.0f, 0.0f, 0.32000002f, 0.64000005f, 0.64f, 0.32f, 0.0f, 0.0f, 0.32f, 0.64f, 0.6399999f, 0.31999996f, 0.0f, 0.0f, 0.16f, 0.32f, 0.31999996f, 0.15999998f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+									  0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.32000002f, 0.64000005f, 0.64f, 0.32f, 0.0f, 0.0f, 0.64000005f, 1.2800001f, 1.28f, 0.64f, 0.0f, 0.0f, 0.64f, 1.28f, 1.2799999f, 0.6399999f, 0.0f, 0.0f, 0.32f, 0.64f, 0.6399999f, 0.31999996f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+
+		T exp = factory.createTensor(expData, 2, 6, 6);
+		
+		T result = factory.getTensorMath().scale2D(null, t, new int[]{2, 6, 6});
+		Assert.assertEquals(exp, result);
+	}
+	
+	@Test
+	public void testScaleDown(){
+		float[] data = new float[]{0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0}; 
+		T t = factory.createTensor(data, 4, 4);
+		
+		float[] expData = new float[]{0, 0, 0, 0, 1, 0, 0, 0, 0};
+		T exp = factory.createTensor(expData, 3, 3);
+		
+		T result = factory.getTensorMath().scale2D(null, t, new int[]{3, 3});
+		Assert.assertEquals(exp, result);
+	}
+	
+	@Test
+	public void testScaleDown2(){
+		float[] data = new float[]{0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0,
+				                   0, 0, 0, 0, 0, 2, 2, 0, 0, 2, 2, 0, 0, 0, 0, 0}; 
+		T t = factory.createTensor(data, 2, 4, 4);
+		
+		float[] expData = new float[]{0, 0, 0, 0, 1, 0, 0, 0, 0,
+				                      0, 0, 0, 0, 2, 0, 0, 0, 0};
+		T exp = factory.createTensor(expData, 2, 3, 3);
+		
+		T result = factory.getTensorMath().scale2D(null, t, new int[]{2, 3, 3});
+		Assert.assertEquals(exp, result);
+	}
 }
