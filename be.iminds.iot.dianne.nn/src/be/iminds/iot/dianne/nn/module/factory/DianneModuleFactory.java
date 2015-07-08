@@ -14,7 +14,6 @@ import org.osgi.service.component.annotations.Component;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
 import be.iminds.iot.dianne.api.nn.module.Module;
-import be.iminds.iot.dianne.api.nn.module.description.ModuleDescription;
 import be.iminds.iot.dianne.api.nn.module.description.ModuleProperty;
 import be.iminds.iot.dianne.api.nn.module.description.ModuleType;
 import be.iminds.iot.dianne.api.nn.module.factory.ModuleFactory;
@@ -36,6 +35,7 @@ import be.iminds.iot.dianne.nn.module.layer.SpatialConvolution;
 import be.iminds.iot.dianne.nn.module.layer.SpatialMaxPooling;
 import be.iminds.iot.dianne.nn.module.preprocessing.Narrow;
 import be.iminds.iot.dianne.nn.module.preprocessing.Normalization;
+import be.iminds.iot.dianne.nn.module.preprocessing.Scale;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component(property={"aiolos.export=false"})
@@ -155,7 +155,15 @@ public class DianneModuleFactory implements ModuleFactory {
 			properties.add(new ModuleProperty("Size Dim 2", "size2"));			
 			ModuleType type = new ModuleType("Narrow", "Preprocessing", properties, false);
 			supportedModules.put(type.getType(), type);
-		}	
+		}
+		{
+			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
+			properties.add(new ModuleProperty("Dim 0", "dim0"));
+			properties.add(new ModuleProperty("Dim 1", "dim1"));
+			properties.add(new ModuleProperty("Dim 2", "dim2"));			
+			ModuleType type = new ModuleType("Scale", "Preprocessing", properties, false);
+			supportedModules.put(type.getType(), type);
+		}		
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
 			properties.add(new ModuleProperty("noInputs", "noInputs"));
@@ -265,6 +273,22 @@ public class DianneModuleFactory implements ModuleFactory {
 			}
 			
 			module = new Narrow(factory, id, ranges);
+			break;	
+		case "Scale":
+			int[] dims;
+			
+			int dim0 = Integer.parseInt((String)config.get("module.scale.dim0"));
+			int dim1 = Integer.parseInt((String)config.get("module.scale.dim1"));
+			
+			if(hasProperty(config, "module.scale.dim2")){
+				int dim2 = Integer.parseInt((String)config.get("module.scale.dim2"));
+				
+				dims = new int[]{dim0, dim1, dim2};
+			} else {
+				dims = new int[]{dim0, dim1};
+			}
+			
+			module = new Scale(factory, id, dims);
 			break;	
 		case "Masked MaxPooling":
 			int noInputs = Integer.parseInt((String)config.get("module.maskedmaxpooling.noInputs"));
