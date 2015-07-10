@@ -1,0 +1,8 @@
+Bundle-Version: 0.1.0.${tstamp}
+
+Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
+-buildpath: \
+	be.iminds.iot.dianne.tensor.api;version=latest
+
+Bundle-Name: Dianne Tensor utils
+Bundle-Description: Utility classes for working with Tensors
