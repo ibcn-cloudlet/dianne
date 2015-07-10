@@ -174,25 +174,84 @@ JNIEXPORT jfloatArray JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensor_
 	THTensor* tensor = (THTensor *) src;
 	real* ptr = THTensor_(data)(
 #ifdef CUDA
-				state,
+			state,
 #endif
 			tensor);
 
-	long size = tensor->storage->size;
+	real* data = ptr;
+
+#ifdef CUDA
+	long bufferSize = tensor->storage->size*sizeof(real);
+	real* buffer = malloc(bufferSize);
+	cudaMemcpy(buffer, ptr, bufferSize, cudaMemcpyDeviceToHost);
+	(*env)->SetFloatArrayRegion(env, result, 0, size, buffer);
+	data = buffer;
+# endif
+
+	// calculate actual size
+	// (can be different of underlying data array in case of narrowed tensor)
+	int size = 1;
+	int i;
+	for(i=0;i<tensor->nDimension;i++){
+		size *= tensor->size[i];
+	}
+
+	real* narrowed;
+
+	if(size==tensor->storage->size){
+		narrowed = data;
+	} else {
+		// copy right data
+		narrowed = malloc(size*sizeof(real));
+		real* p = narrowed;
+
+		// generic iterate over n-dim tensor data
+		int index[tensor->nDimension];
+		for(i=0;i<tensor->nDimension;i++){
+			index[i] = 0;
+		}
+		int next = 0;
+
+		while(next!=-1){
+			*p++ = data[next];
+
+			int incremented = 0;
+			int dim = tensor->nDimension-1;
+			while(incremented == 0){
+				index[dim]++;
+				if(index[dim]==tensor->size[dim]){
+					index[dim] = 0;
+					next-=tensor->stride[dim]*(tensor->size[dim]-1);
+					dim--;
+				} else {
+					incremented = 1;
+					next+= tensor->stride[dim];
+				}
+				if(dim<0){
+					next = -1;
+					incremented = 1;
+				}
+			}
+		}
+	}
 
 	jfloatArray result;
 	result = (*env)->NewFloatArray(env, size);
 	if (result == NULL) {
 	    return NULL;
 	}
+	(*env)->SetFloatArrayRegion(env, result, 0, size, narrowed);
+
+
 #ifdef CUDA
-	real* buffer = malloc(size*sizeof(real));
-	cudaMemcpy(buffer, ptr, size*sizeof(real), cudaMemcpyDeviceToHost);
-	(*env)->SetFloatArrayRegion(env, result, 0, size, buffer);
 	free(buffer);
-#else
-	(*env)->SetFloatArrayRegion(env, result, 0, size, ptr);
 #endif
+
+	// free in case of narrowed data
+	if(size!=tensor->storage->size){
+		free(narrowed);
+	}
+
 	return result;
 }
 
