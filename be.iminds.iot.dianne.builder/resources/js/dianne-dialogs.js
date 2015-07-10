@@ -613,10 +613,16 @@ function sample(dataset, input){
 }
 
 function render(tensor, canvasCtx){
-	var scale = 256/tensor.width;
-	var width = tensor.width*scale;
-	var height = tensor.height*scale;
+	canvasCtx.clearRect(0,0,256,256);
+	
+	var scaleX = 256/tensor.width;
+	var scaleY = 256/tensor.height;
+	var scale = scaleX < scaleY ? scaleX : scaleY;
+	
+	var width = Math.round(tensor.width*scale);
+	var height = Math.round(tensor.height*scale);
 	var imageData = canvasCtx.createImageData(width, height);
+	
 	if(tensor.channels===1){
 		for (var y = 0; y < height; y++) {
 	        for (var x = 0; x < width; x++) {
@@ -646,7 +652,9 @@ function render(tensor, canvasCtx){
 		}
 	}
 	
-	canvasCtx.putImageData(imageData, 0, 0); 
+	var offsetX = Math.floor((256-width)/2);
+	var offsetY = Math.floor((256-height)/2);
+	canvasCtx.putImageData(imageData, offsetX, offsetY); 
 }
 
 
