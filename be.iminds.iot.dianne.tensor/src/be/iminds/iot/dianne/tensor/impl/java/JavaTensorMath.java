@@ -662,32 +662,44 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 
 		int channels = t.dims.length == 3 ? t.dims[0] : 1;
 		
+		float yy,xx;
+		int x1,x2,y1,y2;
+		int i1, i2, i3, i4;
+		float v1,v2,v3,v4;
+		float dx,dy;
+		float r;
+		
 		for(int c=0;c<channels;c++){
 			for(int y=0;y<y_out;y++){
 				for(int x=0;x<x_out;x++){
 					
-					float yy = y*s_y;
-					float xx = x*s_x;
+					yy = y*s_y;
+					xx = x*s_x;
 					
 					// bilinear interpolation
-					int x1 = (int)xx;
-					int x2 = x1+1;
+					x1 = (int)xx;
+					x2 = x1+1;
 					if(x2==x_in)
 						x2--;
-					int y1 = (int)yy;
-					int y2 = y1+1;
+					y1 = (int)yy;
+					y2 = y1+1;
 					if(y2==y_in)
 						y2--;
 					
-					float v1 = t.data[x_in*y_in*c + x_in*y1+x1];
-					float v2 = t.data[x_in*y_in*c + x_in*y1+x2];
-					float v3 = t.data[x_in*y_in*c + x_in*y2+x1];
-					float v4 = t.data[x_in*y_in*c + x_in*y2+x2];
+					i1 = x_in*y_in*c + x_in*y1+x1;
+					i2 = x_in*y_in*c + x_in*y1+x2;
+					i3 = x_in*y_in*c + x_in*y2+x1;
+					i4 = x_in*y_in*c + x_in*y2+x2;
 					
-					float dx = xx-x1;
-					float dy = yy-y1;
+					v1 = t.data[(t.indices==null? i1 : t.indices[i1])];
+					v2 = t.data[(t.indices==null? i2 : t.indices[i2])];
+					v3 = t.data[(t.indices==null? i3 : t.indices[i3])];
+					v4 = t.data[(t.indices==null? i4 : t.indices[i4])];
 					
-					float r = v1*(1-dy)*(1-dx)
+					dx = xx-x1;
+					dy = yy-y1;
+					
+					r = v1*(1-dy)*(1-dx)
 							 + v2 * (1-dy)*(dx)
 							 + v3 * (dy)*(1-dx)
 							 + v4 * (dx)*(dy);

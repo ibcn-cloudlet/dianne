@@ -1046,10 +1046,10 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sc
 				if(y2==y_in)
 					y2--;
 
-				v1 = src_ptr[x_in*y_in*c + x_in*y1+x1];
-				v2 = src_ptr[x_in*y_in*c + x_in*y1+x2];
-				v3 = src_ptr[x_in*y_in*c + x_in*y2+x1];
-				v4 = src_ptr[x_in*y_in*c + x_in*y2+x2];
+				v1 = src_ptr[c*t->stride[0] + y1*t->stride[1] + x1*t->stride[2]];
+				v2 = src_ptr[c*t->stride[0] + y1*t->stride[1] + x2*t->stride[2]];
+				v3 = src_ptr[c*t->stride[0] + y2*t->stride[1] + x1*t->stride[2]];
+				v4 = src_ptr[c*t->stride[0] + y2*t->stride[1] + x2*t->stride[2]];
 
 				dx = xx-x1;
 				dy = yy-y1;
