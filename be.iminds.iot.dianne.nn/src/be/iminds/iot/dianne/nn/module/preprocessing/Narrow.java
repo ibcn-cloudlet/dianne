@@ -11,17 +11,14 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 public class Narrow extends AbstractModule {
 
 	// narrow ranges - should match the dimensions though
-	private int[] ranges;
+	private final int[] ranges;
 	
-	public Narrow(TensorFactory factory){
+	public Narrow(TensorFactory factory, final int... ranges){
 		super(factory);
+		this.ranges = ranges;
 	}
 	
-	public Narrow(TensorFactory factory, UUID id){
-		super(factory, id);
-	}
-	
-	public Narrow(TensorFactory factory, UUID id, int[] ranges){
+	public Narrow(TensorFactory factory, UUID id, final int... ranges){
 		super(factory, id);
 		this.ranges = ranges;
 	}

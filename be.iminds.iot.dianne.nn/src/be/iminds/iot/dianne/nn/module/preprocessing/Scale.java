@@ -11,17 +11,14 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 public class Scale extends AbstractModule {
 
 	// dims of the scaled tensor
-	private int[] targetDims;
+	private final int[] targetDims;
 	
-	public Scale(TensorFactory factory){
+	public Scale(TensorFactory factory, final int... dims){
 		super(factory);
+		this.targetDims = dims;
 	}
 	
-	public Scale(TensorFactory factory, UUID id){
-		super(factory, id);
-	}
-	
-	public Scale(TensorFactory factory, UUID id, int[] dims){
+	public Scale(TensorFactory factory, UUID id, final int... dims){
 		super(factory, id);
 		this.targetDims = dims;
 	}
