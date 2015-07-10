@@ -21,14 +21,17 @@ import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;
 import be.iminds.iot.dianne.tensor.impl.th.THTensorFactory;
+import be.iminds.iot.dianne.tensor.util.ImageConverter;
 
 @RunWith(Parameterized.class)
 public class SpatialConvolutionTest {
 
 	private TensorFactory factory;
+	private ImageConverter converter;
 
 	public SpatialConvolutionTest(TensorFactory f, String name) {
 		this.factory = f;
+		this.converter = new ImageConverter(f);
 	}
 
 	@Parameters(name="{1}")
@@ -151,11 +154,11 @@ public class SpatialConvolutionTest {
 	@Test
 	public void testSpatialConvolutionLena() throws Exception {
 		
-		Tensor input = readImage("lena.png");
-
-//		writeImage(input.select(0, 0), "r.png");
-//		writeImage(input.select(0, 1), "g.png");
-//		writeImage(input.select(0, 2), "b.png");
+		Tensor input = converter.readFromFile("test/lena.png");
+		
+		//converter.writeToFile("test/r.png", input.select(0, 0));
+		//converter.writeToFile("test/g.png", input.select(0, 1));
+		//converter.writeToFile("test/b.png", input.select(0, 2));
 
 		int noInputPlanes = 3;
 		int noOutputPlanes = 5;
@@ -211,7 +214,7 @@ public class SpatialConvolutionTest {
 			public void onForward(Tensor output) {
 				for(int i=0;i<noOutputPlanes;i++){
 					try {
-//						writeImage(output.select(0, i), "output-"+i+".png");
+						//converter.writeToFile("test/output-"+i+".png", output.select(0, i));
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -228,49 +231,5 @@ public class SpatialConvolutionTest {
 		}
 		long t2 = System.currentTimeMillis();
 		System.out.println("Time "+(t2-t1)+" ms");
-	}
-	
-	private Tensor readImage(String file) throws Exception {
-		BufferedImage img = ImageIO.read(new File("test/"+file));
-
-		Tensor result = factory.createTensor(3, img.getWidth(), img.getHeight());
-		int[] pixels = img.getRGB(0, 0, img.getWidth(), img.getHeight(), null, 0, img.getWidth());
-
-		int k = 0;
-		for(int i=0;i<img.getWidth();i++){
-			for(int j=0;j<img.getHeight();j++){
-				int pixel = pixels[k++];
-				int alpha = (pixel >> 24) & 0xff;
-			    int red = (pixel >> 16) & 0xff;
-			    int green = (pixel >> 8) & 0xff;
-			    int blue = (pixel) & 0xff;
-	
-			    result.set((float)red, 0, i, j);
-			    result.set((float)green, 1, i, j);
-			    result.set((float)blue, 2, i, j);
-			}
-		}
-		return result;
-	}
-	
-	private void writeImage(Tensor mat, String file) throws Exception {
-		int width = mat.dims()[0];
-		int height = mat.dims()[1];
-		BufferedImage frame = new BufferedImage(width, height,
-				BufferedImage.TYPE_INT_RGB);
-		float[] data = mat.get();
-		int k = 0;
-		for (int j = 0; j < height; j++) {
-			for (int i = 0; i < width; i++) {
-				int val = (int)data[k++];
-				final int r = val;
-				final int g = val;
-				final int b = val;
-				final int a = 255;
-				final int col = a << 24 | r << 16 | g << 8 | b;
-				frame.setRGB(i, j, col);
-			}
-		}
-		ImageIO.write(frame, "png", new File("test/"+file));
 	}
 }
