@@ -1,9 +1,5 @@
 package be.iminds.iot.dianne.dataset.imagenet;
 
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.Transparency;
-import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,8 +9,6 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.imageio.ImageIO;
-
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -22,9 +16,9 @@ import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.Sample;
-import be.iminds.iot.dianne.dataset.util.ImageLoader;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.util.ImageConverter;
 
 /**
  * Sample of the Imagenet dataset
@@ -38,7 +32,7 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 public class ImageNetDataset implements Dataset {
 
 	private TensorFactory factory;
-	private ImageLoader imageLoader;
+	private ImageConverter converter;
 
 	private List<Sample> data = new ArrayList<Sample>();
 	private String[] labels;
@@ -55,7 +49,7 @@ public class ImageNetDataset implements Dataset {
 	@Reference
 	void setTensorFactory(TensorFactory f) {
 		this.factory = f;
-		this.imageLoader = new ImageLoader(f);
+		this.converter = new ImageConverter(f);
 	}
 
 	@Activate
@@ -157,7 +151,14 @@ public class ImageNetDataset implements Dataset {
 		// Open JPEG file and convert to size
 		String file = dir + "images/" + "ILSVRC2012_val_"
 				+ String.format("%08d", index+1) + ".JPEG";
-		return imageLoader.loadImageRGB(file, noColumns, noRows);
+		Tensor t = null;
+		try {
+			t = converter.readFromFile(file);
+		} catch(Exception e){
+			e.printStackTrace();
+			System.out.println("Failed to load input sample "+file);
+		}
+		return t;
 	}
 
 	@Override

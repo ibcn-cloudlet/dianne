@@ -11,15 +11,15 @@ import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.Sample;
-import be.iminds.iot.dianne.dataset.util.ImageLoader;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.util.ImageConverter;
 
 @Component(immediate = true, property = {"name=Kaggle (CatvsDog)","aiolos.callback=be.iminds.iot.dianne.api.dataset.Dataset" })
 public class CatvsDogDataset implements Dataset {
 
 	private TensorFactory factory;
-	private ImageLoader imageLoader;
+	private ImageConverter converter;
 	
 	private List<Sample> data = new ArrayList<Sample>();
 	private String[] labels;
@@ -36,7 +36,7 @@ public class CatvsDogDataset implements Dataset {
 	@Reference
 	void setTensorFactory(TensorFactory f) {
 		this.factory = f;
-		this.imageLoader = new ImageLoader(f);
+		this.converter = new ImageConverter(f);
 	}
 	
 	@Activate
@@ -76,7 +76,14 @@ public class CatvsDogDataset implements Dataset {
 	@Override
 	public Tensor getInputSample(int index) {
 		String file = files[index];
-		return imageLoader.loadImageRGB(dir+"train/"+file, noColumns, noRows);
+		Tensor t = null;
+		try {
+			t = converter.readFromFile(file);
+		} catch(Exception e){
+			e.printStackTrace();
+			System.out.println("Failed to load input sample "+file);
+		}
+		return t;
 	}
 
 	@Override
