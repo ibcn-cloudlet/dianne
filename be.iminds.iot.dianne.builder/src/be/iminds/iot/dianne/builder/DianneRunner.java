@@ -60,7 +60,7 @@ public class DianneRunner extends HttpServlet {
 	private Map<String, Dataset> datasets = Collections.synchronizedMap(new HashMap<String, Dataset>());
 
 	// register a forwardlistener for each output?
-	private Map<Output, ServiceRegistration> forwardListeners = Collections.synchronizedMap(new HashMap<Output, ServiceRegistration>());
+	private Map<Module, ServiceRegistration> forwardListeners = Collections.synchronizedMap(new HashMap<Module, ServiceRegistration>());
 	
 	private long t1,t2;
 	
@@ -178,6 +178,22 @@ public class DianneRunner extends HttpServlet {
 			ServiceRegistration r = context.registerService(ForwardListener.class.getName(), listener, properties);
 			
 			forwardListeners.put(output, r);
+		} else if(m instanceof Input){
+			final Input input = (Input) m;
+			final String id  = m.getId().toString();
+			
+			Dictionary<String, Object> properties = new Hashtable<String, Object>();
+			properties.put("targets", new String[]{id});
+			properties.put("aiolos.unique", true);
+		
+			ForwardListener listener = new ForwardListener() {
+				@Override
+				public void onForward(Tensor t) {
+					t1 = System.currentTimeMillis();
+				}
+			};
+			ServiceRegistration r = context.registerService(ForwardListener.class.getName(), listener, properties);
+			forwardListeners.put(input, r);
 		}
 	}
 	
@@ -190,11 +206,9 @@ public class DianneRunner extends HttpServlet {
 			}
 		}
 		
-		if(m instanceof Output){
-			ServiceRegistration r = forwardListeners.get(m);
-			if(r!=null){
-				r.unregister();
-			}
+		ServiceRegistration r = forwardListeners.get(m);
+		if(r!=null){
+			r.unregister();
 		}
 	}
 		
@@ -226,7 +240,6 @@ public class DianneRunner extends HttpServlet {
 
 			float[] data = parseInput(sample.get("data").getAsJsonArray().toString());
 			Tensor t = factory.createTensor(data, channels, height, width);
-			t1 = System.currentTimeMillis();
 			input.input(t);
 		} else if(request.getParameter("mode")!=null){
 			String mode = request.getParameter("mode");
@@ -244,7 +257,6 @@ public class DianneRunner extends HttpServlet {
 				String inputId = request.getParameter("input");
 				Input input = (Input) modules.get(inputId);
 				
-				t1 = System.currentTimeMillis();
 				Tensor t = d.getInputSample(rand.nextInt(d.size()));
 				if(input!=null){
 					input.input(t);
