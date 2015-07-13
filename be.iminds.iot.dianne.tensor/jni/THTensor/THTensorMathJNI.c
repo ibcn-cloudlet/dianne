@@ -998,10 +998,9 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sc
 	THTensor* r;
 
 	jsize noDims = (*env)->GetArrayLength(env, dims);
-	// TODO should equal t->nDimension
 	jint *d = (*env)->GetIntArrayElements(env, dims, 0);
 
-	if(t->nDimension==2){
+	if(noDims==2){
 		r = getTHTensor2(dst, d[0], d[1]);
 	} else {
 		r = getTHTensor3(dst, d[0], d[1], d[2]);
@@ -1029,6 +1028,12 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sc
 	float xx,yy,dx,dy;
 	real v1,v2,v3,v4,v;
 	int x1,x2,y1,y2;
+
+	// strides depend on input dimension
+	int stride_c = noDims == 3 ? t->stride[0] : 0;
+	int stride_y = noDims == 3 ? t->stride[1] : t->stride[0];
+	int stride_x = noDims == 3 ? t->stride[2] : t->stride[1];
+
 	for(c=0;c<channels;c++){
 		for(y=0;y<y_out;y++){
 			for(x=0;x<x_out;x++){
@@ -1046,10 +1051,10 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sc
 				if(y2==y_in)
 					y2--;
 
-				v1 = src_ptr[c*t->stride[0] + y1*t->stride[1] + x1*t->stride[2]];
-				v2 = src_ptr[c*t->stride[0] + y1*t->stride[1] + x2*t->stride[2]];
-				v3 = src_ptr[c*t->stride[0] + y2*t->stride[1] + x1*t->stride[2]];
-				v4 = src_ptr[c*t->stride[0] + y2*t->stride[1] + x2*t->stride[2]];
+				v1 = src_ptr[c*stride_c + y1*stride_y + x1*stride_x];
+				v2 = src_ptr[c*stride_c + y1*stride_y + x2*stride_x];
+				v3 = src_ptr[c*stride_c + y2*stride_y + x1*stride_x];
+				v4 = src_ptr[c*stride_c + y2*stride_y + x2*stride_x];
 
 				dx = xx-x1;
 				dy = yy-y1;
