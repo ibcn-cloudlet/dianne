@@ -16,13 +16,14 @@
 	org.apache.felix.scr;version='[1.8.2,1.8.3)',\
 	kxml;version='[2.2.2,2.2.3)',\
 	com.google.gson;version='[2.2.4,2.3)',\
-	be.iminds.iot.dianne.tensor.java;version=latest,\
+	be.iminds.iot.dianne.tensor.th;version=latest,\
 	be.iminds.iot.dianne.nn;version=latest,\
 	be.iminds.iot.dianne.nn.runtime;version=latest,\
 	be.iminds.iot.dianne.nn.train;version=latest,\
 	be.iminds.iot.dianne.repository;version=latest,\
 	be.iminds.iot.dianne.dataset.mnist;version=latest,\
 	be.iminds.iot.dianne.dataset.imagenet;version=latest,\
+	be.iminds.iot.dianne.dataset.kaggle;version=latest,\
 	be.iminds.iot.dianne.builder;version=latest
 	
 #	be.iminds.iot.dianne.dataset.mnist;version=latest,\
@@ -30,6 +31,7 @@
 #	be.iminds.iot.dianne.dataset.cifar100;version=latest,\
 #	be.iminds.iot.dianne.dataset.stl10;version=latest,\
 #	be.iminds.iot.dianne.dataset.imagenet;version=latest,\
+#	be.iminds.iot.dianne.dataset.kaggle;version=latest,\
 
 	
 -runsystempackages: javax.naming,\
@@ -53,9 +55,10 @@
 	be.iminds.iot.dianne.storage="../tools/nn",\
 	be.iminds.iot.dianne.dataset.mnist.location="../tools/datasets/MNIST/",\
 	be.iminds.iot.dianne.dataset.imagenet.location="../tools/datasets/ImageNet/",\
+	be.iminds.iot.dianne.dataset.kaggle.location="../tools/datasets/Kaggle-CatvsDog/",\
 	be.iminds.iot.dianne.dataset.stl10.location="../tools/datasets/STL-10/",\
 	be.iminds.iot.dianne.dataset.cifar10.location="../tools/datasets/CIFAR-10/"
 	be.iminds.iot.dianne.dataset.cifar100.location="../tools/datasets/CIFAR-100/",\
-	be.iminds.iot.dianne.dataset.cifar100.labels="coarse",\
+	be.iminds.iot.dianne.dataset.cifar100.labels="coarse"
 
 -runvm: -d64 -Xms512m -Xmx4g
