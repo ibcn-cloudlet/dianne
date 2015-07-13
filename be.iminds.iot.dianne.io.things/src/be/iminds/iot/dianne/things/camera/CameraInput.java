@@ -16,30 +16,18 @@ public class CameraInput implements CameraListener {
 	private float[] buffer;
 	
 	// input frame
-	private int frameWidth;
-	private int frameHeight;
-	private int frameChannels;
-	
-	// target - for now hard coded for the MNIST NN
-	private int channels = 1;
-	private int width = 28;
-	private int height = 28;
-	
-	private int subsample = 4;
-	private boolean threshold = true;
+	private int width;
+	private int height;
+	private int channels;
 	
 	public CameraInput(TensorFactory factory, Input input,
-			int frameWidth, int frameHeight, int frameChannels){
+			int width, int height, int channels){
 		this.factory = factory;
 		this.input = input;
 		
-		this.frameWidth = frameWidth;
-		this.frameHeight = frameHeight;
-		this.frameChannels = frameChannels;
-		
-		if(frameChannels==3){
-			channels = 3;
-		}
+		this.width = width;
+		this.height = height;
+		this.channels = channels;
 		
 		this.buffer = new float[channels*width*height];
 	}
@@ -47,34 +35,16 @@ public class CameraInput implements CameraListener {
 	
 	@Override
 	public void nextFrame(UUID id, Format format, byte[] data) {
-		// TODO should have a auto Reshape module
-		// for now fixed coded for MNIST
-		int startX = (frameWidth-width*subsample)/2;
-		int endX = startX+width*subsample;
-		
-		int startY = (frameHeight-height*subsample)/2;
-		int endY = startY+height*subsample;
-		
-
 		int k = 0;
 		for(int c=0;c<channels;c++){
-			for(int y=startY;y<endY;y+=subsample){
-				for(int x=startX;x<endX;x+=subsample){
-					float val = (data[c*frameWidth*frameHeight+y*frameWidth+x] & 0xFF)/255f;
-					if(threshold){
-						buffer[k++] = val > 0.5f ? 0.0f : 1.0f;
-					} else {
-						buffer[k++] = val;
-					}
+			for(int y=0;y<height;y++){
+				for(int x=0;x<width;x++){
+					float val = (data[c*width*height+y*width+x] & 0xFF)/255f;
+					buffer[k++] = val;
 				}
 			}
 		}
-		Tensor in; 
-		if(channels==1){
-			in = factory.createTensor(buffer, height, width);
-		} else {
-			in = factory.createTensor(buffer, channels, height, width);
-		}
+		Tensor in = factory.createTensor(buffer, channels, height, width);
 		input.input(in);
 	}
 

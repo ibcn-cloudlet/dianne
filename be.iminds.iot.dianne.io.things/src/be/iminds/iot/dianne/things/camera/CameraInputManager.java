@@ -106,10 +106,11 @@ public class CameraInputManager implements InputManager {
 		if(cameraId!=null){
 			Camera camera = cameras.get(cameraId);
 			if(camera!=null){
-				camera.start(320, 240, Camera.Format.GRAYSCALE);
+				camera.setFramerate(0.1f); // low framerate for overfeat
+				camera.start(320, 240, Camera.Format.RGB);
 			}
 			
-			CameraInput i = new CameraInput(factory, inputs.get(inputId), 320, 240, 1);
+			CameraInput i = new CameraInput(factory, inputs.get(inputId), 320, 240, 3);
 			Dictionary<String, Object> properties = new Hashtable<String, Object>();
 			properties.put(CameraListener.CAMERA_ID, cameraId.toString());
 			properties.put("aiolos.unique", true);
