@@ -1001,7 +1001,7 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sc
 	jint *d = (*env)->GetIntArrayElements(env, dims, 0);
 
 	if(noDims==2){
-		r = getTHTensor2(dst, d[0], d[1]);
+		r = getTHTensor3(dst, 1, d[0], d[1]);
 	} else {
 		r = getTHTensor3(dst, d[0], d[1], d[2]);
 	}
@@ -1019,24 +1019,28 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sc
 	float s_y = (y_in-1)/(float)(y_out-1);
 	float s_x = (x_in-1)/(float)(x_out-1);
 
-	int channels = t->nDimension == 3 ? t->size[0] : 1;
+	int channels = r->size[0];
 
 	real* src_ptr = THTensor_(data)(t);
 	real* dst_ptr = THTensor_(data)(r);
 
-	int c,y,x;
+	int c,y,x,cc;
 	float xx,yy,dx,dy;
 	real v1,v2,v3,v4,v;
 	int x1,x2,y1,y2;
 
 	// strides depend on input dimension
-	int stride_c = noDims == 3 ? t->stride[0] : 0;
-	int stride_y = noDims == 3 ? t->stride[1] : t->stride[0];
-	int stride_x = noDims == 3 ? t->stride[2] : t->stride[1];
+	int stride_c = t->nDimension == 3 ? t->stride[0] : 0;
+	int stride_y = t->nDimension == 3 ? t->stride[1] : t->stride[0];
+	int stride_x = t->nDimension == 3 ? t->stride[2] : t->stride[1];
 
 	for(c=0;c<channels;c++){
 		for(y=0;y<y_out;y++){
 			for(x=0;x<x_out;x++){
+				cc = c;
+				if(t->nDimension == 2 || cc > t->size[0]){
+					cc = 1;
+				}
 
 				yy = y*s_y;
 				xx = x*s_x;
@@ -1051,10 +1055,10 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sc
 				if(y2==y_in)
 					y2--;
 
-				v1 = src_ptr[c*stride_c + y1*stride_y + x1*stride_x];
-				v2 = src_ptr[c*stride_c + y1*stride_y + x2*stride_x];
-				v3 = src_ptr[c*stride_c + y2*stride_y + x1*stride_x];
-				v4 = src_ptr[c*stride_c + y2*stride_y + x2*stride_x];
+				v1 = src_ptr[cc*stride_c + y1*stride_y + x1*stride_x];
+				v2 = src_ptr[cc*stride_c + y1*stride_y + x2*stride_x];
+				v3 = src_ptr[cc*stride_c + y2*stride_y + x1*stride_x];
+				v4 = src_ptr[cc*stride_c + y2*stride_y + x2*stride_x];
 
 				dx = xx-x1;
 				dy = yy-y1;
@@ -1069,6 +1073,14 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sc
 		}
 	}
 #endif
+
+	if(noDims==2){
+		THTensor_(resize2d)(
+#ifdef CUDA
+			state,
+#endif
+			r, d[0], d[1]);
+	}
 
 	(*env)->ReleaseIntArrayElements(env, dims, d, 0);
 
