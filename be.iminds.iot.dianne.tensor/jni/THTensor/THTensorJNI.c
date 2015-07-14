@@ -177,21 +177,19 @@ JNIEXPORT jfloatArray JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensor_
 			state,
 #endif
 			tensor);
-
 	real* data = ptr;
 
 #ifdef CUDA
 	long bufferSize = tensor->storage->size*sizeof(real);
 	real* buffer = malloc(bufferSize);
 	cudaMemcpy(buffer, ptr, bufferSize, cudaMemcpyDeviceToHost);
-	(*env)->SetFloatArrayRegion(env, result, 0, size, buffer);
 	data = buffer;
 # endif
 
 	// calculate actual size
 	// (can be different of underlying data array in case of narrowed tensor)
-	int size = 1;
 	int i;
+	int size = 1;
 	for(i=0;i<tensor->nDimension;i++){
 		size *= tensor->size[i];
 	}
