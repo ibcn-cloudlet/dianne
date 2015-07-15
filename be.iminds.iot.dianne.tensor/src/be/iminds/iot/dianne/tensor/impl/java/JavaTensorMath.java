@@ -660,18 +660,23 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		float s_y = (y_in-1)/(float)(y_out-1);
 		float s_x = (x_in-1)/(float)(x_out-1); 
 
-		int channels = t.dims.length == 3 ? t.dims[0] : 1;
+		int c_in = t.dims.length == 3 ? t.dims[0] : 1;
+		int c_out = dims.length == 3 ? dims[0] : 1;
 		
 		float yy,xx;
-		int x1,x2,y1,y2;
+		int x1,x2,y1,y2, cc;
 		int i1, i2, i3, i4;
 		float v1,v2,v3,v4;
 		float dx,dy;
 		float r;
 		
-		for(int c=0;c<channels;c++){
+		for(int c=0;c<c_out;c++){
 			for(int y=0;y<y_out;y++){
 				for(int x=0;x<x_out;x++){
+					cc = c;
+					if(cc >= c_in){
+						cc = 0;
+					}
 					
 					yy = y*s_y;
 					xx = x*s_x;
@@ -686,10 +691,10 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 					if(y2==y_in)
 						y2--;
 					
-					i1 = x_in*y_in*c + x_in*y1+x1;
-					i2 = x_in*y_in*c + x_in*y1+x2;
-					i3 = x_in*y_in*c + x_in*y2+x1;
-					i4 = x_in*y_in*c + x_in*y2+x2;
+					i1 = x_in*y_in*cc + x_in*y1+x1;
+					i2 = x_in*y_in*cc + x_in*y1+x2;
+					i3 = x_in*y_in*cc + x_in*y2+x1;
+					i4 = x_in*y_in*cc + x_in*y2+x2;
 					
 					v1 = t.data[(t.indices==null? i1 : t.indices[i1])];
 					v2 = t.data[(t.indices==null? i2 : t.indices[i2])];
