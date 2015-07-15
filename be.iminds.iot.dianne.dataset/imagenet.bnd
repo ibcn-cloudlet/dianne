@@ -1,6 +1,4 @@
 Export-Package: be.iminds.iot.dianne.api.dataset
 -dsannotations: *
-Private-Package: \
-	be.iminds.iot.dianne.dataset.imagenet,\
-	be.iminds.iot.dianne.tensor.util
+Private-Package: be.iminds.iot.dianne.dataset.imagenet
 Bundle-Name: Dianne ImageNet dataset
