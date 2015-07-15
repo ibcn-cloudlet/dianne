@@ -25,9 +25,6 @@ public class CatvsDogDataset implements Dataset {
 	private String[] labels;
 	private int[] outputs;
 	
-	private int noRows;
-	private int noColumns;
-	private int inputSize;
 	private int noSamples;
 	
 	private String dir = "";
@@ -47,11 +44,6 @@ public class CatvsDogDataset implements Dataset {
 			this.dir = d;
 		}
 	
-		// TODO this is configurable here, scaled from JPEG?
-		noRows = 231;
-		noColumns = 231;
-		inputSize = noRows * noColumns * 3;
-	
 		File images = new File(dir + "train/");
 		files = images.list();
 		noSamples = files.length;
@@ -65,7 +57,7 @@ public class CatvsDogDataset implements Dataset {
 
 	@Override
 	public int inputSize() {
-		return inputSize;
+		return -1;
 	}
 
 	@Override

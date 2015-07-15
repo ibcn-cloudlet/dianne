@@ -38,9 +38,6 @@ public class ImageNetDataset implements Dataset {
 	private String[] labels;
 	private int[] outputs;
 
-	private int noRows;
-	private int noColumns;
-	private int inputSize;
 	private int outputSize;
 	private int noSamples;
 
@@ -61,11 +58,6 @@ public class ImageNetDataset implements Dataset {
 		}
 
 		outputSize = 1000;
-
-		// TODO this is configurable here, scaled from JPEG?
-		noRows = 231;
-		noColumns = 231;
-		inputSize = noRows * noColumns * 3;
 
 		File images = new File(dir + "images/");
 		noSamples = images.list().length;
@@ -138,7 +130,7 @@ public class ImageNetDataset implements Dataset {
 
 	@Override
 	public int inputSize() {
-		return inputSize;
+		return -1;
 	}
 
 	@Override
