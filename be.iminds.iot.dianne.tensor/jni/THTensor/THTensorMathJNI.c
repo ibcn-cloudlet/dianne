@@ -1007,7 +1007,7 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sc
 	}
 
 #ifdef CUDA
-	// TODO use cuda kernel
+	THCudaTensor_scale2d(state, r, t);
 #else
 
 	int y_in = t->size[t->nDimension-2];
