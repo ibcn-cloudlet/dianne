@@ -581,7 +581,7 @@ public class TensorMathTest<T extends Tensor<T>> {
 		float[] expdata = new float[]{7.8013414E-5f, 2.1206246E-4f, 5.764455E-4f, 0.0015669414f, 0.004259388f, 0.011578218f, 0.031472858f, 0.0855521f, 0.23255472f, 0.6321493f};
 		T exp = factory.createTensor(expdata, 10);
 		
-		Assert.assertEquals(exp, math.softmax(null, t1));
+		Assert.assertTrue(exp.equals(math.softmax(null, t1), 0.000001f));
 	}
 	
 	@Test
@@ -917,7 +917,7 @@ public class TensorMathTest<T extends Tensor<T>> {
 		exp.fill(1.0f);
 		
 		T result = factory.getTensorMath().scale2D(null, t, new int[]{2, 15, 15});
-		Assert.assertEquals(exp, result);
+		Assert.assertTrue(exp.equals(result, 0.00001f));
 	}
 	
 	@Test
@@ -955,6 +955,6 @@ public class TensorMathTest<T extends Tensor<T>> {
 		exp.fill(1.0f);
 		
 		T result = factory.getTensorMath().scale2D(null, t, new int[]{3, 4, 4});
-		Assert.assertEquals(exp, result);
+		Assert.assertTrue(exp.equals(result, 0.00001f));
 	}
 }
