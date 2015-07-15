@@ -21,6 +21,8 @@ public abstract class DatasetProcessor {
 	private boolean backpropagate;
 	
 	private int index = 0;
+	private Tensor next = null;
+	private Object lock = new Object();
 	private boolean shuffle;
 	private ArrayList<Integer> indices = null;
 	private Random rand = new Random(1234);
@@ -50,6 +52,8 @@ public abstract class DatasetProcessor {
 			Collections.shuffle(indices, rand);
 		}
 		
+		next = data.getInputSample(indices.get(index));
+		
 		final CountDownLatch latch = new CountDownLatch(data.size());
 		
 		// add input and output listeners
@@ -64,11 +68,7 @@ public abstract class DatasetProcessor {
 					// next
 					latch.countDown();
 					
-					index++;
-					if(index < data.size()){
-						Tensor in = data.getInputSample(indices.get(index));
-						input.input(in);
-					} 
+					next();
 				}
 			}
 		};
@@ -78,25 +78,21 @@ public abstract class DatasetProcessor {
 			
 			@Override
 			public void onForward(Tensor output) {
-				DatasetProcessor.this.onForward(indices.get(index), output);
+				// index is already advanced by one so subtract here
+				DatasetProcessor.this.onForward(indices.get(index-1), output);
 				
 				if(!backpropagate){
 					// next
 					latch.countDown();
 					
-					index++;
-					if(index < data.size()){
-						Tensor in = data.getInputSample(indices.get(index));
-						input.input(in);
-					} 
+					next();
 				}
 			}
 		};
 		output.addForwardListener(outputListener);
 		
-		// forward first item
-		Tensor in = data.getInputSample(indices.get(index));
-		input.input(in);
+		// forward first item and load next
+		next();
 		
 		// wait
 		try {
@@ -110,6 +106,22 @@ public abstract class DatasetProcessor {
 		output.removeForwardListener(outputListener);
 		// reset index
 		index = 0;
+	}
+	
+	// forward next sample and load the one after
+	private void next(){
+		// synchronize in case fetching next takes longer then execution?
+		synchronized(lock){
+			if(next!=null)
+				input.input(next);
+
+			index++;
+			if(index < data.size()){
+				next = data.getInputSample(indices.get(index));
+			} else {
+				next = null;
+			}
+		}
 	}
 	
 	/**
