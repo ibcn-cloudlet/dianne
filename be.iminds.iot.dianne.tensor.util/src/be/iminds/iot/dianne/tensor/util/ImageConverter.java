@@ -1,13 +1,17 @@
 package be.iminds.iot.dianne.tensor.util;
 
 import java.awt.image.BufferedImage;
+import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.IOException;
-
-import javax.imageio.ImageIO;
+import java.io.FileOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
+
+import com.idrsolutions.image.jpeg.JpegDecoder;
+import com.idrsolutions.image.jpeg.JpegEncoder;
 
 public class ImageConverter {
 
@@ -40,8 +44,13 @@ public class ImageConverter {
 		return factory.createTensor(imageData, 3, height, width);
 	}
 	
-	public Tensor readFromFile(String fileName) throws IOException{
-		BufferedImage img = ImageIO.read(new File(fileName));
+	public Tensor readFromFile(String fileName) throws Exception{
+		//BufferedImage img = ImageIO.read(new File(fileName));
+
+		// TODO also support png/tiff?
+		byte[] data = Files.readAllBytes(Paths.get(fileName));
+		JpegDecoder decoder = new JpegDecoder();
+		BufferedImage img = decoder.read(data);
 		return readFromImage(img);
 	}
 
@@ -94,7 +103,15 @@ public class ImageConverter {
 	
 	public void writeToFile(String fileName, Tensor t) throws Exception{
 		BufferedImage img = writeToImage(t);
-		String formatName = fileName.substring(fileName.length()-3);
-		ImageIO.write(img, formatName, new File(fileName));
+		
+		// TODO also support png/tiff?
+		JpegEncoder encoder = new JpegEncoder();
+		BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream(new File(fileName)));
+		encoder.write(img, output);
+		output.flush();
+		output.close();
+		
+		//String formatName = fileName.substring(fileName.length()-3);
+		//ImageIO.write(img, formatName, new File(fileName));
 	}
 }

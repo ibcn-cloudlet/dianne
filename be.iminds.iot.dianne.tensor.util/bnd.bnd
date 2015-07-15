@@ -3,7 +3,8 @@ Bundle-Version: 0.1.0.${tstamp}
 Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 -buildpath: \
 	be.iminds.iot.dianne.tensor.api;version=latest,\
-	biz.aQute.junit;version=1.3
+	biz.aQute.junit;version=1.3,\
+	com.idrsolutions.jdeli
 	
 
 Bundle-Name: Dianne Tensor utils
