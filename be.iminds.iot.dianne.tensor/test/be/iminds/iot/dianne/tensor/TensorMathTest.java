@@ -909,6 +909,18 @@ public class TensorMathTest<T extends Tensor<T>> {
 	}
 	
 	@Test
+	public void testScaleUp3(){
+		T t = factory.createTensor(2, 4, 4);
+		t.fill(1.0f);
+		
+		T exp = factory.createTensor(2, 15, 15);
+		exp.fill(1.0f);
+		
+		T result = factory.getTensorMath().scale2D(null, t, new int[]{2, 15, 15});
+		Assert.assertEquals(exp, result);
+	}
+	
+	@Test
 	public void testScaleDown(){
 		float[] data = new float[]{0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0}; 
 		T t = factory.createTensor(data, 4, 4);
