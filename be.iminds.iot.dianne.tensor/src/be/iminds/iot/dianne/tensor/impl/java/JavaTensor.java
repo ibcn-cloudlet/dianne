@@ -164,6 +164,45 @@ public class JavaTensor implements Tensor<JavaTensor> {
 		} 
 		JavaTensor o = (JavaTensor) other;
 		
+		return equals(o);
+
+	}
+	
+	@Override
+	public boolean equals(JavaTensor o){
+		if(!equalSize(o)){
+			return false;
+		}
+		
+		for(int i=0;i< (indices==null? data.length : indices.length);i++){
+			if(data[(indices==null ? i : indices[i])] 
+					!= o.data[(o.indices==null ? i : o.indices[i])]){
+				return false;
+			}
+		}
+
+		return true;
+	}
+	
+	@Override
+	public boolean equals(JavaTensor o, float threshold){
+		if(!equalSize(o)){
+			return false;
+		}
+		
+		for(int i=0;i< (indices==null? data.length : indices.length);i++){
+			float diff = data[(indices==null ? i : indices[i])] - 
+					o.data[(o.indices==null ? i : o.indices[i])];
+			diff = diff < 0 ? -diff : diff;
+			if(diff > threshold){
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	private boolean equalSize(JavaTensor o){
 		if(o.dim() != dim()){
 			return false;
 		}
@@ -177,18 +216,9 @@ public class JavaTensor implements Tensor<JavaTensor> {
 				return false;
 			}
 		}
-		
-		for(int i=0;i< (indices==null? data.length : indices.length);i++){
-			if(data[(indices==null ? i : indices[i])] 
-					!= o.data[(o.indices==null ? i : o.indices[i])]){
-				return false;
-			}
-		}
-
 		return true;
-		
 	}
-
+	
 	@Override
 	public boolean sameDim(final Tensor<?> other) {
 		if(dims.length!=other.dim()){

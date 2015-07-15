@@ -433,24 +433,38 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensor_diag
 
 
 JNIEXPORT jboolean JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensor_equals
-  (JNIEnv * env, jobject o, jlong src, jlong other){
+  (JNIEnv * env, jobject o, jlong src, jlong other, jfloat threshold){
 	THTensor* tensor = (THTensor*) src;
 	THTensor* tensor2 = (THTensor*) other;
 
-	accreal sum;
+	THTensor* diff = THTensor_(new)(
 #ifdef CUDA
-	THCudaTensor* neq = THCudaTensor_new(state);
-	THTensor_(neTensor)(state, neq, tensor, tensor2);
-	sum = THCudaTensor_sumall(state, neq);
-	THCudaTensor_free(state, neq);
-#else
-	THByteTensor* neq = THByteTensor_new();
-	THTensor_(neTensor)(neq, tensor, tensor2);
-	sum = THByteTensor_sumall(neq);
-	THByteTensor_free(neq);
+			state
 #endif
+	);
+	THTensor_(resizeAs)(
+#ifdef CUDA
+			state,
+#endif
+			diff, tensor);
+	THTensor_(cadd)(
+#ifdef CUDA
+			state,
+#endif
+			diff, tensor2, -1.0f, tensor);
+	THTensor_(abs)(
+#ifdef CUDA
+			state,
+#endif
+			diff, diff);
 
-	if(sum==0){
+	real max = THTensor_(maxall)(
+#ifdef CUDA
+			state,
+#endif
+			diff);
+
+	if(max <= threshold){
 		return 1;
 	} else {
 		return 0;

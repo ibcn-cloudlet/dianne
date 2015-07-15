@@ -123,4 +123,18 @@ public interface Tensor<T extends Tensor<T>> {
 	 * return the diag vec of the tensor
 	 */
 	public T diag(T res);
+	
+	/**
+	 * return whether two tensors are equal (note: they have to be the same type to be equal!)
+	 * @param other object to compare to
+	 * @return true if the other object represents an equal tensor
+	 */
+	public boolean equals(T other);
+	
+	/**
+	 * equals with threshold (note: they have to be the same type to be equal!)
+	 * @param other object to compare to
+	 * @return true if the other object represents an equal tensor with values within threshold range
+	 */
+	public boolean equals(T other, float threshold);
 }

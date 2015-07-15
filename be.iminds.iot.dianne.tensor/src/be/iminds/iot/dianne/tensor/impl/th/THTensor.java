@@ -170,10 +170,20 @@ public class THTensor implements Tensor<THTensor> {
 			return false;
 		} 
 		THTensor o = (THTensor) other;
-		if(!this.sameDim(o)){
+		return equals(o);
+	}
+	
+	@Override
+	public boolean equals(THTensor other){
+		return equals(other, 0.0f);
+	}
+	
+	@Override
+	public boolean equals(THTensor other, float threshold){
+		if(!this.sameDim(other)){
 			return false;
 		}
-		return equals(address, o.address);
+		return equals(address, other.address, threshold);
 	}
 	
 	@Override
@@ -226,5 +236,5 @@ public class THTensor implements Tensor<THTensor> {
 
 	private native long diag(long src, long dst);
 	
-	private native boolean equals(long src, long other);
+	private native boolean equals(long src, long other, float threshold);
 }
