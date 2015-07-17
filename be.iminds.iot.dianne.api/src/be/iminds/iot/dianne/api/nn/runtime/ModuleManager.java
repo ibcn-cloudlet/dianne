@@ -12,7 +12,8 @@ public interface ModuleManager {
 	
 	public void undeployModule(UUID moduleId);
 	
+	public List<UUID> getModules();
+	
 	public List<ModuleType> getSupportedModules();
 	
-	// TODO list deployed modules?
 }

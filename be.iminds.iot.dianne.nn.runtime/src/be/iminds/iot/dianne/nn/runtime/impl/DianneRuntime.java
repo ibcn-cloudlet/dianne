@@ -56,7 +56,7 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 	// All known modules by their UUID
 	private Map<UUID, Module> modules = new HashMap<UUID, Module>();
 	// All module service registrations by their UUID
-	private Map<UUID, ServiceRegistration> registrations = new HashMap<UUID, ServiceRegistration>();
+	private Map<UUID, ServiceRegistration> registrations = Collections.synchronizedMap(new HashMap<UUID, ServiceRegistration>());
 	
 	private Map<UUID, List<UUID>> nextMap = new HashMap<UUID, List<UUID>>();
 	private Map<UUID, List<UUID>> prevMap = new HashMap<UUID, List<UUID>>();
@@ -364,6 +364,17 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 			}
 		}
 		System.out.println("Unregistered module "+id);
+	}
+	
+	@Override
+	public List<UUID> getModules(){
+		List<UUID> modules = new ArrayList<UUID>();
+		synchronized(registrations){
+			for(UUID m : registrations.keySet()){
+				modules.add(m);
+			}
+		}
+		return modules;
 	}
 
 	@Override
