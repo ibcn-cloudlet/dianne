@@ -47,6 +47,7 @@ aiolos.version='latest'
 	be.iminds.aiolos.proxymanager;version=${aiolos.version},\
 	be.iminds.aiolos.configurer;version=${aiolos.version},\
 	be.iminds.iot.dianne.tensor.th;version=latest,\
+	be.iminds.iot.dianne.tensor.util;version=latest,\
 	be.iminds.iot.dianne.nn;version=latest,\
 	be.iminds.iot.dianne.nn.runtime;version=latest,\
 	be.iminds.iot.dianne.nn.train;version=latest,\
@@ -65,13 +66,13 @@ aiolos.version='latest'
 	javax.xml.parsers,\
 	org.xml.sax,\
 	org.xml.sax.helpers,\
+	javax.xml.bind,\
 	javax.annotation,\
 	javax.management,\
 	javax.management.modelmbean,\
 	javax.management.remote,\
 	javax.security.auth,\
-	javax.security.cert,\
-	javax.imageio
+	javax.security.cert
 
 -runproperties: \
 #	rsa.interface=eth1,\
