@@ -7,13 +7,18 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 	osgi.core;version=5.0,\
 	osgi.enterprise;version=5.0,\
 	be.iminds.iot.dianne.tensor.api;version=latest,\
-	be.iminds.iot.dianne.api;version=latest
-Private-Package: be.iminds.iot.dianne.nn.runtime.impl
+	be.iminds.iot.dianne.api;version=latest,\
+	be.iminds.iot.dianne.nn.train;version=latest
+Private-Package: \
+	be.iminds.iot.dianne.nn.runtime.impl,\
+	be.iminds.iot.dianne.nn.runtime.command
 -dsannotations: *
 Export-Package: \
 	be.iminds.iot.dianne.nn.runtime.util,\
 	be.iminds.iot.dianne.api.nn.runtime
 Import-Package: \
 	com.google.gson;version:='[2.2,3)';resolution:=optional,\
+	be.iminds.iot.dianne.api.nn.train.api;resolution:=optional,\
+	be.iminds.iot.dianne.nn.train.eval;resolution:=optional,\
 	*
 Bundle-Name: Dianne Runtime
