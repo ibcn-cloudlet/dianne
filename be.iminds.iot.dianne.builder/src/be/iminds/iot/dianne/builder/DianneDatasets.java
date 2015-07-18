@@ -41,20 +41,14 @@ public class DianneDatasets extends HttpServlet {
 
 	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
 			policy=ReferencePolicy.DYNAMIC)
-	public void addDataset(Dataset dataset){
-		this.datasets.put(dataset.getName(), dataset);
+	public void addDataset(Dataset dataset, Map<String, Object> properties){
+		String name = (String) properties.get("name");
+		this.datasets.put(name, dataset);
 	}
 	
-	public void removeDataset(Dataset dataset){
-		synchronized(datasets){
-			Iterator<Entry<String, Dataset>> it = datasets.entrySet().iterator();
-			while(it.hasNext()){
-				Entry<String, Dataset> e = it.next();
-				if(e.getValue()==dataset){
-					it.remove();
-				}
-			}
-		}
+	public void removeDataset(Dataset dataset, Map<String, Object> properties){
+		String name = (String) properties.get("name");
+		datasets.remove(name);
 	}
 	
 	@Override
