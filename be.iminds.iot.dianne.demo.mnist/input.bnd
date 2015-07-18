@@ -1,2 +1,0 @@
-Bundle-Version: 0.1.0.${tstamp}
-Include-Resource: configuration/be.iminds.iot.dianne.nn.module-input.cfg=configuration/input.cfg

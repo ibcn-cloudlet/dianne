@@ -1,5 +1,0 @@
-Bundle-Version: 0.1.0.${tstamp}
-Include-Resource: configuration/be.iminds.iot.dianne.nn.module-linear1.cfg=configuration/linear1.cfg,\
-  configuration/be.iminds.iot.dianne.nn.module-linear2.cfg=configuration/linear2.cfg,\
-  configuration/be.iminds.iot.dianne.nn.module-sigmoid1.cfg=configuration/sigmoid1.cfg,\
-  configuration/be.iminds.iot.dianne.nn.module-sigmoid2.cfg=configuration/sigmoid2.cfg,\
