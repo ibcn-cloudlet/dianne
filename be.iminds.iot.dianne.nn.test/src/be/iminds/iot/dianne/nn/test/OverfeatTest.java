@@ -42,7 +42,7 @@ public class OverfeatTest extends AbstractDianneTest {
 		getOutput().addForwardListener(new ForwardListener() {
 			
 			@Override
-			public void onForward(Tensor output) {
+			public void onForward(Tensor output, String... tags) {
 				output.copyInto(result);
 			
 				synchronized(lock){
@@ -55,7 +55,7 @@ public class OverfeatTest extends AbstractDianneTest {
 		for(Module m : getModules()){
 			m.addForwardListener(new ForwardListener() {
 				@Override
-				public void onForward(Tensor output) {
+				public void onForward(Tensor output, String... tags) {
 					try {
 						File f = new File("out_"+m.getId()+".txt");
 						PrintWriter writer = new PrintWriter(f);

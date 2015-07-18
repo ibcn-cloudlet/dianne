@@ -45,7 +45,7 @@ public class ActivationTest {
 
 		m.addForwardListener(new ForwardListener() {
 			@Override
-			public void onForward(Tensor output) {
+			public void onForward(Tensor output, String... tags) {
 				System.out.println(output);
 				output.copyInto(out);
 
@@ -55,7 +55,7 @@ public class ActivationTest {
 
 		m.addBackwardListener(new BackwardListener() {
 			@Override
-			public void onBackward(Tensor gradInput) {
+			public void onBackward(Tensor gradInput, String... tags) {
 				System.out.println(gradInput);
 				gradInput.copyInto(gradIn);
 				synchronized (m) {

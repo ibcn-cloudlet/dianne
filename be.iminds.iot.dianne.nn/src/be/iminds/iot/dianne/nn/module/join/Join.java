@@ -38,8 +38,9 @@ public abstract class Join extends AbstractModule {
 	}
 	
 	@Override
-	public void forward(final UUID moduleId, final Tensor input) {
+	public void forward(final UUID moduleId, final Tensor input, final String... tags) {
 		this.inputs.put(moduleId, input);
+		this.tags = tags;
 		
 		// when in wait-for-all mode, wait for input from each prev
 		if(mode==Mode.WAIT_FOR_ALL && prev!=null && prev.length>1){
@@ -96,7 +97,7 @@ public abstract class Join extends AbstractModule {
 		}
 		
 		public void run(){
-			m.backward(id, gradInputs.get(prevId));
+			m.backward(id, gradInputs.get(prevId), tags);
 		}
 	}
 }

@@ -37,7 +37,8 @@ public abstract class Fork extends AbstractModule {
 	}
 	
 	@Override
-	public void backward(final UUID moduleId, final Tensor gradOutput) {
+	public void backward(final UUID moduleId, final Tensor gradOutput, final String... tags) {
+		this.tags = tags;
 		this.gradOutputs.put(moduleId, gradOutput);
 		
 		// when wait-for-all mode, wait until all gradOutput is updated
@@ -96,7 +97,7 @@ public abstract class Fork extends AbstractModule {
 		}
 		
 		public void run(){
-			m.forward(id, outputs.get(nextId));
+			m.forward(id, outputs.get(nextId), tags);
 		}
 	}
 	

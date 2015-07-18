@@ -116,7 +116,7 @@ public class SpatialConvolutionTest {
 		
 		conv.addForwardListener(new ForwardListener() {
 			@Override
-			public void onForward(Tensor o) {
+			public void onForward(Tensor o, String... tags) {
 				o.copyInto(output);
 //				System.out.println("OUTPUT CONV "+output);
 				o.fill(0.1f);
@@ -126,7 +126,7 @@ public class SpatialConvolutionTest {
 		
 		conv.addBackwardListener(new BackwardListener() {
 			@Override
-			public void onBackward(Tensor gi) {
+			public void onBackward(Tensor gi, String... tags) {
 				gi.copyInto(gradInput);
 //				System.out.println("BACKWARD CONV "+gradInput);
 			}
@@ -211,7 +211,7 @@ public class SpatialConvolutionTest {
 		conv.addForwardListener(new ForwardListener() {
 			
 			@Override
-			public void onForward(Tensor output) {
+			public void onForward(Tensor output, String... tags) {
 				for(int i=0;i<noOutputPlanes;i++){
 					try {
 						//converter.writeToFile("test/output-"+i+".png", output.select(0, i));

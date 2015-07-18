@@ -54,7 +54,7 @@ public class FrameTest {
 		frame.addForwardListener(new ForwardListener() {
 			
 			@Override
-			public void onForward(Tensor output) {
+			public void onForward(Tensor output, String... tags) {
 				System.out.println(Arrays.toString(output.dims()));
 				try {
 					converter.writeToFile("test/framed-"+factory.getClass().getName()+".png", output);

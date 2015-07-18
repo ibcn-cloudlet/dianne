@@ -19,6 +19,11 @@ public abstract class AbstractModule implements Module {
 	// the UUID of this module
 	protected final UUID id;
 	
+	// the tags to forward/backward
+	// these are set in each forward/backward call and can be
+	// adapter/filtered by the actual module implementations
+	protected String[] tags;
+	
 	// the latest input given by the previous module
 	// contains the Tensor (reference) given by previous
 	protected Tensor input;
@@ -82,8 +87,9 @@ public abstract class AbstractModule implements Module {
 	}
 	
 	@Override
-	public synchronized void forward(final UUID moduleId, final Tensor input) {
+	public synchronized void forward(final UUID moduleId, final Tensor input, final String... tags) {
 		this.input = input;
+		this.tags = tags;
 		
 		// calculates new outputs
 		if(output!=null){
@@ -108,8 +114,9 @@ public abstract class AbstractModule implements Module {
 	protected abstract void forward();
 	
 	@Override
-	public void backward(final UUID moduleId, final Tensor gradOutput) {
+	public void backward(final UUID moduleId, final Tensor gradOutput, final String... tags) {
 		this.gradOutput = gradOutput;
+		this.tags = tags;
 		
 		// calculates new gradInputs
 		backward();
@@ -167,7 +174,7 @@ public abstract class AbstractModule implements Module {
 			public void run() {
 				synchronized (fwdListeners) {
 					for(ForwardListener f : fwdListeners){
-						f.onForward(AbstractModule.this.output);
+						f.onForward(AbstractModule.this.output, tags);
 					}
 				}
 			}
@@ -189,7 +196,7 @@ public abstract class AbstractModule implements Module {
 			public void run() {
 				synchronized (bwListeners) {
 					for(BackwardListener b : bwListeners){
-						b.onBackward(AbstractModule.this.gradInput);
+						b.onBackward(AbstractModule.this.gradInput, tags);
 					}
 				}
 			}
@@ -205,7 +212,7 @@ public abstract class AbstractModule implements Module {
 		}
 		
 		public void run(){
-			m.forward(id, output);
+			m.forward(id, output, tags);
 		}
 	}
 	
@@ -217,7 +224,7 @@ public abstract class AbstractModule implements Module {
 		}
 		
 		public void run(){
-			m.backward(id, gradInput);
+			m.backward(id, gradInput, tags);
 		}
 	}
 }

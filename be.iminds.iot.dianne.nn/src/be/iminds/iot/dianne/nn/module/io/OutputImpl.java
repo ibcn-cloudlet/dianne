@@ -26,8 +26,13 @@ public class OutputImpl extends AbstractModule implements Output {
 	}
 	
 	@Override
-	public void backpropagate(Tensor gradOutput) {
-		backward(this.id, gradOutput);
+	public String[] getTags(){
+		return tags;
+	}
+	
+	@Override
+	public void backpropagate(final Tensor gradOutput, final String... tags) {
+		backward(this.id, gradOutput, tags);
 	}
 	
 	@Override

@@ -60,7 +60,7 @@ public abstract class DatasetProcessor {
 		BackwardListener inputListener = new BackwardListener() {
 			
 			@Override
-			public void onBackward(Tensor gradInput) {
+			public void onBackward(final Tensor gradInput, final String... tags) {
 				DatasetProcessor.this.onBackward(indices.get(index), gradInput);
 				
 				// if backpropagate, forward next
@@ -77,7 +77,7 @@ public abstract class DatasetProcessor {
 		ForwardListener outputListener = new ForwardListener() {
 			
 			@Override
-			public void onForward(Tensor output) {
+			public void onForward(final Tensor output, final String... tags) {
 				// index is already advanced by one so subtract here
 				DatasetProcessor.this.onForward(indices.get(index-1), output);
 				

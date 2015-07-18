@@ -4,6 +4,6 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 public interface Input extends Module {
 
-	public void input(Tensor input);
+	public void input(final Tensor input, final String... tags);
 	
 }

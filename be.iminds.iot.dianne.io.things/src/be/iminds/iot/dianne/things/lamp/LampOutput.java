@@ -25,7 +25,7 @@ public class LampOutput implements ForwardListener {
 	}
 	
 	@Override
-	public void onForward(Tensor output) {
+	public void onForward(final Tensor output, final String... tags) {
 		if(output.size(0)==1){
 			// on/off of lamp
 			float v = output.get(0);

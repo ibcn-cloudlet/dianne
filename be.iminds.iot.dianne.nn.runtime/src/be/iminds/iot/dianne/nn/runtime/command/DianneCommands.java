@@ -1,5 +1,6 @@
 package be.iminds.iot.dianne.nn.runtime.command;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashMap;
@@ -157,16 +158,20 @@ public class DianneCommands {
 		this.dataset = null;
 	}
 	
-	public void sample(){
+	public void sample(String... tags){
 		if(dataset==null){
 			System.out.println("No dataset loaded, load one first with loadDataset");
 			return;
 		}
 		int index = rand.nextInt(dataset.size());
-		sample(index);
+		sample(index, tags);
 	}
 	
-	public void sample(final int index){
+	public void sample(){
+		sample(null);
+	}
+	
+	public void sample(final int index, final String... tags){
 		if(network==null){
 			System.out.println("No neural network loaded, load one first with loadNN");
 			return;
@@ -184,10 +189,10 @@ public class DianneCommands {
 		final ForwardListener printer = new ForwardListener() {
 			
 			@Override
-			public void onForward(Tensor output) {
+			public void onForward(Tensor output, String... tags) {
 				int clazz = factory.getTensorMath().argmax(output);
 				String label = dataset.getLabels()[clazz];
-				System.out.println("Sample "+index+" classified as: "+label);
+				System.out.println("Sample "+index+"( with tags "+Arrays.toString(tags)+") classified as: "+label);
 				
 				synchronized(DianneCommands.this.output){
 					DianneCommands.this.output.notifyAll();
@@ -198,7 +203,7 @@ public class DianneCommands {
 		output.addForwardListener(printer);
 		Tensor t = dataset.getInputSample(index);
 		long t1 = System.currentTimeMillis();
-		input.input(t);
+		input.input(t, tags);
 		synchronized(output){
 			try {
 				output.wait();

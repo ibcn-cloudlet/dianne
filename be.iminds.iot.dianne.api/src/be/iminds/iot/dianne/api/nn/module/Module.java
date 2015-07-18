@@ -10,9 +10,9 @@ public interface Module {
 	
 	public UUID getId();
 
-	public void forward(final UUID moduleId, final Tensor input);
+	public void forward(final UUID moduleId, final Tensor input, final String... tags);
 	
-	public void backward(final UUID moduleId, final Tensor gradOutput);
+	public void backward(final UUID moduleId, final Tensor gradOutput, final String... tags);
 	
 	public void setNext(final Module... next);
 	

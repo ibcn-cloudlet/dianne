@@ -102,7 +102,7 @@ public class DianneRunner extends HttpServlet {
 		
 			ForwardListener listener = new ForwardListener() {
 				@Override
-				public void onForward(Tensor t) {
+				public void onForward(Tensor t, String... tags) {
 					if(sse!=null){
 						t2 = System.currentTimeMillis();
 						System.out.println("FORWARD TIME "+(t2-t1)+" ms.");
@@ -150,6 +150,14 @@ public class DianneRunner extends HttpServlet {
 							}
 							data.add("labels", l);
 							
+							if(tags!=null){
+								JsonArray ta = new JsonArray();
+								for(String tt : tags){
+									ta.add(new JsonPrimitive(tt));
+								}
+								data.add("tags",ta);
+							}
+							
 							data.add("id", new JsonPrimitive(id));
 							
 							StringBuilder builder = new StringBuilder();
@@ -182,7 +190,7 @@ public class DianneRunner extends HttpServlet {
 		
 			ForwardListener listener = new ForwardListener() {
 				@Override
-				public void onForward(Tensor t) {
+				public void onForward(Tensor t, String... tags) {
 					t1 = System.currentTimeMillis();
 				}
 			};

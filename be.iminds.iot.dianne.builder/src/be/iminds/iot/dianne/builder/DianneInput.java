@@ -108,7 +108,7 @@ public class DianneInput extends HttpServlet {
 				
 				ForwardListener inputListener = new ForwardListener(){
 					@Override
-					public void onForward(Tensor output) {
+					public void onForward(Tensor output, String... tags) {
 						if(sse!=null){
 							try {
 								JsonObject data = new JsonObject();
@@ -122,6 +122,14 @@ public class DianneInput extends HttpServlet {
 									data.add("height", new JsonPrimitive(output.dims()[0]));
 									data.add("width", new JsonPrimitive(output.dims()[1]));
 								}
+								if(tags!=null){
+									JsonArray ta = new JsonArray();
+									for(String t : tags){
+										ta.add(new JsonPrimitive(t));
+									}
+									data.add("tags",ta);
+								}
+								
 								data.add("data", parser.parse(Arrays.toString(output.get())));
 								
 								StringBuilder builder = new StringBuilder();
