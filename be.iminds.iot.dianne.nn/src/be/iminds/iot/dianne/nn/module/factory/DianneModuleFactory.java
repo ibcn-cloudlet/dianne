@@ -24,6 +24,7 @@ import be.iminds.iot.dianne.nn.module.activation.Softmax;
 import be.iminds.iot.dianne.nn.module.activation.Tanh;
 import be.iminds.iot.dianne.nn.module.activation.Threshold;
 import be.iminds.iot.dianne.nn.module.fork.Duplicate;
+import be.iminds.iot.dianne.nn.module.fork.Grid;
 import be.iminds.iot.dianne.nn.module.fork.Split;
 import be.iminds.iot.dianne.nn.module.io.InputImpl;
 import be.iminds.iot.dianne.nn.module.io.OutputImpl;
@@ -122,6 +123,15 @@ public class DianneModuleFactory implements ModuleFactory {
 		}
 		{
 			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
+			properties.add(new ModuleProperty("X", "x"));
+			properties.add(new ModuleProperty("Y", "y"));
+			properties.add(new ModuleProperty("Stride X", "strideX"));
+			properties.add(new ModuleProperty("Stride Y", "strideY"));	
+			ModuleType type = new ModuleType("Grid", "Fork", properties, false);
+			supportedModules.put(type.getType(), type);
+		}
+		{
+			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
 			properties.add(new ModuleProperty("Input planes", "noInputPlanes"));
 			properties.add(new ModuleProperty("Output planes", "noOutputPlanes"));
 			properties.add(new ModuleProperty("Kernel width", "kernelWidth"));
@@ -194,51 +204,89 @@ public class DianneModuleFactory implements ModuleFactory {
 
 		switch(type){
 		case "Linear":
+		{
 			int input = Integer.parseInt((String)config.get("module.linear.input"));
 			int output = Integer.parseInt((String)config.get("module.linear.output"));
 			
 			module = new Linear(factory, id, input, output);
 			break;
+		}
 		case "Tanh":
+		{
 			module = new Tanh(factory, id);
 			break;
+		}
 		case "Sigmoid":
+		{
 			module = new Sigmoid(factory, id);
 			break;
+		}
 		case "Softmax":
+		{
 			module = new Softmax(factory, id);
 			break;
+		}
 		case "ReLU":
+		{
 			module = new ReLU(factory, id);
 			break;
+		}
 		case "PReLU":
+		{
 			module = new PReLU(factory, id);
 			break;
+		}
 		case "Threshold":
+		{
 			float thresh = Float.parseFloat((String)config.get("module.threshold.thresh"));
 			float val = Float.parseFloat((String)config.get("module.threshold.val"));
 			
 			module = new Threshold(factory, id, thresh, val);
 			break;
+		}
 		case "Input":
+		{
 			module = new InputImpl(factory, id);
 			break;
+		}
 		case "Output":
+		{
 			module = new OutputImpl(factory, id);
 			break;
+		}
 		case "Duplicate":
+		{
 			module = new Duplicate(factory, id);
 			break;
+		}
 		case "Accumulate":
+		{
 			module = new Accumulate(factory, id);
 			break;
+		}
 		case "Split":
+		{
 			module = new Split(factory, id);
 			break;
+		}
 		case "Concat":
+		{
 			module = new Concat(factory, id);
 			break;
+		}
+		case "Grid":
+		{
+			int x = Integer.parseInt((String)config.get("module.grid.x"));
+			int y = Integer.parseInt((String)config.get("module.grid.y"));
+			
+			int strideX = hasProperty(config,"module.grid.strideX") ? Integer.parseInt((String)config.get("module.grid.strideX")) : 1;
+			int strideY = hasProperty(config,"module.grid.strideY") ? Integer.parseInt((String)config.get("module.grid.strideY")) : 1;
+
+			module = new Grid(factory, id, x, y, strideX, strideY);
+			break;
+		}
 		case "Convolution":
+		{
 			int noInputPlanes = Integer.parseInt((String)config.get("module.convolution.noInputPlanes"));
 			int noOutputPlanes = Integer.parseInt((String)config.get("module.convolution.noOutputPlanes"));
 			int kernelWidth = Integer.parseInt((String)config.get("module.convolution.kernelWidth"));
@@ -251,7 +299,9 @@ public class DianneModuleFactory implements ModuleFactory {
 
 			module = new SpatialConvolution(factory, id, noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY, pad);
 			break;
+		}
 		case "MaxPooling":
+		{
 			int width = Integer.parseInt((String)config.get("module.maxpooling.width"));
 			int height = Integer.parseInt((String)config.get("module.maxpooling.height"));
 
@@ -260,10 +310,14 @@ public class DianneModuleFactory implements ModuleFactory {
 			
 			module = new SpatialMaxPooling(factory, id, width, height, sx, sy);
 			break;
+		}
 		case "Normalization":
+		{
 			module = new Normalization(factory, id);
 			break;
+		}
 		case "Narrow":
+		{
 			int[] ranges;
 			
 			int index0 = Integer.parseInt((String)config.get("module.narrow.index0"));
@@ -282,8 +336,10 @@ public class DianneModuleFactory implements ModuleFactory {
 			}
 			
 			module = new Narrow(factory, id, ranges);
-			break;	
+			break;
+		}
 		case "Scale":
+		{
 			int[] sdims;
 			
 			int sdim0 = Integer.parseInt((String)config.get("module.scale.dim0"));
@@ -299,7 +355,9 @@ public class DianneModuleFactory implements ModuleFactory {
 			
 			module = new Scale(factory, id, sdims);
 			break;
+		}
 		case "Frame":
+		{
 			int[] fdims;
 			
 			int fdim0 = Integer.parseInt((String)config.get("module.frame.dim0"));
@@ -314,13 +372,16 @@ public class DianneModuleFactory implements ModuleFactory {
 			}
 			
 			module = new Frame(factory, id, fdims);
-			break;		
+			break;
+		}
 		case "Masked MaxPooling":
+		{
 			int noInputs = Integer.parseInt((String)config.get("module.maskedmaxpooling.noInputs"));
 			String masks = (String)config.get("module.maskedmaxpooling.masks");
 			
 			module = new MaskedMaxPooling(factory, id, noInputs, masks);
 			break;
+		}
 		default:
 			throw new InstantiationException("Could not instantiate module of type "+type);
 		}
