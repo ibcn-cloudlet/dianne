@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
 import be.iminds.iot.dianne.api.nn.module.Module;
+import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -42,11 +43,27 @@ public abstract class Join extends AbstractModule {
 	
 	@Override
 	public void forward(final UUID moduleId, final Tensor input, final String... tags) {
+		synchronized(nextBusy){
+			if(nextBusy.get()){
+				// next is busy, either block or skip
+				if(mode.contains(Mode.SKIP)){
+					System.out.println("Module "+id+" skipped input");
+					return;
+				} else {
+					// default mode BLOCKING
+					try {
+						nextBusy.wait();
+					} catch (InterruptedException e) {
+					}
+				}
+			}
+		}
+		
 		this.inputs.put(moduleId, input);
 		this.tags = tags;
 		
 		// when in wait-for-all mode, wait for input from each prev
-		if(mode==Mode.WAIT_FOR_ALL && prev!=null && prev.length>1){
+		if(mode.contains(Mode.WAIT_FOR_ALL) && prev!=null && prev.length>1){
 			synchronized(prevLock){
 				prevLock.get(moduleId).set(true);
 				for(AtomicBoolean b : prevLock.values()){

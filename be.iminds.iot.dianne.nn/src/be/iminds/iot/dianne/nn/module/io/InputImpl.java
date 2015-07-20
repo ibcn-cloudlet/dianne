@@ -1,5 +1,6 @@
 package be.iminds.iot.dianne.nn.module.io;
 
+import java.util.EnumSet;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
@@ -12,10 +13,16 @@ public class InputImpl extends AbstractModule implements Input {
 
 	public InputImpl(TensorFactory factory) {
 		super(factory);
+		
+		// Set default mode to SKIP for input
+		this.mode = EnumSet.of(Mode.SKIP);
 	}
 
 	public InputImpl(TensorFactory factory, UUID id) {
 		super(factory, id);
+		
+		// Set default mode to SKIP for input
+		this.mode = EnumSet.of(Mode.SKIP);
 	}
 	
 	@Override

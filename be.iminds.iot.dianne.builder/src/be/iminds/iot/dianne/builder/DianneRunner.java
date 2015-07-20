@@ -6,12 +6,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Dictionary;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Random;
 import java.util.Map.Entry;
+import java.util.Random;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletException;
@@ -249,7 +250,7 @@ public class DianneRunner extends HttpServlet {
 
 			Module m = modules.get(targetId);
 			if(m!=null){
-				m.setMode(Mode.valueOf(mode));
+				m.setMode(EnumSet.of(Mode.valueOf(mode)));
 			}
 		} else if(request.getParameter("dataset")!=null){
 			String dataset = request.getParameter("dataset");

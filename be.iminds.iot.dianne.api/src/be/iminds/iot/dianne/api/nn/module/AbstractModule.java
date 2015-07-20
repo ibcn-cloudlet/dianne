@@ -2,12 +2,14 @@ package be.iminds.iot.dianne.api.nn.module;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
@@ -44,6 +46,10 @@ public abstract class AbstractModule implements Module {
 	// The prev module references
 	protected Module[] prev;
 	
+	// Boolean that indicates whether the next Module is still busy processing this module output
+	// Can be used to either skip or block here
+	protected AtomicBoolean nextBusy = new AtomicBoolean();
+	
 	// Thread executor to perform calculations on
 	protected ExecutorService executor = Executors.newSingleThreadExecutor();
 	
@@ -52,7 +58,7 @@ public abstract class AbstractModule implements Module {
 	protected Set<BackwardListener> bwListeners = Collections.synchronizedSet(new HashSet<BackwardListener>());
 
 	// Mode
-	protected Mode mode;
+	protected EnumSet<Mode> mode = EnumSet.of(Mode.BLOCKING);
 	
 	public void setExecutorService(ExecutorService executor){
 		List<Runnable> todo = this.executor.shutdownNow();
@@ -78,6 +84,7 @@ public abstract class AbstractModule implements Module {
 	}
 	
 	protected void callNext(){
+		nextBusy.set(true);
 		// default AbstractModule just assumes one next and one previous, use Fork otherwise
 		executor.execute(new ForwardRunnable(next[0], output, tags));
 	}
@@ -89,6 +96,23 @@ public abstract class AbstractModule implements Module {
 	
 	@Override
 	public synchronized void forward(final UUID moduleId, final Tensor input, final String... tags) {
+		// skip or block when next is not ready processing previous output of this module
+		synchronized(nextBusy){
+			if(nextBusy.get()){
+				// next is busy, either block or skip
+				if(mode.contains(Mode.SKIP)){
+					System.out.println("Module "+id+" skipped input");
+					return;
+				} else {
+					// default mode BLOCKING
+					try {
+						nextBusy.wait();
+					} catch (InterruptedException e) {
+					}
+				}
+			}
+		}
+		
 		this.input = input;
 		this.tags = tags;
 		
@@ -144,7 +168,7 @@ public abstract class AbstractModule implements Module {
 	}
 
 	@Override
-	public void setMode(Mode mode){
+	public void setMode(EnumSet<Mode> mode){
 		this.mode = mode;
 	}
 	
@@ -209,6 +233,11 @@ public abstract class AbstractModule implements Module {
 		
 		public void run(){
 			m.forward(id, tensor, tags);
+			
+			synchronized(nextBusy){
+				nextBusy.set(false);
+				nextBusy.notifyAll();
+			}
 		}
 	}
 	
@@ -227,4 +256,5 @@ public abstract class AbstractModule implements Module {
 			m.backward(id, tensor, tags);
 		}
 	}
+	
 }
