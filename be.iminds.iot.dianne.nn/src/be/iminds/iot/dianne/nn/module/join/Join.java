@@ -31,9 +31,12 @@ public abstract class Join extends AbstractModule {
 	}
 	
 	protected void callPrevious(){
-		// call all previous, BackwardJoinRunnable will make sure each gets part of the gradInputs
-		for(Runnable r : prev){
-			executor.execute(r);
+		// call all previous
+		for(int i=0; i< next.length;i++){
+			UUID id = prevIds[i];
+			Module m = prev[i];
+			
+			executor.execute(new BackwardRunnable(m, gradInputs.get(id), tags));
 		}
 	}
 	
@@ -72,7 +75,7 @@ public abstract class Join extends AbstractModule {
 			this.prev = null;
 			this.prevIds = null;
 		} else {
-			this.prev = new BackwardJoinRunnable[prev.length];
+			this.prev = prev;
 			this.prevIds = new UUID[prev.length];
 			for(int i=0;i<prev.length;i++){
 				// make sure that UUIDs are in keys
@@ -82,22 +85,7 @@ public abstract class Join extends AbstractModule {
 				inputs.put(id, null);
 				gradInputs.put(id, null);
 				prevLock.put(id, new AtomicBoolean(false));
-				this.prev[i] = new BackwardJoinRunnable(prev[i], id);
 			}
-		}
-	}
-	
-	private final class BackwardJoinRunnable implements Runnable {
-		private final Module m;
-		private final UUID prevId;
-		
-		public BackwardJoinRunnable(Module m, UUID id){
-			this.m = m;
-			this.prevId = id;
-		}
-		
-		public void run(){
-			m.backward(id, gradInputs.get(prevId), tags);
 		}
 	}
 }

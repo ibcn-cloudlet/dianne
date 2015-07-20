@@ -1,5 +1,6 @@
 package be.iminds.iot.dianne.api.nn.module;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -39,9 +40,9 @@ public abstract class AbstractModule implements Module {
 	protected Tensor gradOutput;
 	
 	// The next module reference
-	protected Runnable[] next;
+	protected Module[] next;
 	// The prev module references
-	protected Runnable[] prev;
+	protected Module[] prev;
 	
 	// Thread executor to perform calculations on
 	protected ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -78,12 +79,12 @@ public abstract class AbstractModule implements Module {
 	
 	protected void callNext(){
 		// default AbstractModule just assumes one next and one previous, use Fork otherwise
-		executor.execute(next[0]);
+		executor.execute(new ForwardRunnable(next[0], output, tags));
 	}
 	
 	protected void callPrevious(){
 		// default AbstractModule just assumes one next and one previous, use Join otherwise
-		executor.execute(prev[0]);
+		executor.execute(new BackwardRunnable(prev[0], gradInput, tags));
 	}
 	
 	@Override
@@ -133,26 +134,12 @@ public abstract class AbstractModule implements Module {
 
 	@Override
 	public void setNext(final Module... next) {
-		if(next==null){
-			this.next = null;
-		} else {
-			this.next = new ForwardRunnable[next.length];
-			for(int i=0;i<next.length;i++){
-				this.next[i] = new ForwardRunnable(next[i]);
-			}
-		}
+		this.next = next;
 	}
 
 	@Override
 	public void setPrevious(final Module... prev) {
-		if(prev==null){
-			this.prev = null;
-		} else {
-			this.prev = new BackwardRunnable[prev.length];
-			for(int i=0;i<prev.length;i++){
-				this.prev[i] = new BackwardRunnable(prev[i]);
-			}
-		}
+		this.prev = prev;
 	}
 
 	@Override
@@ -204,27 +191,35 @@ public abstract class AbstractModule implements Module {
 		executor.execute(r);
 	}
 	
-	private final class ForwardRunnable implements Runnable {
+	protected final class ForwardRunnable implements Runnable {
 		private final Module m;
+		private final String[] tags;
+		private final Tensor tensor;
 		
-		public ForwardRunnable(Module m){
+		public ForwardRunnable(Module m, Tensor tensor, String[] tags){
 			this.m = m;
+			this.tags = tags;
+			this.tensor = tensor;
 		}
 		
 		public void run(){
-			m.forward(id, output, tags);
+			m.forward(id, tensor, tags);
 		}
 	}
 	
-	private final class BackwardRunnable implements Runnable {
+	protected final class BackwardRunnable implements Runnable {
 		private final Module m;
+		private final String[] tags;
+		private final Tensor tensor;
 		
-		public BackwardRunnable(Module m){
+		public BackwardRunnable(Module m, Tensor tensor, String[] tags){
 			this.m = m;
+			this.tags = tags;
+			this.tensor = tensor;
 		}
 		
 		public void run(){
-			m.backward(id, gradInput, tags);
+			m.backward(id, tensor, tags);
 		}
 	}
 }

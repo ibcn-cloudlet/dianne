@@ -29,10 +29,14 @@ public abstract class Fork extends AbstractModule {
 		super(factory, id);
 	}
 
+	@Override
 	protected void callNext(){
-		// call all next, ForwardForkRunnable will make sure each gets part of the outputs
-		for(Runnable r : next){
-			executor.execute(r);
+		// call all next
+		for(int i=0; i< next.length;i++){
+			UUID id = nextIds[i];
+			Module m = next[i];
+			
+			executor.execute(new ForwardRunnable(m, outputs.get(id), tags));
 		}
 	}
 	
@@ -72,7 +76,7 @@ public abstract class Fork extends AbstractModule {
 			this.next = null;
 			this.nextIds = null;
 		} else {
-			this.next = new ForwardForkRunnable[next.length];
+			this.next = next;
 			this.nextIds = new UUID[next.length];
 			for(int i=0;i<next.length;i++){
 				UUID id = next[i].getId();
@@ -82,23 +86,7 @@ public abstract class Fork extends AbstractModule {
 				this.outputs.put(id, null);
 				this.gradOutputs.put(id, null);
 				this.nextLock.put(id, new AtomicBoolean(false));
-				this.next[i] = new ForwardForkRunnable(next[i], id);
 			}
 		}
 	}
-	
-	private final class ForwardForkRunnable implements Runnable {
-		private final Module m;
-		private final UUID nextId;
-		
-		public ForwardForkRunnable(Module m, UUID id){
-			this.m = m;
-			this.nextId = id;
-		}
-		
-		public void run(){
-			m.forward(id, outputs.get(nextId), tags);
-		}
-	}
-	
 }
