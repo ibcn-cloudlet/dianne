@@ -110,6 +110,7 @@ public abstract class AbstractModule implements Module {
 	
 		if(fwdListeners.size()>0)
 			notifyForwardListeners();
+		
 	}
 	
 	protected abstract void forward();
@@ -156,12 +157,14 @@ public abstract class AbstractModule implements Module {
 	}
 	
 	protected void notifyForwardListeners(){
+		final Tensor outputCopy = output.copyInto(null);
+		final String[] tagsCopy = Arrays.copyOf(tags, tags.length);
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
 				synchronized (fwdListeners) {
 					for(ForwardListener f : fwdListeners){
-						f.onForward(AbstractModule.this.output, tags);
+						f.onForward(outputCopy, tagsCopy);
 					}
 				}
 			}
@@ -178,12 +181,14 @@ public abstract class AbstractModule implements Module {
 	}
 	
 	protected void notifyBackwardListeners(){
+		final Tensor gradInputCopy = gradInput.copyInto(null);
+		final String[] tagsCopy = Arrays.copyOf(tags, tags.length);
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
 				synchronized (bwListeners) {
 					for(BackwardListener b : bwListeners){
-						b.onBackward(AbstractModule.this.gradInput, tags);
+						b.onBackward(gradInputCopy, tagsCopy);
 					}
 				}
 			}
