@@ -326,7 +326,7 @@ public class DianneModuleFactory implements ModuleFactory {
 			int index1 = Integer.parseInt((String)config.get("module.narrow.index1"));
 			int size1 = Integer.parseInt((String)config.get("module.narrow.size1"));
 			
-			if(hasProperty(config, "module.maxpooling.index2")){
+			if(hasProperty(config, "module.narrow.index2")){
 				int index2 = Integer.parseInt((String)config.get("module.narrow.index2"));
 				int size2 = Integer.parseInt((String)config.get("module.narrow.size2"));
 				
