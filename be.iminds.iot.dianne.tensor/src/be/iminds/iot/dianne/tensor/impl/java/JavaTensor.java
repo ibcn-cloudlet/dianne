@@ -11,7 +11,6 @@ public class JavaTensor implements Tensor<JavaTensor> {
 	
 	int[] dims;
 	float[] data;
-	int offset = 0;
 	int[] strides;
 	int[] indices = null;
 	
@@ -128,6 +127,11 @@ public class JavaTensor implements Tensor<JavaTensor> {
 		} else {
 			String s = "[";
 			for(int i=0;i< (indices==null? data.length : indices.length);i++){
+				if(i>0 && i%dims[dims.length-1]==0)
+					s+="\n";
+				if(i>0 && i%(dims[dims.length-1]*dims[dims.length-2])==0)
+					s+="\n";
+				
 				s+=data[(indices==null ? i : indices[i])]+", ";
 			}
 			s = s.substring(0, s.length()-2);
@@ -261,30 +265,36 @@ public class JavaTensor implements Tensor<JavaTensor> {
 
 	@Override
 	public JavaTensor narrow(final int dim, final int index, final int size) {
-		int[] narrowDims = dims.clone();
-		JavaTensor narrow = new JavaTensor(data, narrowDims);
-		narrow.dims[dim] = size;
-		int[] start = new int[dims.length];
-		start[dim] = index;
-		narrow.offset = getIndex(start);
+		// create new tensor with same data and dims
+		JavaTensor narrow = new JavaTensor(data, dims);
 		
-		narrow.generateIndices();
+		// generate indices for the narrowed dims and offsets
+		int[] narrowDims = dims.clone();
+		narrowDims[dim] = size;
+		int[] offsets = new int[dims.length];
+		offsets[dim] = index;
+		
+		narrow.indices = generateIndices(offsets, narrowDims);
+		narrow.reshape(narrowDims);
 		
 		return narrow;
 	}
 
 	@Override
 	public JavaTensor narrow(final int... ranges) {
+		// create new tensor with same data and dims
+		JavaTensor narrow = new JavaTensor(data, dims);
+				
+		// generate indices for the narrowed dims and offsets
 		int[] narrowDims = dims.clone();
-		JavaTensor narrow = new JavaTensor(data, narrowDims);
-		int[] start = new int[dims.length];
+		int[] offsets = new int[dims.length];
 		for(int i=0;i<ranges.length/2;i++){
-			start[i] = ranges[2*i];
-			narrow.dims[i] = ranges[2*i+1];
+			offsets[i] = ranges[2*i];
+			narrowDims[i] = ranges[2*i+1];
 		}
-		narrow.offset = getIndex(start);
 		
-		narrow.generateIndices();
+		narrow.indices = generateIndices(offsets, narrowDims);
+		narrow.reshape(narrowDims);
 		
 		return narrow;
 	}
@@ -351,27 +361,47 @@ public class JavaTensor implements Tensor<JavaTensor> {
 	}
 	
 	int getIndex(final int[] d){
-		int index = offset;
+		int index = 0;
 		for(int i=0;i<d.length;i++){
 			index += strides[i]*d[i];
 		}
-		return index;
+		return indices==null? index : indices[index];
 	}
 	
 
-	private void generateIndices(){
-		IndexGenerator it = new IndexGenerator();
-		int i = 0;
-		indices = new int[size()];
-		while(it.hasNext()){
-			indices[i++] = it.next();
+	private int[] generateIndices(int[] offsets, int[] dims){
+		IndexGenerator it = new IndexGenerator(offsets, dims);
+		
+		int size = 1;
+		for(int k=0;k<dims.length;k++){
+			size *= dims[k];
 		}
+		int[] newIndices = new int[size];
+		
+		int i = 0;
+		while(it.hasNext()){
+			int index = it.next();
+			newIndices[i++] = indices==null ? index : indices[index]; 
+		}
+		return newIndices;
 	}
 	
 	class IndexGenerator {
-		private int[] index = new int[dims.length]; // 3D index
+		private int[] dims;
+		private int[] index; // 3D index
 		private int current = 0;
-		private int next = offset; // linear index
+		private int next; // linear index
+		
+		public IndexGenerator(int[] offsets, int[] dims){
+			// new target dims to generate indices for
+			this.dims = dims;
+			// start at offset with current strides
+			this.index = new int[dims.length];
+			next = 0;
+			for(int i=0;i<offsets.length;i++){
+				next += strides[i]*offsets[i];
+			}		
+		}
 		
 		public int next(){
 			current = next;
