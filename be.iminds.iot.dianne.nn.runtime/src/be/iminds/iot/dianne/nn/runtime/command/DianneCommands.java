@@ -191,8 +191,9 @@ public class DianneCommands {
 			@Override
 			public void onForward(Tensor output, String... tags) {
 				int clazz = factory.getTensorMath().argmax(output);
+				float max = factory.getTensorMath().max(output);
 				String label = dataset.getLabels()[clazz];
-				System.out.println("Sample "+index+"( with tags "+Arrays.toString(tags)+") classified as: "+label);
+				System.out.println("Sample "+index+" (with tags "+Arrays.toString(tags)+") classified as: "+label+" (probability: "+max+")");
 				
 				synchronized(DianneCommands.this.output){
 					DianneCommands.this.output.notifyAll();
