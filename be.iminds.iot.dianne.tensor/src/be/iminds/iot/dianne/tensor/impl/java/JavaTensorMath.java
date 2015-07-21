@@ -472,9 +472,9 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 
 				float c = mat2.data[mat2.indices==null? f : mat2.indices[f]];
 				
-				for(int i=0;i<r.dims[1];i++){
+				for(int i=0;i<r.dims[0];i++){
 					int index = (k+i*stride_y)*skip+l;
-					for(int j=0;j<r.dims[0];j++){
+					for(int j=0;j<r.dims[1];j++){
 						r.data[(r.indices==null? a : r.indices[a])]
 								+= mat1.data[mat1.indices==null ? index : mat1.indices[index]]
 										* c;
