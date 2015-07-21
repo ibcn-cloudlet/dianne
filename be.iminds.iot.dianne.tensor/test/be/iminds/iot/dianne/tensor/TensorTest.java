@@ -155,6 +155,7 @@ public class TensorTest<T extends Tensor<T>> {
 	public void testNarrow1() {
 		T t = factory.createTensor(5, 6);
 		t.fill(0.0f);
+		
 		T t2 = t.narrow(0, 1, 3);
 		t2.set(1.0f, 0, 2);
 
@@ -207,6 +208,22 @@ public class TensorTest<T extends Tensor<T>> {
 			}
 	}
 
+	@Test
+	public void testNarrowSelect() {
+		float[] data = new float[3*5*5];
+		for(int i=0;i<data.length;i++){
+			data[i] = i;
+		}
+		T t = factory.createTensor(data, 3, 5, 5);
+		
+		t = t.narrow(0, 3, 1, 2, 1, 3);
+		t = t.select(0, 0);
+		
+		float[] ed = new float[]{6.0f, 7.0f, 8.0f, 11.0f, 12.0f, 13.0f};
+		T exp = factory.createTensor(ed, 2,3);
+		Assert.assertEquals(exp, t);
+	}
+	
 	@Test
 	public void testCopyIntoNarrow() {
 		T t = factory.createTensor(2, 3);
