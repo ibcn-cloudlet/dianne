@@ -3,7 +3,6 @@ package be.iminds.iot.dianne.nn.test;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Dictionary;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,8 +18,10 @@ import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.Output;
 import be.iminds.iot.dianne.api.nn.module.Preprocessor;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
+import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
+import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.runtime.ModuleManager;
-import be.iminds.iot.dianne.nn.runtime.util.DianneJSONParser;
+import be.iminds.iot.dianne.nn.util.DianneJSONConverter;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public class AbstractDianneTest extends TestCase {
@@ -50,15 +51,13 @@ public class AbstractDianneTest extends TestCase {
     
     protected List<UUID> deployNN(String configLocation) throws Exception {
     	String json = new String(Files.readAllBytes(Paths.get(configLocation)));
-    	List<Dictionary<String, Object>> configs = DianneJSONParser.parseJSON(json);
+    	NeuralNetworkDTO nn = DianneJSONConverter.parseJSON(json);
     	
     	List<UUID> ids = new ArrayList<UUID>();
-    	for(Dictionary<String, Object> config : configs){
+    	for(ModuleDTO module : nn.modules){
     		try {
-	    		mm.deployModule(config);
-	    		
-	    		String id = (String)config.get("module.id");
-	    		ids.add(UUID.fromString(id));
+	    		mm.deployModule(module);
+	    		ids.add(module.id);
     		} catch(InstantiationException e){}
     	}
     	

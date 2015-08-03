@@ -4,11 +4,16 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
+import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
+
 public interface DianneRepository {
 
 	public List<String> networks();
 	
-	public String loadNetwork(String network) throws IOException;
+	public NeuralNetworkDTO loadNetwork(String network) throws IOException;
+	
+	// load the raw json string - use temporarily until we use implicit DTO-json conversion
+	public String loadNetworkString(String network) throws IOException;
 	
 	public void storeNetwork(String network, String modules);
 	

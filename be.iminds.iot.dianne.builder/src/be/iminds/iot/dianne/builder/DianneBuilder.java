@@ -17,8 +17,8 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.http.HttpService;
 
-import be.iminds.iot.dianne.api.nn.module.description.ModuleProperty;
-import be.iminds.iot.dianne.api.nn.module.description.ModuleType;
+import be.iminds.iot.dianne.api.nn.module.dto.ModulePropertyDTO;
+import be.iminds.iot.dianne.api.nn.module.dto.ModuleTypeDTO;
 import be.iminds.iot.dianne.api.nn.module.factory.ModuleFactory;
 
 import com.google.gson.JsonArray;
@@ -66,7 +66,7 @@ public class DianneBuilder extends HttpServlet {
 	}
 	
 	private void getAvailableModules(PrintWriter writer){
-		List<ModuleType> moduleTypes = new ArrayList<ModuleType>();
+		List<ModuleTypeDTO> moduleTypes = new ArrayList<ModuleTypeDTO>();
 		synchronized(factories){
 			for(ModuleFactory f : factories){
 				moduleTypes.addAll(f.getAvailableModuleTypes());
@@ -74,11 +74,11 @@ public class DianneBuilder extends HttpServlet {
 		}
 		
 		JsonArray jsonModules = new JsonArray();
-		for(ModuleType moduleType : moduleTypes){
+		for(ModuleTypeDTO moduleType : moduleTypes){
 			JsonObject jsonModule = new JsonObject();
-			jsonModule.add("type", new JsonPrimitive(moduleType.getType()));
-			jsonModule.add("category", new JsonPrimitive(moduleType.getCategory()));
-			if(moduleType.isTrainable()){
+			jsonModule.add("type", new JsonPrimitive(moduleType.type));
+			jsonModule.add("category", new JsonPrimitive(moduleType.category));
+			if(moduleType.trainable){
 				jsonModule.add("trainable", new JsonPrimitive(true));
 			}
 			jsonModules.add(jsonModule);
@@ -88,7 +88,7 @@ public class DianneBuilder extends HttpServlet {
 	}
 	
 	private void getModuleProperties(String type, PrintWriter writer){
-		ModuleType module = null;
+		ModuleTypeDTO module = null;
 		synchronized(factories){
 			for(ModuleFactory f : factories){
 				module = f.getModuleType(type);
@@ -102,10 +102,10 @@ public class DianneBuilder extends HttpServlet {
 		}
 		
 		JsonArray jsonProperties = new JsonArray();
-		for(ModuleProperty p : module.getProperties()){
+		for(ModulePropertyDTO p : module.properties){
 			JsonObject jsonProperty = new JsonObject();
-			jsonProperty.addProperty("id", p.getId());
-			jsonProperty.addProperty("name", p.getName());
+			jsonProperty.addProperty("id", p.id);
+			jsonProperty.addProperty("name", p.name);
 			
 			jsonProperties.add(jsonProperty);
 		}

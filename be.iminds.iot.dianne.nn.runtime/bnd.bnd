@@ -2,7 +2,6 @@ Bundle-Version: 0.2.0.${tstamp}
 
 Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 -buildpath: \
-	com.google.gson;version=2.2,\
 	biz.aQute.junit,\
 	osgi.core;version=5.0,\
 	osgi.enterprise;version=5.0,\
@@ -14,10 +13,8 @@ Private-Package: \
 	be.iminds.iot.dianne.nn.runtime.command
 -dsannotations: *
 Export-Package: \
-	be.iminds.iot.dianne.nn.runtime.util,\
 	be.iminds.iot.dianne.api.nn.runtime
 Import-Package: \
-	com.google.gson;version:='[2.2,3)';resolution:=optional,\
 	be.iminds.iot.dianne.api.nn.train.api;resolution:=optional,\
 	be.iminds.iot.dianne.nn.train.eval;resolution:=optional,\
 	*

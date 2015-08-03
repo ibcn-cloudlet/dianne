@@ -2,9 +2,9 @@ package be.iminds.iot.dianne.nn.runtime.impl;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Dictionary;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -16,8 +16,6 @@ import java.util.UUID;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.cm.ConfigurationException;
-import org.osgi.service.cm.ManagedServiceFactory;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -25,29 +23,27 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
-import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.BackwardListener;
+import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.Output;
 import be.iminds.iot.dianne.api.nn.module.Preprocessor;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
-import be.iminds.iot.dianne.api.nn.module.description.ModuleType;
+import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
+import be.iminds.iot.dianne.api.nn.module.dto.ModuleTypeDTO;
 import be.iminds.iot.dianne.api.nn.module.factory.ModuleFactory;
 import be.iminds.iot.dianne.api.nn.runtime.ModuleManager;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component(immediate=true, 
 	property={"service.pid=be.iminds.iot.dianne.nn.module",
 			  "aiolos.callback=be.iminds.iot.dianne.api.nn.runtime.ModuleManager"})
-public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
+public class DianneRuntime implements ModuleManager {
 
 	private BundleContext context;
 	
-	// TODO support multiple factories in the future?!
-	private TensorFactory tFactory;
-	private List<ModuleFactory> mFactories = Collections.synchronizedList(new ArrayList<ModuleFactory>());
+	private List<ModuleFactory> moduleFactories = Collections.synchronizedList(new ArrayList<ModuleFactory>());
 	
 	private DianneRepository repository;
 	
@@ -63,11 +59,6 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 	
 	private Map<ForwardListener, List<UUID>> forwardListeners = new HashMap<ForwardListener, List<UUID>>();
 	private Map<BackwardListener, List<UUID>> backwardListeners = new HashMap<BackwardListener, List<UUID>>();
-	
-	@Override
-	public String getName() {
-		return "be.iminds.iot.dianne.nn.module";
-	}
 
 	@Activate
 	public void activate(BundleContext context){
@@ -81,19 +72,14 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 		}
 	}
 	
-	@Reference
-	public void setTensorFactory(TensorFactory factory){
-		this.tFactory = factory;
-	}
-	
 	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
 			policy=ReferencePolicy.DYNAMIC)
 	public void addModuleFactory(ModuleFactory factory){
-		this.mFactories.add(factory);
+		this.moduleFactories.add(factory);
 	}
 	
 	public void removeModuleFactory(ModuleFactory factory){
-		this.mFactories.remove(factory);
+		this.moduleFactories.remove(factory);
 	}
 	
 	@Reference
@@ -237,34 +223,16 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 		}
 	}
 	
-	
 	@Override
-	public synchronized void updated(String pid, Dictionary<String, ?> properties)
-			throws ConfigurationException {
-		try {
-			UUID id = deployModule(properties);
-			this.uuids.put(pid, id);
-		} catch(InstantiationException e){
-			System.err.println("Failed to instantiate module defined by "+pid);
-		}
-	}
-
-	@Override
-	public synchronized void deleted(String pid) {
-		UUID id = uuids.remove(pid);
-		undeployModule(id);
-	}
-	
-	@Override
-	public synchronized UUID deployModule(Dictionary<String, ?> properties) throws InstantiationException{
+	public synchronized UUID deployModule(ModuleDTO dto) throws InstantiationException{
 		// Create and register module
 		Module module = null;
-		synchronized(mFactories){
-			Iterator<ModuleFactory> it = mFactories.iterator();
+		synchronized(moduleFactories){
+			Iterator<ModuleFactory> it = moduleFactories.iterator();
 			while(module == null && it.hasNext()){
 				try {
 					ModuleFactory mFactory = it.next();
-					module = mFactory.createModule(tFactory, properties);
+					module = mFactory.createModule(dto);
 				} catch(InstantiationException e){
 					
 				}
@@ -276,19 +244,28 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 		}
 		
 		// configure next/prev
-		String next = (String)properties.get("module.next");
-		List<UUID> nextIDs =  parseUUIDs(next);
+		List<UUID> nextIDs = new ArrayList<>();
+		if(dto.next!=null){
+			for(UUID id : dto.next){
+				nextIDs.add(id);
+			}
+		}
 		nextMap.put(module.getId(), nextIDs);
 		configureNext(module);
 		
-		String prev = (String)properties.get("module.prev");
-		List<UUID> prevIDs = parseUUIDs(prev);
+		
+		List<UUID> prevIDs = new ArrayList<>();
+		if(dto.prev!=null){
+			for(UUID id : dto.prev){
+				prevIDs.add(id);
+			}
+		}
 		prevMap.put(module.getId(), prevIDs);
 		configurePrevious(module);
 
 		// set labels in case of output
 		if(module instanceof Output){
-			String labels = (String)properties.get("module.labels");
+			String labels = dto.properties.get("labels");
 			if(labels!=null){
 				String[] l = parseStrings(labels);
 				((Output)module).setOutputLabels(l);
@@ -321,30 +298,19 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 		}
 		
 		Dictionary<String, Object> props = new Hashtable<String, Object>();
-		for(Enumeration<String> keys = properties.keys();keys.hasMoreElements();){
-			String key = keys.nextElement();
-			if(!key.equals("module.labels")) // don't put labels as service property
-				props.put(key, properties.get(key));
-		}
+		props.put("module.id", module.getId().toString());
+		
 		// make sure that for each module all interfaces are behind a single proxy 
 		// and that each module is uniquely proxied
 		props.put("aiolos.combine", "*");
 		props.put("aiolos.instance.id", module.getId().toString());
 		
-		// register on behalf of bundle that provided configuration if applicable
-		BundleContext c = context;
-		Long bundleId = (Long) properties.get("be.iminds.aiolos.configurer.bundle.id");
-		if(bundleId!=null){
-			c = context.getBundle(bundleId).getBundleContext();
-		}
-		
 		UUID id = module.getId();
 		// allready add a null registration, in order to allow registrations.contains()
 		// to return true in the addModule call of this class
 		this.registrations.put(id, null);
-		ServiceRegistration reg = c.registerService(classes, module, props);
+		ServiceRegistration reg = context.registerService(classes, module, props);
 		this.registrations.put(id, reg);
-		
 		
 		System.out.println("Registered module "+module.getClass().getName()+" "+id);
 		return id;
@@ -378,10 +344,10 @@ public class DianneRuntime implements ManagedServiceFactory, ModuleManager {
 	}
 
 	@Override
-	public List<ModuleType> getSupportedModules() {
-		List<ModuleType> supported = new ArrayList<ModuleType>();
-		synchronized(mFactories){
-			for(ModuleFactory f : mFactories){
+	public List<ModuleTypeDTO> getSupportedModules() {
+		List<ModuleTypeDTO> supported = new ArrayList<ModuleTypeDTO>();
+		synchronized(moduleFactories){
+			for(ModuleFactory f : moduleFactories){
 				supported.addAll(f.getAvailableModuleTypes());
 			}
 		}

@@ -6,7 +6,6 @@ import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
@@ -21,8 +20,10 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
+import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
+import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.runtime.ModuleManager;
-import be.iminds.iot.dianne.nn.runtime.util.DianneJSONParser;
+import be.iminds.iot.dianne.nn.util.DianneJSONConverter;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -35,7 +36,7 @@ public class DianneDeployer extends HttpServlet {
 
 	private Map<String, ModuleManager> runtimes = Collections.synchronizedMap(new HashMap<String, ModuleManager>());
 	
-	private Map<String, String> deployment = Collections.synchronizedMap(new HashMap<String, String>());
+	private Map<UUID, String> deployment = Collections.synchronizedMap(new HashMap<UUID, String>());
 	
 	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
 			policy=ReferencePolicy.DYNAMIC)
@@ -100,9 +101,9 @@ public class DianneDeployer extends HttpServlet {
 				if(target == null){
 					target = "local"; // if no target specified, hard coded local target for now
 				}
-				List<Dictionary<String, Object>> modules = DianneJSONParser.parseJSON(modulesJsonString); 
-						
-				for(Dictionary<String, Object> module : modules){
+				NeuralNetworkDTO nn = DianneJSONConverter.parseJSON(modulesJsonString); 
+					
+				for(ModuleDTO module : nn.modules){
 					deployModule(module, target);
 				}
 				// TODO only return deployment of deployed modules?
@@ -110,7 +111,7 @@ public class DianneDeployer extends HttpServlet {
 			} else if(request.getParameter("module")!=null){
 				String moduleJsonString = request.getParameter("module");
 				String target = request.getParameter("target");
-				Dictionary<String, Object> module = DianneJSONParser.parseModuleJSON(moduleJsonString); 
+				ModuleDTO module = DianneJSONConverter.parseModuleJSON(moduleJsonString); 
 				deployModule(module, target);
 				// TODO only return deployment of deployed modules?
 				returnDeployment(response.getWriter());
@@ -135,12 +136,11 @@ public class DianneDeployer extends HttpServlet {
 		
 	}
 	
-	private void deployModule(Dictionary<String, Object> config, String target){
-		String id = (String)config.get("module.id");
+	private void deployModule(ModuleDTO module, String target){
 		String migrateFrom = null;
-		if(deployment.containsKey(id)){
+		if(deployment.containsKey(module.id)){
 			// already deployed... TODO exception or something?
-			migrateFrom = deployment.get(id); 
+			migrateFrom = deployment.get(module.id); 
 			if(target.equals(migrateFrom)){
 				return;
 			}
@@ -149,19 +149,19 @@ public class DianneDeployer extends HttpServlet {
 		try {
 			ModuleManager runtime = runtimes.get(target);
 			if(runtime!=null){
-				runtime.deployModule(config);
-				deployment.put(id, target);
+				runtime.deployModule(module);
+				deployment.put(module.id, target);
 			}
 			
 			// when migrating, undeploy module from previous
 			if(migrateFrom!=null){
 				runtime = runtimes.get(migrateFrom);
 				if(runtime!=null){
-					runtime.undeployModule(UUID.fromString(id));
+					runtime.undeployModule(module.id);
 				}
 			}
 		} catch (Exception e) {
-			System.err.println("Failed to deploy module "+id);
+			System.err.println("Failed to deploy module "+module.id);
 			e.printStackTrace();
 		}
 	}
@@ -184,9 +184,9 @@ public class DianneDeployer extends HttpServlet {
 	private void returnDeployment(Writer writer){
 		JsonObject result = new JsonObject();
 		synchronized(deployment){
-			for(Iterator<Entry<String,String>> it = deployment.entrySet().iterator();it.hasNext();){
-				Entry<String, String> e = it.next();
-				result.add(e.getKey(), new JsonPrimitive(e.getValue()));
+			for(Iterator<Entry<UUID,String>> it = deployment.entrySet().iterator();it.hasNext();){
+				Entry<UUID, String> e = it.next();
+				result.add(e.getKey().toString(), new JsonPrimitive(e.getValue()));
 			}
 		}
 		try {

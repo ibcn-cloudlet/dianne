@@ -1,17 +1,16 @@
 package be.iminds.iot.dianne.api.nn.module.factory;
 
-import java.util.Dictionary;
 import java.util.List;
 
 import be.iminds.iot.dianne.api.nn.module.Module;
-import be.iminds.iot.dianne.api.nn.module.description.ModuleType;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
+import be.iminds.iot.dianne.api.nn.module.dto.ModuleTypeDTO;
 
 public interface ModuleFactory {
 
-	Module createModule(TensorFactory factory, Dictionary<String, ?> config) throws InstantiationException;
+	Module createModule(ModuleDTO dto) throws InstantiationException;
 	
-	List<ModuleType> getAvailableModuleTypes();
+	List<ModuleTypeDTO> getAvailableModuleTypes();
 	
-	ModuleType getModuleType(String name);
+	ModuleTypeDTO getModuleType(String name);
 }

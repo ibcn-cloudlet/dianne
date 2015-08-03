@@ -2,10 +2,8 @@ package be.iminds.iot.dianne.nn.runtime.command;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
@@ -22,9 +20,10 @@ import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.Output;
+import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
+import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.runtime.ModuleManager;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
-import be.iminds.iot.dianne.nn.runtime.util.DianneJSONParser;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -117,10 +116,8 @@ public class DianneCommands {
 			return;
 		}
 		try {
-			String json = repository.loadNetwork(network);
-			List<Dictionary<String, Object>> modules = DianneJSONParser.parseJSON(json);
-			
-			for(Dictionary<String, Object> module : modules){
+			NeuralNetworkDTO nn = repository.loadNetwork(network);
+			for(ModuleDTO module : nn.modules){
 				ModuleManager m = runtimes.get("localhost");
 				m.deployModule(module);
 			}

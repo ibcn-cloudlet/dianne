@@ -1,7 +1,6 @@
 package be.iminds.iot.dianne.nn.module.factory;
 
 import java.util.ArrayList;
-import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,11 +10,13 @@ import java.util.concurrent.Executors;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
 import be.iminds.iot.dianne.api.nn.module.Module;
-import be.iminds.iot.dianne.api.nn.module.description.ModuleProperty;
-import be.iminds.iot.dianne.api.nn.module.description.ModuleType;
+import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
+import be.iminds.iot.dianne.api.nn.module.dto.ModulePropertyDTO;
+import be.iminds.iot.dianne.api.nn.module.dto.ModuleTypeDTO;
 import be.iminds.iot.dianne.api.nn.module.factory.ModuleFactory;
 import be.iminds.iot.dianne.nn.module.activation.PReLU;
 import be.iminds.iot.dianne.nn.module.activation.ReLU;
@@ -45,168 +46,107 @@ public class DianneModuleFactory implements ModuleFactory {
 
 	private ExecutorService executor = Executors.newCachedThreadPool();
 	
-	private final Map<String, ModuleType> supportedModules = new HashMap<String, ModuleType>();
+	private TensorFactory factory;
+	
+	private final Map<String, ModuleTypeDTO> supportedModules = new HashMap<String, ModuleTypeDTO>();
 	
 	@Activate
 	public void activate(){
 		// build list of supported modules
 		// TODO use reflection for this?
 		
-		{
-			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			properties.add(new ModuleProperty("Input size", "input"));
-			properties.add(new ModuleProperty("Output size", "output"));
-			ModuleType type = new ModuleType("Linear", "Layer", properties, true);
-			supportedModules.put(type.getType(), type);
-		}
-		{
-			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleType type = new ModuleType("Sigmoid", "Activation", properties, false);
-			supportedModules.put(type.getType(), type);
-		}
-		{
-			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleType type = new ModuleType("Tanh", "Activation", properties, false);
-			supportedModules.put(type.getType(), type);
-		}
-		{
-			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleType type = new ModuleType("Softmax", "Activation", properties, false);
-			supportedModules.put(type.getType(), type);
-		}		
-		{
-			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleType type = new ModuleType("ReLU", "Activation", properties, false);
-			supportedModules.put(type.getType(), type);
-		}
-		{
-			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleType type = new ModuleType("PReLU", "Activation", properties, true);
-			supportedModules.put(type.getType(), type);
-		}
-		{
-			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			properties.add(new ModuleProperty("Threshold value", "thresh"));
-			properties.add(new ModuleProperty("Replacement value", "val"));
-			ModuleType type = new ModuleType("Threshold", "Activation", properties, false);
-			supportedModules.put(type.getType(), type);
-		}
-		{
-			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleType type = new ModuleType("Input", "Input-Output", properties, false);
-			supportedModules.put(type.getType(), type);
-		}
-		{
-			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleType type = new ModuleType("Output", "Input-Output", properties, false);
-			supportedModules.put(type.getType(), type);
-		}
-		{
-			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleType type = new ModuleType("Duplicate", "Fork", properties, false);
-			supportedModules.put(type.getType(), type);
-		}
-		{
-			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleType type = new ModuleType("Accumulate", "Join", properties, false);
-			supportedModules.put(type.getType(), type);
-		}
-		{
-			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleType type = new ModuleType("Split", "Fork", properties, false);
-			supportedModules.put(type.getType(), type);
-		}
-		{
-			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleType type = new ModuleType("Concat", "Join", properties, false);
-			supportedModules.put(type.getType(), type);
-		}
-		{
-			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			properties.add(new ModuleProperty("X", "x"));
-			properties.add(new ModuleProperty("Y", "y"));
-			properties.add(new ModuleProperty("Stride X", "strideX"));
-			properties.add(new ModuleProperty("Stride Y", "strideY"));	
-			ModuleType type = new ModuleType("Grid", "Fork", properties, false);
-			supportedModules.put(type.getType(), type);
-		}
-		{
-			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			properties.add(new ModuleProperty("Input planes", "noInputPlanes"));
-			properties.add(new ModuleProperty("Output planes", "noOutputPlanes"));
-			properties.add(new ModuleProperty("Kernel width", "kernelWidth"));
-			properties.add(new ModuleProperty("Kernel height", "kernelHeight"));
-			properties.add(new ModuleProperty("Stride X", "strideX"));
-			properties.add(new ModuleProperty("Stride Y", "strideY"));	
-			properties.add(new ModuleProperty("Add zero padding", "pad"));	
-			ModuleType type = new ModuleType("Convolution", "Layer", properties, true);
-			supportedModules.put(type.getType(), type);
-		}
-		{
-			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			properties.add(new ModuleProperty("Width", "width"));
-			properties.add(new ModuleProperty("Height", "height"));
-			properties.add(new ModuleProperty("Stride X", "strideX"));
-			properties.add(new ModuleProperty("Stride Y", "strideY"));			
-			ModuleType type = new ModuleType("MaxPooling", "Layer", properties, true);
-			supportedModules.put(type.getType(), type);
-		}
-		{
-			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			ModuleType type = new ModuleType("Normalization", "Preprocessing", properties, false);
-			supportedModules.put(type.getType(), type);
-		}
-		{
-			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			properties.add(new ModuleProperty("Index Dim 0", "index0"));
-			properties.add(new ModuleProperty("Size Dim 0", "size0"));
-			properties.add(new ModuleProperty("Index Dim 1", "index1"));
-			properties.add(new ModuleProperty("Size Dim 1", "size1"));
-			properties.add(new ModuleProperty("Index Dim 2", "index2"));
-			properties.add(new ModuleProperty("Size Dim 2", "size2"));			
-			ModuleType type = new ModuleType("Narrow", "Preprocessing", properties, false);
-			supportedModules.put(type.getType(), type);
-		}
-		{
-			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			properties.add(new ModuleProperty("Dim 0", "dim0"));
-			properties.add(new ModuleProperty("Dim 1", "dim1"));
-			properties.add(new ModuleProperty("Dim 2", "dim2"));			
-			ModuleType type = new ModuleType("Scale", "Preprocessing", properties, false);
-			supportedModules.put(type.getType(), type);
-		}		
-		{
-			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			properties.add(new ModuleProperty("Dim 0", "dim0"));
-			properties.add(new ModuleProperty("Dim 1", "dim1"));
-			properties.add(new ModuleProperty("Dim 2", "dim2"));			
-			ModuleType type = new ModuleType("Frame", "Preprocessing", properties, false);
-			supportedModules.put(type.getType(), type);
-		}			
-		{
-			List<ModuleProperty> properties = new ArrayList<ModuleProperty>();
-			properties.add(new ModuleProperty("noInputs", "noInputs"));
-			properties.add(new ModuleProperty("Masks", "masks"));			
-			ModuleType type = new ModuleType("Masked MaxPooling", "Layer", properties, true);
-			supportedModules.put(type.getType(), type);
-		}
+		addSupportedType( new ModuleTypeDTO("Linear", "Layer", true, 
+					new ModulePropertyDTO("Input size", "input", Integer.class.getName()),
+					new ModulePropertyDTO("Output size", "output", Integer.class.getName())));
+		
+		addSupportedType(new ModuleTypeDTO("Sigmoid", "Activation", false));
+		
+		addSupportedType(new ModuleTypeDTO("Tanh", "Activation", false));
+		
+		addSupportedType(new ModuleTypeDTO("Softmax", "Activation", false));	
+	
+		addSupportedType(new ModuleTypeDTO("ReLU", "Activation", false));
+
+		addSupportedType(new ModuleTypeDTO("PReLU", "Activation", true));
+		
+		addSupportedType(new ModuleTypeDTO("Threshold", "Activation", false,
+					new ModulePropertyDTO("Threshold value", "thresh", Float.class.getName()),
+					new ModulePropertyDTO("Replacement value", "val", Float.class.getName())));
+		
+		addSupportedType(new ModuleTypeDTO("Input", "Input-Output", false));
+		
+		addSupportedType(new ModuleTypeDTO("Output", "Input-Output", false));
+
+		addSupportedType(new ModuleTypeDTO("Duplicate", "Fork", false));
+		
+		addSupportedType(new ModuleTypeDTO("Accumulate", "Join", false));
+		
+		addSupportedType(new ModuleTypeDTO("Split", "Fork", false));
+		
+		addSupportedType(new ModuleTypeDTO("Concat", "Join", false));
+			
+		addSupportedType(new ModuleTypeDTO("Grid", "Fork", false,
+				new ModulePropertyDTO("X", "x", Integer.class.getName()),
+				new ModulePropertyDTO("Y", "y", Integer.class.getName()),
+				new ModulePropertyDTO("Stride X", "strideX", Integer.class.getName()),
+				new ModulePropertyDTO("Stride Y", "strideY", Integer.class.getName())));
+			
+		addSupportedType(new ModuleTypeDTO("Convolution", "Layer", true, 
+				new ModulePropertyDTO("Input planes", "noInputPlanes", Integer.class.getName()),
+				new ModulePropertyDTO("Output planes", "noOutputPlanes", Integer.class.getName()),
+				new ModulePropertyDTO("Kernel width", "kernelWidth", Integer.class.getName()),
+				new ModulePropertyDTO("Kernel height", "kernelHeight", Integer.class.getName()),
+				new ModulePropertyDTO("Stride X", "strideX", Integer.class.getName()),
+				new ModulePropertyDTO("Stride Y", "strideY", Integer.class.getName()),
+				new ModulePropertyDTO("Add zero padding", "pad", Boolean.class.getName())));
+			
+		addSupportedType(new ModuleTypeDTO("MaxPooling" , "Layer", false, 
+				new ModulePropertyDTO("Width", "width", Integer.class.getName()),
+				new ModulePropertyDTO("Height", "height", Integer.class.getName()),
+				new ModulePropertyDTO("Stride X", "strideX", Integer.class.getName()),
+				new ModulePropertyDTO("Stride Y", "strideY", Integer.class.getName())));	
+		
+		addSupportedType(new ModuleTypeDTO("Normalization", "Preprocessing", true));
+		
+		addSupportedType(new ModuleTypeDTO("Narrow", "Preprocessing", false, 
+				new ModulePropertyDTO("Index dim 0", "index0", Integer.class.getName()),
+				new ModulePropertyDTO("Size dim 0", "size0", Integer.class.getName()),
+				new ModulePropertyDTO("Index dim 1", "index1", Integer.class.getName()),
+				new ModulePropertyDTO("Size dim 1", "size1", Integer.class.getName()),
+				new ModulePropertyDTO("Index dim 2", "index2", Integer.class.getName()),
+				new ModulePropertyDTO("Size dim 2", "size2", Integer.class.getName())));
+		
+		addSupportedType(new ModuleTypeDTO("Scale", "Preprocessing", false, 
+				new ModulePropertyDTO("Dim 0", "x", Integer.class.getName()),
+				new ModulePropertyDTO("Dim 1", "x", Integer.class.getName()),
+				new ModulePropertyDTO("Dim 2", "x", Integer.class.getName())));
+		
+		addSupportedType(new ModuleTypeDTO("Frame", "Preprocessing", false, 
+				new ModulePropertyDTO("Dim 0", "x", Integer.class.getName()),
+				new ModulePropertyDTO("Dim 1", "x", Integer.class.getName()),
+				new ModulePropertyDTO("Dim 2", "x", Integer.class.getName())));				
+		
+		addSupportedType(new ModuleTypeDTO("Masked Maxpooling", "Layer", true, 
+				new ModulePropertyDTO("Inputs", "noInputs", Integer.class.getName()),
+				new ModulePropertyDTO("Masks", "masks", String.class.getName())));
+
 	}
 	
 	@Override
-	public Module createModule(TensorFactory factory, Dictionary<String, ?> config)
+	public Module createModule(ModuleDTO dto)
 			throws InstantiationException {
 		AbstractModule module = null;
 		
 		// TODO use reflection for this?
 		// for now just hard code an if/else for each known module
-		String type = (String)config.get("module.type");
-		UUID id = UUID.fromString((String)config.get("module.id"));
+		String type = dto.type;
+		UUID id = dto.id;
 
 		switch(type){
 		case "Linear":
 		{
-			int input = Integer.parseInt((String)config.get("module.linear.input"));
-			int output = Integer.parseInt((String)config.get("module.linear.output"));
+			int input = Integer.parseInt(dto.properties.get("input"));
+			int output = Integer.parseInt(dto.properties.get("output"));
 			
 			module = new Linear(factory, id, input, output);
 			break;
@@ -238,8 +178,8 @@ public class DianneModuleFactory implements ModuleFactory {
 		}
 		case "Threshold":
 		{
-			float thresh = Float.parseFloat((String)config.get("module.threshold.thresh"));
-			float val = Float.parseFloat((String)config.get("module.threshold.val"));
+			float thresh = Float.parseFloat(dto.properties.get("thresh"));
+			float val = Float.parseFloat(dto.properties.get("val"));
 			
 			module = new Threshold(factory, id, thresh, val);
 			break;
@@ -276,37 +216,37 @@ public class DianneModuleFactory implements ModuleFactory {
 		}
 		case "Grid":
 		{
-			int x = Integer.parseInt((String)config.get("module.grid.x"));
-			int y = Integer.parseInt((String)config.get("module.grid.y"));
+			int x = Integer.parseInt(dto.properties.get("x"));
+			int y = Integer.parseInt(dto.properties.get("y"));
 			
-			int strideX = hasProperty(config,"module.grid.strideX") ? Integer.parseInt((String)config.get("module.grid.strideX")) : 1;
-			int strideY = hasProperty(config,"module.grid.strideY") ? Integer.parseInt((String)config.get("module.grid.strideY")) : 1;
+			int strideX = hasProperty(dto.properties,"strideX") ? Integer.parseInt(dto.properties.get("strideX")) : 1;
+			int strideY = hasProperty(dto.properties,"strideY") ? Integer.parseInt(dto.properties.get("strideY")) : 1;
 
 			module = new Grid(factory, id, x, y, strideX, strideY);
 			break;
 		}
 		case "Convolution":
 		{
-			int noInputPlanes = Integer.parseInt((String)config.get("module.convolution.noInputPlanes"));
-			int noOutputPlanes = Integer.parseInt((String)config.get("module.convolution.noOutputPlanes"));
-			int kernelWidth = Integer.parseInt((String)config.get("module.convolution.kernelWidth"));
-			int kernelHeight = Integer.parseInt((String)config.get("module.convolution.kernelHeight"));
+			int noInputPlanes = Integer.parseInt(dto.properties.get("noInputPlanes"));
+			int noOutputPlanes = Integer.parseInt(dto.properties.get("noOutputPlanes"));
+			int kernelWidth = Integer.parseInt(dto.properties.get("kernelWidth"));
+			int kernelHeight = Integer.parseInt(dto.properties.get("kernelHeight"));
 			
-			int strideX = hasProperty(config,"module.convolution.strideX") ? Integer.parseInt((String)config.get("module.convolution.strideX")) : 1;
-			int strideY = hasProperty(config,"module.convolution.strideY") ? Integer.parseInt((String)config.get("module.convolution.strideY")) : 1;
+			int strideX = hasProperty(dto.properties,"strideX") ? Integer.parseInt(dto.properties.get("strideX")) : 1;
+			int strideY = hasProperty(dto.properties,"strideY") ? Integer.parseInt(dto.properties.get("strideY")) : 1;
 
-			boolean pad = hasProperty(config,"module.convolution.pad") ? Boolean.parseBoolean((String)config.get("module.convolution.pad")) : false;
+			boolean pad = hasProperty(dto.properties,"pad") ? Boolean.parseBoolean(dto.properties.get("pad")) : false;
 
 			module = new SpatialConvolution(factory, id, noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY, pad);
 			break;
 		}
 		case "MaxPooling":
 		{
-			int width = Integer.parseInt((String)config.get("module.maxpooling.width"));
-			int height = Integer.parseInt((String)config.get("module.maxpooling.height"));
+			int width = Integer.parseInt(dto.properties.get("width"));
+			int height = Integer.parseInt(dto.properties.get("height"));
 
-			int sx = hasProperty(config, "module.maxpooling.strideX") ? Integer.parseInt((String)config.get("module.maxpooling.strideX")) : width;
-			int sy = hasProperty(config,"module.maxpooling.strideY") ? Integer.parseInt((String)config.get("module.maxpooling.strideY")) : height;
+			int sx = hasProperty(dto.properties, "strideX") ? Integer.parseInt(dto.properties.get("strideX")) : width;
+			int sy = hasProperty(dto.properties,"strideY") ? Integer.parseInt(dto.properties.get("strideY")) : height;
 			
 			module = new SpatialMaxPooling(factory, id, width, height, sx, sy);
 			break;
@@ -320,15 +260,15 @@ public class DianneModuleFactory implements ModuleFactory {
 		{
 			int[] ranges;
 			
-			int index0 = Integer.parseInt((String)config.get("module.narrow.index0"));
-			int size0 = Integer.parseInt((String)config.get("module.narrow.size0"));
+			int index0 = Integer.parseInt(dto.properties.get("index0"));
+			int size0 = Integer.parseInt(dto.properties.get("size0"));
 			
-			int index1 = Integer.parseInt((String)config.get("module.narrow.index1"));
-			int size1 = Integer.parseInt((String)config.get("module.narrow.size1"));
+			int index1 = Integer.parseInt(dto.properties.get("index1"));
+			int size1 = Integer.parseInt(dto.properties.get("size1"));
 			
-			if(hasProperty(config, "module.narrow.index2")){
-				int index2 = Integer.parseInt((String)config.get("module.narrow.index2"));
-				int size2 = Integer.parseInt((String)config.get("module.narrow.size2"));
+			if(hasProperty(dto.properties, "index2")){
+				int index2 = Integer.parseInt(dto.properties.get("index2"));
+				int size2 = Integer.parseInt(dto.properties.get("size2"));
 				
 				ranges = new int[]{index0, size0, index1, size1, index2, size2};
 			} else {
@@ -340,44 +280,44 @@ public class DianneModuleFactory implements ModuleFactory {
 		}
 		case "Scale":
 		{
-			int[] sdims;
+			int[] dims;
 			
-			int sdim0 = Integer.parseInt((String)config.get("module.scale.dim0"));
-			int sdim1 = Integer.parseInt((String)config.get("module.scale.dim1"));
+			int dim0 = Integer.parseInt(dto.properties.get("dim0"));
+			int dim1 = Integer.parseInt(dto.properties.get("dim1"));
 			
-			if(hasProperty(config, "module.scale.dim2")){
-				int sdim2 = Integer.parseInt((String)config.get("module.scale.dim2"));
+			if(hasProperty(dto.properties, "dim2")){
+				int dim2 = Integer.parseInt(dto.properties.get("dim2"));
 				
-				sdims = new int[]{sdim0, sdim1, sdim2};
+				dims = new int[]{dim0, dim1, dim2};
 			} else {
-				sdims = new int[]{sdim0, sdim1};
+				dims = new int[]{dim0, dim1};
 			}
 			
-			module = new Scale(factory, id, sdims);
+			module = new Scale(factory, id, dims);
 			break;
 		}
 		case "Frame":
 		{
-			int[] fdims;
+			int[] dims;
 			
-			int fdim0 = Integer.parseInt((String)config.get("module.frame.dim0"));
-			int fdim1 = Integer.parseInt((String)config.get("module.frame.dim1"));
+			int dim0 = Integer.parseInt(dto.properties.get("dim0"));
+			int dim1 = Integer.parseInt(dto.properties.get("dim1"));
 			
-			if(hasProperty(config, "module.frame.dim2")){
-				int fdim2 = Integer.parseInt((String)config.get("module.frame.dim2"));
+			if(hasProperty(dto.properties, "dim2")){
+				int dim2 = Integer.parseInt(dto.properties.get("dim2"));
 				
-				fdims = new int[]{fdim0, fdim1, fdim2};
+				dims = new int[]{dim0, dim1, dim2};
 			} else {
-				fdims = new int[]{fdim0, fdim1};
+				dims = new int[]{dim0, dim1};
 			}
 			
-			module = new Frame(factory, id, fdims);
+			module = new Frame(factory, id, dims);
 			break;
 		}
 		case "Masked MaxPooling":
 		{
-			int noInputs = Integer.parseInt((String)config.get("module.maskedmaxpooling.noInputs"));
-			String masks = (String)config.get("module.maskedmaxpooling.masks");
+			int noInputs = Integer.parseInt(dto.properties.get("noInputs"));
+			String masks = dto.properties.get("masks");
 			
 			module = new MaskedMaxPooling(factory, id, noInputs, masks);
 			break;
@@ -393,16 +333,16 @@ public class DianneModuleFactory implements ModuleFactory {
 	}
 
 	@Override
-	public List<ModuleType> getAvailableModuleTypes() {
-		return new ArrayList<ModuleType>(supportedModules.values());
+	public List<ModuleTypeDTO> getAvailableModuleTypes() {
+		return new ArrayList<ModuleTypeDTO>(supportedModules.values());
 	}
 
 	@Override
-	public ModuleType getModuleType(String name) {
+	public ModuleTypeDTO getModuleType(String name) {
 		return supportedModules.get(name);
 	}
 	
-	private boolean hasProperty(Dictionary<String, ?> config, String property){
+	private boolean hasProperty(Map<String, String> config, String property){
 		String value = (String) config.get(property);
 		if(value==null){
 			return false;
@@ -410,5 +350,14 @@ public class DianneModuleFactory implements ModuleFactory {
 			return false;
 		}
 		return true;
+	}
+	
+	private void addSupportedType(ModuleTypeDTO t){
+		supportedModules.put(t.type, t);
+	}
+	
+	@Reference
+	public void setTensorFactory(TensorFactory f){
+		this.factory = f;
 	}
 }

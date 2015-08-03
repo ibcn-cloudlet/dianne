@@ -43,7 +43,7 @@ public class DianneLoader extends HttpServlet {
 			String name = request.getParameter("name");
 			
 			response.getWriter().write("{\"modules\":");
-			String modules = repository.loadNetwork(name);
+			String modules = repository.loadNetworkString(name);
 			response.getWriter().write(modules);
 			response.getWriter().write(", \"layout\":");
 			String layout = repository.loadLayout(name);

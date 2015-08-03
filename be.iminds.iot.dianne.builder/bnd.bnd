@@ -12,10 +12,13 @@ Include-Resource: res=resources
 	be.iminds.iot.dianne.api;version=latest,\
 	be.iminds.iot.dianne.tensor.api;version=latest,\
 	be.iminds.iot.dianne.nn.train;version=latest,\
-	be.iminds.iot.dianne.nn.runtime;version=latest
+	be.iminds.iot.dianne.nn.runtime;version=latest,\
+	be.iminds.iot.dianne.nn.util;version=latest
 	
 -dsannotations: *
-Private-Package: be.iminds.iot.dianne.builder
+Private-Package: \
+	be.iminds.iot.dianne.builder,\
+	be.iminds.iot.dianne.nn.util
 Import-Package: \
 	be.iminds.iot.dianne.api.io;resolution:=optional,\
 	*

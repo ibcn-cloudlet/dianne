@@ -21,7 +21,9 @@ import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 
+import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
+import be.iminds.iot.dianne.nn.util.DianneJSONConverter;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -62,9 +64,15 @@ public class DianneFileRepository implements DianneRepository {
 	}
 
 	@Override
-	public String loadNetwork(String network) throws IOException {
-		String modules = new String(Files.readAllBytes(Paths.get(dir+"/"+network+"/modules.txt")));
-		return modules;
+	public NeuralNetworkDTO loadNetwork(String network) throws IOException {
+		String nn = new String(Files.readAllBytes(Paths.get(dir+"/"+network+"/modules.txt")));
+		return DianneJSONConverter.parseJSON(nn);
+	}
+	
+	@Override
+	public String loadNetworkString(String network) throws IOException {
+		String nn = new String(Files.readAllBytes(Paths.get(dir+"/"+network+"/modules.txt")));
+		return nn;
 	}
 	
 	@Override
