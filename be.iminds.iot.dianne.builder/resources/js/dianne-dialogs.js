@@ -451,6 +451,11 @@ function createRunModuleDialog(id, moduleItem){
 						if(attr!==undefined){
 							var index = Number(attr);
 							// data.output is tensor representation as string, should be parsed first
+
+							console.log(data.tags+" "+data.output);
+							if(data.tags.length != 0){
+								Highcharts.charts[index].setTitle({ text: JSON.stringify(data.tags)});
+							}
 							Highcharts.charts[index].series[0].setData(data.output, true, true, true);
 							Highcharts.charts[index].xAxis[0].setCategories(data.labels);
 						}
