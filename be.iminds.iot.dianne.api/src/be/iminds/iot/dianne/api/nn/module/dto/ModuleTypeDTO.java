@@ -13,15 +13,22 @@ package be.iminds.iot.dianne.api.nn.module.dto;
 public class ModuleTypeDTO {
 	
 	// name of the type 
-	public String type;
+	public final String type;
 	
 	// category for grouping module types in a UI builder
-	public String category;
+	public final String category;
 	
 	// properties that should be set when creating an instance of this Module type
-	public ModulePropertyDTO[] properties;
+	public final ModulePropertyDTO[] properties;
 	
 	// whether this type can be trained or not
-	public boolean trainable;
+	public final boolean trainable;
 	
+	public ModuleTypeDTO(String type, String category, 
+			boolean trainable, ModulePropertyDTO... properties){
+		this.type = type;
+		this.category = category;
+		this.trainable = trainable;
+		this.properties = properties;
+	}
 }

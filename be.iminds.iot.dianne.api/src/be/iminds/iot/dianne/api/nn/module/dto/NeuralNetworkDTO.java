@@ -14,9 +14,14 @@ import java.util.List;
 public class NeuralNetworkDTO {
 
 	// name identifier of this neural network
-	public String name;
+	public final String name;
 	
 	// the ModuleDTOs that this neural network consists of
-	public List<ModuleDTO> modules;
+	public final List<ModuleDTO> modules;
 	
+	
+	public NeuralNetworkDTO(String name, List<ModuleDTO> modules){
+		this.name = name;
+		this.modules = modules;
+	}
 }

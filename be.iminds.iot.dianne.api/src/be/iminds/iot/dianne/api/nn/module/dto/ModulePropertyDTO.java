@@ -12,11 +12,17 @@ package be.iminds.iot.dianne.api.nn.module.dto;
 public class ModulePropertyDTO {
 
 	// human-readable name for this property
-	public String name;
+	public final String name;
 	
 	// id to be used as property key in an actual configuration
-	public String id;
+	public final String id;
 	
 	// clazz that is expected as property value
-	public String clazz;
+	public final String clazz;
+	
+	public ModulePropertyDTO(String name, String id, String clazz){
+		this.name = name;
+		this.id = id;
+		this.clazz = clazz;
+	}
 }

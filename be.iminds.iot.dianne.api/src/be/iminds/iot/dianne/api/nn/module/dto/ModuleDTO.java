@@ -12,19 +12,29 @@ import java.util.UUID;
 public class ModuleDTO {
 
 	// UUID of this Module
-	public UUID id;
+	public final UUID id;
 	
 	// Type of this Module
 	//  this maps to a ModuleTypeDTO, is used by a factory 
 	//  to create an instance of this Module
-	public String type;
+	public final String type;
 	
 	// UUID(s) of the next Modules in the neural network
-	public UUID[] next;
+	public final UUID[] next;
 	// UUID(s) of the previous Modules in the neural network
-	public UUID[] prev;
+	public final UUID[] prev;
 	
 	// Specific properties for this Module
-	public Map<String, String> properties;
+	public final Map<String, String> properties;
 
+	
+	public ModuleDTO(UUID id, String type, 
+			UUID[] next, UUID[] prev, 
+			Map<String, String> properties){
+		this.id = id;
+		this.type = type;
+		this.next = next;
+		this.prev = prev;
+		this.properties = properties;
+	}
 }
