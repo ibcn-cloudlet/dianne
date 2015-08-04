@@ -16,6 +16,8 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 public class OverfeatTest extends AbstractDianneTest {
 
+	public final int TEST_SAMPLE = 2;
+
 	private Dataset imagenet;
 	
 	public void setUp() throws Exception {
@@ -31,11 +33,10 @@ public class OverfeatTest extends AbstractDianneTest {
     }
 	
 	public void testOverfeat() throws Exception {
-		deployNN("../tools/nn/overfeat_fast/modules.txt");
+		deployNN("../tools/nn/overfeat_fast_2/modules.txt");
 		
-		final Tensor sample = imagenet.getInputSample(0);		
+		final Tensor sample = imagenet.getInputSample(TEST_SAMPLE);		
 		final Tensor result = factory.createTensor(1000);
-	
 		
 		// wait for output
 		final Object lock = new Object();
@@ -80,7 +81,7 @@ public class OverfeatTest extends AbstractDianneTest {
 		int index = factory.getTensorMath().argmax(result);
 		System.out.println(getOutput().getOutputLabels()[index]+" "+result.get(index));
 		
-		int expected = factory.getTensorMath().argmax(imagenet.getOutputSample(0));
+		int expected = factory.getTensorMath().argmax(imagenet.getOutputSample(TEST_SAMPLE));
 		System.out.println("Expected: "+getOutput().getOutputLabels()[expected]);
 		Assert.assertEquals(expected, index);
 	}
