@@ -38,10 +38,7 @@ import com.google.gson.JsonPrimitive;
 public class DianneDeployer extends HttpServlet {
 
 	public static final UUID UI_NN_ID = UUID.randomUUID();
-	
-	// this frameworks uuid
-	private UUID frameworkId;
-	
+
 	// mapping from string to UUID
 	private Map<String, UUID> runtimeUUIDs = Collections.synchronizedMap(new HashMap<String, UUID>());
 	private Map<UUID, String> runtimeNames = Collections.synchronizedMap(new HashMap<UUID, String>());
@@ -51,19 +48,12 @@ public class DianneDeployer extends HttpServlet {
 	
 	private Map<UUID, UUID> deployment = Collections.synchronizedMap(new HashMap<UUID, UUID>());
 	
-	@Activate
-	public void activate(BundleContext context){
-		this.frameworkId = UUID.fromString(context.getProperty(Constants.FRAMEWORK_UUID));
-	}
 	
 	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
 			policy=ReferencePolicy.DYNAMIC)
 	public void addModuleManager(ModuleManager m, Map<String, Object> properties){
-		String name = (String) properties.get("aiolos.framework.uuid");
-		UUID uuid = frameworkId;
-		if(name!=null){
-			uuid = UUID.fromString(name);
-		}
+		UUID uuid = m.getFrameworkId();
+		String name = uuid.toString();
 
 		if(name == null){
 			name = "localhost";
@@ -94,8 +84,16 @@ public class DianneDeployer extends HttpServlet {
 	}
 	
 	public void removeModuleManager(ModuleManager m, Map<String, Object> properties){
-		UUID uuid = UUID.fromString((String) properties.get("aiolos.framework.uuid")); 
-		runtimes.remove(uuid);
+		UUID uuid = null;
+		Iterator<Entry<UUID, ModuleManager>> it = runtimes.entrySet().iterator();
+		while(it.hasNext()){
+			Entry<UUID, ModuleManager> e = it.next();
+			if(e.getValue()==m){
+				uuid = e.getKey();
+				it.remove();
+				break;
+			}
+		}
 		String name = runtimeNames.remove(uuid);
 		runtimeUUIDs.remove(name);
 	}

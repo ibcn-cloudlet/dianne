@@ -9,6 +9,8 @@ import be.iminds.iot.dianne.api.nn.module.dto.ModuleTypeDTO;
 
 public interface ModuleManager {
 
+	UUID getFrameworkId();
+	
 	ModuleInstanceDTO deployModule(ModuleDTO dto, UUID nnId) throws InstantiationException;
 	
 	void undeployModule(ModuleInstanceDTO module);

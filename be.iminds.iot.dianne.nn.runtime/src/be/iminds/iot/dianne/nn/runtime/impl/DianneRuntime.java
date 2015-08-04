@@ -418,6 +418,11 @@ public class DianneRuntime implements ModuleManager {
 		return Collections.unmodifiableList(supported);
 	}
 	
+	@Override
+	public UUID getFrameworkId() {
+		return frameworkId;
+	}
+	
 	private void configureNext(Module m, UUID nnId){
 		List<UUID> nextIDs = nextMap.get(m.getId());
 		if(nextIDs.size()==0){
@@ -509,4 +514,5 @@ public class DianneRuntime implements ModuleManager {
 		String[] strings = string.replace("[", "").replace("]", "").split(", ");
 		return strings;
 	}
+
 }
