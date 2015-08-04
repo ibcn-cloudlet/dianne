@@ -15,6 +15,8 @@ public interface ModuleManager {
 	
 	void undeployModule(ModuleInstanceDTO module);
 	
+	void undeployModules(UUID nnId);
+	
 	List<ModuleInstanceDTO> getModules();
 	
 	List<ModuleTypeDTO> getSupportedModules();

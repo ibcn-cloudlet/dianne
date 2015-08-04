@@ -380,8 +380,6 @@ public class DianneRuntime implements ModuleManager {
 			return;
 		}
 		
-		nextMap.remove(dto.moduleId);
-		prevMap.remove(dto.moduleId);
 		ServiceRegistration reg = registrations.remove(dto.moduleId, dto.moduleId);
 		if(reg!=null){
 			try {
@@ -391,7 +389,31 @@ public class DianneRuntime implements ModuleManager {
 				// that is uninstalled (then service is allready unregistered)
 			}
 		}
+		
+		if(!registrations.containsKey(dto.moduleId)){
+			nextMap.remove(dto.moduleId);
+			prevMap.remove(dto.moduleId);
+		}
+		
 		System.out.println("Unregistered module "+dto.moduleId);
+	}
+	
+	@Override
+	public synchronized void undeployModules(UUID nnId) {
+		List<ModuleInstanceDTO> toRemove = new ArrayList<ModuleInstanceDTO>();
+		synchronized(registrations){
+			Iterator<ModuleMap<ServiceRegistration>.Entry<ServiceRegistration>> it = registrations.iterator();
+			while(it.hasNext()){
+				ModuleMap<ServiceRegistration>.Entry<ServiceRegistration> e = it.next();
+				if(e.nnId.equals(nnId)){
+					toRemove.add(new ModuleInstanceDTO(e.moduleId, e.nnId, frameworkId));
+				}
+			}
+		}
+		
+		for(ModuleInstanceDTO m : toRemove){
+			undeployModule(m);
+		}
 	}
 	
 	@Override
