@@ -4,5 +4,5 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 public interface BackwardListener {
 
-	public void onBackward(final Tensor gradInput, final String... tags);
+	void onBackward(final Tensor gradInput, final String... tags);
 }

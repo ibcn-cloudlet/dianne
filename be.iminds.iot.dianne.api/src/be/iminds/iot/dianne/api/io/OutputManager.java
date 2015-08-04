@@ -6,9 +6,9 @@ import java.util.UUID;
 // link an output module to an actual output actuator
 public interface OutputManager {
 	
-	public List<OutputDescription> getAvailableOutputs();
+	List<OutputDescription> getAvailableOutputs();
 	
-	public void setOutput(UUID outputId, UUID nnId, String output);
+	void setOutput(UUID outputId, UUID nnId, String output);
 	
-	public void unsetOutput(UUID outputId, UUID nnId, String output);
+	void unsetOutput(UUID outputId, UUID nnId, String output);
 }

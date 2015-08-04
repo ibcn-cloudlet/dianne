@@ -11,7 +11,7 @@ import be.iminds.iot.dianne.api.nn.module.Trainable;
 
 public interface Trainer {
 
-	public void train(final Input input, final Output output, 
+	void train(final Input input, final Output output, 
 			final List<Trainable> module, final List<Preprocessor> preprocessors, 
 			final Criterion criterion, final Dataset data);
 	

@@ -8,17 +8,17 @@ import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 
 public interface DianneRepository {
 
-	public List<String> networks();
+	List<String> networks();
 	
-	public NeuralNetworkDTO loadNetwork(String network) throws IOException;
+	NeuralNetworkDTO loadNetwork(String network) throws IOException;
 	
-	public void storeNetwork(String network, String modules);
+	void storeNetwork(String network, String modules);
 	
-	public String loadLayout(String network) throws IOException;
+	String loadLayout(String network) throws IOException;
 	
-	public void storeLayout(String network, String layout);
+	void storeLayout(String network, String layout);
 
-	public float[] loadWeights(UUID id) throws IOException;
+	float[] loadWeights(UUID id) throws IOException;
 	
-	public void storeWeights(UUID id, float[] weights);
+	void storeWeights(UUID id, float[] weights);
 }

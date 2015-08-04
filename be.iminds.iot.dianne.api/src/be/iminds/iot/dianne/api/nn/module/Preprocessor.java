@@ -5,9 +5,9 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 public interface Preprocessor {
 
-	public void preprocess(Dataset data);
+	void preprocess(Dataset data);
 	
-	public Tensor getParameters();
+	Tensor getParameters();
 	
-	public void setParameters(float[] weigths);
+	void setParameters(float[] weigths);
 }

@@ -4,14 +4,14 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 public interface Output extends Module {
 
-	public Tensor getOutput();
+	Tensor getOutput();
 
-	public String[] getTags();
+	String[] getTags();
 	
-	public String[] getOutputLabels();
+	String[] getOutputLabels();
 	
-	public void setOutputLabels(String[] labels);
+	void setOutputLabels(String[] labels);
 	
-	public void backpropagate(Tensor gradOutput, String... tags);
+	void backpropagate(Tensor gradOutput, String... tags);
 	
 }

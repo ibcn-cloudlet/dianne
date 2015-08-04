@@ -4,17 +4,17 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 public interface Dataset {
 	
-	public int size();
+	int size();
 	
-	public int inputSize();
+	int inputSize();
 	
-	public int outputSize();
+	int outputSize();
 
-	public Tensor getInputSample(final int index);
+	Tensor getInputSample(final int index);
 		
-	public Tensor getOutputSample(final int index);
+	Tensor getOutputSample(final int index);
 	
-	public String getName();
+	String getName();
 	
-	public String[] getLabels();
+	String[] getLabels();
 }

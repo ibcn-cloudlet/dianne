@@ -6,6 +6,6 @@ import be.iminds.iot.dianne.api.nn.module.Output;
 
 public interface Evaluator {
 
-	public Evaluation evaluate(final Input input, final Output output, final Dataset data);
+	Evaluation evaluate(final Input input, final Output output, final Dataset data);
 
 }

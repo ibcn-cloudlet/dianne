@@ -4,14 +4,14 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 public interface Trainable {
 
-	public void accGradParameters();
+	void accGradParameters();
 	
-	public void zeroGradParameters();
+	void zeroGradParameters();
 	
-	public void updateParameters(final float learningRate);
+	void updateParameters(final float learningRate);
 	
-	public Tensor getParameters();
+	Tensor getParameters();
 	
-	public void setParameters(float[] weights);
+	void setParameters(float[] weights);
 
 }
