@@ -1,8 +1,6 @@
 package be.iminds.iot.dianne.nn.util;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -129,4 +127,61 @@ public class DianneJSONConverter {
 		return dto;
 	}
 
+	public static String toJsonString(NeuralNetworkDTO dto){
+		JsonObject nn = toJson(dto);
+		return nn.toString();
+	}
+	
+	private static JsonObject toJson(NeuralNetworkDTO dto){
+		JsonObject nn = new JsonObject();
+		
+		JsonObject modules = new JsonObject();
+		for(ModuleDTO m : dto.modules){
+			JsonObject module = toJson(m);
+			modules.add(m.id.toString(), module);
+		}
+		
+		String name = dto.name==null ? "unnamed" : dto.name;
+		nn.add("name", new JsonPrimitive(name));
+		nn.add("modules", modules);
+		return nn;
+	}
+	
+	private static JsonObject toJson(ModuleDTO dto){
+		JsonObject module = new JsonObject();
+		
+		module.add("id", new JsonPrimitive(dto.id.toString()));
+		module.add("type", new JsonPrimitive(dto.type));
+
+		if(dto.next!=null){
+			if(dto.next.length==1){
+				module.add("next", new JsonPrimitive(dto.next[0].toString()));
+			} else {
+				JsonArray next = new JsonArray();
+				for(UUID n : dto.next){
+					next.add(new JsonPrimitive(n.toString()));
+				}
+				module.add("next", next);
+			}
+		}
+		
+		if(dto.prev!=null){
+			if(dto.prev.length==1){
+				module.add("prev", new JsonPrimitive(dto.prev[0].toString()));
+			} else {
+				JsonArray prev = new JsonArray();
+				for(UUID p : dto.prev){
+					prev.add(new JsonPrimitive(p.toString()));
+				}
+				module.add("prev", prev);
+			}
+		}
+		
+		for(String k : dto.properties.keySet()){
+			module.add(k, new JsonPrimitive(dto.properties.get(k)));
+		}
+		
+		return module;
+	}
+	
 }

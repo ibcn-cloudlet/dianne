@@ -780,7 +780,7 @@ function load(name){
 				// empty canvas?
 				$('#canvas').empty();
 		
-				nn = data.modules;
+				nn = data.nn.modules;
 				loadLayout(data.layout);
 		
 				$('#dialog-load').remove();

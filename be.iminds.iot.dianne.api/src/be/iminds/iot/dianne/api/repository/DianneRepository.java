@@ -12,9 +12,6 @@ public interface DianneRepository {
 	
 	public NeuralNetworkDTO loadNetwork(String network) throws IOException;
 	
-	// load the raw json string - use temporarily until we use implicit DTO-json conversion
-	public String loadNetworkString(String network) throws IOException;
-	
 	public void storeNetwork(String network, String modules);
 	
 	public String loadLayout(String network) throws IOException;

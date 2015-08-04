@@ -10,7 +10,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
+import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
+import be.iminds.iot.dianne.nn.util.DianneJSONConverter;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;
@@ -42,9 +44,10 @@ public class DianneLoader extends HttpServlet {
 		} else if("load".equals(action)){
 			String name = request.getParameter("name");
 			
-			response.getWriter().write("{\"modules\":");
-			String modules = repository.loadNetworkString(name);
-			response.getWriter().write(modules);
+			response.getWriter().write("{\"nn\":");
+			NeuralNetworkDTO nn = repository.loadNetwork(name);
+			String s = DianneJSONConverter.toJsonString(nn); 
+			response.getWriter().write(s);
 			response.getWriter().write(", \"layout\":");
 			String layout = repository.loadLayout(name);
 			response.getWriter().write(layout);

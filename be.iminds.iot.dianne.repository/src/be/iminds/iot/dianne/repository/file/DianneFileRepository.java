@@ -70,12 +70,6 @@ public class DianneFileRepository implements DianneRepository {
 	}
 	
 	@Override
-	public String loadNetworkString(String network) throws IOException {
-		String nn = new String(Files.readAllBytes(Paths.get(dir+"/"+network+"/modules.txt")));
-		return nn;
-	}
-	
-	@Override
 	public void storeNetwork(String network, String modules){
 		File d = new File(dir+"/"+network);
 		d.mkdirs();
