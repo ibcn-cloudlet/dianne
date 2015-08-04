@@ -1,0 +1,21 @@
+package be.iminds.iot.dianne.api.nn.platform;
+
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
+
+public interface NeuralNetworkManager {
+
+	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, UUID frameworkId);
+	
+	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, UUID frameworkId, Map<UUID, UUID> deployment);
+
+	void undeployNeuralNetwork(NeuralNetworkInstanceDTO nn);
+	
+	List<NeuralNetworkInstanceDTO> getNeuralNetworks();
+	
+	List<String> getSupportedNeuralNetworks();
+
+}
