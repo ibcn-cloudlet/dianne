@@ -40,5 +40,7 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 	
 -runvm: -d64 -Xms512m -Xmx4g	
 	
-Private-Package: be.iminds.iot.dianne.nn.test
+Private-Package: \
+	be.iminds.iot.dianne.nn.test,\
+	be.iminds.iot.dianne.nn.util
 Test-Cases: ${classes;CONCRETE;EXTENDS;junit.framework.TestCase}
