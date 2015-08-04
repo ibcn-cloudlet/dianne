@@ -1,4 +1,4 @@
-package be.iminds.iot.dianne.nn.runtime.command;
+package be.iminds.iot.dianne.command;
 
 import java.util.Arrays;
 import java.util.Collections;

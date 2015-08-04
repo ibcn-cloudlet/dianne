@@ -1,4 +1,4 @@
-package be.iminds.iot.dianne.nn.runtime.command;
+package be.iminds.iot.dianne.command;
 
 import be.iminds.iot.dianne.api.dataset.DatasetRangeAdapter;
 import be.iminds.iot.dianne.api.nn.train.api.Evaluation;
