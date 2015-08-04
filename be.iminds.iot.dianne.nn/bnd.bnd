@@ -10,7 +10,7 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 Export-Package: \
 	be.iminds.iot.dianne.api.nn.module,\
 	be.iminds.iot.dianne.api.nn.module.factory,\
-	be.iminds.iot.dianne.api.nn.module.description
+	be.iminds.iot.dianne.api.nn.module.dto
 -dsannotations: *
 Private-Package: \
 	be.iminds.iot.dianne.nn.module.activation,\
