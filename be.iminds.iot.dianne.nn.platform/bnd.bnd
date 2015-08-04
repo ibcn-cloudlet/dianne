@@ -1,0 +1,14 @@
+Bundle-Version: 0.2.0.${tstamp}
+
+Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
+-buildpath: \
+	biz.aQute.junit,\
+	osgi.core;version=5.0,\
+	osgi.enterprise;version=5.0,\
+	be.iminds.iot.dianne.tensor.api;version=latest,\
+	be.iminds.iot.dianne.api;version=latest
+	
+-dsannotations: *
+Bundle-Name: Dianne Platform
+Private-Package: be.iminds.iot.dianne.nn.platform
+Export-Package: be.iminds.iot.dianne.api.nn.platform
