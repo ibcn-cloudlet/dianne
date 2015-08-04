@@ -1,10 +1,11 @@
 #!/bin/bash
-
-NATIVE=native/x86_64/
+ARCH=`uname -m`
+OS=`uname -s`
+NATIVE=native/$OS/$ARCH/
 
 if [ $# -ne 0 ]; then
 	if [ $1 == "cuda" ]; then
-		NATIVE=cuda/x86_64/
+		NATIVE=cuda/$OS/$ARCH/
 	fi
 fi
 

@@ -1,21 +1,25 @@
 # This file builds the native TH Tensor library and the JNI interface
- 
-CC=gcc
-CXX=g++
-NVCC=nvcc
-
-JAVA_HOME := /usr/lib/jvm/default-java
-CUDA_HOME := /usr/local/cuda
-
+OS := $(shell uname -s)
 ARCH := $(shell uname -m)
+
+ifeq ($(OS),Linux)
+    include Makefile.Linux
+endif
+ifeq ($(OS),Darwin)
+    include Makefile.Darwin
+endif
+
+CUDA_HOME ?= /usr/local/cuda
+JAVA_INCLUDE := $(JAVA_HOME)/include
+JAVA_PLATFORMINCLUDE := $(JAVA_INCLUDE)/$(JDKPLATFORMINCLUDESUBDIR)
+
 JAVAH := be.iminds.iot.dianne.tensor.impl.th.THTensor be.iminds.iot.dianne.tensor.impl.th.THTensorMath be.iminds.iot.dianne.tensor.impl.th.THTensorFactory
 SRC := THTensorFactoryJNI.c THTensorJNI.c THTensorMathJNI.c 
-INCLUDES := -I$(JAVA_HOME)/include/ -I/usr/lib/jvm -ITH
+INCLUDES := -I$(JAVA_INCLUDE) -I$(JAVA_PLATFORMINCLUDE) -ITH
 OBJECT := THTensorFactoryJNI.o THTensorJNI.o THTensorMathJNI.o 
 FLAGS := -O3 -w
 LINKS := libTH.a libopenblas.a -lm -lgomp
-LIB := libTHTensor.so
-DEPLOY_DIR := ../../native/$(ARCH)
+DEPLOY_DIR := ../../native/$(OS)/$(ARCH)
 
 # cuda specific build parameters
 CUDA_INCLUDES := -ITHC -I$(CUDA_HOME)/include/
@@ -32,29 +36,29 @@ cuda: INCLUDES += $(CUDA_INCLUDES)
 cuda: LINKS = $(CUDA_LINKS)
 cuda: FLAGS += $(CUDA_FLAGS)
 cuda: OBJECT += $(CUDA_OBJECT)
-cuda: DEPLOY_DIR := ../../cuda/$(ARCH)
+cuda: DEPLOY_DIR := ../../cuda/$(OS)/$(ARCH)
 cuda: cudaops libTHC.a install	
 
 javah:
-	for file in $(JAVAH) ; do \
-    	javah -jni -classpath ../../bin $$file   ; \
+	for file in $(JAVAH); do \
+    	javah -jni -classpath ../../bin $$file; \
 	done
 	
 compile: javah
-	$(CC) $(FLAGS) -fPIC -DLINUX $(INCLUDES) -c $(SRC)
+	$(CC) $(FLAGS) $(CCFLAGS) -fPIC $(INCLUDES) -c $(SRC)
 
 cudaops:
 	$(NVCC) $(NVCC_FLAGS) $(INCLUDES) -c $(CUDA_SRC)
 
 link: compile 
-	$(CC) $(FLAGS) -shared $(OBJECT) $(LINKS) -o $(LIB) 
+	$(CC) $(FLAGS) $(CCFLAGS) $(SHARED) $(OBJECT) $(LINKS) -o $(LIB) 
 	
 install: libopenblas.a libTH.a link 
 	mkdir -p $(DEPLOY_DIR)
 	cp $(LIB) $(DEPLOY_DIR)/$(LIB)
 
 test:
-	$(CXX) $(FLAGS) -DLINUX $(INCLUDES) -c Test.c
+	$(CXX) $(FLAGS) $(INCLUDES) -c Test.c
 	$(CXX) $(FLAGS) Test.o $(LINKS) -o test
 
 libTH.a:
