@@ -4,15 +4,16 @@ import java.util.List;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
+import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleTypeDTO;
 
 public interface ModuleManager {
 
-	public UUID deployModule(ModuleDTO dto) throws InstantiationException;
+	public ModuleInstanceDTO deployModule(ModuleDTO dto, UUID nnId) throws InstantiationException;
 	
-	public void undeployModule(UUID moduleId);
+	public void undeployModule(ModuleInstanceDTO module);
 	
-	public List<UUID> getModules();
+	public List<ModuleInstanceDTO> getModules();
 	
 	public List<ModuleTypeDTO> getSupportedModules();
 	

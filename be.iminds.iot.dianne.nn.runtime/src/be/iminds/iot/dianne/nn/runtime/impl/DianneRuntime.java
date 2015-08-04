@@ -15,6 +15,7 @@ import java.util.StringTokenizer;
 import java.util.UUID;
 
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -31,6 +32,7 @@ import be.iminds.iot.dianne.api.nn.module.Output;
 import be.iminds.iot.dianne.api.nn.module.Preprocessor;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
+import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleTypeDTO;
 import be.iminds.iot.dianne.api.nn.module.factory.ModuleFactory;
 import be.iminds.iot.dianne.api.nn.runtime.ModuleManager;
@@ -42,33 +44,36 @@ import be.iminds.iot.dianne.api.repository.DianneRepository;
 public class DianneRuntime implements ModuleManager {
 
 	private BundleContext context;
+	private UUID frameworkId;
 	
 	private List<ModuleFactory> moduleFactories = Collections.synchronizedList(new ArrayList<ModuleFactory>());
 	
 	private DianneRepository repository;
 	
-	// All module UUIDs by their PID
-	private Map<String, UUID> uuids = new HashMap<String, UUID>();
-	// All known modules by their UUID
-	private Map<UUID, Module> modules = new HashMap<UUID, Module>();
-	// All module service registrations by their UUID
-	private Map<UUID, ServiceRegistration> registrations = Collections.synchronizedMap(new HashMap<UUID, ServiceRegistration>());
+	// All known modules
+	private ModuleMap<Module> modules = new ModuleMap<Module>();
+	// All module service registrations 
+	private ModuleMap<ServiceRegistration> registrations = new ModuleMap<ServiceRegistration>();
 	
 	private Map<UUID, List<UUID>> nextMap = new HashMap<UUID, List<UUID>>();
 	private Map<UUID, List<UUID>> prevMap = new HashMap<UUID, List<UUID>>();
 	
-	private Map<ForwardListener, List<UUID>> forwardListeners = new HashMap<ForwardListener, List<UUID>>();
-	private Map<BackwardListener, List<UUID>> backwardListeners = new HashMap<BackwardListener, List<UUID>>();
+	// Listener targets are defined as nnId:moduleId
+	private Map<ForwardListener, List<String>> forwardListeners = new HashMap<ForwardListener, List<String>>();
+	private Map<BackwardListener, List<String>> backwardListeners = new HashMap<BackwardListener, List<String>>();
 
 	@Activate
 	public void activate(BundleContext context){
 		this.context = context;
+		this.frameworkId = UUID.fromString(context.getProperty(Constants.FRAMEWORK_UUID));
 	}
 	
 	@Deactivate
 	public void deactivate(){
-		for(ServiceRegistration reg : registrations.values()){
-			reg.unregister();
+		synchronized(registrations){
+			for(ServiceRegistration reg : registrations.values()){
+				reg.unregister();
+			}
 		}
 	}
 	
@@ -91,63 +96,121 @@ public class DianneRuntime implements ModuleManager {
 			cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
 	public synchronized void addModule(Module module, Map<String, Object> properties){
-		UUID id = UUID.fromString((String)properties.get("module.id"));
-		modules.put(id, module);
+		UUID moduleId = UUID.fromString((String)properties.get("module.id"));
+		UUID nnId = UUID.fromString((String)properties.get("nn.id"));
+
+		modules.put(moduleId, nnId, module);
 		
 		// configure modules that require this module
-		for(Module m : findDependingModules(id, nextMap)){
-			configureNext(m);
+		for(Module m : findDependingModules(moduleId, nnId, nextMap)){
+			configureNext(m, nnId);
 		}
-		for(Module m : findDependingModules(id, prevMap)){
-			configurePrevious(m);
+		for(Module m : findDependingModules(moduleId, nnId, prevMap)){
+			configurePrevious(m, nnId);
 		}
 	
-		configureModuleListeners(id, module);
+		configureModuleListeners(moduleId, nnId, module);
 	}
 	
 	public synchronized void updatedModule(Module module, Map<String, Object> properties){
-		UUID id = UUID.fromString((String)properties.get("module.id"));
-		configureModuleListeners(id, module);
+		UUID moduleId = UUID.fromString((String)properties.get("module.id"));
+		UUID nnId = UUID.fromString((String)properties.get("nn.id"));
+		configureModuleListeners(moduleId, nnId, module);
 	}
 	
-	private void configureModuleListeners(UUID id, Module module){
-		if(registrations.containsKey(id)){
+	private void configureModuleListeners(UUID moduleId, UUID nnId, Module module){
+		if(registrations.containsKey(moduleId, nnId)){
 			// check if someone is listening for this (locally registered) module
 			synchronized(forwardListeners){
-				Iterator<Entry<ForwardListener, List<UUID>>> it = forwardListeners.entrySet().iterator();
+				Iterator<Entry<ForwardListener, List<String>>> it = forwardListeners.entrySet().iterator();
 				while(it.hasNext()){
-					Entry<ForwardListener, List<UUID>> e = it.next();
-					for(UUID i : e.getValue()){
-						if(id.equals(i)){
-							module.addForwardListener(e.getKey());
-						}
+					Entry<ForwardListener, List<String>> e = it.next();
+					for(String target : e.getValue()){
+						configureForwardListener(e.getKey(), moduleId, nnId, module, target);
 					}
 				}
 			}
 			
 			synchronized(backwardListeners){
-				Iterator<Entry<BackwardListener, List<UUID>>> it = backwardListeners.entrySet().iterator();
+				Iterator<Entry<BackwardListener, List<String>>> it = backwardListeners.entrySet().iterator();
 				while(it.hasNext()){
-					Entry<BackwardListener, List<UUID>> e = it.next();
-					for(UUID i : e.getValue()){
-						if(id.equals(i)){
-							module.addBackwardListener(e.getKey());
-						}
+					Entry<BackwardListener, List<String>> e = it.next();
+					for(String target : e.getValue()){
+						configureBackwardListener(e.getKey(), moduleId, nnId, module, target);
 					}
 				}
 			}
 		}
 	}
 	
+	private void configureForwardListener(ForwardListener l, UUID moduleId, UUID nnId, Module module, String target){
+		String[] split = target.split(":");
+		if(split.length==1){
+			if(target.contains(":")){
+				// only moduleId
+				UUID mid = UUID.fromString(split[0]);
+				if(mid.equals(moduleId)){
+					module.addForwardListener(l);
+				}
+			} else {
+				// only nnId
+				UUID nid = UUID.fromString(split[0]);
+				if(nid.equals(nnId)){
+					// only add to output modules 
+					if(module instanceof Output){
+						module.addForwardListener(l);
+					}
+				}
+			}
+		} else {
+			// nnId:moduleId
+			UUID nid = UUID.fromString(split[0]);
+			UUID mid = UUID.fromString(split[1]);
+			if(nid.equals(nnId) && mid.equals(moduleId)){
+				module.addForwardListener(l);
+			}
+		}
+	}
+	
+	private void configureBackwardListener(BackwardListener l, UUID moduleId, UUID nnId, Module module, String target){
+		String[] split = target.split(":");
+		if(split.length==1){
+			if(target.contains(":")){
+				// only moduleId
+				UUID mid = UUID.fromString(split[0]);
+				if(mid.equals(moduleId)){
+					module.addBackwardListener(l);
+				}
+			} else {
+				// only nnId
+				UUID nid = UUID.fromString(split[0]);
+				if(nid.equals(nnId)){
+					// only add to input modules 
+					if(module instanceof Input){
+						module.addBackwardListener(l);
+					}
+				}
+			}
+		} else {
+			// nnId:moduleId
+			UUID nid = UUID.fromString(split[0]);
+			UUID mid = UUID.fromString(split[1]);
+			if(nid.equals(nnId) && mid.equals(moduleId)){
+				module.addBackwardListener(l);
+			}
+		}
+	}
+	
 	public synchronized void removeModule(Module module, Map<String, Object> properties){
-		UUID id = UUID.fromString((String)properties.get("module.id"));
-		modules.remove(id);
+		UUID moduleId = UUID.fromString((String)properties.get("module.id"));
+		UUID nnId = UUID.fromString((String)properties.get("nn.id"));
+		modules.remove(moduleId, nnId);
 		
 		// unconfigure modules that require this module
-		for(Module m : findDependingModules(id, nextMap)){
+		for(Module m : findDependingModules(moduleId, nnId, nextMap)){
 			unconfigureNext(m);
 		}
-		for(Module m : findDependingModules(id, prevMap)){
+		for(Module m : findDependingModules(moduleId, nnId, prevMap)){
 			unconfigurePrevious(m);
 		}
 	}
@@ -158,31 +221,27 @@ public class DianneRuntime implements ModuleManager {
 	public synchronized void addForwardListener(ForwardListener l, Map<String, Object> properties){
 		String[] targets = (String[])properties.get("targets");
 		if(targets!=null){
-			List<UUID> ids = new ArrayList<UUID>();
-			for(String t : targets){
-				UUID id = UUID.fromString(t);
-				ids.add(id);
-				if(registrations.containsKey(id)){
-					Module m = modules.get(id);
-					if(m!=null){ // should not be null?
-						m.addForwardListener(l);
+			for(String target : targets){
+				// TODO filter out the modules that should match this target 
+				// instead of iterating all and trying?
+				synchronized(modules){
+					Iterator<ModuleMap<Module>.Entry<Module>> it = modules.iterator();
+					while(it.hasNext()){
+						ModuleMap<Module>.Entry<Module> e = it.next();
+						configureForwardListener(l, e.moduleId, e.nnId, e.value, target);
 					}
 				}
 			}
-			forwardListeners.put(l, ids);
+			forwardListeners.put(l, Arrays.asList(targets));
 		}
 	}
 	
 	public synchronized void removeForwardListener(ForwardListener l){
-		List<UUID> ids = forwardListeners.remove(l);
-		if(ids!=null){
-			for(UUID id : ids){
-				if(registrations.containsKey(id)){
-					Module m = modules.get(id);
-					if(m!=null){ // should not be null?
-						m.removeForwardListener(l);
-					}
-				}
+		List<String> targets = forwardListeners.remove(l);
+		// TODO filter out the modules that actually have this listener registered?
+		synchronized(modules){
+			for(Module m : modules.values()){
+				m.removeForwardListener(l);
 			}
 		}
 	}
@@ -194,37 +253,33 @@ public class DianneRuntime implements ModuleManager {
 	public synchronized void addBackwardListener(BackwardListener l, Map<String, Object> properties){
 		String[] targets = (String[])properties.get("targets");
 		if(targets!=null){
-			List<UUID> ids = new ArrayList<UUID>();
-			for(String t : targets){
-				UUID id = UUID.fromString(t);
-				ids.add(id);
-				if(registrations.containsKey(id)){
-					Module m = modules.get(id);
-					if(m!=null){ // should not be null?
-						m.addBackwardListener(l);
+			for(String target : targets){
+				// TODO filter out the modules that should match this target 
+				// instead of iterating all and trying?
+				synchronized(modules){
+					Iterator<ModuleMap<Module>.Entry<Module>> it = modules.iterator();
+					while(it.hasNext()){
+						ModuleMap<Module>.Entry<Module> e = it.next();
+						configureBackwardListener(l, e.moduleId, e.nnId, e.value, target);
 					}
 				}
 			}
-			backwardListeners.put(l, ids);
+			backwardListeners.put(l, Arrays.asList(targets));
 		}
 	}
 	
 	public synchronized void removeBackwardListener(BackwardListener l){
-		List<UUID> ids = backwardListeners.remove(l);
-		if(ids!=null){
-			for(UUID id : ids){
-				if(registrations.containsKey(id)){
-					Module m = modules.get(id);
-					if(m!=null){ // should not be null?
-						m.removeBackwardListener(l);
-					}
-				}
+		List<String> targets = backwardListeners.remove(l);
+		// TODO filter out the modules that actually have this listener registered?
+		synchronized(modules){
+			for(Module m : modules.values()){
+				m.removeBackwardListener(l);
 			}
 		}
 	}
 	
 	@Override
-	public synchronized UUID deployModule(ModuleDTO dto) throws InstantiationException{
+	public synchronized ModuleInstanceDTO deployModule(ModuleDTO dto, UUID nnId) throws InstantiationException{
 		// Create and register module
 		Module module = null;
 		synchronized(moduleFactories){
@@ -251,7 +306,7 @@ public class DianneRuntime implements ModuleManager {
 			}
 		}
 		nextMap.put(module.getId(), nextIDs);
-		configureNext(module);
+		configureNext(module, nnId);
 		
 		
 		List<UUID> prevIDs = new ArrayList<>();
@@ -261,7 +316,7 @@ public class DianneRuntime implements ModuleManager {
 			}
 		}
 		prevMap.put(module.getId(), prevIDs);
-		configurePrevious(module);
+		configurePrevious(module, nnId);
 
 		// set labels in case of output
 		if(module instanceof Output){
@@ -297,30 +352,37 @@ public class DianneRuntime implements ModuleManager {
 			classes = new String[]{Module.class.getName()};
 		}
 		
+		UUID moduleId = module.getId();
+		
 		Dictionary<String, Object> props = new Hashtable<String, Object>();
-		props.put("module.id", module.getId().toString());
+		props.put("module.id", moduleId.toString());
+		props.put("nn.id", nnId.toString());
 		
 		// make sure that for each module all interfaces are behind a single proxy 
 		// and that each module is uniquely proxied
 		props.put("aiolos.combine", "*");
-		props.put("aiolos.instance.id", module.getId().toString());
+		props.put("aiolos.instance.id", nnId.toString()+":"+module.getId().toString());
 		
-		UUID id = module.getId();
 		// allready add a null registration, in order to allow registrations.contains()
 		// to return true in the addModule call of this class
-		this.registrations.put(id, null);
+		this.registrations.put(moduleId, nnId, null);
 		ServiceRegistration reg = context.registerService(classes, module, props);
-		this.registrations.put(id, reg);
+		this.registrations.put(moduleId, nnId, reg);
 		
-		System.out.println("Registered module "+module.getClass().getName()+" "+id);
-		return id;
+		System.out.println("Registered module "+module.getClass().getName()+" "+moduleId);
+		return new ModuleInstanceDTO(moduleId, nnId, frameworkId);
 	}
 
 	@Override
-	public synchronized void undeployModule(UUID id) {
-		nextMap.remove(id);
-		prevMap.remove(id);
-		ServiceRegistration reg = registrations.remove(id);
+	public synchronized void undeployModule(ModuleInstanceDTO dto) {
+		if(!dto.frameworkId.equals(frameworkId)){
+			System.out.println("Can only undeploy module instances that are deployed here...");
+			return;
+		}
+		
+		nextMap.remove(dto.moduleId);
+		prevMap.remove(dto.moduleId);
+		ServiceRegistration reg = registrations.remove(dto.moduleId, dto.moduleId);
 		if(reg!=null){
 			try {
 				reg.unregister();
@@ -329,15 +391,17 @@ public class DianneRuntime implements ModuleManager {
 				// that is uninstalled (then service is allready unregistered)
 			}
 		}
-		System.out.println("Unregistered module "+id);
+		System.out.println("Unregistered module "+dto.moduleId);
 	}
 	
 	@Override
-	public List<UUID> getModules(){
-		List<UUID> modules = new ArrayList<UUID>();
+	public List<ModuleInstanceDTO> getModules(){
+		List<ModuleInstanceDTO> modules = new ArrayList<ModuleInstanceDTO>();
 		synchronized(registrations){
-			for(UUID m : registrations.keySet()){
-				modules.add(m);
+			Iterator<ModuleMap<ServiceRegistration>.Entry<ServiceRegistration>> it = registrations.iterator();
+			while(it.hasNext()){
+				ModuleMap.Entry e = it.next();
+				modules.add(new ModuleInstanceDTO(e.moduleId, e.nnId, frameworkId));
 			}
 		}
 		return modules;
@@ -354,7 +418,7 @@ public class DianneRuntime implements ModuleManager {
 		return Collections.unmodifiableList(supported);
 	}
 	
-	private void configureNext(Module m){
+	private void configureNext(Module m, UUID nnId){
 		List<UUID> nextIDs = nextMap.get(m.getId());
 		if(nextIDs.size()==0){
 			// output module
@@ -364,7 +428,7 @@ public class DianneRuntime implements ModuleManager {
 		
 		int i = 0;
 		for(UUID nextID : nextIDs){
-			Module nextModule = modules.get(nextID);
+			Module nextModule = modules.get(nextID, nnId);
 			// TODO also allow only partly deployed NNs?
 			if(nextModule== null)
 				return;
@@ -380,7 +444,7 @@ public class DianneRuntime implements ModuleManager {
 		m.setNext((Module[]) null);
 	}
 	
-	private void configurePrevious(Module m){
+	private void configurePrevious(Module m, UUID nnId){
 		List<UUID> prevIDs = prevMap.get(m.getId());
 		if(prevIDs.size()==0){
 			// input module
@@ -390,7 +454,7 @@ public class DianneRuntime implements ModuleManager {
 		
 		int i = 0;
 		for(UUID prevID : prevIDs){
-			Module prevModule = modules.get(prevID);
+			Module prevModule = modules.get(prevID, nnId);
 			if(prevModule== null)
 				return;
 			
@@ -405,13 +469,13 @@ public class DianneRuntime implements ModuleManager {
 		m.setPrevious((Module[])null);
 	}
 	
-	private List<Module> findDependingModules(UUID id, Map<UUID, List<UUID>> map){
+	private List<Module> findDependingModules(UUID moduleId, UUID nnId, Map<UUID, List<UUID>> map){
 		List<Module> result = new ArrayList<Module>();
 		for(Iterator<Entry<UUID, List<UUID>>> it = map.entrySet().iterator();it.hasNext();){
 			Entry<UUID, List<UUID>> entry = it.next();
 			for(UUID nxtId : entry.getValue()){
-				if(nxtId.equals(id)){
-					Module m = modules.get(entry.getKey());
+				if(nxtId.equals(moduleId)){
+					Module m = modules.get(entry.getKey(), nnId);
 					if(m!=null) // could be null if removed by external bundle stop
 						result.add(m);
 				}

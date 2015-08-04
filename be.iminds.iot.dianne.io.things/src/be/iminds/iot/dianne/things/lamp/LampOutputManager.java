@@ -87,12 +87,14 @@ public class LampOutputManager implements OutputManager {
 	}
 
 	@Override
-	public void setOutput(UUID outputId, String output) {
+	public void setOutput(UUID outputId, UUID nnId, String output) {
+		String id = nnId.toString()+":"+outputId.toString();
+		
 		Lamp l = lamps.get(output);
 		if(l!=null){
 			LampOutput o = new LampOutput(factory, l, magicNumber);
 			Dictionary<String, Object> properties = new Hashtable<String, Object>();
-			properties.put("targets", new String[]{outputId.toString()});
+			properties.put("targets", new String[]{id});
 			properties.put("aiolos.unique", true);
 			ServiceRegistration r = context.registerService(ForwardListener.class.getName(), o, properties);
 			// TODO only works if outputId only forwards to one output
@@ -101,8 +103,10 @@ public class LampOutputManager implements OutputManager {
 	}
 
 	@Override
-	public void unsetOutput(UUID outputId, String output) {
-		ServiceRegistration r = registrations.remove(outputId);
+	public void unsetOutput(UUID outputId, UUID nnId, String output) {
+		String id = nnId.toString()+":"+outputId.toString();
+
+		ServiceRegistration r = registrations.remove(id);
 		if(r!=null){
 			r.unregister();
 		}

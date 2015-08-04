@@ -98,7 +98,7 @@ public class DianneRunner extends HttpServlet {
 			final String id  = m.getId().toString();
 			
 			Dictionary<String, Object> properties = new Hashtable<String, Object>();
-			properties.put("targets", new String[]{id});
+			properties.put("targets", new String[]{DianneDeployer.UI_NN_ID+":"+id});
 			properties.put("aiolos.unique", true);
 		
 			ForwardListener listener = new ForwardListener() {
@@ -186,7 +186,7 @@ public class DianneRunner extends HttpServlet {
 			final String id  = m.getId().toString();
 			
 			Dictionary<String, Object> properties = new Hashtable<String, Object>();
-			properties.put("targets", new String[]{id});
+			properties.put("targets", new String[]{DianneDeployer.UI_NN_ID+":"+id});
 			properties.put("aiolos.unique", true);
 		
 			ForwardListener listener = new ForwardListener() {

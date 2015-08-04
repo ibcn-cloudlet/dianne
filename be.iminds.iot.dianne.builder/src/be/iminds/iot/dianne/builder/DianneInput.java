@@ -103,7 +103,7 @@ public class DianneInput extends HttpServlet {
 			// TODO only forward to applicable inputmgr?
 			synchronized(inputManagers){
 				for(InputManager m : inputManagers){
-					m.setInput(UUID.fromString(inputId), input);
+					m.setInput(UUID.fromString(inputId), DianneDeployer.UI_NN_ID, input);
 				}
 				
 				ForwardListener inputListener = new ForwardListener(){
@@ -143,7 +143,7 @@ public class DianneInput extends HttpServlet {
 					}
 				};
 				Dictionary<String, Object> properties = new Hashtable<String, Object>();
-				properties.put("targets", new String[]{inputId});
+				properties.put("targets", new String[]{DianneDeployer.UI_NN_ID+":"+inputId});
 				properties.put("aiolos.unique", true);
 				ServiceRegistration r = context.registerService(ForwardListener.class.getName(), inputListener, properties);
 				inputListeners.put(UUID.fromString(inputId), r);
@@ -154,7 +154,7 @@ public class DianneInput extends HttpServlet {
 			// TODO only forward to applicable inputmgr?
 			synchronized(inputManagers){
 				for(InputManager m : inputManagers){
-					m.unsetInput(UUID.fromString(inputId), input);
+					m.unsetInput(UUID.fromString(inputId), DianneDeployer.UI_NN_ID, input);
 				}
 			}
 			

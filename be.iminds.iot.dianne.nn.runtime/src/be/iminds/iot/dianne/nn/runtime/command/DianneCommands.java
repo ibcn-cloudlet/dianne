@@ -21,6 +21,7 @@ import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.Output;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
+import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.runtime.ModuleManager;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
@@ -43,6 +44,8 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 		immediate=true)
 public class DianneCommands {
 	private static Random rand = new Random(System.currentTimeMillis());
+	
+	private static final UUID CLI_NN_ID = UUID.randomUUID();
 	
 	TensorFactory factory; 
 	
@@ -119,7 +122,7 @@ public class DianneCommands {
 			NeuralNetworkDTO nn = repository.loadNetwork(network);
 			for(ModuleDTO module : nn.modules){
 				ModuleManager m = runtimes.get("localhost");
-				m.deployModule(module);
+				m.deployModule(module, CLI_NN_ID);
 			}
 			
 		} catch(Exception e){
@@ -130,8 +133,8 @@ public class DianneCommands {
 	public synchronized void unload(){
 		synchronized(runtimes){
 			for(ModuleManager m : runtimes.values()){
-				for(UUID id : m.getModules()){
-					m.undeployModule(id);
+				for(ModuleInstanceDTO i : m.getModules()){
+					m.undeployModule(i);
 				}
 			}
 		}

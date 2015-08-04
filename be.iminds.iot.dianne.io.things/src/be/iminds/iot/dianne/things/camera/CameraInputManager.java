@@ -35,9 +35,9 @@ public class CameraInputManager implements InputManager {
 	private Map<String, UUID> cameraIds = Collections.synchronizedMap(new HashMap<String, UUID>());
 	private Map<UUID, Camera> cameras = Collections.synchronizedMap(new HashMap<UUID, Camera>());
 
-	private Map<UUID, Input> inputs = Collections.synchronizedMap(new HashMap<UUID, Input>());
-	
-	private Map<UUID, ServiceRegistration> registrations =  Collections.synchronizedMap(new HashMap<UUID, ServiceRegistration>());
+	// these are mapped by the string moduleId-nnId  ... TODO use ModuleInstanceDTO for this?
+	private Map<String, Input> inputs = Collections.synchronizedMap(new HashMap<String, Input>());
+	private Map<String, ServiceRegistration> registrations =  Collections.synchronizedMap(new HashMap<String, ServiceRegistration>());
 	
 	
 	@Activate
@@ -80,12 +80,16 @@ public class CameraInputManager implements InputManager {
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
 	public void addInput(Input i, Map<String, Object> properties){
-		String id = (String)properties.get("aiolos.instance.id");
-		inputs.put(UUID.fromString(id), i);
+		String moduleId = (String)properties.get("module.id");
+		String nnId = (String)properties.get("module.id");
+		String id = nnId+":"+moduleId;
+		inputs.put(id, i);
 	}
 	
 	public void removeInput(Input i, Map<String, Object> properties){
-		String id = (String)properties.get("aiolos.instance.id");
+		String moduleId = (String)properties.get("module.id");
+		String nnId = (String)properties.get("module.id");
+		String id = nnId+":"+moduleId;
 		inputs.remove(UUID.fromString(id));
 	}
 	
@@ -101,7 +105,9 @@ public class CameraInputManager implements InputManager {
 	}
 
 	@Override
-	public void setInput(UUID inputId, String input) {
+	public void setInput(UUID inputId, UUID nnId, String input) {
+		String id = nnId.toString()+":"+inputId.toString();
+		
 		UUID cameraId = cameraIds.get(input);
 		if(cameraId!=null){
 			Camera camera = cameras.get(cameraId);
@@ -110,18 +116,20 @@ public class CameraInputManager implements InputManager {
 				camera.start(320, 240, Camera.Format.RGB);
 			}
 			
-			CameraInput i = new CameraInput(factory, inputs.get(inputId), 320, 240, 3);
+			CameraInput i = new CameraInput(factory, inputs.get(id), 320, 240, 3);
 			Dictionary<String, Object> properties = new Hashtable<String, Object>();
 			properties.put(CameraListener.CAMERA_ID, cameraId.toString());
 			properties.put("aiolos.unique", true);
 			ServiceRegistration r = context.registerService(CameraListener.class.getName(), i, properties);
 			// TODO only works if outputId only forwards to one output
-			registrations.put(inputId, r);
+			registrations.put(id, r);
 		}
 	}
 
 	@Override
-	public void unsetInput(UUID inputId, String input) {
+	public void unsetInput(UUID inputId, UUID nnId, String input) {
+		String id = nnId.toString()+":"+inputId.toString();
+		
 		UUID cameraId = cameraIds.get(input);
 		if(cameraId!=null){
 			Camera camera = cameras.get(cameraId);
@@ -130,7 +138,7 @@ public class CameraInputManager implements InputManager {
 			}
 		}
 		
-		ServiceRegistration r = registrations.remove(inputId);
+		ServiceRegistration r = registrations.remove(id);
 		if(r!=null){
 			r.unregister();
 		}

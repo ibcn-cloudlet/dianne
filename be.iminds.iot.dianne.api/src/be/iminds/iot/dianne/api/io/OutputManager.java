@@ -8,7 +8,7 @@ public interface OutputManager {
 	
 	public List<OutputDescription> getAvailableOutputs();
 	
-	public void setOutput(UUID outputId, String output);
+	public void setOutput(UUID outputId, UUID nnId, String output);
 	
-	public void unsetOutput(UUID outputId, String output);
+	public void unsetOutput(UUID outputId, UUID nnId, String output);
 }

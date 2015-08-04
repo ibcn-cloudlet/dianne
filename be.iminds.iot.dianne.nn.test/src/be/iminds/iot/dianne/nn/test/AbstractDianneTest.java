@@ -19,6 +19,7 @@ import be.iminds.iot.dianne.api.nn.module.Output;
 import be.iminds.iot.dianne.api.nn.module.Preprocessor;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
+import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.runtime.ModuleManager;
 import be.iminds.iot.dianne.nn.util.DianneJSONConverter;
@@ -26,12 +27,14 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public class AbstractDianneTest extends TestCase {
 
+	protected final UUID TEST_NN_ID = UUID.randomUUID();
+	
     protected final BundleContext context = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
     
     protected TensorFactory factory;
     protected ModuleManager mm;
 
-    protected List<UUID> modules = null;
+    protected List<ModuleInstanceDTO> modules = null;
 	
     public void setUp() throws Exception {
        	ServiceReference rf = context.getServiceReference(TensorFactory.class.getName());
@@ -49,25 +52,26 @@ public class AbstractDianneTest extends TestCase {
     	}
     }
     
-    protected List<UUID> deployNN(String configLocation) throws Exception {
+    protected void deployNN(String configLocation) throws Exception {
     	String json = new String(Files.readAllBytes(Paths.get(configLocation)));
     	NeuralNetworkDTO nn = DianneJSONConverter.parseJSON(json);
     	
-    	List<UUID> ids = new ArrayList<UUID>();
+    	List<ModuleInstanceDTO> instances = new ArrayList<ModuleInstanceDTO>();
     	for(ModuleDTO module : nn.modules){
     		try {
-	    		mm.deployModule(module);
-	    		ids.add(module.id);
+    			ModuleInstanceDTO mi = mm.deployModule(module, TEST_NN_ID);
+	    		instances.add(mi);
     		} catch(InstantiationException e){}
     	}
     	
-    	return ids;
+    	this.modules = instances;
     }
     
-    protected void undeployNN(List<UUID> modules){
-    	for(UUID id : modules){
-    		mm.undeployModule(id);
+    protected void undeployNN(List<ModuleInstanceDTO> modules){
+    	for(ModuleInstanceDTO m : modules){
+    		mm.undeployModule(m);
     	}
+    	this.modules = null;
     }
     
     protected Input getInput(){

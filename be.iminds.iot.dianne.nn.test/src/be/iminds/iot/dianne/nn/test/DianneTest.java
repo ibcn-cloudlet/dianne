@@ -55,7 +55,7 @@ public class DianneTest extends AbstractDianneTest {
     }
     
     private void sgd(String config, int batch, int epochs, float learningRate, Criterion loss) throws Exception {
-    	modules = deployNN("nn/"+config+".txt");
+    	deployNN("nn/"+config+".txt");
     	
     	StochasticGradient trainer = new StochasticGradient(batch, epochs, learningRate, 0.0f);
     	
