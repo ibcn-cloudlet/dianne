@@ -8,14 +8,16 @@ import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 
 public interface NeuralNetworkManager {
 
-	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, UUID frameworkId);
+	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, UUID frameworkId) throws InstantiationException;
 	
-	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, UUID frameworkId, Map<UUID, UUID> deployment);
+	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, UUID frameworkId, Map<UUID, UUID> deployment) throws InstantiationException;
 
 	void undeployNeuralNetwork(NeuralNetworkInstanceDTO nn);
 	
 	List<NeuralNetworkInstanceDTO> getNeuralNetworks();
 	
 	List<String> getSupportedNeuralNetworks();
+	
+	List<UUID> getRuntimes();
 
 }
