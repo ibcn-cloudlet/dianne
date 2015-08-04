@@ -1,7 +1,5 @@
 package be.iminds.iot.dianne.tensor.impl.th;
 
-import java.util.Arrays;
-
 import be.iminds.iot.dianne.tensor.TensorMath;
 
 public class THTensorMath implements TensorMath<THTensor> {

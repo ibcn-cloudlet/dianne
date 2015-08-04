@@ -7,3 +7,4 @@
 /jni/THTensor/*.so
 /jni/THTensor/*.a
 /jni/THTensor/*_*.h
+/jni/THTensor/*.dylib
