@@ -182,7 +182,7 @@ public abstract class AbstractModule implements Module {
 	
 	protected void notifyForwardListeners(){
 		final Tensor outputCopy = output.copyInto(null);
-		final String[] tagsCopy = Arrays.copyOf(tags, tags.length);
+		final String[] tagsCopy = (tags == null) ? null : Arrays.copyOf(tags, tags.length);
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
@@ -206,7 +206,7 @@ public abstract class AbstractModule implements Module {
 	
 	protected void notifyBackwardListeners(){
 		final Tensor gradInputCopy = gradInput.copyInto(null);
-		final String[] tagsCopy = Arrays.copyOf(tags, tags.length);
+		final String[] tagsCopy = (tags == null) ? null : Arrays.copyOf(tags, tags.length);
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
