@@ -1,5 +1,6 @@
 package be.iminds.iot.dianne.nn.module.preprocessing;
 
+import java.util.Arrays;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
@@ -38,6 +39,8 @@ public class Frame extends AbstractModule {
 		} else if(inputDim < targetDim){
 			// from 2 to 3D -> reshape first, add dimension
 			in.reshape(1, inputDims[0], inputDims[1]);
+			inputDim = 3;
+			inputDims = new int[]{1, inputDims[0], inputDims[1]};
 		}
 		
 		float sx = (float)inputDims[inputDim-1]/targetDims[targetDim-1];
@@ -54,9 +57,17 @@ public class Frame extends AbstractModule {
 		
 		int[] ranges = new int[targetDim*2];
 		for(int i=0;i<targetDim;i++){
-			ranges[i*2] = (inputDims[i]-narrowDims[i])/2;
-			ranges[i*2+1] = narrowDims[i];
+			if(inputDims[i]-narrowDims[i] < 0){
+				// input smaller then narrowing ... just keep input
+				// could be the case when going from 2D to 3D
+				ranges[i*2] = 0;
+				ranges[i*2+1] = inputDims[i];
+			} else {
+				ranges[i*2] = (inputDims[i]-narrowDims[i])/2;
+				ranges[i*2+1] = narrowDims[i];
+			}
 		}
+		
 		Tensor narrowed = in.narrow(ranges);
 		output = factory.getTensorMath().scale2D(output, narrowed, targetDims);
 	}
