@@ -47,7 +47,7 @@ public class DianneDeployer extends HttpServlet {
 	private Map<UUID, ModuleManager> runtimes = Collections.synchronizedMap(new HashMap<UUID, ModuleManager>());
 	
 	private Map<UUID, UUID> deployment = Collections.synchronizedMap(new HashMap<UUID, UUID>());
-	
+	private Map<UUID, ModuleInstanceDTO> instances = Collections.synchronizedMap(new HashMap<UUID, ModuleInstanceDTO>());
 	
 	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
 			policy=ReferencePolicy.DYNAMIC)
@@ -161,16 +161,19 @@ public class DianneDeployer extends HttpServlet {
 		try {
 			ModuleManager runtime = runtimes.get(deployTo);
 			if(runtime!=null){
-				runtime.deployModule(module, UI_NN_ID);
+				ModuleInstanceDTO instance = runtime.deployModule(module, UI_NN_ID);
 				deployment.put(module.id, deployTo);
-			}
-			
-			// when migrating, undeploy module from previous
-			if(migrateFrom!=null){
-				runtime = runtimes.get(migrateFrom);
-				if(runtime!=null){
-					runtime.undeployModule(new ModuleInstanceDTO(module.id, DianneDeployer.UI_NN_ID, migrateFrom));
+				
+				// when migrating, undeploy module from previous
+				if(migrateFrom!=null){
+					ModuleInstanceDTO old = instances.remove(module.id);
+					runtime = runtimes.get(migrateFrom);
+					if(runtime!=null){
+						runtime.undeployModule(old);
+					}
 				}
+				
+				instances.put(module.id, instance);
 			}
 		} catch (Exception e) {
 			System.err.println("Failed to deploy module "+module.id);
@@ -181,10 +184,11 @@ public class DianneDeployer extends HttpServlet {
 	private void undeployModule(UUID id){
 		try {
 			UUID target = deployment.remove(id);
+			ModuleInstanceDTO old = instances.remove(id);
 			if(target!=null){
 				ModuleManager runtime = runtimes.get(target);
 				if(runtime!=null){
-					runtime.undeployModule(new ModuleInstanceDTO(id, DianneDeployer.UI_NN_ID, target));
+					runtime.undeployModule(old);
 				}
 			}
 		} catch (Exception e) {

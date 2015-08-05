@@ -54,6 +54,7 @@ public class DianneRuntime implements ModuleManager {
 	private ModuleMap<Module> modules = new ModuleMap<Module>();
 	// All module service registrations 
 	private ModuleMap<ServiceRegistration> registrations = new ModuleMap<ServiceRegistration>();
+	private ModuleMap<ModuleInstanceDTO> instances = new ModuleMap<ModuleInstanceDTO>();
 	
 	private Map<UUID, List<UUID>> nextMap = new HashMap<UUID, List<UUID>>();
 	private Map<UUID, List<UUID>> prevMap = new HashMap<UUID, List<UUID>>();
@@ -356,6 +357,7 @@ public class DianneRuntime implements ModuleManager {
 		
 		Dictionary<String, Object> props = new Hashtable<String, Object>();
 		props.put("module.id", moduleId.toString());
+		props.put("module.type", dto.type);
 		props.put("nn.id", nnId.toString());
 		
 		// make sure that for each module all interfaces are behind a single proxy 
@@ -370,7 +372,9 @@ public class DianneRuntime implements ModuleManager {
 		this.registrations.put(moduleId, nnId, reg);
 		
 		System.out.println("Registered module "+module.getClass().getName()+" "+moduleId);
-		return new ModuleInstanceDTO(moduleId, nnId, frameworkId);
+		ModuleInstanceDTO instance =  new ModuleInstanceDTO(moduleId, nnId, frameworkId, dto.type);
+		this.instances.put(moduleId, nnId, instance);
+		return instance;
 	}
 
 	@Override
@@ -390,6 +394,8 @@ public class DianneRuntime implements ModuleManager {
 			}
 		}
 		
+		instances.remove(dto.moduleId, dto.nnId);
+		
 		if(!registrations.containsKey(dto.moduleId)){
 			nextMap.remove(dto.moduleId);
 			prevMap.remove(dto.moduleId);
@@ -401,12 +407,12 @@ public class DianneRuntime implements ModuleManager {
 	@Override
 	public synchronized void undeployModules(UUID nnId) {
 		List<ModuleInstanceDTO> toRemove = new ArrayList<ModuleInstanceDTO>();
-		synchronized(registrations){
-			Iterator<ModuleMap<ServiceRegistration>.Entry<ServiceRegistration>> it = registrations.iterator();
+		synchronized(instances){
+			Iterator<ModuleMap<ModuleInstanceDTO>.Entry<ModuleInstanceDTO>> it = instances.iterator();
 			while(it.hasNext()){
-				ModuleMap<ServiceRegistration>.Entry<ServiceRegistration> e = it.next();
+				ModuleMap<ModuleInstanceDTO>.Entry<ModuleInstanceDTO> e = it.next();
 				if(e.nnId.equals(nnId)){
-					toRemove.add(new ModuleInstanceDTO(e.moduleId, e.nnId, frameworkId));
+					toRemove.add(e.value);
 				}
 			}
 		}
@@ -419,13 +425,7 @@ public class DianneRuntime implements ModuleManager {
 	@Override
 	public List<ModuleInstanceDTO> getModules(){
 		List<ModuleInstanceDTO> modules = new ArrayList<ModuleInstanceDTO>();
-		synchronized(registrations){
-			Iterator<ModuleMap<ServiceRegistration>.Entry<ServiceRegistration>> it = registrations.iterator();
-			while(it.hasNext()){
-				ModuleMap.Entry e = it.next();
-				modules.add(new ModuleInstanceDTO(e.moduleId, e.nnId, frameworkId));
-			}
-		}
+		modules.addAll(instances.values());
 		return modules;
 	}
 
