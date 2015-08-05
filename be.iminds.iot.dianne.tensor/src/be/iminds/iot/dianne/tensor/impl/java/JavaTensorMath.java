@@ -1,9 +1,7 @@
 package be.iminds.iot.dianne.tensor.impl.java;
 
-import java.util.Arrays;
 import java.util.stream.IntStream;
 
-import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.dianne.tensor.TensorMath;
 
