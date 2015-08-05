@@ -39,7 +39,7 @@ public abstract class Fork extends AbstractModule {
 			Module m = next[i];
 			nextsBusy.get(m).set(true);
 			
-			executor.execute(new ForwardRunnable(m, outputs.get(id), tags));
+			executor.execute(new ForwardForkRunnable(m, outputs.get(id), tags));
 		}
 	}
 	
@@ -152,7 +152,6 @@ public abstract class Fork extends AbstractModule {
 		
 		public void run(){
 			m.forward(id, tensor, tags);
-			
 			synchronized(nextsBusy){
 				nextsBusy.get(m).set(false);
 				nextsBusy.notifyAll();
@@ -161,10 +160,12 @@ public abstract class Fork extends AbstractModule {
 	}
 	
 	protected boolean nextBusy(){
+		int i = 0;
 		for(AtomicBoolean a : nextsBusy.values()){
 			if(a.get()){
 				return true;
 			}
+			i++;
 		}
 		return false;
 	}
