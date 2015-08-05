@@ -74,5 +74,5 @@ clean:
 	rm -rf *.o ${LIB} be_*.h test
 	
 cleanAll: clean
-	rm -rf TH/build libTH.a; rm -rf THC/build libTHC.a; rm libopenblas.a; cd OpenBLAS; make clean
+	rm -rf THGeneral.h TH/build libTH.a; rm -rf THC/build libTHC.a; rm libopenblas.a; cd OpenBLAS; make clean
 
