@@ -248,6 +248,9 @@ footer {
 }
 
 .module-dialog {
-    margin-right: 0;
-    margin-left: 0;
+    margin: 0;
+}
+
+#dialog-save, #dialog-load {
+	z-index: 9999;
 }

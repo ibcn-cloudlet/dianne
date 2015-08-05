@@ -1,6 +1,8 @@
 /*
  * Module configuration/deletion dialog stuff 
  */
+ 
+ var dialogZIndex = 1040;
 
 /**
  * Show a dialog for a given module, will forward to right function depending on currentMode
@@ -23,19 +25,26 @@ function showConfigureModuleDialog(moduleItem) {
 		} else if (currentMode === "run") {
 			dialog = createRunModuleDialog(id, moduleItem);
 		}
+		
+		if (dialog !== undefined) {
+			var offset = moduleItem.offset();
+			offset.top = offset.top - 100;
+			offset.left = offset.left - 200;
+			// show the modal (disable backdrop)
+			dialog.draggable({
+				handle : ".modal-header"
+			}).mousedown(function(){
+	   			// set clicked element to a higher level
+	   			$(this).css('z-index', ++dialogZIndex);
+			}).offset(offset);
+		}
 	}
 	
 	if (dialog !== undefined) {
-		var offset = moduleItem.offset();
-		offset.top = offset.top - 100;
-		offset.left = offset.left - 200;
-		// show the modal (disable backdrop)
 		dialog.modal({
 			'show' : true,
 			'backdrop' : false
-		}).draggable({
-			handle : ".modal-header"
-		}).offset(offset);
+		}).css('z-index', ++dialogZIndex);
 	}
 }
 
