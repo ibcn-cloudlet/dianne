@@ -29,4 +29,19 @@ public class NeuralNetworkInstanceDTO {
 		this.name = name;
 		this.modules = modules;
 	}
+	
+	@Override
+	public boolean equals(Object o){
+		if(!(o instanceof NeuralNetworkInstanceDTO)){
+			return false;
+		}
+		
+		NeuralNetworkInstanceDTO other = (NeuralNetworkInstanceDTO) o;
+		return other.nnId.equals(nnId);
+	}
+	
+	@Override
+	public int hashCode(){
+		return nnId.hashCode();
+	}
 }

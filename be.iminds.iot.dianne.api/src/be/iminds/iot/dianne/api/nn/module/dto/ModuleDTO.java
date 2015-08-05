@@ -37,4 +37,19 @@ public class ModuleDTO {
 		this.prev = prev;
 		this.properties = properties;
 	}
+	
+	@Override
+	public boolean equals(Object o){
+		if(!(o instanceof ModuleDTO)){
+			return false;
+		}
+		
+		ModuleDTO other = (ModuleDTO) o;
+		return other.id.equals(id);
+	}
+	
+	@Override
+	public int hashCode(){
+		return id.hashCode();
+	}
 }

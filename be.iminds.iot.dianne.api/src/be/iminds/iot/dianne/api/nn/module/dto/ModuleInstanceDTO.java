@@ -22,11 +22,30 @@ public class ModuleInstanceDTO {
 	// UUID of the framework where the module instance is deployed
 	public final UUID frameworkId;
 
+	// Module type
+	public final String type;
 	
-	public ModuleInstanceDTO(UUID moduleId, UUID nnId, UUID frameworkId){
+	public ModuleInstanceDTO(UUID moduleId, UUID nnId, UUID frameworkId, String type){
 		this.moduleId = moduleId;
 		this.nnId = nnId;
 		this.frameworkId = frameworkId;
+		this.type = type;
 	}
 	
+	@Override
+	public boolean equals(Object o){
+		if(!(o instanceof ModuleInstanceDTO)){
+			return false;
+		}
+		
+		ModuleInstanceDTO other = (ModuleInstanceDTO) o;
+		return other.moduleId.equals(moduleId)
+				&&	other.nnId.equals(nnId)
+				&&  other.frameworkId.equals(frameworkId);
+	}
+	
+	@Override
+	public int hashCode(){
+		return moduleId.hashCode() + 31*nnId.hashCode() + frameworkId.hashCode();
+	}
 }
