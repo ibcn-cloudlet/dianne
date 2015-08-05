@@ -1,14 +1,20 @@
 package be.iminds.iot.dianne.command;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Dictionary;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Random;
 import java.util.UUID;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -19,10 +25,9 @@ import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.api.nn.module.Module;
-import be.iminds.iot.dianne.api.nn.module.Output;
-import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
-import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
+import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
+import be.iminds.iot.dianne.api.nn.platform.NeuralNetworkManager;
 import be.iminds.iot.dianne.api.nn.runtime.ModuleManager;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -32,42 +37,39 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 		service=Object.class,
 		property={"osgi.command.scope=dianne",
 				  "osgi.command.function=datasets",
-				  "osgi.command.function=networks",
-				  "osgi.command.function=modules",
-				  "osgi.command.function=devices",
-				  "osgi.command.function=loadNN",
-				  "osgi.command.function=unloadNN",
-				  "osgi.command.function=loadDataset",
-				  "osgi.command.function=unloadDataset",
+				  "osgi.command.function=runtimes",
+				  "osgi.command.function=nn",
+				  "osgi.command.function=nnAvailable",
+				  "osgi.command.function=nnDeploy",
+				  "osgi.command.function=nnUndeploy",
 				  "osgi.command.function=sample",
 				  "osgi.command.function=eval"},
 		immediate=true)
 public class DianneCommands {
+
 	private static Random rand = new Random(System.currentTimeMillis());
 	
-	private static final UUID CLI_NN_ID = UUID.randomUUID();
+	BundleContext context;
 	
+	// Dianne components
 	TensorFactory factory; 
 	
-	// for now only deploy one network at a time
-	String network = null;
-	// for now only load one dataset at a time
-	Dataset dataset = null;
-	
 	Map<String, Dataset> datasets = Collections.synchronizedMap(new HashMap<String, Dataset>());
+	List<ModuleManager> runtimes = Collections.synchronizedList(new ArrayList<ModuleManager>());
 	DianneRepository repository;
-	// for now only one runtime is used
-	Map<String, ModuleManager> runtimes = Collections.synchronizedMap(new HashMap<String, ModuleManager>());
-	Map<String, Module> modules = Collections.synchronizedMap(new HashMap<String, Module>());
-
-	// for now only support single Input/Output 
-	Input input = null;
-	Output output = null;
+	NeuralNetworkManager dianne;
 	
+	// State
+	List<NeuralNetworkInstanceDTO> nns = new ArrayList<NeuralNetworkInstanceDTO>();
+	Map<String, NeuralNetworkInstanceDTO> map = new HashMap<String, NeuralNetworkInstanceDTO>();
+	
+	// Separate aggregation for training commands
 	private DianneTrainCommands training = null;
 	
 	@Activate
-	public void activate(){
+	public void activate(BundleContext context){
+		this.context = context;
+		
 		try {
 			training = new DianneTrainCommands(this);
 		} catch(NoClassDefFoundError e){
@@ -76,154 +78,260 @@ public class DianneCommands {
 	}
 	
 	public void datasets(){
-		System.out.println("Available datasets:");
-		synchronized(datasets){
-			for(Dataset dataset : datasets.values()){
-				System.out.println("* "+dataset.getName()+"\t"+dataset.size()+" samples");
-			}
-		}
-	}
-	
-	public void networks(){
-		System.out.println("Available neural networks:");
-		for(String network : repository.networks()){
-			System.out.println("* "+network);
-		}
-	}
-	
-	public void modules(){
-		System.out.println("Deployed modules:");
-		synchronized(modules){
-			Iterator<Entry<String, Module>> it = modules.entrySet().iterator();
-			while(it.hasNext()){
-				Entry<String, Module> entry = it.next();
-				System.out.println("* "+entry.getKey()+"\t"+entry.getValue().getClass().getName());
-			}
-		}
-	}
-	
-	public void devices(){
-		System.out.println("Available devices:");
-		synchronized(runtimes){
-			for(String device : runtimes.keySet()){
-				System.out.println("* "+device);
-			}
-		}
-	}
-	
-	public synchronized void loadNN(String network){
-		if(this.network==null){
-			this.network=network;
-		} else {
-			System.out.println("Already deployed a network: "+network);
-			return;
-		}
-		try {
-			NeuralNetworkDTO nn = repository.loadNetwork(network);
-			for(ModuleDTO module : nn.modules){
-				ModuleManager m = runtimes.get("localhost");
-				m.deployModule(module, CLI_NN_ID);
-			}
-			
-		} catch(Exception e){
-			System.out.println("Failed to load network "+network);
-		}
-	}
-	
-	public synchronized void unload(){
-		synchronized(runtimes){
-			for(ModuleManager m : runtimes.values()){
-				for(ModuleInstanceDTO i : m.getModules()){
-					m.undeployModule(i);
-				}
-			}
-		}
-		this.network = null;
-	}
-	
-	public synchronized void loadDataset(String dataset){
-		if(this.dataset==null){
-			this.dataset=datasets.get(dataset);
-			if(this.dataset==null){
-				System.out.println("Dataset "+dataset+" not found");
-			} else {
-				System.out.println("Succesfully loaded dataset "+dataset);
-			}
-		} else {
-			System.out.println("Already deployed a dataset ("+this.dataset.getName()+") ... unload first with unloadDataset");
-		}
-	}
-	
-	public synchronized void unloadDataset(){
-		this.dataset = null;
-	}
-	
-	public void sample(String... tags){
-		if(dataset==null){
-			System.out.println("No dataset loaded, load one first with loadDataset");
-			return;
-		}
-		int index = rand.nextInt(dataset.size());
-		sample(index, tags);
-	}
-	
-	public void sample(){
-		sample(null);
-	}
-	
-	public void sample(final int index, final String... tags){
-		if(network==null){
-			System.out.println("No neural network loaded, load one first with loadNN");
-			return;
-		} 
-		if(dataset==null){
-			System.out.println("No dataset loaded, load one first with loadDataset");
-			return;
-		}
-		if(input==null){
-			System.out.println("Loaded neural network has no valid Input module");
+		if(datasets.size()==0){
+			System.out.println("No datasets available");
 			return;
 		}
 		
-		// TODO only works if output is deployed on this node, ok for now
+		System.out.println("Available datasets:");
+		synchronized(datasets){
+			int i = 0;
+			for(Dataset dataset : datasets.values()){
+				System.out.println("["+(i++)+"] "+dataset.getName()+"\t"+dataset.size()+" samples");
+			}
+		}
+	}
+	
+	public void runtimes(){
+		if(runtimes.size()==0){
+			System.out.println("No runtimes available");
+			return;
+		}
+		
+		System.out.println("Available Dianne runtimes:");
+		synchronized(runtimes){
+			int i = 0;
+			for(ModuleManager runtime : runtimes){
+				System.out.println("["+(i++)+"] "+runtime.getFrameworkId());
+			}
+		}
+	}
+	
+	public void nnAvailable(){
+		List<String> nns = repository.networks();
+		if(nns.size()==0){
+			System.out.println("No neural networks available");
+			return;
+		}
+		
+		System.out.println("Available neural networks:");
+		int i=0;
+		for(String nn : nns){
+			System.out.println("["+(i++)+"] "+nn);
+		}
+	}
+	
+	public void nn(){
+		if(nns.size()==0){
+			System.out.println("No neural networks deployed");
+			return;
+		}
+		
+		System.out.println("Deployed neural networks:");
+		int i=0;
+		for(NeuralNetworkInstanceDTO nn : nns){
+			System.out.println("["+(i++)+"] "+nn.nnId+"\t"+nn.name);
+		}
+		
+	}
+	
+	public void nn(int index){
+		if(index >= nns.size()){
+			System.out.println("No neural network deployed with index "+index);
+			return;
+		}
+		NeuralNetworkInstanceDTO nn = nns.get(index);
+		printNN(nn);
+	}
+	
+	public void nn(String id){
+		NeuralNetworkInstanceDTO nn = map.get(id);
+		if(nn==null){
+			System.out.println("No neural network deployed with id "+id);
+			return;
+		}
+		printNN(nn);
+	}
+	
+	private void printNN(NeuralNetworkInstanceDTO nn){
+		System.out.println(nn.nnId.toString()+" ("+nn.name+")");
+		for(ModuleInstanceDTO m: nn.modules){
+			System.out.println("* "+m.moduleId+" deployed at "+m.frameworkId);
+		}
+	}
+	
+	public void nnDeploy(String name){
+		deploy(name, runtimes.get(0).getFrameworkId());
+	}
+	
+	public void nnDeploy(String name, String id){
+		deploy(name, UUID.fromString(id));
+	}
+	
+	public void nnDeploy(String name, int index){
+		deploy(name, runtimes.get(index).getFrameworkId());
+	}
+	
+	private synchronized void deploy(String name, UUID frameworkId){
+		try {
+			NeuralNetworkInstanceDTO nn = dianne.deployNeuralNetwork(name, frameworkId);
+			nns.add(nn);
+			map.put(nn.nnId.toString(), nn);
+			System.out.println("Deployed instance of "+nn.name+" ("+nn.nnId.toString()+")");
+		} catch (InstantiationException e) {
+			System.out.println("Error deploying instance of "+name);
+			e.printStackTrace();
+		}	
+	}
+	
+	public void nnUndeploy(String nnId){
+		NeuralNetworkInstanceDTO nn = map.get(nnId);
+		if(nn==null){
+			System.out.println("No neural network deployed with id "+nnId);
+			return;
+		}
+		undeploy(nn);
+	}
+	
+	public void nnUndeploy(int index){
+		if(index >= nns.size()){
+			System.out.println("No neural network with index "+index);
+			return;
+		}
+		NeuralNetworkInstanceDTO nn = nns.get(index);
+		undeploy(nn);
+	}
+	
+	private void undeploy(NeuralNetworkInstanceDTO nn){
+		dianne.undeployNeuralNetwork(nn);
+		nns.remove(nn);
+		map.remove(nn.nnId);
+	}
+	
+	public void sample(String dataset, String nnId, int sample, String...tags){
+		Dataset d = datasets.get(dataset);
+		if(d==null){
+			System.out.println("Dataset "+dataset+" not available");
+			return;
+		}
+		
+		final int index = sample == -1 ? rand.nextInt(d.size()) : sample;
+		
+		UUID inputId = getInputId(nnId);
+		if(inputId==null){
+			System.out.println("No Input module found for neural network "+nnId);
+			return;
+		}
+		
+		UUID outputId = getOutputId(nnId);
+		if(outputId==null){
+			System.out.println("No Output module found for neural network "+nnId);
+			return;
+		}
+		
+		ServiceReference ref = getModule(UUID.fromString(nnId), inputId);
+		if(ref==null){
+			System.out.println("Input module "+inputId+" not found");
+			return;
+		}
+		
+		// register outputlistener
+		Dictionary<String, Object> properties = new Hashtable<String, Object>();
+		properties.put("targets", new String[]{nnId.toString()+":"+outputId.toString()});
 		final ForwardListener printer = new ForwardListener() {
-			
 			@Override
 			public void onForward(Tensor output, String... tags) {
 				int clazz = factory.getTensorMath().argmax(output);
 				float max = factory.getTensorMath().max(output);
-				String label = dataset.getLabels()[clazz];
+				String label = d.getLabels()[clazz];
 				System.out.println("Sample "+index+" (with tags "+Arrays.toString(tags)+") classified as: "+label+" (probability: "+max+")");
 				
-				synchronized(DianneCommands.this.output){
-					DianneCommands.this.output.notifyAll();
+				synchronized(DianneCommands.this){
+					DianneCommands.this.notifyAll();
 				}
 			}
 		};
+		ServiceRegistration reg = context.registerService(ForwardListener.class, printer, properties);
 		
-		output.addForwardListener(printer);
-		Tensor t = dataset.getInputSample(index);
-		long t1 = System.currentTimeMillis();
-		input.input(t, tags);
-		synchronized(output){
-			try {
-				output.wait();
-			} catch (InterruptedException e) {
+		// get input and forward
+		Input input = (Input) context.getService(ref);
+		
+		try {
+			Tensor t = d.getInputSample(index);
+			long t1 = System.currentTimeMillis();
+			input.input(t, tags);
+			synchronized(this){
+				try {
+					this.wait();
+				} catch (InterruptedException e) {
+				}
 			}
+			long t2 = System.currentTimeMillis();
+			System.out.println("Forward time: "+(t2-t1)+" ms");
+		} catch(Throwable t){
+			t.printStackTrace();
+		} finally {
+			// cleanup
+			context.ungetService(ref);
+			reg.unregister();
 		}
-		long t2 = System.currentTimeMillis();
-		output.removeForwardListener(printer);
-		System.out.println("Forward time: "+(t2-t1)+" ms");
+		
 	}
 	
-	public void eval(int start, int end){
+	public void sample(String dataset, String nnId, String...tags){
+		sample(dataset, nnId, -1, tags);
+	}
+	
+	
+	public void eval(String dataset, String nnId, int start, int end){
 		if(training == null){
 			System.out.println("Training/Evaluation functions unavailable");
 			return;
 		}
 
-		training.eval(start, end);
+		training.eval(dataset, nnId, start, end);
 	}
+	
+	UUID getInputId(String nnId){
+		NeuralNetworkInstanceDTO nn = map.get(nnId);
+		if(nn==null)
+			return null;
+		
+		for(ModuleInstanceDTO m : nn.modules){
+			if(m.type.equals("Input")){
+				return m.moduleId;
+			}
+		}
+		
+		return null;
+	}
+	
+	UUID getOutputId(String nnId){
+		NeuralNetworkInstanceDTO nn = map.get(nnId);
+		if(nn==null)
+			return null;
+		
+		for(ModuleInstanceDTO m : nn.modules){
+			if(m.type.equals("Output")){
+				return m.moduleId;
+			}
+		}
+		
+		return null;
+	}
+	
+	ServiceReference getModule(UUID nnId, UUID moduleId){
+		try {
+			ServiceReference[] refs = context.getAllServiceReferences(Module.class.getName(), "(&(module.id="+moduleId.toString()+")(nn.id="+nnId.toString()+"))");
+			if(refs!=null){
+				return refs[0];
+			}
+		} catch (InvalidSyntaxException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
 
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
@@ -237,61 +345,26 @@ public class DianneCommands {
 		this.datasets.remove(name);
 	}
 	
+	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
+			policy=ReferencePolicy.DYNAMIC)
+	public void addModuleManager(ModuleManager runtime, Map<String, Object> properties){
+		this.runtimes.add(runtime);
+	}
+	
+	public void removeModuleManager(ModuleManager runtime, Map<String, Object> properties){
+		this.runtimes.remove(runtime);
+	}
+	
 	@Reference
 	public void setDianneRepository(DianneRepository repo){
 		this.repository = repo;
 	}
 	
-	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
-			policy=ReferencePolicy.DYNAMIC)
-	public void addModuleManager(ModuleManager m, Map<String, Object> properties){
-		String uuid = (String) properties.get("aiolos.framework.uuid");
-		// for now only support localhost
-		if(uuid==null){
-			runtimes.put("localhost", m);
-		} else {
-			runtimes.put(uuid, m);
-		}
-	}
-	
-	public void removeModuleManager(ModuleManager m, Map<String, Object> properties){
-		String uuid = (String) properties.get("aiolos.framework.uuid"); 
-		if(uuid==null){
-			runtimes.remove("localhost");
-		} else {
-			runtimes.remove(uuid);
-		}
-	}
-	
-	@Reference(
-			cardinality=ReferenceCardinality.MULTIPLE, 
-			policy=ReferencePolicy.DYNAMIC)
-	public synchronized void addModule(Module module, Map<String, Object> properties){
-		String id = (String)properties.get("module.id");
-		modules.put(id, module);
-		
-		if(module instanceof Input){
-			this.input = (Input)module;
-		} else if(module instanceof Output){
-			this.output = (Output)module;
-		} 
+	@Reference
+	public void setNeuralNetworkManager(NeuralNetworkManager nnMgr){
+		this.dianne = nnMgr;
 	}
 
-	public synchronized void removeModule(Module module, Map<String, Object> properties){
-		String id = (String)properties.get("module.id");
-		modules.remove(id);
-		
-		if(module instanceof Input){
-			if(input==module){
-				input = null;
-			}
-		} else if(module instanceof Output){
-			if(output==module){
-				output = null;
-			}
-		} 
-	}
-	
 	@Reference
 	public void setTensorFactory(TensorFactory f){
 		this.factory = f;
