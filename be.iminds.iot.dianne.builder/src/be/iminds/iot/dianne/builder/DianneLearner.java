@@ -175,10 +175,10 @@ public class DianneLearner extends HttpServlet {
 					
 					//store in repository instead of json at client side
 					for(Trainable t : trainable){
-						repository.storeWeights(((Module)t).getId(), t.getParameters().get());
+						repository.storeParameters(((Module)t).getId(), t.getParameters().get());
 					}
 					for(Preprocessor p : preprocessors){
-						repository.storeWeights(((Module)p).getId(), p.getParameters().get());
+						repository.storeParameters(((Module)p).getId(), p.getParameters().get());
 					}
 					
 					JsonObject labels = new JsonObject();

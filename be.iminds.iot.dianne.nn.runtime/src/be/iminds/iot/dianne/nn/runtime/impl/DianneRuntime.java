@@ -330,12 +330,12 @@ public class DianneRuntime implements ModuleManager {
 		
 		if(module instanceof Trainable){
 			try {
-				float[] weights = repository.loadWeights(module.getId());
+				float[] weights = repository.loadParameters(module.getId());
 				((Trainable)module).setParameters(weights);
 			} catch(IOException e){}
 		} else if(module instanceof Preprocessor){
 			try {
-				float[] weights = repository.loadWeights(module.getId());
+				float[] weights = repository.loadParameters(module.getId());
 				((Preprocessor)module).setParameters(weights);
 			} catch(IOException e){}
 		} 

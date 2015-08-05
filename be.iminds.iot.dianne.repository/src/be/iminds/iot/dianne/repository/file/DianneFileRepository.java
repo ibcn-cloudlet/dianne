@@ -114,7 +114,7 @@ public class DianneFileRepository implements DianneRepository {
 	}
 	
 	@Override
-	public float[] loadWeights(UUID id) throws IOException {
+	public float[] loadParameters(UUID id) throws IOException {
 		File d = new File(dir);
 		File f = null;
 		for(String l : d.list()){
@@ -139,7 +139,7 @@ public class DianneFileRepository implements DianneRepository {
 	}
 
 	@Override
-	public void storeWeights(UUID id, float[] weights) {
+	public void storeParameters(UUID id, float[] weights) {
 		File f = new File(dir+"/weights/"+id.toString());
 		DataOutputStream os = null;
 		try {

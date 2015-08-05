@@ -14,11 +14,15 @@ public interface DianneRepository {
 	
 	void storeNeuralNetwork(NeuralNetworkDTO nn);
 	
+
+	float[] loadParameters(UUID moduleId) throws IOException;
+	
+	void storeParameters(UUID moduleId, float[] weights);
+	
+	
+	// these are some helper methods for saving the jsplumb layout of the UI builder
+	// of utterly no importance for the rest and can be ignored...
 	String loadLayout(String nnName) throws IOException;
 	
 	void storeLayout(String nnName, String layout);
-
-	float[] loadWeights(UUID moduleId) throws IOException;
-	
-	void storeWeights(UUID moduleId, float[] weights);
 }
