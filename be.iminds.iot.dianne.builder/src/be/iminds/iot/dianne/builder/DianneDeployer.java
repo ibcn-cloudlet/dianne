@@ -55,7 +55,7 @@ public class DianneDeployer extends HttpServlet {
 		UUID uuid = m.getFrameworkId();
 		String name = uuid.toString();
 
-		if(name == null){
+		if(properties.get("aiolos.framework.uuid")==null){ // AIOLOS hack to check whether it is localhost
 			name = "localhost";
 		} else if(name.equals("00000000-0000-0000-0000-000000000000")){
 			name = "Laptop";
