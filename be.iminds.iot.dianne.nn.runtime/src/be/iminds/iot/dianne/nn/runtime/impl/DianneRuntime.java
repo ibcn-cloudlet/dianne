@@ -44,7 +44,7 @@ import be.iminds.iot.dianne.api.repository.DianneRepository;
 public class DianneRuntime implements ModuleManager {
 
 	private BundleContext context;
-	private UUID frameworkId;
+	private UUID runtimeId;
 	
 	private List<ModuleFactory> moduleFactories = Collections.synchronizedList(new ArrayList<ModuleFactory>());
 	
@@ -66,7 +66,7 @@ public class DianneRuntime implements ModuleManager {
 	@Activate
 	public void activate(BundleContext context){
 		this.context = context;
-		this.frameworkId = UUID.fromString(context.getProperty(Constants.FRAMEWORK_UUID));
+		this.runtimeId = UUID.fromString(context.getProperty(Constants.FRAMEWORK_UUID));
 	}
 	
 	@Deactivate
@@ -372,14 +372,14 @@ public class DianneRuntime implements ModuleManager {
 		this.registrations.put(moduleId, nnId, reg);
 		
 		System.out.println("Registered module "+module.getClass().getName()+" "+moduleId);
-		ModuleInstanceDTO instance =  new ModuleInstanceDTO(moduleId, nnId, frameworkId, dto.type);
+		ModuleInstanceDTO instance =  new ModuleInstanceDTO(moduleId, nnId, runtimeId, dto.type);
 		this.instances.put(moduleId, nnId, instance);
 		return instance;
 	}
 
 	@Override
 	public synchronized void undeployModule(ModuleInstanceDTO dto) {
-		if(!dto.frameworkId.equals(frameworkId)){
+		if(!dto.runtimeId.equals(runtimeId)){
 			System.out.println("Can only undeploy module instances that are deployed here...");
 			return;
 		}
@@ -441,8 +441,8 @@ public class DianneRuntime implements ModuleManager {
 	}
 	
 	@Override
-	public UUID getFrameworkId() {
-		return frameworkId;
+	public UUID getRuntimeId() {
+		return runtimeId;
 	}
 	
 	private void configureNext(Module m, UUID nnId){

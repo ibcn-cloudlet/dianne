@@ -15,7 +15,7 @@ import java.util.UUID;
 public class NeuralNetworkInstanceDTO {
 
 	// UUID of the neural network instance
-	public final UUID nnId;
+	public final UUID id;
 	
 	// name of the neural network
 	// can be used to fetch the NeuralNetworkDTO from DianneRepository
@@ -24,8 +24,8 @@ public class NeuralNetworkInstanceDTO {
 	// The list of ModuleInstances that this neural network instance is composed of
 	public final List<ModuleInstanceDTO> modules;
 	
-	public NeuralNetworkInstanceDTO(UUID nnId, String name, List<ModuleInstanceDTO> modules){
-		this.nnId = nnId;
+	public NeuralNetworkInstanceDTO(UUID id, String name, List<ModuleInstanceDTO> modules){
+		this.id = id;
 		this.name = name;
 		this.modules = modules;
 	}
@@ -37,11 +37,11 @@ public class NeuralNetworkInstanceDTO {
 		}
 		
 		NeuralNetworkInstanceDTO other = (NeuralNetworkInstanceDTO) o;
-		return other.nnId.equals(nnId);
+		return other.id.equals(id);
 	}
 	
 	@Override
 	public int hashCode(){
-		return nnId.hashCode();
+		return id.hashCode();
 	}
 }

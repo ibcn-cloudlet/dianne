@@ -52,7 +52,7 @@ public class DianneDeployer extends HttpServlet {
 	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
 			policy=ReferencePolicy.DYNAMIC)
 	public void addModuleManager(ModuleManager m, Map<String, Object> properties){
-		UUID uuid = m.getFrameworkId();
+		UUID uuid = m.getRuntimeId();
 		String name = uuid.toString();
 
 		if(properties.get("aiolos.framework.uuid")==null){ // AIOLOS hack to check whether it is localhost

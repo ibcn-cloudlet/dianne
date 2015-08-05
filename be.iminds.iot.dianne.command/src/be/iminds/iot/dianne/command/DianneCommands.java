@@ -102,7 +102,7 @@ public class DianneCommands {
 		synchronized(runtimes){
 			int i = 0;
 			for(ModuleManager runtime : runtimes){
-				System.out.println("["+(i++)+"] "+runtime.getFrameworkId());
+				System.out.println("["+(i++)+"] "+runtime.getRuntimeId());
 			}
 		}
 	}
@@ -130,7 +130,7 @@ public class DianneCommands {
 		System.out.println("Deployed neural networks:");
 		int i=0;
 		for(NeuralNetworkInstanceDTO nn : nns){
-			System.out.println("["+(i++)+"] "+nn.nnId+"\t"+nn.name);
+			System.out.println("["+(i++)+"] "+nn.id+"\t"+nn.name);
 		}
 		
 	}
@@ -154,14 +154,14 @@ public class DianneCommands {
 	}
 	
 	private void printNN(NeuralNetworkInstanceDTO nn){
-		System.out.println(nn.nnId.toString()+" ("+nn.name+")");
+		System.out.println(nn.id.toString()+" ("+nn.name+")");
 		for(ModuleInstanceDTO m: nn.modules){
-			System.out.println("* "+m.moduleId+" deployed at "+m.frameworkId);
+			System.out.println("* "+m.moduleId+" deployed at "+m.runtimeId);
 		}
 	}
 	
 	public void nnDeploy(String name){
-		deploy(name, runtimes.get(0).getFrameworkId());
+		deploy(name, runtimes.get(0).getRuntimeId());
 	}
 	
 	public void nnDeploy(String name, String id){
@@ -169,15 +169,15 @@ public class DianneCommands {
 	}
 	
 	public void nnDeploy(String name, int index){
-		deploy(name, runtimes.get(index).getFrameworkId());
+		deploy(name, runtimes.get(index).getRuntimeId());
 	}
 	
-	private synchronized void deploy(String name, UUID frameworkId){
+	private synchronized void deploy(String name, UUID runtimeId){
 		try {
-			NeuralNetworkInstanceDTO nn = dianne.deployNeuralNetwork(name, frameworkId);
+			NeuralNetworkInstanceDTO nn = dianne.deployNeuralNetwork(name, runtimeId);
 			nns.add(nn);
-			map.put(nn.nnId.toString(), nn);
-			System.out.println("Deployed instance of "+nn.name+" ("+nn.nnId.toString()+")");
+			map.put(nn.id.toString(), nn);
+			System.out.println("Deployed instance of "+nn.name+" ("+nn.id.toString()+")");
 		} catch (InstantiationException e) {
 			System.out.println("Error deploying instance of "+name);
 			e.printStackTrace();
@@ -205,7 +205,7 @@ public class DianneCommands {
 	private void undeploy(NeuralNetworkInstanceDTO nn){
 		dianne.undeployNeuralNetwork(nn);
 		nns.remove(nn);
-		map.remove(nn.nnId);
+		map.remove(nn.id);
 	}
 	
 	public void sample(String dataset, String nnId, int sample, String...tags){

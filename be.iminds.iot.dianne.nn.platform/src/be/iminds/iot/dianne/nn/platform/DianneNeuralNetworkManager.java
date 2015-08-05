@@ -31,13 +31,13 @@ public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 	
 	@Override
 	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name,
-			UUID frameworkId) throws InstantiationException {
-		return deployNeuralNetwork(name, frameworkId, new HashMap<UUID, UUID>());
+			UUID runtimeId) throws InstantiationException {
+		return deployNeuralNetwork(name, runtimeId, new HashMap<UUID, UUID>());
 	}
 
 	@Override
 	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name,
-			UUID frameworkId, Map<UUID, UUID> deployment) throws InstantiationException {
+			UUID runtimeId, Map<UUID, UUID> deployment) throws InstantiationException {
 		
 		NeuralNetworkDTO neuralNetwork = null;
 		try {
@@ -52,7 +52,7 @@ public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 		for(ModuleDTO module : neuralNetwork.modules){
 			UUID targetRuntime = deployment.get(module.id);
 			if(targetRuntime==null){
-				targetRuntime = frameworkId;
+				targetRuntime = runtimeId;
 			}
 			
 			ModuleManager runtime = runtimes.get(targetRuntime);
@@ -73,9 +73,9 @@ public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 
 	@Override
 	public void undeployNeuralNetwork(NeuralNetworkInstanceDTO nn) {
-		nns.remove(nn.nnId);
+		nns.remove(nn.id);
 		
-		undeployNeuralNetwork(nn.nnId);
+		undeployNeuralNetwork(nn.id);
 	}
 
 	private void undeployNeuralNetwork(UUID nnId){
@@ -114,7 +114,7 @@ public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
 			policy=ReferencePolicy.DYNAMIC)
 	public void addModuleManager(ModuleManager m, Map<String, Object> properties){
-		runtimes.put(m.getFrameworkId(), m);
+		runtimes.put(m.getRuntimeId(), m);
 	}
 	
 	public void removeModuleManager(ModuleManager m, Map<String, Object> properties){
