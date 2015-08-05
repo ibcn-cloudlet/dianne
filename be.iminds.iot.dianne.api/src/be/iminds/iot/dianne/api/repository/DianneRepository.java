@@ -10,15 +10,15 @@ public interface DianneRepository {
 
 	List<String> avialableNeuralNetworks();
 	
-	NeuralNetworkDTO loadNeuralNetwork(String network) throws IOException;
+	NeuralNetworkDTO loadNeuralNetwork(String nnName) throws IOException;
 	
-	void storeNeuralNetwork(String network, String modules);
+	void storeNeuralNetwork(NeuralNetworkDTO nn);
 	
-	String loadLayout(String network) throws IOException;
+	String loadLayout(String nnName) throws IOException;
 	
-	void storeLayout(String network, String layout);
+	void storeLayout(String nnName, String layout);
 
-	float[] loadWeights(UUID id) throws IOException;
+	float[] loadWeights(UUID moduleId) throws IOException;
 	
-	void storeWeights(UUID id, float[] weights);
+	void storeWeights(UUID moduleId, float[] weights);
 }

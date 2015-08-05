@@ -678,13 +678,17 @@ function showSaveDialog(){
 
 function save(name){
 	// save modules
-	var modulesJson = JSON.stringify(nn);
+	var s = {};
+	s.modules = nn;
+	s.name = name;
+	
+	var modulesJson = JSON.stringify(s);
 	
 	// save layout
 	var layout = saveLayout();
     var layoutJson = JSON.stringify(layout);
     
-	$.post("/dianne/save", {"name":name, "modules":modulesJson, "layout":layoutJson}, 
+	$.post("/dianne/save", {"nn":modulesJson, "layout":layoutJson}, 
 		function( data ) {
 			$('#dialog-save').remove();
 			console.log("Succesfully saved");

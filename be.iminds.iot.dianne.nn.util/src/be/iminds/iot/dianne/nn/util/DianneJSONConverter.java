@@ -11,6 +11,8 @@ import java.util.UUID;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -42,7 +44,7 @@ public class DianneJSONConverter {
 		// could be either a nice NeuralNetworkDTO or just a bunch of modules
 		JsonObject jsonModules = json;
 		if(json.has("modules")){
-			json.get("modules").getAsJsonObject();
+			jsonModules = json.get("modules").getAsJsonObject();
 		}
 		
 		for(Entry<String, JsonElement> module : jsonModules.entrySet()){
@@ -126,10 +128,22 @@ public class DianneJSONConverter {
 		ModuleDTO dto = new ModuleDTO(id, type, next, prev, properties);
 		return dto;
 	}
-
+	
 	public static String toJsonString(NeuralNetworkDTO dto){
+		return toJsonString(dto, false);
+	}
+
+	public static String toJsonString(NeuralNetworkDTO dto, boolean pretty){
 		JsonObject nn = toJson(dto);
-		return nn.toString();
+	
+		GsonBuilder builder= new GsonBuilder();
+		if(pretty){
+			builder.setPrettyPrinting();
+		}
+		Gson gson = builder.create();
+		String output = gson.toJson(nn);
+		
+		return output;
 	}
 	
 	private static JsonObject toJson(NeuralNetworkDTO dto){

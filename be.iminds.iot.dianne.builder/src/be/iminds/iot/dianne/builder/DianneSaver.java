@@ -10,7 +10,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
+import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
+import be.iminds.iot.dianne.nn.util.DianneJSONConverter;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -31,18 +33,12 @@ public class DianneSaver extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		String name = request.getParameter("name");
-		String modules = request.getParameter("modules");
+		String nn = request.getParameter("nn");
 		String layout = request.getParameter("layout");
 		
-		// Parse and rewrite to get pretty output format
-		JsonParser parser = new JsonParser();
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		String jsonOutput = gson.toJson(parser.parse(modules));
-		
-		// TODO which formats to save?
-		repository.storeNeuralNetwork(name, modules);
-		repository.storeLayout(name, layout);
+		NeuralNetworkDTO dto = DianneJSONConverter.parseJSON(nn);
+		repository.storeNeuralNetwork(dto);
+		repository.storeLayout(dto.name, layout);
 		
 		response.getWriter().println("{}");
 		response.getWriter().flush();

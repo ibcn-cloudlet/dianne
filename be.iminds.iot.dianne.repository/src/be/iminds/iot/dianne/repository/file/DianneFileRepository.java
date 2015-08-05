@@ -70,24 +70,13 @@ public class DianneFileRepository implements DianneRepository {
 	}
 	
 	@Override
-	public void storeNeuralNetwork(String network, String modules){
-		File d = new File(dir+"/"+network);
+	public void storeNeuralNetwork(NeuralNetworkDTO nn){
+		File d = new File(dir+"/"+nn.name);
 		d.mkdirs();
 		
-		File n = new File(dir+"/"+network+"/modules.txt");
+		File n = new File(dir+"/"+nn.name+"/modules.txt");
 		
-		// also look for weights and move these to the network folder
-		JsonObject json = (JsonObject)parser.parse(modules);
-		for(Entry<String, JsonElement> e : json.entrySet()){
-			File weights = new File(dir+"/weights/"+e.getKey());
-			if(weights.exists()){
-				// move to network folder
-				weights.renameTo(new File(dir+"/"+network+"/"+e.getKey()));
-			}
-		}
-		
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		String output = gson.toJson(json);
+		String output = DianneJSONConverter.toJsonString(nn, true);
 		
 		PrintWriter p = null;
 		try {
