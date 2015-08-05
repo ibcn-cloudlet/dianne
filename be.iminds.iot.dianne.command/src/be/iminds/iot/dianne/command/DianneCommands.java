@@ -25,6 +25,7 @@ import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.api.nn.module.Module;
+import be.iminds.iot.dianne.api.nn.module.Output;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.NeuralNetworkManager;
@@ -229,8 +230,19 @@ public class DianneCommands {
 			return;
 		}
 		
-		ServiceReference ref = getModule(UUID.fromString(nnId), inputId);
-		if(ref==null){
+		ServiceReference refOutput = getModule(UUID.fromString(nnId), outputId);
+		if(refOutput==null){
+			System.out.println("Output module "+outputId+" not found");
+			return;
+		}
+		
+		Output output = (Output) context.getService(refOutput);
+		final String[] labels = output.getOutputLabels();
+		context.ungetService(refOutput);
+		
+		
+		ServiceReference refInput = getModule(UUID.fromString(nnId), inputId);
+		if(refInput==null){
 			System.out.println("Input module "+inputId+" not found");
 			return;
 		}
@@ -243,7 +255,8 @@ public class DianneCommands {
 			public void onForward(Tensor output, String... tags) {
 				int clazz = factory.getTensorMath().argmax(output);
 				float max = factory.getTensorMath().max(output);
-				String label = d.getLabels()[clazz];
+				String label = labels[clazz];
+				
 				System.out.println("Sample "+index+" (with tags "+Arrays.toString(tags)+") classified as: "+label+" (probability: "+max+")");
 				
 				synchronized(DianneCommands.this){
@@ -254,7 +267,7 @@ public class DianneCommands {
 		ServiceRegistration reg = context.registerService(ForwardListener.class, printer, properties);
 		
 		// get input and forward
-		Input input = (Input) context.getService(ref);
+		Input input = (Input) context.getService(refInput);
 		
 		try {
 			Tensor t = d.getInputSample(index);
@@ -272,7 +285,7 @@ public class DianneCommands {
 			t.printStackTrace();
 		} finally {
 			// cleanup
-			context.ungetService(ref);
+			context.ungetService(refInput);
 			reg.unregister();
 		}
 		
