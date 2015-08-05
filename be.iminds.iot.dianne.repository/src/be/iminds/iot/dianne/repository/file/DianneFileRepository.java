@@ -49,7 +49,7 @@ public class DianneFileRepository implements DianneRepository {
 	}
 
 	@Override
-	public List<String> networks() {
+	public List<String> avialableNeuralNetworks() {
 		List<String> networks = new ArrayList<String>();
 		File d = new File(dir);
 		for(File f : d.listFiles()){
@@ -64,13 +64,13 @@ public class DianneFileRepository implements DianneRepository {
 	}
 
 	@Override
-	public NeuralNetworkDTO loadNetwork(String network) throws IOException {
+	public NeuralNetworkDTO loadNeuralNetwork(String network) throws IOException {
 		String nn = new String(Files.readAllBytes(Paths.get(dir+"/"+network+"/modules.txt")));
 		return DianneJSONConverter.parseJSON(nn);
 	}
 	
 	@Override
-	public void storeNetwork(String network, String modules){
+	public void storeNeuralNetwork(String network, String modules){
 		File d = new File(dir+"/"+network);
 		d.mkdirs();
 		

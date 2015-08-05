@@ -41,7 +41,7 @@ public class DianneSaver extends HttpServlet {
 		String jsonOutput = gson.toJson(parser.parse(modules));
 		
 		// TODO which formats to save?
-		repository.storeNetwork(name, modules);
+		repository.storeNeuralNetwork(name, modules);
 		repository.storeLayout(name, layout);
 		
 		response.getWriter().println("{}");

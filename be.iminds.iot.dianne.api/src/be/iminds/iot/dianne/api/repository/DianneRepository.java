@@ -8,11 +8,11 @@ import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 
 public interface DianneRepository {
 
-	List<String> networks();
+	List<String> avialableNeuralNetworks();
 	
-	NeuralNetworkDTO loadNetwork(String network) throws IOException;
+	NeuralNetworkDTO loadNeuralNetwork(String network) throws IOException;
 	
-	void storeNetwork(String network, String modules);
+	void storeNeuralNetwork(String network, String modules);
 	
 	String loadLayout(String network) throws IOException;
 	

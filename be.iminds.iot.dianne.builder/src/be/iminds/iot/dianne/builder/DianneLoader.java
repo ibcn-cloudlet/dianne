@@ -36,7 +36,7 @@ public class DianneLoader extends HttpServlet {
 		String action = request.getParameter("action");
 		if("list".equals(action)){
 			JsonArray names = new JsonArray();
-			for(String name : repository.networks()){
+			for(String name : repository.avialableNeuralNetworks()){
 				names.add(new JsonPrimitive(name));
 			}
 			response.getWriter().write(names.toString());
@@ -45,7 +45,7 @@ public class DianneLoader extends HttpServlet {
 			String name = request.getParameter("name");
 			
 			response.getWriter().write("{\"nn\":");
-			NeuralNetworkDTO nn = repository.loadNetwork(name);
+			NeuralNetworkDTO nn = repository.loadNeuralNetwork(name);
 			String s = DianneJSONConverter.toJsonString(nn); 
 			response.getWriter().write(s);
 			response.getWriter().write(", \"layout\":");
