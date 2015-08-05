@@ -372,7 +372,7 @@ public class DianneRuntime implements ModuleManager {
 		this.registrations.put(moduleId, nnId, reg);
 		
 		System.out.println("Registered module "+module.getClass().getName()+" "+moduleId);
-		ModuleInstanceDTO instance =  new ModuleInstanceDTO(moduleId, nnId, runtimeId, dto.type);
+		ModuleInstanceDTO instance =  new ModuleInstanceDTO(dto, nnId, runtimeId);
 		this.instances.put(moduleId, nnId, instance);
 		return instance;
 	}

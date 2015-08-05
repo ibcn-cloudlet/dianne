@@ -23,13 +23,13 @@ public class ModuleInstanceDTO {
 	public final UUID runtimeId;
 
 	// Module type
-	public final String type;
+	public final ModuleDTO module;
 	
-	public ModuleInstanceDTO(UUID moduleId, UUID nnId, UUID runtimeId, String type){
-		this.moduleId = moduleId;
+	public ModuleInstanceDTO(ModuleDTO module, UUID nnId, UUID runtimeId){
+		this.moduleId = module.id;
 		this.nnId = nnId;
 		this.runtimeId = runtimeId;
-		this.type = type;
+		this.module = module;
 	}
 	
 	@Override

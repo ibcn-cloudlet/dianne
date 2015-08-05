@@ -311,7 +311,7 @@ public class DianneCommands {
 			return null;
 		
 		for(ModuleInstanceDTO m : nn.modules){
-			if(m.type.equals("Input")){
+			if(m.module.type.equals("Input")){
 				return m.moduleId;
 			}
 		}
@@ -325,7 +325,7 @@ public class DianneCommands {
 			return null;
 		
 		for(ModuleInstanceDTO m : nn.modules){
-			if(m.type.equals("Output")){
+			if(m.module.type.equals("Output")){
 				return m.moduleId;
 			}
 		}
