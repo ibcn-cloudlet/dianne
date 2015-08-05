@@ -50,11 +50,13 @@ aiolos.version='latest'
 	be.iminds.iot.dianne.tensor.util;version=latest,\
 	be.iminds.iot.dianne.nn;version=latest,\
 	be.iminds.iot.dianne.nn.runtime;version=latest,\
+	be.iminds.iot.dianne.nn.platform;version=latest,\
 	be.iminds.iot.dianne.nn.train;version=latest,\
 	be.iminds.iot.dianne.repository;version=latest,\
 	be.iminds.iot.dianne.dataset.mnist;version=latest,\
 	be.iminds.iot.dianne.dataset.imagenet;version=latest,\
-	be.iminds.iot.dianne.builder;version=latest
+	be.iminds.iot.dianne.builder;version=latest,\
+	be.iminds.iot.dianne.command;version=latest
 	
 
 -runstorage: generated/mgmt
