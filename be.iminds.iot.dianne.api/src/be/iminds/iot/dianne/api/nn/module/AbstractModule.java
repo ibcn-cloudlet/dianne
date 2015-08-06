@@ -128,13 +128,15 @@ public abstract class AbstractModule implements Module {
 				forward();
 			}
 		}
-		
-		if(next!=null)
-			callNext();
-	
+
+		// notify listeners
 		if(fwdListeners.size()>0)
 			notifyForwardListeners();
 		
+		// dispatch to next
+		if(next!=null)
+			callNext();
+	
 	}
 	
 	protected abstract void forward();
@@ -147,12 +149,13 @@ public abstract class AbstractModule implements Module {
 		// calculates new gradInputs
 		backward();
 		
-		// backward on separate thread
-		if(prev!=null)
-			callPrevious();
-		
+		// notify listeners
 		if(bwListeners.size()>0)
 			notifyBackwardListeners();
+		
+		// dispatch to previous
+		if(prev!=null)
+			callPrevious();
 	}
 	
 	protected abstract void backward();
