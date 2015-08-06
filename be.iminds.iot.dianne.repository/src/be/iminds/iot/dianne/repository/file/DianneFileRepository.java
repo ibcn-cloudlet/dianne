@@ -14,21 +14,19 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.UUID;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.nn.util.DianneJSONConverter;
+import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorFactory;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 @Component(immediate=true)
@@ -37,6 +35,8 @@ public class DianneFileRepository implements DianneRepository {
 	private String dir = "nn";
 	
 	private final JsonParser parser = new JsonParser();
+	
+	private TensorFactory factory;
 	
 	@Activate
 	public void activate(BundleContext context){
@@ -114,11 +114,11 @@ public class DianneFileRepository implements DianneRepository {
 	}
 	
 	@Override
-	public float[] loadParameters(UUID id) throws IOException {
+	public Tensor loadParameters(UUID id, String[] tag) throws IOException {
 		File d = new File(dir);
 		File f = null;
 		for(String l : d.list()){
-			f = new File(dir+"/"+l+"/"+id.toString());
+			f = new File(dir+"/"+l+"/"+parametersId(id, tag));
 			if(f.exists()){
 				break;
 			} else {
@@ -127,26 +127,27 @@ public class DianneFileRepository implements DianneRepository {
 		}
 		if(f!=null){
 			DataInputStream is = new DataInputStream(new BufferedInputStream(new FileInputStream(f)));
-			int count = is.readInt();
-			float[] weights = new float[count];
-			for(int i=0;i<count;i++){
-				weights[i] = is.readFloat();
+			int length = is.readInt();
+			float[] data = new float[length];
+			for(int i=0;i<length;i++){
+				data[i] = is.readFloat();
 			}
 			is.close();
-			return weights;
+			return factory.createTensor(data, new int[]{length});
 		}
 		throw new FileNotFoundException();
 	}
 
 	@Override
-	public void storeParameters(UUID id, float[] weights) {
-		File f = new File(dir+"/weights/"+id.toString());
+	public void storeParameters(Tensor parameters, UUID id, String[] tag) {
+		File f = new File(dir+"/weights/"+parametersId(id, tag));
 		DataOutputStream os = null;
 		try {
 			os = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(f)));
-			os.writeInt(weights.length);
-			for(int i=0;i<weights.length;i++){
-				os.writeFloat(weights[i]);
+			float[] data = parameters.get();
+			os.writeInt(data.length);
+			for(int i=0;i<data.length;i++){
+				os.writeFloat(data[i]);
 			}
 			os.flush();
 			os.close();
@@ -161,4 +162,19 @@ public class DianneFileRepository implements DianneRepository {
 		}
 	}
 
+	
+	private String parametersId(UUID id, String[] tag){
+		String pid = id.toString();
+		if(tag!=null && tag.length>0){
+			for(String t : tag){
+				pid+="-"+t;
+			}
+		}
+		return pid;
+	}
+	
+	@Reference
+	public void setTensorFactory(TensorFactory factory){
+		this.factory = factory;
+	}
 }

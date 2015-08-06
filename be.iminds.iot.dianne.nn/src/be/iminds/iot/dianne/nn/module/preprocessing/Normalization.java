@@ -76,8 +76,8 @@ public class Normalization extends AbstractModule implements Preprocessor {
 	}
 
 	@Override
-	public void setParameters(float[] weights) {
-		mean = weights[0];
-		std = weights[1];
+	public void setParameters(Tensor params) {
+		mean = params.get(0);
+		std = params.get(1);
 	}
 }

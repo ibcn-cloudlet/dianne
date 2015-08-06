@@ -37,6 +37,7 @@ import be.iminds.iot.dianne.api.nn.module.dto.ModuleTypeDTO;
 import be.iminds.iot.dianne.api.nn.module.factory.ModuleFactory;
 import be.iminds.iot.dianne.api.nn.runtime.ModuleManager;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
+import be.iminds.iot.dianne.tensor.Tensor;
 
 @Component(immediate=true, 
 	property={"service.pid=be.iminds.iot.dianne.nn.module",
@@ -330,13 +331,13 @@ public class DianneRuntime implements ModuleManager {
 		
 		if(module instanceof Trainable){
 			try {
-				float[] weights = repository.loadParameters(module.getId());
-				((Trainable)module).setParameters(weights);
+				Tensor parameters = repository.loadParameters(module.getId());
+				((Trainable)module).setParameters(parameters);
 			} catch(IOException e){}
 		} else if(module instanceof Preprocessor){
 			try {
-				float[] weights = repository.loadParameters(module.getId());
-				((Preprocessor)module).setParameters(weights);
+				Tensor parameters = repository.loadParameters(module.getId());
+				((Preprocessor)module).setParameters(parameters);
 			} catch(IOException e){}
 		} 
 		

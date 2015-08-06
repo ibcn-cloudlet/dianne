@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
+import be.iminds.iot.dianne.tensor.Tensor;
 
 public interface DianneRepository {
 
@@ -15,9 +16,9 @@ public interface DianneRepository {
 	void storeNeuralNetwork(NeuralNetworkDTO nn);
 	
 
-	float[] loadParameters(UUID moduleId) throws IOException;
+	Tensor loadParameters(UUID moduleId, String... tag) throws IOException;
 	
-	void storeParameters(UUID moduleId, float[] weights);
+	void storeParameters(Tensor parameters, UUID moduleId, String... tag);
 	
 	
 	// these are some helper methods for saving the jsplumb layout of the UI builder

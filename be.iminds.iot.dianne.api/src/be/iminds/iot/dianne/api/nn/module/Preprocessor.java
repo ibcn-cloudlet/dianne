@@ -9,5 +9,5 @@ public interface Preprocessor {
 	
 	Tensor getParameters();
 	
-	void setParameters(float[] weigths);
+	void setParameters(final Tensor parameters);
 }
