@@ -1,4 +1,18 @@
-Put your datasets in this folder.
+#Neural Network configurations
+
+Put your neural network configurations a subfolder here named `nn`
+
+Each network has its own folder with in it:
+- modules.txt : JSON description of the modules
+- layout.txt : the layout of the modules to show them in the Dianne UI
+- XXX : binary files containing the weights of the module with XXX the module UUID
+
+You can download some examples at http://aiolos.intec.ugent.be/dianne/nn/
+
+
+#Datasets
+
+Put your datasets in a subfolder here named `datasets`
 
 You can download some datasets at http://aiolos.intec.ugent.be/dianne/datasets/
 
@@ -61,8 +75,3 @@ Provide the following files in the ImageNet/ folder
 
 The images/ folder contains a .JPEG file for each input image 
 with the naming scheme: ILSVRC2012_val_000XXXXX.JPEG
-
-
-
-
-
