@@ -148,28 +148,28 @@ public class DianneRuntime implements ModuleManager {
 	private void configureForwardListener(ForwardListener l, UUID moduleId, UUID nnId, Module module, String target){
 		String[] split = target.split(":");
 		if(split.length==1){
-			if(target.contains(":")){
+			// only nnId
+			UUID nid = UUID.fromString(split[0]);
+			if(nid.equals(nnId)){
+				// only add to output modules 
+				if(module instanceof Output){
+					module.addForwardListener(l);
+				}
+			}
+		} else {
+			if(split[0].length()==0){
 				// only moduleId
 				UUID mid = UUID.fromString(split[0]);
 				if(mid.equals(moduleId)){
 					module.addForwardListener(l);
 				}
 			} else {
-				// only nnId
+				// nnId:moduleId
 				UUID nid = UUID.fromString(split[0]);
-				if(nid.equals(nnId)){
-					// only add to output modules 
-					if(module instanceof Output){
-						module.addForwardListener(l);
-					}
+				UUID mid = UUID.fromString(split[1]);
+				if(nid.equals(nnId) && mid.equals(moduleId)){
+					module.addForwardListener(l);
 				}
-			}
-		} else {
-			// nnId:moduleId
-			UUID nid = UUID.fromString(split[0]);
-			UUID mid = UUID.fromString(split[1]);
-			if(nid.equals(nnId) && mid.equals(moduleId)){
-				module.addForwardListener(l);
 			}
 		}
 	}
@@ -177,28 +177,28 @@ public class DianneRuntime implements ModuleManager {
 	private void configureBackwardListener(BackwardListener l, UUID moduleId, UUID nnId, Module module, String target){
 		String[] split = target.split(":");
 		if(split.length==1){
-			if(target.contains(":")){
+			// only nnId
+			UUID nid = UUID.fromString(split[0]);
+			if(nid.equals(nnId)){
+				// only add to input modules 
+				if(module instanceof Input){
+					module.addBackwardListener(l);
+				}
+			}
+		} else {
+			if(split[0].length()==0){
 				// only moduleId
 				UUID mid = UUID.fromString(split[0]);
 				if(mid.equals(moduleId)){
 					module.addBackwardListener(l);
 				}
 			} else {
-				// only nnId
+				// nnId:moduleId
 				UUID nid = UUID.fromString(split[0]);
-				if(nid.equals(nnId)){
-					// only add to input modules 
-					if(module instanceof Input){
-						module.addBackwardListener(l);
-					}
+				UUID mid = UUID.fromString(split[1]);
+				if(nid.equals(nnId) && mid.equals(moduleId)){
+					module.addBackwardListener(l);
 				}
-			}
-		} else {
-			// nnId:moduleId
-			UUID nid = UUID.fromString(split[0]);
-			UUID mid = UUID.fromString(split[1]);
-			if(nid.equals(nnId) && mid.equals(moduleId)){
-				module.addBackwardListener(l);
 			}
 		}
 	}
