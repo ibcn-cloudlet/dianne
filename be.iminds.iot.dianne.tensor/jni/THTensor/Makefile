@@ -9,7 +9,7 @@ ifeq ($(OS),Darwin)
     include Makefile.Darwin
 endif
 
-CUDA_HOME ?= /usr/local/cuda
+CUDA_HOME := /usr/local/cuda
 JAVA_INCLUDE := $(JAVA_HOME)/include
 JAVA_PLATFORMINCLUDE := $(JAVA_INCLUDE)/$(JDKPLATFORMINCLUDESUBDIR)
 
@@ -62,16 +62,16 @@ test:
 	$(CXX) $(FLAGS) Test.o $(LINKS) -o test
 
 libTH.a:
-	cd TH; mkdir -p build; cd build; rm -f libTH.a; cmake -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_C_COMPILER=${CC} ..; make; cp libTH.a ../..; cp THGeneral.h ..
+	cd TH; mkdir -p build; cd build; rm -f libTH.a; cmake ..; make; cp libTH.a ../..; cp THGeneral.h ..
 
 libTHC.a:
-	cd THC; mkdir -p build; cd build; rm -f libTHC.a; cmake -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_C_COMPILER=${CC} ..; make; cp libTHC.a ../..
+	cd THC; mkdir -p build; cd build; rm -f libTHC.a; cmake ..; make; cp libTHC.a ../..
 
 libopenblas.a:
 	cd OpenBLAS; make; cp libopenblas.a ..
 	
 clean:
-	rm -rf *.o ${LIB} be_*.h test
+	rm -rf *.o $(LIB) be_*.h test
 	
 cleanAll: clean
 	rm -rf THGeneral.h TH/build libTH.a; rm -rf THC/build libTHC.a; rm libopenblas.a; cd OpenBLAS; make clean
