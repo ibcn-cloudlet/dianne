@@ -2,6 +2,7 @@ package be.iminds.iot.dianne.api.nn.train.api;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 
@@ -9,6 +10,7 @@ import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.module.BackwardListener;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Input;
+import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.Output;
 import be.iminds.iot.dianne.tensor.Tensor;
 
@@ -47,6 +49,8 @@ public abstract class DatasetProcessor {
 	 	item will be processed onForward, you should yourself initiate the backpropagation in onForward though
 	  */
 	public synchronized void process(){
+		// TODO set all modules to BLOCKING?
+		input.setMode(EnumSet.of(Mode.BLOCKING));
 		
 		if(shuffle){
 			Collections.shuffle(indices, rand);
@@ -61,7 +65,7 @@ public abstract class DatasetProcessor {
 			
 			@Override
 			public void onBackward(final Tensor gradInput, final String... tags) {
-				DatasetProcessor.this.onBackward(indices.get(index), gradInput);
+				DatasetProcessor.this.onBackward(indices.get(index-1), gradInput);
 				
 				// if backpropagate, forward next
 				if(backpropagate){
