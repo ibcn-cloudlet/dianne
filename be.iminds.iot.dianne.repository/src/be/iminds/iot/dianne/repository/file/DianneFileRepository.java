@@ -13,6 +13,7 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -50,22 +51,22 @@ public class DianneFileRepository implements DianneRepository {
 
 	@Override
 	public List<String> avialableNeuralNetworks() {
-		List<String> networks = new ArrayList<String>();
+		List<String> nns = new ArrayList<String>();
 		File d = new File(dir);
 		for(File f : d.listFiles()){
 			if(f.isDirectory()){
 				String name = f.getName();
 				if(!name.equals("weights")){
-					networks.add(f.getName());
+					nns.add(f.getName());
 				}
 			}
 		}
-		return networks;
+		return nns;
 	}
 
 	@Override
-	public NeuralNetworkDTO loadNeuralNetwork(String network) throws IOException {
-		String nn = new String(Files.readAllBytes(Paths.get(dir+"/"+network+"/modules.txt")));
+	public NeuralNetworkDTO loadNeuralNetwork(String nnName) throws IOException {
+		String nn = new String(Files.readAllBytes(Paths.get(dir+"/"+nnName+"/modules.txt")));
 		return DianneJSONConverter.parseJSON(nn);
 	}
 	
@@ -92,14 +93,14 @@ public class DianneFileRepository implements DianneRepository {
 	}
 
 	@Override
-	public String loadLayout(String network) throws IOException {
-		String layout = new String(Files.readAllBytes(Paths.get(dir+"/"+network+"/layout.txt")));
+	public String loadLayout(String nnName) throws IOException {
+		String layout = new String(Files.readAllBytes(Paths.get(dir+"/"+nnName+"/layout.txt")));
 		return layout;
 	}
 	
 	@Override
-	public void storeLayout(String network, String layout){
-		File l = new File(dir+"/"+network+"/layout.txt");
+	public void storeLayout(String nnName, String layout){
+		File l = new File(dir+"/"+nnName+"/layout.txt");
 		PrintWriter p = null;
 		try {
 			p = new PrintWriter(l);
@@ -114,11 +115,11 @@ public class DianneFileRepository implements DianneRepository {
 	}
 	
 	@Override
-	public Tensor loadParameters(UUID id, String[] tag) throws IOException {
+	public synchronized Tensor loadParameters(UUID moduleId, String[] tag) throws IOException {
 		File d = new File(dir);
 		File f = null;
 		for(String l : d.list()){
-			f = new File(dir+"/"+l+"/"+parametersId(id, tag));
+			f = new File(dir+"/"+l+"/"+parametersId(moduleId, tag));
 			if(f.exists()){
 				break;
 			} else {
@@ -139,8 +140,8 @@ public class DianneFileRepository implements DianneRepository {
 	}
 
 	@Override
-	public void storeParameters(Tensor parameters, UUID id, String[] tag) {
-		File f = new File(dir+"/weights/"+parametersId(id, tag));
+	public synchronized void storeParameters(Tensor parameters, UUID moduleId, String[] tag) {
+		File f = new File(dir+"/weights/"+parametersId(moduleId, tag));
 		DataOutputStream os = null;
 		try {
 			os = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(f)));
@@ -160,6 +161,20 @@ public class DianneFileRepository implements DianneRepository {
 				} catch (IOException e) {}
 			}
 		}
+	}
+	
+	@Override
+	public synchronized void accParameters(Tensor accParameters, UUID moduleId, String... tag){
+		Tensor parameters = accParameters;
+		try {
+			parameters = loadParameters(moduleId, tag);
+			
+			factory.getTensorMath().add(parameters, parameters, accParameters);
+		} catch(IOException e){
+			System.out.println("Failed to load parameters for "+moduleId+" "+Arrays.toString(tag)+", store as new");
+		}
+	
+		storeParameters(parameters, moduleId, tag);
 	}
 
 	

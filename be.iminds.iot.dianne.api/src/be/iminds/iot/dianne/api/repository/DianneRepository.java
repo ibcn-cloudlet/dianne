@@ -20,7 +20,9 @@ public interface DianneRepository {
 	
 	void storeParameters(Tensor parameters, UUID moduleId, String... tag);
 	
+	void accParameters(Tensor accParameters, UUID moduleId, String... tag);
 	
+
 	// these are some helper methods for saving the jsplumb layout of the UI builder
 	// of utterly no importance for the rest and can be ignored...
 	String loadLayout(String nnName) throws IOException;
