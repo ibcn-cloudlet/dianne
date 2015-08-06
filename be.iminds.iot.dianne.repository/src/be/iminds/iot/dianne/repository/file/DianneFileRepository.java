@@ -14,16 +14,26 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
+import be.iminds.iot.dianne.api.repository.RepositoryListener;
 import be.iminds.iot.dianne.nn.util.DianneJSONConverter;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
@@ -39,6 +49,10 @@ public class DianneFileRepository implements DianneRepository {
 	
 	private TensorFactory factory;
 	
+	private Map<RepositoryListener, List<String>> listeners = Collections.synchronizedMap(new HashMap<RepositoryListener, List<String>>());
+	protected ExecutorService executor = Executors.newSingleThreadExecutor();
+
+	
 	@Activate
 	public void activate(BundleContext context){
 		String s = context.getProperty("be.iminds.iot.dianne.storage");
@@ -47,6 +61,11 @@ public class DianneFileRepository implements DianneRepository {
 		}
 		File d = new File(dir+"/weights/");
 		d.mkdirs();
+	}
+	
+	@Deactivate
+	public void deactivate(){
+		executor.shutdownNow();
 	}
 
 	@Override
@@ -152,6 +171,8 @@ public class DianneFileRepository implements DianneRepository {
 			}
 			os.flush();
 			os.close();
+			
+			notifyListeners(moduleId, tag);
 		} catch(IOException e){
 			e.printStackTrace();
 		} finally {
@@ -177,7 +198,6 @@ public class DianneFileRepository implements DianneRepository {
 		storeParameters(parameters, moduleId, tag);
 	}
 
-	
 	private String parametersId(UUID id, String[] tag){
 		String pid = id.toString();
 		if(tag!=null && tag.length>0){
@@ -188,8 +208,67 @@ public class DianneFileRepository implements DianneRepository {
 		return pid;
 	}
 	
+	private void notifyListeners(UUID moduleId, String... tag){
+		synchronized(listeners){
+			final List<RepositoryListener> toNotify = listeners.entrySet()
+					.stream()
+					.filter( e -> match(e.getValue(), moduleId, tag))
+					.map( e -> e.getKey())
+					.collect(Collectors.toList());
+			
+			executor.execute( ()->{
+				for(RepositoryListener l : toNotify){
+					l.onParametersUpdate(moduleId, tag);
+				}
+			});
+			
+		}
+	}
+	
+	private boolean match(List<String> targets, UUID moduleId, String[] tag){
+		// targets in form  moduleId:tag
+		for(String target : targets){
+			String[] split = target.split(":");
+			if(split[0].length()!=0){
+				// moduleId provided
+				if(!moduleId.equals(UUID.fromString(split[0]))){
+					return false;
+				}
+			}
+			
+			// some tag provided
+			for(int i=1;i<split.length;i++){
+				String t = split[i];
+				if(tag!=null){
+					List<String> tagList = Arrays.asList(tag);
+					if(!tagList.contains(t)){
+						return false;
+					}
+				} else {
+					return false;
+				}
+			}
+			return true;
+		}
+		return false;
+	}
+	
 	@Reference
 	public void setTensorFactory(TensorFactory factory){
 		this.factory = factory;
+	}
+	
+	@Reference(
+			cardinality=ReferenceCardinality.MULTIPLE, 
+			policy=ReferencePolicy.DYNAMIC)
+	public void addRepositoryListener(RepositoryListener l, Map<String, Object> properties){
+		String[] targets = (String[])properties.get("targets");
+		if(targets!=null){
+			listeners.put(l, Arrays.asList(targets));
+		}
+	}
+	
+	public void removeRepositoryListener(RepositoryListener l){
+		listeners.remove(l);
 	}
 }
