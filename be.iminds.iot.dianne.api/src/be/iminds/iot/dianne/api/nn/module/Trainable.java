@@ -10,6 +10,8 @@ public interface Trainable {
 	
 	void updateParameters(final float learningRate);
 	
+	Tensor getGradParameters();
+	
 	Tensor getParameters();
 	
 	void setParameters(final Tensor parameters);

@@ -35,6 +35,11 @@ public abstract class AbstractTrainableModule extends AbstractModule implements 
 	}
 
 	@Override
+	public Tensor getGradParameters(){
+		return gradParameters;
+	}
+	
+	@Override
 	public Tensor getParameters(){
 		return parameters;
 	}
