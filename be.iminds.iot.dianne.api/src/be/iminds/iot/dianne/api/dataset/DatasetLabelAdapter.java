@@ -6,6 +6,14 @@ import java.util.List;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
+/**
+ * This Dataset adapter allows you to wrap a Dataset in a new Dataset with only
+ * a subset of the labels available. The other labels can be either ignored or 
+ * be aggregated into one "other" class.
+ * 
+ * @author tverbele
+ *
+ */
 public class DatasetLabelAdapter implements Dataset {
 	
 	// required to create new output tensor
@@ -19,6 +27,15 @@ public class DatasetLabelAdapter implements Dataset {
 	// add "other" category
 	private boolean other;
 	
+	/**
+	 * Create a new DatasetLabelAdapter
+	 * 
+	 * @param f tensor factory to use for creating Tensors
+	 * @param data the dataset to wrap
+	 * @param labels the labels to keep
+	 * @param other whether or not the other labels should be aggregated into an "other" class
+	 * 
+	 */
 	public DatasetLabelAdapter(TensorFactory f, Dataset data, String[] labels, boolean other) {
 		this.factory = f;
 		this.data = data;

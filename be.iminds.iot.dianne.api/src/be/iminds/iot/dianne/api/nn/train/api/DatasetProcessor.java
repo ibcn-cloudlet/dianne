@@ -14,7 +14,15 @@ import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.Output;
 import be.iminds.iot.dianne.tensor.Tensor;
 
-// convenience class to process a dataset with a neural network one by one
+/**
+ * Convenience class for iterating over all samples of a Dataset and doing a
+ * forward (and backward) pass.
+ * 
+ * Base class for implementing Evaluators or Trainers
+ * 
+ * @author tverbele
+ *
+ */
 public abstract class DatasetProcessor {
 
 	protected Input input;
@@ -43,10 +51,10 @@ public abstract class DatasetProcessor {
 	}
 	
 	/**
-	 	This method will start processing the complete dataset and block until done.
-	 	You can only process one at a time with same object (this method is synchronized).
-	 	If boolean backpropagate is set on construction, next item will be processed after onBackward, else the next
-	 	item will be processed onForward, you should yourself initiate the backpropagation in onForward though
+	  *	This method will start processing the complete dataset and block until done.
+	  *	You can only process one at a time with same object (this method is synchronized).
+	  *	If boolean backpropagate is set on construction, next item will be processed after onBackward, else the next
+	  *	item will be processed onForward, you should yourself initiate the backpropagation in onForward though
 	  */
 	public synchronized void process(){
 		// TODO set all modules to BLOCKING?

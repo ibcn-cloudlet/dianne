@@ -109,7 +109,7 @@ public class DianneCommands {
 	}
 	
 	public void nnAvailable(){
-		List<String> nns = repository.avialableNeuralNetworks();
+		List<String> nns = repository.availableNeuralNetworks();
 		if(nns.size()==0){
 			System.out.println("No neural networks available");
 			return;

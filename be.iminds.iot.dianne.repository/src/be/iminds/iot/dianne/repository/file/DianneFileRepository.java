@@ -69,7 +69,7 @@ public class DianneFileRepository implements DianneRepository {
 	}
 
 	@Override
-	public List<String> avialableNeuralNetworks() {
+	public List<String> availableNeuralNetworks() {
 		List<String> nns = new ArrayList<String>();
 		File d = new File(dir);
 		for(File f : d.listFiles()){

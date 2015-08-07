@@ -14,6 +14,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
+/**
+ * Provides base functionality for basic neural network Modules. Extend this class
+ * for creating your own non-trainable module with one previous and one next Module.
+ * 
+ * @author tverbele
+ *
+ */
 public abstract class AbstractModule implements Module {
 
 	// the factory for this module

@@ -36,7 +36,7 @@ public class DianneLoader extends HttpServlet {
 		String action = request.getParameter("action");
 		if("list".equals(action)){
 			JsonArray names = new JsonArray();
-			for(String name : repository.avialableNeuralNetworks()){
+			for(String name : repository.availableNeuralNetworks()){
 				names.add(new JsonPrimitive(name));
 			}
 			response.getWriter().write(names.toString());

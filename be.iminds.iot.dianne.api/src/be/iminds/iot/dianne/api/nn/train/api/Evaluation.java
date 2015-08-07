@@ -3,6 +3,12 @@ package be.iminds.iot.dianne.api.nn.train.api;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
+/**
+ * Result of the evaluation of a Dataset, provides access to the confusion matrix.
+ * 
+ * @author tverbele
+ *
+ */
 public class Evaluation {
 
 	protected final TensorFactory factory;

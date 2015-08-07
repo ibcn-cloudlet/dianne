@@ -96,7 +96,7 @@ public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 
 	@Override
 	public List<String> getSupportedNeuralNetworks() {
-		return repository.avialableNeuralNetworks();
+		return repository.availableNeuralNetworks();
 	}
 	
 	@Override

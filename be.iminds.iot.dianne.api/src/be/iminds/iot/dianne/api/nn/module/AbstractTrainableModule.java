@@ -5,6 +5,13 @@ import java.util.UUID;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
+/**
+ * Provides base functionality for trainable neural network Modules. Extend this class
+ * for creating your own trainable module with one previous and one next Module.
+ * 
+ * @author tverbele
+ *
+ */
 public abstract class AbstractTrainableModule extends AbstractModule implements Trainable {
 
 	protected Tensor parameters;
