@@ -1,4 +1,4 @@
-package be.iminds.iot.dianne.api.nn.train.api;
+package be.iminds.iot.dianne.api.nn.train;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,6 +12,7 @@ import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.Output;
+import be.iminds.iot.dianne.api.nn.train.DatasetProcessor;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 /**

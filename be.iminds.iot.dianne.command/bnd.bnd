@@ -11,7 +11,7 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 
 -dsannotations: *
 Import-Package: \
-	be.iminds.iot.dianne.api.nn.train.api;resolution:=optional,\
+	be.iminds.iot.dianne.api.nn.train;resolution:=optional,\
 	be.iminds.iot.dianne.nn.train.eval;resolution:=optional,\
 	*
 Bundle-Name: Dianne GoGo Shell CLI

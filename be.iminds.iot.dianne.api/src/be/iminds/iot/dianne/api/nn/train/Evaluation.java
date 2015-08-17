@@ -1,4 +1,4 @@
-package be.iminds.iot.dianne.api.nn.train.api;
+package be.iminds.iot.dianne.api.nn.train;
 
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;

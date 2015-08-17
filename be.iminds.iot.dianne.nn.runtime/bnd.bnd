@@ -15,7 +15,7 @@ Private-Package: \
 Export-Package: \
 	be.iminds.iot.dianne.api.nn.runtime
 Import-Package: \
-	be.iminds.iot.dianne.api.nn.train.api;resolution:=optional,\
+	be.iminds.iot.dianne.api.nn.train;resolution:=optional,\
 	be.iminds.iot.dianne.nn.train.eval;resolution:=optional,\
 	*
 Bundle-Name: Dianne Runtime

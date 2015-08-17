@@ -1,4 +1,4 @@
-package be.iminds.iot.dianne.api.nn.train.api;
+package be.iminds.iot.dianne.api.nn.train;
 
 import java.util.List;
 
@@ -7,6 +7,7 @@ import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.api.nn.module.Output;
 import be.iminds.iot.dianne.api.nn.module.Preprocessor;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
+import be.iminds.iot.dianne.api.nn.train.Criterion;
 
 /**
  * Trains a neural network instance given a training Dataset

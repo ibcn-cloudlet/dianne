@@ -7,9 +7,9 @@ import java.util.List;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.api.nn.module.Output;
-import be.iminds.iot.dianne.api.nn.train.api.DatasetProcessor;
-import be.iminds.iot.dianne.api.nn.train.api.Evaluation;
-import be.iminds.iot.dianne.api.nn.train.api.Evaluator;
+import be.iminds.iot.dianne.api.nn.train.DatasetProcessor;
+import be.iminds.iot.dianne.api.nn.train.Evaluation;
+import be.iminds.iot.dianne.api.nn.train.Evaluator;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 

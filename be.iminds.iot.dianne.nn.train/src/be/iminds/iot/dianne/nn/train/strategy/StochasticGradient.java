@@ -9,9 +9,9 @@ import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.api.nn.module.Output;
 import be.iminds.iot.dianne.api.nn.module.Preprocessor;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
-import be.iminds.iot.dianne.api.nn.train.api.Criterion;
-import be.iminds.iot.dianne.api.nn.train.api.DatasetProcessor;
-import be.iminds.iot.dianne.api.nn.train.api.Trainer;
+import be.iminds.iot.dianne.api.nn.train.Criterion;
+import be.iminds.iot.dianne.api.nn.train.DatasetProcessor;
+import be.iminds.iot.dianne.api.nn.train.Trainer;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 public class StochasticGradient implements Trainer {

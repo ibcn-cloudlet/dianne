@@ -7,7 +7,7 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 	be.iminds.iot.dianne.tensor.api;version=latest,\
 	be.iminds.iot.dianne.api;version=latest
 Export-Package: \
-	be.iminds.iot.dianne.api.nn.train.api,\
+	be.iminds.iot.dianne.api.nn.train,\
 	be.iminds.iot.dianne.nn.train.criterion,\
 	be.iminds.iot.dianne.nn.train.eval,\
 	be.iminds.iot.dianne.nn.train.strategy

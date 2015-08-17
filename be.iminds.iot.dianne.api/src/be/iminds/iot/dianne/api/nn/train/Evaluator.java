@@ -1,8 +1,9 @@
-package be.iminds.iot.dianne.api.nn.train.api;
+package be.iminds.iot.dianne.api.nn.train;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.api.nn.module.Output;
+import be.iminds.iot.dianne.api.nn.train.Evaluation;
 
 /**
  * Evaluates a neural network instance given a test Dataset

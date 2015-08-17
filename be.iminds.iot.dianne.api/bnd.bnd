@@ -6,7 +6,7 @@ Export-Package: \
 	be.iminds.iot.dianne.api.nn.platform,\
 	be.iminds.iot.dianne.api.nn.runtime,\
 	be.iminds.iot.dianne.api.repository,\
-	be.iminds.iot.dianne.api.nn.train.api,\
+	be.iminds.iot.dianne.api.nn.train,\
 	be.iminds.iot.dianne.api.nn.module,\
 	be.iminds.iot.dianne.api.nn.module.dto,\
 	be.iminds.iot.dianne.api.io,\
