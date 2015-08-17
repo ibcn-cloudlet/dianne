@@ -18,9 +18,9 @@ public interface Learner {
 	 * 
 	 * @param nnName the name of the neural network that should be updated
 	 * @param dataset the name of the dataset to process for learning
-	 * @param processor the processor configuration to use
+	 * @param config the learner configuration to use
 	 */
-	void learn(String nnName, String dataset, Map<String, String> processorConfig);
+	void learn(String nnName, String dataset, Map<String, String> config) throws Exception;
 	
 	/**
 	 * Stop the current learning session.
