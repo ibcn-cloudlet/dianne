@@ -44,7 +44,8 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 @Component(property={"aiolos.export=false"})
 public class DianneModuleFactory implements ModuleFactory {
 
-	private ExecutorService executor = Executors.newCachedThreadPool();
+	private ExecutorService runExecutor = Executors.newCachedThreadPool();
+	private ExecutorService listenerExecutor = Executors.newSingleThreadExecutor();
 	
 	private TensorFactory factory;
 	
@@ -327,7 +328,8 @@ public class DianneModuleFactory implements ModuleFactory {
 		}
 		
 		// re-use a cached threadpool
-		module.setExecutorService(executor);
+		module.setRunExecutorService(runExecutor);
+		module.setListenerExecutorService(listenerExecutor);
 		
 		return module;
 	}

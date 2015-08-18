@@ -37,7 +37,7 @@ public abstract class Join extends AbstractModule {
 			UUID id = prevIds[i];
 			Module m = prev[i];
 			
-			executor.execute(new BackwardRunnable(m, gradInputs.get(id), tags));
+			runExecutor.execute(new BackwardRunnable(m, gradInputs.get(id), tags));
 		}
 	}
 	

@@ -45,7 +45,7 @@ public class Grid extends AbstractModule {
 			String[] t = Arrays.copyOf(tags, l+1);
 			t[l] = tag;
 			
-			executor.execute(new ForwardRunnable(next[0], crops.get(tag), t));
+			runExecutor.execute(new ForwardRunnable(next[0], crops.get(tag), t));
 		}
 	}
 	

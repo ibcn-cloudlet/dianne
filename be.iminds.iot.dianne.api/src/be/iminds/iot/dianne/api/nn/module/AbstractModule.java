@@ -1,5 +1,6 @@
 package be.iminds.iot.dianne.api.nn.module;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -58,7 +59,9 @@ public abstract class AbstractModule implements Module {
 	protected AtomicBoolean nextBusy = new AtomicBoolean();
 	
 	// Thread executor to perform calculations on
-	protected ExecutorService executor = Executors.newSingleThreadExecutor();
+	protected ExecutorService runExecutor = Executors.newSingleThreadExecutor();
+	protected ExecutorService listenerExecutor = Executors.newSingleThreadExecutor();
+
 	
 	// Listeners
 	protected Set<ForwardListener> fwdListeners = Collections.synchronizedSet(new HashSet<ForwardListener>());
@@ -67,11 +70,19 @@ public abstract class AbstractModule implements Module {
 	// Mode
 	protected EnumSet<Mode> mode = EnumSet.of(Mode.BLOCKING);
 	
-	public void setExecutorService(ExecutorService executor){
-		List<Runnable> todo = this.executor.shutdownNow();
-		this.executor = executor;
+	public void setRunExecutorService(ExecutorService executor){
+		List<Runnable> todo = this.runExecutor.shutdownNow();
+		this.runExecutor = executor;
 		for(Runnable r : todo){
-			this.executor.execute(r);
+			this.runExecutor.execute(r);
+		}
+	}
+	
+	public void setListenerExecutorService(ExecutorService executor){
+		List<Runnable> todo = this.listenerExecutor.shutdownNow();
+		this.listenerExecutor = executor;
+		for(Runnable r : todo){
+			this.listenerExecutor.execute(r);
 		}
 	}
 	
@@ -91,18 +102,20 @@ public abstract class AbstractModule implements Module {
 	}
 	
 	protected void callNext(){
-		nextBusy.set(true);
+		synchronized(nextBusy){
+			nextBusy.set(true);
+		}
 		// default AbstractModule just assumes one next and one previous, use Fork otherwise
-		executor.execute(new ForwardRunnable(next[0], output, tags));
+		runExecutor.execute(new ForwardRunnable(next[0], output, tags));
 	}
 	
 	protected void callPrevious(){
 		// default AbstractModule just assumes one next and one previous, use Join otherwise
-		executor.execute(new BackwardRunnable(prev[0], gradInput, tags));
+		runExecutor.execute(new BackwardRunnable(prev[0], gradInput, tags));
 	}
 	
 	@Override
-	public synchronized void forward(final UUID moduleId, final Tensor input, final String... tags) {
+	public void forward(final UUID moduleId, final Tensor input, final String... tags) {
 		// skip or block when next is not ready processing previous output of this module
 		synchronized(nextBusy){
 			if(nextBusy.get()){
@@ -193,17 +206,19 @@ public abstract class AbstractModule implements Module {
 	protected void notifyForwardListeners(){
 		final Tensor outputCopy = output.copyInto(null);
 		final String[] tagsCopy = (tags == null) ? null : Arrays.copyOf(tags, tags.length);
+		final List<ForwardListener> fwdListenersCopy = new ArrayList<ForwardListener>();
+		synchronized(fwdListeners){
+			fwdListenersCopy.addAll(fwdListeners);
+		}
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
-				synchronized (fwdListeners) {
-					for(ForwardListener f : fwdListeners){
-						f.onForward(outputCopy, tagsCopy);
-					}
+				for(ForwardListener f : fwdListenersCopy){
+					f.onForward(outputCopy, tagsCopy);
 				}
 			}
 		};
-		executor.execute(r);
+		listenerExecutor.execute(r);
 	}
 	
 	public void addBackwardListener(BackwardListener listener){
@@ -217,17 +232,19 @@ public abstract class AbstractModule implements Module {
 	protected void notifyBackwardListeners(){
 		final Tensor gradInputCopy = gradInput.copyInto(null);
 		final String[] tagsCopy = (tags == null) ? null : Arrays.copyOf(tags, tags.length);
+		final List<BackwardListener> bwListenersCopy = new ArrayList<BackwardListener>();
+		synchronized(bwListeners){
+			bwListenersCopy.addAll(bwListeners);
+		}
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
-				synchronized (bwListeners) {
-					for(BackwardListener b : bwListeners){
-						b.onBackward(gradInputCopy, tagsCopy);
-					}
+				for(BackwardListener b : bwListenersCopy){
+					b.onBackward(gradInputCopy, tagsCopy);
 				}
 			}
 		};
-		executor.execute(r);
+		listenerExecutor.execute(r);
 	}
 	
 	protected final class ForwardRunnable implements Runnable {
