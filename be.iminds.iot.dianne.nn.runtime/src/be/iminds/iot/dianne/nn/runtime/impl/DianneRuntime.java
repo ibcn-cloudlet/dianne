@@ -446,6 +446,11 @@ public class DianneRuntime implements ModuleManager {
 		return runtimeId;
 	}
 	
+	@Override
+	public Module getModule(UUID moduleId, UUID nnId) {
+		return modules.get(moduleId, nnId);
+	}
+	
 	private void configureNext(Module m, UUID nnId){
 		List<UUID> nextIDs = nextMap.get(m.getId());
 		if(nextIDs.size()==0){

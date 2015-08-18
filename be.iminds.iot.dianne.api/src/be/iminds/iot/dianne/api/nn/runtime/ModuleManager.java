@@ -3,6 +3,7 @@ package be.iminds.iot.dianne.api.nn.runtime;
 import java.util.List;
 import java.util.UUID;
 
+import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleTypeDTO;
@@ -64,5 +65,13 @@ public interface ModuleManager {
 	 * @return list of supported module types
 	 */
 	List<ModuleTypeDTO> getSupportedModules();
+	
+	/**
+	 * Get a reference to the actual Module service for a given moduleId/nnId
+	 * @param moduleId
+	 * @param nnId
+	 * @return reference to the Module service for this module
+	 */
+	Module getModule(UUID moduleId, UUID nnId);
 	
 }
