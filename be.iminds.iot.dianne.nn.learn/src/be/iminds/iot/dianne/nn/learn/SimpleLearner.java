@@ -82,7 +82,7 @@ public class SimpleLearner implements Learner {
 		
 		// create a Processor from config
 		// for now just fixed
-		Processor p = new RegularizationProcessor(new MomentumProcessor(new RandomBatchProcessor(factory, input, output, toTrain, d, config)));
+		Processor p = new MomentumProcessor(new RegularizationProcessor(new RandomBatchProcessor(factory, input, output, toTrain, d, config)));
 		
 		
 		learnerThread = new Thread(new Runnable() {
