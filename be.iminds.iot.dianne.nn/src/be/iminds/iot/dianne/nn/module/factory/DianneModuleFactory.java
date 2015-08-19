@@ -118,14 +118,14 @@ public class DianneModuleFactory implements ModuleFactory {
 				new ModulePropertyDTO("Size dim 2", "size2", Integer.class.getName())));
 		
 		addSupportedType(new ModuleTypeDTO("Scale", "Preprocessing", false, 
-				new ModulePropertyDTO("Dim 0", "x", Integer.class.getName()),
-				new ModulePropertyDTO("Dim 1", "x", Integer.class.getName()),
-				new ModulePropertyDTO("Dim 2", "x", Integer.class.getName())));
+				new ModulePropertyDTO("Dim 0", "dim0", Integer.class.getName()),
+				new ModulePropertyDTO("Dim 1", "dim1", Integer.class.getName()),
+				new ModulePropertyDTO("Dim 2", "dim2", Integer.class.getName())));
 		
 		addSupportedType(new ModuleTypeDTO("Frame", "Preprocessing", false, 
-				new ModulePropertyDTO("Dim 0", "x", Integer.class.getName()),
-				new ModulePropertyDTO("Dim 1", "x", Integer.class.getName()),
-				new ModulePropertyDTO("Dim 2", "x", Integer.class.getName())));				
+				new ModulePropertyDTO("Dim 0", "dim0", Integer.class.getName()),
+				new ModulePropertyDTO("Dim 1", "dim1", Integer.class.getName()),
+				new ModulePropertyDTO("Dim 2", "dim2", Integer.class.getName())));				
 		
 		addSupportedType(new ModuleTypeDTO("Masked Maxpooling", "Layer", true, 
 				new ModulePropertyDTO("Inputs", "noInputs", Integer.class.getName()),
