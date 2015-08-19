@@ -168,27 +168,19 @@ public class DianneJSONConverter {
 		module.add("type", new JsonPrimitive(dto.type));
 
 		if(dto.next!=null){
-			if(dto.next.length==1){
-				module.add("next", new JsonPrimitive(dto.next[0].toString()));
-			} else {
-				JsonArray next = new JsonArray();
-				for(UUID n : dto.next){
-					next.add(new JsonPrimitive(n.toString()));
-				}
-				module.add("next", next);
+			JsonArray next = new JsonArray();
+			for(UUID n : dto.next){
+				next.add(new JsonPrimitive(n.toString()));
 			}
+			module.add("next", next);
 		}
 		
 		if(dto.prev!=null){
-			if(dto.prev.length==1){
-				module.add("prev", new JsonPrimitive(dto.prev[0].toString()));
-			} else {
-				JsonArray prev = new JsonArray();
-				for(UUID p : dto.prev){
-					prev.add(new JsonPrimitive(p.toString()));
-				}
-				module.add("prev", prev);
+			JsonArray prev = new JsonArray();
+			for(UUID p : dto.prev){
+				prev.add(new JsonPrimitive(p.toString()));
 			}
+			module.add("prev", prev);
 		}
 		
 		for(String k : dto.properties.keySet()){
