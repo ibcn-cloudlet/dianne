@@ -11,8 +11,8 @@ public class Linear extends AbstractTrainableModule {
 	private Tensor weights;
 	private Tensor bias;
 	
-	private Tensor gradWeights;
-	private Tensor gradBias;
+	private Tensor deltaWeights;
+	private Tensor deltaBias;
 	
 	public Linear(TensorFactory factory, int inSize, int outSize){
 		super(factory);
@@ -26,17 +26,17 @@ public class Linear extends AbstractTrainableModule {
 	
 	private void init(int inSize, int outSize){
 		parameters = factory.createTensor(outSize*(inSize+1));
-		gradParameters = factory.createTensor(outSize*(inSize+1));
+		deltaParameters = factory.createTensor(outSize*(inSize+1));
 		
 		weights = parameters.narrow(0, 0, outSize*inSize);
 		weights.reshape(outSize, inSize);
 		bias = parameters.narrow(0, outSize*inSize, outSize);
 		bias.reshape(outSize);
 
-		gradWeights = gradParameters.narrow(0, 0, outSize*inSize);
-		gradWeights.reshape(outSize, inSize);
-		gradBias = gradParameters.narrow(0, outSize*inSize, outSize);
-		gradBias.reshape(outSize);
+		deltaWeights = deltaParameters.narrow(0, 0, outSize*inSize);
+		deltaWeights.reshape(outSize, inSize);
+		deltaBias = deltaParameters.narrow(0, outSize*inSize, outSize);
+		deltaBias.reshape(outSize);
 		
 		// initialize weights uniform [-std, std] with std = 1/sqrt(noInputs)  [from torch]
 		parameters.rand();
@@ -59,8 +59,8 @@ public class Linear extends AbstractTrainableModule {
 	@Override
 	public void accGradParameters() {
 		if(gradOutput!=null){
-			gradWeights = factory.getTensorMath().addvv(gradWeights, gradWeights, gradOutput, input);
-			gradBias = factory.getTensorMath().add(gradBias, gradBias, gradOutput);
+			deltaWeights = factory.getTensorMath().addvv(deltaWeights, deltaWeights, gradOutput, input);
+			deltaBias = factory.getTensorMath().add(deltaBias, deltaBias, gradOutput);
 		}
 	}
 

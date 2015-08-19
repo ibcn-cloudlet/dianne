@@ -19,9 +19,9 @@ public class SpatialConvolution extends AbstractTrainableModule {
 	
 	// subtensors for weights / bias
 	Tensor weights;
-	Tensor gradWeights;
+	Tensor deltaWeights;
 	Tensor bias;
-	Tensor gradBias;
+	Tensor deltaBias;
 	
 	public SpatialConvolution(TensorFactory factory,
 			int noInputPlanes, int noOutputPlanes, 
@@ -57,10 +57,10 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		weights.reshape(noOutputPlanes, noInputPlanes, kernelWidth, kernelHeight);
 		bias = parameters.narrow(0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight, noOutputPlanes);
 		
-		gradParameters = factory.createTensor(noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight+noOutputPlanes);
-		gradWeights = gradParameters.narrow(0, 0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight);
-		gradWeights.reshape(noOutputPlanes, noInputPlanes, kernelWidth, kernelHeight);
-		gradBias = gradParameters.narrow(0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight, noOutputPlanes);
+		deltaParameters = factory.createTensor(noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight+noOutputPlanes);
+		deltaWeights = deltaParameters.narrow(0, 0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight);
+		deltaWeights.reshape(noOutputPlanes, noInputPlanes, kernelWidth, kernelHeight);
+		deltaBias = deltaParameters.narrow(0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight, noOutputPlanes);
 		
 		
 		// initialize weights uniform [-std, std] with std = 1/sqrt(kW*kH*noInputPlanes)  [from torch]
@@ -128,7 +128,7 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		// calculate grad weights based on http://andrew.gibiansky.com/blog/machine-learning/convolutional-neural-networks/
 		if(gradOutput!=null){
 			for(int i=0;i<noOutputPlanes;i++){
-				Tensor planeGradKernels = gradWeights.select(0, i);
+				Tensor planeGradKernels = deltaWeights.select(0, i);
 			
 				for(int j=0;j<noInputPlanes;j++){
 					Tensor gradKernel = planeGradKernels.select(0, j);
@@ -142,7 +142,7 @@ public class SpatialConvolution extends AbstractTrainableModule {
 			// grad bias
 			for(int i=0;i<noOutputPlanes;i++){
 				float sum = factory.getTensorMath().sum(gradOutput.select(0, i));
-				gradBias.set(gradBias.get(i)+sum, i);
+				deltaBias.set(deltaBias.get(i)+sum, i);
 			}
 		}
 	}

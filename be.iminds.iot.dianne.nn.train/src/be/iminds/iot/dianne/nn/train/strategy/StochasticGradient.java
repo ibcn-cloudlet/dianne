@@ -80,8 +80,8 @@ public class StochasticGradient implements Trainer {
 					float lr = learningRate / (1 + batch*learningRateDecay);
 					
 					for(Trainable m : modules){
-						m.updateParameters(lr);
-						m.zeroGradParameters();
+						m.updateParameters(-lr);
+						m.zeroDeltaParameters();
 					}
 					
 					batch++;

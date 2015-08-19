@@ -97,7 +97,7 @@ public class RandomSampleProcessor extends AbstractProcessor implements ForwardL
 	protected void applyLearningRate(){
 		// multiply with learning rate
 		toTrain.values().stream().forEach(
-				m -> factory.getTensorMath().mul(m.getGradParameters(), m.getGradParameters(), learningRate));
+				m -> factory.getTensorMath().mul(m.getDeltaParameters(), m.getDeltaParameters(), -learningRate));
 	}
 	
 	protected void forwardNext(){

@@ -19,28 +19,35 @@ public interface Trainable {
 	void accGradParameters();
 	
 	/**
-	 * Reset the gradient on the parameters to zero
+	 * Reset the delta on the parameters to zero
 	 */
-	void zeroGradParameters();
+	void zeroDeltaParameters();
+
+	/**
+	 * Add the current delta to the parameters
+	 */
+	void updateParameters();
 	
 	/**
-	 * Perform a parameter update with the current gradient and provided learning rate
+	 * Add the current delta to the parameters, scaled by factor scale
 	 * 
-	 * Useful for simple gradient descent training procedures
+	 * Useful for simple gradient descent training procedures 
+	 * (use negative scale for gradient descent, positive scale for gradient ascent)
 	 *  
-	 * @param learningRate a scale factor for gradParameters
+	 * @param scale a scale factor for delta parameters
 	 */
-	void updateParameters(final float learningRate);
+	void updateParameters(final float scale);
 	
 	/**
-	 * Return the current gradient on the parameters
+	 * Return the current delta on the parameters. This can be accumulated gradients 
+	 * by calls to accGradParameters, and/or some custom operations on delta parameters.
 	 * 
 	 * Attention: at the moment this returns a reference to the gradient of the parameters,
 	 * only use and change if you know what you are doing.
 	 * 
-	 * @return the gradient on the parameters
+	 * @return the delta on the parameters
 	 */
-	Tensor getGradParameters();
+	Tensor getDeltaParameters();
 	
 	/**
 	 * Return the current parameters

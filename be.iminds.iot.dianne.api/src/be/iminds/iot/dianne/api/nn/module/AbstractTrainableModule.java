@@ -15,7 +15,7 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 public abstract class AbstractTrainableModule extends AbstractModule implements Trainable {
 
 	protected Tensor parameters;
-	protected Tensor gradParameters;
+	protected Tensor deltaParameters;
 	protected boolean fixed = false;
 	
 	public AbstractTrainableModule(TensorFactory factory) {
@@ -30,20 +30,27 @@ public abstract class AbstractTrainableModule extends AbstractModule implements 
 	public abstract void accGradParameters();
 
 	@Override
-	public void zeroGradParameters() {
-		gradParameters.fill(0.0f);
+	public void zeroDeltaParameters() {
+		deltaParameters.fill(0.0f);
 	}
 
 	@Override
-	public void updateParameters(float learningRate) {
+	public void updateParameters() {
 		if(!fixed){
-			factory.getTensorMath().sub(parameters, parameters, learningRate, gradParameters);
+			factory.getTensorMath().add(parameters, parameters, deltaParameters);
+		}
+	}
+	
+	@Override
+	public void updateParameters(float scale) {
+		if(!fixed){
+			factory.getTensorMath().add(parameters, parameters, scale, deltaParameters);
 		}
 	}
 
 	@Override
-	public Tensor getGradParameters(){
-		return gradParameters;
+	public Tensor getDeltaParameters(){
+		return deltaParameters;
 	}
 	
 	@Override
