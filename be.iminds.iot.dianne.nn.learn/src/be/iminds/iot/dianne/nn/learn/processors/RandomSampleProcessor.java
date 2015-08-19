@@ -42,7 +42,7 @@ public class RandomSampleProcessor extends AbstractProcessor implements ForwardL
 			Map<UUID, Trainable> toTrain, 
 			Dataset dataset, 
 			Map<String, String> config) {
-		super(factory, input, output, toTrain, dataset);
+		super(factory, input, output, toTrain, dataset, config);
 		this.input.addBackwardListener(this);
 		this.input.setMode(EnumSet.of(Mode.BLOCKING));
 		this.output.addForwardListener(this);

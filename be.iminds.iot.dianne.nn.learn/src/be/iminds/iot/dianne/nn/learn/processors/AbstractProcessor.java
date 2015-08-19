@@ -20,16 +20,21 @@ public abstract class AbstractProcessor implements Processor {
 	
 	final Dataset dataset;
 	
+	final Map<String, String> config;
+	
 	public AbstractProcessor(TensorFactory factory, 
 			Input input, 
 			Output output, 
 			Map<UUID, Trainable> toTrain, 
-			Dataset dataset){
+			Dataset dataset, 
+			Map<String, String> config){
 		this.factory = factory;
 		this.input = input;
 		this.output = output;
 		this.toTrain = toTrain;
 		this.dataset = dataset;
+		
+		this.config = config;
 	}
 
 	@Override

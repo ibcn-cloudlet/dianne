@@ -24,7 +24,9 @@ import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.runtime.ModuleManager;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
+import be.iminds.iot.dianne.nn.learn.processors.MomentumProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.RandomBatchProcessor;
+import be.iminds.iot.dianne.nn.learn.processors.RegularizationProcessor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component
@@ -80,7 +82,7 @@ public class SimpleLearner implements Learner {
 		
 		// create a Processor from config
 		// for now just fixed
-		Processor p = new RandomBatchProcessor(factory, input, output, toTrain, d, config);
+		Processor p = new RegularizationProcessor(new MomentumProcessor(new RandomBatchProcessor(factory, input, output, toTrain, d, config)));
 		
 		
 		learnerThread = new Thread(new Runnable() {

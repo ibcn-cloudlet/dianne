@@ -17,9 +17,8 @@ public class MomentumProcessor extends AbstractProcessor {
 	
 	private Map<UUID, Tensor> previousDelta = new HashMap<UUID, Tensor>();
 	
-	public MomentumProcessor( AbstractProcessor p,
-			Map<String, String> config) {
-		super(p.factory, p.input, p.output, p.toTrain, p.dataset);
+	public MomentumProcessor( AbstractProcessor p ) {
+		super(p.factory, p.input, p.output, p.toTrain, p.dataset, p.config);
 		decorated = p;
 		
 		// TODO set momentum based on config

@@ -17,9 +17,8 @@ public class RegularizationProcessor extends AbstractProcessor {
 	
 	private Map<UUID, Tensor> previousDelta = new HashMap<UUID, Tensor>();
 	
-	public RegularizationProcessor( AbstractProcessor p,
-			Map<String, String> config) {
-		super(p.factory, p.input, p.output, p.toTrain, p.dataset);
+	public RegularizationProcessor( AbstractProcessor p) {
+		super(p.factory, p.input, p.output, p.toTrain, p.dataset, p.config);
 		decorated = p;
 		
 		// TODO set regularization based on config
