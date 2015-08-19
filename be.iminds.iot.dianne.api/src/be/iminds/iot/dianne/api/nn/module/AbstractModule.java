@@ -118,7 +118,7 @@ public abstract class AbstractModule implements Module {
 	}
 	
 	@Override
-	public void forward(final UUID moduleId, final Tensor input, final String... tags) {
+	public synchronized void forward(final UUID moduleId, final Tensor input, final String... tags) {
 		// skip or block when next is not ready processing previous output of this module
 		synchronized(nextBusy){
 			if(nextBusy.get()){

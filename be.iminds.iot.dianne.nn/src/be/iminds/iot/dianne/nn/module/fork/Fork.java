@@ -37,14 +37,16 @@ public abstract class Fork extends AbstractModule {
 		for(int i=0; i< next.length;i++){
 			UUID id = nextIds[i];
 			Module m = next[i];
-			nextsBusy.get(m).set(true);
+			synchronized(nextsBusy){
+				nextsBusy.get(m).set(true);
+			}
 			
 			runExecutor.execute(new ForwardForkRunnable(m, outputs.get(id), tags));
 		}
 	}
 	
 	@Override
-	public void forward(final UUID moduleId, final Tensor input, final String... tags) {
+	public synchronized void forward(final UUID moduleId, final Tensor input, final String... tags) {
 		// skip or block when nexts are not ready processing previous output of this module
 		synchronized(nextsBusy){
 			while(nextBusy()){

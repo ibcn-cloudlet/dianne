@@ -42,7 +42,7 @@ public abstract class Join extends AbstractModule {
 	}
 	
 	@Override
-	public void forward(final UUID moduleId, final Tensor input, final String... tags) {
+	public synchronized void forward(final UUID moduleId, final Tensor input, final String... tags) {
 		synchronized(nextBusy){
 			if(nextBusy.get()){
 				// next is busy, either block or skip
