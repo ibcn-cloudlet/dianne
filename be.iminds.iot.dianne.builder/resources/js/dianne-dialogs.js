@@ -203,7 +203,7 @@ function createLearnModuleDialog(id, moduleItem){
 			dialog.find(".cancel").remove();
 			
 			var train = "";
-			if(module.trainable===true){
+			if(module.trainable==="true"){
 				train = "checked";
 			}
 			renderTemplate("form-checkbox", 
@@ -219,9 +219,9 @@ function createLearnModuleDialog(id, moduleItem){
 				var id = $(this).closest(".modal").find(".module-id").val();
 				var train = $(this).closest(".modal").find(".trainable").is(':checked');
 				if(train){
-					nn[id].trainable = true;
+					nn[id].trainable = "true";
 				} else {
-					nn[id].trainable = false;
+					nn[id].trainable = "false";
 				}
 				
 				$(this).closest(".modal").modal('hide');
@@ -749,7 +749,7 @@ function learn(id){
 			|| module.category==="Preprocessing"){
 			modules.push(id);
 		} else {
-			if(module.trainable===true){
+			if(module.trainable==="true"){
 				modules.push(id);
 			}
 		}

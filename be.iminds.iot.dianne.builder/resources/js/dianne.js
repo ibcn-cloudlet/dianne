@@ -91,7 +91,7 @@ function setupBuildToolbox(){
 					console.log(module);
 					// TODO fetch name/type/category
 					if(module.trainable!==undefined){
-						trainable[module.type] = true;
+						trainable[module.type] = "true";
 					}
 					addToolboxItem(module.type, module.type, module.category, 'build');
 				});
