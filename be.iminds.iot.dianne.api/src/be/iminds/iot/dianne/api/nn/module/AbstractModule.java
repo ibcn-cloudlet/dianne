@@ -60,6 +60,7 @@ public abstract class AbstractModule implements Module {
 	
 	// Thread executor to perform calculations on
 	protected ExecutorService runExecutor = Executors.newSingleThreadExecutor();
+	// Thread executor to notify listeners
 	protected ExecutorService listenerExecutor = Executors.newSingleThreadExecutor();
 
 	
@@ -70,6 +71,7 @@ public abstract class AbstractModule implements Module {
 	// Mode
 	protected EnumSet<Mode> mode = EnumSet.of(Mode.BLOCKING);
 	
+	// Allows to set a common executor for multple module instances
 	public void setRunExecutorService(ExecutorService executor){
 		List<Runnable> todo = this.runExecutor.shutdownNow();
 		this.runExecutor = executor;
@@ -78,6 +80,7 @@ public abstract class AbstractModule implements Module {
 		}
 	}
 	
+	// Allows to set a common listener executor for multple module instances
 	public void setListenerExecutorService(ExecutorService executor){
 		List<Runnable> todo = this.listenerExecutor.shutdownNow();
 		this.listenerExecutor = executor;
@@ -210,15 +213,10 @@ public abstract class AbstractModule implements Module {
 		synchronized(fwdListeners){
 			fwdListenersCopy.addAll(fwdListeners);
 		}
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				for(ForwardListener f : fwdListenersCopy){
-					f.onForward(outputCopy, tagsCopy);
-				}
-			}
-		};
-		listenerExecutor.execute(r);
+		listenerExecutor.execute(()->{
+			fwdListenersCopy.stream().forEach(
+					f -> f.onForward(outputCopy, tagsCopy));
+		});
 	}
 	
 	public void addBackwardListener(BackwardListener listener){
@@ -236,15 +234,10 @@ public abstract class AbstractModule implements Module {
 		synchronized(bwListeners){
 			bwListenersCopy.addAll(bwListeners);
 		}
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				for(BackwardListener b : bwListenersCopy){
-					b.onBackward(gradInputCopy, tagsCopy);
-				}
-			}
-		};
-		listenerExecutor.execute(r);
+		listenerExecutor.execute(()->{
+			bwListenersCopy.stream().forEach(
+					b->b.onBackward(gradInputCopy, tagsCopy));
+		});
 	}
 	
 	protected final class ForwardRunnable implements Runnable {
