@@ -487,66 +487,6 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		return r;
 	}
 	
-	@Override
-	public JavaTensor maxpool2D(JavaTensor res, JavaTensor mat1, int w, int h, int stride_x, int stride_y) {
-		int r_h = (mat1.size(0) - h )/stride_y + 1;
-		int r_w = (mat1.size(1) - w )/stride_x + 1;
-		int skip = mat1.size(1);
-		if(res==null){
-			res = factory.createTensor(r_h, r_w);
-		}
-	
-		for(int i=0;i<r_h;i++){
-			for(int j=0;j<r_w;j++){
-				float max = -Float.MAX_VALUE;
-				int rindex = i*r_w+j;
-				for(int k=0;k<h;k++){
-					for(int l=0;l<w;l++){
-						int index = (i*stride_y+k)*skip+(j*stride_x+l);
-						float val = mat1.data[(mat1.indices==null? index : mat1.indices[index])];
-						if(val>max)
-							max = val;
-					}
-				}
-				res.data[(res.indices==null? rindex : res.indices[rindex])] = max;
-			}
-		}
-
-		return res;
-	}
-	
-	@Override
-	public JavaTensor dmaxpool2D(JavaTensor res, JavaTensor mat2, JavaTensor mat1, int w, int h, int stride_x, int stride_y) {
-		int r_h = (mat1.size(0) - h )/stride_y + 1;
-		int r_w = (mat1.size(1) - w )/stride_x + 1;
-		int skip = mat1.size(1);
-		
-		if(res==null){
-			res = factory.createTensor(mat1.size(0), mat1.size(1));
-		}
-	
-		for(int i=0;i<r_h;i++){
-			for(int j=0;j<r_w;j++){
-				float max = -Float.MAX_VALUE;
-				int maxIndex = -1;
-				int rindex = i*r_w+j;
-				for(int k=0;k<h;k++){
-					for(int l=0;l<w;l++){
-						int index = (i*stride_y+k)*skip+(j*stride_x+l);
-						float val = mat1.data[(mat1.indices==null? index : mat1.indices[index])];
-						if(val>max){
-							max = val;
-							maxIndex  = index;
-						}
-					}
-				}
-				res.data[(res.indices==null? maxIndex : res.indices[maxIndex])] = 
-						mat2.data[(mat2.indices==null? rindex : mat2.indices[rindex])];
-			}
-		}
-
-		return res;
-	}
 
 	@Override
 	public JavaTensor spatialconvolve(JavaTensor res, JavaTensor add,
@@ -620,6 +560,66 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		
 		return res;
 	}
+	
+	public JavaTensor maxpool2D(JavaTensor res, JavaTensor mat1, int w, int h, int stride_x, int stride_y) {
+		int r_h = (mat1.size(0) - h )/stride_y + 1;
+		int r_w = (mat1.size(1) - w )/stride_x + 1;
+		int skip = mat1.size(1);
+		if(res==null){
+			res = factory.createTensor(r_h, r_w);
+		}
+	
+		for(int i=0;i<r_h;i++){
+			for(int j=0;j<r_w;j++){
+				float max = -Float.MAX_VALUE;
+				int rindex = i*r_w+j;
+				for(int k=0;k<h;k++){
+					for(int l=0;l<w;l++){
+						int index = (i*stride_y+k)*skip+(j*stride_x+l);
+						float val = mat1.data[(mat1.indices==null? index : mat1.indices[index])];
+						if(val>max)
+							max = val;
+					}
+				}
+				res.data[(res.indices==null? rindex : res.indices[rindex])] = max;
+			}
+		}
+
+		return res;
+	}
+	
+	public JavaTensor dmaxpool2D(JavaTensor res, JavaTensor mat2, JavaTensor mat1, int w, int h, int stride_x, int stride_y) {
+		int r_h = (mat1.size(0) - h )/stride_y + 1;
+		int r_w = (mat1.size(1) - w )/stride_x + 1;
+		int skip = mat1.size(1);
+		
+		if(res==null){
+			res = factory.createTensor(mat1.size(0), mat1.size(1));
+		}
+	
+		for(int i=0;i<r_h;i++){
+			for(int j=0;j<r_w;j++){
+				float max = -Float.MAX_VALUE;
+				int maxIndex = -1;
+				int rindex = i*r_w+j;
+				for(int k=0;k<h;k++){
+					for(int l=0;l<w;l++){
+						int index = (i*stride_y+k)*skip+(j*stride_x+l);
+						float val = mat1.data[(mat1.indices==null? index : mat1.indices[index])];
+						if(val>max){
+							max = val;
+							maxIndex  = index;
+						}
+					}
+				}
+				res.data[(res.indices==null? maxIndex : res.indices[maxIndex])] = 
+						mat2.data[(mat2.indices==null? rindex : mat2.indices[rindex])];
+			}
+		}
+
+		return res;
+	}
+
 
 	@Override
 	public JavaTensor spatialmaxpool(JavaTensor res, JavaTensor t, int w, int h, int stride_x, int stride_y) {
@@ -636,7 +636,26 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		.range(0, noPlanes)
 		.parallel()
 		.forEach(i -> {
-			factory.getTensorMath().maxpool2D(pooled.select(0, i), t.select(0,i), w, h, stride_x, stride_y);
+			maxpool2D(pooled.select(0, i), t.select(0,i), w, h, stride_x, stride_y);
+		});
+		
+		return res;
+	}
+	
+	@Override
+	public JavaTensor spatialdmaxpool(JavaTensor res, JavaTensor t2, JavaTensor t1, int w, int h, int stride_x, int stride_y) {
+		if(res==null || !res.hasDim(t1.dims)){
+			res = factory.createTensor(t1.dims);
+		}
+		
+		int noPlanes = t1.dims[0];
+		
+		final JavaTensor dpooled = res;
+		IntStream
+		.range(0, noPlanes)
+		.parallel()
+		.forEach(i -> {
+			dmaxpool2D(dpooled.select(0, i), t2.select(0, i), t1.select(0, i), w, h, stride_x, stride_y);
 		});
 		
 		return res;

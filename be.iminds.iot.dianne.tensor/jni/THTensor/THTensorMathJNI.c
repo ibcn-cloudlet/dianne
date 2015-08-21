@@ -934,13 +934,6 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sp
 	THTensor* t = (THTensor*) src;
 	THTensor* r = getTHTensor3(dst, t->size[0], (t->size[1] - h)/sy+1, (t->size[2]-w)/sx + 1);
 
-	spatialmaxpool(r, t, w, h, sx, sy);
-
-	return r;
-}
-
-// convenience function for merging maxpool2d and spatialmaxpool
-void spatialmaxpool(THTensor* r, THTensor* t, int w, int h, int sx, int sy){
 
 #ifdef CUDA
 	THCudaTensor_spatialmaxpool(state, r, t, w, h, sx, sy);
@@ -956,7 +949,6 @@ void spatialmaxpool(THTensor* r, THTensor* t, int w, int h, int sx, int sy){
 #pragma omp parallel for private(k)
 	for (k = 0; k < noPlanes; k++) {
 
-		// TODO this is similar code as maxpool2d...
 		real* input_p = THTensor_(data)(t);
 		real* output_p = THTensor_(data)(r);
 
@@ -983,6 +975,70 @@ void spatialmaxpool(THTensor* r, THTensor* t, int w, int h, int sx, int sy){
 		}
 	}
 #endif
+
+	return r;
+}
+
+JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_spatialdmaxpool
+  (JNIEnv * env, jobject o, jlong dst, jlong src2, jlong src1, jint w, jint h, jint sx, jint sy){
+	THTensor* t = (THTensor*) src1;
+	THTensor* t2 = (THTensor*) src2;
+	THTensor* r = getTHTensor3(dst, t->size[0], t->size[1], t->size[2]);
+
+	THTensor_(zero)(
+#ifdef CUDA
+			state,
+#endif
+			r);
+
+#ifdef CUDA
+	THCudaTensor_spatialdmaxpool(state, r, t2, t1, w, h, sx, sy);
+#else
+	int noPlanes = t->size[0];
+	int iwidth = t->size[2];
+	int iheight = t->size[1];
+
+	int owidth = (iwidth - w)/sx + 1;
+	int oheight = (iheight - h)/sy + 1;
+
+	int k;
+#pragma omp parallel for private(k)
+	for (k = 0; k < noPlanes; k++) {
+
+		real* input_p = THTensor_(data)(t);
+		real* output_p = THTensor_(data)(r);
+		real* gradoutput_p = THTensor_(data)(t2);
+
+
+		long i, j;
+		for (i = 0; i < oheight; i++) {
+			for (j = 0; j < owidth; j++) {
+				real *ip = input_p +  k*iwidth*iheight + i*iwidth*sy+ j*sx;
+				real *op = output_p +  k*iwidth*iheight + i*iwidth*sy+ j*sx;
+				real *gop = gradoutput_p + k*owidth*oheight + i*owidth + j;
+
+				real maxval = -THInf;
+				int maxoffset = 0;
+				long tcntr = 0;
+				int x, y;
+				for (y = 0; y < h; y++) {
+					for (x = 0; x < w; x++) {
+						real val = *(ip + y * iwidth + x);
+						if (val > maxval) {
+							maxval = val;
+							maxoffset = y * iwidth + x;
+						}
+						tcntr++;
+					}
+				}
+				*(op + maxoffset) = *(gop);
+			}
+		}
+	}
+#endif
+
+	return r;
+
 }
 
 

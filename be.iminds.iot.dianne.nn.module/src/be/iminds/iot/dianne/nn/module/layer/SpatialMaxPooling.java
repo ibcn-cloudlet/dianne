@@ -43,20 +43,12 @@ public class SpatialMaxPooling extends AbstractModule {
 	}
 
 	@Override
-	protected void backward() {
-		if(sx!=w || sy!=h){
-			// TODO also implement this for strides != max pool size
-			throw new UnsupportedOperationException();
-		}
-		
+	protected void backward() {	
 		if(gradInput == null || !gradInput.sameDim(input)){
 			gradInput = factory.createTensor(input.dims());
 		}
-		int noPlanes = input.size(0);
-		for(int i=0;i<noPlanes;i++){
-			factory.getTensorMath().dmaxpool2D(gradInput.select(0, i), 
-					gradOutput.sameDim(input)? gradOutput.select(0, i):gradOutput, input.select(0, i), w, h, sx, sy);
-		}
+
+		factory.getTensorMath().spatialdmaxpool(gradInput, gradOutput, input, w, h, sx, sy);
 	}
 	
 }

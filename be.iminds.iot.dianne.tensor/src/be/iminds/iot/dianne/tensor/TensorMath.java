@@ -236,24 +236,23 @@ public interface TensorMath<T extends Tensor<T>> {
 	 * Add paddings to tensor t, set padding size for each dimension
 	 */
 	T zeropad(T res, final T t, int... paddings);
-	
-	/**
-	 * Max pooling of tensor mat and put result in res, with strides sx and sy
-	 */
-	T maxpool2D(T res, final T mat, final int w, final int h, final int sx, final int sy);
-	
-	/**
-	 * Backward of max pooling: calculate each max index in wxh block of mat1, and 
-	 * put value of subsampled mat2 into res on that position, custom strides sx and sy are currently unsupported
-	 */
-	T dmaxpool2D(T res, final T mat2, final T mat1, final int w, final int h, final int sx, final int sy);
-	
+		
 	/**
 	 * Spatial max pool
 	 * 
 	 * Takes a 3D tensor input and results 3D tensor with each individual plane maxpooled2D
 	 */
 	T spatialmaxpool(T res, final T t, final int w, final int h, final int sx, final int sy);
+
+	/**
+	 * Spatial derivative of max pool
+	 * 
+	 * Calculate each max index in wxh block of t1, and 
+	 * put value of subsampled t2 into res on that position
+	 * 
+	 * Takes a 3D tensor input and results 3D tensor with each individual plane maxpooled2D
+	 */
+	T spatialdmaxpool(T res, final T t2, final T t1, final int w, final int h, final int sx, final int sy);
 	
 	/**
 	 * Scale (bilinear interpollate) in 2 dimensions

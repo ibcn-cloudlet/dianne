@@ -239,21 +239,6 @@ public class THTensorMath implements TensorMath<THTensor> {
 				sx, sy, mode, flip);
 		return res==null ? new THTensor(l) : res;
 	}
-
-	@Override
-	public THTensor maxpool2D(THTensor res, THTensor mat, int w, int h, int sx,
-			int sy) {
-		long l = maxpool2D(res==null ? 0 : res.address, mat.address, w, h, sx, sy);
-		return res==null ? new THTensor(l) : res;
-	}
-
-	@Override
-	public THTensor dmaxpool2D(THTensor res, THTensor mat2, THTensor mat1,
-			int w, int h, int sx, int sy) {
-		throw new UnsupportedOperationException();
-//		long l = dmaxpool2D(res==null ? 0 : res.address, mat2.address, mat1.address, w, h, sx, sy);
-//		return res==null ? new THTensor(l) : res;
-	}
 	
 	@Override
 	public THTensor spatialconvolve(THTensor res, THTensor add, THTensor mat,
@@ -273,6 +258,13 @@ public class THTensorMath implements TensorMath<THTensor> {
 	public THTensor spatialmaxpool(THTensor res, THTensor t,
 			int w, int h, int sx, int sy) {
 		long l = spatialmaxpool(res==null ? 0 : res.address, t.address, w, h, sx, sy);
+		return res==null ? new THTensor(l) : res;
+	}
+	
+	@Override
+	public THTensor spatialdmaxpool(THTensor res, THTensor t2, THTensor t1,
+			int w, int h, int sx, int sy) {
+		long l = spatialdmaxpool(res==null ? 0 : res.address, t2.address, t1.address, w, h, sx, sy);
 		return res==null ? new THTensor(l) : res;
 	}
 	
@@ -359,12 +351,6 @@ public class THTensorMath implements TensorMath<THTensor> {
 
 	private native long addconvolution2D(long res, long mat, long mat1,
 			long mat2, int sx, int sy, int mode, boolean flip);
-
-	private native long maxpool2D(long res, long mat, int w, int h, int sx,
-			int sy);
-
-	private native long dmaxpool2D(long res, long mat2, long mat1, int w,
-			int h, int sx, int sy);
 	
 	private native long spatialconvolve(long res, long add, long t,
 			long k, int sx, int sy, int px, int py);
@@ -374,5 +360,8 @@ public class THTensorMath implements TensorMath<THTensor> {
 	private native long spatialmaxpool(long res, long t,
 			int w, int h, int sx, int sy);
 
+	private native long spatialdmaxpool(long res, long t2, long t1,
+			int w, int h, int sx, int sy);
+	
 	private native long scale2d(long res, long t, int... dims);
 }
