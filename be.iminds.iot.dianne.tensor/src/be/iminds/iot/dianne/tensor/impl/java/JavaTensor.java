@@ -112,7 +112,16 @@ public class JavaTensor implements Tensor<JavaTensor> {
 	
 	@Override
 	public String toString(){
-		if(dims.length == 2){
+		if(dims.length == 1){
+			// format as vector
+			String s = "[";
+			for(int i=0;i< (indices==null? data.length : indices.length);i++){
+				s+=data[(indices==null ? i : indices[i])]+", ";
+			}
+			s = s.substring(0, s.length()-2);
+			s+="]";
+			return s;
+		} else if(dims.length == 2){
 			// format as matrix
 			String s = "";
 			for(int i=0;i<dims[0];i++){
