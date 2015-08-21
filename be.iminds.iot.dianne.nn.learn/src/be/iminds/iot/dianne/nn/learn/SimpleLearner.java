@@ -2,8 +2,10 @@ package be.iminds.iot.dianne.nn.learn;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.osgi.service.component.annotations.Component;
@@ -17,6 +19,7 @@ import be.iminds.iot.dianne.api.nn.learn.Processor;
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.Output;
+import be.iminds.iot.dianne.api.nn.module.Preprocessor;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
@@ -68,6 +71,7 @@ public class SimpleLearner implements Learner {
 		Input input = null;
 		Output output = null;
 		Map<UUID, Trainable> toTrain = new HashMap<>();
+		Set<Preprocessor> preprocessing = new HashSet<>();
 		
 		for(ModuleInstanceDTO mi : nni.modules){
 			Module m = runtime.getModule(mi.moduleId, mi.nnId);
@@ -77,8 +81,17 @@ public class SimpleLearner implements Learner {
 				output = (Output) m;
 			} else if(m instanceof Trainable){
 				toTrain.put(mi.moduleId, (Trainable)m);
-			}
+			} else if(m instanceof Preprocessor){
+				preprocessing.add((Preprocessor) m);
+			}	
 		}
+		
+		// first get parameters for preprocessing?
+		preprocessing.stream().forEach(p -> {
+			if(!p.isPreprocessed())
+				p.preprocess(d);
+			}
+		);
 		
 		// create a Processor from config
 		// for now just fixed

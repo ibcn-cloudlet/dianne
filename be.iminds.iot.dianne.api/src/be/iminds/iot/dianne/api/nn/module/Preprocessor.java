@@ -31,4 +31,9 @@ public interface Preprocessor {
 	 * @param parameters new parameters
 	 */
 	void setParameters(final Tensor parameters);
+	
+	/**
+	 * Returns if the data is already preprocessed or if the parameters are set
+	 */
+	boolean isPreprocessed(); 
 }

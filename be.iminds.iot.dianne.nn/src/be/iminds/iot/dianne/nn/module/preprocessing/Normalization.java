@@ -14,6 +14,8 @@ public class Normalization extends AbstractModule implements Preprocessor {
 	private float mean = 0.0f;
 	private float std = 1.0f;
 	
+	private boolean preprocessed = false;
+	
 	public Normalization(TensorFactory factory){
 		super(factory);
 	}
@@ -26,6 +28,7 @@ public class Normalization extends AbstractModule implements Preprocessor {
 		super(factory, id);
 		this.mean = mean;
 		this.std = std;
+		preprocessed = true;
 	}
 
 	@Override
@@ -65,6 +68,8 @@ public class Normalization extends AbstractModule implements Preprocessor {
 		} else {
 			std = (float) Math.sqrt(m2/(n-1));
 		}
+		
+		preprocessed = true;
 	}
 
 	@Override
@@ -79,5 +84,12 @@ public class Normalization extends AbstractModule implements Preprocessor {
 	public void setParameters(Tensor params) {
 		mean = params.get(0);
 		std = params.get(1);
+		
+		preprocessed = true;
+	}
+
+	@Override
+	public boolean isPreprocessed() {
+		return preprocessed;
 	}
 }

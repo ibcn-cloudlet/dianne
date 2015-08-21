@@ -50,7 +50,8 @@ public class StochasticGradient implements Trainer {
 		
 		// first preprocess
 		for(Preprocessor p : preprocessors){
-			p.preprocess(data);
+			if(!p.isPreprocessed())
+				p.preprocess(data);
 		}
 		
 		DatasetProcessor processor = new DatasetProcessor(input, output, data, true, true) {
