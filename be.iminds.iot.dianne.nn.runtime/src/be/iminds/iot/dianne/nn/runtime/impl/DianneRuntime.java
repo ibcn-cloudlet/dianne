@@ -103,43 +103,47 @@ public class DianneRuntime implements ModuleManager {
 
 		modules.put(moduleId, nnId, module);
 		
-		// configure modules that require this module
-		for(Module m : findDependingModules(moduleId, nnId, nextMap)){
-			configureNext(m, nnId);
+		// if this is a local module instance
+		if(registrations.containsKey(moduleId, nnId)){
+			// configure modules that require this module
+			for(Module m : findDependingModules(moduleId, nnId, nextMap)){
+				configureNext(m, nnId);
+			}
+			for(Module m : findDependingModules(moduleId, nnId, prevMap)){
+				configurePrevious(m, nnId);
+			}
+		
+			configureModuleListeners(moduleId, nnId, module);
 		}
-		for(Module m : findDependingModules(moduleId, nnId, prevMap)){
-			configurePrevious(m, nnId);
-		}
-	
-		configureModuleListeners(moduleId, nnId, module);
 	}
 	
 	public synchronized void updatedModule(Module module, Map<String, Object> properties){
 		UUID moduleId = UUID.fromString((String)properties.get("module.id"));
 		UUID nnId = UUID.fromString((String)properties.get("nn.id"));
-		configureModuleListeners(moduleId, nnId, module);
+		
+		if(registrations.containsKey(moduleId, nnId)){
+			configureModuleListeners(moduleId, nnId, module);
+		}
 	}
 	
 	private void configureModuleListeners(UUID moduleId, UUID nnId, Module module){
-		if(registrations.containsKey(moduleId, nnId)){
-			// check if someone is listening for this (locally registered) module
-			synchronized(forwardListeners){
-				Iterator<Entry<ForwardListener, List<String>>> it = forwardListeners.entrySet().iterator();
-				while(it.hasNext()){
-					Entry<ForwardListener, List<String>> e = it.next();
-					for(String target : e.getValue()){
-						configureForwardListener(e.getKey(), moduleId, nnId, module, target);
-					}
+		// check if someone is listening for this (locally registered) module
+		synchronized(forwardListeners){
+			Iterator<Entry<ForwardListener, List<String>>> it = forwardListeners.entrySet().iterator();
+			while(it.hasNext()){
+				Entry<ForwardListener, List<String>> e = it.next();
+				for(String target : e.getValue()){
+					configureForwardListener(e.getKey(), moduleId, nnId, module, target);
 				}
 			}
-			
-			synchronized(backwardListeners){
-				Iterator<Entry<BackwardListener, List<String>>> it = backwardListeners.entrySet().iterator();
-				while(it.hasNext()){
-					Entry<BackwardListener, List<String>> e = it.next();
-					for(String target : e.getValue()){
-						configureBackwardListener(e.getKey(), moduleId, nnId, module, target);
-					}
+		}
+		
+		synchronized(backwardListeners){
+			Iterator<Entry<BackwardListener, List<String>>> it = backwardListeners.entrySet().iterator();
+			while(it.hasNext()){
+				Entry<BackwardListener, List<String>> e = it.next();
+				for(String target : e.getValue()){
+					configureBackwardListener(e.getKey(), moduleId, nnId, module, target);
 				}
 			}
 		}
@@ -208,12 +212,14 @@ public class DianneRuntime implements ModuleManager {
 		UUID nnId = UUID.fromString((String)properties.get("nn.id"));
 		modules.remove(moduleId, nnId);
 		
-		// unconfigure modules that require this module
-		for(Module m : findDependingModules(moduleId, nnId, nextMap)){
-			unconfigureNext(m);
-		}
-		for(Module m : findDependingModules(moduleId, nnId, prevMap)){
-			unconfigurePrevious(m);
+		if(registrations.containsKey(moduleId, nnId)){
+			// unconfigure modules that require this module
+			for(Module m : findDependingModules(moduleId, nnId, nextMap)){
+				unconfigureNext(m);
+			}
+			for(Module m : findDependingModules(moduleId, nnId, prevMap)){
+				unconfigurePrevious(m);
+			}
 		}
 	}
 	
