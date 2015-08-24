@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -30,20 +31,33 @@ import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.nn.learn.processors.MomentumProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.RandomBatchProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.RegularizationProcessor;
+import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component
 public class SimpleLearner implements Learner {
 
-	private TensorFactory factory;
-	private DianneRepository repository;
-	private ModuleManager runtime;
-	private Map<String, Dataset> datasets = new HashMap<String, Dataset>();
+	protected String[] tag = new String[]{"test"};
 	
-	private Thread learnerThread = null;
-	private volatile boolean learning = false;
+	protected TensorFactory factory;
+	protected DianneRepository repository;
+	protected ModuleManager runtime;
+	protected Map<String, Dataset> datasets = new HashMap<String, Dataset>();
 	
-	private int updateInterval = 0;
+	protected Thread learnerThread = null;
+	protected volatile boolean learning = false;
+	
+	protected int updateInterval = 1000;
+	
+	// the network we are currently training
+	protected NeuralNetworkInstanceDTO nni;
+	protected Input input;
+	protected Output output;
+	protected Map<UUID, Trainable> toTrain;
+	protected Set<Preprocessor> preprocessing;
+	
+	// initial parameters
+	protected Map<UUID, Tensor> parameters = null;
 	
 	@Override
 	public void learn(String nnName, String dataset,
@@ -66,12 +80,12 @@ public class SimpleLearner implements Learner {
 			ModuleInstanceDTO instance = runtime.deployModule(module, nnId);
 			moduleInstances.add(instance);
 		}
-		NeuralNetworkInstanceDTO nni = new NeuralNetworkInstanceDTO(nnId, nnName, moduleInstances);
+		nni = new NeuralNetworkInstanceDTO(nnId, nnName, moduleInstances);
 
-		Input input = null;
-		Output output = null;
-		Map<UUID, Trainable> toTrain = new HashMap<>();
-		Set<Preprocessor> preprocessing = new HashSet<>();
+		input = null;
+		output = null;
+		toTrain = new HashMap<>();
+		preprocessing = new HashSet<>();
 		
 		for(ModuleInstanceDTO mi : nni.modules){
 			Module m = runtime.getModule(mi.moduleId, mi.nnId);
@@ -85,6 +99,10 @@ public class SimpleLearner implements Learner {
 				preprocessing.add((Preprocessor) m);
 			}	
 		}
+		
+		// load parameters
+		loadParameters();
+		
 		
 		// first get parameters for preprocessing?
 		preprocessing.stream().forEach(p -> {
@@ -147,10 +165,37 @@ public class SimpleLearner implements Learner {
 		}
 	}
 
-	private void publishParameters(){
+	protected void loadParameters(){
+		try {
+			parameters = repository.loadParameters(toTrain.keySet(), tag);
+			parameters.entrySet().stream().forEach( e -> toTrain.get(e.getKey()).setParameters(e.getValue()));
+		} catch(Exception e){
+			// if no initial parameters available, publish the random initialize parameters of this instance as first parameters?
+			publishParameters();
+			System.out.println("No initial parameters available, publish these random values as initial parameters...");
+		}
+	}
+	
+	protected void publishParameters(){
 		System.out.println("Publish parameters");
 		
 		// TODO collect all parameter deltas to update repository
+		Map<UUID, Tensor> newParameters = toTrain.entrySet().stream().collect(
+				Collectors.toMap(e -> e.getKey(), e -> e.getValue().getParameters()));
+		
+		if(parameters!=null){
+			// compose diff
+			Map<UUID, Tensor> accParameters = newParameters.entrySet().stream().collect(
+					Collectors.toMap(e -> e.getKey(), 
+									 e -> factory.getTensorMath().sub(null, newParameters.get(e.getKey()), parameters.get(e.getKey()))));
+			repository.accParameters(accParameters, tag);
+		} else {
+			// just publish initial values
+			repository.storeParameters(newParameters, tag);
+		}
+		
+		// fetch update again from repo (could be merged from other learners)
+		loadParameters();
 	}
 	
 	@Reference
