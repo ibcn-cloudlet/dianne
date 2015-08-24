@@ -32,6 +32,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
+import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.api.repository.RepositoryListener;
@@ -142,7 +143,6 @@ public class DianneFileRepository implements DianneRepository {
 	public synchronized Tensor loadParameters(UUID moduleId, String... tag) {
 		return load(moduleId, tag);
 	}
-	
 
 	@Override
 	public synchronized Map<UUID, Tensor> loadParameters(Collection<UUID> moduleIds,
@@ -151,6 +151,19 @@ public class DianneFileRepository implements DianneRepository {
 				Collectors.toMap(moduleId -> moduleId, moduleId -> loadParameters(moduleId, tag)));
 	}
 
+	@Override
+	public Map<UUID, Tensor> loadParameters(String nnName, String... tag) {
+		Map<UUID, Tensor> parameters  = new HashMap<>();
+		
+		NeuralNetworkDTO nn = loadNeuralNetwork(nnName);
+		for(ModuleDTO m : nn.modules){
+			try {
+				parameters.put(m.id, load(m.id, tag));
+			} catch(Exception e){}
+		}
+		return parameters;
+	}
+	
 	private Tensor load(UUID moduleId, String... tag){
 		try {
 			File d = new File(dir);
@@ -321,4 +334,5 @@ public class DianneFileRepository implements DianneRepository {
 	public void removeRepositoryListener(RepositoryListener l){
 		listeners.remove(l);
 	}
+
 }

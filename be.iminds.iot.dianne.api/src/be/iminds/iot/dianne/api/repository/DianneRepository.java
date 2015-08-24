@@ -58,6 +58,14 @@ public interface DianneRepository {
 	Map<UUID, Tensor> loadParameters(Collection<UUID> moduleIds, String... tag);
 	
 	/**
+	 * Load all parameters for a given neural network name for some tags
+	 * @param nnName name of the neural network
+	 * @param tag optional tags for the parameters
+	 * @return the parameters Tensor mapped by moduleId
+	 */
+	Map<UUID, Tensor> loadParameters(String nnName, String... tag);
+	
+	/**
 	 * Store parameters for a given moduleId
 	 *
 	 * @param moduleId the moduleId for which these parameters are applicable
