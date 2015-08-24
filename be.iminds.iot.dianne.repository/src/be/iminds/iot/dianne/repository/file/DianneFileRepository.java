@@ -139,7 +139,19 @@ public class DianneFileRepository implements DianneRepository {
 	}
 	
 	@Override
-	public synchronized Tensor loadParameters(UUID moduleId, String[] tag) {
+	public synchronized Tensor loadParameters(UUID moduleId, String... tag) {
+		return load(moduleId, tag);
+	}
+	
+
+	@Override
+	public synchronized Map<UUID, Tensor> loadParameters(Collection<UUID> moduleIds,
+			String... tag) {
+		return moduleIds.stream().collect(
+				Collectors.toMap(moduleId -> moduleId, moduleId -> loadParameters(moduleId, tag)));
+	}
+
+	private Tensor load(UUID moduleId, String... tag){
 		try {
 			File d = new File(dir);
 			File f = null;
@@ -167,15 +179,40 @@ public class DianneFileRepository implements DianneRepository {
 		}
 	}
 	
-
 	@Override
-	public synchronized Map<UUID, Tensor> loadParameters(Collection<UUID> moduleIds,
-			String... tag) {
-		return moduleIds.stream().collect(Collectors.toMap(moduleId -> moduleId, moduleId -> loadParameters(moduleId, tag)));
+	public synchronized void storeParameters(UUID moduleId, Tensor parameters, String... tag) {
+		store(moduleId, parameters, tag);
+		
+		notifyListeners(Collections.singleton(moduleId), tag);
+	}
+	
+	@Override
+	public synchronized void storeParameters(Map<UUID, Tensor> parameters, String... tag) {
+		parameters.entrySet().stream().forEach(e -> store(e.getKey(), e.getValue(), tag));
+		
+		List<UUID> uuids = new ArrayList<UUID>();
+		uuids.addAll(parameters.keySet());
+		notifyListeners(uuids, tag);
+	}
+	
+	@Override
+	public synchronized void accParameters(UUID moduleId, Tensor accParameters, String... tag){
+		acc(moduleId, accParameters, tag);
+		
+		notifyListeners(Collections.singleton(moduleId), tag);
 	}
 
 	@Override
-	public synchronized void storeParameters(UUID moduleId, Tensor parameters, String[] tag) {
+	public synchronized void accParameters(Map<UUID, Tensor> accParameters, String... tag) {
+		accParameters.entrySet().stream().forEach(e -> acc(e.getKey(), e.getValue(), tag));
+		
+		List<UUID> uuids = new ArrayList<UUID>();
+		uuids.addAll(accParameters.keySet());
+		notifyListeners(uuids, tag);
+
+	}
+	
+	private void store(UUID moduleId, Tensor parameters, String... tag){
 		File f = new File(dir+"/weights/"+parametersId(moduleId, tag));
 		DataOutputStream os = null;
 		try {
@@ -187,8 +224,6 @@ public class DianneFileRepository implements DianneRepository {
 			}
 			os.flush();
 			os.close();
-			
-			notifyListeners(moduleId, tag);
 		} catch(IOException e){
 			e.printStackTrace();
 		} finally {
@@ -200,28 +235,17 @@ public class DianneFileRepository implements DianneRepository {
 		}
 	}
 	
-	@Override
-	public synchronized void storeParameters(Map<UUID, Tensor> parameters, String... tag) {
-		parameters.entrySet().stream().forEach(e -> storeParameters(e.getKey(), e.getValue(), tag));
-	}
-	
-	@Override
-	public synchronized void accParameters(UUID moduleId, Tensor accParameters, String... tag){
+	private void acc(UUID moduleId, Tensor accParameters, String... tag){
 		Tensor parameters = accParameters;
 		try {
-			parameters = loadParameters(moduleId, tag);
+			parameters = load(moduleId, tag);
 			
 			factory.getTensorMath().add(parameters, parameters, accParameters);
 		} catch(Exception e){
 			System.out.println("Failed to load parameters for "+moduleId+" "+Arrays.toString(tag)+", store as new");
 		}
 	
-		storeParameters(moduleId, parameters, tag);
-	}
-
-	@Override
-	public synchronized void accParameters(Map<UUID, Tensor> accParameters, String... tag) {
-		accParameters.entrySet().stream().forEach(e -> accParameters(e.getKey(), e.getValue(), tag));
+		store(moduleId, parameters, tag);
 	}
 	
 	private String parametersId(UUID id, String[] tag){
@@ -234,30 +258,30 @@ public class DianneFileRepository implements DianneRepository {
 		return pid;
 	}
 	
-	private void notifyListeners(UUID moduleId, String... tag){
+	private void notifyListeners(Collection<UUID> moduleIds, String... tag){
 		synchronized(listeners){
 			final List<RepositoryListener> toNotify = listeners.entrySet()
 					.stream()
-					.filter( e -> match(e.getValue(), moduleId, tag))
+					.filter( e -> match(e.getValue(), moduleIds, tag))
 					.map( e -> e.getKey())
 					.collect(Collectors.toList());
 			
 			executor.execute( ()->{
 				for(RepositoryListener l : toNotify){
-					l.onParametersUpdate(moduleId, tag);
+					l.onParametersUpdate(moduleIds, tag);
 				}
 			});
 			
 		}
 	}
 	
-	private boolean match(List<String> targets, UUID moduleId, String[] tag){
+	private boolean match(Collection<String> targets, Collection<UUID> moduleIds, String[] tag){
 		// targets in form  moduleId:tag
 		for(String target : targets){
 			String[] split = target.split(":");
 			if(split[0].length()!=0){
 				// moduleId provided
-				if(!moduleId.equals(UUID.fromString(split[0]))){
+				if(!moduleIds.contains(UUID.fromString(split[0]))){
 					return false;
 				}
 			}
