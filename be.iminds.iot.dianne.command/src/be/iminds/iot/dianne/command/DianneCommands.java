@@ -2,6 +2,7 @@ package be.iminds.iot.dianne.command;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashMap;
@@ -12,8 +13,6 @@ import java.util.Random;
 import java.util.UUID;
 
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -24,13 +23,14 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Input;
-import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.Output;
+import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.NeuralNetworkManager;
 import be.iminds.iot.dianne.api.nn.runtime.ModuleManager;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
+import be.iminds.iot.dianne.api.repository.RepositoryListener;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -63,6 +63,7 @@ public class DianneCommands {
 	// State
 	List<NeuralNetworkInstanceDTO> nns = new ArrayList<NeuralNetworkInstanceDTO>();
 	Map<String, NeuralNetworkInstanceDTO> map = new HashMap<String, NeuralNetworkInstanceDTO>();
+	Map<UUID, ServiceRegistration> repoListeners = new HashMap<UUID, ServiceRegistration>();
 	
 	// Separate aggregation for training commands
 	private DianneTrainCommands training = null;
@@ -173,16 +174,39 @@ public class DianneCommands {
 		deploy(name, runtimes.get(index).getRuntimeId());
 	}
 	
-	private synchronized void deploy(String name, UUID runtimeId){
+	public void nnDeploy(String name, String id, String tag){
+		NeuralNetworkInstanceDTO nn = deploy(name, UUID.fromString(id));
+		
+		// load parameters with tag
+		loadParameters(nn, tag);
+		
+		// add updatelistener for tag
+		addRepositoryListener(nn.id, tag);
+	}
+	
+	public void nnDeploy(String name, int index, String tag){
+		NeuralNetworkInstanceDTO nn = deploy(name, runtimes.get(index).getRuntimeId());
+		
+		// load parameters with tag
+		loadParameters(nn, tag);
+		
+		// add updatelistener for tag
+		addRepositoryListener(nn.id, tag);
+	}
+	
+
+	private synchronized NeuralNetworkInstanceDTO deploy(String name, UUID runtimeId){
 		try {
 			NeuralNetworkInstanceDTO nn = dianne.deployNeuralNetwork(name, runtimeId);
 			nns.add(nn);
 			map.put(nn.id.toString(), nn);
 			System.out.println("Deployed instance of "+nn.name+" ("+nn.id.toString()+")");
+			return nn;
 		} catch (InstantiationException e) {
 			System.out.println("Error deploying instance of "+name);
 			e.printStackTrace();
-		}	
+		}
+		return null;
 	}
 	
 	public void nnUndeploy(String nnId){
@@ -207,6 +231,11 @@ public class DianneCommands {
 		dianne.undeployNeuralNetwork(nn);
 		nns.remove(nn);
 		map.remove(nn.id);
+		
+		ServiceRegistration r = repoListeners.get(nn.id);
+		if(r!=null){
+			r.unregister();
+		}
 	}
 	
 	public void sample(String dataset, String nnId, int sample, String...tags){
@@ -218,38 +247,24 @@ public class DianneCommands {
 		
 		final int index = sample == -1 ? rand.nextInt(d.size()) : sample;
 		
-		UUID inputId = getInputId(nnId);
-		if(inputId==null){
+		Input input = getInput(nnId);
+		if(input==null){
 			System.out.println("No Input module found for neural network "+nnId);
 			return;
 		}
 		
-		UUID outputId = getOutputId(nnId);
-		if(outputId==null){
+		Output output = getOutput(nnId);
+		if(output==null){
 			System.out.println("No Output module found for neural network "+nnId);
 			return;
 		}
-		
-		ServiceReference refOutput = getModule(UUID.fromString(nnId), outputId);
-		if(refOutput==null){
-			System.out.println("Output module "+outputId+" not found");
-			return;
-		}
-		
-		Output output = (Output) context.getService(refOutput);
+	
 		final String[] labels = output.getOutputLabels();
-		context.ungetService(refOutput);
-		
-		
-		ServiceReference refInput = getModule(UUID.fromString(nnId), inputId);
-		if(refInput==null){
-			System.out.println("Input module "+inputId+" not found");
-			return;
-		}
+	
 		
 		// register outputlistener
 		Dictionary<String, Object> properties = new Hashtable<String, Object>();
-		properties.put("targets", new String[]{nnId.toString()+":"+outputId.toString()});
+		properties.put("targets", new String[]{nnId.toString()+":"+output.getId().toString()});
 		final ForwardListener printer = new ForwardListener() {
 			@Override
 			public void onForward(Tensor output, String... tags) {
@@ -267,8 +282,6 @@ public class DianneCommands {
 		ServiceRegistration reg = context.registerService(ForwardListener.class, printer, properties);
 		
 		// get input and forward
-		Input input = (Input) context.getService(refInput);
-		
 		try {
 			Tensor t = d.getInputSample(index);
 			long t1 = System.currentTimeMillis();
@@ -285,7 +298,6 @@ public class DianneCommands {
 			t.printStackTrace();
 		} finally {
 			// cleanup
-			context.ungetService(refInput);
 			reg.unregister();
 		}
 		
@@ -305,46 +317,74 @@ public class DianneCommands {
 		training.eval(dataset, nnId, start, end);
 	}
 	
-	UUID getInputId(String nnId){
+	private void loadParameters(NeuralNetworkInstanceDTO nn, String tag){
+		repository.loadParameters(nn.name, tag).entrySet()
+			.forEach(e -> {
+				Trainable t = (Trainable)runtimes.get(0).getModule(e.getKey(), nn.id);
+				System.out.println("Set parameters for "+e.getKey()+" with tag "+tag);
+				t.setParameters(e.getValue());
+			});
+	}
+	
+	private void addRepositoryListener(UUID nnId, String tag){
+		ParameterUpdateListener listener = new ParameterUpdateListener(nnId);
+		Dictionary<String, Object> props = new Hashtable<String, Object>();
+		props.put("targets", new String[]{":"+tag});
+		props.put("aiolos.unique", true);
+		ServiceRegistration r = context.registerService(RepositoryListener.class, listener, props);
+		repoListeners.put(nnId, r);
+	}
+	
+	class ParameterUpdateListener implements RepositoryListener {
+
+		final UUID nnId;
+		
+		public ParameterUpdateListener(UUID nnId) {
+			this.nnId = nnId;
+		}
+		
+		@Override
+		public void onParametersUpdate(Collection<UUID> moduleIds,
+				String... tag) {
+			// if there are parameter updates, fetch the new parameters!
+			for(UUID moduleId : moduleIds){
+				System.out.println("Update parameters for "+moduleId+" with tag "+Arrays.toString(tag));
+
+				Trainable t = (Trainable) runtimes.get(0).getModule(moduleId, nnId);
+				t.setParameters(repository.loadParameters(moduleId, tag));
+			}
+		}
+		
+	}
+	
+	Input getInput(String nnId){
 		NeuralNetworkInstanceDTO nn = map.get(nnId);
 		if(nn==null)
 			return null;
 		
 		for(ModuleInstanceDTO m : nn.modules){
 			if(m.module.type.equals("Input")){
-				return m.moduleId;
+				return (Input) runtimes.get(0).getModule(m.moduleId, UUID.fromString(nnId));
 			}
 		}
 		
 		return null;
 	}
 	
-	UUID getOutputId(String nnId){
+	Output getOutput(String nnId){
 		NeuralNetworkInstanceDTO nn = map.get(nnId);
 		if(nn==null)
 			return null;
 		
 		for(ModuleInstanceDTO m : nn.modules){
 			if(m.module.type.equals("Output")){
-				return m.moduleId;
+				return (Output) runtimes.get(0).getModule(m.moduleId, UUID.fromString(nnId));
+
 			}
 		}
 		
 		return null;
 	}
-	
-	ServiceReference getModule(UUID nnId, UUID moduleId){
-		try {
-			ServiceReference[] refs = context.getAllServiceReferences(Module.class.getName(), "(&(module.id="+moduleId.toString()+")(nn.id="+nnId.toString()+"))");
-			if(refs!=null){
-				return refs[0];
-			}
-		} catch (InvalidSyntaxException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-	
 
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)

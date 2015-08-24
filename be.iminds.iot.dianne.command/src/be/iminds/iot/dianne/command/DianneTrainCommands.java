@@ -1,9 +1,5 @@
 package be.iminds.iot.dianne.command;
 
-import java.util.UUID;
-
-import org.osgi.framework.ServiceReference;
-
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.DatasetRangeAdapter;
 import be.iminds.iot.dianne.api.nn.module.Input;
@@ -32,34 +28,19 @@ public class DianneTrainCommands {
 			return;
 		}
 
-		UUID inputId = commands.getInputId(nnId);
-		if(inputId==null){
+		Input input = commands.getInput(nnId);
+		if(input==null){
 			System.out.println("No Input module found for neural network "+nnId);
 			return;
 		}
 		
-		UUID outputId = commands.getOutputId(nnId);
-		if(outputId==null){
+		Output output = commands.getOutput(nnId);
+		if(output==null){
 			System.out.println("No Output module found for neural network "+nnId);
 			return;
 		}
 		
-		ServiceReference refInput = commands.getModule(UUID.fromString(nnId), inputId);
-		if(refInput==null){
-			System.out.println("Input module "+inputId+" not found");
-			return;
-		}
-		
-		ServiceReference refOutput = commands.getModule(UUID.fromString(nnId), outputId);
-		if(refOutput==null){
-			System.out.println("Output module "+outputId+" not found");
-			return;
-		}
-		
 		try {
-			Input input = (Input) commands.context.getService(refInput);
-			Output output = (Output) commands.context.getService(refOutput);
-		
 			ArgMaxEvaluator evaluator = new ArgMaxEvaluator(commands.factory);
 			DatasetRangeAdapter range = new DatasetRangeAdapter(d, start, end);
 			
@@ -68,9 +49,6 @@ public class DianneTrainCommands {
 		
 		} catch(Throwable t){
 			t.printStackTrace();
-		} finally {
-			commands.context.ungetService(refInput);
-			commands.context.ungetService(refOutput);
-		}
+		} 
 	}
 }
