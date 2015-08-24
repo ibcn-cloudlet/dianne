@@ -36,8 +36,6 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component
 public class SimpleLearner implements Learner {
-
-	protected String[] tag = new String[]{"test"};
 	
 	protected TensorFactory factory;
 	protected DianneRepository repository;
@@ -56,6 +54,8 @@ public class SimpleLearner implements Learner {
 	protected Map<UUID, Trainable> toTrain;
 	protected Set<Preprocessor> preprocessing;
 	
+	protected String tag = "learn";
+	
 	// initial parameters
 	protected Map<UUID, Tensor> parameters = null;
 	
@@ -64,6 +64,10 @@ public class SimpleLearner implements Learner {
 			Map<String, String> config) throws Exception {
 		if(learning){
 			throw new Exception("Already running a learning session here");
+		}
+		
+		if(config.containsKey("tag")){
+			tag = config.get("tag"); 
 		}
 		
 		// Fetch the dataset

@@ -1,6 +1,7 @@
 package be.iminds.iot.dianne.nn.learn.command;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -19,12 +20,20 @@ public class DianneLearnCommands {
 
 	private Learner learner;
 	
-	public void learn(String nnName, String dataset){
+	public void learn(String nnName, String dataset, String tag){
 		try {
-			learner.learn(nnName, dataset, new HashMap<String, String>());
+			Map<String, String> config = new HashMap<String, String>();
+			if(tag!=null){
+				config.put("tag", tag);
+			}
+			learner.learn(nnName, dataset, config);
 		} catch(Exception e){
 			e.printStackTrace();
 		}
+	}
+
+	public void learn(String nnName, String dataset){
+		learn(nnName, dataset, null);
 	}
 	
 	@Reference
