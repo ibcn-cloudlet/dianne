@@ -333,12 +333,16 @@ public class DianneRuntime implements ModuleManager {
 			try {
 				Tensor parameters = repository.loadParameters(module.getId());
 				((Trainable)module).setParameters(parameters);
-			} catch(IOException e){}
+			} catch(Exception e){
+				System.out.println("Failed to load parameters for module "+module.getId());
+			}
 		} else if(module instanceof Preprocessor){
 			try {
 				Tensor parameters = repository.loadParameters(module.getId());
 				((Preprocessor)module).setParameters(parameters);
-			} catch(IOException e){}
+			} catch(Exception e){
+				System.out.println("Failed to load parameters for module "+module.getId());
+			}
 		} 
 		
 		String[] classes;

@@ -1,7 +1,9 @@
 package be.iminds.iot.dianne.api.repository;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
@@ -27,7 +29,7 @@ public interface DianneRepository {
 	 * @return the NeuralNetworkDTO representing this neural network
 	 * @throws IOException 
 	 */
-	NeuralNetworkDTO loadNeuralNetwork(String nnName) throws IOException;
+	NeuralNetworkDTO loadNeuralNetwork(String nnName) ;
 	
 	/**
 	 * Store a new neural network
@@ -43,25 +45,51 @@ public interface DianneRepository {
 	 * @return the parameter Tensor
 	 * @throws IOException
 	 */
-	Tensor loadParameters(UUID moduleId, String... tag) throws IOException;
+	Tensor loadParameters(UUID moduleId, String... tag);
+	
+	/**
+	 * Load the parameters for a number of moduleIds, optionally with some tags
+	 * 
+	 * @param moduleIds moduleIdds for which the parameters to load
+	 * @param tag optional tags for the parameters
+	 * @return the parameters Tensors mapped by moduleId
+	 * @throws IOException
+	 */
+	Map<UUID, Tensor> loadParameters(Collection<UUID> moduleIds, String... tag);
 	
 	/**
 	 * Store parameters for a given moduleId
-	 * 
-	 * @param parameters the parameters Tensor
+	 *
 	 * @param moduleId the moduleId for which these parameters are applicable
+	 * @param parameters the parameters Tensor
 	 * @param tag optional tags for the parameters
 	 */
-	void storeParameters(Tensor parameters, UUID moduleId, String... tag);
+	void storeParameters(UUID moduleId, Tensor parameters, String... tag);
 	
 	/**
 	 * Update the parameters for a given moduleId with this diff
 	 * 
-	 * @param accParameters a diff with the old parameters
 	 * @param moduleId the moduleId for which these parameters are applicable
+	 * @param accParameters a diff with the old parameters
 	 * @param tag optional tags for the parameters
 	 */
-	void accParameters(Tensor accParameters, UUID moduleId, String... tag);
+	void accParameters(UUID moduleId, Tensor accParameters, String... tag);
+	
+	/**
+	 * Store parameters for a number of modules
+	 *
+	 * @param parameters the parameters Tensors mapped by moduleIds
+	 * @param tag optional tags for the parameters
+	 */
+	void storeParameters(Map<UUID, Tensor> parameters, String... tag);
+	 
+	/**
+	 * Update the parameters for a number of modules with this diff
+	 * 
+	 * @param accParameters a diff with the old parameters mapped by moduleId
+	 * @param tag optional tags for the parameters
+	 */
+	void accParameters(Map<UUID, Tensor> accParameters, String... tag);
 	
 
 	// these are some helper methods for saving the jsplumb layout of the UI builder

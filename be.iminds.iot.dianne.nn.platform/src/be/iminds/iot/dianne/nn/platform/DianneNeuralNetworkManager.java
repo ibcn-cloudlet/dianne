@@ -42,7 +42,7 @@ public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 		NeuralNetworkDTO neuralNetwork = null;
 		try {
 			 neuralNetwork = repository.loadNeuralNetwork(name);
-		} catch (IOException e) {
+		} catch (Exception e) {
 			throw new InstantiationException("Failed to deploy neural network "+name+": no such network");
 		}
 		

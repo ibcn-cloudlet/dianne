@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -84,9 +85,13 @@ public class DianneFileRepository implements DianneRepository {
 	}
 
 	@Override
-	public NeuralNetworkDTO loadNeuralNetwork(String nnName) throws IOException {
-		String nn = new String(Files.readAllBytes(Paths.get(dir+"/"+nnName+"/modules.txt")));
-		return DianneJSONConverter.parseJSON(nn);
+	public NeuralNetworkDTO loadNeuralNetwork(String nnName){
+		try {
+			String nn = new String(Files.readAllBytes(Paths.get(dir+"/"+nnName+"/modules.txt")));
+			return DianneJSONConverter.parseJSON(nn);
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to load neural network "+nnName, e);
+		}
 	}
 	
 	@Override
@@ -134,32 +139,43 @@ public class DianneFileRepository implements DianneRepository {
 	}
 	
 	@Override
-	public synchronized Tensor loadParameters(UUID moduleId, String[] tag) throws IOException {
-		File d = new File(dir);
-		File f = null;
-		for(String l : d.list()){
-			f = new File(dir+"/"+l+"/"+parametersId(moduleId, tag));
-			if(f.exists()){
-				break;
-			} else {
-				f = null;
+	public synchronized Tensor loadParameters(UUID moduleId, String[] tag) {
+		try {
+			File d = new File(dir);
+			File f = null;
+			for(String l : d.list()){
+				f = new File(dir+"/"+l+"/"+parametersId(moduleId, tag));
+				if(f.exists()){
+					break;
+				} else {
+					f = null;
+				}
 			}
-		}
-		if(f!=null){
-			DataInputStream is = new DataInputStream(new BufferedInputStream(new FileInputStream(f)));
-			int length = is.readInt();
-			float[] data = new float[length];
-			for(int i=0;i<length;i++){
-				data[i] = is.readFloat();
+			if(f!=null){
+				DataInputStream is = new DataInputStream(new BufferedInputStream(new FileInputStream(f)));
+				int length = is.readInt();
+				float[] data = new float[length];
+				for(int i=0;i<length;i++){
+					data[i] = is.readFloat();
+				}
+				is.close();
+				return factory.createTensor(data, new int[]{length});
 			}
-			is.close();
-			return factory.createTensor(data, new int[]{length});
+			throw new FileNotFoundException();
+		} catch(Exception e){
+			throw new RuntimeException("Failed to load parameters for module "+moduleId+" with tags "+Arrays.toString(tag), e);
 		}
-		throw new FileNotFoundException();
+	}
+	
+
+	@Override
+	public synchronized Map<UUID, Tensor> loadParameters(Collection<UUID> moduleIds,
+			String... tag) {
+		return moduleIds.stream().collect(Collectors.toMap(moduleId -> moduleId, moduleId -> loadParameters(moduleId, tag)));
 	}
 
 	@Override
-	public synchronized void storeParameters(Tensor parameters, UUID moduleId, String[] tag) {
+	public synchronized void storeParameters(UUID moduleId, Tensor parameters, String[] tag) {
 		File f = new File(dir+"/weights/"+parametersId(moduleId, tag));
 		DataOutputStream os = null;
 		try {
@@ -185,19 +201,29 @@ public class DianneFileRepository implements DianneRepository {
 	}
 	
 	@Override
-	public synchronized void accParameters(Tensor accParameters, UUID moduleId, String... tag){
+	public synchronized void storeParameters(Map<UUID, Tensor> parameters, String... tag) {
+		parameters.entrySet().stream().forEach(e -> storeParameters(e.getKey(), e.getValue(), tag));
+	}
+	
+	@Override
+	public synchronized void accParameters(UUID moduleId, Tensor accParameters, String... tag){
 		Tensor parameters = accParameters;
 		try {
 			parameters = loadParameters(moduleId, tag);
 			
 			factory.getTensorMath().add(parameters, parameters, accParameters);
-		} catch(IOException e){
+		} catch(Exception e){
 			System.out.println("Failed to load parameters for "+moduleId+" "+Arrays.toString(tag)+", store as new");
 		}
 	
-		storeParameters(parameters, moduleId, tag);
+		storeParameters(moduleId, parameters, tag);
 	}
 
+	@Override
+	public synchronized void accParameters(Map<UUID, Tensor> accParameters, String... tag) {
+		accParameters.entrySet().stream().forEach(e -> accParameters(e.getKey(), e.getValue(), tag));
+	}
+	
 	private String parametersId(UUID id, String[] tag){
 		String pid = id.toString();
 		if(tag!=null && tag.length>0){
