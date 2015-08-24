@@ -46,8 +46,9 @@ aiolos.version='latest'
 	be.iminds.iot.dianne.tensor.th;version=latest,\
 	be.iminds.iot.dianne.nn;version=latest,\
 	be.iminds.iot.dianne.nn.runtime;version=latest,\
-	be.iminds.iot.dianne.repository;version=latest
-	
+	be.iminds.iot.dianne.nn.learn;version=latest,\
+	be.iminds.iot.dianne.repository;version=latest,\
+	be.iminds.iot.dianne.command;version=latest	
 
 -runstorage: generated/vm
 
