@@ -28,4 +28,9 @@ public interface Environment {
 	 */
 	Tensor getObservation();
 
+	/**
+	 * Reset the environment to the initial configuration (if possible).
+	 */
+	void reset();
+
 }
