@@ -15,7 +15,7 @@ public class PongEnvironment implements Environment {
 
 	private TensorFactory factory;
 
-	private float l, vdef;
+	private float l = 0.4f, vdef = 0.04f;
 	
 	private float x, y, vx, vy, p, o;
 
@@ -26,6 +26,14 @@ public class PongEnvironment implements Environment {
 
 	@Activate
 	void activate(BundleContext context) {
+		String l = context.getProperty("be.iminds.iot.dianne.rl.pong.paddlelength");
+		if(l != null)
+			this.l = Float.parseFloat(l);
+		
+		String vdef = context.getProperty("be.iminds.iot.dianne.rl.pong.defaultspeed");
+		if(vdef != null)
+			this.vdef = Float.parseFloat(vdef);
+		
 		reset();
 	}
 
