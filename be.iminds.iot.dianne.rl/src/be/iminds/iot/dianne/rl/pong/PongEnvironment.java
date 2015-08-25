@@ -10,7 +10,14 @@ import be.iminds.iot.dianne.api.rl.Environment;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
-@Component
+/**
+ * Simple Pong environment in which an agents plays against an AI trying to
+ * match the vertical position of the ball.
+ * 
+ * @author smbohez
+ *
+ */
+@Component(immediate = true, property = { "name=Pong", "aiolos.callback=be.iminds.iot.dianne.api.rl.Environment" })
 public class PongEnvironment implements Environment {
 
 	private TensorFactory factory;
@@ -44,7 +51,7 @@ public class PongEnvironment implements Environment {
 
 	@Override
 	public float performAction(Tensor action) {
-		float d_p = vdef * action.get(0);
+		float d_p = vdef * ((action.get(0) > 0) ? 1 : (action.get(1) > 0) ? 0 : -1);
 		float d_o = vdef * selectOponentAction();
 
 		p += d_p;
