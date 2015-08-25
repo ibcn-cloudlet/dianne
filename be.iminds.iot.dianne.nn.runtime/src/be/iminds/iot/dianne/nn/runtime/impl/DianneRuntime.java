@@ -103,31 +103,28 @@ public class DianneRuntime implements ModuleManager {
 
 		modules.put(moduleId, nnId, module);
 		
-		// if this is a local module instance
-		if(registrations.containsKey(moduleId, nnId)){
-			// configure modules that require this module
-			for(Module m : findDependingModules(moduleId, nnId, nextMap)){
-				configureNext(m, nnId);
-			}
-			for(Module m : findDependingModules(moduleId, nnId, prevMap)){
-				configurePrevious(m, nnId);
-			}
-		
-			configureModuleListeners(moduleId, nnId, module);
+		// configure local modules that require this module
+		for(Module m : findDependingModules(moduleId, nnId, nextMap)){
+			configureNext(m, nnId);
 		}
+		for(Module m : findDependingModules(moduleId, nnId, prevMap)){
+			configurePrevious(m, nnId);
+		}
+		
+		configureModuleListeners(moduleId, nnId, module);
+		
 	}
 	
 	public synchronized void updatedModule(Module module, Map<String, Object> properties){
 		UUID moduleId = UUID.fromString((String)properties.get("module.id"));
 		UUID nnId = UUID.fromString((String)properties.get("nn.id"));
-		
-		if(registrations.containsKey(moduleId, nnId)){
-			configureModuleListeners(moduleId, nnId, module);
-		}
+
+		configureModuleListeners(moduleId, nnId, module);
 	}
 	
 	private void configureModuleListeners(UUID moduleId, UUID nnId, Module module){
-		// check if someone is listening for this (locally registered) module
+		// check if someone is listening for this module
+
 		synchronized(forwardListeners){
 			Iterator<Entry<ForwardListener, List<String>>> it = forwardListeners.entrySet().iterator();
 			while(it.hasNext()){
@@ -150,6 +147,10 @@ public class DianneRuntime implements ModuleManager {
 	}
 	
 	private void configureForwardListener(ForwardListener l, UUID moduleId, UUID nnId, Module module, String target){
+		if(!registrations.containsKey(moduleId, nnId)){
+			return;
+		}
+		
 		String[] split = target.split(":");
 		if(split.length==1){
 			// only nnId
@@ -179,6 +180,10 @@ public class DianneRuntime implements ModuleManager {
 	}
 	
 	private void configureBackwardListener(BackwardListener l, UUID moduleId, UUID nnId, Module module, String target){
+		if(!registrations.containsKey(moduleId, nnId)){
+			return;
+		}
+		
 		String[] split = target.split(":");
 		if(split.length==1){
 			// only nnId
@@ -210,16 +215,15 @@ public class DianneRuntime implements ModuleManager {
 	public synchronized void removeModule(Module module, Map<String, Object> properties){
 		UUID moduleId = UUID.fromString((String)properties.get("module.id"));
 		UUID nnId = UUID.fromString((String)properties.get("nn.id"));
-		modules.remove(moduleId, nnId);
 		
-		if(registrations.containsKey(moduleId, nnId)){
-			// unconfigure modules that require this module
-			for(Module m : findDependingModules(moduleId, nnId, nextMap)){
-				unconfigureNext(m);
-			}
-			for(Module m : findDependingModules(moduleId, nnId, prevMap)){
-				unconfigurePrevious(m);
-			}
+		modules.remove(moduleId, nnId);
+
+		// unconfigure modules that require this module
+		for(Module m : findDependingModules(moduleId, nnId, nextMap)){
+			unconfigureNext(m);
+		}
+		for(Module m : findDependingModules(moduleId, nnId, prevMap)){
+			unconfigurePrevious(m);
 		}
 	}
 	
@@ -247,9 +251,12 @@ public class DianneRuntime implements ModuleManager {
 	public synchronized void removeForwardListener(ForwardListener l){
 		List<String> targets = forwardListeners.remove(l);
 		// TODO filter out the modules that actually have this listener registered?
-		synchronized(modules){
-			for(Module m : modules.values()){
-				m.removeForwardListener(l);
+		synchronized(instances){
+			for(ModuleInstanceDTO mi : instances.values()){
+				Module m = modules.get(mi.moduleId, mi.nnId);
+				if(m!=null)
+					m.removeForwardListener(l);
+
 			}
 		}
 	}
@@ -279,9 +286,12 @@ public class DianneRuntime implements ModuleManager {
 	public synchronized void removeBackwardListener(BackwardListener l){
 		List<String> targets = backwardListeners.remove(l);
 		// TODO filter out the modules that actually have this listener registered?
-		synchronized(modules){
-			for(Module m : modules.values()){
-				m.removeBackwardListener(l);
+		synchronized(instances){
+			for(ModuleInstanceDTO mi : instances.values()){
+				Module m = modules.get(mi.moduleId, mi.nnId);
+				if(m!=null)
+					m.removeBackwardListener(l);
+
 			}
 		}
 	}
@@ -395,7 +405,7 @@ public class DianneRuntime implements ModuleManager {
 			return;
 		}
 		
-		ServiceRegistration reg = registrations.remove(dto.moduleId, dto.moduleId);
+		ServiceRegistration reg = registrations.remove(dto.moduleId, dto.nnId);
 		if(reg!=null){
 			try {
 				reg.unregister();
@@ -518,9 +528,12 @@ public class DianneRuntime implements ModuleManager {
 			Entry<UUID, List<UUID>> entry = it.next();
 			for(UUID nxtId : entry.getValue()){
 				if(nxtId.equals(moduleId)){
-					Module m = modules.get(entry.getKey(), nnId);
-					if(m!=null) // could be null if removed by external bundle stop
-						result.add(m);
+					// only find locally registered modules
+					if(registrations.containsKey(entry.getKey(), nnId)){
+						Module m = modules.get(entry.getKey(), nnId);
+						if(m!=null) // could be null if removed by external bundle stop
+							result.add(m);
+					} 
 				}
 			}
 		}

@@ -71,6 +71,10 @@ public class ModuleMap<T> {
 	        result = 31 * result + nnId.hashCode();
 	        return result;
 	    }
+	    
+	    public String toString(){
+	    	return nnId.toString()+"-"+moduleId.toString();
+	    }
 	}
 	
 	public class Entry<T> {
