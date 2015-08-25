@@ -21,7 +21,7 @@ public class DianneTrainCommands {
 		ArgMaxEvaluator test = new ArgMaxEvaluator(c.factory);
 	}
 	
-	public void eval(String dataset, String nnId, int start, int end){
+	public void eval(String nnId, String dataset, int start, int end){
 		Dataset d = commands.datasets.get(dataset);
 		if(d==null){
 			System.out.println("Dataset "+dataset+" not available");
