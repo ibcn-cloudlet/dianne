@@ -1,6 +1,7 @@
 # This file builds the native TH Tensor library and the JNI interface
 OS := $(shell uname -s)
 ARCH := $(shell uname -m)
+GPU := $(shell lspci -v | grep NVIDIA)
 
 ifeq ($(OS),Linux)
     include Makefile.Linux
@@ -17,18 +18,23 @@ JAVAH := be.iminds.iot.dianne.tensor.impl.th.THTensor be.iminds.iot.dianne.tenso
 SRC := THTensorFactoryJNI.c THTensorJNI.c THTensorMathJNI.c 
 INCLUDES := -I$(JAVA_INCLUDE) -I$(JAVA_PLATFORMINCLUDE) -ITH
 OBJECT := THTensorFactoryJNI.o THTensorJNI.o THTensorMathJNI.o 
-FLAGS := -O3 -w
-LINKS := libTH.a libopenblas.a -lm -lgomp
+CCFLAGS := -O3 -w 
+LINKS := libTH.a libopenblas.a -lm -lgomp -pthread
 DEPLOY_DIR := ../../native/$(OS)/$(ARCH)
 
 # cuda specific build parameters
 CUDA_INCLUDES := -ITHC -I$(CUDA_HOME)/include/
 CUDA_LINKS := libTHC.a libTH.a -lgomp -L$(CUDA_HOME)/lib -lcudart -lcublas
-CUDA_FLAGS := -DCUDA
-NVCC_FLAGS := -Xcompiler -fPIC
+CUDA_FLAGS := -DCUDA 
+NVCC_FLAGS := -Xcompiler -fPIC 
 CUDA_SRC := THCudaTensorOps.cu
 CUDA_OBJECT := THCudaTensorOps.o
 
+# check if it is the Jetson TK board
+ifneq (,$(findstring 0e13,$(GPU)))
+    # Found
+    FLAGS += -DJETSON
+endif
 
 all: install  
 
@@ -48,7 +54,7 @@ compile: javah
 	$(CC) $(FLAGS) $(CCFLAGS) -fPIC $(INCLUDES) -c $(SRC)
 
 cudaops:
-	$(NVCC) $(NVCC_FLAGS) $(INCLUDES) -c $(CUDA_SRC)
+	$(NVCC) $(FLAGS) $(NVCC_FLAGS) $(INCLUDES) -c $(CUDA_SRC)
 
 link: compile 
 	$(CC) $(FLAGS) $(CCFLAGS) $(SHARED) $(OBJECT) $(LINKS) -o $(LIB) 
@@ -56,10 +62,6 @@ link: compile
 install: libopenblas.a libTH.a link 
 	mkdir -p $(DEPLOY_DIR)
 	cp $(LIB) $(DEPLOY_DIR)/$(LIB)
-
-test:
-	$(CXX) $(FLAGS) $(INCLUDES) -c Test.c
-	$(CXX) $(FLAGS) Test.o $(LINKS) -o test
 
 libTH.a:
 	cd TH; mkdir -p build; cd build; rm -f libTH.a; cmake ..; make; cp libTH.a ../..; cp THGeneral.h ..
