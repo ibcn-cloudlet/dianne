@@ -24,7 +24,7 @@ DEPLOY_DIR := ../../native/$(OS)/$(ARCH)
 
 # cuda specific build parameters
 CUDA_INCLUDES := -ITHC -I$(CUDA_HOME)/include/
-CUDA_LINKS := libTHC.a libTH.a -lgomp -L$(CUDA_HOME)/lib -lcudart -lcublas
+CUDA_LINKS := libTHC.a libTH.a -lgomp -L$(CUDA_HOME)/lib -L$(CUDA_HOME)/lib64 -lcudart -lcublas
 CUDA_FLAGS := -DCUDA 
 NVCC_FLAGS := -Xcompiler -fPIC 
 CUDA_SRC := THCudaTensorOps.cu
