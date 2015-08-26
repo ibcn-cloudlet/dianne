@@ -127,17 +127,7 @@ public class ImageNetDataset implements Dataset {
 	public int size() {
 		return noSamples;
 	}
-
-	@Override
-	public int inputSize() {
-		return -1;
-	}
-
-	@Override
-	public int outputSize() {
-		return outputSize;
-	}
-
+	
 	@Override
 	public Tensor getInputSample(int index) {
 		// Open JPEG file and convert to size

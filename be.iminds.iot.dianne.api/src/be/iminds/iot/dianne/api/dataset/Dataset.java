@@ -25,24 +25,6 @@ public interface Dataset {
 	 * @return the number of input-output samples in the dataset
 	 */
 	int size();
-	
-	/**
-	 * Returns the total size of an input sample. In case of multi-dimensional
-	 * input this is the total size if the Tensor were transformed to one dimension.
-	 * Returns -1 if the size of input samples are variable.
-	 * 
-	 * @return size of an input sample or -1 if variable
-	 */
-	// TODO should we return dim[] instead for multi-dimensional inputs?
-	int inputSize();
-	
-	/**
-	 * Returns the total size of an output vector. Corresponds with the number 
-	 * of classes that this dataset identifies.
-	 * 
-	 * @return size of an output vector
-	 */
-	int outputSize();
 
 	/**
 	 * Get an input sample from the dataset

@@ -56,16 +56,6 @@ public class CatvsDogDataset implements Dataset {
 	}
 
 	@Override
-	public int inputSize() {
-		return -1;
-	}
-
-	@Override
-	public int outputSize() {
-		return 3;
-	}
-
-	@Override
 	public Tensor getInputSample(int index) {
 		String file = files[index];
 		Tensor t = null;

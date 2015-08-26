@@ -63,16 +63,6 @@ public class DatasetLabelAdapter implements Dataset {
 	}
 
 	@Override
-	public int inputSize() {
-		return data.inputSize();
-	}
-
-	@Override
-	public int outputSize() {
-		return labels.length;
-	}
-
-	@Override
 	public Tensor getInputSample(int index) {
 		return data.getInputSample(index);
 	}

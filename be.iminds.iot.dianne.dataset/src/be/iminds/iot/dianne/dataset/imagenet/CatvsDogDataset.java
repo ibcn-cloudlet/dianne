@@ -107,16 +107,6 @@ public class CatvsDogDataset implements Dataset {
 	}
 
 	@Override
-	public int inputSize() {
-		return imagenet.inputSize();
-	}
-
-	@Override
-	public int outputSize() {
-		return 3;
-	}
-
-	@Override
 	public Tensor getInputSample(int index) {
 		return imagenet.getInputSample(index);
 	}

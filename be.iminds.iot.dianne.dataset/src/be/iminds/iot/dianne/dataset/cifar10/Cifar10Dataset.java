@@ -38,7 +38,6 @@ public class Cifar10Dataset implements Dataset {
 	private int noRows;
 	private int noColumns;
 	private int inputSize;
-	private int outputSize;
 	private int noSamples;
 	
 	private String dir = "";
@@ -60,7 +59,6 @@ public class Cifar10Dataset implements Dataset {
 		noRows = 32;
 		noColumns = 32;
 		inputSize = noRows*noColumns*3;
-		outputSize = 10;
 		noSamples = 60000;
 		
 		readLabels("batches.meta.txt");
@@ -111,16 +109,6 @@ public class Cifar10Dataset implements Dataset {
 	@Override
 	public int size() {
 		return noSamples;
-	}
-
-	@Override
-	public int inputSize() {
-		return inputSize;
-	}
-
-	@Override
-	public int outputSize() {
-		return outputSize;
 	}
 
 	@Override

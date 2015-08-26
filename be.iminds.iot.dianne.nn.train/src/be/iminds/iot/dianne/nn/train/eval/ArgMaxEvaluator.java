@@ -25,7 +25,7 @@ public class ArgMaxEvaluator implements Evaluator {
 	
 	@Override
 	public synchronized Evaluation evaluate(Input input, Output output, final Dataset data) {
-		final Tensor confusion = factory.createTensor(data.outputSize(), data.outputSize());
+		final Tensor confusion = factory.createTensor(output.getOutputLabels().length, output.getOutputLabels().length);
 		confusion.fill(0.0f);
 		
 		final DatasetProcessor processor = new DatasetProcessor(input, output, data, false, false) {

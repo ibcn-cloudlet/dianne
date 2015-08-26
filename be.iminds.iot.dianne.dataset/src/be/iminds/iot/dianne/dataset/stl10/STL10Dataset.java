@@ -111,16 +111,6 @@ public class STL10Dataset implements Dataset {
 	}
 
 	@Override
-	public int inputSize() {
-		return inputSize;
-	}
-
-	@Override
-	public int outputSize() {
-		return outputSize;
-	}
-
-	@Override
 	public Tensor getInputSample(int index) {
 		// some hack to allow prefecting on construction
 		// TODO better solution?

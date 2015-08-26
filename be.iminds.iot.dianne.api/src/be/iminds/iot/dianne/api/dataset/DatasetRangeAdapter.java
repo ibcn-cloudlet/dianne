@@ -42,16 +42,6 @@ public class DatasetRangeAdapter implements Dataset {
 	}
 
 	@Override
-	public int inputSize() {
-		return data.inputSize();
-	}
-
-	@Override
-	public int outputSize() {
-		return data.outputSize();
-	}
-
-	@Override
 	public Tensor getInputSample(int index) {
 		return data.getInputSample(start+index);
 	}

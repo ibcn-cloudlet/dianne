@@ -22,21 +22,6 @@ public interface ExperiencePool extends Dataset {
 	 * @return the number of samples in the experience pool
 	 */
 	int size();
-	
-	/**
-	 * Returns the total size of an input sample. 
-	 * 
-	 * @return size of an input sample or -1 if variable
-	 */
-	// TODO should we return dim[] instead for multi-dimensional inputs?
-	int inputSize();
-	
-	/**
-	 * Returns the total size of an output vector. Corresponds with the action dimension
-	 * 
-	 * @return size of an output vector
-	 */
-	int outputSize();
 
 	/**
 	 * Get an input sample from the experience pool. This vector represents an Environment state
