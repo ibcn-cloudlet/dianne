@@ -7,8 +7,117 @@
 	</head>  
       
 	<body>  
-		<canvas id="pongCanvas" width="720" height="500">  
+		<canvas id="pongCanvas" width="720" height="720">  
   			<!-- Insert fallback content here -->  
 		</canvas>  
+		
+		<script type="text/javascript">
+			// websocket connection
+			var connection = new WebSocket('ws://localhost:8787', 'json');
+			connection.onopen = function () {
+			  console.log('Connection Opened');
+			};
+			connection.onerror = function (error) {
+			  console.log('WebSocket Error ' + error);
+			};
+			connection.onmessage = function (e) {
+				var state = JSON.parse(e.data);
+				console.log(state);
+				x = state.x;
+				y = state.y;
+				vx = state.vx;
+				vy = state.vy;
+				p = state.p;
+				o = state.o;
+				
+				draw();
+			};
+			function sendMessage(msg){
+			  connection.send(msg);
+			}
+			
+		
+			// x,y pos of the ball
+			var x = 0;
+			var y = 0;
+
+			// vx,vy speed of the ball
+			// vx and vy can be used for interpollation in more advanced stage?
+			var vx = 0;
+			var vy = 0;
+
+			// player and opponent position
+			var p = 0;
+			var o = 0;
+
+			// width and height of the canvas
+			var WIDTH;
+			var HEIGHT;
+
+			// size of paddles
+			var paddleh;
+			var paddlew;
+			// size of ball
+			var radius;
+			// field boundary
+			var bound;
+
+			// canvas
+			var ctx;
+			var canvas = document.getElementById('pongCanvas');
+
+			function init() {
+				ctx = canvas.getContext("2d");
+				WIDTH = canvas.width;
+				HEIGHT = canvas.height;
+				radius = 10;
+				paddleh = 100;
+				paddlew = 25;
+				bound = 0.8; 
+			}
+
+			function circle(x, y, r) {
+				ctx.beginPath();
+				ctx.arc(x, y, r, 0, Math.PI * 2, true);
+				ctx.closePath();
+				ctx.fill();
+			}
+
+			function rect(x, y, w, h) {
+				ctx.beginPath();
+				ctx.rect(x, y, w, h);
+				ctx.closePath();
+				ctx.fill();
+			}
+
+			function clear() {
+				ctx.clearRect(0, 0, WIDTH, HEIGHT);
+			}
+
+			function drawSideLines() {
+				ctx.beginPath();
+				ctx.rect(0, HEIGHT/2 * (1-bound), WIDTH, 10);
+				ctx.closePath();
+				ctx.fill();
+
+				ctx.beginPath();
+				ctx.rect(0, HEIGHT - HEIGHT/2 * (1-bound) - 10, WIDTH, 10);
+				ctx.closePath();
+				ctx.fill();
+			}
+
+			function draw() {
+				clear();
+				circle(x * WIDTH/2 + WIDTH/2, y * HEIGHT/2 + HEIGHT/2, radius);
+
+				drawSideLines();
+
+				rect(0, p*HEIGHT/2 + HEIGHT/2 - paddleh/2, paddlew, paddleh);
+				rect(HEIGHT-paddlew, o*HEIGHT/2 + HEIGHT/2 - paddleh/2, paddlew, paddleh);
+			}
+
+			init();
+			draw();
+		</script>
 	</body>  
 </html>  

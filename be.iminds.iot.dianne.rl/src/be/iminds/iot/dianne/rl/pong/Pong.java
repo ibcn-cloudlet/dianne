@@ -1,12 +1,20 @@
 package be.iminds.iot.dianne.rl.pong;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.rl.Environment;
+import be.iminds.iot.dianne.rl.pong.api.PongEnvironment;
+import be.iminds.iot.dianne.rl.pong.api.PongListener;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -17,19 +25,17 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
  * @author smbohez
  *
  */
-@Component(immediate = true, property = { "name=Pong", "aiolos.callback=be.iminds.iot.dianne.api.rl.Environment" })
-public class PongEnvironment implements Environment {
+@Component(immediate = true,
+	property = { "name=Pong", "aiolos.callback=be.iminds.iot.dianne.api.rl.Environment" })
+public class Pong implements PongEnvironment, Environment {
 
 	private TensorFactory factory;
 
-	private float l = 0.4f, vdef = 0.04f;
+	private Set<PongListener> listeners = Collections.synchronizedSet(new HashSet<>());
+	
+	private float l = 0.4f, vdef = 0.04f, bound = 0.8f;
 
 	private float x, y, vx, vy, p, o;
-
-	@Reference
-	void setTensorFactory(TensorFactory factory) {
-		this.factory = factory;
-	}
 
 	@Activate
 	void activate(BundleContext context) {
@@ -52,7 +58,7 @@ public class PongEnvironment implements Environment {
 	@Override
 	public float performAction(Tensor action) {
 		float d_p = vdef * ((action.get(0) > 0) ? 1 : (action.get(1) > 0) ? 0 : -1);
-		float d_o = vdef * selectOponentAction();
+		float d_o = vdef * selectOpponentAction();
 
 		p += d_p;
 		o += d_o;
@@ -66,10 +72,10 @@ public class PongEnvironment implements Environment {
 		x += vx;
 		y += vy;
 
-		if (y < -1) {
+		if (y < -1 * bound) {
 			y = -2 - y;
 			vy = -vy;
-		} else if (y > 1) {
+		} else if (y > 1 * bound) {
 			y = 2 - y;
 			vy = -vy;
 		}
@@ -110,10 +116,12 @@ public class PongEnvironment implements Environment {
 			}
 		}
 
+		notifyListeners();
+		
 		return r;
 	}
 
-	private float selectOponentAction() {
+	private int selectOpponentAction() {
 		if (y < o - l / 2)
 			return -1;
 		else if (y > o + l / 2)
@@ -137,5 +145,25 @@ public class PongEnvironment implements Environment {
 		vx = vdef * (float) Math.cos(r);
 		vy = vdef * (float) Math.sin(r);
 	}
+	
+	private void notifyListeners(){
+		synchronized(listeners){
+			listeners.stream().forEach(l -> l.update(x, y, vx, vy, p, o));
+		}
+	}
 
+	@Reference
+	void setTensorFactory(TensorFactory factory) {
+		this.factory = factory;
+	}
+	
+	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
+	void addPongListener(PongListener l){
+		listeners.add(l);
+	}
+	
+	void removePongListener(PongListener l){
+		listeners.remove(l);
+	}
+	
 }

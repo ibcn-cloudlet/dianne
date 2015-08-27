@@ -1,4 +1,6 @@
-Export-Package: be.iminds.iot.dianne.api.rl;
+Export-Package: \
+	be.iminds.iot.dianne.api.rl,\
+	be.iminds.iot.dianne.rl.pong.api
 -dsannotations: *
 Private-Package: be.iminds.iot.dianne.rl.pong;
 Bundle-Name: Dianne Pong Environment
