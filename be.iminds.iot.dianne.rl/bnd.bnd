@@ -5,6 +5,8 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 	biz.aQute.junit,\
 	osgi.core;version=5.0,\
 	osgi.enterprise;version=5.0,\
+	org.apache.felix.http.servlet-api,\
+	org.apache.felix.http.api,\
 	be.iminds.iot.dianne.api;version=latest,\
 	be.iminds.iot.dianne.tensor.api;version=latest
 -sub: *.bnd

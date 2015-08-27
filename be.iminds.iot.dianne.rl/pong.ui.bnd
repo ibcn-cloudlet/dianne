@@ -1,0 +1,5 @@
+-dsannotations: *
+Private-Package: be.iminds.iot.dianne.rl.pong.ui
+Bundle-Name: Dianne Pong UI
+
+Include-Resource: res=resources
