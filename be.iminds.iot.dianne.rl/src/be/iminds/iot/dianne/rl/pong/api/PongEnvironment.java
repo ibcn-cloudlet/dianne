@@ -10,6 +10,34 @@ import be.iminds.iot.dianne.api.rl.Environment;
  */
 public interface PongEnvironment extends Environment {
 
-	// TODO methods for interacting specifically with the Pong game,
-	// e.g. move paddle with human player
+	
+	/**
+	 * Get the field bounds  
+	 * @return bound between 0 and 1 
+	 */
+	float getBounds();
+	
+	/**
+	 * Get the game speed (v_def)
+	 * @return game speed
+	 */
+	float getSpeed();
+	
+	/**
+	 * Get the paddle length
+	 * @return paddle length
+	 */
+	float getPaddleLength();
+	
+	/**
+	 * Get the width of the paddle
+	 * @return paddle width
+	 */
+	float getPaddleWidth();
+	
+	/**
+	 * Get the radius of the ball
+	 * @return radius
+	 */
+	float getBallRadius();
 }

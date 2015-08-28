@@ -89,12 +89,18 @@ public class PongServlet extends HttpServlet implements PongListener {
 		
 		@Override
 		public void onOpen(WebSocket conn, ClientHandshake handshake) {
-			System.out.println("OPEN! "+conn);
+			conn.send("{"
+					+"\"bounds\" : "+ pongEnvironment.getBounds()
+					+", \"paddleWidth\" : "+ pongEnvironment.getPaddleWidth()
+					+", \"paddleLength\" : "+ pongEnvironment.getPaddleLength()
+					+", \"ballRadius\" : "+ pongEnvironment.getBallRadius()
+					+", \"speed\" : "+ pongEnvironment.getSpeed()
+					+"}");
+			
 		}
 		
 		@Override
 		public void onMessage(WebSocket conn, String msg) {
-			System.out.println("MSG ! "+conn+" "+msg);
 
 		}
 		
@@ -127,5 +133,11 @@ public class PongServlet extends HttpServlet implements PongListener {
 							   +", \"p\" : "+p
 							   +", \"o\" : "+o
 							   +"}");
+		
+		// since the PongListeners are called synchronously, slow it down here
+		try {
+			Thread.sleep(20);
+		} catch (InterruptedException e) {
+		}
 	}
 }

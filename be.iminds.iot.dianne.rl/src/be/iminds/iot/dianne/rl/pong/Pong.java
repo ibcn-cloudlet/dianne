@@ -33,15 +33,25 @@ public class Pong implements PongEnvironment, Environment {
 
 	private Set<PongListener> listeners = Collections.synchronizedSet(new HashSet<>());
 	
-	private float l = 0.4f, vdef = 0.04f, bound = 0.8f;
-
+	// paddle length and width
+	private float pl = 0.3f;  
+	private float pw = 0.05f; 
+	// bounds
+	private float b = 0.8f;
+	// ball radius
+	private float rad = 0.025f;
+	// speed
+	private float vdef = 0.02f; 
+	// speedup when bouncing
+	private float m = 1.5f;
+	
 	private float x, y, vx, vy, p, o;
 
 	@Activate
 	void activate(BundleContext context) {
 		String l = context.getProperty("be.iminds.iot.dianne.rl.pong.paddlelength");
 		if (l != null)
-			this.l = Float.parseFloat(l);
+			this.pl = Float.parseFloat(l);
 
 		String vdef = context.getProperty("be.iminds.iot.dianne.rl.pong.defaultspeed");
 		if (vdef != null)
@@ -63,54 +73,46 @@ public class Pong implements PongEnvironment, Environment {
 		p += d_p;
 		o += d_o;
 
-		p = Math.min(1 - l / 2, p);
-		p = Math.max(l / 2 - 1, p);
+		p = Math.min(1*b - pl / 2, p);
+		p = Math.max(pl / 2 - 1*b, p);
 
-		o = Math.min(1 - l / 2, o);
-		o = Math.max(l / 2 - 1, o);
+		o = Math.min(1*b - pl / 2, o);
+		o = Math.max(pl / 2 - 1*b, o);
 
 		x += vx;
 		y += vy;
 
-		if (y < -1 * bound) {
-			y = -2 - y;
+		if (y - rad < -1 * b) {
+			y = -b + rad;
 			vy = -vy;
-		} else if (y > 1 * bound) {
-			y = 2 - y;
+		} else if (y + rad > 1 * b) {
+			y = b - rad;
 			vy = -vy;
 		}
 
 		float r = 0;
 
-		if (x < -1) {
-			float i = vy / vx * (-1 - x) + y;
-
-			if (p - l / 2 < i && i < p + l / 2) {
-				float d = (float) Math.sqrt(((x + 1) * (x + 1) + (y - i) * (y - i)) / (vx * vx + vy * vy));
-				i = (i - p) * 2 / l;
+		if (x - rad - pw < -1) {
+			if(onPaddle(p)){
+				float i = (y - o) * 2 / pl;
 				double a = Math.PI / 4 * i;
-				float v = vdef + i * i * 7 * vdef;
+				float v = vdef + i * i * m * vdef;
 				vx = v * (float) Math.cos(a);
 				vy = v * (float) Math.sin(a);
-				x = -1 + d * vx;
-				y = i + d * vy;
-			} else {
+				x = -1 + rad + pw;
+			} else if (x < -1) {
 				r = -1;
 				reset();
 			}
-		} else if (x > 1) {
-			float i = vy / vx * (1 - x) + y;
-
-			if (o - l / 2 < i && i < o + l / 2) {
-				float d = (float) Math.sqrt(((x - 1) * (x - 1) + (y - i) * (y - i)) / (vx * vx + vy * vy));
-				i = (i - p) * 2 / l;
+		} else if (x + rad + pw > 1) {
+			if(onPaddle(o)){
+				float i = (y - o) * 2 / pl;
 				double a = Math.PI + Math.PI / 4 * i;
-				float v = vdef + i * i * 7 * vdef;
+				float v = vdef + i * i * m * vdef;
 				vx = v * (float) Math.cos(a);
 				vy = v * (float) Math.sin(a);
-				x = 1 + d * vx;
-				y = i + d * vy;
-			} else {
+				x = 1 - rad - pw;
+			} else if (x > 1){
 				r = 1;
 				reset();
 			}
@@ -120,11 +122,15 @@ public class Pong implements PongEnvironment, Environment {
 		
 		return r;
 	}
-
+	
+	private boolean onPaddle(float paddle){
+		return paddle - pl / 2 - rad < y &&  y < paddle + pl / 2 + rad;
+	}
+	
 	private int selectOpponentAction() {
-		if (y < o - l / 2)
+		if (y < o )
 			return -1;
-		else if (y > o + l / 2)
+		else if (y > o)
 			return 1;
 		else
 			return 0;
@@ -164,6 +170,31 @@ public class Pong implements PongEnvironment, Environment {
 	
 	void removePongListener(PongListener l){
 		listeners.remove(l);
+	}
+
+	@Override
+	public float getBounds() {
+		return b;
+	}
+
+	@Override
+	public float getSpeed() {
+		return vdef;
+	}
+
+	@Override
+	public float getPaddleLength() {
+		return pl;
+	}
+
+	@Override
+	public float getPaddleWidth() {
+		return pw;
+	}
+
+	@Override
+	public float getBallRadius() {
+		return rad;
 	}
 	
 }

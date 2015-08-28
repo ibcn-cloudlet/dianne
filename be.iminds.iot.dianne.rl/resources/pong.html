@@ -7,9 +7,11 @@
 	</head>  
       
 	<body>  
-		<canvas id="pongCanvas" width="720" height="720">  
+		<center>
+			<canvas id="pongCanvas" width="720" height="720">  
   			<!-- Insert fallback content here -->  
-		</canvas>  
+			</canvas>
+		</center>  
 		
 		<script type="text/javascript">
 			// websocket connection
@@ -22,18 +24,26 @@
 			};
 			connection.onmessage = function (e) {
 				var state = JSON.parse(e.data);
-				console.log(state);
-				x = state.x;
-				y = state.y;
-				vx = state.vx;
-				vy = state.vy;
-				p = state.p;
-				o = state.o;
 				
+				console.log(state);
+				
+				if(state.x !== undefined){
+					x = state.x;
+					y = state.y;
+					vx = state.vx;
+					vy = state.vy;
+					p = state.p;
+					o = state.o;
+				} else {
+					paddleh = state.paddleLength * HEIGHT/2;
+					paddlew = state.paddleWidth * WIDTH/2;
+					radius = state.ballRadius * HEIGHT/2;
+					bounds = state.bounds;
+				}
 				draw();
 			};
 			function sendMessage(msg){
-			  connection.send(msg);
+			  	connection.send(msg);
 			}
 			
 		
@@ -55,25 +65,27 @@
 			var HEIGHT;
 
 			// size of paddles
-			var paddleh;
-			var paddlew;
+			var paddleh = 100;
+			var paddlew = 10;
 			// size of ball
-			var radius;
+			var radius = 10;
 			// field boundary
-			var bound;
+			var bounds = 0.8;
 
 			// canvas
 			var ctx;
 			var canvas = document.getElementById('pongCanvas');
 
 			function init() {
+				// Set canvas to biggest square
+				var W = window.innerWidth;
+				var H = window.innerHeight;
+		      	canvas.width = H;
+			   	canvas.height = H; 
+				
 				ctx = canvas.getContext("2d");
 				WIDTH = canvas.width;
 				HEIGHT = canvas.height;
-				radius = 10;
-				paddleh = 100;
-				paddlew = 25;
-				bound = 0.8; 
 			}
 
 			function circle(x, y, r) {
@@ -96,12 +108,12 @@
 
 			function drawSideLines() {
 				ctx.beginPath();
-				ctx.rect(0, HEIGHT/2 * (1-bound), WIDTH, 10);
+				ctx.rect(0, HEIGHT/2 * (1-bounds) - 10, WIDTH, 10);
 				ctx.closePath();
 				ctx.fill();
 
 				ctx.beginPath();
-				ctx.rect(0, HEIGHT - HEIGHT/2 * (1-bound) - 10, WIDTH, 10);
+				ctx.rect(0, HEIGHT - HEIGHT/2 * (1-bounds), WIDTH, 10);
 				ctx.closePath();
 				ctx.fill();
 			}
