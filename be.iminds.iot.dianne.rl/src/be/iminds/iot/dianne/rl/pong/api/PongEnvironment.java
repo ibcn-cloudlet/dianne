@@ -40,4 +40,15 @@ public interface PongEnvironment extends Environment {
 	 * @return radius
 	 */
 	float getBallRadius();
+	
+	/**
+	 * Turn on/of the AI
+	 */
+	void useAI(boolean ai);
+	
+	/**
+	 * For manual control instead of AI
+	 * @param action
+	 */
+	void setOpponentAction(int action);
 }

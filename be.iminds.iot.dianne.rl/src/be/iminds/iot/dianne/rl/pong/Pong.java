@@ -45,8 +45,13 @@ public class Pong implements PongEnvironment, Environment {
 	// speedup when bouncing
 	private float m = 1.5f;
 	
+	// state
 	private float x, y, vx, vy, p, o;
-
+	
+	// AI
+	private boolean ai = true;
+	private int opponentAction = 0;
+	
 	@Activate
 	void activate(BundleContext context) {
 		String l = context.getProperty("be.iminds.iot.dianne.rl.pong.paddlelength");
@@ -67,8 +72,12 @@ public class Pong implements PongEnvironment, Environment {
 
 	@Override
 	public float performAction(Tensor action) {
+		if(ai){
+			updateAI();
+		}
+		
 		float d_p = vdef * ((action.get(0) > 0) ? 1 : (action.get(1) > 0) ? 0 : -1);
-		float d_o = vdef * selectOpponentAction();
+		float d_o = vdef * opponentAction;
 
 		p += d_p;
 		o += d_o;
@@ -127,13 +136,14 @@ public class Pong implements PongEnvironment, Environment {
 		return paddle - pl / 2 - rad < y &&  y < paddle + pl / 2 + rad;
 	}
 	
-	private int selectOpponentAction() {
-		if (y < o )
-			return -1;
-		else if (y > o)
-			return 1;
+	
+	private void updateAI() {
+		if (y < o - pl/2 )
+			opponentAction = -1;
+		else if (y > o + pl/2)
+			opponentAction = 1;
 		else
-			return 0;
+			opponentAction = 0;
 	}
 
 	@Override
@@ -195,6 +205,18 @@ public class Pong implements PongEnvironment, Environment {
 	@Override
 	public float getBallRadius() {
 		return rad;
+	}
+
+	@Override
+	public void useAI(boolean ai) {
+		this.ai = ai;
+	}
+
+	@Override
+	public void setOpponentAction(int action) {
+		if(!ai){
+			this.opponentAction = action;
+		}
 	}
 	
 }

@@ -101,7 +101,10 @@ public class PongServlet extends HttpServlet implements PongListener {
 		
 		@Override
 		public void onMessage(WebSocket conn, String msg) {
-
+			// TODO how to determine who can control from web UI in case of multiple browsers?
+			// TODO use button to flip AI vs manual control?
+			pongEnvironment.useAI(false);
+			pongEnvironment.setOpponentAction(Integer.parseInt(msg));
 		}
 		
 		@Override
