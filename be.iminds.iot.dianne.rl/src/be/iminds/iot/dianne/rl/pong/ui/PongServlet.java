@@ -143,4 +143,9 @@ public class PongServlet extends HttpServlet implements PongListener {
 		} catch (InterruptedException e) {
 		}
 	}
+
+	@Override
+	public void score(int player) {
+		pongWebSocket.sendToAll("{ \"score\" : "+player+" }");
+	}
 }

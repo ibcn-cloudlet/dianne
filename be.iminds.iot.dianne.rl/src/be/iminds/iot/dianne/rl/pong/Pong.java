@@ -50,6 +50,7 @@ public class Pong implements PongEnvironment, Environment {
 	
 	// AI
 	private boolean ai = true;
+	private int agentAction = 0;
 	private int opponentAction = 0;
 	
 	@Activate
@@ -72,11 +73,12 @@ public class Pong implements PongEnvironment, Environment {
 
 	@Override
 	public float performAction(Tensor action) {
+		agentAction = ((action.get(0) > 0) ? 1 : (action.get(1) > 0) ? 0 : -1);
 		if(ai){
 			updateAI();
 		}
 		
-		float d_p = vdef * ((action.get(0) > 0) ? 1 : (action.get(1) > 0) ? 0 : -1);
+		float d_p = vdef * agentAction;
 		float d_o = vdef * opponentAction;
 
 		p += d_p;
@@ -103,31 +105,39 @@ public class Pong implements PongEnvironment, Environment {
 
 		if (x - rad - pw < -1) {
 			if(onPaddle(p)){
-				float i = (y - o) * 2 / pl;
-				double a = Math.PI / 4 * i;
-				float v = vdef + i * i * m * vdef;
-				vx = v * (float) Math.cos(a);
-				vy = v * (float) Math.sin(a);
+				vx = -vx;
+				vy += agentAction*vdef/2;
+				
 				x = -1 + rad + pw;
 			} else if (x < -1) {
 				r = -1;
+				
+				synchronized(listeners){
+					listeners.stream().forEach(l -> l.score(1));
+				}
+				
 				reset();
 			}
 		} else if (x + rad + pw > 1) {
 			if(onPaddle(o)){
-				float i = (y - o) * 2 / pl;
-				double a = Math.PI + Math.PI / 4 * i;
-				float v = vdef + i * i * m * vdef;
-				vx = v * (float) Math.cos(a);
-				vy = v * (float) Math.sin(a);
+				vx = -vx;
+				vy += opponentAction*vdef/2;
+				
 				x = 1 - rad - pw;
 			} else if (x > 1){
 				r = 1;
+				
+				synchronized(listeners){
+					listeners.stream().forEach(l -> l.score(-1));
+				}
+				
 				reset();
 			}
 		}
 
-		notifyListeners();
+		synchronized(listeners){
+			listeners.stream().forEach(l -> l.update(x, y, vx, vy, p, o));
+		}
 		
 		return r;
 	}
@@ -160,12 +170,6 @@ public class Pong implements PongEnvironment, Environment {
 
 		vx = vdef * (float) Math.cos(r);
 		vy = vdef * (float) Math.sin(r);
-	}
-	
-	private void notifyListeners(){
-		synchronized(listeners){
-			listeners.stream().forEach(l -> l.update(x, y, vx, vy, p, o));
-		}
 	}
 
 	@Reference

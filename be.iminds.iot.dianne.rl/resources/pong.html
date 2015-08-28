@@ -14,6 +14,10 @@
 		</center>  
 		
 		<script type="text/javascript">
+			// score
+			var agentScore = 0;
+			var opponentScore = 0;
+		
 			// websocket connection
 			var connection = new WebSocket('ws://localhost:8787', 'json');
 			connection.onopen = function () {
@@ -34,6 +38,12 @@
 					vy = state.vy;
 					p = state.p;
 					o = state.o;
+				} else if(state.score !== undefined){ 
+					if(state.score == -1){
+						agentScore++;
+					} else {
+						opponentScore++;
+					}
 				} else {
 					paddleh = state.paddleLength * HEIGHT/2;
 					paddlew = state.paddleWidth * WIDTH/2;
@@ -152,6 +162,13 @@
 				ctx.closePath();
 				ctx.fill();
 			}
+			
+			function drawScore(){
+				var size = Math.round(WIDTH / 20);
+				ctx.font = size+"px Impact";
+				ctx.fillText(agentScore, 0, size);
+				ctx.fillText(opponentScore, WIDTH-size, size);
+			}
 
 			function draw() {
 				clear();
@@ -159,6 +176,7 @@
 						radius);
 
 				drawSideLines();
+				drawScore();
 
 				rect(0, p * HEIGHT / 2 + HEIGHT / 2 - paddleh / 2, paddlew,
 						paddleh);
