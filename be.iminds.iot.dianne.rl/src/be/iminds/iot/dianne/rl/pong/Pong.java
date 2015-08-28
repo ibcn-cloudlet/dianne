@@ -163,7 +163,10 @@ public class Pong implements PongEnvironment, Environment {
 
 	@Override
 	public void reset() {
-		x = y = p = o = 0;
+		// reset ball position
+		x = y = 0;
+		// reset paddles
+		// p = o = 0;
 
 		double r = Math.random();
 		r = (r < 0.5) ? 3 * Math.PI / 4 + r * Math.PI : -Math.PI / 4 + (r - 0.5) * Math.PI;
