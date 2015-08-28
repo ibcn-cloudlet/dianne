@@ -67,7 +67,7 @@ public class PongServlet extends HttpServlet implements PongListener {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
-		resp.sendRedirect("pong/ui/pong.html");
+		resp.sendRedirect("http://"+req.getLocalAddr()+":"+req.getLocalPort()+"/pong/ui/pong.html");
 	}
 	
 	@Reference
