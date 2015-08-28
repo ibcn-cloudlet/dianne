@@ -20,6 +20,10 @@ public class DianneRLCommands {
 	// TODO could be multiple agents?
 	private Agent agent;
 	
+	public void act(String nnName, String environment){
+		act(nnName, environment, null);
+	}
+	
 	public void act(String nnName, String environment, String experiencePool){
 		try {
 			agent.act(nnName, environment, experiencePool, new HashMap<String, String>());
