@@ -1,7 +1,7 @@
 Bundle-Version: 0.2.0.${tstamp}
 
 Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
--buildpath: \
+-buildpath:  \
 	biz.aQute.junit,\
 	osgi.core;version=5.0,\
 	osgi.enterprise;version=5.0,\
@@ -10,5 +10,5 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 	org.websocket;version=1.0,\
 	be.iminds.iot.dianne.api;version=latest,\
 	be.iminds.iot.dianne.tensor.api;version=latest,\
-
+	be.iminds.iot.dianne.nn.learn;version=latest
 -sub: *.bnd

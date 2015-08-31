@@ -196,8 +196,6 @@ public class GreedyDeepQAgent implements Agent, RepositoryListener {
 
 		@Override
 		public void run() {
-			System.out.println("Starting agent");
-			
 			Tensor state = env.getObservation();
 
 			while (running) {
@@ -205,8 +203,6 @@ public class GreedyDeepQAgent implements Agent, RepositoryListener {
 					loadParameters();
 					update = false;
 				}
-				
-				System.out.println("State:\t" + state.toString());
 				
 				synchronized(this) {
 					input.input(state);
@@ -216,8 +212,6 @@ public class GreedyDeepQAgent implements Agent, RepositoryListener {
 					} catch (InterruptedException e) {}
 				}
 				
-				System.out.println("Q:\t" + q.toString());
-
 				Tensor action = factory.createTensor(q.size());
 				action.fill(-1);
 
