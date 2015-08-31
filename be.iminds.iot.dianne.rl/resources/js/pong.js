@@ -171,10 +171,11 @@ function drawSideLines() {
 }
 
 function drawScore(){
-	var size = Math.round(WIDTH / 20);
+	var size = Math.round(WIDTH / 15);
 	ctx.font = size+"px Impact";
-	ctx.fillText(agentScore, 0, size);
-	ctx.fillText(opponentScore, WIDTH-size, size);
+	ctx.fillText(agentScore, 0.5*size, size);
+	var metrics = ctx.measureText(opponentScore);
+	ctx.fillText(opponentScore, WIDTH - 0.5*size - metrics.width, size);
 }
 
 function draw() {
