@@ -45,7 +45,7 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 public class DianneModuleFactory implements ModuleFactory {
 
 	private ExecutorService runExecutor = Executors.newCachedThreadPool();
-	private ExecutorService listenerExecutor = Executors.newSingleThreadExecutor();
+	private ExecutorService listenerExecutor = Executors.newCachedThreadPool();
 	
 	private TensorFactory factory;
 	
