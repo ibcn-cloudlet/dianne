@@ -190,7 +190,7 @@ public class SimpleLearner implements Learner {
 	protected void publishParameters(){
 		System.out.println("Publish parameters");
 		
-		// TODO collect all parameter deltas to update repository
+		// collect all parameter deltas to update repository
 		Map<UUID, Tensor> newParameters = toTrain.entrySet().stream().collect(
 				Collectors.toMap(e -> e.getKey(), e -> e.getValue().getParameters()));
 		
