@@ -13,7 +13,8 @@ import be.iminds.iot.dianne.tensor.Tensor;
 public class RegularizationProcessor extends AbstractProcessor {
 
 	private final Processor decorated;
-	private final float regularization;
+	
+	private float regularization = 0.001f;
 	
 	private Map<UUID, Tensor> previousDelta = new HashMap<UUID, Tensor>();
 	
@@ -21,8 +22,10 @@ public class RegularizationProcessor extends AbstractProcessor {
 		super(p.factory, p.input, p.output, p.toTrain, p.dataset, p.config);
 		decorated = p;
 		
-		// TODO set regularization based on config
-		regularization = 0.001f;
+		String r = config.get("regularization");
+		if(r!=null){
+			regularization = Float.parseFloat(r);
+		}
 	}
 	
 	@Override

@@ -15,17 +15,18 @@ import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.Output;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.nn.learn.criterion.MSECriterion;
+import be.iminds.iot.dianne.nn.learn.criterion.NLLCriterion;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public class StochasticGradientDescentProcessor extends AbstractProcessor implements ForwardListener, BackwardListener {
 
 	// error criterion
-	protected final Criterion criterion;
+	protected Criterion criterion;
 	// learning rate
-	protected final float learningRate;
+	protected float learningRate = 0.1f;
 	// batch size
-	protected final int batchSize;
+	protected int batchSize = 10;
 	
 	// random generator
 	private final Random rand = new Random(System.currentTimeMillis());
@@ -50,12 +51,25 @@ public class StochasticGradientDescentProcessor extends AbstractProcessor implem
 		this.input.setMode(EnumSet.of(Mode.BLOCKING));
 		this.output.addForwardListener(this);
 		
-		// TODO create criterion based on config
 		this.criterion = new MSECriterion(factory);
-		// TODO set learningRate based on config
-		learningRate = 0.1f;
-		// TODO get batchsize from config
-		batchSize = 10;
+		String c = config.get("criterion");
+		if(c!=null){
+			if(c.equals("NLL")){
+				criterion = new NLLCriterion(factory);
+			} else if(c.equals("MSE")){
+				criterion = new MSECriterion(factory);
+			}
+		}
+
+		String l = config.get("learningRate");
+		if(l!=null){
+			learningRate = Float.parseFloat(l);
+		}
+		
+		String b = config.get("batchSize");
+		if(b!=null){
+			batchSize = Integer.parseInt(b);
+		}
 	}
 	
 	

@@ -23,7 +23,14 @@ public class DianneLearnCommands {
 	
 	public void learn(String nnName, String dataset, String tag){
 		try {
+			// default configuration values
 			Map<String, String> config = new HashMap<String, String>();
+			config.put("batchSize", "10");
+			config.put("criterion", "MSE");
+			config.put("learningRate", "0.1");
+			config.put("momentum", "0.9");
+			config.put("regularization", "0.001");
+			
 			if(tag!=null){
 				config.put("tag", tag);
 			}

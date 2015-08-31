@@ -13,7 +13,8 @@ import be.iminds.iot.dianne.tensor.Tensor;
 public class MomentumProcessor extends AbstractProcessor {
 
 	private final Processor decorated;
-	private final float momentum;
+	
+	private float momentum = 0.9f;
 	
 	private Map<UUID, Tensor> previousDelta = new HashMap<UUID, Tensor>();
 	
@@ -21,8 +22,10 @@ public class MomentumProcessor extends AbstractProcessor {
 		super(p.factory, p.input, p.output, p.toTrain, p.dataset, p.config);
 		decorated = p;
 		
-		// TODO set momentum based on config
-		momentum = 0.9f;
+		String m = config.get("momentum");
+		if(m!=null){
+			momentum = Float.parseFloat(m);
+		}
 	}
 	
 	@Override

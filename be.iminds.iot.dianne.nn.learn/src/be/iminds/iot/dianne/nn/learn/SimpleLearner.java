@@ -28,6 +28,7 @@ import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.runtime.ModuleManager;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
+import be.iminds.iot.dianne.nn.learn.processors.AbstractProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.MomentumProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.RegularizationProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.StochasticGradientDescentProcessor;
@@ -44,6 +45,7 @@ public class SimpleLearner implements Learner {
 	
 	protected Thread learnerThread = null;
 	protected volatile boolean learning = false;
+	protected Processor processor;
 	
 	protected int updateInterval = 1000;
 	
@@ -116,9 +118,14 @@ public class SimpleLearner implements Learner {
 		);
 		
 		// create a Processor from config
-		// for now just fixed
-		Processor p = new MomentumProcessor(new RegularizationProcessor(new StochasticGradientDescentProcessor(factory, input, output, toTrain, d, config)));
-		
+		AbstractProcessor p = new StochasticGradientDescentProcessor(factory, input, output, toTrain, d, config);
+		if(config.get("regularization")!=null){
+			p = new RegularizationProcessor(p);
+		}
+		if(config.get("momentum")!=null){
+			 p = new MomentumProcessor(new RegularizationProcessor(p));
+		}
+		processor = p;
 		
 		learnerThread = new Thread(new Runnable() {
 			
@@ -131,7 +138,7 @@ public class SimpleLearner implements Learner {
 
 				do {
 					i++;
-					error = p.processNext();
+					error = processor.processNext();
 					runningAvg+= error;
 					
 					System.out.println(error+" - "+runningAvg/i);
