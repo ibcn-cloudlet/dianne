@@ -1,16 +1,33 @@
 package be.iminds.iot.dianne.rl.agent;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
+import be.iminds.iot.dianne.api.nn.module.ForwardListener;
+import be.iminds.iot.dianne.api.nn.module.Input;
+import be.iminds.iot.dianne.api.nn.module.Module;
+import be.iminds.iot.dianne.api.nn.module.Output;
+import be.iminds.iot.dianne.api.nn.module.Trainable;
+import be.iminds.iot.dianne.api.nn.module.Module.Mode;
+import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
+import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
+import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
+import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
+import be.iminds.iot.dianne.api.nn.runtime.ModuleManager;
+import be.iminds.iot.dianne.api.repository.DianneRepository;
+import be.iminds.iot.dianne.api.repository.RepositoryListener;
 import be.iminds.iot.dianne.api.rl.Agent;
 import be.iminds.iot.dianne.api.rl.Environment;
 import be.iminds.iot.dianne.api.rl.ExperiencePool;
@@ -18,20 +35,36 @@ import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component
-public class GreedyDeepQAgent implements Agent {
+public class GreedyDeepQAgent implements Agent, RepositoryListener {
 
 	private TensorFactory factory;
+	private ModuleManager runtime;
+	private DianneRepository repository;
 	private Map<String, ExperiencePool> pools = new HashMap<String, ExperiencePool>();
 	private Map<String, Environment> envs = new HashMap<String, Environment>();
+	
+	private NeuralNetworkInstanceDTO nni;
 
 	private Thread thread;
+	private volatile boolean update;
 	private volatile boolean running;
 
+	private String tag = "run";
 	private float epsilon = 0.1f;
 
 	@Reference
 	void setTensorFactory(TensorFactory factory) {
 		this.factory = factory;
+	}
+	
+	@Reference
+	void setModuleManager(ModuleManager runtime){
+		this.runtime = runtime;
+	}
+	
+	@Reference
+	void setDianneRepository(DianneRepository repository){
+		this.repository = repository;
 	}
 
 	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
@@ -56,16 +89,10 @@ public class GreedyDeepQAgent implements Agent {
 		this.envs.remove(name);
 	}
 
-	@Activate
-	void activate(BundleContext context) {
-		String epsilon = context.getProperty("be.iminds.iot.dianne.rl.agent.greedy");
-		if (epsilon != null)
-			this.epsilon = Float.parseFloat(epsilon);
-	}
-
 	@Deactivate
 	void deactivate() {
-		stop();
+		if(running)
+			stop();
 	}
 
 	@Override
@@ -73,19 +100,47 @@ public class GreedyDeepQAgent implements Agent {
 			throws Exception {
 		if (running)
 			throw new Exception("Already running an Agent here");
+		else if (nnName == null || !repository.availableNeuralNetworks().contains(nnName))
+			throw new Exception("Network name " + nnName + " is null or not available");
 		else if (environment == null || !envs.containsKey(environment))
 			throw new Exception("Environment " + environment + " is null or not available");
 		else if (experiencePool != null && !pools.containsKey(experiencePool))
 			throw new Exception("ExperiencePool " + experiencePool + "is not available");
 
-		float epsilon = this.epsilon;
+		if(config.containsKey("tag"))
+			tag = config.get("tag"); 
+		
 		if (config.containsKey("epsilon"))
 			epsilon = Float.parseFloat(config.get("epsilon"));
+		
+		NeuralNetworkDTO nn = repository.loadNeuralNetwork(nnName);
+		UUID nnId = UUID.randomUUID();
+		List<ModuleInstanceDTO> moduleInstances = new ArrayList<ModuleInstanceDTO>(nn.modules.size());
+		for(ModuleDTO module : nn.modules){
+			ModuleInstanceDTO instance = runtime.deployModule(module, nnId);
+			moduleInstances.add(instance);
+		}
+		
+		nni = new NeuralNetworkInstanceDTO(nnId, nnName, moduleInstances);
+		
+		loadParameters();
 
+		Input input = null;
+		Output output = null;
+		
+		for(ModuleInstanceDTO mi : nni.modules){
+			Module m = runtime.getModule(mi.moduleId, mi.nnId);
+			if(m instanceof Input){
+				input = (Input) m;
+			} else if(m instanceof Output){
+				output = (Output) m;
+			}	
+		}
+		
 		Environment env = envs.get(environment);
 		ExperiencePool pool = pools.get(experiencePool);
 
-		thread = new Thread(new GreedyDeepQRunnable(env, pool, epsilon));
+		thread = new Thread(new GreedyDeepQRunnable(input, output, env, pool, epsilon));
 		running = true;
 		thread.start();
 	}
@@ -101,27 +156,67 @@ public class GreedyDeepQAgent implements Agent {
 			e.printStackTrace();
 		}
 	}
+	
+	@Override
+	public void onParametersUpdate(Collection<UUID> moduleIds, String... tag) {
+		if(nni.modules.stream().anyMatch(m -> moduleIds.contains(m.moduleId))
+				&& Arrays.stream(tag).anyMatch(t -> t.equals(this.tag))) {
+			update = true;
+		}
+	}
+	
+	private void loadParameters(){
+		Map<UUID, Tensor> parameters = repository.loadParameters(nni.name, tag);
+		parameters.entrySet().stream().forEach(e -> {
+			Trainable module = (Trainable) runtime.getModule(e.getKey(), nni.id);
+			module.setParameters(e.getValue());
+		});
+	}
 
-	private class GreedyDeepQRunnable implements Runnable {
+	private class GreedyDeepQRunnable implements Runnable, ForwardListener {
 
+		private final Input input;
+		private final Output output;
 		private final Environment env;
 		private final ExperiencePool pool;
 		private final float epsilon;
+		
+		private Tensor q;
 
-		public GreedyDeepQRunnable(Environment env, ExperiencePool pool, float epsilon) {
+		public GreedyDeepQRunnable(Input input, Output output, Environment env, ExperiencePool pool, float epsilon) {
+			this.input = input;
+			this.output = output;
 			this.env = env;
 			this.pool = pool;
 			this.epsilon = epsilon;
+			
+			this.input.setMode(EnumSet.of(Mode.BLOCKING));
+			this.output.addForwardListener(this);
 		}
 
 		@Override
 		public void run() {
+			System.out.println("Starting agent");
+			
 			Tensor state = env.getObservation();
 
 			while (running) {
-				//TODO q = nn.forward(state)
-				Tensor q = factory.createTensor(3);
-				q.rand();
+				if(update) {
+					loadParameters();
+					update = false;
+				}
+				
+				System.out.println("State:\t" + state.toString());
+				
+				synchronized(this) {
+					input.input(state);
+					
+					try {
+						wait();
+					} catch (InterruptedException e) {}
+				}
+				
+				System.out.println("Q:\t" + q.toString());
 
 				Tensor action = factory.createTensor(q.size());
 				action.fill(-1);
@@ -142,6 +237,12 @@ public class GreedyDeepQAgent implements Agent {
 			}
 		}
 
+		@Override
+		public void onForward(Tensor output, String... tags) {
+			synchronized(this) {
+				q = output;
+				notify();
+			}
+		}
 	}
-
 }
