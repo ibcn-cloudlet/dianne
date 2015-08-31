@@ -10,9 +10,10 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 	
 -dsannotations: *
 Bundle-Name: Dianne Learner
-Private-Package: \
+Private-Package:  \
 	be.iminds.iot.dianne.nn.learn,\
-	be.iminds.iot.dianne.nn.learn.criterion,\
-	be.iminds.iot.dianne.nn.learn.processors,\
 	be.iminds.iot.dianne.nn.learn.command
-Export-Package: be.iminds.iot.dianne.api.nn.learn
+Export-Package:  \
+	be.iminds.iot.dianne.api.nn.learn,\
+	be.iminds.iot.dianne.nn.learn.criterion,\
+	be.iminds.iot.dianne.nn.learn.processors
