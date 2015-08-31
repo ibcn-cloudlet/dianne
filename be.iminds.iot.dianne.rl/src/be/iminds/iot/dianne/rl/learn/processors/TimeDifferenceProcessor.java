@@ -39,9 +39,8 @@ public class TimeDifferenceProcessor extends StochasticGradientDescentProcessor 
 		this.targetInput = targetInput;
 		this.targetOutput = targetOutput;
 		
-		TargetListener listener = new TargetListener();
 		this.targetInput.setMode(EnumSet.of(Mode.BLOCKING));
-		this.targetOutput.addForwardListener(listener);
+		this.targetOutput.addForwardListener(new TargetListener());
 		
 		this.pool = pool;
 		
@@ -60,7 +59,7 @@ public class TimeDifferenceProcessor extends StochasticGradientDescentProcessor 
 			
 			try {
 				wait();
-			} catch (InterruptedException e1) {}
+			} catch (InterruptedException e) {}
 		}
 		
 		target = out.copyInto(target);
@@ -76,7 +75,7 @@ public class TimeDifferenceProcessor extends StochasticGradientDescentProcessor 
 
 		@Override
 		public void onForward(Tensor output, String... tags) {
-			synchronized(this) {
+			synchronized(TimeDifferenceProcessor.this) {
 				nextQ = output;
 				TimeDifferenceProcessor.this.notify();
 			}
