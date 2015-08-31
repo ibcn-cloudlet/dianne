@@ -13,7 +13,8 @@ import be.iminds.iot.dianne.api.rl.Agent;
 @Component(
 		service=Object.class,
 		property={"osgi.command.scope=dianne",
-				  "osgi.command.function=act"},
+				  "osgi.command.function=act",
+				  "osgi.command.function=stopAct"},
 		immediate=true)
 public class DianneRLCommands {
 
@@ -32,6 +33,9 @@ public class DianneRLCommands {
 		}
 	}
 	
+	public void stopAct(){
+		this.agent.stop();
+	}
 	
 	@Reference
 	public void setAgent(Agent agent){

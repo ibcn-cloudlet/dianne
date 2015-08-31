@@ -14,7 +14,8 @@ import be.iminds.iot.dianne.api.nn.learn.Learner;
 @Component(
 		service=Object.class,
 		property={"osgi.command.scope=dianne",
-				  "osgi.command.function=learn"},
+				  "osgi.command.function=learn",
+				  "osgi.command.function=stopLearn"},
 		immediate=true)
 public class DianneLearnCommands {
 
@@ -34,6 +35,10 @@ public class DianneLearnCommands {
 
 	public void learn(String nnName, String dataset){
 		learn(nnName, dataset, null);
+	}
+	
+	public void stopLearn(){
+		this.learner.stop();
 	}
 	
 	@Reference
