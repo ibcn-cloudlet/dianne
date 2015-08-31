@@ -21,7 +21,7 @@ public class TimeDifferenceProcessor extends StochasticGradientDescentProcessor 
 	
 	protected final ExperiencePool pool;
 	
-	protected final float discountRate;
+	protected float discountRate = 0.99f;
 	
 	private Tensor nextQ;
 	private Tensor target;
@@ -44,8 +44,8 @@ public class TimeDifferenceProcessor extends StochasticGradientDescentProcessor 
 		
 		this.pool = pool;
 		
-		// TODO set discountRate based on config
-		discountRate = 0.99f;
+		if(config.containsKey("discount"))
+			discountRate = Float.parseFloat(config.get("discount"));
 	}
 
 	@Override

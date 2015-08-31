@@ -148,14 +148,12 @@ public class DeepQLearner implements Learner {
 
 	private void loadParameters() {
 		try {
-			System.out.println("Loading parameters");
 			Map<UUID, Tensor> parameters = repository.loadParameters(toTrain.keySet(), tag);
 			parameters.entrySet().stream().forEach(e -> {
 				toTrain.get(e.getKey()).setParameters(e.getValue());
 				targetToTrain.get(e.getKey()).setParameters(e.getValue());
 			});
 		} catch (Exception ex) {
-			System.out.println("Storing parameters");
 			Map<UUID, Tensor> parameters = toTrain.entrySet().stream()
 					.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().getParameters()));
 			repository.storeParameters(parameters, tag);
@@ -165,7 +163,6 @@ public class DeepQLearner implements Learner {
 	}
 
 	private void publishParameters() {
-		System.out.println("Publishing parameters");
 		Map<UUID, Tensor> deltaParameters = toTrain.entrySet().stream()
 				.collect(Collectors.toMap(e -> e.getKey(), e -> factory.getTensorMath().sub(null,
 						e.getValue().getParameters(), targetToTrain.get(e.getKey()).getParameters())));
