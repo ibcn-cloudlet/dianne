@@ -48,7 +48,7 @@ public class FileExperiencePool implements ExperiencePool {
 		this.labels = (String[]) config.get("labels");
 		this.actionSize = (Integer) config.get("actionSize");
 		this.stateSize = (Integer) config.get("stateSize");
-		
+
 		// read from file 
 		try {
 			file = new File(dir+File.separator+"data.bin");
