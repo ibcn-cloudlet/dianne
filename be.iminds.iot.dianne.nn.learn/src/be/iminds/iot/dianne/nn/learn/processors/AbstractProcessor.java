@@ -12,15 +12,15 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public abstract class AbstractProcessor implements Processor {
 
-	final TensorFactory factory;
+	protected final TensorFactory factory;
 	
-	final Input input;
-	final Output output;
-	final Map<UUID, Trainable> toTrain;
+	protected final Input input;
+	protected final Output output;
+	protected final Map<UUID, Trainable> toTrain;
 	
-	final Dataset dataset;
+	protected final Dataset dataset;
 	
-	final Map<String, String> config;
+	protected final Map<String, String> config;
 	
 	public AbstractProcessor(TensorFactory factory, 
 			Input input, 

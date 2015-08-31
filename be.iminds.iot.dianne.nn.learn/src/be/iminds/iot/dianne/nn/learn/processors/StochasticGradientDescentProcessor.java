@@ -20,21 +20,22 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public class StochasticGradientDescentProcessor extends AbstractProcessor implements ForwardListener, BackwardListener {
 
+	// error criterion
+	protected final Criterion criterion;
+	// learning rate
+	protected final float learningRate;
+	// batch size
+	protected final int batchSize;
+	
 	// random generator
 	private final Random rand = new Random(System.currentTimeMillis());
-
-	// error criterion
-	private final Criterion criterion;
-	// learning rate
-	private final float learningRate;
-	// batch size
-	private final int batchSize;
 	
 	// current error
-	private float error = 0;
+	protected float error;
 	// current index of the dataset that we process
-	private int index;
+	protected int index;
 	
+	// count down latch
 	private CountDownLatch latch;
 	
 	public StochasticGradientDescentProcessor(TensorFactory factory, 
