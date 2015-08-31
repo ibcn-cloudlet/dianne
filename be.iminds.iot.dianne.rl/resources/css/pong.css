@@ -1,0 +1,49 @@
+
+html, body {
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	overflow: hidden;
+	margin: 0;
+	padding: 0;
+}
+
+#canvas {
+	float: left;
+	width: 100%;
+}
+
+#pongCanvas{
+	display: block;
+	margin: 0 auto;
+}
+
+#options {
+	position: absolute;
+	width: 20%;
+	background-color: #FFFFFF;
+	display: none;
+	margin-top: 2em;
+	top: 0;
+	right: 0;
+}
+
+#toggle {
+	position: absolute;
+	z-index: 5000;
+	top: 0;
+	right: 0;
+}
+
+#footer {
+	clear: both;
+	text-align: center;
+}
+
+ul
+{
+    list-style-type: none;
+}
+
+li 
+{
+	padding: 10 0 10 0;
+}

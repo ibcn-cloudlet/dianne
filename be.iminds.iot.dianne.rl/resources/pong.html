@@ -4,188 +4,47 @@
 		<meta charset="utf-8">
 		<meta name="description" content="Pong demonstration of Dianne Reinforcement Learning">
 		<meta name="author" content="Tim Verbelen">
+		
+		<link rel="stylesheet" href="css/pong.css">
+		
 	</head>  
       
 	<body>  
-		<center>
+		<div id="canvas">
 			<canvas id="pongCanvas" width="720" height="720">  
   			<!-- Insert fallback content here -->  
 			</canvas>
-		</center>  
+		</div>
 		
-		<script type="text/javascript">
-			// score
-			var agentScore = 0;
-			var opponentScore = 0;
+		<div id="toggle">
+			<img src="images/options.png" width="40" height="40" onclick="toggle()"/>
+		</div>
 		
-			// websocket connection
-			var connection = new WebSocket('ws://localhost:8787', 'json');
-			connection.onopen = function () {
-			  console.log('Connection Opened');
-			};
-			connection.onerror = function (error) {
-			  console.log('WebSocket Error ' + error);
-			};
-			connection.onmessage = function (e) {
-				var state = JSON.parse(e.data);
-				
-				// console.log(state);
-				
-				if(state.x !== undefined){
-					x = state.x;
-					y = state.y;
-					vx = state.vx;
-					vy = state.vy;
-					p = state.p;
-					o = state.o;
-				} else if(state.score !== undefined){ 
-					if(state.score == -1){
-						agentScore++;
-					} else {
-						opponentScore++;
-					}
-				} else {
-					paddleh = state.paddleLength * HEIGHT/2;
-					paddlew = state.paddleWidth * WIDTH/2;
-					radius = state.ballRadius * HEIGHT/2;
-					bounds = state.bounds;
-				}
-				draw();
-			};
-			function sendMessage(msg){
-			  	connection.send(msg);
-			}
-			
-			// user control
-			var action = 0;
-
-			function onKeyDown(evt) {
-				var code = evt.keyCode;
-				if(code == 40){
-					// down	
-					if(action!=1){
-						action = 1;
-						sendMessage(action);
-					}
-				} else if(code == 38){
-					// up
-					if(action!=-1){
-						action = -1;
-						sendMessage(action);
-					}
-				}
-			}
-
-			//and unset them when the right or left key is released
-			function onKeyUp(evt) {
-				var code = evt.keyCode;
-				if(code == 40 || code == 38){
-					if(action!=0){
-						action = 0;
-						sendMessage(action);
-					}
-				}
-			}
-
-			document.addEventListener('keydown', onKeyDown);
-			document.addEventListener('keyup', onKeyUp);
-			
-			// pong game
-
-			// x,y pos of the ball
-			var x = 0;
-			var y = 0;
-
-			// vx,vy speed of the ball
-			// vx and vy can be used for interpollation in more advanced stage?
-			var vx = 0;
-			var vy = 0;
-
-			// player and opponent position
-			var p = 0;
-			var o = 0;
-
-			// width and height of the canvas
-			var WIDTH;
-			var HEIGHT;
-
-			// size of paddles
-			var paddleh = 100;
-			var paddlew = 10;
-			// size of ball
-			var radius = 10;
-			// field boundary
-			var bounds = 0.8;
-
-			// canvas
-			var ctx;
-			var canvas = document.getElementById('pongCanvas');
-
-			function init() {
-				// Set canvas to biggest square
-				var W = window.innerWidth;
-				var H = window.innerHeight;
-				canvas.width = H - 20;
-				canvas.height = H - 20;
-
-				ctx = canvas.getContext("2d");
-				WIDTH = canvas.width;
-				HEIGHT = canvas.height;
-			}
-
-			function circle(x, y, r) {
-				ctx.beginPath();
-				ctx.arc(x, y, r, 0, Math.PI * 2, true);
-				ctx.closePath();
-				ctx.fill();
-			}
-
-			function rect(x, y, w, h) {
-				ctx.beginPath();
-				ctx.rect(x, y, w, h);
-				ctx.closePath();
-				ctx.fill();
-			}
-
-			function clear() {
-				ctx.clearRect(0, 0, WIDTH, HEIGHT);
-			}
-
-			function drawSideLines() {
-				ctx.beginPath();
-				ctx.rect(0, HEIGHT / 2 * (1 - bounds) - 10, WIDTH, 10);
-				ctx.closePath();
-				ctx.fill();
-
-				ctx.beginPath();
-				ctx.rect(0, HEIGHT - HEIGHT / 2 * (1 - bounds), WIDTH, 10);
-				ctx.closePath();
-				ctx.fill();
-			}
-			
-			function drawScore(){
-				var size = Math.round(WIDTH / 20);
-				ctx.font = size+"px Impact";
-				ctx.fillText(agentScore, 0, size);
-				ctx.fillText(opponentScore, WIDTH-size, size);
-			}
-
-			function draw() {
-				clear();
-				circle(x * WIDTH / 2 + WIDTH / 2, y * HEIGHT / 2 + HEIGHT / 2,
-						radius);
-
-				drawSideLines();
-				drawScore();
-
-				rect(0, p * HEIGHT / 2 + HEIGHT / 2 - paddleh / 2, paddlew,
-						paddleh);
-				rect(HEIGHT - paddlew, o * HEIGHT / 2 + HEIGHT / 2 - paddleh
-						/ 2, paddlew, paddleh);
-			}
-
-			init();
-			draw();
-		</script>
+		<div id="options">
+			<ul>
+				<li> 
+					Player against Agent:
+					<select id="ai" onchange="selectAI()">
+					  <option value="ai" selected>AI</option>
+					  <option value="human">Human</option> 
+					</select> 		
+				</li>
+				<li>
+					Refresh interval:  
+					<select id="interval" onchange="selectInterval()">
+					  <option value="1">1</option>
+					  <option value="10">10</option>
+					  <option value="20" selected>20</option> 
+					  <option value="30">30</option>
+					</select> 
+				</li>
+			</ul>
+		</div>
+		
+		<div id="footer">
+			Copyright &copy; iMinds IoT lab, 2015
+		</div>
+		
+		<script src="js/pong.js"></script>
 	</body>  
 </html>  
