@@ -297,7 +297,7 @@ public class DianneRuntime implements ModuleManager {
 	}
 	
 	@Override
-	public synchronized ModuleInstanceDTO deployModule(ModuleDTO dto, UUID nnId) throws InstantiationException{
+	public synchronized ModuleInstanceDTO deployModule(ModuleDTO dto, UUID nnId){
 		// Create and register module
 		Module module = null;
 		synchronized(moduleFactories){
@@ -313,7 +313,7 @@ public class DianneRuntime implements ModuleManager {
 		}
 
 		if(module==null){
-			throw new InstantiationException("Failed to instantiate module");
+			throw new RuntimeException(new InstantiationException("Failed to instantiate module"));
 		}
 		
 		// configure next/prev

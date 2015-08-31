@@ -33,7 +33,7 @@ public interface ModuleManager {
 	 * @return the ModuleInstanceDTO of the deployed module
 	 * @throws InstantiationException when it failed to construct the desired module instance
 	 */
-	ModuleInstanceDTO deployModule(ModuleDTO dto, UUID nnId) throws InstantiationException;
+	ModuleInstanceDTO deployModule(ModuleDTO dto, UUID nnId);
 	
 	/**
 	 * Undeploy a single ModuleInstance on this runtime

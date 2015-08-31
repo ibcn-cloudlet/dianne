@@ -58,10 +58,8 @@ public class AbstractDianneTest extends TestCase {
     	
     	List<ModuleInstanceDTO> instances = new ArrayList<ModuleInstanceDTO>();
     	for(ModuleDTO module : nn.modules){
-    		try {
-    			ModuleInstanceDTO mi = mm.deployModule(module, TEST_NN_ID);
-	    		instances.add(mi);
-    		} catch(InstantiationException e){}
+    		ModuleInstanceDTO mi = mm.deployModule(module, TEST_NN_ID);
+	    	instances.add(mi);
     	}
     	
     	this.modules = instances;
