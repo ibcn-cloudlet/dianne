@@ -156,8 +156,9 @@ public class DeepQLearner implements Learner {
 			});
 		} catch (Exception ex) {
 			System.out.println("Storing parameters");
-			repository.storeParameters(toTrain.entrySet().stream()
-					.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().getParameters())), tag);
+			Map<UUID, Tensor> parameters = toTrain.entrySet().stream()
+					.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().getParameters()));
+			repository.storeParameters(parameters, tag);
 			
 			toTrain.entrySet().stream().forEach(e -> targetToTrain.get(e.getKey()).setParameters(e.getValue().getParameters()));
 		}
