@@ -1,6 +1,7 @@
 package be.iminds.iot.dianne.rl.exp;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -39,7 +40,10 @@ public class FileExperiencePool implements ExperiencePool {
 	
 	private final List<ExperiencePoolSample> samples = Collections.synchronizedList(
 			new ArrayList<ExperiencePoolSample>());
+	
 	private File file;
+	private DataInputStream input;
+	private DataOutputStream output;
 	
 	@Activate
 	public void activate(Map<String, Object> config){
@@ -52,7 +56,12 @@ public class FileExperiencePool implements ExperiencePool {
 		// read from file 
 		try {
 			file = new File(dir+File.separator+"data.bin");
-			DataInputStream input = new DataInputStream(new BufferedInputStream(new FileInputStream(file)));
+			
+			if(!file.exists())
+				file.createNewFile();
+			
+			input = new DataInputStream(new BufferedInputStream(new FileInputStream(file)));
+			output = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file, true)));
 		
 			try {
 				while(true){
@@ -145,8 +154,6 @@ public class FileExperiencePool implements ExperiencePool {
 		// append to file
 		synchronized(file){
 			try {
-				DataOutputStream output = new DataOutputStream(new FileOutputStream(file, true));
-			
 				float[] stateData = state.get();
 				for(int i=0;i<stateData.length;i++){
 					output.writeFloat(stateData[i]);
