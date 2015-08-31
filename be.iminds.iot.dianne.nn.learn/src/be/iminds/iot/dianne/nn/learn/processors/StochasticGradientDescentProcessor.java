@@ -18,37 +18,43 @@ import be.iminds.iot.dianne.nn.learn.criterion.MSECriterion;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
-public class RandomSampleProcessor extends AbstractProcessor implements ForwardListener, BackwardListener {
+public class StochasticGradientDescentProcessor extends AbstractProcessor implements ForwardListener, BackwardListener {
 
 	// random generator
-	protected final Random rand = new Random(System.currentTimeMillis());
+	private final Random rand = new Random(System.currentTimeMillis());
 
 	// error criterion
-	protected Criterion criterion;
+	private final Criterion criterion;
 	// learning rate
-	protected float learningRate = 0.1f;
-	
+	private final float learningRate;
+	// batch size
+	private final int batchSize;
 	
 	// current error
-	protected float error = 0;
+	private float error = 0;
 	// current index of the dataset that we process
-	protected int index;
+	private int index;
 	
-	protected CountDownLatch latch;
+	private CountDownLatch latch;
 	
-	public RandomSampleProcessor(TensorFactory factory, 
+	public StochasticGradientDescentProcessor(TensorFactory factory, 
 			Input input, 
 			Output output, 
 			Map<UUID, Trainable> toTrain, 
 			Dataset dataset, 
 			Map<String, String> config) {
 		super(factory, input, output, toTrain, dataset, config);
+		
 		this.input.addBackwardListener(this);
 		this.input.setMode(EnumSet.of(Mode.BLOCKING));
 		this.output.addForwardListener(this);
+		
 		// TODO create criterion based on config
 		this.criterion = new MSECriterion(factory);
 		// TODO set learningRate based on config
+		learningRate = 0.1f;
+		// TODO get batchsize from config
+		batchSize = 10;
 	}
 	
 	
@@ -56,19 +62,18 @@ public class RandomSampleProcessor extends AbstractProcessor implements ForwardL
 	public float processNext() {
 		error = 0;
 		
-		latch = new CountDownLatch(1);
+		latch = new CountDownLatch(batchSize);
 		
 		forwardNext();
 
 		// wait until done...
 		try {
 			latch.await();
-		} catch (InterruptedException e1) {
-		}
+		} catch (InterruptedException e1) {}
 		
 		applyLearningRate();
 		
-		return error;
+		return error/batchSize;
 	}
 
 
@@ -76,6 +81,11 @@ public class RandomSampleProcessor extends AbstractProcessor implements ForwardL
 	public void onBackward(Tensor gradInput, String... tags) {
 		accGradParameters();
 
+		// if still more than one, forward next of the batch
+		if(latch.getCount()>1){
+			forwardNext();
+		}
+		
 		// notify
 		latch.countDown();
 	}
