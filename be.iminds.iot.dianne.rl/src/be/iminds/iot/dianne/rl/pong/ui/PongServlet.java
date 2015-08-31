@@ -33,6 +33,10 @@ public class PongServlet extends HttpServlet implements PongListener {
 	// web socket server handling communication with UI clients
 	private PongWebSocketServer pongWebSocket;
 	
+	// interval between UI state updates
+	private int interval = 20;
+	private long timestamp = System.currentTimeMillis();
+	
 	@Activate
 	public void activate(){
 		try {
@@ -137,10 +141,16 @@ public class PongServlet extends HttpServlet implements PongListener {
 							   +", \"o\" : "+o
 							   +"}");
 		
+		long t = System.currentTimeMillis();
+		long sleep = interval - (t - timestamp);
+		timestamp = t;
+		
 		// since the PongListeners are called synchronously, slow it down here
-		try {
-			Thread.sleep(20);
-		} catch (InterruptedException e) {
+		if(sleep > 0 ){
+			try {
+				Thread.sleep(sleep);
+			} catch (InterruptedException e) {
+			}
 		}
 	}
 

@@ -41,7 +41,7 @@ public class Pong implements PongEnvironment, Environment {
 	// ball radius
 	private float rad = 0.025f;
 	// speed
-	private float vdef = 0.02f; 
+	private float vdef = 0.012f; 
 	// speedup when bouncing
 	private float m = 1.5f;
 	
