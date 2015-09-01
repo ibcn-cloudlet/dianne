@@ -64,21 +64,34 @@ function sendMessage(msg){
 }
 
 // user control
-var action = 0;
+var paction = 0; //player action
+var aaction = 0; // agent action
 
 function onKeyDown(evt) {
 	var code = evt.keyCode;
-	if(code == 40){
-		// down	
-		if(action!=1){
-			action = 1;
-			sendMessage("action="+action);
+	if(code == 40 || code == 76){ // down arrow or L
+		// player down	
+		if(paction!=1){
+			paction = 1;
+			sendMessage("paction="+paction);
 		}
-	} else if(code == 38){
-		// up
-		if(action!=-1){
-			action = -1;
-			sendMessage("action="+action);
+	} else if(code == 38 || code == 80){ // up arrow or P
+		// player up
+		if(paction!=-1){
+			paction = -1;
+			sendMessage("paction="+paction);
+		}
+	} else if(code == 65){  // A on querty
+		// agent down
+		if(aaction!=1){
+			aaction = 1;
+			sendMessage("aaction="+aaction);
+		}
+	} else if(code == 81){  // Q on querty
+		// agent up 
+		if(aaction!=-1){
+			aaction = -1;
+			sendMessage("aaction="+aaction);
 		}
 	}
 }
@@ -86,10 +99,15 @@ function onKeyDown(evt) {
 //and unset them when the right or left key is released
 function onKeyUp(evt) {
 	var code = evt.keyCode;
-	if(code == 40 || code == 38){
-		if(action!=0){
-			action = 0;
-			sendMessage("action="+action);
+	if(code == 40 || code == 38 || code == 80 || code == 76){
+		if(paction!=0){
+			paction = 0;
+			sendMessage("paction="+paction);
+		}
+	} else if(code == 65 || code == 81){
+		if(aaction!=0){
+			aaction = 0;
+			sendMessage("aaction="+aaction);
 		}
 	}
 }

@@ -17,10 +17,14 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.http.HttpService;
 
+import be.iminds.iot.dianne.rl.agent.api.ManualActionController;
 import be.iminds.iot.dianne.rl.pong.api.PongEnvironment;
 import be.iminds.iot.dianne.rl.pong.api.PongListener;
+import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component(service={javax.servlet.Servlet.class, PongListener.class},
 	property={"alias:String=/pong","aiolos.proxy=false"},
@@ -32,6 +36,9 @@ public class PongServlet extends HttpServlet implements PongListener {
 	
 	// web socket server handling communication with UI clients
 	private PongWebSocketServer pongWebSocket;
+	
+	private ManualActionController agent;
+	private TensorFactory factory;
 	
 	// interval between UI state updates
 	private int interval = 20;
@@ -105,8 +112,14 @@ public class PongServlet extends HttpServlet implements PongListener {
 		
 		@Override
 		public void onMessage(WebSocket conn, String msg) {
-			if(msg.startsWith("action=")){
-				pongEnvironment.setOpponentAction(Integer.parseInt(msg.substring(7)));
+			if(msg.startsWith("paction=")){
+				pongEnvironment.setOpponentAction(Integer.parseInt(msg.substring(8)));
+			} else if(msg.startsWith("aaction=")){
+				float a = Integer.parseInt(msg.substring(8));
+				float[] t = new float[]{a == 1 ? 1 : 0 , a == 0 ? 1 :0 , a == -1 ? 1 : 0};
+				if(agent!=null){
+					agent.setAction(factory.createTensor(t, 3));
+				}
 			} else if(msg.startsWith("ai=")){
 				if(msg.contains("human")){
 					pongEnvironment.useAI(false);
@@ -165,5 +178,22 @@ public class PongServlet extends HttpServlet implements PongListener {
 	@Override
 	public void score(int player) {
 		pongWebSocket.sendToAll("{ \"score\" : "+player+" }");
+	}
+	
+	@Reference
+	public void setTensorFactory(TensorFactory f){
+		this.factory = f;
+	}
+	
+	@Reference(cardinality=ReferenceCardinality.OPTIONAL, policy=ReferencePolicy.DYNAMIC)
+	public void setAgent(ManualActionController a){
+		this.agent = a;
+		this.agent.setAction(factory.createTensor(new float[]{0, 1, 0}, 3));
+	}
+	
+	public void unsetAgent(ManualActionController a){
+		if(this.agent==a){
+			this.agent=null;
+		}
 	}
 }
