@@ -24,7 +24,8 @@ var agentScore = 0;
 var opponentScore = 0;
 
 // websocket connection
-var connection = new WebSocket('ws://localhost:8787', 'json');
+var host = window.location.hostname;
+var connection = new WebSocket('ws://'+host+':8787', 'json');
 connection.onopen = function () {
 	console.log('Connection Opened');
 };
