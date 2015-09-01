@@ -36,7 +36,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component
-public class GreedyDeepQAgent implements Agent, RepositoryListener {
+public class GreedyDeepQAgent implements Agent, RepositoryListener, ForwardListener {
 
 	private TensorFactory factory;
 	private ModuleManager runtime;
@@ -45,16 +45,20 @@ public class GreedyDeepQAgent implements Agent, RepositoryListener {
 	private Map<String, Environment> envs = new HashMap<String, Environment>();
 	
 	private NeuralNetworkInstanceDTO nni;
+	private Input input;
+	private Output output;
+	
+	private Tensor nnOutput;
 
 	private Thread actingThread;
 	private volatile boolean update;
 	private volatile boolean acting;
 
 	private String tag = "run";
-	private float epsilon = 0.1f;
 	
-	private int count = 0;
-
+	private double epsilon = 1e0;
+	private double decay = 1e-6;
+	
 	@Reference
 	void setTensorFactory(TensorFactory factory) {
 		this.factory = factory;
@@ -114,7 +118,10 @@ public class GreedyDeepQAgent implements Agent, RepositoryListener {
 			tag = config.get("tag"); 
 		
 		if (config.containsKey("epsilon"))
-			epsilon = Float.parseFloat(config.get("epsilon"));
+			epsilon = Double.parseDouble(config.get("epsilon"));
+		
+		if (config.containsKey("decay"))
+			decay = Double.parseDouble(config.get("decay"));
 		
 		NeuralNetworkDTO nn = repository.loadNeuralNetwork(nnName);
 		
@@ -123,15 +130,18 @@ public class GreedyDeepQAgent implements Agent, RepositoryListener {
 		nni = new NeuralNetworkInstanceDTO(nnId, nnName, moduleInstances);
 		
 		Supplier<Stream<Module>> modules = () -> nni.modules.stream().map(mi -> runtime.getModule(mi.moduleId, mi.nnId));
-		Input input = (Input) modules.get().filter(m -> m instanceof Input).findAny().get();
-		Output output = (Output) modules.get().filter(m -> m instanceof Output).findAny().get();
+		input = (Input) modules.get().filter(m -> m instanceof Input).findAny().get();
+		output = (Output) modules.get().filter(m -> m instanceof Output).findAny().get();
+		
+		input.setMode(EnumSet.of(Mode.BLOCKING));
+		output.addForwardListener(this);
 		
 		loadParameters();
 		
 		Environment env = envs.get(environment);
 		ExperiencePool pool = pools.get(experiencePool);
 
-		actingThread = new Thread(new GreedyDeepQAgentRunnable(input, output, env, pool, epsilon));
+		actingThread = new Thread(new AgentRunnable(env, pool));
 		acting = true;
 		actingThread.start();
 	}
@@ -165,72 +175,71 @@ public class GreedyDeepQAgent implements Agent, RepositoryListener {
 			module.setParameters(e.getValue());
 		});
 	}
+	
+	// Action selection logic should be abstract method implemented by specific agent
+	private Tensor selectActionFromOutput(Tensor output, long i) {
+		Tensor action = factory.createTensor(output.size());
+		action.fill(-1);
 
-	private class GreedyDeepQAgentRunnable implements Runnable, ForwardListener {
+		if (Math.random() < epsilon * Math.exp(-i * decay)) {
+			action.set(1, (int) (Math.random() * action.size()));
+		} else {
+			action.set(1, factory.getTensorMath().argmax(output));
+		}
+		
+		return action;
+	}
+	
+	// Network updating and forwarding logic can be kept in abstract class
+	private Tensor selectActionFromObservation(Tensor state, long i) {
+		if(update) {
+			loadParameters();
+			update = false;
+		}
+		
+		synchronized(this) {
+			input.input(state);
+			
+			try {
+				wait();
+			} catch (InterruptedException e) {}
+		}
+		
+		return selectActionFromOutput(nnOutput, i);
+	}
+	
+	@Override
+	public void onForward(Tensor output, String... tags) {
+		synchronized(this) {
+			nnOutput = output;
+			notify();
+		}
+	}
+	
+	private class AgentRunnable implements Runnable {
 
-		private final Input input;
-		private final Output output;
 		private final Environment env;
 		private final ExperiencePool pool;
-		private final float epsilon;
 		
-		private Tensor q;
-
-		public GreedyDeepQAgentRunnable(Input input, Output output, Environment env, ExperiencePool pool, float epsilon) {
-			this.input = input;
-			this.output = output;
+		public AgentRunnable(Environment env, ExperiencePool pool) {
 			this.env = env;
 			this.pool = pool;
-			this.epsilon = epsilon;
-			
-			this.input.setMode(EnumSet.of(Mode.BLOCKING));
-			this.output.addForwardListener(this);
 		}
 
 		@Override
 		public void run() {
-			Tensor state = env.getObservation();
+			Tensor observation = env.getObservation();
 
-			while (acting) {
-				if(update) {
-					loadParameters();
-					update = false;
-				}
-				
-				synchronized(this) {
-					input.input(state);
-					
-					try {
-						wait();
-					} catch (InterruptedException e) {}
-				}
-				
-				Tensor action = factory.createTensor(q.size());
-				action.fill(-1);
-
-				if (Math.random() < epsilon) {
-					action.set(1, (int) (Math.random() * action.size()));
-				} else {
-					action.set(1, factory.getTensorMath().argmax(q));
-				}
+			for(long i = 0; acting; i++) {
+				Tensor action = selectActionFromObservation(observation, i);
 
 				float reward = env.performAction(action);
-				Tensor nextState = env.getObservation();
+				Tensor nextObservation = env.getObservation();
 
-				if (pool != null) {
-					pool.addSample(state, action, reward, nextState);
-					count++;
-				}
+				if (pool != null)
+					pool.addSample(observation, action, reward, nextObservation);
 
-				state = nextState;
-			}
-		}
-
-		@Override
-		public void onForward(Tensor output, String... tags) {
-			synchronized(this) {
-				q = output;
-				notify();
+				observation = nextObservation;
 			}
 		}
 	}
