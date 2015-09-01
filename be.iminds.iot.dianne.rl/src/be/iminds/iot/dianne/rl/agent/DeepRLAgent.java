@@ -36,7 +36,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component
-public class GreedyDeepQAgent implements Agent, RepositoryListener, ForwardListener {
+public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 
 	private TensorFactory factory;
 	private ModuleManager runtime;
@@ -56,8 +56,7 @@ public class GreedyDeepQAgent implements Agent, RepositoryListener, ForwardListe
 
 	private String tag = "run";
 	
-	private double epsilon = 1e0;
-	private double decay = 1e-6;
+	private ActionStrategy actionStrategy;
 	
 	@Reference
 	void setTensorFactory(TensorFactory factory) {
@@ -117,11 +116,25 @@ public class GreedyDeepQAgent implements Agent, RepositoryListener, ForwardListe
 		if(config.containsKey("tag"))
 			tag = config.get("tag"); 
 		
-		if (config.containsKey("epsilon"))
-			epsilon = Double.parseDouble(config.get("epsilon"));
+		String strategy = "greedy";
+		if(config.containsKey("strategy")){
+			strategy = config.get("strategy");
+		} 
 		
-		if (config.containsKey("decay"))
-			decay = Double.parseDouble(config.get("decay"));
+		switch(strategy){
+		case "greedy":
+			double epsilon = 1e0;
+			double decay = 1e-6;
+			
+			if (config.containsKey("epsilon"))
+				epsilon = Double.parseDouble(config.get("epsilon"));
+			
+			if (config.containsKey("decay"))
+				decay = Double.parseDouble(config.get("decay"));
+			
+			actionStrategy = new GreedyActionStrategy(factory, epsilon, decay);
+			break;
+		}
 		
 		NeuralNetworkDTO nn = repository.loadNeuralNetwork(nnName);
 		
@@ -176,20 +189,6 @@ public class GreedyDeepQAgent implements Agent, RepositoryListener, ForwardListe
 		});
 	}
 	
-	// Action selection logic should be abstract method implemented by specific agent
-	private Tensor selectActionFromOutput(Tensor output, long i) {
-		Tensor action = factory.createTensor(output.size());
-		action.fill(-1);
-
-		if (Math.random() < epsilon * Math.exp(-i * decay)) {
-			action.set(1, (int) (Math.random() * action.size()));
-		} else {
-			action.set(1, factory.getTensorMath().argmax(output));
-		}
-		
-		return action;
-	}
-	
 	// Network updating and forwarding logic can be kept in abstract class
 	private Tensor selectActionFromObservation(Tensor state, long i) {
 		if(update) {
@@ -205,7 +204,7 @@ public class GreedyDeepQAgent implements Agent, RepositoryListener, ForwardListe
 			} catch (InterruptedException e) {}
 		}
 		
-		return selectActionFromOutput(nnOutput, i);
+		return actionStrategy.selectActionFromOutput(nnOutput, i);
 	}
 	
 	@Override
