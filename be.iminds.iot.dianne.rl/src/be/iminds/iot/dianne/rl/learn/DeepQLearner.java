@@ -163,6 +163,7 @@ public class DeepQLearner implements Learner {
 	}
 
 	private void publishParameters() {
+		System.out.println("Publish parameters "+tag);
 		Map<UUID, Tensor> deltaParameters = toTrain.entrySet().stream()
 				.collect(Collectors.toMap(e -> e.getKey(), e -> factory.getTensorMath().sub(null,
 						e.getValue().getParameters(), targetToTrain.get(e.getKey()).getParameters())));
@@ -188,7 +189,8 @@ public class DeepQLearner implements Learner {
 				error = p.processNext();
 				runningAvg = 0.99f * runningAvg + 0.01f * error;
 
-				System.out.println(error + " - " + runningAvg / i);
+				if(i % 1000 == 0)
+					System.out.println(i+"\terror: "+error + "\trunning avg: " + runningAvg / i);
 
 				toTrain.values().stream().forEach(Trainable::updateParameters);
 

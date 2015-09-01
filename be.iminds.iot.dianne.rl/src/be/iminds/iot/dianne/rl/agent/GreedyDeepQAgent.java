@@ -52,6 +52,8 @@ public class GreedyDeepQAgent implements Agent, RepositoryListener {
 
 	private String tag = "run";
 	private float epsilon = 0.1f;
+	
+	private int count = 0;
 
 	@Reference
 	void setTensorFactory(TensorFactory factory) {
@@ -148,6 +150,7 @@ public class GreedyDeepQAgent implements Agent, RepositoryListener {
 	
 	@Override
 	public void onParametersUpdate(Collection<UUID> moduleIds, String... tag) {
+		// TODO should be done by a targets service property? Do via config
 		if(nni.modules.stream().anyMatch(m -> moduleIds.contains(m.moduleId))
 				&& Arrays.stream(tag).anyMatch(t -> t.equals(this.tag))) {
 			update = true;
@@ -156,6 +159,7 @@ public class GreedyDeepQAgent implements Agent, RepositoryListener {
 	
 	private void loadParameters(){
 		Map<UUID, Tensor> parameters = repository.loadParameters(nni.name, tag);
+		System.out.println("Agent loaded parameters for "+nni.name+" "+tag);
 		parameters.entrySet().stream().forEach(e -> {
 			Trainable module = (Trainable) runtime.getModule(e.getKey(), nni.id);
 			module.setParameters(e.getValue());
@@ -213,8 +217,10 @@ public class GreedyDeepQAgent implements Agent, RepositoryListener {
 				float reward = env.performAction(action);
 				Tensor nextState = env.getObservation();
 
-				if (pool != null)
+				if (pool != null) {
 					pool.addSample(state, action, reward, nextState);
+					count++;
+				}
 
 				state = nextState;
 			}
