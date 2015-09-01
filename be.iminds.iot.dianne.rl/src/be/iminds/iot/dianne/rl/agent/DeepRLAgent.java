@@ -43,6 +43,8 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 	private DianneRepository repository;
 	private Map<String, ExperiencePool> pools = new HashMap<String, ExperiencePool>();
 	private Map<String, Environment> envs = new HashMap<String, Environment>();
+	private Map<String, ActionStrategy> strategies = new HashMap<String, ActionStrategy>();
+
 	
 	private NeuralNetworkInstanceDTO nni;
 	private Input input;
@@ -95,6 +97,17 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 		this.envs.remove(name);
 	}
 
+	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
+	public void addStrategy(ActionStrategy s, Map<String, Object> properties) {
+		String strategy = (String) properties.get("strategy");
+		this.strategies.put(strategy, s);
+	}
+
+	public void removeStrategy(ActionStrategy s, Map<String, Object> properties) {
+		String strategy = (String) properties.get("strategy");
+		this.strategies.remove(strategy);
+	}
+	
 	@Deactivate
 	void deactivate() {
 		if(acting)
@@ -121,20 +134,11 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 			strategy = config.get("strategy");
 		} 
 		
-		switch(strategy){
-		case "greedy":
-			double epsilon = 1e0;
-			double decay = 1e-6;
-			
-			if (config.containsKey("epsilon"))
-				epsilon = Double.parseDouble(config.get("epsilon"));
-			
-			if (config.containsKey("decay"))
-				decay = Double.parseDouble(config.get("decay"));
-			
-			actionStrategy = new GreedyActionStrategy(factory, epsilon, decay);
-			break;
+		actionStrategy = strategies.get(strategy);
+		if(actionStrategy==null){
+			throw new RuntimeException("Invalid strategy selected: "+strategy);
 		}
+		actionStrategy.configure(config);
 		
 		NeuralNetworkDTO nn = repository.loadNeuralNetwork(nnName);
 		

@@ -1,4 +1,6 @@
-Export-Package: be.iminds.iot.dianne.api.rl;
+Export-Package: \
+	be.iminds.iot.dianne.api.rl,\
+	be.iminds.iot.dianne.rl.agent.api
 -dsannotations: *
 Private-Package: be.iminds.iot.dianne.rl.agent;
 Bundle-Name: Dianne Reinforcement Agent

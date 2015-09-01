@@ -1,22 +1,20 @@
 package be.iminds.iot.dianne.rl.agent;
 
+import java.util.Map;
+
+import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
+@Component(property={"strategy=greedy"})
 public class GreedyActionStrategy implements ActionStrategy {
 	
 	private TensorFactory factory;
 	
-	private double epsilon;
-	private double decay;
-	
-	public GreedyActionStrategy(TensorFactory f, double epsilon, double decay){
-		this.factory = f;
-		this.epsilon = epsilon;
-		this.decay = decay;
-	}
+	private double epsilon = 1e0;
+	private double decay = 1e-6;
 	
 	public Tensor selectActionFromOutput(Tensor output, long i) {
 		Tensor action = factory.createTensor(output.size());
@@ -31,9 +29,17 @@ public class GreedyActionStrategy implements ActionStrategy {
 		return action;
 	}
 	
+	@Override
+	public void configure(Map<String, String> config) {
+		if (config.containsKey("epsilon"))
+			epsilon = Double.parseDouble(config.get("epsilon"));
+		
+		if (config.containsKey("decay"))
+			decay = Double.parseDouble(config.get("decay"));
+	}
+
 	@Reference
 	public void setTensorFactory(TensorFactory f){
 		this.factory =f;
 	}
-
 }
