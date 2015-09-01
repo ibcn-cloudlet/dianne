@@ -1,5 +1,6 @@
 package be.iminds.iot.dianne.rl.command;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,9 +30,9 @@ public class DianneRLCommands {
 		act(nnName, environment, null);
 	}
 	
-	public void act(String nnName, String environment, String experiencePool){
+	public void act(String nnName, String environment, String experiencePool, String... properties){
 		try {
-			agent.act(nnName, environment, experiencePool, new HashMap<String, String>());
+			agent.act(nnName, environment, experiencePool, createConfig(properties));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -41,13 +42,9 @@ public class DianneRLCommands {
 		this.agent.stop();
 	}
 	
-	public void learn(String nnName, String dataset, String tag){
+	public void learn(String nnName, String dataset, String ... properties){
 		try {
-			Map<String, String> config = new HashMap<String, String>();
-			if(tag!=null){
-				config.put("tag", tag);
-			}
-			learner.learn(nnName, dataset, config);
+			learner.learn(nnName, dataset, createConfig(properties));
 		} catch(Exception e){
 			e.printStackTrace();
 		}
@@ -55,6 +52,18 @@ public class DianneRLCommands {
 
 	public void learn(String nnName, String dataset){
 		learn(nnName, dataset, null);
+	}
+	
+	private Map<String, String> createConfig(String[] properties){
+		Map<String, String> config = new HashMap<String, String>();
+		for(String property : properties){
+			String[] p = property.split("=");
+			if(p.length==2){
+				config.put(p[0].trim(), p[1].trim());
+			}
+		}
+		
+		return config;
 	}
 	
 	@Reference
