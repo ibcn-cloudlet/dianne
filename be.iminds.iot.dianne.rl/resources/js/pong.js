@@ -9,9 +9,18 @@ function toggle(){
 	o.style.display = (o.style.display != 'none' ? 'none' : 'block' );
 }
 
+function start(){
+	sendMessage("start");
+}
+
 function selectAI(){
 	var ai = document.getElementById("ai").value;
 	sendMessage("ai="+ai);
+}
+
+function selectAgent(){
+	var agent = document.getElementById("agent").value;
+	sendMessage("agent="+agent);
 }
 
 function selectInterval(){

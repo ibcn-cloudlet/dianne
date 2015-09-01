@@ -23,12 +23,31 @@
 		<div id="options">
 			<ul>
 				<li> 
-					Player against Agent:
+					Neural Network:
+					<select id="nn" onchange="selectNN()">
+					  <option value="DeepQPong" selected>DeepQPong</option>
+					</select> 		
+				</li>
+				<li> 
+					Experience Pool:
+					<select id="pool" onchange="selectPool()" disabled>
+					  <option value="Pong" selected>Pong</option>
+					</select> 		
+				</li>											
+				<li> 
+					Agent (Left):
+					<select id="agent" onchange="selectAgent()">
+					  <option value="greedy" selected>Greedy</option>
+					  <option value="manual">Human</option> 
+					</select> 		
+				</li>
+				<li> 
+					Player (Right):
 					<select id="ai" onchange="selectAI()">
 					  <option value="ai" selected>AI</option>
 					  <option value="human">Human</option> 
 					</select> 		
-				</li>
+				</li>								
 				<li>
 					Refresh interval:  
 					<select id="interval" onchange="selectInterval()">
@@ -39,6 +58,7 @@
 					</select> 
 				</li>
 			</ul>
+			<button id="start" type="button" onclick="start()">Start/Stop</button>
 		</div>
 		
 		<div id="footer">

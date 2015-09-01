@@ -132,7 +132,7 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 		String strategy = "greedy";
 		if(config.containsKey("strategy")){
 			strategy = config.get("strategy");
-		} 
+		}
 		
 		actionStrategy = strategies.get(strategy);
 		if(actionStrategy==null){

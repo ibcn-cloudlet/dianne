@@ -17,6 +17,7 @@ public class ManualActionStrategy implements ActionStrategy, ManualActionControl
 		return action;
 	}
 
+	@Override
 	public void setAction(Tensor a){
 		this.action = a;
 	}

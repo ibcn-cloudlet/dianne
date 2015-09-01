@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -21,6 +23,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.http.HttpService;
 
+import be.iminds.iot.dianne.api.rl.Agent;
 import be.iminds.iot.dianne.rl.agent.api.ManualActionController;
 import be.iminds.iot.dianne.rl.pong.api.PongEnvironment;
 import be.iminds.iot.dianne.rl.pong.api.PongListener;
@@ -37,8 +40,15 @@ public class PongServlet extends HttpServlet implements PongListener {
 	// web socket server handling communication with UI clients
 	private PongWebSocketServer pongWebSocket;
 	
-	private ManualActionController agent;
+	private Agent agent;
+	private ManualActionController agentAction;
 	private TensorFactory factory;
+	
+	// for now hard coded
+	private String nn = "DeepQPong";
+	private String env = "Pong";
+	private String pool = "Pong";
+	private String strategy = "greedy";
 	
 	// interval between UI state updates
 	private int interval = 20;
@@ -117,8 +127,8 @@ public class PongServlet extends HttpServlet implements PongListener {
 			} else if(msg.startsWith("aaction=")){
 				float a = Integer.parseInt(msg.substring(8));
 				float[] t = new float[]{a == 1 ? 1 : 0 , a == 0 ? 1 :0 , a == -1 ? 1 : 0};
-				if(agent!=null){
-					agent.setAction(factory.createTensor(t, 3));
+				if(agentAction!=null){
+					agentAction.setAction(factory.createTensor(t, 3));
 				}
 			} else if(msg.startsWith("ai=")){
 				if(msg.contains("human")){
@@ -126,9 +136,13 @@ public class PongServlet extends HttpServlet implements PongListener {
 				} else {
 					pongEnvironment.useAI(true);
 				}
+			} else if(msg.startsWith("agent=")){
+				strategy =  msg.substring(6);
 			} else if(msg.startsWith("interval=")){
 				int i = Integer.parseInt(msg.substring(9));
 				interval = i;
+			} else if(msg.startsWith("start")){
+				startAgent();
 			}
 		}
 		
@@ -180,20 +194,40 @@ public class PongServlet extends HttpServlet implements PongListener {
 		pongWebSocket.sendToAll("{ \"score\" : "+player+" }");
 	}
 	
+	private void startAgent(){
+		Map<String, String> config = new HashMap<String, String>();
+		config.put("strategy", strategy);
+		try {
+			this.agent.act("DeepQPong", env, pool, config);
+		} catch (Exception e) {
+			this.agent.stop();
+		}
+	}
+	
 	@Reference
 	public void setTensorFactory(TensorFactory f){
 		this.factory = f;
+		if(agentAction!=null){
+			this.agentAction.setAction(factory.createTensor(new float[]{0, 1, 0}, 3));
+		}
 	}
 	
 	@Reference(cardinality=ReferenceCardinality.OPTIONAL, policy=ReferencePolicy.DYNAMIC)
-	public void setAgent(ManualActionController a){
-		this.agent = a;
-		this.agent.setAction(factory.createTensor(new float[]{0, 1, 0}, 3));
+	public void setAgentAction(ManualActionController a){
+		this.agentAction = a;
+		if(factory!=null){
+			this.agentAction.setAction(factory.createTensor(new float[]{0, 1, 0}, 3));
+		}
 	}
 	
-	public void unsetAgent(ManualActionController a){
-		if(this.agent==a){
-			this.agent=null;
+	public void unsetAgentAction(ManualActionController a){
+		if(this.agentAction==a){
+			this.agentAction=null;
 		}
+	}
+	
+	@Reference
+	public void setAgent(Agent a){
+		this.agent = a;
 	}
 }
