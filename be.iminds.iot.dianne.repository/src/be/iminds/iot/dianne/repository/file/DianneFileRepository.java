@@ -289,6 +289,11 @@ public class DianneFileRepository implements DianneRepository {
 	}
 	
 	private boolean match(Collection<String> targets, Collection<UUID> moduleIds, String[] tag){
+		// match everything if targets = null
+		if(targets==null){
+			return true;
+		}
+		
 		// targets in form  moduleId:tag
 		for(String target : targets){
 			String[] split = target.split(":");
@@ -328,6 +333,8 @@ public class DianneFileRepository implements DianneRepository {
 		String[] targets = (String[])properties.get("targets");
 		if(targets!=null){
 			listeners.put(l, Arrays.asList(targets));
+		} else {
+			listeners.put(l, null);
 		}
 	}
 	
