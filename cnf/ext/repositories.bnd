@@ -1,7 +1,8 @@
 plugindir: ${workspace}/cnf/plugins
 repourl="http://aiolos.intec.ugent.be/repositories"
 
--pluginpath: ${plugindir}/biz.aQute.repository/biz.aQute.repository-2.1.0.jar
+-pluginpath: ${plugindir}/biz.aQute.repository/biz.aQute.repository-2.1.0.jar,\
+	${plugindir}/be.li.bnd.plugin.workspacerepo/be.li.bnd.plugin.workspacerepo.jar
 
 -plugin:\
 	aQute.bnd.deployer.repository.LocalIndexedRepo; name=Local;   local=${workspace}/cnf/localrepo;pretty=true,\
@@ -13,6 +14,6 @@ repourl="http://aiolos.intec.ugent.be/repositories"
 	aQute.bnd.deployer.repository.FixedIndexedRepo; name=Felix; locations=${repourl}/org.apache.felix/index.xml,\
 	aQute.bnd.deployer.repository.FixedIndexedRepo; name=AIOLOS; locations=${repourl}/be.iminds.aiolos/index.xml,\
 	aQute.bnd.deployer.repository.FixedIndexedRepo; name=DYAMAND; locations=${repourl}/org.dyamand/index.xml,\
-	aQute.bnd.deployer.repository.FixedIndexedRepo; name=Firefly; locations=${repourl}/be.iminds.iot.firefly/index.xml
+	aQute.bnd.deployer.repository.FixedIndexedRepo; name=Firefly; locations=${repourl}/be.iminds.iot.firefly/index.xml,\
 
 -releaserepo: Release
