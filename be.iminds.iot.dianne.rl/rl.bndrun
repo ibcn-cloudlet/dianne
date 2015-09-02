@@ -35,8 +35,7 @@
 	be.iminds.iot.dianne.rl.agent;version=latest,\
 	be.iminds.iot.dianne.rl.pong;version=latest,\
 	be.iminds.iot.dianne.rl.pong.ui;version=latest,\
-	be.iminds.iot.dianne.rl.command;version=latest,\
-	be.iminds.iot.dianne.nn.learn;version=latest
+	be.iminds.iot.dianne.rl.command;version=latest
 	
 	
 	
