@@ -6,7 +6,6 @@ import java.util.Map;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
-import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.rl.Agent;
 
 /**
@@ -16,14 +15,11 @@ import be.iminds.iot.dianne.api.rl.Agent;
 		service=Object.class,
 		property={"osgi.command.scope=dianne",
 				  "osgi.command.function=act",
-				  "osgi.command.function=stopAct",
-				  "osgi.command.function=learn",
-				  "osgi.command.function=stopLearn"},
+				  "osgi.command.function=stopAct"},
 		immediate=true)
-public class DianneRLCommands {
+public class DianneRLAgentCommands {
 
 	private Agent agent;
-	private Learner learner;
 	
 	public void act(String nnName, String environment){
 		act(nnName, environment, null);
@@ -41,22 +37,6 @@ public class DianneRLCommands {
 		agent.stop();
 	}
 	
-	public void learn(String nnName, String dataset, String ... properties){
-		try {
-			learner.learn(nnName, dataset, createConfig(properties));
-		} catch(Exception e){
-			e.printStackTrace();
-		}
-	}
-	
-	public void stopLearn(){
-		learner.stop();
-	}
-
-	public void learn(String nnName, String dataset){
-		learn(nnName, dataset, (String[]) null);
-	}
-	
 	private Map<String, String> createConfig(String[] properties){
 		Map<String, String> config = new HashMap<String, String>();
 		for(String property : properties){
@@ -72,10 +52,5 @@ public class DianneRLCommands {
 	@Reference
 	public void setAgent(Agent agent){
 		this.agent = agent;
-	}
-	
-	@Reference
-	public void setLearner(Learner l){
-		this.learner = l;
 	}
 }
