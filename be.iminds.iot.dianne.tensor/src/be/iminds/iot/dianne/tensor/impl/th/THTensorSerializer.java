@@ -1,4 +1,4 @@
-package be.iminds.iot.dianne.tensor.serializer;
+package be.iminds.iot.dianne.tensor.impl.th;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -12,11 +12,8 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
 @Component(service=Serializer.class, property={"aiolos.export=false",
-	"kryo.serializer.class=be.iminds.iot.dianne.tensor.Tensor",
-	"kryo.deserializer.classes=be.iminds.iot.dianne.tensor.impl.java.JavaTensor,"
-	+ "be.iminds.iot.dianne.tensor.impl.nd4j.ND4JTensor,"
-	+ "be.iminds.iot.dianne.tensor.impl.th.THTensor"})
-public class TensorSerializer extends Serializer<Tensor> {
+	"kryo.serializer.class=be.iminds.iot.dianne.tensor.impl.th.THTensor"})
+public class THTensorSerializer extends Serializer<Tensor> {
 
 	private TensorFactory factory;
 	
@@ -24,7 +21,7 @@ public class TensorSerializer extends Serializer<Tensor> {
 	public void setTensorFactory(TensorFactory factory){
 		this.factory = factory;
 	}
-	
+
 	@Override
 	public Tensor read(Kryo kryo, Input input, Class<Tensor> tensor) {
 		int noDims = input.readInt();
