@@ -89,7 +89,7 @@ public class DianneRuntime implements ModuleManager {
 		this.moduleFactories.remove(factory);
 	}
 	
-	@Reference
+	@Reference(cardinality=ReferenceCardinality.OPTIONAL)
 	public void setDianneRepository(DianneRepository repo){
 		this.repository = repo;
 	}
@@ -345,21 +345,23 @@ public class DianneRuntime implements ModuleManager {
 			}
 		}
 		
-		if(module instanceof Trainable){
-			try {
-				Tensor parameters = repository.loadParameters(module.getId());
-				((Trainable)module).setParameters(parameters);
-			} catch(Exception e){
-				System.out.println("Failed to load parameters for module "+module.getId());
-			}
-		} else if(module instanceof Preprocessor){
-			try {
-				Tensor parameters = repository.loadParameters(module.getId());
-				((Preprocessor)module).setParameters(parameters);
-			} catch(Exception e){
-				System.out.println("Failed to load parameters for module "+module.getId());
-			}
-		} 
+		if(repository!=null){
+			if(module instanceof Trainable){
+				try {
+					Tensor parameters = repository.loadParameters(module.getId());
+					((Trainable)module).setParameters(parameters);
+				} catch(Exception e){
+					System.out.println("Failed to load parameters for module "+module.getId());
+				}
+			} else if(module instanceof Preprocessor){
+				try {
+					Tensor parameters = repository.loadParameters(module.getId());
+					((Preprocessor)module).setParameters(parameters);
+				} catch(Exception e){
+					System.out.println("Failed to load parameters for module "+module.getId());
+				}
+			} 
+		}
 		
 		String[] classes;
 		if(module instanceof Input){
