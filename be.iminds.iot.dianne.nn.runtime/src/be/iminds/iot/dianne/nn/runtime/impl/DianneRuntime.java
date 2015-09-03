@@ -1,6 +1,5 @@
 package be.iminds.iot.dianne.nn.runtime.impl;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -394,7 +393,6 @@ public class DianneRuntime implements ModuleManager {
 		ServiceRegistration reg = context.registerService(classes, module, props);
 		this.registrations.put(moduleId, nnId, reg);
 		
-		System.out.println("Registered module "+module.getClass().getName()+" "+moduleId);
 		ModuleInstanceDTO instance =  new ModuleInstanceDTO(dto, nnId, runtimeId);
 		this.instances.put(moduleId, nnId, instance);
 		return instance;
@@ -424,7 +422,6 @@ public class DianneRuntime implements ModuleManager {
 			prevMap.remove(dto.moduleId);
 		}
 		
-		System.out.println("Unregistered module "+dto.moduleId);
 	}
 	
 	@Override
