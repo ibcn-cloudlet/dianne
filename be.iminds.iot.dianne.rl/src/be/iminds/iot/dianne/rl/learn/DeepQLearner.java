@@ -170,6 +170,7 @@ public class DeepQLearner implements Learner {
 						e.getValue().getParameters(), targetToTrain.get(e.getKey()).getParameters())));
 
 		repository.accParameters(deltaParameters, tag);
+		
 	}
 
 	private class DeepQLearnerRunnable implements Runnable {
@@ -185,15 +186,19 @@ public class DeepQLearner implements Learner {
 		@Override
 		public void run() {
 			double error = 0, runningAvg = 0;
-
+			long timestamp = System.currentTimeMillis();
+			
 			for (long i = 1; learning; i++) {
 				toTrain.values().stream().forEach(Trainable::zeroDeltaParameters);
 				
 				error = p.processNext();
 				runningAvg = (1 - alpha) * runningAvg + alpha * error;
 
-				if(i % 1000 == 0)
-					System.out.println(i+"\terror: "+error + "\trunning avg: " + runningAvg);
+				if(i % 1000 == 0){
+					long t = System.currentTimeMillis();
+					System.out.println(i+"\terror: "+error + "\trunning avg: " + runningAvg +"\ttime per sample: "+(t-timestamp)/1000+"ms");
+					timestamp = t;
+				}
 
 				toTrain.values().stream().forEach(Trainable::updateParameters);
 
