@@ -212,4 +212,18 @@ public class FileExperiencePool implements ExperiencePool {
 	public void unlock() {
 		rwLock.readLock().unlock();
 	}
+
+	@Override
+	public void reset() {
+		rwLock.writeLock().lock();
+		
+		try {
+			samples.clear();
+
+			file.delete();
+			file = new File(dir+File.separator+"data.bin");
+		} finally {
+			rwLock.writeLock().unlock();
+		}
+	}
 }

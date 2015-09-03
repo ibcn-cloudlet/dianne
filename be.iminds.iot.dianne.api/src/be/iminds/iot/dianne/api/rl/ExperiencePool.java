@@ -107,4 +107,9 @@ public interface ExperiencePool extends Dataset {
 	 * Unlock the Experience pool - allows writes again.
 	 */
 	void unlock();
+	
+	/**
+	 * Remove all samples from the experience pool
+	 */
+	void reset();
 }
