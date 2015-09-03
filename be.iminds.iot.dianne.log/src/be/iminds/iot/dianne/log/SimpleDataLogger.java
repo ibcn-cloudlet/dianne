@@ -55,35 +55,35 @@ public class SimpleDataLogger implements DataLogger {
 			interval = defaultInterval;
 		}
 		
+		// count
+		Integer count = counts.get(label);
+		if(count==null){
+			count = 0;
+		} 
+		count = count + 1;
+		counts.put(label, count);
+		
 		if(interval.intValue() < 1){
 			// print values directly
 			StringBuilder b = new StringBuilder();
 			b.append("[").append(label).append("]\t");
+			b.append(count).append("\t");
 			for(int i=0;i<keys.length;i++){
 				b.append(keys[i]).append("\t").append(values[i]).append("\t");
 			}
 			System.out.println(b.toString());
-
-		} else {
-			Integer count = counts.get(label);
-			if(count==null){
-				count = 0;
-			} 
-			count = count + 1;
 			
-			if(count.intValue() == interval.intValue()){
-				// print averages and reset count
-				StringBuilder b = new StringBuilder();
-				b.append("[").append(label).append("]\t");
-				for(int i=0;i<keys.length;i++){
-					b.append(keys[i]).append("\t").append(averages.get(keys[i])).append("\t");
-				}
-				System.out.println(b.toString());
-				
-				count = 0;
+		} else if(count.intValue() % interval.intValue() == 0){
+			// print averages and reset count
+			StringBuilder b = new StringBuilder();
+			b.append("[").append(label).append("]\t");
+			b.append(count).append("\t");
+			for(int i=0;i<keys.length;i++){
+				b.append(keys[i]).append("\t").append(averages.get(keys[i])).append("\t");
 			}
-			counts.put(label, count);
+			System.out.println(b.toString());
 		}
+			
 	}
 
 	@Override
