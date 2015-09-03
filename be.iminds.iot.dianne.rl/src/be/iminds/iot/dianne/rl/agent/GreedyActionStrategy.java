@@ -1,5 +1,6 @@
 package be.iminds.iot.dianne.rl.agent;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
@@ -13,14 +14,21 @@ public class GreedyActionStrategy implements ActionStrategy {
 	
 	private TensorFactory factory;
 	
-	private double epsilon = 1e0;
-	private double decay = 1e-6;
+	private double epsilonMax = 1e0;
+	private double epsilonMin = 0;
+	private double epsilonDecay = 1e-6;
 	
 	public Tensor selectActionFromOutput(Tensor output, long i) {
+		
 		Tensor action = factory.createTensor(output.size());
 		action.fill(-1);
+		
+		double epsilon = epsilonMin + (epsilonMax - epsilonMin) * Math.exp(-i * epsilonDecay);
+		
+		if(i % 1000 == 0)
+			System.out.println(i + "\tQ: " + Arrays.toString(output.get()) + "\te: " + epsilon);
 
-		if (Math.random() < epsilon * Math.exp(-i * decay)) {
+		if (Math.random() < epsilon) {
 			action.set(1, (int) (Math.random() * action.size()));
 		} else {
 			action.set(1, factory.getTensorMath().argmax(output));
@@ -31,11 +39,14 @@ public class GreedyActionStrategy implements ActionStrategy {
 	
 	@Override
 	public void configure(Map<String, String> config) {
-		if (config.containsKey("epsilon"))
-			epsilon = Double.parseDouble(config.get("epsilon"));
+		if (config.containsKey("epsilonMax"))
+			epsilonMax = Double.parseDouble(config.get("epsilonMax"));
 		
-		if (config.containsKey("decay"))
-			decay = Double.parseDouble(config.get("decay"));
+		if (config.containsKey("epsilonMin"))
+			epsilonMin = Double.parseDouble(config.get("epsilonMin"));
+		
+		if (config.containsKey("epsilonDecay"))
+			epsilonDecay = Double.parseDouble(config.get("epsilonDecay"));
 	}
 
 	@Reference
