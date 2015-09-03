@@ -133,6 +133,12 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 		if(config.containsKey("strategy"))
 			strategy = config.get("strategy");
 		
+		System.out.println("Agent Configuration");
+		System.out.println("===================");
+		System.out.println("* tag = "+tag);
+		System.out.println("* strategy = "+strategy);
+		System.out.println("---");
+		
 		actionStrategy = strategies.get(strategy);
 		if(actionStrategy==null)
 			throw new RuntimeException("Invalid strategy selected: "+strategy);

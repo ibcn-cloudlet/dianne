@@ -106,6 +106,13 @@ public class DeepQLearner implements Learner {
 
 		if (config.containsKey("updateInterval"))
 			updateInterval = Integer.parseInt(config.get("updateInterval"));
+		
+		System.out.println("Learner Configuration");
+		System.out.println("=====================");
+		System.out.println("* tag = "+tag);
+		System.out.println("* updateInterval = "+updateInterval);
+		System.out.println("---");
+		
 
 		NeuralNetworkDTO nn = repository.loadNeuralNetwork(nnName);
 
@@ -127,8 +134,6 @@ public class DeepQLearner implements Learner {
 		targetOutput = (Output) targetModules.get().filter(m -> m instanceof Output).findAny().get();
 		targetToTrain = modules.get().filter(m -> m instanceof Trainable).collect(Collectors.toMap(m -> m.getId(), m -> (Trainable) m));
 		
-		loadParameters();
-		
 		pool = pools.get(experiencePool);
 
 		// create a Processor from config
@@ -140,7 +145,7 @@ public class DeepQLearner implements Learner {
 			 p = new MomentumProcessor(p);
 		}
 		processor = p;
-		
+
 		learningThread = new Thread(new DeepQLearnerRunnable());
 		learning = true;
 		learningThread.start();
@@ -193,6 +198,8 @@ public class DeepQLearner implements Learner {
 		public void run() {
 			double error = 0, avgError = 0;
 			long timestamp = System.currentTimeMillis();
+			
+			loadParameters();
 			
 			for (long i = 1; learning; i++) {
 				toTrain.values().stream().forEach(Trainable::zeroDeltaParameters);

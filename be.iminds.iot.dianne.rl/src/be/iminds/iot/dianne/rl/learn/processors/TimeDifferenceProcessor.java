@@ -46,6 +46,10 @@ public class TimeDifferenceProcessor extends StochasticGradientDescentProcessor 
 		
 		if(config.containsKey("discount"))
 			discountRate = Float.parseFloat(config.get("discount"));
+		
+		System.out.println("TimeDifferenceRL");
+		System.out.println("* discount rate = "+discountRate);
+		System.out.println("---");
 	}
 
 	@Override

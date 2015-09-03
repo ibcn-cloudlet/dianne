@@ -47,6 +47,12 @@ public class GreedyActionStrategy implements ActionStrategy {
 		
 		if (config.containsKey("epsilonDecay"))
 			epsilonDecay = Double.parseDouble(config.get("epsilonDecay"));
+		
+		System.out.println("Greedy Action Selection");
+		System.out.println("* epsilon max = "+epsilonMax);
+		System.out.println("* epsilon min = "+epsilonMin);
+		System.out.println("* epsilon decay = "+epsilonDecay);
+		System.out.println("---");
 	}
 
 	@Reference

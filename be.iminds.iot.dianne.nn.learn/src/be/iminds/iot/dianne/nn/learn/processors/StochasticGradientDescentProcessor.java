@@ -70,6 +70,12 @@ public class StochasticGradientDescentProcessor extends AbstractProcessor implem
 		if(b!=null){
 			batchSize = Integer.parseInt(b);
 		}
+		
+		System.out.println("StochasticGradientDescent");
+		System.out.println("* criterion = "+criterion.getClass().getName());
+		System.out.println("* learningRate = "+learningRate);
+		System.out.println("* batchSize = "+batchSize);
+		System.out.println("---");
 	}
 	
 	

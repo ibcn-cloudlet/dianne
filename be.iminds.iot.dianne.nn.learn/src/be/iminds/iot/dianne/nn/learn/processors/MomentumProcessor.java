@@ -26,6 +26,11 @@ public class MomentumProcessor extends AbstractProcessor {
 		if(m!=null){
 			momentum = Float.parseFloat(m);
 		}
+		
+		System.out.println("Momentum");
+		System.out.println("* rate = "+momentum);
+		System.out.println("---");
+		
 	}
 	
 	@Override

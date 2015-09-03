@@ -26,6 +26,10 @@ public class RegularizationProcessor extends AbstractProcessor {
 		if(r!=null){
 			regularization = Float.parseFloat(r);
 		}
+		
+		System.out.println("Regularization");
+		System.out.println("* factor = "+regularization);
+		System.out.println("---");
 	}
 	
 	@Override
