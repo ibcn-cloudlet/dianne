@@ -63,6 +63,7 @@ public class DeepQLearner implements Learner {
 
 	private String tag = "learn";
 	private int updateInterval = 10000;
+	private boolean clean = false;
 
 	@Reference
 	void setTensorFactory(TensorFactory factory) {
@@ -111,10 +112,14 @@ public class DeepQLearner implements Learner {
 		if (config.containsKey("updateInterval"))
 			updateInterval = Integer.parseInt(config.get("updateInterval"));
 		
+		if (config.containsKey("clean"))
+			clean = Boolean.parseBoolean(config.get("clean"));
+		
 		System.out.println("Learner Configuration");
 		System.out.println("=====================");
 		System.out.println("* tag = "+tag);
 		System.out.println("* updateInterval = "+updateInterval);
+		System.out.println("* clean = "+clean);
 		System.out.println("---");
 		
 
@@ -176,12 +181,19 @@ public class DeepQLearner implements Learner {
 				targetToTrain.get(e.getKey()).setParameters(e.getValue());
 			});
 		} catch (Exception ex) {
-			Map<UUID, Tensor> parameters = toTrain.entrySet().stream()
-					.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().getParameters()));
-			repository.storeParameters(parameters, tag);
-			
-			toTrain.entrySet().stream().forEach(e -> targetToTrain.get(e.getKey()).setParameters(e.getValue().getParameters()));
+			initializeParameters();
 		}
+	}
+	
+	private void initializeParameters(){
+		// create new random values
+		toTrain.entrySet().stream().forEach(e -> e.getValue().getParameters().randn());
+		// collect parameters
+		Map<UUID, Tensor> parameters = toTrain.entrySet().stream()
+				.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().getParameters()));
+		repository.storeParameters(parameters, tag);
+		// copy into target
+		toTrain.entrySet().stream().forEach(e -> targetToTrain.get(e.getKey()).setParameters(e.getValue().getParameters()));		
 	}
 
 	private void publishParameters() {
@@ -203,7 +215,11 @@ public class DeepQLearner implements Learner {
 			double error = 0, avgError = 0;
 			long timestamp = System.currentTimeMillis();
 			
-			loadParameters();
+			if(clean){
+				initializeParameters();
+			} else {
+				loadParameters();
+			}
 			
 			for (long i = 1; learning; i++) {
 				toTrain.values().stream().forEach(Trainable::zeroDeltaParameters);
