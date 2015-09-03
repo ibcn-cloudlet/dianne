@@ -8,13 +8,16 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public class PReLU extends AbstractTrainableModule{
 	
+	private float init = 0.25f;
+	
 	public PReLU(TensorFactory factory) {
 		this(factory, 0.25f);
 	}
 	
 	public PReLU(TensorFactory factory, float init) {
 		super(factory);
-		init(init);
+		this.init = init;
+		init();
 	}
 	
 	public PReLU(TensorFactory factory, UUID id) {
@@ -23,13 +26,19 @@ public class PReLU extends AbstractTrainableModule{
 
 	public PReLU(TensorFactory factory, UUID id, float init) {
 		super(factory, id);
-		init(init);
+		this.init = init;
+		init();
+		reset();
 	}
 	
-	private void init(float init) {
+	private void init() {
 		parameters = factory.createTensor(1);
 		deltaParameters = factory.createTensor(1);
 		
+	}
+
+	@Override
+	public void reset(){
 		parameters.set(init, 0);
 	}
 	

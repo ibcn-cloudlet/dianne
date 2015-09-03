@@ -64,5 +64,10 @@ public interface Trainable {
 	 * @param parameters new parameters
 	 */
 	void setParameters(final Tensor parameters);
+	
+	/**
+	 * Re-initialize parameters with random values
+	 */
+	void reset();
 
 }

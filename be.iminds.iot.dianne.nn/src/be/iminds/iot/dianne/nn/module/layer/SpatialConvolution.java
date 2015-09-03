@@ -62,7 +62,11 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		deltaWeights.reshape(noOutputPlanes, noInputPlanes, kernelWidth, kernelHeight);
 		deltaBias = deltaParameters.narrow(0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight, noOutputPlanes);
 		
-		
+		reset();
+	}
+	
+	@Override
+	public void reset(){
 		// initialize weights uniform [-std, std] with std = 1/sqrt(kW*kH*noInputPlanes)  [from torch]
 		parameters.rand();
 		float std = (float) (1f/Math.sqrt(kernelWidth*kernelHeight*noInputPlanes));

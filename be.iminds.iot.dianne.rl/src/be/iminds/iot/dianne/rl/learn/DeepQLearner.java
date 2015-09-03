@@ -186,8 +186,9 @@ public class DeepQLearner implements Learner {
 	}
 	
 	private void initializeParameters(){
-		// create new random values
-		toTrain.entrySet().stream().forEach(e -> e.getValue().getParameters().randn());
+		// reset parameters
+		toTrain.entrySet().stream().forEach(e -> e.getValue().reset());
+		
 		// collect parameters
 		Map<UUID, Tensor> parameters = toTrain.entrySet().stream()
 				.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().getParameters()));

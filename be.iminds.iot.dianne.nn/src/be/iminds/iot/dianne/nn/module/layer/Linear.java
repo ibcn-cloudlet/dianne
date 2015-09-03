@@ -8,6 +8,9 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public class Linear extends AbstractTrainableModule {
 
+	private int inSize;
+	private int outSize;
+	
 	private Tensor weights;
 	private Tensor bias;
 	
@@ -25,6 +28,9 @@ public class Linear extends AbstractTrainableModule {
 	}
 	
 	private void init(int inSize, int outSize){
+		this.inSize = inSize;
+		this.outSize = outSize;
+		
 		parameters = factory.createTensor(outSize*(inSize+1));
 		deltaParameters = factory.createTensor(outSize*(inSize+1));
 		
@@ -38,12 +44,16 @@ public class Linear extends AbstractTrainableModule {
 		deltaBias = deltaParameters.narrow(0, outSize*inSize, outSize);
 		deltaBias.reshape(outSize);
 		
+		reset();
+	}
+	
+	@Override 
+	public void reset(){
 		// initialize weights uniform [-std, std] with std = 1/sqrt(noInputs)  [from torch]
 		parameters.rand();
 		float std = (float) (1f/Math.sqrt(inSize));
 		parameters = factory.getTensorMath().mul(parameters, parameters, 2*std);
-		parameters = factory.getTensorMath().sub(parameters, parameters, std);
-		
+		parameters = factory.getTensorMath().sub(parameters, parameters, std);		
 	}
 	
 	@Override
