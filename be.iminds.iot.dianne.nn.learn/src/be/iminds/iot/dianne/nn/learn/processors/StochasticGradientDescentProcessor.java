@@ -24,7 +24,7 @@ public class StochasticGradientDescentProcessor extends AbstractProcessor implem
 	// error criterion
 	protected Criterion criterion;
 	// learning rate
-	protected float learningRate = 0.1f;
+	protected float learningRate = 0.01f;
 	// batch size
 	protected int batchSize = 10;
 	
