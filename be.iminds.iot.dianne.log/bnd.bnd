@@ -1,0 +1,15 @@
+Bundle-Version: 0.2.0.${tstamp}
+Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
+
+-buildpath: \
+	biz.aQute.junit,\
+	osgi.enterprise;version=5.0,\
+	osgi.core;version=5.0.0,\
+	be.iminds.iot.dianne.api;version=latest,\
+	
+-dsannotations: *
+
+Bundle-Name: Dianne Data Logger
+Bundle-Description: Implementation of the DataLogger API for easy logging of various parameters
+Private-Package: be.iminds.iot.dianne.log
+Export-Package: be.iminds.iot.dianne.api.log
