@@ -7,6 +7,7 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
 import be.iminds.iot.dianne.api.nn.module.BackwardListener;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
@@ -44,8 +45,9 @@ public class StochasticGradientDescentProcessor extends AbstractProcessor implem
 			Output output, 
 			Map<UUID, Trainable> toTrain, 
 			Dataset dataset, 
-			Map<String, String> config) {
-		super(factory, input, output, toTrain, dataset, config);
+			Map<String, String> config,
+			DataLogger logger) {
+		super(factory, input, output, toTrain, dataset, config, logger);
 		
 		this.input.addBackwardListener(this);
 		this.input.setMode(EnumSet.of(Mode.BLOCKING));

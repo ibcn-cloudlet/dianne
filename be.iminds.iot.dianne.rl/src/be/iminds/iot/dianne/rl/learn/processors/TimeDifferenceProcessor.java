@@ -4,6 +4,7 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.UUID;
 
+import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.api.nn.module.Output;
@@ -15,6 +16,8 @@ import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public class TimeDifferenceProcessor extends StochasticGradientDescentProcessor {
+	
+	private final String[] logLabels = new String[]{"Q", "Target Q", "Error"};
 	
 	protected final Input targetInput;
 	protected final Output targetOutput;
@@ -33,8 +36,9 @@ public class TimeDifferenceProcessor extends StochasticGradientDescentProcessor 
 			Input targetInput,
 			Output targetOutput,
 			ExperiencePool pool,
-			Map<String, String> config) {
-		super(factory, input, output, toTrain, pool, config);
+			Map<String, String> config,
+			DataLogger logger) {
+		super(factory, input, output, toTrain, pool, config, logger);
 		
 		this.targetInput = targetInput;
 		this.targetOutput = targetOutput;
@@ -67,10 +71,16 @@ public class TimeDifferenceProcessor extends StochasticGradientDescentProcessor 
 		}
 		
 		target = out.copyInto(target);
-		target.set(reward + discountRate * factory.getTensorMath().max(nextQ), factory.getTensorMath().argmax(action));
+		
+		float targetQ = reward + discountRate * factory.getTensorMath().max(nextQ);
+		target.set(targetQ, factory.getTensorMath().argmax(action));
 		
 		Tensor e = criterion.error(out, target);
 		error += e.get(0);
+		
+		if(logger!=null){
+			logger.log("LEARN", logLabels, factory.getTensorMath().max(out), targetQ, e.get(0));
+		}
 		
 		output.backpropagate(criterion.grad(out, target), tags);
 	}

@@ -19,7 +19,7 @@ public class MomentumProcessor extends AbstractProcessor {
 	private Map<UUID, Tensor> previousDelta = new HashMap<UUID, Tensor>();
 	
 	public MomentumProcessor( AbstractProcessor p ) {
-		super(p.factory, p.input, p.output, p.toTrain, p.dataset, p.config);
+		super(p.factory, p.input, p.output, p.toTrain, p.dataset, p.config, p.logger);
 		decorated = p;
 		
 		String m = config.get("momentum");

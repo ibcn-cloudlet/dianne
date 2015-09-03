@@ -15,6 +15,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.learn.Processor;
 import be.iminds.iot.dianne.api.nn.module.Input;
@@ -37,6 +38,8 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component
 public class SimpleLearner implements Learner {
+	
+	protected DataLogger logger;
 	
 	protected TensorFactory factory;
 	protected DianneRepository repository;
@@ -118,7 +121,7 @@ public class SimpleLearner implements Learner {
 		);
 		
 		// create a Processor from config
-		AbstractProcessor p = new StochasticGradientDescentProcessor(factory, input, output, toTrain, d, config);
+		AbstractProcessor p = new StochasticGradientDescentProcessor(factory, input, output, toTrain, d, config, logger);
 		if(config.get("regularization")!=null){
 			p = new RegularizationProcessor(p);
 		}
@@ -234,6 +237,11 @@ public class SimpleLearner implements Learner {
 	public void removeDataset(Dataset dataset, Map<String, Object> properties){
 		String name = (String) properties.get("name");
 		this.datasets.remove(name);
+	}
+	
+	@Reference(cardinality = ReferenceCardinality.OPTIONAL)
+	public void setDataLogger(DataLogger l){
+		this.logger = l;
 	}
 }
 

@@ -14,6 +14,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
+import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.learn.Processor;
 import be.iminds.iot.dianne.api.nn.module.Input;
@@ -36,6 +37,9 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 @Component
 public class DeepQLearner implements Learner {
 
+	private DataLogger logger;
+	private String[] logLabels = new String[]{"minibatch time (ms)"};
+	
 	private TensorFactory factory;
 	private ModuleManager runtime;
 	private DianneRepository repository;
@@ -137,7 +141,7 @@ public class DeepQLearner implements Learner {
 		pool = pools.get(experiencePool);
 
 		// create a Processor from config
-		AbstractProcessor p = new TimeDifferenceProcessor(factory, input, output, toTrain, targetInput, targetOutput, pool, config);
+		AbstractProcessor p = new TimeDifferenceProcessor(factory, input, output, toTrain, targetInput, targetOutput, pool, config, logger);
 		if(config.get("regularization")!=null){
 			p = new RegularizationProcessor(p);
 		}
@@ -213,9 +217,9 @@ public class DeepQLearner implements Learner {
 				
 				avgError = (1 - alpha) * avgError + alpha * error;
 
-				if(i % 1000 == 0){
+				if(logger!=null){
 					long t = System.currentTimeMillis();
-					System.out.println(i+"\tavg error: " + avgError +"\ttime per minibatch: "+(t-timestamp)/1000+"ms");
+					logger.log("TIME", logLabels, (float)(t-timestamp));
 					timestamp = t;
 				}
 
@@ -230,5 +234,10 @@ public class DeepQLearner implements Learner {
 			publishParameters();
 		}
 
+	}
+	
+	@Reference(cardinality = ReferenceCardinality.OPTIONAL)
+	public void setDataLogger(DataLogger l){
+		this.logger = l;
 	}
 }

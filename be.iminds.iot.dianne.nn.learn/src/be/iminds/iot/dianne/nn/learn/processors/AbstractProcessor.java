@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.learn.Processor;
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.api.nn.module.Output;
@@ -22,12 +23,15 @@ public abstract class AbstractProcessor implements Processor {
 	
 	protected final Map<String, String> config;
 	
+	protected final DataLogger logger;
+	
 	public AbstractProcessor(TensorFactory factory, 
 			Input input, 
 			Output output, 
 			Map<UUID, Trainable> toTrain, 
 			Dataset dataset, 
-			Map<String, String> config){
+			Map<String, String> config,
+			DataLogger logger){
 		this.factory = factory;
 		this.input = input;
 		this.output = output;
@@ -35,6 +39,8 @@ public abstract class AbstractProcessor implements Processor {
 		this.dataset = dataset;
 		
 		this.config = config;
+		
+		this.logger = logger;
 	}
 
 	@Override
