@@ -1,6 +1,5 @@
 package be.iminds.iot.dianne.rl.command;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,7 +38,7 @@ public class DianneRLCommands {
 	}
 	
 	public void stopAct(){
-		this.agent.stop();
+		agent.stop();
 	}
 	
 	public void learn(String nnName, String dataset, String ... properties){
@@ -49,9 +48,13 @@ public class DianneRLCommands {
 			e.printStackTrace();
 		}
 	}
+	
+	public void stopLearn(){
+		learner.stop();
+	}
 
 	public void learn(String nnName, String dataset){
-		learn(nnName, dataset, null);
+		learn(nnName, dataset, (String[]) null);
 	}
 	
 	private Map<String, String> createConfig(String[] properties){
