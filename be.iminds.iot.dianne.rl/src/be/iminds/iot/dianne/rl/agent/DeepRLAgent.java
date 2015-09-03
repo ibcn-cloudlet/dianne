@@ -177,9 +177,11 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 	@Override
 	public void onParametersUpdate(Collection<UUID> moduleIds, String... tag) {
 		// TODO should be done by a targets service property? Do via config
-		if(nni.modules.stream().anyMatch(m -> moduleIds.contains(m.moduleId))
-				&& Arrays.stream(tag).anyMatch(t -> t.equals(this.tag))) {
-			update = true;
+		if(acting){
+			if(nni.modules.stream().anyMatch(m -> moduleIds.contains(m.moduleId))
+					&& Arrays.stream(tag).anyMatch(t -> t.equals(this.tag))) {
+				update = true;
+			}
 		}
 	}
 	
