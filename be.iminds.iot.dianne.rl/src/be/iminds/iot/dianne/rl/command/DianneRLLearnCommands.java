@@ -35,6 +35,14 @@ public class DianneRLLearnCommands {
 	
 	private Map<String, String> createConfig(String[] properties){
 		Map<String, String> config = new HashMap<String, String>();
+		// default config
+		config.put("discount", "0.99");
+		config.put("batchSize", "10");
+		config.put("criterion", "MSE");
+		config.put("learningRate", "0.1");
+		config.put("momentum", "0.9");
+		config.put("regularization", "0.001");
+		
 		for(String property : properties){
 			String[] p = property.split("=");
 			if(p.length==2){

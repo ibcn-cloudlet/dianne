@@ -26,6 +26,7 @@ import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.runtime.ModuleManager;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.api.rl.ExperiencePool;
+import be.iminds.iot.dianne.nn.learn.processors.AbstractProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.MomentumProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.RegularizationProcessor;
 import be.iminds.iot.dianne.rl.learn.processors.TimeDifferenceProcessor;
@@ -52,6 +53,8 @@ public class DeepQLearner implements Learner {
 
 	private Thread learningThread;
 	private volatile boolean learning;
+	private Processor processor;
+
 
 	private String tag = "learn";
 	private int updateInterval = 10000;
@@ -127,9 +130,17 @@ public class DeepQLearner implements Learner {
 		
 		ExperiencePool pool = pools.get(experiencePool);
 
-		Processor p = new MomentumProcessor(new RegularizationProcessor(new TimeDifferenceProcessor(factory, input, output, toTrain, targetInput, targetOutput, pool, config)));
-
-		learningThread = new Thread(new DeepQLearnerRunnable(p));
+		// create a Processor from config
+		AbstractProcessor p = new TimeDifferenceProcessor(factory, input, output, toTrain, targetInput, targetOutput, pool, config);
+		if(config.get("regularization")!=null){
+			p = new RegularizationProcessor(p);
+		}
+		if(config.get("momentum")!=null){
+			 p = new MomentumProcessor(p);
+		}
+		processor = p;
+		
+		learningThread = new Thread(new DeepQLearnerRunnable());
 		learning = true;
 		learningThread.start();
 	}
@@ -176,12 +187,6 @@ public class DeepQLearner implements Learner {
 	private class DeepQLearnerRunnable implements Runnable {
 
 		private static final double alpha = 1e-2;
-		
-		private final Processor p;
-
-		public DeepQLearnerRunnable(Processor p) {
-			this.p = p;
-		}
 
 		@Override
 		public void run() {
@@ -191,7 +196,7 @@ public class DeepQLearner implements Learner {
 			for (long i = 1; learning; i++) {
 				toTrain.values().stream().forEach(Trainable::zeroDeltaParameters);
 				
-				error = p.processNext();
+				error = processor.processNext();
 				avgError = (1 - alpha) * avgError + alpha * error;
 
 				if(i % 1000 == 0){
