@@ -48,6 +48,9 @@ public class Pong implements PongEnvironment, Environment {
 	// state
 	private float x, y, vx, vy, p, o;
 	
+	private boolean resetPaddles = true;
+	private boolean randomStart = false;
+	
 	// AI
 	private boolean ai = true;
 	private int agentAction = 0;
@@ -55,14 +58,22 @@ public class Pong implements PongEnvironment, Environment {
 	
 	@Activate
 	void activate(BundleContext context) {
-		String l = context.getProperty("be.iminds.iot.dianne.rl.pong.paddlelength");
+		String l = context.getProperty("be.iminds.iot.dianne.rl.pong.paddleLength");
 		if (l != null)
 			this.pl = Float.parseFloat(l);
 
-		String vdef = context.getProperty("be.iminds.iot.dianne.rl.pong.defaultspeed");
+		String vdef = context.getProperty("be.iminds.iot.dianne.rl.pong.defaultSpeed");
 		if (vdef != null)
 			this.vdef = Float.parseFloat(vdef);
 
+		String rp = context.getProperty("be.iminds.iot.dianne.rl.pong.resetPaddles");
+		if (rp != null)
+			this.resetPaddles = Boolean.parseBoolean(rp);
+		
+		String rs = context.getProperty("be.iminds.iot.dianne.rl.pong.randomStart");
+		if (rs != null)
+			this.randomStart = Boolean.parseBoolean(rs);
+		
 		reset();
 	}
 
@@ -165,12 +176,19 @@ public class Pong implements PongEnvironment, Environment {
 	public void reset() {
 		// reset ball position
 		x = y = 0;
-		// reset paddles
-		// p = o = 0;
+		// reset paddles ?
+		if(resetPaddles){
+			p = o = 0;
+		}
 
 		double r = Math.random();
 		r = (r < 0.5) ? 3 * Math.PI / 4 + r * Math.PI : -Math.PI / 4 + (r - 0.5) * Math.PI;
-
+		
+		// fixed start position ?
+		if(!randomStart){
+			r = - Math.PI;
+		}
+		
 		vx = vdef * (float) Math.cos(r);
 		vy = vdef * (float) Math.sin(r);
 	}
