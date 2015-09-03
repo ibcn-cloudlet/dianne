@@ -20,10 +20,10 @@ import be.iminds.iot.dianne.api.nn.learn.Learner;
 public class DianneRLLearnCommands {
 
 	private Learner learner;
-
+	
 	public void learn(String nnName, String dataset, String ... properties){
 		try {
-			learner.learn(nnName, dataset, createConfig(properties));
+			learner.learn(nnName, dataset, createLearnConfig(properties));
 		} catch(Exception e){
 			e.printStackTrace();
 		}
@@ -33,7 +33,7 @@ public class DianneRLLearnCommands {
 		this.learner.stop();
 	}
 	
-	private Map<String, String> createConfig(String[] properties){
+	static Map<String, String> createLearnConfig(String[] properties){
 		Map<String, String> config = new HashMap<String, String>();
 		// default config
 		config.put("discount", "0.99");

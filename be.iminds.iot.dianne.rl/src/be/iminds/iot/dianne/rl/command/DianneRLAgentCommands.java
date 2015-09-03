@@ -27,7 +27,7 @@ public class DianneRLAgentCommands {
 	
 	public void act(String nnName, String environment, String experiencePool, String... properties){
 		try {
-			agent.act(nnName, environment, experiencePool, createConfig(properties));
+			agent.act(nnName, environment, experiencePool, createAgentConfig(properties));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -37,8 +37,14 @@ public class DianneRLAgentCommands {
 		agent.stop();
 	}
 	
-	private Map<String, String> createConfig(String[] properties){
+	static Map<String, String> createAgentConfig(String[] properties){
 		Map<String, String> config = new HashMap<String, String>();
+		// defaults
+		config.put("strategy", "greedy");
+		config.put("epsilonMax", "1");
+		config.put("epsilonMin", "0.1");
+		config.put("epsilonDecay", "1e-6");
+
 		for(String property : properties){
 			String[] p = property.split("=");
 			if(p.length==2){
