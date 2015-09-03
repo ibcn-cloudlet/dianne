@@ -29,8 +29,8 @@ public class DianneRLLearnCommands {
 		}
 	}
 
-	public void learn(String nnName, String dataset){
-		learn(nnName, dataset, null);
+	public void stopLearn(){
+		this.learner.stop();
 	}
 	
 	private Map<String, String> createConfig(String[] properties){
