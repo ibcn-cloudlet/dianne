@@ -57,6 +57,7 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 	private volatile boolean acting;
 
 	private String tag = "run";
+	private boolean clean = false;
 	
 	private ActionStrategy actionStrategy;
 	
@@ -129,6 +130,9 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 		if(config.containsKey("tag"))
 			tag = config.get("tag"); 
 		
+		if (config.containsKey("clean"))
+			clean = Boolean.parseBoolean(config.get("clean"));
+		
 		String strategy = "greedy";
 		if(config.containsKey("strategy"))
 			strategy = config.get("strategy");
@@ -137,6 +141,7 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 		System.out.println("===================");
 		System.out.println("* tag = "+tag);
 		System.out.println("* strategy = "+strategy);
+		System.out.println("* clean = "+clean);
 		System.out.println("---");
 		
 		actionStrategy = strategies.get(strategy);
@@ -237,6 +242,10 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 
 		@Override
 		public void run() {
+			if(clean){
+				pool.reset();
+			}
+			
 			Tensor observation = env.getObservation();
 
 			for(long i = 0; acting; i++) {
