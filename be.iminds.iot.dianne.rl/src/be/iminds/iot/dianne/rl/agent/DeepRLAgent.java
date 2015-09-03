@@ -130,14 +130,13 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 			tag = config.get("tag"); 
 		
 		String strategy = "greedy";
-		if(config.containsKey("strategy")){
+		if(config.containsKey("strategy"))
 			strategy = config.get("strategy");
-		}
 		
 		actionStrategy = strategies.get(strategy);
-		if(actionStrategy==null){
+		if(actionStrategy==null)
 			throw new RuntimeException("Invalid strategy selected: "+strategy);
-		}
+		
 		actionStrategy.configure(config);
 		
 		NeuralNetworkDTO nn = repository.loadNeuralNetwork(nnName);
@@ -185,15 +184,14 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 	}
 	
 	private void loadParameters(){
+		System.out.println("Agent loading parameters for "+nni.name+" "+tag);
 		Map<UUID, Tensor> parameters = repository.loadParameters(nni.name, tag);
-		System.out.println("Agent loaded parameters for "+nni.name+" "+tag);
 		parameters.entrySet().stream().forEach(e -> {
 			Trainable module = (Trainable) runtime.getModule(e.getKey(), nni.id);
 			module.setParameters(e.getValue());
 		});
 	}
 	
-	// Network updating and forwarding logic can be kept in abstract class
 	private Tensor selectActionFromObservation(Tensor state, long i) {
 		if(update) {
 			loadParameters();
