@@ -53,8 +53,9 @@ public class DeepQLearner implements Learner {
 
 	private Thread learningThread;
 	private volatile boolean learning;
+	
 	private Processor processor;
-
+	private ExperiencePool pool; 
 
 	private String tag = "learn";
 	private int updateInterval = 10000;
@@ -128,7 +129,7 @@ public class DeepQLearner implements Learner {
 		
 		loadParameters();
 		
-		ExperiencePool pool = pools.get(experiencePool);
+		pool = pools.get(experiencePool);
 
 		// create a Processor from config
 		AbstractProcessor p = new TimeDifferenceProcessor(factory, input, output, toTrain, targetInput, targetOutput, pool, config);
@@ -196,7 +197,13 @@ public class DeepQLearner implements Learner {
 			for (long i = 1; learning; i++) {
 				toTrain.values().stream().forEach(Trainable::zeroDeltaParameters);
 				
-				error = processor.processNext();
+				pool.lock();
+				try {
+					error = processor.processNext();
+				} finally {
+					pool.unlock();
+				}
+				
 				avgError = (1 - alpha) * avgError + alpha * error;
 
 				if(i % 1000 == 0){

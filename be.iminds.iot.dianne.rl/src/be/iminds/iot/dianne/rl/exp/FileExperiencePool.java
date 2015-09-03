@@ -8,10 +8,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -37,10 +37,11 @@ public class FileExperiencePool implements ExperiencePool {
 	private String[] labels; // labels for the actions
 	private int stateSize; // size of the state Tensor
 	private int actionSize; // size of the action Tensor
+	private int maxSize = 1000000; // max size of the experience pool
 	
+	private ReadWriteLock rwLock = new ReentrantReadWriteLock(true);
 	
-	private final List<ExperiencePoolSample> samples = Collections.synchronizedList(
-			new ArrayList<ExperiencePoolSample>());
+	private final LinkedList<ExperiencePoolSample> samples = new LinkedList<ExperiencePoolSample>();
 	
 	private File file;
 	private DataInputStream input;
@@ -53,7 +54,11 @@ public class FileExperiencePool implements ExperiencePool {
 		this.labels = (String[]) config.get("labels");
 		this.actionSize = (Integer) config.get("actionSize");
 		this.stateSize = (Integer) config.get("stateSize");
+		
+		if(config.containsKey("maxSize"))
+			this.maxSize = (Integer) config.get("maxSize");
 
+		
 		// read from file 
 		try {
 			file = new File(dir+File.separator+"data.bin");
@@ -64,6 +69,8 @@ public class FileExperiencePool implements ExperiencePool {
 			input = new DataInputStream(new BufferedInputStream(new FileInputStream(file)));
 			output = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file, true)));
 		
+			rwLock.writeLock().lock();
+
 			try {
 				while(true){
 					float[] stateData = new float[stateSize];
@@ -90,10 +97,12 @@ public class FileExperiencePool implements ExperiencePool {
 					Tensor nextState = factory.createTensor(nextStateData, stateSize);
 					
 					ExperiencePoolSample s = new ExperiencePoolSample(state, action, reward, nextState);
-					samples.add(s);
+					add(s);
 				}
 			} catch(IOException e){
 				// read till exception end
+			} finally {
+				rwLock.writeLock().unlock();
 			}
 			
 		} catch(IOException e){
@@ -149,8 +158,10 @@ public class FileExperiencePool implements ExperiencePool {
 	@Override
 	public void addSample(Tensor state, Tensor action, float reward,
 			Tensor nextState) {
+		
 		ExperiencePoolSample s = new ExperiencePoolSample(state, action, reward, nextState);
-		samples.add(s);
+		add(s);
+
 		
 		// append to file
 		synchronized(file){
@@ -178,8 +189,27 @@ public class FileExperiencePool implements ExperiencePool {
 		}
 	}
 	
+	private void add(ExperiencePoolSample s){
+		rwLock.writeLock().lock();
+		samples.add(s);
+		if(samples.size() > maxSize){
+			samples.removeFirst();
+		}
+		rwLock.writeLock().unlock();	
+	}
+	
 	@Reference
 	public void setTensorFactory(TensorFactory f){
 		this.factory = f;
+	}
+
+	@Override
+	public void lock() {
+		rwLock.readLock().lock();
+	}
+
+	@Override
+	public void unlock() {
+		rwLock.readLock().unlock();
 	}
 }

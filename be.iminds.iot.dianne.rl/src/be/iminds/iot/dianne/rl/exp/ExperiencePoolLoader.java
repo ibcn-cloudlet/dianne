@@ -69,6 +69,9 @@ public class ExperiencePoolLoader {
 						case "actionSize":
 							properties.put("actionSize", Integer.parseInt(pair[1]));							
 							break;
+						case "maxSize":
+							properties.put("maxSize", Integer.parseInt(pair[1]));							
+							break;	
 						default:
 							properties.put(pair[0].trim(), pair[1].trim());
 							break;

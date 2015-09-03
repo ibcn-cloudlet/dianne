@@ -95,4 +95,16 @@ public interface ExperiencePool extends Dataset {
 	 * @param nextState the next state of the environment after executing the action
 	 */
 	void addSample(Tensor state, Tensor action, float reward, Tensor nextState);
+	
+	/**
+	 * Lock the Experience pool - makes sure no samples can be written to the experience 
+	 * pool until release is called. Used by a Learner that wants to make sure the indices
+	 * do not change or samples are removed while reading.
+	 */
+	void lock();
+	
+	/**
+	 * Unlock the Experience pool - allows writes again.
+	 */
+	void unlock();
 }
