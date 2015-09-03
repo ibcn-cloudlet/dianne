@@ -12,21 +12,25 @@ import be.iminds.iot.dianne.api.log.DataLogger;
 @Component
 public class SimpleDataLogger implements DataLogger {
 
-	private float alpha = 0.01f;
-	private int interval = 1000;
+	private float defaultAlpha = 0.01f;
+	private int defaultInterval = 1000;
 	
 	private Map<String, Float> averages = new HashMap<>();
 	private Map<String, Integer> counts = new HashMap<>();
+	
+	private Map<String, Integer> intervals = new HashMap<>();
+	private Map<String, Float> alphas = new HashMap<>();
+	
 	
 	@Activate
 	public void activate(BundleContext context){
 		String a = context.getProperty("be.iminds.iot.dianne.log.alpha");
 		if (a != null)
-			this.alpha = Float.parseFloat(a);
+			this.defaultAlpha = Float.parseFloat(a);
 
 		String i = context.getProperty("be.iminds.iot.dianne.log.interval");
 		if (i != null)
-			this.interval = Integer.parseInt(i);
+			this.defaultInterval = Integer.parseInt(i);
 	}
 	
 	@Override
@@ -37,10 +41,21 @@ public class SimpleDataLogger implements DataLogger {
 			if(old==null){
 				averages.put(keys[i], values[i]);
 			} else {
+				Float alpha = alphas.get(keys[i]);
+				if(alpha==null){
+					alpha = defaultAlpha;
+				}
+				
 				averages.put(keys[i], (1-alpha) * old  + alpha * values[i]);
 			}
 		}
-		if(interval < 1){
+		
+		Integer interval = intervals.get(label);
+		if(interval==null){
+			interval = defaultInterval;
+		}
+		
+		if(interval.intValue() < 1){
 			// print values directly
 			StringBuilder b = new StringBuilder();
 			b.append("[").append(label).append("]\t");
@@ -54,9 +69,9 @@ public class SimpleDataLogger implements DataLogger {
 			if(count==null){
 				count = 0;
 			} 
-				
 			count = count + 1;
-			if(count == interval){
+			
+			if(count.intValue() == interval.intValue()){
 				// print averages and reset count
 				StringBuilder b = new StringBuilder();
 				b.append("[").append(label).append("]\t");
@@ -69,5 +84,15 @@ public class SimpleDataLogger implements DataLogger {
 			}
 			counts.put(label, count);
 		}
+	}
+
+	@Override
+	public void setInterval(String label, int interval) {
+		intervals.put(label, interval);
+	}
+
+	@Override
+	public void setAlpha(String key, float alpha) {
+		alphas.put(key, alpha);
 	}
 }
