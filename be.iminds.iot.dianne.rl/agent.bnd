@@ -3,6 +3,8 @@ Export-Package: \
 	be.iminds.iot.dianne.rl.agent.api,\
 	be.iminds.iot.dianne.api.log
 -dsannotations: *
-Private-Package: be.iminds.iot.dianne.rl.agent;
+Private-Package:  \
+	be.iminds.iot.dianne.rl.agent;,\
+	be.iminds.iot.dianne.rl.agent.strategy
 Bundle-Name: Dianne Reinforcement Agent
 Import-Package: *

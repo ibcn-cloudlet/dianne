@@ -32,6 +32,7 @@ import be.iminds.iot.dianne.api.repository.RepositoryListener;
 import be.iminds.iot.dianne.api.rl.Agent;
 import be.iminds.iot.dianne.api.rl.Environment;
 import be.iminds.iot.dianne.api.rl.ExperiencePool;
+import be.iminds.iot.dianne.rl.agent.strategy.ActionStrategy;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 

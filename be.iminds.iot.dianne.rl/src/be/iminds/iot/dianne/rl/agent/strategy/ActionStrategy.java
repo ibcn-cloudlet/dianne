@@ -1,4 +1,4 @@
-package be.iminds.iot.dianne.rl.agent;
+package be.iminds.iot.dianne.rl.agent.strategy;
 
 import java.util.Map;
 
