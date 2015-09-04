@@ -44,6 +44,8 @@ public class Pong implements PongEnvironment, Environment {
 	private float vdef = 0.012f; 
 	// speedup when bouncing
 	private float m = 1.5f;
+	// frame skip for sparser sample generation
+	private int skip = 5;
 	
 	// state
 	private float x, y, vx, vy, p, o;
@@ -74,6 +76,10 @@ public class Pong implements PongEnvironment, Environment {
 		if (rs != null)
 			this.randomStart = Boolean.parseBoolean(rs);
 		
+		String sk = context.getProperty("be.iminds.iot.dianne.rl.pong.skip");
+		if (sk != null)
+			this.skip = Integer.parseInt(sk);
+		
 		reset();
 	}
 
@@ -89,65 +95,70 @@ public class Pong implements PongEnvironment, Environment {
 			updateAI();
 		}
 		
-		float d_p = vdef * agentAction;
-		float d_o = vdef * opponentAction;
-
-		p += d_p;
-		o += d_o;
-
-		p = Math.min(1*b - pl / 2, p);
-		p = Math.max(pl / 2 - 1*b, p);
-
-		o = Math.min(1*b - pl / 2, o);
-		o = Math.max(pl / 2 - 1*b, o);
-
-		x += vx;
-		y += vy;
-
-		if (y - rad < -1 * b) {
-			y = -b + rad;
-			vy = -vy;
-		} else if (y + rad > 1 * b) {
-			y = b - rad;
-			vy = -vy;
-		}
-
 		float r = 0;
 
-		if (x - rad - pw < -1) {
-			if(onPaddle(p)){
-				vx = -vx;
-				vy += agentAction*vdef/2;
-				
-				x = -1 + rad + pw;
-			} else if (x < -1) {
-				r = -1;
-				
-				synchronized(listeners){
-					listeners.stream().forEach(l -> l.score(1));
-				}
-				
-				reset();
+		for(int i=0;i<skip;i++){
+		
+			float d_p = vdef * agentAction;
+			float d_o = vdef * opponentAction;
+	
+			p += d_p;
+			o += d_o;
+	
+			p = Math.min(1*b - pl / 2, p);
+			p = Math.max(pl / 2 - 1*b, p);
+	
+			o = Math.min(1*b - pl / 2, o);
+			o = Math.max(pl / 2 - 1*b, o);
+	
+			x += vx;
+			y += vy;
+	
+			if (y - rad < -1 * b) {
+				y = -b + rad;
+				vy = -vy;
+			} else if (y + rad > 1 * b) {
+				y = b - rad;
+				vy = -vy;
 			}
-		} else if (x + rad + pw > 1) {
-			if(onPaddle(o)){
-				vx = -vx;
-				vy += opponentAction*vdef/2;
-				
-				x = 1 - rad - pw;
-			} else if (x > 1){
-				r = 1;
-				
-				synchronized(listeners){
-					listeners.stream().forEach(l -> l.score(-1));
+	
+	
+			if (x - rad - pw < -1) {
+				if(onPaddle(p)){
+					vx = -vx;
+					vy += agentAction*vdef/2;
+					
+					x = -1 + rad + pw;
+				} else if (x < -1) {
+					r += -1;
+					
+					synchronized(listeners){
+						listeners.stream().forEach(l -> l.score(1));
+					}
+					
+					reset();
 				}
-				
-				reset();
+			} else if (x + rad + pw > 1) {
+				if(onPaddle(o)){
+					vx = -vx;
+					vy += opponentAction*vdef/2;
+					
+					x = 1 - rad - pw;
+				} else if (x > 1){
+					r += 1;
+					
+					synchronized(listeners){
+						listeners.stream().forEach(l -> l.score(-1));
+					}
+					
+					reset();
+				}
 			}
-		}
-
-		synchronized(listeners){
-			listeners.stream().forEach(l -> l.update(x, y, vx, vy, p, o));
+	
+			synchronized(listeners){
+				listeners.stream().forEach(l -> l.update(x, y, vx, vy, p, o));
+			}
+		
 		}
 		
 		return r;
