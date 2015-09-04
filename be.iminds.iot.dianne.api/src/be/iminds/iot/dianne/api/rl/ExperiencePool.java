@@ -1,5 +1,7 @@
 package be.iminds.iot.dianne.api.rl;
 
+import java.util.Collection;
+
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.tensor.Tensor;
 
@@ -95,6 +97,13 @@ public interface ExperiencePool extends Dataset {
 	 * @param nextState the next state of the environment after executing the action
 	 */
 	void addSample(Tensor state, Tensor action, float reward, Tensor nextState);
+	
+	/**
+	 * Add a collection of samples to the experience pool
+	 * 
+	 * @param samples
+	 */
+	void addSamples(Collection<ExperiencePoolSample> samples);
 	
 	/**
 	 * Lock the Experience pool - makes sure no samples can be written to the experience 

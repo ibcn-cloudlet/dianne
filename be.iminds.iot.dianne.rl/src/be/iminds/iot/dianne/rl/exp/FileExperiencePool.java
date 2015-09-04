@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -19,6 +20,7 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.api.rl.ExperiencePool;
 import be.iminds.iot.dianne.api.rl.ExperiencePoolSample;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -189,6 +191,18 @@ public class FileExperiencePool implements ExperiencePool {
 		}
 	}
 	
+	@Override
+	public void addSamples(Collection<ExperiencePoolSample> ss) {
+		rwLock.writeLock().lock();
+		for(ExperiencePoolSample s : ss){
+			samples.add(s);
+		}
+		while(samples.size() > maxSize){
+			samples.removeFirst();
+		}
+		rwLock.writeLock().unlock();	
+	}
+	
 	private void add(ExperiencePoolSample s){
 		rwLock.writeLock().lock();
 		samples.add(s);
@@ -226,4 +240,5 @@ public class FileExperiencePool implements ExperiencePool {
 			rwLock.writeLock().unlock();
 		}
 	}
+
 }

@@ -1,5 +1,6 @@
 package be.iminds.iot.dianne.rl.agent;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -33,6 +34,7 @@ import be.iminds.iot.dianne.api.rl.Agent;
 import be.iminds.iot.dianne.api.rl.Environment;
 import be.iminds.iot.dianne.api.rl.ExperiencePool;
 import be.iminds.iot.dianne.rl.agent.strategy.ActionStrategy;
+import be.iminds.iot.dianne.api.rl.ExperiencePoolSample;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -50,12 +52,19 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 	private NeuralNetworkInstanceDTO nni;
 	private Input input;
 	private Output output;
+	private ExperiencePool pool;
+	private Environment env;
 	
 	private Tensor nnOutput;
 
 	private Thread actingThread;
 	private volatile boolean update;
 	private volatile boolean acting;
+	
+	// separate thread for updating the experience pool
+	private Thread updateThread;
+	private int updateSize = 1000; // update in batches
+	private List<ExperiencePoolSample> samples = new ArrayList<ExperiencePoolSample>();
 
 	private String tag = "run";
 	private boolean clean = false;
@@ -134,6 +143,9 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 		if (config.containsKey("clean"))
 			clean = Boolean.parseBoolean(config.get("clean"));
 		
+		if (config.containsKey("updateSize"))
+			updateSize = Integer.parseInt(config.get("updateSize"));
+		
 		String strategy = "greedy";
 		if(config.containsKey("strategy"))
 			strategy = config.get("strategy");
@@ -143,6 +155,7 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 		System.out.println("* tag = "+tag);
 		System.out.println("* strategy = "+strategy);
 		System.out.println("* clean = "+clean);
+		System.out.println("* updateSize = "+updateSize);
 		System.out.println("---");
 		
 		actionStrategy = strategies.get(strategy);
@@ -166,12 +179,14 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 		
 		loadParameters();
 		
-		Environment env = envs.get(environment);
-		ExperiencePool pool = pools.get(experiencePool);
+		env = envs.get(environment);
+		pool = pools.get(experiencePool);
 
-		actingThread = new Thread(new AgentRunnable(env, pool));
+		actingThread = new Thread(new AgentRunnable());
+		updateThread = new Thread(new UpdateRunnable());
 		acting = true;
 		actingThread.start();
+		updateThread.start();
 	}
 
 	@Override
@@ -180,6 +195,8 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 			if (actingThread != null && actingThread.isAlive()) {
 				acting = false;
 				actingThread.join();
+				updateThread.interrupt();
+				updateThread.join();
 			}
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -233,20 +250,9 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 	
 	private class AgentRunnable implements Runnable {
 
-		private final Environment env;
-		private final ExperiencePool pool;
-		
-		public AgentRunnable(Environment env, ExperiencePool pool) {
-			this.env = env;
-			this.pool = pool;
-		}
-
 		@Override
 		public void run() {
-			if(clean){
-				pool.reset();
-			}
-			
+
 			Tensor observation = env.getObservation();
 
 			for(long i = 0; acting; i++) {
@@ -255,11 +261,44 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 				float reward = env.performAction(action);
 				Tensor nextObservation = env.getObservation();
 
-				if (pool != null)
-					pool.addSample(observation, action, reward, nextObservation);
+				synchronized(samples){
+					samples.add(new ExperiencePoolSample(observation, action, reward, nextObservation));
+					samples.notifyAll();
+				}
 
 				observation = nextObservation;
 			}
 		}
+	}
+	
+	private class UpdateRunnable implements Runnable {
+
+		@Override
+		public void run() {
+			if(clean){
+				if(pool!=null)
+					pool.reset();
+			}
+			
+			while(acting){
+				List<ExperiencePoolSample> toUpdate = new ArrayList<>();
+				synchronized(samples){
+					if(samples.size() > updateSize){
+						toUpdate.addAll(samples);
+						samples.clear();
+					} else {
+						try {
+							samples.wait();
+						} catch (InterruptedException e) {
+						}
+					}
+				}
+				
+				if(pool!=null && !toUpdate.isEmpty()){
+					pool.addSamples(toUpdate);
+				}
+			}
+		}
+		
 	}
 }
