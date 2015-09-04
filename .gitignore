@@ -3,5 +3,6 @@
 /.recommenders/
 /RemoteSystemsTempFiles/
 /.DSStore/
+.DS_Store
 /generated/
 /*.git/
