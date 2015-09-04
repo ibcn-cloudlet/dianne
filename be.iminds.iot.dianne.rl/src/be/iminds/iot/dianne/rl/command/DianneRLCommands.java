@@ -32,9 +32,6 @@ public class DianneRLCommands {
 		}
 		agent.act(nnName, environment, experiencePool, agentConfig);
 		
-		// sleep a while before starting training
-		Thread.sleep(10000);
-		
 		learner.learn(nnName, experiencePool, learnConfig);
 	}
 	

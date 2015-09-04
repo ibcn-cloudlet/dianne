@@ -63,6 +63,7 @@ public class DeepQLearner implements Learner {
 
 	private String tag = "learn";
 	private int updateInterval = 10000;
+	private int minSamples = 10000;
 	private boolean clean = false;
 
 	@Reference
@@ -112,6 +113,9 @@ public class DeepQLearner implements Learner {
 		if (config.containsKey("updateInterval"))
 			updateInterval = Integer.parseInt(config.get("updateInterval"));
 		
+		if (config.containsKey("minSamples"))
+			minSamples = Integer.parseInt(config.get("minSamples"));
+		
 		if (config.containsKey("clean"))
 			clean = Boolean.parseBoolean(config.get("clean"));
 		
@@ -119,6 +123,7 @@ public class DeepQLearner implements Learner {
 		System.out.println("=====================");
 		System.out.println("* tag = "+tag);
 		System.out.println("* updateInterval = "+updateInterval);
+		System.out.println("* minSamples = "+minSamples);
 		System.out.println("* clean = "+clean);
 		System.out.println("---");
 		
@@ -220,6 +225,15 @@ public class DeepQLearner implements Learner {
 				initializeParameters();
 			} else {
 				loadParameters();
+			}
+			
+			// wait until pool has some samples
+			while(pool.size() < minSamples){
+				System.out.println("Experience pool has too few samples, waiting a bit to start learning...");
+				try {
+					Thread.sleep(5000);
+				} catch (InterruptedException e) {
+				}
 			}
 			
 			for (long i = 1; learning; i++) {
