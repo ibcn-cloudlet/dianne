@@ -46,12 +46,15 @@ public class Pong implements PongEnvironment, Environment {
 	private float m = 1.5f;
 	// frame skip for sparser sample generation
 	private int skip = 5;
+	// check if in terminal state
+	private boolean terminal = false;
 	
 	// state
 	private float x, y, vx, vy, p, o;
 	
 	private boolean resetPaddles = true;
 	private boolean randomStart = false;
+	private boolean terminalState = false;
 	
 	// AI
 	private boolean ai = true;
@@ -80,6 +83,15 @@ public class Pong implements PongEnvironment, Environment {
 		if (sk != null)
 			this.skip = Integer.parseInt(sk);
 		
+		String ts = context.getProperty("be.iminds.iot.dianne.rl.pong.terminalState");
+		if (ts != null){
+			this.terminalState = Boolean.parseBoolean(ts);
+			if(terminalState){
+				// also reset paddles in case of terminal state
+				resetPaddles = true;
+			}
+		}
+		
 		reset();
 	}
 
@@ -98,6 +110,10 @@ public class Pong implements PongEnvironment, Environment {
 		float r = 0;
 
 		for(int i=0;i<skip;i++){
+			// immediate return if terminal state
+			if(terminal){
+				return r;
+			}
 		
 			float d_p = vdef * agentAction;
 			float d_o = vdef * opponentAction;
@@ -136,7 +152,12 @@ public class Pong implements PongEnvironment, Environment {
 						listeners.stream().forEach(l -> l.score(1));
 					}
 					
-					reset();
+					if(terminalState){
+						// end
+						terminal = true;
+					} else {
+						reset();
+					}
 				}
 			} else if (x + rad + pw > 1) {
 				if(onPaddle(o)){
@@ -151,7 +172,12 @@ public class Pong implements PongEnvironment, Environment {
 						listeners.stream().forEach(l -> l.score(-1));
 					}
 					
-					reset();
+					if(terminalState){
+						// end
+						terminal = true;
+					} else {
+						reset();
+					}
 				}
 			}
 	
@@ -180,6 +206,9 @@ public class Pong implements PongEnvironment, Environment {
 
 	@Override
 	public Tensor getObservation() {
+		if(terminal){
+			return null;
+		}
 		return factory.createTensor(new float[] { x, y, vx, vy, p, o }, 6);
 	}
 
@@ -202,6 +231,8 @@ public class Pong implements PongEnvironment, Environment {
 		
 		vx = vdef * (float) Math.cos(r);
 		vy = vdef * (float) Math.sin(r);
+		
+		terminal = false;
 	}
 
 	@Reference

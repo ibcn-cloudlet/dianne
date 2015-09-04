@@ -62,17 +62,25 @@ public class TimeDifferenceProcessor extends StochasticGradientDescentProcessor 
 		float reward = pool.getReward(index);
 		Tensor nextState = pool.getNextState(index);
 		
-		synchronized(this) {
-			targetInput.input(nextState, ""+index);
+		float targetQ = 0;
+		
+		if(nextState==null){
+			// terminal state
+			targetQ = reward;
+		} else {
+			synchronized(this) {
+				targetInput.input(nextState, ""+index);
+				
+				try {
+					wait();
+				} catch (InterruptedException e) {}
+			}
 			
-			try {
-				wait();
-			} catch (InterruptedException e) {}
+			target = out.copyInto(target);
+			
+			targetQ = reward + discountRate * factory.getTensorMath().max(nextQ);
 		}
 		
-		target = out.copyInto(target);
-		
-		float targetQ = reward + discountRate * factory.getTensorMath().max(nextQ);
 		target.set(targetQ, factory.getTensorMath().argmax(action));
 		
 		Tensor e = criterion.error(out, target);

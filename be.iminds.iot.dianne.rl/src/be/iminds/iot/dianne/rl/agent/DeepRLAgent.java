@@ -252,7 +252,7 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 
 		@Override
 		public void run() {
-
+			env.reset();
 			Tensor observation = env.getObservation();
 
 			for(long i = 0; acting; i++) {
@@ -267,6 +267,11 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 				}
 
 				observation = nextObservation;
+				// if nextObservation was null, this is a terminal state - reset environment and start over
+				if(observation == null){
+					env.reset();
+					observation = env.getObservation();
+				}
 			}
 		}
 	}

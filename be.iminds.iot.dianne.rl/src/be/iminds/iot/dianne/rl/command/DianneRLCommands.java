@@ -73,7 +73,7 @@ public class DianneRLCommands {
 			start = start > 0 ? start : 0;
 		}
 		for(int i=start;i<p.size();i++){
-			writer.println(i+"\t"+Arrays.toString(p.getState(i).get())+"\t"+Arrays.toString(p.getAction(i).get())+"\t"+p.getReward(i)+"\t"+Arrays.toString(p.getNextState(i).get()));
+			writer.println(i+"\t"+Arrays.toString(p.getState(i).get())+"\t"+Arrays.toString(p.getAction(i).get())+"\t"+p.getReward(i)+"\t"+(p.getNextState(i)==null ? "null" : Arrays.toString(p.getNextState(i).get())));
 		}
 	}
 	
