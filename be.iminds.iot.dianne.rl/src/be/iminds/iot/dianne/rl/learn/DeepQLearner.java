@@ -228,13 +228,16 @@ public class DeepQLearner implements Learner {
 			}
 			
 			// wait until pool has some samples
-			while(pool.size() < minSamples){
+			if(pool.size() < minSamples){
 				System.out.println("Experience pool has too few samples, waiting a bit to start learning...");
-				try {
-					Thread.sleep(5000);
-				} catch (InterruptedException e) {
+				while(pool.size() < minSamples){
+					try {
+						Thread.sleep(5000);
+					} catch (InterruptedException e) {
+					}
 				}
 			}
+			System.out.println("Start learning...");
 			
 			for (long i = 1; learning; i++) {
 				toTrain.values().stream().forEach(Trainable::zeroDeltaParameters);
