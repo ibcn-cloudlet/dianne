@@ -64,6 +64,7 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 	// separate thread for updating the experience pool
 	private Thread updateThread;
 	private int updateSize = 1000; // update in batches
+	private int experienceSize = 1000000; // maximum size in experience pool
 	private List<ExperiencePoolSample> samples = new ArrayList<ExperiencePoolSample>();
 
 	private String tag = "run";
@@ -146,6 +147,9 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 		if (config.containsKey("updateSize"))
 			updateSize = Integer.parseInt(config.get("updateSize"));
 		
+		if (config.containsKey("experienceSize"))
+			experienceSize = Integer.parseInt(config.get("experienceSize"));
+		
 		String strategy = "greedy";
 		if(config.containsKey("strategy"))
 			strategy = config.get("strategy");
@@ -156,6 +160,7 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 		System.out.println("* strategy = "+strategy);
 		System.out.println("* clean = "+clean);
 		System.out.println("* updateSize = "+updateSize);
+		System.out.println("* experienceSize = "+experienceSize);
 		System.out.println("---");
 		
 		actionStrategy = strategies.get(strategy);
@@ -283,6 +288,10 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 			if(clean){
 				if(pool!=null)
 					pool.reset();
+			}
+			
+			if(pool!=null){
+				pool.setMaxSize(experienceSize);
 			}
 			
 			while(acting){

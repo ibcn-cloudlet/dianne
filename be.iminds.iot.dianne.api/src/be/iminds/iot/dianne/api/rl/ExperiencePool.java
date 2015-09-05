@@ -121,4 +121,12 @@ public interface ExperiencePool extends Dataset {
 	 * Remove all samples from the experience pool
 	 */
 	void reset();
+	
+	/**
+	 * Set a maximum size for this Experience Pool, from then on old samples will be replaced
+	 * by addSample(s) following a FIFO strategy.
+	 * 
+	 * @param size the new maximum size
+	 */
+	void setMaxSize(int size);
 }

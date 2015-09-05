@@ -70,9 +70,10 @@ public class FileExperiencePool implements ExperiencePool {
 			
 			input = new DataInputStream(new BufferedInputStream(new FileInputStream(file)));
 			output = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file, true)));
-		
-			rwLock.writeLock().lock();
 
+			// TODO do this more efficient in background thread?
+			// TODO start reading from end of file (RandomAccessFile)?
+			rwLock.writeLock().lock();
 			try {
 				while(true){
 					float[] stateData = new float[stateSize];
@@ -239,6 +240,17 @@ public class FileExperiencePool implements ExperiencePool {
 		} finally {
 			rwLock.writeLock().unlock();
 		}
+	}
+
+	@Override
+	public void setMaxSize(int size) {
+		rwLock.writeLock().lock();
+		// TODO if size gets bigger, load in samples from file?
+		maxSize = size;
+		while( samples.size() > maxSize){
+			samples.removeFirst();
+		}
+		rwLock.writeLock().unlock();
 	}
 
 }
