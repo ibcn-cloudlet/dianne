@@ -146,7 +146,7 @@ public class DeepQLearner implements Learner {
 		Supplier<Stream<Module>> targetModules = () -> targetNni.modules.stream().map(mi -> runtime.getModule(mi.moduleId, mi.nnId));
 		targetInput = (Input) targetModules.get().filter(m -> m instanceof Input).findAny().get();
 		targetOutput = (Output) targetModules.get().filter(m -> m instanceof Output).findAny().get();
-		targetToTrain = modules.get().filter(m -> m instanceof Trainable).collect(Collectors.toMap(m -> m.getId(), m -> (Trainable) m));
+		targetToTrain = targetModules.get().filter(m -> m instanceof Trainable).collect(Collectors.toMap(m -> m.getId(), m -> (Trainable) m));
 		
 		pool = pools.get(experiencePool);
 

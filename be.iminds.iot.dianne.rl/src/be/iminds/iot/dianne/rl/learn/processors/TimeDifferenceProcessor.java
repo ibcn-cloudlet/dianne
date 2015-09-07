@@ -76,11 +76,10 @@ public class TimeDifferenceProcessor extends StochasticGradientDescentProcessor 
 				} catch (InterruptedException e) {}
 			}
 			
-			target = out.copyInto(target);
-			
 			targetQ = reward + discountRate * factory.getTensorMath().max(nextQ);
 		}
 		
+		target = out.copyInto(target);
 		target.set(targetQ, factory.getTensorMath().argmax(action));
 		
 		Tensor e = criterion.error(out, target);
