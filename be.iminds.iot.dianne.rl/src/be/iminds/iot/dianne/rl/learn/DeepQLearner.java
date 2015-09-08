@@ -1,5 +1,6 @@
 package be.iminds.iot.dianne.rl.learn;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -180,7 +181,8 @@ public class DeepQLearner implements Learner {
 	private void loadParameters() {
 		try {
 			System.out.println("Learner loading parameters for "+nni.name+" "+tag);
-			Map<UUID, Tensor> parameters = repository.loadParameters(toTrain.keySet(), tag);
+			List<UUID> uuids = new ArrayList<UUID>(toTrain.keySet());
+			Map<UUID, Tensor> parameters = repository.loadParameters(uuids, tag);
 			parameters.entrySet().stream().forEach(e -> {
 				toTrain.get(e.getKey()).setParameters(e.getValue());
 				targetToTrain.get(e.getKey()).setParameters(e.getValue());
