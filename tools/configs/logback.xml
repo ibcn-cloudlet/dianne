@@ -13,11 +13,7 @@
 	</root>
 
 	<logger name="be.iminds.aiolos">
-		<level value="INFO" />
-	</logger>
-	
-	<logger name="org.example">
-		<level value="INFO" />
+		<level value="WARN" />
 	</logger>
 
 	<logger name="net.schmizz">

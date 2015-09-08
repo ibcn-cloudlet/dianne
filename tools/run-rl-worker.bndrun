@@ -1,0 +1,78 @@
+#
+# worker runtime for spawning learner vms ... each worker
+# has his own Environment, ExperiencePool, Agent and Learner
+#
+#
+
+-runfw: org.apache.felix.framework;version='[4.6.1,4.6.1]'
+
+aiolos.version='latest'
+
+-resolve.effective: active
+-runbundles: \
+	ch.qos.logback.classic,\
+	ch.qos.logback.core,\
+	slf4j.api;version=1.7.2,\
+	org.slf4j.osgi-over-slf4j,\
+	org.apache.felix.http.api;version='[2.3.2,2.4)',\
+	org.apache.felix.http.jetty;version='[2.3.2,2.4)',\
+	org.apache.felix.http.servlet-api;version='[1.0.1,1.1)',\
+	org.apache.felix.http.whiteboard;version='[2.3.2,2.4)',\
+	org.apache.felix.webconsole;version='[4.2.8,4.3)',\
+	org.apache.felix.webconsole.plugins.gogo;version='[0.0.1,1.0)',\
+	org.apache.felix.configadmin;version='[1.8.2,1.9)',\
+	org.apache.felix.gogo.command;version='[0.14.0,0.15)',\
+	org.apache.felix.gogo.runtime;version='[0.16.2,0.17)',\
+	org.apache.felix.gogo.shell;version='[0.10.0,0.11)',\
+	org.apache.felix.eventadmin;version='[1.4.2,1.5)',\
+	org.apache.felix.log;version='[1.0.1,1.0.2)',\
+	org.apache.felix.metatype;version='[1.0.10,1.1)',\
+	org.apache.felix.scr;version='[1.8.2,1.8.3)',\
+	org.apache.felix.fileinstall;version='[3.5,3.6)',\
+	org.apache.felix.resolver;version='[1.0.0,1.0.1)',\
+	objectprofiler;version='[1.0.0,1.0.1)',\
+	com.googlecode.json-simple;version=1.1.1,\
+	com.google.gson;version='[2.2.4,3)',\
+	kxml;version='[2.2.2,2.2.3)',\
+	org.objenesis;version='[2.1.0,2.2.0)',\
+	com.esotericsoftware.kryo;version='[2.23,2.24)',\
+	de.javakaffee.kryo-serializers;version='[0.23,0.24)',\
+	be.iminds.aiolos.remoteserviceadmin;version=${aiolos.version},\
+	be.iminds.aiolos.repository.api;version=${aiolos.version},\
+	be.iminds.aiolos.deploymentmanager;version=${aiolos.version},\
+	be.iminds.aiolos.nodemonitor;version=${aiolos.version},\
+	be.iminds.aiolos.servicemonitor;version=${aiolos.version},\
+	be.iminds.aiolos.topologymanager;version=${aiolos.version},\
+	be.iminds.aiolos.proxymanager;version=${aiolos.version},\
+	be.iminds.aiolos.configurer;version=${aiolos.version},\
+	org.websocket;version='[1.0,1.1)',\
+	be.iminds.iot.dianne.tensor.th;version=latest,\
+	be.iminds.iot.dianne.tensor.util;version=latest,\
+	be.iminds.iot.dianne.api;version=latest,\
+	be.iminds.iot.dianne.nn;version=latest,\
+	be.iminds.iot.dianne.nn.runtime;version=latest,\
+	be.iminds.iot.dianne.nn.platform;version=latest,\
+	be.iminds.iot.dianne.log;version=latest,\
+	be.iminds.iot.dianne.rl.learn;version=latest,\
+	be.iminds.iot.dianne.rl.exp;version=latest,\
+	be.iminds.iot.dianne.rl.agent;version=latest,\
+	be.iminds.iot.dianne.rl.pong;version=latest,\
+	be.iminds.iot.dianne.rl.pong.ui;version=latest,\
+	be.iminds.iot.dianne.rl.command;version=latest,\
+	be.iminds.iot.dianne.rl.worker;version=latest
+	
+
+-runstorage: generated/mgmt
+
+-runsystempackages: sun.reflect
+
+-runproperties: \
+	rsa.timeout=60000,\
+	org.osgi.service.http.port=8081,\
+	felix.fileinstall.dir=resources,\
+	org.apache.felix.http.jetty.maxFormSize=999999999,\
+	logback.configurationFile=resources/logback.xml,\
+	aiolos.monitor.service.size.ignore=true,\
+	aiolos.export.ignore="be.iminds.iot.dianne.*",\
+	aiolos.export.extra="be.iminds.iot.dianne.api.repository.*"
+	
