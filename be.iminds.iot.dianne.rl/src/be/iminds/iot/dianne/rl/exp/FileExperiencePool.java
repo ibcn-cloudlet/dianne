@@ -55,12 +55,12 @@ public class FileExperiencePool implements ExperiencePool {
 	public void activate(Map<String, Object> config){
 		this.name = (String) config.get("name");
 		this.dir = (String) config.get("dir");
-		this.labels = (String[]) config.get("labels");
-		this.actionSize = (Integer) config.get("actionSize");
-		this.stateSize = (Integer) config.get("stateSize");
+		this.labels = ((String) config.get("labels")).split(",");
+		this.actionSize = Integer.parseInt((String) config.get("actionSize"));
+		this.stateSize = Integer.parseInt((String) config.get("stateSize"));
 		
 		if(config.containsKey("maxSize"))
-			this.maxSize = (Integer) config.get("maxSize");
+			this.maxSize = Integer.parseInt((String) config.get("maxSize"));
 
 		samples = new ArrayList<ExperiencePoolSample>(maxSize);
 		

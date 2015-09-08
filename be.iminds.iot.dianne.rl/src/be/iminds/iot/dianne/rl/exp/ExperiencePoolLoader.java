@@ -58,25 +58,7 @@ public class ExperiencePoolLoader {
 						String[] pair = line.split("=");
 						
 						String key = pair[0].trim();
-						
-						switch(key){
-						case "labels":
-							properties.put("labels", pair[1].split(","));
-							break;
-						case "stateSize":
-							properties.put("stateSize", Integer.parseInt(pair[1]));
-							break;
-						case "actionSize":
-							properties.put("actionSize", Integer.parseInt(pair[1]));							
-							break;
-						case "maxSize":
-							properties.put("maxSize", Integer.parseInt(pair[1]));							
-							break;	
-						default:
-							properties.put(pair[0].trim(), pair[1].trim());
-							break;
-						}
-						
+						properties.put(pair[0].trim(), pair[1].trim());
 					}
 					
 					properties.put("dir", poolDir);
