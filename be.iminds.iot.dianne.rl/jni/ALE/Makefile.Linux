@@ -1,0 +1,15 @@
+#---------------------------------------------------------------------------
+# Linux settings
+# Compiler
+CC=gcc
+CXX=g++
+CCFLAGS += -DLINUX
+LIB := libALE.so
+SHARED := -shared
+
+JAVA_HOME ?= /usr/lib/jvm/default-java
+# this is the subdirectory name in JAVA_HOME/include/ that contains platform-specific files
+# it seems that some versions of Java 1.1 on linux need this to be "genunix"
+JDKPLATFORMINCLUDESUBDIR := linux
+
+#---------------------------------------------------------------------------

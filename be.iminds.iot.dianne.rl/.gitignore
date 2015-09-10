@@ -1,3 +1,9 @@
 /bin/
 /bin_test/
 /generated/
+/native/
+/jni/ALE/*.o
+/jni/ALE/*.so
+/jni/ALE/*.a
+/jni/ALE/*_*.h
+/jni/ALE/*.dylib
