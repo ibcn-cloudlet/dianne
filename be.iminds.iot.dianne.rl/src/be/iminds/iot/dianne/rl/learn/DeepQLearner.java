@@ -56,6 +56,8 @@ public class DeepQLearner implements Learner {
 	private Output targetOutput;
 	private Map<UUID, Trainable> targetToTrain;
 
+	private Map<UUID, Tensor> previousParameters;
+	
 	private Thread learningThread;
 	private volatile boolean learning;
 	
@@ -63,7 +65,8 @@ public class DeepQLearner implements Learner {
 	private ExperiencePool pool; 
 
 	private String tag = "learn";
-	private int updateInterval = 10000;
+	private int targetInterval = 1000;
+	private int syncInterval = 1;
 	private int minSamples = 10000;
 	private boolean clean = false;
 
@@ -111,8 +114,11 @@ public class DeepQLearner implements Learner {
 		if (config.containsKey("tag"))
 			tag = config.get("tag");
 
-		if (config.containsKey("updateInterval"))
-			updateInterval = Integer.parseInt(config.get("updateInterval"));
+		if (config.containsKey("targetInterval"))
+			targetInterval = Integer.parseInt(config.get("targetInterval"));
+		
+		if (config.containsKey("syncInterval"))
+			syncInterval = Integer.parseInt(config.get("syncInterval"));
 		
 		if (config.containsKey("minSamples"))
 			minSamples = Integer.parseInt(config.get("minSamples"));
@@ -123,7 +129,8 @@ public class DeepQLearner implements Learner {
 		System.out.println("Learner Configuration");
 		System.out.println("=====================");
 		System.out.println("* tag = "+tag);
-		System.out.println("* updateInterval = "+updateInterval);
+		System.out.println("* targetInterval = "+targetInterval);
+		System.out.println("* syncInterval = "+syncInterval);
 		System.out.println("* minSamples = "+minSamples);
 		System.out.println("* clean = "+clean);
 		System.out.println("---");
@@ -178,37 +185,50 @@ public class DeepQLearner implements Learner {
 		}
 	}
 
-	private void loadParameters() {
+	private void loadParameters(Map<UUID, Trainable>... modules) {
 		try {
-			System.out.println("Learner loading parameters for "+nni.name+" "+tag);
 			List<UUID> uuids = new ArrayList<UUID>(toTrain.keySet());
 			Map<UUID, Tensor> parameters = repository.loadParameters(uuids, tag);
 			parameters.entrySet().stream().forEach(e -> {
-				toTrain.get(e.getKey()).setParameters(e.getValue());
-				targetToTrain.get(e.getKey()).setParameters(e.getValue());
+				for(Map<UUID, Trainable> m : modules){
+					m.get(e.getKey()).setParameters(e.getValue());
+				}
 			});
+			previousParameters = parameters;
 		} catch (Exception ex) {
-			initializeParameters();
+			resetParameters();
 		}
 	}
 	
 	private void initializeParameters(){
-		// reset parameters
+		if(clean){
+			// reset parameters
+			resetParameters();
+		} else {
+			// load previous parameters
+			loadParameters(toTrain, targetToTrain);
+		}
+	}
+
+	private void resetParameters(){
 		toTrain.entrySet().stream().forEach(e -> e.getValue().reset());
 		
 		// collect parameters
 		Map<UUID, Tensor> parameters = toTrain.entrySet().stream()
 				.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().getParameters()));
 		repository.storeParameters(parameters, tag);
-		// copy into target
-		toTrain.entrySet().stream().forEach(e -> targetToTrain.get(e.getKey()).setParameters(e.getValue().getParameters()));		
+		
+		// copy to target
+		toTrain.entrySet().stream().forEach(e -> targetToTrain.get(e.getKey()).setParameters(e.getValue().getParameters()));
+		
+		// copy to previousParameters
+		previousParameters =  toTrain.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().getParameters().copyInto(null)));
 	}
-
-	private void publishParameters() {
-		System.out.println("Learner publishing parameters for "+nni.name+" "+tag);
+	
+	private void publishDeltaParameters() {
 		Map<UUID, Tensor> deltaParameters = toTrain.entrySet().stream()
 				.collect(Collectors.toMap(e -> e.getKey(), e -> factory.getTensorMath().sub(null,
-						e.getValue().getParameters(), targetToTrain.get(e.getKey()).getParameters())));
+						e.getValue().getParameters(), previousParameters.get(e.getKey()))));
 
 		repository.accParameters(deltaParameters, tag);
 		
@@ -223,11 +243,7 @@ public class DeepQLearner implements Learner {
 			double error = 0, avgError = 0;
 			long timestamp = System.currentTimeMillis();
 			
-			if(clean){
-				initializeParameters();
-			} else {
-				loadParameters();
-			}
+			initializeParameters();
 			
 			// wait until pool has some samples
 			if(pool.size() < minSamples){
@@ -247,6 +263,10 @@ public class DeepQLearner implements Learner {
 				pool.lock();
 				try {
 					error = processor.processNext();
+					if(Double.isInfinite(error) || Double.isNaN(error)){
+						System.out.println(i+" ERROR IS "+error);
+					}
+					
 				} finally {
 					pool.unlock();
 				}
@@ -261,13 +281,16 @@ public class DeepQLearner implements Learner {
 
 				toTrain.values().stream().forEach(Trainable::updateParameters);
 
-				if (updateInterval > 0 && i % updateInterval == 0) {
-					publishParameters();
-					loadParameters();
+				if (targetInterval > 0 && i % targetInterval == 0) {
+					publishDeltaParameters();
+					loadParameters(toTrain, targetToTrain);
+				} else if(syncInterval > 0 && i % syncInterval == 0){
+					publishDeltaParameters();
+					loadParameters(toTrain);
 				}
 			}
 
-			publishParameters();
+			publishDeltaParameters();
 		}
 
 	}

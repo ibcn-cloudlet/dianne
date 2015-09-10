@@ -1,8 +1,6 @@
 package be.iminds.iot.dianne.rl.agent;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -21,25 +19,24 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.api.nn.module.Module;
+import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.Output;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
-import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.runtime.ModuleManager;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
-import be.iminds.iot.dianne.api.repository.RepositoryListener;
 import be.iminds.iot.dianne.api.rl.Agent;
 import be.iminds.iot.dianne.api.rl.Environment;
 import be.iminds.iot.dianne.api.rl.ExperiencePool;
-import be.iminds.iot.dianne.rl.agent.strategy.ActionStrategy;
 import be.iminds.iot.dianne.api.rl.ExperiencePoolSample;
+import be.iminds.iot.dianne.rl.agent.strategy.ActionStrategy;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component
-public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
+public class DeepRLAgent implements Agent, ForwardListener {
 
 	private TensorFactory factory;
 	private ModuleManager runtime;
@@ -58,12 +55,12 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 	private Tensor nnOutput;
 
 	private Thread actingThread;
-	private volatile boolean update;
 	private volatile boolean acting;
+	private int syncInterval = 10000;
 	
 	// separate thread for updating the experience pool
-	private Thread updateThread;
-	private int updateSize = 1000; // update in batches
+	private Thread experienceUploadThread;
+	private int experienceInterval = 1000; // update in batches
 	private int experienceSize = 1000000; // maximum size in experience pool
 	private List<ExperiencePoolSample> samples = new ArrayList<ExperiencePoolSample>();
 
@@ -144,8 +141,11 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 		if (config.containsKey("clean"))
 			clean = Boolean.parseBoolean(config.get("clean"));
 		
-		if (config.containsKey("updateSize"))
-			updateSize = Integer.parseInt(config.get("updateSize"));
+		if (config.containsKey("syncInterval"))
+			syncInterval = Integer.parseInt(config.get("syncInterval"));
+		
+		if (config.containsKey("experienceInterval"))
+			experienceInterval = Integer.parseInt(config.get("experienceInterval"));
 		
 		if (config.containsKey("experienceSize"))
 			experienceSize = Integer.parseInt(config.get("experienceSize"));
@@ -159,7 +159,8 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 		System.out.println("* tag = "+tag);
 		System.out.println("* strategy = "+strategy);
 		System.out.println("* clean = "+clean);
-		System.out.println("* updateSize = "+updateSize);
+		System.out.println("* syncInterval = "+syncInterval);
+		System.out.println("* experienceInterval = "+experienceInterval);
 		System.out.println("* experienceSize = "+experienceSize);
 		System.out.println("---");
 		
@@ -188,10 +189,10 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 		pool = pools.get(experiencePool);
 
 		actingThread = new Thread(new AgentRunnable());
-		updateThread = new Thread(new UpdateRunnable());
+		experienceUploadThread = new Thread(new UploadRunnable());
 		acting = true;
 		actingThread.start();
-		updateThread.start();
+		experienceUploadThread.start();
 	}
 
 	@Override
@@ -200,27 +201,15 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 			if (actingThread != null && actingThread.isAlive()) {
 				acting = false;
 				actingThread.join();
-				updateThread.interrupt();
-				updateThread.join();
+				experienceUploadThread.interrupt();
+				experienceUploadThread.join();
 			}
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	@Override
-	public void onParametersUpdate(Collection<UUID> moduleIds, String... tag) {
-		// TODO should be done by a targets service property? Do via config
-		if(acting){
-			if(nni.modules.stream().anyMatch(m -> moduleIds.contains(m.moduleId))
-					&& Arrays.stream(tag).anyMatch(t -> t.equals(this.tag))) {
-				update = true;
-			}
-		}
-	}
-	
 	private void loadParameters(){
-		System.out.println("Agent loading parameters for "+nni.name+" "+tag);
 		Map<UUID, Tensor> parameters = repository.loadParameters(nni.name, tag);
 		parameters.entrySet().stream().forEach(e -> {
 			Trainable module = (Trainable) runtime.getModule(e.getKey(), nni.id);
@@ -229,11 +218,6 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 	}
 	
 	private Tensor selectActionFromObservation(Tensor state, long i) {
-		if(update) {
-			loadParameters();
-			update = false;
-		}
-		
 		synchronized(this) {
 			input.input(state);
 			
@@ -261,6 +245,11 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 			Tensor observation = env.getObservation();
 
 			for(long i = 0; acting; i++) {
+				if(i % syncInterval == 0){
+					// sync parameters
+					loadParameters();
+				}
+				
 				Tensor action = selectActionFromObservation(observation, i);
 
 				float reward = env.performAction(action);
@@ -281,7 +270,7 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 		}
 	}
 	
-	private class UpdateRunnable implements Runnable {
+	private class UploadRunnable implements Runnable {
 
 		@Override
 		public void run() {
@@ -297,7 +286,7 @@ public class DeepRLAgent implements Agent, RepositoryListener, ForwardListener {
 			while(acting){
 				List<ExperiencePoolSample> toUpdate = new ArrayList<>();
 				synchronized(samples){
-					if(samples.size() > updateSize){
+					if(samples.size() > experienceInterval){
 						toUpdate.addAll(samples);
 						samples.clear();
 					} else {
