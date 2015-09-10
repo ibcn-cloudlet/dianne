@@ -10,3 +10,6 @@
 [submodule "be.iminds.iot.dianne.tensor/jni/THTensor/OpenBLAS"]
 	path = be.iminds.iot.dianne.tensor/jni/THTensor/OpenBLAS
 	url = https://github.com/xianyi/OpenBLAS.git
+[submodule "be.iminds.iot.dianne.rl/jni/ALE/Arcade-Learning-Environment"]
+	path = be.iminds.iot.dianne.rl/jni/ALE/Arcade-Learning-Environment
+	url = git@github.ugent.be:e-p/Arcade-Learning-Environment.git
