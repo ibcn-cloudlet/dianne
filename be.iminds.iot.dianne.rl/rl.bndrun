@@ -36,6 +36,8 @@
 	be.iminds.iot.dianne.rl.agent;version=latest,\
 	be.iminds.iot.dianne.rl.pong;version=latest,\
 	be.iminds.iot.dianne.rl.pong.ui;version=latest,\
+	be.iminds.iot.dianne.rl.ale;version=latest,\
+	be.iminds.iot.dianne.rl.ale.ui;version=latest,\
 	be.iminds.iot.dianne.rl.command;version=latest
 	
 	
@@ -53,14 +55,17 @@
 	javax.management.modelmbean,\
 	javax.management.remote,\
 	javax.security.auth,\
-	javax.security.cert
+	javax.security.cert,\
+	javax.imageio,\
+	javax.imageio.stream
 	
 -runproperties:\
 	org.osgi.service.http.port=8080,\
 	org.apache.felix.http.jetty.maxFormSize=999999999,\
 	be.iminds.iot.dianne.storage="../tools/nn",\
 	be.iminds.iot.dianne.pool="../tools/exp",\
-	be.iminds.iot.dianne.log.interval=1000
+	be.iminds.iot.dianne.log.interval=1000,\
+	be.iminds.iot.dianne.rl.ale.rom=../tools/roms/pong.bin
 
 -runvm: -d64 -Xms512m -Xmx4g
 
