@@ -3,6 +3,7 @@ package be.iminds.iot.dianne.rl.ale;
 import java.io.File;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.osgi.framework.BundleContext;
@@ -24,9 +25,11 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
  *
  */
 @Component(immediate = true,
-property = { "name=ALE", "aiolos.unique=be.iminds.iot.dianne.api.rl.Environment" })
+property = { "name="+ArcadeLearningEnvironment.NAME, "aiolos.unique=be.iminds.iot.dianne.api.rl.Environment" })
 public class ArcadeLearningEnvironment implements Environment {
 
+	public static final String NAME = "ALE";
+	
     static {
 		try {
 		    System.loadLibrary("ALE");
@@ -57,11 +60,14 @@ public class ArcadeLearningEnvironment implements Environment {
     	// check if file exists
     	File f = new File(rom);
     	if(!f.exists()){
+    		System.err.println("Failed to initialize ALE - ROM "+rom+" does not exist!");
     		throw new Exception("ROM "+rom+" does not exist!");
     	}
     	
     	loadROM(rom);
     	setFrameskip(skip);
+    	
+    	System.out.println("Loaded rom "+rom+", this has "+getActions()+" valid actions");
     	
     	observation = factory.createTensor(getScreen(), 3, 210, 160);
     }
@@ -115,8 +121,11 @@ public class ArcadeLearningEnvironment implements Environment {
 	}
 	
 	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
-	void addEnvironmentListener(EnvironmentListener l){
-		listeners.add(l);
+	void addEnvironmentListener(EnvironmentListener l, Map<String, Object> properties){
+		String target = (String) properties.get("target");
+		if(target == null || target.equals(NAME)){
+			listeners.add(l);
+		}
 	}
 	
 	void removeEnvironmentListener(EnvironmentListener l){
