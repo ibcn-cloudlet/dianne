@@ -24,38 +24,38 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.http.HttpService;
 
 import be.iminds.iot.dianne.api.rl.Agent;
+import be.iminds.iot.dianne.api.rl.EnvironmentListener;
 import be.iminds.iot.dianne.rl.agent.api.ManualActionController;
 import be.iminds.iot.dianne.rl.pong.api.PongEnvironment;
-import be.iminds.iot.dianne.rl.pong.api.PongListener;
+import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
-@Component(service={javax.servlet.Servlet.class, PongListener.class},
-	property={"alias:String=/pong","aiolos.proxy=false"},
-	immediate=true)
-public class PongServlet extends HttpServlet implements PongListener {
+@Component(service = { javax.servlet.Servlet.class, EnvironmentListener.class }, property = {
+		"alias:String=/pong", "aiolos.proxy=false" }, immediate = true)
+public class PongServlet extends HttpServlet implements EnvironmentListener {
 
 	// the Pong environment that is viewed
 	private PongEnvironment pongEnvironment;
-	
+
 	// web socket server handling communication with UI clients
 	private PongWebSocketServer pongWebSocket;
-	
+
 	private Agent agent;
 	private ManualActionController agentAction;
 	private TensorFactory factory;
-	
+
 	// for now hard coded
 	private String nn = "DeepQPong";
 	private String env = "Pong";
 	private String pool = "Pong";
 	private String strategy = "greedy";
-	
+
 	// interval between UI state updates
 	private int interval = 20;
 	private long timestamp = System.currentTimeMillis();
-	
+
 	@Activate
-	public void activate(){
+	public void activate() {
 		try {
 			pongWebSocket = new PongWebSocketServer();
 			pongWebSocket.start();
@@ -64,19 +64,19 @@ public class PongServlet extends HttpServlet implements PongListener {
 			e.printStackTrace();
 		}
 	}
-	
+
 	@Deactivate
-	public void deactivate(){
+	public void deactivate() {
 		try {
 			pongWebSocket.stop();
 		} catch (Exception e) {
 			e.printStackTrace();
 			// ignore
-		} 
+		}
 	}
-	
+
 	@Reference
-	public void setHttpService(HttpService http){
+	public void setHttpService(HttpService http) {
 		try {
 			// TODO How to register resources with whiteboard pattern?
 			http.registerResources("/pong/ui", "res", null);
@@ -88,14 +88,15 @@ public class PongServlet extends HttpServlet implements PongListener {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
-		resp.sendRedirect("http://"+req.getLocalAddr()+":"+req.getLocalPort()+"/pong/ui/pong.html");
+		resp.sendRedirect("http://" + req.getLocalAddr() + ":"
+				+ req.getLocalPort() + "/pong/ui/pong.html");
 	}
-	
+
 	@Reference
-	public void setPongEnvironment(PongEnvironment e){
+	public void setPongEnvironment(PongEnvironment e) {
 		this.pongEnvironment = e;
 	}
-	
+
 	/**
 	 * Inner class to handle WebSocket connections
 	 * 
@@ -107,81 +108,87 @@ public class PongServlet extends HttpServlet implements PongListener {
 		public PongWebSocketServer() throws UnknownHostException {
 			super(new InetSocketAddress(8787));
 		}
-		
+
 		@Override
 		public void onOpen(WebSocket conn, ClientHandshake handshake) {
-			conn.send("{"
-					+"\"bounds\" : "+ pongEnvironment.getBounds()
-					+", \"paddleWidth\" : "+ pongEnvironment.getPaddleWidth()
-					+", \"paddleLength\" : "+ pongEnvironment.getPaddleLength()
-					+", \"ballRadius\" : "+ pongEnvironment.getBallRadius()
-					+", \"speed\" : "+ pongEnvironment.getSpeed()
-					+"}");
-			
+			conn.send("{" + "\"bounds\" : " + pongEnvironment.getBounds()
+					+ ", \"paddleWidth\" : " + pongEnvironment.getPaddleWidth()
+					+ ", \"paddleLength\" : "
+					+ pongEnvironment.getPaddleLength() + ", \"ballRadius\" : "
+					+ pongEnvironment.getBallRadius() + ", \"speed\" : "
+					+ pongEnvironment.getSpeed() + "}");
+
 		}
-		
+
 		@Override
 		public void onMessage(WebSocket conn, String msg) {
-			if(msg.startsWith("paction=")){
-				pongEnvironment.setOpponentAction(Integer.parseInt(msg.substring(8)));
-			} else if(msg.startsWith("aaction=")){
+			if (msg.startsWith("paction=")) {
+				pongEnvironment.setOpponentAction(Integer.parseInt(msg
+						.substring(8)));
+			} else if (msg.startsWith("aaction=")) {
 				float a = Integer.parseInt(msg.substring(8));
-				float[] t = new float[]{a == 1 ? 1 : 0 , a == 0 ? 1 :0 , a == -1 ? 1 : 0};
-				if(agentAction!=null){
+				float[] t = new float[] { a == 1 ? 1 : 0, a == 0 ? 1 : 0,
+						a == -1 ? 1 : 0 };
+				if (agentAction != null) {
 					agentAction.setAction(factory.createTensor(t, 3));
 				}
-			} else if(msg.startsWith("ai=")){
-				if(msg.contains("human")){
+			} else if (msg.startsWith("ai=")) {
+				if (msg.contains("human")) {
 					pongEnvironment.useAI(false);
 				} else {
 					pongEnvironment.useAI(true);
 				}
-			} else if(msg.startsWith("agent=")){
-				strategy =  msg.substring(6);
-			} else if(msg.startsWith("interval=")){
+			} else if (msg.startsWith("agent=")) {
+				strategy = msg.substring(6);
+			} else if (msg.startsWith("interval=")) {
 				int i = Integer.parseInt(msg.substring(9));
 				interval = i;
-			} else if(msg.startsWith("start")){
+			} else if (msg.startsWith("start")) {
 				startAgent();
 			}
 		}
-		
+
 		@Override
 		public void onError(WebSocket conn, Exception exception) {
 			exception.printStackTrace();
 		}
 
-		
 		@Override
-		public void onClose(WebSocket conn,  int code, String reason, boolean remote) {
+		public void onClose(WebSocket conn, int code, String reason,
+				boolean remote) {
 		}
 
-		public void sendToAll( String text ) {
+		public void sendToAll(String text) {
 			Collection<WebSocket> con = connections();
-			synchronized ( con ) {
-				for( WebSocket c : con ) {
-					c.send( text );
+			synchronized (con) {
+				for (WebSocket c : con) {
+					c.send(text);
 				}
 			}
 		}
 	}
 
 	@Override
-	public void update(float x, float y, float vx, float vy, float p, float o) {
-		pongWebSocket.sendToAll("{ \"x\" : "+x
-							   +", \"y\" : "+y
-							   +", \"vx\" : "+vx
-							   +", \"vy\" : "+vy
-							   +", \"p\" : "+p
-							   +", \"o\" : "+o
-							   +"}");
-		
+	public void onAction(float reward, Tensor nextState) {
+		if (reward != 0) {
+			pongWebSocket.sendToAll("{ \"score\" : " + reward + " }");
+		}
+
+		float[] data = nextState.get();
+		pongWebSocket.sendToAll("{ "
+				+ "\"x\" : " + data[0] + ", "
+				+ "\"y\" : " + data[1] + ", "
+				+ "\"vx\" : " + data[2] + ", "
+				+ "\"vy\" : " + data[3] + ", "
+				+ "\"p\" : " + data[4]+ ", "
+				+ "\"o\" : " + data[5] + "}");
+
 		long t = System.currentTimeMillis();
 		long sleep = interval - (t - timestamp);
 		timestamp = t;
-		
+
 		// since the PongListeners are called synchronously, slow it down here
-		if(sleep > 0 ){
+		if (sleep > 0) {
 			try {
 				Thread.sleep(sleep);
 			} catch (InterruptedException e) {
@@ -189,12 +196,7 @@ public class PongServlet extends HttpServlet implements PongListener {
 		}
 	}
 
-	@Override
-	public void score(int player) {
-		pongWebSocket.sendToAll("{ \"score\" : "+player+" }");
-	}
-	
-	private void startAgent(){
+	private void startAgent() {
 		Map<String, String> config = new HashMap<String, String>();
 		config.put("strategy", strategy);
 		try {
@@ -203,31 +205,34 @@ public class PongServlet extends HttpServlet implements PongListener {
 			this.agent.stop();
 		}
 	}
-	
+
 	@Reference
-	public void setTensorFactory(TensorFactory f){
+	public void setTensorFactory(TensorFactory f) {
 		this.factory = f;
-		if(agentAction!=null){
-			this.agentAction.setAction(factory.createTensor(new float[]{0, 1, 0}, 3));
+		if (agentAction != null) {
+			this.agentAction.setAction(factory.createTensor(new float[] { 0, 1,
+					0 }, 3));
 		}
 	}
-	
-	@Reference(cardinality=ReferenceCardinality.OPTIONAL, policy=ReferencePolicy.DYNAMIC)
-	public void setAgentAction(ManualActionController a){
+
+	@Reference(cardinality = ReferenceCardinality.OPTIONAL, policy = ReferencePolicy.DYNAMIC)
+	public void setAgentAction(ManualActionController a) {
 		this.agentAction = a;
-		if(factory!=null){
-			this.agentAction.setAction(factory.createTensor(new float[]{0, 1, 0}, 3));
+		if (factory != null) {
+			this.agentAction.setAction(factory.createTensor(new float[] { 0, 1,
+					0 }, 3));
 		}
 	}
-	
-	public void unsetAgentAction(ManualActionController a){
-		if(this.agentAction==a){
-			this.agentAction=null;
+
+	public void unsetAgentAction(ManualActionController a) {
+		if (this.agentAction == a) {
+			this.agentAction = null;
 		}
 	}
-	
+
 	@Reference
-	public void setAgent(Agent a){
+	public void setAgent(Agent a) {
 		this.agent = a;
 	}
+
 }

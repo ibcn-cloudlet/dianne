@@ -13,8 +13,8 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.rl.Environment;
+import be.iminds.iot.dianne.api.rl.EnvironmentListener;
 import be.iminds.iot.dianne.rl.pong.api.PongEnvironment;
-import be.iminds.iot.dianne.rl.pong.api.PongListener;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -26,12 +26,12 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
  *
  */
 @Component(immediate = true,
-	property = { "name=Pong", "aiolos.callback=be.iminds.iot.dianne.api.rl.Environment" })
+	property = { "name=Pong", "aiolos.unique=be.iminds.iot.dianne.api.rl.Environment" })
 public class Pong implements PongEnvironment, Environment {
 
 	private TensorFactory factory;
 
-	private Set<PongListener> listeners = Collections.synchronizedSet(new HashSet<>());
+	private Set<EnvironmentListener> listeners = Collections.synchronizedSet(new HashSet<>());
 	
 	// paddle length and width
 	private float pl = 0.3f;  
@@ -114,7 +114,7 @@ public class Pong implements PongEnvironment, Environment {
 			if(terminal){
 				return r;
 			}
-		
+			
 			float d_p = vdef * agentAction;
 			float d_o = vdef * opponentAction;
 	
@@ -148,10 +148,6 @@ public class Pong implements PongEnvironment, Environment {
 				} else if (x < -1) {
 					r += -1;
 					
-					synchronized(listeners){
-						listeners.stream().forEach(l -> l.score(1));
-					}
-					
 					if(terminalState){
 						// end
 						terminal = true;
@@ -168,10 +164,6 @@ public class Pong implements PongEnvironment, Environment {
 				} else if (x > 1){
 					r += 1;
 					
-					synchronized(listeners){
-						listeners.stream().forEach(l -> l.score(-1));
-					}
-					
 					if(terminalState){
 						// end
 						terminal = true;
@@ -181,10 +173,11 @@ public class Pong implements PongEnvironment, Environment {
 				}
 			}
 	
+			final float reward = r;
 			synchronized(listeners){
-				listeners.stream().forEach(l -> l.update(x, y, vx, vy, p, o));
+				listeners.stream().forEach(l -> l.onAction(reward, factory.createTensor(new float[] { x, y, vx, vy, p, o }, 6)));
 			}
-		
+			
 		}
 		
 		return r;
@@ -241,11 +234,11 @@ public class Pong implements PongEnvironment, Environment {
 	}
 	
 	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
-	void addPongListener(PongListener l){
+	void addEnvironmentListener(EnvironmentListener l){
 		listeners.add(l);
 	}
 	
-	void removePongListener(PongListener l){
+	void removeEnvironmentListener(EnvironmentListener l){
 		listeners.remove(l);
 	}
 
