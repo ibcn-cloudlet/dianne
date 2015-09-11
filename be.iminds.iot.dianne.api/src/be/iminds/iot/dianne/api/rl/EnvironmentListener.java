@@ -7,6 +7,9 @@ import be.iminds.iot.dianne.tensor.Tensor;
  * 
  * Useful for creating a UI for the Environment
  * 
+ * Use the target property on the EnvironmentListener service to specify which specific
+ * Environment to listen to
+ * 
  * @author tverbele
  *
  */

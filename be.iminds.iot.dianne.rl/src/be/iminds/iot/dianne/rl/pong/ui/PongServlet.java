@@ -26,12 +26,13 @@ import org.osgi.service.http.HttpService;
 import be.iminds.iot.dianne.api.rl.Agent;
 import be.iminds.iot.dianne.api.rl.EnvironmentListener;
 import be.iminds.iot.dianne.rl.agent.api.ManualActionController;
+import be.iminds.iot.dianne.rl.pong.Pong;
 import be.iminds.iot.dianne.rl.pong.api.PongEnvironment;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component(service = { javax.servlet.Servlet.class, EnvironmentListener.class }, property = {
-		"alias:String=/pong", "aiolos.proxy=false" }, immediate = true)
+		"alias:String=/pong", "aiolos.proxy=false","target="+Pong.NAME }, immediate = true)
 public class PongServlet extends HttpServlet implements EnvironmentListener {
 
 	// the Pong environment that is viewed
