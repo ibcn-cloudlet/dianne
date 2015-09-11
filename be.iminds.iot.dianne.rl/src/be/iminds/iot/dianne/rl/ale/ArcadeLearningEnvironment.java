@@ -1,16 +1,21 @@
 package be.iminds.iot.dianne.rl.ale;
 
-import java.awt.image.ImageConsumer;
-import java.util.Random;
+import java.io.File;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.rl.Environment;
+import be.iminds.iot.dianne.api.rl.EnvironmentListener;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
-import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;
-import be.iminds.iot.dianne.tensor.util.ImageConverter;
 
 /**
  * Arcade Learning Environment for learning agents to play Atari games
@@ -32,26 +37,62 @@ public class ArcadeLearningEnvironment implements Environment {
     }
 
     private TensorFactory factory;
+	private Set<EnvironmentListener> listeners = Collections.synchronizedSet(new HashSet<>());
+
+	private String rom = "roms/pong.bin"; 
+	private int skip = 1;
+	private Tensor observation;
+    
+    @Activate
+    public void activate(BundleContext context) throws Exception {
+    	String r = context.getProperty("be.iminds.iot.dianne.rl.ale.rom");
+    	if(r!=null){
+    		rom = r;
+    	}
+    	
+		String sk = context.getProperty("be.iminds.iot.dianne.rl.ale.skip");
+		if (sk != null)
+			this.skip = Integer.parseInt(sk);
+    	
+    	// check if file exists
+    	File f = new File(rom);
+    	if(!f.exists()){
+    		throw new Exception("ROM "+rom+" does not exist!");
+    	}
+    	
+    	loadROM(rom);
+    	setFrameskip(skip);
+    	
+    	observation = factory.createTensor(getScreen(), 3, 210, 160);
+    }
     
 	@Override
 	public float performAction(Tensor action) {
 		int r = performAction(factory.getTensorMath().argmax(action));
+		
+		final float reward = r;
+    	observation = factory.createTensor(getScreen(), 3, 210, 160);
+		
+		synchronized(listeners){
+			listeners.stream().forEach(l -> l.onAction(reward, observation));
+		}
+    	
 		return r > 0 ? 1 : r < 0 ? -1 : 0;
 	}
 
 	@Override
 	public Tensor getObservation() {
-		float[] screenData = getScreen();
-		if(screenData==null){
+		if(gameOver()){
 			return null;
 		} else {
-			return factory.createTensor(screenData, 3, 210, 160);
+			return observation;
 		}
 	}
 
 	@Override
 	public void reset() {
 		resetGame();
+    	observation = factory.createTensor(getScreen(), 3, 210, 160);
 	}
 
 	private native void loadROM(String rom);
@@ -62,43 +103,23 @@ public class ArcadeLearningEnvironment implements Environment {
 	
 	private native void resetGame();
 	
+	private native boolean gameOver();
+	
 	private native float[] getScreen();
+	
+	private native void setFrameskip(int skip);
 	
 	@Reference
 	void setTensorFactory(TensorFactory factory) {
 		this.factory = factory;
 	}
 	
+	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
+	void addEnvironmentListener(EnvironmentListener l){
+		listeners.add(l);
+	}
 	
-	public static void main(String[] args){
-		TensorFactory f = new JavaTensorFactory();
-		ImageConverter conv = new ImageConverter(f);
-		
-		ArcadeLearningEnvironment ale = new ArcadeLearningEnvironment();
-		ale.setTensorFactory(f);
-		
-		ale.loadROM("roms/pong.bin");
-
-		System.out.println(ale.getActions());
-
-		
-		Random r = new Random();
-		int reward = 0;
-		int i=0;
-		Tensor t;
-		while((t = ale.getObservation())!=null){
-			try {
-				if(i++ % 1000 == 0)
-					conv.writeToFile((i++)+".jpg", t);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			reward += ale.performAction(r.nextInt(18));
-			System.out.println(reward);
-		}
-		
-		
+	void removeEnvironmentListener(EnvironmentListener l){
+		listeners.remove(l);
 	}
 }

@@ -22,12 +22,13 @@ DEPLOY_DIR := ../../native/$(OS)/$(ARCH)
 
 all: install 
 
+# the generated header file is already put in the git repository
 javah:
 	for file in $(JAVAH); do \
     	javah -jni -classpath ../../bin:../../../be.iminds.iot.dianne.tensor/generated/be.iminds.iot.dianne.tensor.api.jar $$file; \
 	done
 	
-compile: javah
+compile:
 	$(CXX) $(FLAGS) $(CCFLAGS) -fPIC $(INCLUDES) -c $(SRC)
 	
 link: compile 
@@ -42,7 +43,7 @@ libale.a:
 	cd Arcade-Learning-Environment; cmake -DUSE_SDL=OFF -DUSE_RLGLUE=OFF -DBUILD_EXAMPLES=OFF; make -j 4; cp libale.a ..
 	
 clean:
-	rm -rf *.o $(LIB) be_*.h
+	rm -rf *.o $(LIB)
 
 cleanAll: clean
 	rm libale.a; cd Arcade-Learning-Environment; make clean

@@ -8,7 +8,6 @@ using namespace std;
 
 ALEInterface* ALE;
 
-
 JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_rl_ale_ArcadeLearningEnvironment_loadROM
   (JNIEnv * env, jobject o, jstring rom){
 	 if(ALE == NULL){
@@ -45,12 +44,20 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_rl_ale_ArcadeLearningEnvironmen
 }
 
 
+JNIEXPORT jboolean JNICALL Java_be_iminds_iot_dianne_rl_ale_ArcadeLearningEnvironment_gameOver
+  (JNIEnv * env, jobject o){
+	return ALE->game_over();
+}
+
+
+JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_rl_ale_ArcadeLearningEnvironment_setFrameskip
+  (JNIEnv * env, jobject o, jint skip){
+	ALE->setInt("frame_skip", skip);
+}
+
+
 JNIEXPORT jfloatArray JNICALL Java_be_iminds_iot_dianne_rl_ale_ArcadeLearningEnvironment_getScreen
   (JNIEnv * env, jobject o){
-	if(ALE->game_over()){
-		return NULL;
-	}
-
 	ALEScreen screen = ALE->getScreen();
 
 	pixel_t* screen_data = screen.getArray();
@@ -77,7 +84,6 @@ JNIEXPORT jfloatArray JNICALL Java_be_iminds_iot_dianne_rl_ale_ArcadeLearningEnv
 		*ptr_g++ = g / 255.0f;
 		*ptr_b++ = b / 255.0f;
 	}
-
 
 	env->SetFloatArrayRegion(result, 0, size, data);
 
