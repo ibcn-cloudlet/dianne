@@ -3,6 +3,7 @@ package be.iminds.iot.dianne.rl.ale.ui;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -89,7 +90,12 @@ public class ALEServlet extends HttpServlet implements EnvironmentListener {
 	@Override
 	public void onAction(float reward, Tensor nextState) {
 		try {
-			BufferedImage img = converter.writeToImage(nextState);
+			BufferedImage img = null;
+			if(nextState.dim()==3){
+				img = converter.writeToImage(nextState);
+			} else if(nextState.dim()==4){
+				img = converter.writeToImage(nextState.select(0, nextState.size(0)-1));
+			}
 			
 			ByteArrayOutputStream bos = new ByteArrayOutputStream();
 			ImageOutputStream ios = ImageIO.createImageOutputStream(bos);
@@ -113,6 +119,7 @@ public class ALEServlet extends HttpServlet implements EnvironmentListener {
 		
 		} catch(Exception e){
 			// ignore
+			e.printStackTrace();
 		}
 		
 		

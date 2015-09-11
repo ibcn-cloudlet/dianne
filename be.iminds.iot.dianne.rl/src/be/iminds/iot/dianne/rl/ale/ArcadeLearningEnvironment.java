@@ -44,6 +44,7 @@ public class ArcadeLearningEnvironment implements Environment {
 
 	private String rom = "roms/pong.bin"; 
 	private int skip = 1;
+	private int observationLength = 1; // number of frames in an observation
 	private Tensor observation;
     
     @Activate
@@ -56,6 +57,10 @@ public class ArcadeLearningEnvironment implements Environment {
 		String sk = context.getProperty("be.iminds.iot.dianne.rl.ale.skip");
 		if (sk != null)
 			this.skip = Integer.parseInt(sk);
+		
+		String ol = context.getProperty("be.iminds.iot.dianne.rl.ale.observationLength");
+		if (ol != null)
+			this.observationLength = Integer.parseInt(ol);
     	
     	// check if file exists
     	File f = new File(rom);
@@ -69,16 +74,27 @@ public class ArcadeLearningEnvironment implements Environment {
     	
     	System.out.println("Loaded rom "+rom+", this has "+getActions()+" valid actions");
     	
-    	observation = factory.createTensor(getScreen(), 3, 210, 160);
+    	reset();
     }
     
 	@Override
 	public float performAction(Tensor action) {
-		int r = performAction(factory.getTensorMath().argmax(action));
+		int r = 0;
 		
-		final float reward = r;
-    	observation = factory.createTensor(getScreen(), 3, 210, 160);
+		if(observationLength > 1){
+			float[] total = new float[observationLength*3*210*160];
+			for(int i=0;i<observationLength;i++){
+				r += performAction(factory.getTensorMath().argmax(action));
+				System.arraycopy(getScreen(), 0, total, i*3*210*160, 3*210*160);
+	    	}
+			observation = factory.createTensor(total, observationLength, 3, 210, 160);
+		} else {
+			r = performAction(factory.getTensorMath().argmax(action));
+	    	observation = factory.createTensor(getScreen(), 3, 210, 160);
+		}
 		
+		
+    	final float reward = r;
 		synchronized(listeners){
 			listeners.stream().forEach(l -> l.onAction(reward, observation));
 		}
@@ -98,7 +114,15 @@ public class ArcadeLearningEnvironment implements Environment {
 	@Override
 	public void reset() {
 		resetGame();
-    	observation = factory.createTensor(getScreen(), 3, 210, 160);
+		if(observationLength > 1 ){
+	    	float[] total = new float[observationLength*3*210*160];
+	    	for(int i=0;i<observationLength;i++){
+	    		System.arraycopy(getScreen(), 0, total, i*3*210*160, 3*210*160);
+	    	}
+        	observation = factory.createTensor(total, observationLength, 3, 210, 160);
+    	} else {
+        	observation = factory.createTensor(getScreen(), 3, 210, 160);
+    	}
 	}
 
 	private native void loadROM(String rom);
