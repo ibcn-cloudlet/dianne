@@ -114,13 +114,15 @@ public class Pong implements PongEnvironment, Environment {
 			updateAI();
 		}
 		
-		float r = 0;
+		float totalReward = 0;
 
 		for(int i=0;i<skip;i++){
 			// immediate return if terminal state
 			if(terminal){
-				return r;
+				return totalReward;
 			}
+
+			float reward = 0;
 			
 			float d_p = vdef * agentAction;
 			float d_o = vdef * opponentAction;
@@ -153,7 +155,7 @@ public class Pong implements PongEnvironment, Environment {
 					
 					x = -1 + rad + pw;
 				} else if (x < -1) {
-					r += -1;
+					reward = -1;
 					
 					if(terminalState){
 						// end
@@ -169,7 +171,7 @@ public class Pong implements PongEnvironment, Environment {
 					
 					x = 1 - rad - pw;
 				} else if (x > 1){
-					r += 1;
+					reward = 1;
 					
 					if(terminalState){
 						// end
@@ -179,17 +181,19 @@ public class Pong implements PongEnvironment, Environment {
 					}
 				}
 			}
+			
+			totalReward += reward;
 	
-			final float reward = r;
+			final float r = reward;
 			observation = factory.createTensor(new float[] { x, y, vx, vy, p, o }, 6);
 
 			synchronized(listeners){
-				listeners.stream().forEach(l -> l.onAction(reward, observation));
+				listeners.stream().forEach(l -> l.onAction(r, observation));
 			}
 			
 		}
 		
-		return r;
+		return totalReward;
 	}
 	
 	private boolean onPaddle(float paddle){

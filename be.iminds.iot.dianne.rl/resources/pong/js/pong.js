@@ -54,7 +54,7 @@ connection.onmessage = function (e) {
 		p = state.p;
 		o = state.o;
 	} else if(state.score !== undefined){ 
-		if(state.score == -1){
+		if(state.score == 1){
 			agentScore++;
 		} else {
 			opponentScore++;
