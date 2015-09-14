@@ -117,7 +117,7 @@ public class DianneDeployer extends HttpServlet {
 		} else if(action.equals("undeploy")){
 			String id = request.getParameter("id");
 			if(id!=null){
-				NeuralNetworkInstanceDTO nn = dianne.getNeuralNetwork(UI_NN_ID);
+				NeuralNetworkInstanceDTO nn = dianne.getNeuralNetworkInstance(UI_NN_ID);
 				if(nn!=null){
 					ModuleInstanceDTO moduleInstance = nn.modules.get(UUID.fromString(id));
 					dianne.undeployModules(Collections.singletonList(moduleInstance));

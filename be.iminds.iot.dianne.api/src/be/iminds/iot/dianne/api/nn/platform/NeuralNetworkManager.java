@@ -45,20 +45,23 @@ public interface NeuralNetworkManager {
 	 */
 	void undeployNeuralNetwork(NeuralNetworkInstanceDTO nn);
 
+	
+	
 	/**
 	 * Get a list of deployed neural networks
 	 * 
 	 * @return list of deployed neural networks
 	 */
-	List<NeuralNetworkInstanceDTO> getNeuralNetworks();
+	List<NeuralNetworkInstanceDTO> getNeuralNetworkInstances();
 	
 	/**
 	 * Get a neural network instance DTO by its instance id
 	 * @param nnId
 	 * @return
 	 */
-	NeuralNetworkInstanceDTO getNeuralNetwork(UUID nnId);
+	NeuralNetworkInstanceDTO getNeuralNetworkInstance(UUID nnId);
 
+	
 	
 	/**
 	 * Deploy instances of neural network modules on a given runtime. If a nnId is given and some of the modules are already
@@ -80,6 +83,7 @@ public interface NeuralNetworkManager {
 	void undeployModules(List<ModuleInstanceDTO> moduleInstances);
 	
 	
+	
 	/**
 	 * Get a list of known neural networks
 	 * 
@@ -97,4 +101,6 @@ public interface NeuralNetworkManager {
 	 */
 	List<UUID> getRuntimes();
 
+	
+	
 }

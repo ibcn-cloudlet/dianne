@@ -146,7 +146,7 @@ public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 	}
 	
 	@Override
-	public List<NeuralNetworkInstanceDTO> getNeuralNetworks() {
+	public List<NeuralNetworkInstanceDTO> getNeuralNetworkInstances() {
 		List<NeuralNetworkInstanceDTO> list = new ArrayList<NeuralNetworkInstanceDTO>();
 		list.addAll(nns.values());
 		return list;
@@ -154,7 +154,7 @@ public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 
 
 	@Override
-	public NeuralNetworkInstanceDTO getNeuralNetwork(UUID nnId) {
+	public NeuralNetworkInstanceDTO getNeuralNetworkInstance(UUID nnId) {
 		return nns.get(nnId);
 	}
 	
