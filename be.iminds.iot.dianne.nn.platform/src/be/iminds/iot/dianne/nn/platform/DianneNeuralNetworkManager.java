@@ -92,12 +92,15 @@ public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 			throws InstantiationException {
 		List<ModuleInstanceDTO> moduleInstances = new ArrayList<ModuleInstanceDTO>();
 
-		NeuralNetworkInstanceDTO nn = null; 
 		if(nnId==null){
 			nnId = UUID.randomUUID();
-		} else {
-			// if neural network instance already exists, update nn DTO and migrate modules if already deployed somewhere else
-			nn = nns.get(nnId);
+		}
+		
+		// if neural network instance already exists, update nn DTO and migrate modules if already deployed somewhere else
+		NeuralNetworkInstanceDTO nn = nns.get(nnId);
+		if(nn==null){
+			nn = new NeuralNetworkInstanceDTO(nnId, "unknown", new HashMap<UUID, ModuleInstanceDTO>());
+			nns.put(nnId, nn);
 		}
 		
 		ModuleManager runtime = runtimes.get(runtimeId);
@@ -118,15 +121,15 @@ public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 			
 			ModuleInstanceDTO moduleInstance = runtime.deployModule(module, nnId);
 			
-			// replace in NeuralNetworkInstance DTO
-			if(nn!=null){
-				nn.modules.put(moduleInstance.moduleId, moduleInstance);
-			}
+			// put in NeuralNetworkInstance DTO
+			nn.modules.put(moduleInstance.moduleId, moduleInstance);
 			
 			// migrate - undeploy old
 			if(old!=null){
 				undeployModules(Collections.singletonList(old));
 			}
+			
+			moduleInstances.add(moduleInstance);
 		}
 		
 		return moduleInstances;
