@@ -1,6 +1,5 @@
 package be.iminds.iot.dianne.nn.platform;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -48,7 +47,7 @@ public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 		
 		UUID nnId = UUID.randomUUID();
 		
-		List<ModuleInstanceDTO> moduleInstances = new ArrayList<ModuleInstanceDTO>();
+		Map<UUID, ModuleInstanceDTO> moduleInstances = new HashMap<UUID, ModuleInstanceDTO>();
 		for(ModuleDTO module : neuralNetwork.modules){
 			UUID targetRuntime = deployment.get(module.id);
 			if(targetRuntime==null){
@@ -63,7 +62,7 @@ public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 			}
 			
 			ModuleInstanceDTO instance = runtime.deployModule(module, nnId);
-			moduleInstances.add(instance);
+			moduleInstances.put(instance.moduleId, instance);
 		}
 
 		NeuralNetworkInstanceDTO nn = new NeuralNetworkInstanceDTO(nnId, name, moduleInstances);
@@ -88,12 +87,74 @@ public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 	}
 	
 	@Override
+	public List<ModuleInstanceDTO> deployModules(UUID nnId,
+			List<ModuleDTO> modules, UUID runtimeId)
+			throws InstantiationException {
+		List<ModuleInstanceDTO> moduleInstances = new ArrayList<ModuleInstanceDTO>();
+
+		NeuralNetworkInstanceDTO nn = null; 
+		if(nnId==null){
+			nnId = UUID.randomUUID();
+		} else {
+			// if neural network instance already exists, update nn DTO and migrate modules if already deployed somewhere else
+			nn = nns.get(nnId);
+		}
+		
+		ModuleManager runtime = runtimes.get(runtimeId);
+		if(runtime==null){
+			throw new InstantiationException("Failed to deploy modules to runtime "+runtimeId+": no such runtime");
+		}
+		
+		for(ModuleDTO module : modules){
+			ModuleInstanceDTO old = null;
+			if(nn!=null){
+				old = nn.modules.get(module.id);
+			}
+			
+			if(old!=null && old.runtimeId.equals(runtimeId)){
+				// already deployed on target runtime ...
+				continue;
+			}
+			
+			ModuleInstanceDTO moduleInstance = runtime.deployModule(module, nnId);
+			
+			// replace in NeuralNetworkInstance DTO
+			if(nn!=null){
+				nn.modules.put(moduleInstance.moduleId, moduleInstance);
+			}
+			
+			// migrate - undeploy old
+			if(old!=null){
+				undeployModules(Collections.singletonList(old));
+			}
+		}
+		
+		return moduleInstances;
+	}
+
+	@Override
+	public void undeployModules(List<ModuleInstanceDTO> moduleInstances) {
+		for(ModuleInstanceDTO moduleInstance : moduleInstances){
+			ModuleManager runtime = runtimes.get(moduleInstance.runtimeId);
+			if(runtime!=null){
+				runtime.undeployModule(moduleInstance);
+			}
+		}
+	}
+	
+	@Override
 	public List<NeuralNetworkInstanceDTO> getNeuralNetworks() {
 		List<NeuralNetworkInstanceDTO> list = new ArrayList<NeuralNetworkInstanceDTO>();
 		list.addAll(nns.values());
 		return list;
 	}
 
+
+	@Override
+	public NeuralNetworkInstanceDTO getNeuralNetwork(UUID nnId) {
+		return nns.get(nnId);
+	}
+	
 	@Override
 	public List<String> getSupportedNeuralNetworks() {
 		return repository.availableNeuralNetworks();

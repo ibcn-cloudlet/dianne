@@ -1,6 +1,6 @@
 package be.iminds.iot.dianne.api.nn.module.dto;
 
-import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -22,9 +22,9 @@ public class NeuralNetworkInstanceDTO {
 	public final String name;
 	
 	// The list of ModuleInstances that this neural network instance is composed of
-	public final List<ModuleInstanceDTO> modules;
+	public final Map<UUID, ModuleInstanceDTO> modules;
 	
-	public NeuralNetworkInstanceDTO(UUID id, String name, List<ModuleInstanceDTO> modules){
+	public NeuralNetworkInstanceDTO(UUID id, String name, Map<UUID, ModuleInstanceDTO> modules){
 		this.id = id;
 		this.name = name;
 		this.modules = modules;

@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
+import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 
 /**
@@ -42,13 +44,41 @@ public interface NeuralNetworkManager {
 	 * @param nn the neural network instance to undeploy
 	 */
 	void undeployNeuralNetwork(NeuralNetworkInstanceDTO nn);
-	
+
 	/**
 	 * Get a list of deployed neural networks
 	 * 
 	 * @return list of deployed neural networks
 	 */
 	List<NeuralNetworkInstanceDTO> getNeuralNetworks();
+	
+	/**
+	 * Get a neural network instance DTO by its instance id
+	 * @param nnId
+	 * @return
+	 */
+	NeuralNetworkInstanceDTO getNeuralNetwork(UUID nnId);
+
+	
+	/**
+	 * Deploy instances of neural network modules on a given runtime. If a nnId is given and some of the modules are already
+	 * deployed elsewhere, these modules will be migrated.
+	 * 
+	 * @param nnId the id of the neural network under which these should be deployed - if null a new nnId will be generated
+	 * @param modules the modules to deploy
+	 * @param runtimeId identifier of the Dianne runtime to deploy the neural network modules on
+	 * @return ModuleInstanceDTOs of each deployed module
+	 * @throws InstantiationException thrown when failed to deploy all neural network modules
+	 */
+	List<ModuleInstanceDTO> deployModules(UUID nnId, List<ModuleDTO> modules, UUID runtimeId) throws InstantiationException;
+	
+	/**
+	 * Undeploy module instances
+	 * 
+	 * @param moduleInstances
+	 */
+	void undeployModules(List<ModuleInstanceDTO> moduleInstances);
+	
 	
 	/**
 	 * Get a list of known neural networks

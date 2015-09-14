@@ -157,7 +157,7 @@ public class DianneCommands {
 	
 	private void printNN(NeuralNetworkInstanceDTO nn){
 		System.out.println(nn.id.toString()+" ("+nn.name+")");
-		for(ModuleInstanceDTO m: nn.modules){
+		for(ModuleInstanceDTO m: nn.modules.values()){
 			System.out.println("* "+m.moduleId+" deployed at "+m.runtimeId);
 		}
 	}
@@ -362,7 +362,7 @@ public class DianneCommands {
 		if(nn==null)
 			return null;
 		
-		for(ModuleInstanceDTO m : nn.modules){
+		for(ModuleInstanceDTO m : nn.modules.values()){
 			if(m.module.type.equals("Input")){
 				return (Input) runtimes.get(0).getModule(m.moduleId, UUID.fromString(nnId));
 			}
@@ -376,7 +376,7 @@ public class DianneCommands {
 		if(nn==null)
 			return null;
 		
-		for(ModuleInstanceDTO m : nn.modules){
+		for(ModuleInstanceDTO m : nn.modules.values()){
 			if(m.module.type.equals("Output")){
 				return (Output) runtimes.get(0).getModule(m.moduleId, UUID.fromString(nnId));
 
