@@ -18,6 +18,14 @@ import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 public interface NeuralNetworkManager {
 
 	/**
+	 * Deploy an instance of a neural network on the local runtime
+	 * @param name name of the neural network 
+	 * @return NeuralNetworkInstanceDTO of the deployed neural network
+	 * @throws InstantiationException
+	 */
+	NeuralNetworkInstanceDTO deployNeuralNetwork(String name) throws InstantiationException;
+	
+	/**
 	 * Deploy an instance of a neural network on a given runtime
 	 * 
 	 * @param name name of the neural network
@@ -61,7 +69,11 @@ public interface NeuralNetworkManager {
 	 */
 	NeuralNetworkInstanceDTO getNeuralNetworkInstance(UUID nnId);
 
-	
+	/**
+	 * Get an NeuralNetwork interface for synchronously forward and backward tensors
+	 * through the network
+	 */
+	NeuralNetwork getNeuralNetwork(UUID nnId);
 	
 	/**
 	 * Deploy instances of neural network modules on a given runtime. If a nnId is given and some of the modules are already

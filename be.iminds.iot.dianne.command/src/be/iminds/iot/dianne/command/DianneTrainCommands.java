@@ -1,9 +1,10 @@
 package be.iminds.iot.dianne.command;
 
+import java.util.UUID;
+
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.DatasetRangeAdapter;
-import be.iminds.iot.dianne.api.nn.module.Input;
-import be.iminds.iot.dianne.api.nn.module.Output;
+import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.train.Evaluation;
 import be.iminds.iot.dianne.nn.train.eval.ArgMaxEvaluator;
 
@@ -28,15 +29,9 @@ public class DianneTrainCommands {
 			return;
 		}
 
-		Input input = commands.getInput(nnId);
-		if(input==null){
-			System.out.println("No Input module found for neural network "+nnId);
-			return;
-		}
-		
-		Output output = commands.getOutput(nnId);
-		if(output==null){
-			System.out.println("No Output module found for neural network "+nnId);
+		NeuralNetwork nn = commands.dianne.getNeuralNetwork(UUID.fromString(nnId));
+		if(nn==null){
+			System.out.println("Neural network instance "+nnId+" not available");
 			return;
 		}
 		
@@ -44,7 +39,7 @@ public class DianneTrainCommands {
 			ArgMaxEvaluator evaluator = new ArgMaxEvaluator(commands.factory);
 			DatasetRangeAdapter range = new DatasetRangeAdapter(d, start, end);
 			
-			Evaluation eval = evaluator.evaluate(input, output, range);
+			Evaluation eval = evaluator.evaluate(nn.getInput(), nn.getOutput(), range);
 			System.out.println("Overall accuracy: "+eval.accuracy());
 		
 		} catch(Throwable t){

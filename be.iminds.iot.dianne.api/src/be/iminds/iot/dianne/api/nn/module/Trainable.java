@@ -11,7 +11,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
  * @author tverbele
  *
  */
-public interface Trainable {
+public interface Trainable extends Module {
 
 	/**
 	 * Accumulate the gradient on the parameters

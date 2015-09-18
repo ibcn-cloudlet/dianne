@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
@@ -12,7 +13,6 @@ import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.Output;
-import be.iminds.iot.dianne.api.nn.train.DatasetProcessor;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
@@ -73,7 +73,7 @@ public abstract class DatasetProcessor {
 		BackwardListener inputListener = new BackwardListener() {
 			
 			@Override
-			public void onBackward(final Tensor gradInput, final String... tags) {
+			public void onBackward(final UUID moduleId, final Tensor gradInput, final String... tags) {
 				DatasetProcessor.this.onBackward(indices.get(index-1), gradInput);
 				
 				// if backpropagate, forward next
@@ -90,7 +90,7 @@ public abstract class DatasetProcessor {
 		ForwardListener outputListener = new ForwardListener() {
 			
 			@Override
-			public void onForward(final Tensor output, final String... tags) {
+			public void onForward(final UUID moduleId, final Tensor output, final String... tags) {
 				// index is already advanced by one so subtract here
 				DatasetProcessor.this.onForward(indices.get(index-1), output);
 				

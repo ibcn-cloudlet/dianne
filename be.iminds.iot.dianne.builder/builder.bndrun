@@ -25,6 +25,7 @@
 	be.iminds.iot.dianne.repository;version=latest,\
 	be.iminds.iot.dianne.dataset.imagenet;version=latest,\
 	be.iminds.iot.dianne.dataset.kaggle;version=latest,\
+	be.iminds.iot.dianne.dataset.mnist;version=latest,\
 	be.iminds.iot.dianne.builder;version=latest,\
 	be.iminds.iot.dianne.command;version=latest
 	

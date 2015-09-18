@@ -3,6 +3,7 @@ package be.iminds.iot.dianne.nn.test;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.UUID;
 
 import junit.framework.Assert;
 
@@ -42,7 +43,7 @@ public class MNISTTest extends AbstractDianneTest {
 		getOutput().addForwardListener(new ForwardListener() {
 			
 			@Override
-			public void onForward(Tensor output, String... tags) {
+			public void onForward(UUID moduleId, Tensor output, String... tags) {
 				output.copyInto(result);
 			
 				synchronized(lock){
@@ -55,7 +56,7 @@ public class MNISTTest extends AbstractDianneTest {
 		for(Module m : getModules()){
 			m.addForwardListener(new ForwardListener() {
 				@Override
-				public void onForward(Tensor output, String... tags) {
+				public void onForward(UUID moduleId, Tensor output, String... tags) {
 					try {
 						File f = new File("out_"+m.getId()+".txt");
 						PrintWriter writer = new PrintWriter(f);

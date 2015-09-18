@@ -1,5 +1,7 @@
 package be.iminds.iot.dianne.api.nn.module;
 
+import java.util.UUID;
+
 import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
@@ -19,9 +21,10 @@ public interface ForwardListener {
 
 	/**
 	 * Called when a Module has performed a forward pass
+	 * @param moduleId the moduleId of the module whos forward was called
 	 * @param output a copy of the output data
 	 * @param tags a copy of the tags provided
 	 */
-	void onForward(final Tensor output, final String... tags);
+	void onForward(UUID moduleId, final Tensor output, final String... tags);
 	
 }

@@ -21,12 +21,12 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
-import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.api.nn.module.Output;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
+import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.platform.NeuralNetworkManager;
 import be.iminds.iot.dianne.api.nn.runtime.ModuleManager;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
@@ -56,7 +56,7 @@ public class DianneCommands {
 	TensorFactory factory; 
 	
 	Map<String, Dataset> datasets = Collections.synchronizedMap(new HashMap<String, Dataset>());
-	List<ModuleManager> runtimes = Collections.synchronizedList(new ArrayList<ModuleManager>());
+	//List<ModuleManager> runtimes = Collections.synchronizedList(new ArrayList<ModuleManager>());
 	DianneRepository repository;
 	NeuralNetworkManager dianne;
 	
@@ -95,17 +95,15 @@ public class DianneCommands {
 	}
 	
 	public void runtimes(){
-		if(runtimes.size()==0){
+		if(dianne.getRuntimes().size()==0){
 			System.out.println("No runtimes available");
 			return;
 		}
 		
 		System.out.println("Available Dianne runtimes:");
-		synchronized(runtimes){
-			int i = 0;
-			for(ModuleManager runtime : runtimes){
-				System.out.println("["+(i++)+"] "+runtime.getRuntimeId());
-			}
+		int i = 0;
+		for(UUID runtime : dianne.getRuntimes()){
+			System.out.println("["+(i++)+"] "+runtime);
 		}
 	}
 	
@@ -163,7 +161,7 @@ public class DianneCommands {
 	}
 	
 	public void nnDeploy(String name){
-		deploy(name, runtimes.get(0).getRuntimeId());
+		deploy(name, dianne.getRuntimes().get(0));
 	}
 	
 	public void nnDeploy(String name, String id){
@@ -171,7 +169,7 @@ public class DianneCommands {
 	}
 	
 	public void nnDeploy(String name, int index){
-		deploy(name, runtimes.get(index).getRuntimeId());
+		deploy(name, dianne.getRuntimes().get(index));
 	}
 	
 	public void nnDeploy(String name, String id, String tag){
@@ -185,7 +183,7 @@ public class DianneCommands {
 	}
 	
 	public void nnDeploy(String name, int index, String tag){
-		NeuralNetworkInstanceDTO nn = deploy(name, runtimes.get(index).getRuntimeId());
+		NeuralNetworkInstanceDTO nn = deploy(name, dianne.getRuntimes().get(index));
 		
 		// load parameters with tag
 		loadParameters(nn, tag);
@@ -239,6 +237,7 @@ public class DianneCommands {
 	}
 	
 	public void sample(String dataset, String nnId, int sample, String...tags){
+
 		Dataset d = datasets.get(dataset);
 		if(d==null){
 			System.out.println("Dataset "+dataset+" not available");
@@ -247,66 +246,35 @@ public class DianneCommands {
 		
 		final int index = sample == -1 ? rand.nextInt(d.size()) : sample;
 		
-		Input input = getInput(nnId);
-		if(input==null){
-			System.out.println("No Input module found for neural network "+nnId);
-			return;
-		}
-		
-		Output output = getOutput(nnId);
-		if(output==null){
-			System.out.println("No Output module found for neural network "+nnId);
+		NeuralNetwork nn = dianne.getNeuralNetwork(UUID.fromString(nnId));
+		if(nn==null){
+			System.out.println("Neural network "+nnId+" not available");
 			return;
 		}
 	
-		final String[] labels = output.getOutputLabels();
-	
-		
-		// register outputlistener
-		Dictionary<String, Object> properties = new Hashtable<String, Object>();
-		properties.put("targets", new String[]{nnId.toString()+":"+output.getId().toString()});
-		final ForwardListener printer = new ForwardListener() {
-			@Override
-			public void onForward(Tensor output, String... tags) {
-				int clazz = factory.getTensorMath().argmax(output);
-				float max = factory.getTensorMath().max(output);
-				String label = labels[clazz];
-				
-				System.out.println("Sample "+index+" (with tags "+Arrays.toString(tags)+") classified as: "+label+" (probability: "+max+")");
-				
-				synchronized(DianneCommands.this){
-					DianneCommands.this.notifyAll();
-				}
-			}
-		};
-		ServiceRegistration reg = context.registerService(ForwardListener.class, printer, properties);
-		
+		final String[] labels = nn.getOutputLabels();
+
 		// get input and forward
 		try {
-			Tensor t = d.getInputSample(index);
+			Tensor in = d.getInputSample(index);
 			long t1 = System.currentTimeMillis();
-			input.input(t, tags);
-			synchronized(this){
-				try {
-					this.wait();
-				} catch (InterruptedException e) {
-				}
-			}
+			Tensor out = nn.forward(in, tags);
 			long t2 = System.currentTimeMillis();
-			System.out.println("Forward time: "+(t2-t1)+" ms");
-		} catch(Throwable t){
-			t.printStackTrace();
-		} finally {
-			// cleanup
-			reg.unregister();
-		}
 		
+			int clazz = factory.getTensorMath().argmax(out);
+			float max = factory.getTensorMath().max(out);
+			String label = labels[clazz];
+		
+			System.out.println("Sample "+index+" (with tags "+Arrays.toString(tags)+") classified as: "+label+" (probability: "+max+")");
+			System.out.println("Forward time: "+(t2-t1)+" ms");
+		} catch(Exception e ){
+			e.printStackTrace();
+		} 
 	}
 	
 	public void sample(String dataset, String nnId, String...tags){
 		sample(dataset, nnId, -1, tags);
 	}
-	
 	
 	public void eval(String dataset, String nnId, int start, int end){
 		if(training == null){
@@ -318,12 +286,11 @@ public class DianneCommands {
 	}
 	
 	private void loadParameters(NeuralNetworkInstanceDTO nn, String tag){
-		repository.loadParameters(nn.name, tag).entrySet()
-			.forEach(e -> {
-				Trainable t = (Trainable)runtimes.get(0).getModule(e.getKey(), nn.id);
-				System.out.println("Set parameters for "+e.getKey()+" with tag "+tag);
-				t.setParameters(e.getValue());
-			});
+		Map<UUID, Tensor> parameters = repository.loadParameters(nn.name, tag);
+		NeuralNetwork n = dianne.getNeuralNetwork(nn.id);
+		if(n!=null){
+			n.setParameters(parameters);
+		}
 	}
 	
 	private void addRepositoryListener(UUID nnId, String tag){
@@ -346,46 +313,13 @@ public class DianneCommands {
 		@Override
 		public void onParametersUpdate(Collection<UUID> moduleIds,
 				String... tag) {
-			// if there are parameter updates, fetch the new parameters!
-			for(UUID moduleId : moduleIds){
-				System.out.println("Update parameters for "+moduleId+" with tag "+Arrays.toString(tag));
-
-				Trainable t = (Trainable) runtimes.get(0).getModule(moduleId, nnId);
-				t.setParameters(repository.loadParameters(moduleId, tag));
+			NeuralNetwork nn = dianne.getNeuralNetwork(nnId);
+			if(nn!=null){
+				moduleIds.stream().forEach(moduleId -> nn.setParameters(moduleId, repository.loadParameters(moduleId, tag)));
 			}
 		}
-		
 	}
 	
-	Input getInput(String nnId){
-		NeuralNetworkInstanceDTO nn = map.get(nnId);
-		if(nn==null)
-			return null;
-		
-		for(ModuleInstanceDTO m : nn.modules.values()){
-			if(m.module.type.equals("Input")){
-				return (Input) runtimes.get(0).getModule(m.moduleId, UUID.fromString(nnId));
-			}
-		}
-		
-		return null;
-	}
-	
-	Output getOutput(String nnId){
-		NeuralNetworkInstanceDTO nn = map.get(nnId);
-		if(nn==null)
-			return null;
-		
-		for(ModuleInstanceDTO m : nn.modules.values()){
-			if(m.module.type.equals("Output")){
-				return (Output) runtimes.get(0).getModule(m.moduleId, UUID.fromString(nnId));
-
-			}
-		}
-		
-		return null;
-	}
-
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
 	public void addDataset(Dataset dataset, Map<String, Object> properties){
@@ -396,16 +330,6 @@ public class DianneCommands {
 	public void removeDataset(Dataset dataset, Map<String, Object> properties){
 		String name = (String) properties.get("name");
 		this.datasets.remove(name);
-	}
-	
-	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
-			policy=ReferencePolicy.DYNAMIC)
-	public void addModuleManager(ModuleManager runtime, Map<String, Object> properties){
-		this.runtimes.add(runtime);
-	}
-	
-	public void removeModuleManager(ModuleManager runtime, Map<String, Object> properties){
-		this.runtimes.remove(runtime);
 	}
 	
 	@Reference

@@ -215,7 +215,7 @@ public abstract class AbstractModule implements Module {
 		}
 		listenerExecutor.execute(()->{
 			fwdListenersCopy.stream().forEach(
-					f -> f.onForward(outputCopy, tagsCopy));
+					f -> f.onForward(id, outputCopy, tagsCopy));
 		});
 	}
 	
@@ -236,7 +236,7 @@ public abstract class AbstractModule implements Module {
 		}
 		listenerExecutor.execute(()->{
 			bwListenersCopy.stream().forEach(
-					b->b.onBackward(gradInputCopy, tagsCopy));
+					b->b.onBackward(id, gradInputCopy, tagsCopy));
 		});
 	}
 	

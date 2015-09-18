@@ -108,7 +108,7 @@ public class DianneInput extends HttpServlet {
 				
 				ForwardListener inputListener = new ForwardListener(){
 					@Override
-					public void onForward(Tensor output, String... tags) {
+					public void onForward(UUID moduleId, Tensor output, String... tags) {
 						if(sse!=null){
 							try {
 								JsonObject data = new JsonObject();

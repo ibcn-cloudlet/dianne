@@ -5,14 +5,11 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Dictionary;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Random;
+import java.util.UUID;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletException;
@@ -21,7 +18,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -30,10 +26,10 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
-import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.Module.Mode;
-import be.iminds.iot.dianne.api.nn.module.Output;
+import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
+import be.iminds.iot.dianne.api.nn.platform.NeuralNetworkManager;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -53,17 +49,14 @@ public class DianneRunner extends HttpServlet {
 	
 	private JsonParser parser = new JsonParser();
 	
-	// for now fixed 1 input, 1 output, and trainable modules
-	private Map<String, Module> modules = new HashMap<String, Module>();
-
 	// also keep datasets to already forward random sample while sending sample to the ui
 	private Random rand = new Random(System.currentTimeMillis());
 	private Map<String, Dataset> datasets = Collections.synchronizedMap(new HashMap<String, Dataset>());
-
-	// register a forwardlistener for each output?
-	private Map<Module, ServiceRegistration> forwardListeners = Collections.synchronizedMap(new HashMap<Module, ServiceRegistration>());
+	private NeuralNetworkManager dianne;
+	// keep all labels for the UI... 
+	// TODO try to fetch labels on the fly?
+	private Map<UUID, String[]> labels = Collections.synchronizedMap(new HashMap<UUID, String[]>());
 	
-	private long t1,t2;
 	
 	private AsyncContext sse = null;
 	
@@ -77,6 +70,11 @@ public class DianneRunner extends HttpServlet {
 		this.factory = factory;
 	}
 	
+	@Reference
+	public void setNeuralNetworkManager(NeuralNetworkManager m){
+		this.dianne = m;
+	}
+	
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
 	public void addDataset(Dataset dataset, Map<String, Object> properties){
@@ -88,133 +86,6 @@ public class DianneRunner extends HttpServlet {
 		String name = (String) properties.get("name");
 		datasets.remove(name);
 	}
-	
-	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
-			policy=ReferencePolicy.DYNAMIC)
-	public void addModule(Module m){
-		this.modules.put(m.getId().toString(), m);
-		if(m instanceof Output){
-			final Output output = (Output) m;
-			final String id  = m.getId().toString();
-			
-			Dictionary<String, Object> properties = new Hashtable<String, Object>();
-			properties.put("targets", new String[]{DianneDeployer.UI_NN_ID+":"+id});
-			properties.put("aiolos.unique", true);
-		
-			ForwardListener listener = new ForwardListener() {
-				@Override
-				public void onForward(Tensor t, String... tags) {
-					if(sse!=null){
-						t2 = System.currentTimeMillis();
-						System.out.println("FORWARD TIME "+(t2-t1)+" ms.");
-						try {
-							JsonObject data = new JsonObject();
-
-							// format output as [['label', val],['label2',val2],...] for in highcharts
-							String[] labels;
-							float[] values;
-							if(t.size()>10){
-								// if more than 10 outputs, only send top-10 results
-								Integer[] indices = new Integer[t.size()];
-								for(int i=0;i<t.size();i++){
-									indices[i] = i;
-								}
-								Arrays.sort(indices, new Comparator<Integer>() {
-									@Override
-									public int compare(Integer o1, Integer o2) {
-										float v1 = t.get(o1);
-										float v2 = t.get(o2);
-										// inverse order to have large->small order
-										return v1 > v2 ? -1 : (v1 < v2 ? 1 : 0);
-									}
-								});
-								labels = new String[10];
-								values = new float[10];
-								for(int i=0;i<10;i++){
-									labels[i] = output.getOutputLabels()!=null ? output.getOutputLabels()[indices[i]] : ""+indices[i];
-									values[i] = t.get(indices[i]);
-								}
-							} else {
-								labels = output.getOutputLabels();
-								values = t.get();
-							}
-							
-							JsonArray result = new JsonArray();
-							for(int i=0;i<values.length;i++){
-								result.add(new JsonPrimitive(values[i]));
-							}
-							data.add("output", result);
-							
-							JsonArray l = new JsonArray();
-							for(int i=0;i<labels.length;i++){
-								l.add(new JsonPrimitive(labels[i]));
-							}
-							data.add("labels", l);
-							
-							if(tags!=null){
-								JsonArray ta = new JsonArray();
-								for(String tt : tags){
-									ta.add(new JsonPrimitive(tt));
-								}
-								data.add("tags",ta);
-							}
-							
-							data.add("id", new JsonPrimitive(id));
-							
-							StringBuilder builder = new StringBuilder();
-							builder.append("data: ").append(data.toString()).append("\n\n");
-			
-							PrintWriter writer = sse.getResponse().getWriter();
-							writer.write(builder.toString());
-							writer.flush();
-							if(writer.checkError()){
-								sse = null;
-							}
-						} catch(Exception e){
-							e.printStackTrace();
-							sse = null;
-						}
-					}
-				}
-			};
-
-			ServiceRegistration r = context.registerService(ForwardListener.class.getName(), listener, properties);
-			
-			forwardListeners.put(output, r);
-		} else if(m instanceof Input){
-			final Input input = (Input) m;
-			final String id  = m.getId().toString();
-			
-			Dictionary<String, Object> properties = new Hashtable<String, Object>();
-			properties.put("targets", new String[]{DianneDeployer.UI_NN_ID+":"+id});
-			properties.put("aiolos.unique", true);
-		
-			ForwardListener listener = new ForwardListener() {
-				@Override
-				public void onForward(Tensor t, String... tags) {
-					t1 = System.currentTimeMillis();
-				}
-			};
-			ServiceRegistration r = context.registerService(ForwardListener.class.getName(), listener, properties);
-			forwardListeners.put(input, r);
-		}
-	}
-	
-	public void removeModule(Module m){
-		Iterator<Entry<String, Module>> it = modules.entrySet().iterator();
-		while(it.hasNext()){
-			Entry<String, Module> e = it.next();
-			if(e.getValue()==m){
-				it.remove();
-			}
-		}
-		
-		ServiceRegistration r = forwardListeners.get(m);
-		if(r!=null){
-			r.unregister();
-		}
-	}
-		
 	
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -232,9 +103,10 @@ public class DianneRunner extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
+		UUID nnId = DianneDeployer.UI_NN_ID;
+		
 		if(request.getParameter("forward")!=null){
 			String inputId = request.getParameter("input");
-			Input input = (Input) modules.get(inputId);
 			
 			JsonObject sample = parser.parse(request.getParameter("forward")).getAsJsonObject();
 			int channels = sample.get("channels").getAsInt();
@@ -243,14 +115,24 @@ public class DianneRunner extends HttpServlet {
 
 			float[] data = parseInput(sample.get("data").getAsJsonArray().toString());
 			Tensor t = factory.createTensor(data, channels, height, width);
-			input.input(t);
+			
+			NeuralNetwork nn = dianne.getNeuralNetwork(nnId);
+			if(nn!=null){
+				nn.getOutputs().entrySet().stream().forEach(e -> labels.put(e.getKey(), e.getValue().getOutputLabels()));
+				nn.forward(callback, UUID.fromString(inputId), t);
+			}
+			
+			
 		} else if(request.getParameter("mode")!=null){
 			String mode = request.getParameter("mode");
 			String targetId = request.getParameter("target");
 
-			Module m = modules.get(targetId);
-			if(m!=null){
-				m.setMode(EnumSet.of(Mode.valueOf(mode)));
+			NeuralNetwork nn = dianne.getNeuralNetwork(nnId);
+			if(nn!=null){
+				Module m = nn.getModules().get(UUID.fromString(targetId));
+				if(m!=null){
+					m.setMode(EnumSet.of(Mode.valueOf(mode)));
+				}
 			}
 		} else if(request.getParameter("dataset")!=null){
 			String dataset = request.getParameter("dataset");
@@ -258,11 +140,13 @@ public class DianneRunner extends HttpServlet {
 			
 			if(d!=null){
 				String inputId = request.getParameter("input");
-				Input input = (Input) modules.get(inputId);
-				
+
 				Tensor t = d.getInputSample(rand.nextInt(d.size()));
-				if(input!=null){
-					input.input(t);
+				
+				NeuralNetwork nn = dianne.getNeuralNetwork(nnId);
+				if(nn!=null){
+					nn.getOutputs().entrySet().stream().forEach(e -> labels.put(e.getKey(), e.getValue().getOutputLabels()));
+					nn.forward(callback, UUID.fromString(inputId), t);
 				}
 				
 				JsonObject sample = new JsonObject();
@@ -289,5 +173,89 @@ public class DianneRunner extends HttpServlet {
 			result[i] = Float.parseFloat(strings[i]);
 		}
 		return result;
+	}
+	
+	private String outputSSEMessage(UUID outputId, String[] outputLabels, Tensor output, String...tags){
+		JsonObject data = new JsonObject();
+
+		// format output as [['label', val],['label2',val2],...] for in highcharts
+		String[] labels;
+		float[] values;
+		if(output.size()>10){
+			// if more than 10 outputs, only send top-10 results
+			Integer[] indices = new Integer[output.size()];
+			for(int i=0;i<output.size();i++){
+				indices[i] = i;
+			}
+			Arrays.sort(indices, new Comparator<Integer>() {
+				@Override
+				public int compare(Integer o1, Integer o2) {
+					float v1 = output.get(o1);
+					float v2 = output.get(o2);
+					// inverse order to have large->small order
+					return v1 > v2 ? -1 : (v1 < v2 ? 1 : 0);
+				}
+			});
+			labels = new String[10];
+			values = new float[10];
+			for(int i=0;i<10;i++){
+				labels[i] = outputLabels!=null ? outputLabels[indices[i]] : ""+indices[i];
+				values[i] = output.get(indices[i]);
+			}
+		} else {
+			labels = outputLabels;
+			values = output.get();
+		}
+		
+		JsonArray result = new JsonArray();
+		for(int i=0;i<values.length;i++){
+			result.add(new JsonPrimitive(values[i]));
+		}
+		data.add("output", result);
+		
+		JsonArray l = new JsonArray();
+		for(int i=0;i<labels.length;i++){
+			l.add(new JsonPrimitive(labels[i]));
+		}
+		data.add("labels", l);
+		
+		if(tags!=null){
+			JsonArray ta = new JsonArray();
+			for(String tt : tags){
+				ta.add(new JsonPrimitive(tt));
+			}
+			data.add("tags",ta);
+		}
+		
+		data.add("id", new JsonPrimitive(outputId.toString()));
+		
+		StringBuilder builder = new StringBuilder();
+		builder.append("data: ").append(data.toString()).append("\n\n");
+		return builder.toString();
+	}
+	
+	private final SSEForwardListener callback = new SSEForwardListener();
+	
+	private class SSEForwardListener implements ForwardListener {
+
+		@Override
+		public void onForward(UUID moduleId, Tensor output, String... tags) {
+			if(sse!=null){
+				try {
+					// TODO how to get the labels?
+					String sseMessage = outputSSEMessage(moduleId, labels.get(moduleId), output, tags);
+					PrintWriter writer = sse.getResponse().getWriter();
+					writer.write(sseMessage);
+					writer.flush();
+					if(writer.checkError()){
+						sse = null;
+					}
+				} catch(Exception e){
+					e.printStackTrace();
+					sse = null;
+				}
+			}
+		}
+		
 	}
 }
