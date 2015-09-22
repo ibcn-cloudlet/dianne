@@ -248,7 +248,7 @@ function createLearnModuleDialog(id, moduleItem){
 				var id = dialog.find(".module-id").val();
 
 				// weird to do this with run, but actually makes sense to set runtime mode in run servlet?
-				$.post("/dianne/run", {"mode":selected, "target":id}, 
+				$.post("/dianne/run", {"mode":selected, "target":id, "id": nnId}, 
 						function( data ) {
 						}
 						, "json");
@@ -612,14 +612,14 @@ function forwardCanvasInput(input){
     }
 	sample.data = array;
 	
-	$.post("/dianne/run", {"forward":JSON.stringify(sample), "input":input}, 
+	$.post("/dianne/run", {"forward":JSON.stringify(sample), "input":input, "id":nnId}, 
 			function( data ) {
 			}
 			, "json");
 }
 
 function sample(dataset, input){
-	$.post("/dianne/run", {"dataset":dataset,"input":input}, 
+	$.post("/dianne/run", {"dataset":dataset,"input":input, "id": nnId}, 
 			function( sample ) {
 				render(sample, sampleCanvasCtx);
 			}
@@ -677,17 +677,13 @@ function render(tensor, canvasCtx){
  */
 
 function deployAll(){
-	$.post("/dianne/deployer", {"action":"deploy","modules":JSON.stringify(nn),"target":selectedTarget}, 
+	$.post("/dianne/deployer", {"action":"deploy",
+			"name":nnName,
+			"modules":JSON.stringify(nn),
+			"target":selectedTarget}, 
 			function( data ) {
-				$.each( data, function(id,target){
-					deployment[id] = target;
-					var c = deploymentColors[target]; 
-					if(c === undefined){
-						c = nextColor();
-						deploymentColors[target] = c;
-					}
-					$("#"+id).css('background-color', c);
-				});
+				nnId = data.id;
+				$.each( data.deployment, color);
 			}
 			, "json");
 }
@@ -699,25 +695,20 @@ function undeployAll(){
 }
 
 function deploy(id, target){
-	$.post("/dianne/deployer", {"action":"deploy",
-		"module":JSON.stringify(nn[id]),
+	$.post("/dianne/deployer", {"action":"deploy", 
+		"id": nn.id,
+		"name":nn.name,
+		"module":JSON.stringify(nn.modules[id]),
 		"target": target}, 
 			function( data ) {
-				$.each( data, function(id,target){
-					deployment[id] = target;
-					var c = deploymentColors[target]; 
-					if(c === undefined){
-						c = nextColor();
-						deploymentColors[target] = c;
-					}
-					$("#"+id).css('background-color', c);
-				});
+				nnId = data.id;
+				$.each( data.deployment, color );
 			}
 			, "json");
 }
 
 function undeploy(id){
-	$.post("/dianne/deployer", {"action":"undeploy","id":id}, 
+	$.post("/dianne/deployer", {"action":"undeploy","id":nn.id,"moduleId":id}, 
 			function( data ) {
 				deployment[id] = undefined;
 				$("#"+id).css('background-color', '');
@@ -725,6 +716,15 @@ function undeploy(id){
 			, "json");
 }
 
+function color(id, target){
+	deployment[id] = target;
+	var c = deploymentColors[target]; 
+	if(c === undefined){
+		c = nextColor();
+		deploymentColors[target] = c;
+	}
+	$("#"+id).css('background-color', c);
+}
 
 /*
  * Learning functions
@@ -756,6 +756,7 @@ function learn(id){
 	});
 	
 	$.post("/dianne/learner", {"action":"learn",
+		"id": nnId,
 		"config":JSON.stringify(learning),
 		"modules": JSON.stringify(modules),
 		"target": id}, 
@@ -783,6 +784,7 @@ function evaluate(id){
 		Highcharts.charts[index].series[0].setData(data, true, true, false);
 	}
 	$.post("/dianne/learner", {"action":"evaluate",
+		"id": nnId,
 		"config":JSON.stringify(learning),
 		"target": id}, 
 			function( data ) {

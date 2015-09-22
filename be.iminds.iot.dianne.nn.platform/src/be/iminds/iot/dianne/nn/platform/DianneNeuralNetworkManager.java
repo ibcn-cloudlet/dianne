@@ -56,17 +56,36 @@ public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 	@Override
 	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name)
 			throws InstantiationException {
-		return deployNeuralNetwork(name, frameworkId, new HashMap<UUID, UUID>());
+		return deployNeuralNetwork(name, null, frameworkId, new HashMap<UUID, UUID>());
 	}
 	
 	@Override
-	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name,
-			UUID runtimeId) throws InstantiationException {
-		return deployNeuralNetwork(name, runtimeId, new HashMap<UUID, UUID>());
+	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description)
+			throws InstantiationException {
+		return deployNeuralNetwork(name, description, frameworkId, new HashMap<UUID, UUID>());
 	}
+	
+	@Override
+	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name, 
+			UUID runtimeId) throws InstantiationException {
+		return deployNeuralNetwork(name, null, runtimeId, new HashMap<UUID, UUID>());
+	}
+	
+	@Override
+	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description,
+			UUID runtimeId) throws InstantiationException {
+		return deployNeuralNetwork(name, description, runtimeId, new HashMap<UUID, UUID>());
+	}
+
 
 	@Override
 	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name,
+			UUID runtimeId,  Map<UUID, UUID> deployment) throws InstantiationException {
+		return deployNeuralNetwork(name, null, runtimeId, deployment);
+	}
+	
+	@Override
+	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description,
 			UUID runtimeId, Map<UUID, UUID> deployment) throws InstantiationException {
 		
 		NeuralNetworkDTO neuralNetwork = null;
@@ -96,7 +115,7 @@ public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 			moduleInstances.put(instance.moduleId, instance);
 		}
 
-		NeuralNetworkInstanceDTO nni = new NeuralNetworkInstanceDTO(nnId, name, moduleInstances);
+		NeuralNetworkInstanceDTO nni = new NeuralNetworkInstanceDTO(nnId, name, description, moduleInstances);
 		nnis.put(nnId, nni);
 		
 		updateNeuralNetwork(nnId);
@@ -106,11 +125,14 @@ public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 
 	@Override
 	public void undeployNeuralNetwork(NeuralNetworkInstanceDTO nni) {
-		nnis.remove(nni.id);
-		
 		undeployNeuralNetwork(nni.id);
+	
+		// remove all modules from nni
+		nnis.get(nni.id).modules.clear();
 		
 		updateNeuralNetwork(nni.id);
+	
+		nnis.remove(nni.id);
 	}
 
 	private void undeployNeuralNetwork(UUID nnId){
@@ -124,6 +146,18 @@ public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 	
 	@Override
 	public List<ModuleInstanceDTO> deployModules(UUID nnId,
+			List<ModuleDTO> modules, UUID runtimeId) throws InstantiationException{
+		return deployModules(nnId, null, null, modules, runtimeId);
+	}
+	
+	@Override
+	public List<ModuleInstanceDTO> deployModules(UUID nnId, String name,
+			List<ModuleDTO> modules, UUID runtimeId) throws InstantiationException{
+		return deployModules(nnId, name, null, modules, runtimeId);
+	}
+	
+	@Override
+	public List<ModuleInstanceDTO> deployModules(UUID nnId, String name, String description,
 			List<ModuleDTO> modules, UUID runtimeId)
 			throws InstantiationException {
 		List<ModuleInstanceDTO> moduleInstances = new ArrayList<ModuleInstanceDTO>();
@@ -135,7 +169,7 @@ public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 		// if neural network instance already exists, update nn DTO and migrate modules if already deployed somewhere else
 		NeuralNetworkInstanceDTO nni = nnis.get(nnId);
 		if(nni==null){
-			nni = new NeuralNetworkInstanceDTO(nnId, "unknown", new HashMap<UUID, ModuleInstanceDTO>());
+			nni = new NeuralNetworkInstanceDTO(nnId, name, description, new HashMap<UUID, ModuleInstanceDTO>());
 			nnis.put(nnId, nni);
 		}
 		
@@ -178,6 +212,8 @@ public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 		Set<UUID> nnIds = new HashSet<UUID>();
 		for(ModuleInstanceDTO moduleInstance : moduleInstances){
 			nnIds.add(moduleInstance.nnId);
+			nnis.get(moduleInstance.nnId).modules.remove(moduleInstance.moduleId);
+			
 			ModuleManager runtime = runtimes.get(moduleInstance.runtimeId);
 			if(runtime!=null){
 				runtime.undeployModule(moduleInstance);
@@ -185,6 +221,12 @@ public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 		}
 		for(UUID nnId : nnIds){
 			updateNeuralNetwork(nnId);
+		}
+		for(UUID nnId : nnIds){
+			NeuralNetworkInstanceDTO nn = nnis.get(nnId);
+			if(nn!=null && nn.modules.size()==0){
+				nnis.remove(nnId);
+			}
 		}
 	}
 	
@@ -234,7 +276,7 @@ public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 	public NeuralNetwork getNeuralNetwork(UUID nnId) {
 		NeuralNetwork nn = nnServices.get(nnId);
 		if(nn==null){
-			throw new RuntimeException("No neural network found with id "+nnId);
+			System.err.println("No neural network found with id "+nnId);
 		}
 		return nn;
 	}
@@ -257,10 +299,8 @@ public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 			return;
 		}
 		
-		ModuleManager localRuntime = runtimes.get(frameworkId);
-		List<Module> modules = nni.modules.values().stream().map( m -> localRuntime.getModule(m.moduleId, nni.id)).collect(Collectors.toList());
-		
-		if(modules.size()!= nni.modules.size()){
+		NeuralNetworkDTO template = repository.loadNeuralNetwork(nni.name);
+		if(nni.modules.size()!= template.modules.size()){
 			// not all modules deployed ... remove and unregister NN
 			NeuralNetworkWrapper nn = nns.remove(nni.id);
 			if(nn!=null){
@@ -268,6 +308,9 @@ public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 			}
 		} else {
 			// create/update wrapper and register
+			ModuleManager localRuntime = runtimes.get(frameworkId);
+			List<Module> modules = nni.modules.values().stream().map( m -> localRuntime.getModule(m.moduleId, nni.id)).collect(Collectors.toList());
+
 			NeuralNetworkWrapper nn = nns.get(nni.id);
 			if(nn!=null){
 				nn.setModules(modules);

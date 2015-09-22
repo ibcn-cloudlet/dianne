@@ -61,8 +61,8 @@ public class DianneCommands {
 	NeuralNetworkManager dianne;
 	
 	// State
-	List<NeuralNetworkInstanceDTO> nns = new ArrayList<NeuralNetworkInstanceDTO>();
-	Map<String, NeuralNetworkInstanceDTO> map = new HashMap<String, NeuralNetworkInstanceDTO>();
+	//List<NeuralNetworkInstanceDTO> nns = new ArrayList<NeuralNetworkInstanceDTO>();
+	//Map<String, NeuralNetworkInstanceDTO> map = new HashMap<String, NeuralNetworkInstanceDTO>();
 	Map<UUID, ServiceRegistration> repoListeners = new HashMap<UUID, ServiceRegistration>();
 	
 	// Separate aggregation for training commands
@@ -122,6 +122,7 @@ public class DianneCommands {
 	}
 	
 	public void nn(){
+		List<NeuralNetworkInstanceDTO> nns = dianne.getNeuralNetworkInstances();
 		if(nns.size()==0){
 			System.out.println("No neural networks deployed");
 			return;
@@ -136,6 +137,7 @@ public class DianneCommands {
 	}
 	
 	public void nn(int index){
+		List<NeuralNetworkInstanceDTO> nns = dianne.getNeuralNetworkInstances();
 		if(index >= nns.size()){
 			System.out.println("No neural network deployed with index "+index);
 			return;
@@ -145,7 +147,7 @@ public class DianneCommands {
 	}
 	
 	public void nn(String id){
-		NeuralNetworkInstanceDTO nn = map.get(id);
+		NeuralNetworkInstanceDTO nn = dianne.getNeuralNetworkInstance(UUID.fromString(id));
 		if(nn==null){
 			System.out.println("No neural network deployed with id "+id);
 			return;
@@ -196,8 +198,6 @@ public class DianneCommands {
 	private synchronized NeuralNetworkInstanceDTO deploy(String name, UUID runtimeId){
 		try {
 			NeuralNetworkInstanceDTO nn = dianne.deployNeuralNetwork(name, runtimeId);
-			nns.add(nn);
-			map.put(nn.id.toString(), nn);
 			System.out.println("Deployed instance of "+nn.name+" ("+nn.id.toString()+")");
 			return nn;
 		} catch (InstantiationException e) {
@@ -208,7 +208,7 @@ public class DianneCommands {
 	}
 	
 	public void nnUndeploy(String nnId){
-		NeuralNetworkInstanceDTO nn = map.get(nnId);
+		NeuralNetworkInstanceDTO nn = dianne.getNeuralNetworkInstance(UUID.fromString(nnId));
 		if(nn==null){
 			System.out.println("No neural network deployed with id "+nnId);
 			return;
@@ -217,6 +217,7 @@ public class DianneCommands {
 	}
 	
 	public void nnUndeploy(int index){
+		List<NeuralNetworkInstanceDTO> nns = dianne.getNeuralNetworkInstances();
 		if(index >= nns.size()){
 			System.out.println("No neural network with index "+index);
 			return;
@@ -227,8 +228,6 @@ public class DianneCommands {
 	
 	private void undeploy(NeuralNetworkInstanceDTO nn){
 		dianne.undeployNeuralNetwork(nn);
-		nns.remove(nn);
-		map.remove(nn.id);
 		
 		ServiceRegistration r = repoListeners.get(nn.id);
 		if(r!=null){

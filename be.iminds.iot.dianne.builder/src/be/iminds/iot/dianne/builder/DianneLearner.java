@@ -111,9 +111,14 @@ public class DianneLearner extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		UUID nnId = DianneDeployer.UI_NN_ID;
+		String id = request.getParameter("id");
+		if(id == null){
+			System.out.println("No neural network instance specified");
+		}
+		UUID nnId = UUID.fromString(id);
 		NeuralNetwork nn = dianne.getNeuralNetwork(nnId);
 		if(nn==null){
+			System.out.println("Neural network instance "+id+" not available");
 			return;
 		}
 		
@@ -150,16 +155,16 @@ public class DianneLearner extends HttpServlet {
 					
 					Iterator<JsonElement> it = moduleIds.iterator();
 					while(it.hasNext()){
-						String id = it.next().getAsString();
-						Module m = nn.getModules().get(UUID.fromString(id));
+						String moduleId = it.next().getAsString();
+						Module m = nn.getModules().get(UUID.fromString(moduleId));
 						if(m instanceof Input){
 							// only include the input module connected to the dataset
-							if(datasetConfig.get("input").getAsString().equals(id)){
+							if(datasetConfig.get("input").getAsString().equals(moduleId)){
 								input = (Input) m;
 							}
 						} else if(m instanceof Output){
 							// only include the output module connected to the trainer
-							if(processorConfig.get("output").getAsString().equals(id)){
+							if(processorConfig.get("output").getAsString().equals(moduleId)){
 								output = (Output) m;
 							}
 						} else {

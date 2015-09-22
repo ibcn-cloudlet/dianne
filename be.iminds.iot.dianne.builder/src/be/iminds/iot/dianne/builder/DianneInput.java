@@ -98,12 +98,13 @@ public class DianneInput extends HttpServlet {
 			response.getWriter().write(inputs.toString());
 			response.getWriter().flush();
 		} else if("setinput".equals(action)){
+			String nnId = request.getParameter("nnId");
 			String inputId = request.getParameter("inputId");
 			String input = request.getParameter("input");
 			// TODO only forward to applicable inputmgr?
 			synchronized(inputManagers){
 				for(InputManager m : inputManagers){
-					m.setInput(UUID.fromString(inputId), DianneDeployer.UI_NN_ID, input);
+					m.setInput(UUID.fromString(inputId), UUID.fromString(nnId), input);
 				}
 				
 				ForwardListener inputListener = new ForwardListener(){
@@ -143,18 +144,19 @@ public class DianneInput extends HttpServlet {
 					}
 				};
 				Dictionary<String, Object> properties = new Hashtable<String, Object>();
-				properties.put("targets", new String[]{DianneDeployer.UI_NN_ID+":"+inputId});
+				properties.put("targets", new String[]{nnId+":"+inputId});
 				properties.put("aiolos.unique", true);
 				ServiceRegistration r = context.registerService(ForwardListener.class.getName(), inputListener, properties);
 				inputListeners.put(UUID.fromString(inputId), r);
 			}
 		} else if("unsetinput".equals(action)){
+			String nnId = request.getParameter("nnId");
 			String inputId = request.getParameter("inputId");
 			String input = request.getParameter("input");
 			// TODO only forward to applicable inputmgr?
 			synchronized(inputManagers){
 				for(InputManager m : inputManagers){
-					m.unsetInput(UUID.fromString(inputId), DianneDeployer.UI_NN_ID, input);
+					m.unsetInput(UUID.fromString(inputId), UUID.fromString(nnId), input);
 				}
 			}
 			

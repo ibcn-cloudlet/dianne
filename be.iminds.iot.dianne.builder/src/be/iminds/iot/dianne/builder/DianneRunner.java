@@ -103,7 +103,12 @@ public class DianneRunner extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		UUID nnId = DianneDeployer.UI_NN_ID;
+		String id = request.getParameter("id");
+		if(id == null){
+			System.out.println("No neural network instance specified");
+			return;
+		}
+		UUID nnId = UUID.fromString(id);
 		
 		if(request.getParameter("forward")!=null){
 			String inputId = request.getParameter("input");

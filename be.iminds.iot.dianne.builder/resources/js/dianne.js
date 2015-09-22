@@ -2,7 +2,9 @@
  * This script allows to create a NN structure by drag-and-drop using jsPlumb
  */
 
-// keep a map of neural network modules
+// keep a map of neural network modules, as well as name and id
+var nnName = undefined;
+var nnId = undefined;
 var nn = {};
 // keep a map of all learn blocks
 var learning = {};
@@ -37,6 +39,9 @@ function setModus(m){
 		jsPlumb.hide($(this).attr('id'),true);
 		$(this).hide();
 	});
+	// remove all dialogs
+	$(".modal").remove();
+	
 	currentMode = m;
 	if(currentMode === "build"){
 		console.log("switch to build");
@@ -45,9 +50,15 @@ function setModus(m){
 		setupBuildToolbox();
 	} else if(currentMode === "deploy"){
 		console.log("switch to deploy");
+		if(nnName===undefined){
+			// NN should be saved before deploy
+			showSaveDialog();
+		} 
+			
 		$("#menu-deploy").addClass("active");
-
+	
 		setupDeployToolbox();
+		
 	} else if(currentMode === "learn"){
 		console.log("switch to learn");
 		$("#menu-learn").addClass("active");
@@ -69,8 +80,6 @@ function setModus(m){
 			$(this).show();
 		});
 	}
-	// remove all dialogs
-	$(".modal").remove();
 }
 
 /**
@@ -487,18 +496,20 @@ function addConnection(connection){
 			learning[connection.sourceId].input = connection.targetId; 
 		} else {
 			running[connection.sourceId].input = connection.targetId;
-			$.post("/dianne/input", {action : "setinput",
-				inputId : connection.targetId,
-				input : running[connection.sourceId].name});
+			$.post("/dianne/input", {"action" : "setinput",
+				"nnId" : nnId,
+				"inputId" : connection.targetId,
+				"input" : running[connection.sourceId].name});
 		}
 	} else if(nn[connection.targetId]===undefined){
 		if(learning[connection.targetId]!==undefined){
 			learning[connection.targetId].output = connection.sourceId; 
 		} else {
 			running[connection.targetId].output = connection.sourceId;
-			$.post("/dianne/output", {action : "setoutput",
-				outputId : connection.sourceId,
-				output : running[connection.targetId].name});
+			$.post("/dianne/output", {"action" : "setoutput",
+				"nnId" : nnId,
+				"outputId" : connection.sourceId,
+				"output" : running[connection.targetId].name});
 		}
 	} else {
 		addNext(connection.sourceId, connection.targetId);
@@ -518,18 +529,20 @@ function removeConnection(connection){
 			delete learning[connection.sourceId].input; 
 		} else {
 			delete running[connection.sourceId].input; 
-			$.post("/dianne/input", {action : "unsetinput",
-				inputId : connection.targetId,
-				input : running[connection.sourceId].name});
+			$.post("/dianne/input", {"action" : "unsetinput",
+				"nnId" : nnId,
+				"inputId" : connection.targetId,
+				"input" : running[connection.sourceId].name});
 		}
 	} else if(nn[connection.targetId]===undefined){
 		if(learning[connection.targetId]!==undefined){
 			delete learning[connection.targetId].output; 
 		} else {
 			delete running[connection.targetId].output;
-			$.post("/dianne/output", {action : "unsetoutput",
-				outputId : connection.sourceId,
-				output : running[connection.targetId].name});
+			$.post("/dianne/output", {"action" : "unsetoutput",
+				"nnId" : nnId,
+				"outputId" : connection.sourceId,
+				"output" : running[connection.targetId].name});
 		}
 	} else {
 		removeNext(connection.sourceId, connection.targetId);	
@@ -640,7 +653,7 @@ function checkRemoveConnection(connection){
 
 
 /*
- * Save and load 
+ * Save, load and recover 
  */
 
 function showSaveDialog(){
@@ -677,6 +690,8 @@ function showSaveDialog(){
 }
 
 function save(name){
+	nnName = name;
+	
 	// save modules
 	var s = {};
 	s.modules = nn;
@@ -778,6 +793,7 @@ function showLoadDialog(){
 
 function load(name){
 	console.log("load");
+	nnName = name;
 	
 	$.post("/dianne/load", {"action":"load", "name":name}, 
 			function( data ) {
@@ -831,6 +847,66 @@ function redrawElement(id, posX, posY){
 	
 	setupModule(moduleItem, module.type, module.category);
 	jsPlumb.repaint(id);
+}
+
+
+function showRecoverDialog(){
+	var dialog = renderTemplate("dialog", {
+		id : "recover",
+		title : "Recover a neural network ",
+		submit: "Recover",
+		cancel: "Cancel"
+	}, $(document.body));
+	
+	dialog.find('.content').append("<p>Select a neural network to recover.</p>")
+	
+	renderTemplate("form-dropdown", 
+			{	
+				name: "Neural network: "
+			},
+			dialog.find('.form-items'));
+	$.post("/dianne/deployer", {"action" : "recover"}, 
+			function( data ) {
+				$.each(data, function(index, nn){
+					dialog.find('.options').append("<option value="+nn.id+">"+nn.name+" ("+nn.description+")</option>")
+				});
+			}
+			, "json");
+	
+	// submit button callback
+	dialog.find(".submit").click(function(e){
+		var id = $(this).closest('.modal').find('.options').val();
+		recover(id);
+	});
+	
+	// remove cancel button
+	dialog.find('.cancel').remove();
+	// remove module-modal specific stuff
+	dialog.removeClass("module-modal");
+	dialog.find('.module-dialog').removeClass("module-dialog");
+	// show dialog
+	dialog.modal('show');
+	
+}
+
+function recover(id){
+	console.log("recover "+id);
+	
+	$.post("/dianne/deployer", {"action":"recover", "id":id}, 
+			function( data ) {
+				// empty canvas?
+				$('#canvas').empty();
+				
+				nnName = data.nn.name;
+				nnId = data.id;
+				nn = data.nn.modules;
+				loadLayout(data.layout);
+				deployment = data.deployment;
+				$.each( data.deployment, color );
+				$('#dialog-recover').remove();
+				console.log("Succesfully recovered");
+			}
+			, "json");
 }
 
 /*
