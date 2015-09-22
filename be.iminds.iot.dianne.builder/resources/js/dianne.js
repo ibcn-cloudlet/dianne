@@ -3,9 +3,10 @@
  */
 
 // keep a map of neural network modules, as well as name and id
-var nnName = undefined;
-var nnId = undefined;
 var nn = {};
+nn.name = undefined;
+nn.id = undefined;
+nn.modules = {};
 // keep a map of all learn blocks
 var learning = {};
 // keep a map of all run blocks
@@ -50,7 +51,7 @@ function setModus(m){
 		setupBuildToolbox();
 	} else if(currentMode === "deploy"){
 		console.log("switch to deploy");
-		if(nnName===undefined){
+		if(nn.name===undefined){
 			// NN should be saved before deploy
 			showSaveDialog();
 		} 
@@ -378,7 +379,7 @@ function addModule(moduleItem){
 	
 	// add to one of the module maps
 	if(mode==="build"){
-		nn[id] = module;
+		nn.modules[id] = module;
 	} else if(mode==="learn"){
 		learning[id] = module;
 	} else if(mode==="run"){
@@ -464,17 +465,17 @@ function removeModule(moduleItem){
 
 	// remove from modules
 	if(mode==="build"){
-		if(nn[id].next!==undefined){
-			$.each(nn[id].next, function( index, next ) {
+		if(nn.modules[id].next!==undefined){
+			$.each(nn.modules[id].next, function( index, next ) {
 				removePrevious(next, id);
 			});
 		}
-		if(nn[id].prev!==undefined){
-			$.each(nn[id].prev, function(index, prev){
+		if(nn.modules[id].prev!==undefined){
+			$.each(nn.modules[id].prev, function(index, prev){
 				removeNext(prev, id);
 			});
 		}
-		delete nn[id];
+		delete nn.modules[id];
 	} else if(mode==="learn"){
 		delete learning[id];
 	} else if(mode==="run"){
@@ -491,23 +492,23 @@ function removeModule(moduleItem){
 function addConnection(connection){
 	console.log("Add connection " + connection.sourceId + " -> " + connection.targetId);
 	// TODO support multiple next/prev
-	if(nn[connection.sourceId]===undefined){
+	if(nn.modules[connection.sourceId]===undefined){
 		if(learning[connection.sourceId]!==undefined){
 			learning[connection.sourceId].input = connection.targetId; 
 		} else {
 			running[connection.sourceId].input = connection.targetId;
 			$.post("/dianne/input", {"action" : "setinput",
-				"nnId" : nnId,
+				"nnId" : nn.id,
 				"inputId" : connection.targetId,
 				"input" : running[connection.sourceId].name});
 		}
-	} else if(nn[connection.targetId]===undefined){
+	} else if(nn.modules[connection.targetId]===undefined){
 		if(learning[connection.targetId]!==undefined){
 			learning[connection.targetId].output = connection.sourceId; 
 		} else {
 			running[connection.targetId].output = connection.sourceId;
 			$.post("/dianne/output", {"action" : "setoutput",
-				"nnId" : nnId,
+				"nnId" : nn.id,
 				"outputId" : connection.sourceId,
 				"output" : running[connection.targetId].name});
 		}
@@ -524,23 +525,23 @@ function addConnection(connection){
 function removeConnection(connection){
 	console.log("Remove connection " + connection.sourceId + " -> " + connection.targetId);
 	// TODO support multiple next/prev
-	if(nn[connection.sourceId]===undefined){
+	if(nn.modules[connection.sourceId]===undefined){
 		if(learning[connection.sourceId]!==undefined){
 			delete learning[connection.sourceId].input; 
 		} else {
 			delete running[connection.sourceId].input; 
 			$.post("/dianne/input", {"action" : "unsetinput",
-				"nnId" : nnId,
+				"nnId" : nn.id,
 				"inputId" : connection.targetId,
 				"input" : running[connection.sourceId].name});
 		}
-	} else if(nn[connection.targetId]===undefined){
+	} else if(nn.modules[connection.targetId]===undefined){
 		if(learning[connection.targetId]!==undefined){
 			delete learning[connection.targetId].output; 
 		} else {
 			delete running[connection.targetId].output;
 			$.post("/dianne/output", {"action" : "unsetoutput",
-				"nnId" : nnId,
+				"nnId" : nn.id,
 				"outputId" : connection.sourceId,
 				"output" : running[connection.targetId].name});
 		}
@@ -551,36 +552,36 @@ function removeConnection(connection){
 }
 
 function addNext(id, next){
-	if(nn[id].next === undefined){
-		nn[id].next = [next];
+	if(nn.modules[id].next === undefined){
+		nn.modules[id].next = [next];
 	} else { 
-		nn[id].next.push(next);
+		nn.modules[id].next.push(next);
 	}
 }
 
 function removeNext(id, next){
-	if(nn[id].next.length==1){
-		delete nn[id].next;
+	if(nn.modules[id].next.length==1){
+		delete nn.modules[id].next;
 	} else {
-		var i = nn[id].next.indexOf(next);
-		nn[id].next.splice(i, 1);
+		var i = nn.modules[id].next.indexOf(next);
+		nn.modules[id].next.splice(i, 1);
 	} 
 }
 
 function addPrevious(id, prev){
-	if(nn[id].prev === undefined){
-		nn[id].prev = [prev];
+	if(nn.modules[id].prev === undefined){
+		nn.modules[id].prev = [prev];
 	} else { 
-		nn[id].prev.push(prev);
+		nn.modules[id].prev.push(prev);
 	}
 }
 
 function removePrevious(id, prev){
-	if(nn[id].prev.length==1){	
-		delete nn[id].prev;
+	if(nn.modules[id].prev.length==1){	
+		delete nn.modules[id].prev;
 	} else {
-		var i = nn[id].prev.indexOf(prev);
-		nn[id].prev.splice(i, 1);
+		var i = nn.modules[id].prev.indexOf(prev);
+		nn.modules[id].prev.splice(i, 1);
 	}
 }
 
@@ -690,7 +691,7 @@ function showSaveDialog(){
 }
 
 function save(name){
-	nnName = name;
+	nn.name = name;
 	
 	// save modules
 	var s = {};
@@ -793,14 +794,14 @@ function showLoadDialog(){
 
 function load(name){
 	console.log("load");
-	nnName = name;
+	nn.name = name;
 	
 	$.post("/dianne/load", {"action":"load", "name":name}, 
 			function( data ) {
 				// empty canvas?
 				$('#canvas').empty();
 		
-				nn = data.nn.modules;
+				nn.modules = data.nn.modules;
 				loadLayout(data.layout);
 		
 				$('#dialog-load').remove();
@@ -827,7 +828,7 @@ function loadLayout(layout){
 }
 
 function redrawElement(id, posX, posY){
-	var module = nn[id];
+	var module = nn.modules[id];
 
 	var moduleItem = renderTemplate("module",
 			{	
@@ -897,9 +898,9 @@ function recover(id){
 				// empty canvas?
 				$('#canvas').empty();
 				
-				nnName = data.nn.name;
-				nnId = data.id;
-				nn = data.nn.modules;
+				nn.name = data.nn.name;
+				nn.id = data.id;
+				nn.modules = data.nn.modules;
 				loadLayout(data.layout);
 				deployment = data.deployment;
 				$.each( data.deployment, color );

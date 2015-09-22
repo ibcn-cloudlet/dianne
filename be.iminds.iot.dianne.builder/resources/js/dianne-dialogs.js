@@ -76,7 +76,7 @@ function createNNModuleDialog(module, title, submit, cancel){
  * Create dialog for configuring module in build mode
  */
 function createBuildModuleDialog(id, moduleItem){
-	var module = nn[id];
+	var module = nn.modules[id];
 	
 	var dialog = createNNModuleDialog(module, "Configure module ", "Configure", "Delete");
 	
@@ -110,7 +110,7 @@ function createBuildModuleDialog(id, moduleItem){
 			var module;
 			$.each( data, function( i, item ) {
 				if(i === 0){
-					module = nn[item.value];
+					module = nn.modules[item.value];
 				} else {
 					module[item.name] = item.value;
 				}
@@ -141,7 +141,7 @@ function createBuildModuleDialog(id, moduleItem){
  * Create dialog for configuring module in deploy mode
  */
 function createDeployModuleDialog(id, moduleItem){
-	var module = nn[id];
+	var module = nn.modules[id];
 	
 	var dialog = createNNModuleDialog(module, "Deploy module ", "Deploy", "Undeploy");
 	
@@ -196,7 +196,7 @@ function createDeployModuleDialog(id, moduleItem){
 function createLearnModuleDialog(id, moduleItem){
 	var module = learning[id];
 	if(module===undefined){
-		module = nn[id];
+		module = nn.modules[id];
 		
 		if(module.trainable!==undefined){
 			var dialog = createNNModuleDialog(module, "Configure module", "Save", "");
@@ -219,9 +219,9 @@ function createLearnModuleDialog(id, moduleItem){
 				var id = $(this).closest(".modal").find(".module-id").val();
 				var train = $(this).closest(".modal").find(".trainable").is(':checked');
 				if(train){
-					nn[id].trainable = "true";
+					nn.modules[id].trainable = "true";
 				} else {
-					nn[id].trainable = "false";
+					nn.modules[id].trainable = "false";
 				}
 				
 				$(this).closest(".modal").modal('hide');
@@ -248,7 +248,7 @@ function createLearnModuleDialog(id, moduleItem){
 				var id = dialog.find(".module-id").val();
 
 				// weird to do this with run, but actually makes sense to set runtime mode in run servlet?
-				$.post("/dianne/run", {"mode":selected, "target":id, "id": nnId}, 
+				$.post("/dianne/run", {"mode":selected, "target":id, "id": nn.id}, 
 						function( data ) {
 						}
 						, "json");
@@ -612,14 +612,14 @@ function forwardCanvasInput(input){
     }
 	sample.data = array;
 	
-	$.post("/dianne/run", {"forward":JSON.stringify(sample), "input":input, "id":nnId}, 
+	$.post("/dianne/run", {"forward":JSON.stringify(sample), "input":input, "id":nn.id}, 
 			function( data ) {
 			}
 			, "json");
 }
 
 function sample(dataset, input){
-	$.post("/dianne/run", {"dataset":dataset,"input":input, "id": nnId}, 
+	$.post("/dianne/run", {"dataset":dataset,"input":input, "id": nn.id}, 
 			function( sample ) {
 				render(sample, sampleCanvasCtx);
 			}
@@ -678,11 +678,11 @@ function render(tensor, canvasCtx){
 
 function deployAll(){
 	$.post("/dianne/deployer", {"action":"deploy",
-			"name":nnName,
-			"modules":JSON.stringify(nn),
+			"name":nn.name,
+			"modules":JSON.stringify(nn.modules),
 			"target":selectedTarget}, 
 			function( data ) {
-				nnId = data.id;
+				nn.id = data.id;
 				$.each( data.deployment, color);
 			}
 			, "json");
@@ -701,7 +701,7 @@ function deploy(id, target){
 		"module":JSON.stringify(nn.modules[id]),
 		"target": target}, 
 			function( data ) {
-				nnId = data.id;
+				nn.id = data.id;
 				$.each( data.deployment, color );
 			}
 			, "json");
@@ -744,7 +744,7 @@ function learn(id){
 	};
 	
 	var modules = [];
-	$.each(nn, function(id, module){
+	$.each(nn.modules, function(id, module){
 		if(module.category==="Input-Output" 
 			|| module.category==="Preprocessing"){
 			modules.push(id);
@@ -756,14 +756,14 @@ function learn(id){
 	});
 	
 	$.post("/dianne/learner", {"action":"learn",
-		"id": nnId,
+		"id": nn.id,
 		"config":JSON.stringify(learning),
 		"modules": JSON.stringify(modules),
 		"target": id}, 
 			function( data ) {
 				// only returns labels of output module
 				$.each(data, function(id, labels){
-					nn[id].labels = labels;
+					nn.modules[id].labels = labels;
 				});
 				eventsource.close();
 				eventsource = undefined;
@@ -784,7 +784,7 @@ function evaluate(id){
 		Highcharts.charts[index].series[0].setData(data, true, true, false);
 	}
 	$.post("/dianne/learner", {"action":"evaluate",
-		"id": nnId,
+		"id": nn.id,
 		"config":JSON.stringify(learning),
 		"target": id}, 
 			function( data ) {
