@@ -51,7 +51,7 @@ function setModus(m){
 		setupBuildToolbox();
 	} else if(currentMode === "deploy"){
 		console.log("switch to deploy");
-		if(nn.name===undefined){
+		if(nn.name===undefined && Object.keys(nn.modules).length > 0){
 			// NN should be saved before deploy
 			showSaveDialog();
 		} 
