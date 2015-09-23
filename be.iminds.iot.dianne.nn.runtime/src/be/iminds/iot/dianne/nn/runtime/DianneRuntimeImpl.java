@@ -1,4 +1,4 @@
-package be.iminds.iot.dianne.nn.runtime.impl;
+package be.iminds.iot.dianne.nn.runtime;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,14 +34,14 @@ import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleTypeDTO;
 import be.iminds.iot.dianne.api.nn.module.factory.ModuleFactory;
-import be.iminds.iot.dianne.api.nn.runtime.ModuleManager;
+import be.iminds.iot.dianne.api.nn.runtime.DianneRuntime;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 @Component(immediate=true, 
 	property={"service.pid=be.iminds.iot.dianne.nn.module",
-			  "aiolos.callback=be.iminds.iot.dianne.api.nn.runtime.ModuleManager"})
-public class DianneRuntime implements ModuleManager {
+			  "aiolos.unique=true"})
+public class DianneRuntimeImpl implements DianneRuntime {
 
 	private BundleContext context;
 	private UUID runtimeId;
@@ -88,9 +88,15 @@ public class DianneRuntime implements ModuleManager {
 		this.moduleFactories.remove(factory);
 	}
 	
-	@Reference(cardinality=ReferenceCardinality.OPTIONAL)
+	@Reference(cardinality=ReferenceCardinality.OPTIONAL,
+				policy=ReferencePolicy.DYNAMIC)
 	public void setDianneRepository(DianneRepository repo){
 		this.repository = repo;
+	}
+	
+	public void unsetDianneRepository(DianneRepository repo){
+		if(this.repository == repo) 
+			this.repository = null;
 	}
 	
 	@Reference(

@@ -21,7 +21,7 @@ import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
-import be.iminds.iot.dianne.api.nn.runtime.ModuleManager;
+import be.iminds.iot.dianne.api.nn.runtime.DianneRuntime;
 import be.iminds.iot.dianne.nn.util.DianneJSONConverter;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -32,7 +32,7 @@ public class AbstractDianneTest extends TestCase {
     protected final BundleContext context = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
     
     protected TensorFactory factory;
-    protected ModuleManager mm;
+    protected DianneRuntime mm;
 
     protected List<ModuleInstanceDTO> modules = null;
 	
@@ -40,8 +40,8 @@ public class AbstractDianneTest extends TestCase {
        	ServiceReference rf = context.getServiceReference(TensorFactory.class.getName());
     	factory = (TensorFactory) context.getService(rf);
     	
-    	ServiceReference rmm =  context.getServiceReference(ModuleManager.class.getName());
-    	mm = (ModuleManager) context.getService(rmm);
+    	ServiceReference rmm =  context.getServiceReference(DianneRuntime.class.getName());
+    	mm = (DianneRuntime) context.getService(rmm);
     }
     
     public void tearDown(){

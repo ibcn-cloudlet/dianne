@@ -25,14 +25,14 @@ import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.platform.NeuralNetworkManager;
-import be.iminds.iot.dianne.api.nn.runtime.ModuleManager;
+import be.iminds.iot.dianne.api.nn.runtime.DianneRuntime;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 
 @Component(property={"aiolos.export=false"})
 public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 
 	private DianneRepository repository;
-	private Map<UUID, ModuleManager> runtimes = Collections.synchronizedMap(new HashMap<UUID, ModuleManager>());
+	private Map<UUID, DianneRuntime> runtimes = Collections.synchronizedMap(new HashMap<UUID, DianneRuntime>());
 	
 	// available neural networks
 	private Map<UUID, NeuralNetworkInstanceDTO> nnis = Collections.synchronizedMap(new HashMap<UUID, NeuralNetworkInstanceDTO>());
@@ -45,9 +45,9 @@ public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 	@Activate
 	public void activate(BundleContext context) throws Exception {
 		frameworkId = UUID.fromString(context.getProperty(Constants.FRAMEWORK_UUID));
-		ModuleManager localRuntime = runtimes.get(frameworkId);
+		DianneRuntime localRuntime = runtimes.get(frameworkId);
 		if(localRuntime==null){
-			throw new Exception("There should at least be a local ModuleManager available");
+			throw new Exception("There should at least be a local DianneRuntime available");
 		}
 		this.context = context;
 	}
@@ -104,7 +104,7 @@ public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 				targetRuntime = runtimeId;
 			}
 			
-			ModuleManager runtime = runtimes.get(targetRuntime);
+			DianneRuntime runtime = runtimes.get(targetRuntime);
 			if(runtime==null){
 				undeployNeuralNetwork(nnId);
 				
@@ -138,7 +138,7 @@ public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 	private void undeployNeuralNetwork(UUID nnId){
 		// undeploy all modules with nnId
 		synchronized(runtimes){
-			for(ModuleManager runtime : runtimes.values()){
+			for(DianneRuntime runtime : runtimes.values()){
 				runtime.undeployModules(nnId);
 			}
 		}
@@ -173,7 +173,7 @@ public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 			nnis.put(nnId, nni);
 		}
 		
-		ModuleManager runtime = runtimes.get(runtimeId);
+		DianneRuntime runtime = runtimes.get(runtimeId);
 		if(runtime==null){
 			throw new InstantiationException("Failed to deploy modules to runtime "+runtimeId+": no such runtime");
 		}
@@ -214,7 +214,7 @@ public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 			nnIds.add(moduleInstance.nnId);
 			nnis.get(moduleInstance.nnId).modules.remove(moduleInstance.moduleId);
 			
-			ModuleManager runtime = runtimes.get(moduleInstance.runtimeId);
+			DianneRuntime runtime = runtimes.get(moduleInstance.runtimeId);
 			if(runtime!=null){
 				runtime.undeployModule(moduleInstance);
 			}
@@ -262,12 +262,12 @@ public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 
 	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
 			policy=ReferencePolicy.DYNAMIC)
-	public void addModuleManager(ModuleManager m, Map<String, Object> properties){
-		runtimes.put(m.getRuntimeId(), m);
+	public void addDianneRuntime(DianneRuntime r, Map<String, Object> properties){
+		runtimes.put(r.getRuntimeId(), r);
 	}
 	
-	public void removeModuleManager(ModuleManager m, Map<String, Object> properties){
-		runtimes.values().remove(m);
+	public void removeDianneRuntime(DianneRuntime r, Map<String, Object> properties){
+		runtimes.values().remove(r);
 	}
 
 	// use separte service tracker in order to have the actual service from the registry
@@ -308,7 +308,7 @@ public class DianneNeuralNetworkManager implements NeuralNetworkManager {
 			}
 		} else {
 			// create/update wrapper and register
-			ModuleManager localRuntime = runtimes.get(frameworkId);
+			DianneRuntime localRuntime = runtimes.get(frameworkId);
 			List<Module> modules = nni.modules.values().stream().map( m -> localRuntime.getModule(m.moduleId, nni.id)).collect(Collectors.toList());
 
 			NeuralNetworkWrapper nn = nns.get(nni.id);

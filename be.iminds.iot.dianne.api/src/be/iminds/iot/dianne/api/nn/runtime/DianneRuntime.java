@@ -9,17 +9,17 @@ import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleTypeDTO;
 
 /**
- * The ModuleManager is responsible for the correct deployment and configuration 
+ * The DianneRuntime is responsible for the correct deployment and configuration 
  * of individual Modules. It will call the right factory for creating module instances,
  * and correctly configure the next and previous of each Module.
  * 
  * @author tverbele
  *
  */
-public interface ModuleManager {
+public interface DianneRuntime {
 
 	/**
-	 * The unique identifier of this ModuleManager. Is usually the same as the OSGi framework UUID
+	 * The unique identifier of this runtime. Is usually the same as the OSGi framework UUID
 	 * 
 	 * @return the uuid of this DianneRuntime
 	 */
@@ -57,10 +57,10 @@ public interface ModuleManager {
 	List<ModuleInstanceDTO> getModules();
 	
 	/**
-	 * Get a list of supported module types that this ModuleManager can deploy. 
+	 * Get a list of supported module types that this runtime can deploy. 
 	 * 
 	 * This is the aggregated list of supported ModuleTypes that the ModuleFactories support
-	 * that this ModuleManager as access to.
+	 * that this runtime as access to.
 	 * 
 	 * @return list of supported module types
 	 */

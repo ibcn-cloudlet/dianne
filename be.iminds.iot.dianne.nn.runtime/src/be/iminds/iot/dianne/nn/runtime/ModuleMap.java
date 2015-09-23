@@ -1,4 +1,4 @@
-package be.iminds.iot.dianne.nn.runtime.impl;
+package be.iminds.iot.dianne.nn.runtime;
 
 import java.util.Collection;
 import java.util.HashMap;
