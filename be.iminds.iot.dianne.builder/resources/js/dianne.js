@@ -2,8 +2,11 @@
  * This script allows to create a NN structure by drag-and-drop using jsPlumb
  */
 
-// keep a map of neural network modules
+// keep a map of neural network modules, as well as name and id
 var nn = {};
+nn.name = undefined;
+nn.id = undefined;
+nn.modules = {};
 // keep a map of all learn blocks
 var learning = {};
 // keep a map of all run blocks
@@ -37,6 +40,9 @@ function setModus(m){
 		jsPlumb.hide($(this).attr('id'),true);
 		$(this).hide();
 	});
+	// remove all dialogs
+	$(".modal").remove();
+	
 	currentMode = m;
 	if(currentMode === "build"){
 		console.log("switch to build");
@@ -45,9 +51,15 @@ function setModus(m){
 		setupBuildToolbox();
 	} else if(currentMode === "deploy"){
 		console.log("switch to deploy");
+		if(nn.name===undefined && Object.keys(nn.modules).length > 0){
+			// NN should be saved before deploy
+			showSaveDialog();
+		} 
+			
 		$("#menu-deploy").addClass("active");
-
+	
 		setupDeployToolbox();
+		
 	} else if(currentMode === "learn"){
 		console.log("switch to learn");
 		$("#menu-learn").addClass("active");
@@ -69,8 +81,6 @@ function setModus(m){
 			$(this).show();
 		});
 	}
-	// remove all dialogs
-	$(".modal").remove();
 }
 
 /**
@@ -160,6 +170,7 @@ function setupRunToolbox(){
 			, "json");
 	
 	addToolboxItem('Canvas input','CanvasInput','Input','run');
+	addToolboxItem('URL input','URLInput','Input','run');
 	addToolboxItem('Output probabilities','ProbabilityOutput','Visualize','run');
 }
 
@@ -369,7 +380,7 @@ function addModule(moduleItem){
 	
 	// add to one of the module maps
 	if(mode==="build"){
-		nn[id] = module;
+		nn.modules[id] = module;
 	} else if(mode==="learn"){
 		learning[id] = module;
 	} else if(mode==="run"){
@@ -455,17 +466,17 @@ function removeModule(moduleItem){
 
 	// remove from modules
 	if(mode==="build"){
-		if(nn[id].next!==undefined){
-			$.each(nn[id].next, function( index, next ) {
+		if(nn.modules[id].next!==undefined){
+			$.each(nn.modules[id].next, function( index, next ) {
 				removePrevious(next, id);
 			});
 		}
-		if(nn[id].prev!==undefined){
-			$.each(nn[id].prev, function(index, prev){
+		if(nn.modules[id].prev!==undefined){
+			$.each(nn.modules[id].prev, function(index, prev){
 				removeNext(prev, id);
 			});
 		}
-		delete nn[id];
+		delete nn.modules[id];
 	} else if(mode==="learn"){
 		delete learning[id];
 	} else if(mode==="run"){
@@ -482,23 +493,25 @@ function removeModule(moduleItem){
 function addConnection(connection){
 	console.log("Add connection " + connection.sourceId + " -> " + connection.targetId);
 	// TODO support multiple next/prev
-	if(nn[connection.sourceId]===undefined){
+	if(nn.modules[connection.sourceId]===undefined){
 		if(learning[connection.sourceId]!==undefined){
 			learning[connection.sourceId].input = connection.targetId; 
 		} else {
 			running[connection.sourceId].input = connection.targetId;
-			$.post("/dianne/input", {action : "setinput",
-				inputId : connection.targetId,
-				input : running[connection.sourceId].name});
+			$.post("/dianne/input", {"action" : "setinput",
+				"nnId" : nn.id,
+				"inputId" : connection.targetId,
+				"input" : running[connection.sourceId].name});
 		}
-	} else if(nn[connection.targetId]===undefined){
+	} else if(nn.modules[connection.targetId]===undefined){
 		if(learning[connection.targetId]!==undefined){
 			learning[connection.targetId].output = connection.sourceId; 
 		} else {
 			running[connection.targetId].output = connection.sourceId;
-			$.post("/dianne/output", {action : "setoutput",
-				outputId : connection.sourceId,
-				output : running[connection.targetId].name});
+			$.post("/dianne/output", {"action" : "setoutput",
+				"nnId" : nn.id,
+				"outputId" : connection.sourceId,
+				"output" : running[connection.targetId].name});
 		}
 	} else {
 		addNext(connection.sourceId, connection.targetId);
@@ -513,23 +526,25 @@ function addConnection(connection){
 function removeConnection(connection){
 	console.log("Remove connection " + connection.sourceId + " -> " + connection.targetId);
 	// TODO support multiple next/prev
-	if(nn[connection.sourceId]===undefined){
+	if(nn.modules[connection.sourceId]===undefined){
 		if(learning[connection.sourceId]!==undefined){
 			delete learning[connection.sourceId].input; 
 		} else {
 			delete running[connection.sourceId].input; 
-			$.post("/dianne/input", {action : "unsetinput",
-				inputId : connection.targetId,
-				input : running[connection.sourceId].name});
+			$.post("/dianne/input", {"action" : "unsetinput",
+				"nnId" : nn.id,
+				"inputId" : connection.targetId,
+				"input" : running[connection.sourceId].name});
 		}
-	} else if(nn[connection.targetId]===undefined){
+	} else if(nn.modules[connection.targetId]===undefined){
 		if(learning[connection.targetId]!==undefined){
 			delete learning[connection.targetId].output; 
 		} else {
 			delete running[connection.targetId].output;
-			$.post("/dianne/output", {action : "unsetoutput",
-				outputId : connection.sourceId,
-				output : running[connection.targetId].name});
+			$.post("/dianne/output", {"action" : "unsetoutput",
+				"nnId" : nn.id,
+				"outputId" : connection.sourceId,
+				"output" : running[connection.targetId].name});
 		}
 	} else {
 		removeNext(connection.sourceId, connection.targetId);	
@@ -538,36 +553,36 @@ function removeConnection(connection){
 }
 
 function addNext(id, next){
-	if(nn[id].next === undefined){
-		nn[id].next = [next];
+	if(nn.modules[id].next === undefined){
+		nn.modules[id].next = [next];
 	} else { 
-		nn[id].next.push(next);
+		nn.modules[id].next.push(next);
 	}
 }
 
 function removeNext(id, next){
-	if(nn[id].next.length==1){
-		delete nn[id].next;
+	if(nn.modules[id].next.length==1){
+		delete nn.modules[id].next;
 	} else {
-		var i = nn[id].next.indexOf(next);
-		nn[id].next.splice(i, 1);
+		var i = nn.modules[id].next.indexOf(next);
+		nn.modules[id].next.splice(i, 1);
 	} 
 }
 
 function addPrevious(id, prev){
-	if(nn[id].prev === undefined){
-		nn[id].prev = [prev];
+	if(nn.modules[id].prev === undefined){
+		nn.modules[id].prev = [prev];
 	} else { 
-		nn[id].prev.push(prev);
+		nn.modules[id].prev.push(prev);
 	}
 }
 
 function removePrevious(id, prev){
-	if(nn[id].prev.length==1){	
-		delete nn[id].prev;
+	if(nn.modules[id].prev.length==1){	
+		delete nn.modules[id].prev;
 	} else {
-		var i = nn[id].prev.indexOf(prev);
-		nn[id].prev.splice(i, 1);
+		var i = nn.modules[id].prev.indexOf(prev);
+		nn.modules[id].prev.splice(i, 1);
 	}
 }
 
@@ -640,7 +655,7 @@ function checkRemoveConnection(connection){
 
 
 /*
- * Save and load 
+ * Save, load and recover 
  */
 
 function showSaveDialog(){
@@ -677,6 +692,8 @@ function showSaveDialog(){
 }
 
 function save(name){
+	nn.name = name;
+	
 	// save modules
 	var s = {};
 	s.modules = nn;
@@ -778,13 +795,14 @@ function showLoadDialog(){
 
 function load(name){
 	console.log("load");
+	nn.name = name;
 	
 	$.post("/dianne/load", {"action":"load", "name":name}, 
 			function( data ) {
 				// empty canvas?
 				$('#canvas').empty();
 		
-				nn = data.nn.modules;
+				nn.modules = data.nn.modules;
 				loadLayout(data.layout);
 		
 				$('#dialog-load').remove();
@@ -811,7 +829,7 @@ function loadLayout(layout){
 }
 
 function redrawElement(id, posX, posY){
-	var module = nn[id];
+	var module = nn.modules[id];
 
 	var moduleItem = renderTemplate("module",
 			{	
@@ -831,6 +849,66 @@ function redrawElement(id, posX, posY){
 	
 	setupModule(moduleItem, module.type, module.category);
 	jsPlumb.repaint(id);
+}
+
+
+function showRecoverDialog(){
+	var dialog = renderTemplate("dialog", {
+		id : "recover",
+		title : "Recover a neural network ",
+		submit: "Recover",
+		cancel: "Cancel"
+	}, $(document.body));
+	
+	dialog.find('.content').append("<p>Select a neural network to recover.</p>")
+	
+	renderTemplate("form-dropdown", 
+			{	
+				name: "Neural network: "
+			},
+			dialog.find('.form-items'));
+	$.post("/dianne/deployer", {"action" : "recover"}, 
+			function( data ) {
+				$.each(data, function(index, nn){
+					dialog.find('.options').append("<option value="+nn.id+">"+nn.name+" ("+nn.description+")</option>")
+				});
+			}
+			, "json");
+	
+	// submit button callback
+	dialog.find(".submit").click(function(e){
+		var id = $(this).closest('.modal').find('.options').val();
+		recover(id);
+	});
+	
+	// remove cancel button
+	dialog.find('.cancel').remove();
+	// remove module-modal specific stuff
+	dialog.removeClass("module-modal");
+	dialog.find('.module-dialog').removeClass("module-dialog");
+	// show dialog
+	dialog.modal('show');
+	
+}
+
+function recover(id){
+	console.log("recover "+id);
+	
+	$.post("/dianne/deployer", {"action":"recover", "id":id}, 
+			function( data ) {
+				// empty canvas?
+				$('#canvas').empty();
+				
+				nn.name = data.nn.name;
+				nn.id = data.id;
+				nn.modules = data.nn.modules;
+				loadLayout(data.layout);
+				deployment = data.deployment;
+				$.each( data.deployment, color );
+				$('#dialog-recover').remove();
+				console.log("Succesfully recovered");
+			}
+			, "json");
 }
 
 /*

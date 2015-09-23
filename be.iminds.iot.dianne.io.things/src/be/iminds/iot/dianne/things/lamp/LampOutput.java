@@ -1,6 +1,7 @@
 package be.iminds.iot.dianne.things.lamp;
 
 import java.awt.Color;
+import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -25,7 +26,7 @@ public class LampOutput implements ForwardListener {
 	}
 	
 	@Override
-	public void onForward(final Tensor output, final String... tags) {
+	public void onForward(final UUID moduleId, final Tensor output, final String... tags) {
 		if(output.size(0)==1){
 			// on/off of lamp
 			float v = output.get(0);

@@ -60,21 +60,23 @@ public class DianneOutput extends HttpServlet {
 			response.getWriter().write(outputs.toString());
 			response.getWriter().flush();
 		} else if("setoutput".equals(action)){
+			String nnId = request.getParameter("nnId");
 			String outputId = request.getParameter("outputId");
 			String output = request.getParameter("output");
 			// TODO only forward to applicable outputmgr?
 			synchronized(outputManagers){
 				for(OutputManager m : outputManagers){
-					m.setOutput(UUID.fromString(outputId), DianneDeployer.UI_NN_ID, output);
+					m.setOutput(UUID.fromString(outputId), UUID.fromString(nnId), output);
 				}
 			}
 		} else if("unsetoutput".equals(action)){
+			String nnId = request.getParameter("nnId");
 			String outputId = request.getParameter("outputId");
 			String output = request.getParameter("output");
 			// TODO only forward to applicable outputmgr?
 			synchronized(outputManagers){
 				for(OutputManager m : outputManagers){
-					m.unsetOutput(UUID.fromString(outputId), DianneDeployer.UI_NN_ID, output);
+					m.unsetOutput(UUID.fromString(outputId), UUID.fromString(nnId), output);
 				}
 			}
 		}

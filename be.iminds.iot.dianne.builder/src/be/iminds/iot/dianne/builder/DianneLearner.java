@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletException;
@@ -29,6 +30,8 @@ import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.Output;
 import be.iminds.iot.dianne.api.nn.module.Preprocessor;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
+import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
+import be.iminds.iot.dianne.api.nn.platform.NeuralNetworkManager;
 import be.iminds.iot.dianne.api.nn.train.Criterion;
 import be.iminds.iot.dianne.api.nn.train.Evaluation;
 import be.iminds.iot.dianne.api.nn.train.Evaluator;
@@ -59,9 +62,10 @@ public class DianneLearner extends HttpServlet {
 	
 	private static final JsonParser parser = new JsonParser();
 	
-	private Map<String, Module> modules = new HashMap<String, Module>();
 	private Map<String, Dataset> datasets = new HashMap<String, Dataset>();
+	private NeuralNetworkManager dianne;
 
+	
 	private AsyncContext sse = null;
 	
 	@Reference
@@ -74,20 +78,9 @@ public class DianneLearner extends HttpServlet {
 		this.repository = repo;
 	}
 	
-	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
-			policy=ReferencePolicy.DYNAMIC)
-	public void addModule(Module m){
-		this.modules.put(m.getId().toString(), m);
-	}
-	
-	public void removeModule(Module m){
-		Iterator<Entry<String, Module>> it = modules.entrySet().iterator();
-		while(it.hasNext()){
-			Entry<String, Module> e = it.next();
-			if(e.getValue()==m){
-				it.remove();
-			}
-		}
+	@Reference
+	public void setNeuralNetworkManager(NeuralNetworkManager m){
+		this.dianne = m;
 	}
 	
 	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
@@ -118,6 +111,17 @@ public class DianneLearner extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
+		String id = request.getParameter("id");
+		if(id == null){
+			System.out.println("No neural network instance specified");
+		}
+		UUID nnId = UUID.fromString(id);
+		NeuralNetwork nn = dianne.getNeuralNetwork(nnId);
+		if(nn==null){
+			System.out.println("Neural network instance "+id+" not available");
+			return;
+		}
+		
 		// TODO check if parameters exist and are correct!
 		String action = request.getParameter("action");
 		String target = request.getParameter("target");
@@ -151,16 +155,16 @@ public class DianneLearner extends HttpServlet {
 					
 					Iterator<JsonElement> it = moduleIds.iterator();
 					while(it.hasNext()){
-						String id = it.next().getAsString();
-						Module m = modules.get(id);
+						String moduleId = it.next().getAsString();
+						Module m = nn.getModules().get(UUID.fromString(moduleId));
 						if(m instanceof Input){
 							// only include the input module connected to the dataset
-							if(datasetConfig.get("input").getAsString().equals(id)){
+							if(datasetConfig.get("input").getAsString().equals(moduleId)){
 								input = (Input) m;
 							}
 						} else if(m instanceof Output){
 							// only include the output module connected to the trainer
-							if(processorConfig.get("output").getAsString().equals(id)){
+							if(processorConfig.get("output").getAsString().equals(moduleId)){
 								output = (Output) m;
 							}
 						} else {
@@ -190,8 +194,8 @@ public class DianneLearner extends HttpServlet {
 					Dataset testSet = createTestDataset(datasetConfig);
 					Evaluator e = createEvaluator(processorConfig);
 					
-					Input input = (Input) modules.get(datasetConfig.get("input").getAsString());
-					Output output = (Output) modules.get(processorConfig.get("output").getAsString());
+					Input input = (Input) nn.getModules().get(UUID.fromString(datasetConfig.get("input").getAsString()));
+					Output output = (Output) nn.getModules().get(UUID.fromString(processorConfig.get("output").getAsString()));
 					
 					// Evaluate
 					Evaluation result = e.evaluate(input, output, testSet);

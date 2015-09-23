@@ -76,7 +76,7 @@ function createNNModuleDialog(module, title, submit, cancel){
  * Create dialog for configuring module in build mode
  */
 function createBuildModuleDialog(id, moduleItem){
-	var module = nn[id];
+	var module = nn.modules[id];
 	
 	var dialog = createNNModuleDialog(module, "Configure module ", "Configure", "Delete");
 	
@@ -110,7 +110,7 @@ function createBuildModuleDialog(id, moduleItem){
 			var module;
 			$.each( data, function( i, item ) {
 				if(i === 0){
-					module = nn[item.value];
+					module = nn.modules[item.value];
 				} else {
 					module[item.name] = item.value;
 				}
@@ -141,7 +141,7 @@ function createBuildModuleDialog(id, moduleItem){
  * Create dialog for configuring module in deploy mode
  */
 function createDeployModuleDialog(id, moduleItem){
-	var module = nn[id];
+	var module = nn.modules[id];
 	
 	var dialog = createNNModuleDialog(module, "Deploy module ", "Deploy", "Undeploy");
 	
@@ -196,7 +196,7 @@ function createDeployModuleDialog(id, moduleItem){
 function createLearnModuleDialog(id, moduleItem){
 	var module = learning[id];
 	if(module===undefined){
-		module = nn[id];
+		module = nn.modules[id];
 		
 		if(module.trainable!==undefined){
 			var dialog = createNNModuleDialog(module, "Configure module", "Save", "");
@@ -219,9 +219,9 @@ function createLearnModuleDialog(id, moduleItem){
 				var id = $(this).closest(".modal").find(".module-id").val();
 				var train = $(this).closest(".modal").find(".trainable").is(':checked');
 				if(train){
-					nn[id].trainable = "true";
+					nn.modules[id].trainable = "true";
 				} else {
-					nn[id].trainable = "false";
+					nn.modules[id].trainable = "false";
 				}
 				
 				$(this).closest(".modal").modal('hide');
@@ -248,7 +248,7 @@ function createLearnModuleDialog(id, moduleItem){
 				var id = dialog.find(".module-id").val();
 
 				// weird to do this with run, but actually makes sense to set runtime mode in run servlet?
-				$.post("/dianne/run", {"mode":selected, "target":id}, 
+				$.post("/dianne/run", {"mode":selected, "target":id, "id": nn.id}, 
 						function( data ) {
 						}
 						, "json");
@@ -520,6 +520,17 @@ function createRunModuleDialog(id, moduleItem){
 		    cameraEventsource = undefined;
 		    $(this).closest(".modal").remove();
 		});
+	} else if(module.type==="URLInput"){
+		dialog = renderTemplate("dialog", {
+			id : id,
+			title : "Give an URL to forward",
+			submit: "",
+			cancel: "Delete"
+		}, $(document.body));
+		
+		dialog.find(".content").append("<img class='inputImage' width='224' height='224' style=\"margin-left:150px\"></img><br/><br/>");
+		dialog.find(".content").append("<input class='urlInput' size='50' value='http://'></input>");
+		dialog.find(".content").append("<button class='btn' onclick='forwardURL(this, \""+module.input+"\")' style=\"margin-left:10px\">Forward</button>");
 	} else {
 		dialog = createNNModuleDialog(module, "Configure run module", "", "Delete");
 	}
@@ -612,14 +623,25 @@ function forwardCanvasInput(input){
     }
 	sample.data = array;
 	
-	$.post("/dianne/run", {"forward":JSON.stringify(sample), "input":input}, 
+	$.post("/dianne/run", {"forward":JSON.stringify(sample), "input":input, "id":nn.id}, 
+			function( data ) {
+			}
+			, "json");
+}
+
+function forwardURL(btn, input){
+	var url = $(btn).closest(".modal").find(".urlInput").val();
+	
+	$(btn).closest(".modal").find(".inputImage").attr("src", url);
+	
+	$.post("/dianne/run", {"url":url, "input":input, "id":nn.id}, 
 			function( data ) {
 			}
 			, "json");
 }
 
 function sample(dataset, input){
-	$.post("/dianne/run", {"dataset":dataset,"input":input}, 
+	$.post("/dianne/run", {"dataset":dataset,"input":input, "id": nn.id}, 
 			function( sample ) {
 				render(sample, sampleCanvasCtx);
 			}
@@ -677,17 +699,13 @@ function render(tensor, canvasCtx){
  */
 
 function deployAll(){
-	$.post("/dianne/deployer", {"action":"deploy","modules":JSON.stringify(nn),"target":selectedTarget}, 
+	$.post("/dianne/deployer", {"action":"deploy",
+			"name":nn.name,
+			"modules":JSON.stringify(nn.modules),
+			"target":selectedTarget}, 
 			function( data ) {
-				$.each( data, function(id,target){
-					deployment[id] = target;
-					var c = deploymentColors[target]; 
-					if(c === undefined){
-						c = nextColor();
-						deploymentColors[target] = c;
-					}
-					$("#"+id).css('background-color', c);
-				});
+				nn.id = data.id;
+				$.each( data.deployment, color);
 			}
 			, "json");
 }
@@ -699,25 +717,20 @@ function undeployAll(){
 }
 
 function deploy(id, target){
-	$.post("/dianne/deployer", {"action":"deploy",
-		"module":JSON.stringify(nn[id]),
+	$.post("/dianne/deployer", {"action":"deploy", 
+		"id": nn.id,
+		"name":nn.name,
+		"module":JSON.stringify(nn.modules[id]),
 		"target": target}, 
 			function( data ) {
-				$.each( data, function(id,target){
-					deployment[id] = target;
-					var c = deploymentColors[target]; 
-					if(c === undefined){
-						c = nextColor();
-						deploymentColors[target] = c;
-					}
-					$("#"+id).css('background-color', c);
-				});
+				nn.id = data.id;
+				$.each( data.deployment, color );
 			}
 			, "json");
 }
 
 function undeploy(id){
-	$.post("/dianne/deployer", {"action":"undeploy","id":id}, 
+	$.post("/dianne/deployer", {"action":"undeploy","id":nn.id,"moduleId":id}, 
 			function( data ) {
 				deployment[id] = undefined;
 				$("#"+id).css('background-color', '');
@@ -725,6 +738,15 @@ function undeploy(id){
 			, "json");
 }
 
+function color(id, target){
+	deployment[id] = target;
+	var c = deploymentColors[target]; 
+	if(c === undefined){
+		c = nextColor();
+		deploymentColors[target] = c;
+	}
+	$("#"+id).css('background-color', c);
+}
 
 /*
  * Learning functions
@@ -744,7 +766,7 @@ function learn(id){
 	};
 	
 	var modules = [];
-	$.each(nn, function(id, module){
+	$.each(nn.modules, function(id, module){
 		if(module.category==="Input-Output" 
 			|| module.category==="Preprocessing"){
 			modules.push(id);
@@ -756,13 +778,14 @@ function learn(id){
 	});
 	
 	$.post("/dianne/learner", {"action":"learn",
+		"id": nn.id,
 		"config":JSON.stringify(learning),
 		"modules": JSON.stringify(modules),
 		"target": id}, 
 			function( data ) {
 				// only returns labels of output module
 				$.each(data, function(id, labels){
-					nn[id].labels = labels;
+					nn.modules[id].labels = labels;
 				});
 				eventsource.close();
 				eventsource = undefined;
@@ -783,6 +806,7 @@ function evaluate(id){
 		Highcharts.charts[index].series[0].setData(data, true, true, false);
 	}
 	$.post("/dianne/learner", {"action":"evaluate",
+		"id": nn.id,
 		"config":JSON.stringify(learning),
 		"target": id}, 
 			function( data ) {

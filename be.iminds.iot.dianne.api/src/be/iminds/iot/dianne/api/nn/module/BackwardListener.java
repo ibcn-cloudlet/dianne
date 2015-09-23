@@ -1,5 +1,7 @@
 package be.iminds.iot.dianne.api.nn.module;
 
+import java.util.UUID;
+
 import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
@@ -19,8 +21,9 @@ public interface BackwardListener {
 
 	/**
 	 * Called when a Module has performed a backward pass
+	 * @param moduleId the moduleId of the module whos backward was called
 	 * @param output a copy of the gradInput data
 	 * @param tags a copy of the tags provided
 	 */
-	void onBackward(final Tensor gradInput, final String... tags);
+	void onBackward(final UUID moduleId, final Tensor gradInput, final String... tags);
 }
