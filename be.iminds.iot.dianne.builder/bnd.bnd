@@ -13,7 +13,8 @@ Include-Resource: res=resources
 	be.iminds.iot.dianne.tensor.api;version=latest,\
 	be.iminds.iot.dianne.nn.train;version=latest,\
 	be.iminds.iot.dianne.nn.runtime;version=latest,\
-	be.iminds.iot.dianne.nn.util;version=latest
+	be.iminds.iot.dianne.nn.util;version=latest,\
+	be.iminds.iot.dianne.tensor.util;version=latest
 	
 -dsannotations: *
 Private-Package: \

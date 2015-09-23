@@ -1,7 +1,9 @@
 package be.iminds.iot.dianne.builder;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -11,6 +13,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
+import javax.imageio.ImageIO;
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -32,6 +35,7 @@ import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.platform.NeuralNetworkManager;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.util.ImageConverter;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -46,6 +50,7 @@ public class DianneRunner extends HttpServlet {
 	private BundleContext context;
 	
 	private TensorFactory factory;
+	private ImageConverter converter;
 	
 	private JsonParser parser = new JsonParser();
 	
@@ -68,6 +73,7 @@ public class DianneRunner extends HttpServlet {
 	@Reference
 	public void setTensorFactory(TensorFactory factory){
 		this.factory = factory;
+		this.converter = new ImageConverter(factory);
 	}
 	
 	@Reference
@@ -127,6 +133,26 @@ public class DianneRunner extends HttpServlet {
 				nn.forward(callback, UUID.fromString(inputId), t);
 			}
 			
+			
+		} else if(request.getParameter("url")!=null){
+			String url = request.getParameter("url");
+			String inputId = request.getParameter("input");
+			
+			Tensor t = null;
+			try {
+				URL u = new URL(url);
+				BufferedImage img = ImageIO.read(u);
+				t = converter.readFromImage(img);
+			} catch(Exception e){
+				System.out.println("Failed to read image from url "+url);
+				return;
+			}
+			
+			NeuralNetwork nn = dianne.getNeuralNetwork(nnId);
+			if(nn!=null){
+				nn.getOutputs().entrySet().stream().forEach(e -> labels.put(e.getKey(), e.getValue().getOutputLabels()));
+				nn.forward(callback, UUID.fromString(inputId), t);
+			}
 			
 		} else if(request.getParameter("mode")!=null){
 			String mode = request.getParameter("mode");

@@ -170,6 +170,7 @@ function setupRunToolbox(){
 			, "json");
 	
 	addToolboxItem('Canvas input','CanvasInput','Input','run');
+	addToolboxItem('URL input','URLInput','Input','run');
 	addToolboxItem('Output probabilities','ProbabilityOutput','Visualize','run');
 }
 

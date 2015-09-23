@@ -520,6 +520,17 @@ function createRunModuleDialog(id, moduleItem){
 		    cameraEventsource = undefined;
 		    $(this).closest(".modal").remove();
 		});
+	} else if(module.type==="URLInput"){
+		dialog = renderTemplate("dialog", {
+			id : id,
+			title : "Give an URL to forward",
+			submit: "",
+			cancel: "Delete"
+		}, $(document.body));
+		
+		dialog.find(".content").append("<img class='inputImage' width='224' height='224' style=\"margin-left:150px\"></img><br/><br/>");
+		dialog.find(".content").append("<input class='urlInput' size='50' value='http://'></input>");
+		dialog.find(".content").append("<button class='btn' onclick='forwardURL(this, \""+module.input+"\")' style=\"margin-left:10px\">Forward</button>");
 	} else {
 		dialog = createNNModuleDialog(module, "Configure run module", "", "Delete");
 	}
@@ -613,6 +624,17 @@ function forwardCanvasInput(input){
 	sample.data = array;
 	
 	$.post("/dianne/run", {"forward":JSON.stringify(sample), "input":input, "id":nn.id}, 
+			function( data ) {
+			}
+			, "json");
+}
+
+function forwardURL(btn, input){
+	var url = $(btn).closest(".modal").find(".urlInput").val();
+	
+	$(btn).closest(".modal").find(".inputImage").attr("src", url);
+	
+	$.post("/dianne/run", {"url":url, "input":input, "id":nn.id}, 
 			function( data ) {
 			}
 			, "json");

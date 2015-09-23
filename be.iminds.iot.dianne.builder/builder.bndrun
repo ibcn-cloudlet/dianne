@@ -52,7 +52,8 @@
 	javax.management.modelmbean,\
 	javax.management.remote,\
 	javax.security.auth,\
-	javax.security.cert
+	javax.security.cert,\
+	javax.imageio
 	
 -runproperties:\
 	org.osgi.service.http.port=8080,\
