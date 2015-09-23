@@ -6,9 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -16,16 +13,10 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
-import be.iminds.iot.dianne.api.nn.module.ForwardListener;
-import be.iminds.iot.dianne.api.nn.module.Input;
-import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.Module.Mode;
-import be.iminds.iot.dianne.api.nn.module.Output;
-import be.iminds.iot.dianne.api.nn.module.Trainable;
-import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
-import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
-import be.iminds.iot.dianne.api.nn.runtime.ModuleManager;
+import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
+import be.iminds.iot.dianne.api.nn.platform.NeuralNetworkManager;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.api.rl.Agent;
 import be.iminds.iot.dianne.api.rl.Environment;
@@ -36,24 +27,19 @@ import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component
-public class DeepRLAgent implements Agent, ForwardListener {
+public class DeepRLAgent implements Agent {
 
 	private TensorFactory factory;
-	private ModuleManager runtime;
 	private DianneRepository repository;
 	private Map<String, ExperiencePool> pools = new HashMap<String, ExperiencePool>();
 	private Map<String, Environment> envs = new HashMap<String, Environment>();
 	private Map<String, ActionStrategy> strategies = new HashMap<String, ActionStrategy>();
+	private NeuralNetworkManager dianne;
 
-	
-	private NeuralNetworkInstanceDTO nni;
-	private Input input;
-	private Output output;
+	private NeuralNetwork nn;
 	private ExperiencePool pool;
 	private Environment env;
 	
-	private Tensor nnOutput;
-
 	private Thread actingThread;
 	private volatile boolean acting;
 	private int syncInterval = 10000;
@@ -75,8 +61,8 @@ public class DeepRLAgent implements Agent, ForwardListener {
 	}
 	
 	@Reference
-	void setModuleManager(ModuleManager runtime){
-		this.runtime = runtime;
+	void setNeuralNetworkManager(NeuralNetworkManager nnm){
+		this.dianne = nnm;
 	}
 	
 	@Reference
@@ -170,20 +156,9 @@ public class DeepRLAgent implements Agent, ForwardListener {
 		
 		actionStrategy.configure(config);
 		
-		NeuralNetworkDTO nn = repository.loadNeuralNetwork(nnName);
-		
-		UUID nnId = UUID.randomUUID();
-		List<ModuleInstanceDTO> moduleInstances = nn.modules.stream().map(m -> runtime.deployModule(m, nnId)).collect(Collectors.toList());
-		nni = new NeuralNetworkInstanceDTO(nnId, nnName, moduleInstances);
-		
-		Supplier<Stream<Module>> modules = () -> nni.modules.stream().map(mi -> runtime.getModule(mi.moduleId, mi.nnId));
-		input = (Input) modules.get().filter(m -> m instanceof Input).findAny().get();
-		output = (Output) modules.get().filter(m -> m instanceof Output).findAny().get();
-		
-		input.setMode(EnumSet.of(Mode.BLOCKING));
-		output.addForwardListener(this);
-		
-		loadParameters();
+		NeuralNetworkInstanceDTO nni = dianne.deployNeuralNetwork(nnName, "Deep RL Agent NN");
+		nn = dianne.getNeuralNetwork(nni.id);
+		nn.getInput().setMode(EnumSet.of(Mode.BLOCKING));
 		
 		env = envs.get(environment);
 		pool = pools.get(experiencePool);
@@ -210,31 +185,17 @@ public class DeepRLAgent implements Agent, ForwardListener {
 	}
 	
 	private void loadParameters(){
-		Map<UUID, Tensor> parameters = repository.loadParameters(nni.name, tag);
-		parameters.entrySet().stream().forEach(e -> {
-			Trainable module = (Trainable) runtime.getModule(e.getKey(), nni.id);
-			module.setParameters(e.getValue());
-		});
+		try {
+			Map<UUID, Tensor> parameters = repository.loadParameters(nn.getTrainables().keySet(), tag);
+			nn.setParameters(parameters);
+		} catch(Exception e){
+			System.out.println("Error could not load parameters...");
+		}
 	}
 	
 	private Tensor selectActionFromObservation(Tensor state, long i) {
-		synchronized(this) {
-			input.input(state);
-			
-			try {
-				wait();
-			} catch (InterruptedException e) {}
-		}
-		
-		return actionStrategy.selectActionFromOutput(nnOutput, i);
-	}
-	
-	@Override
-	public void onForward(Tensor output, String... tags) {
-		synchronized(this) {
-			nnOutput = output;
-			notify();
-		}
+		Tensor out = nn.forward(state);
+		return actionStrategy.selectActionFromOutput(out, i);
 	}
 	
 	private class AgentRunnable implements Runnable {

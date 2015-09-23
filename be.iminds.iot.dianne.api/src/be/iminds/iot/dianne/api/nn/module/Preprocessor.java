@@ -12,7 +12,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
  * @author tverbele
  *
  */
-public interface Preprocessor {
+public interface Preprocessor extends Module {
 
 	/**
 	 * Generate the parameters using the given dataset

@@ -17,6 +17,7 @@ import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.Output;
+import be.iminds.iot.dianne.api.nn.module.Preprocessor;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
@@ -31,6 +32,7 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	private Map<UUID, Module> modules;
 	private Map<UUID, Input> inputs;
 	private Map<UUID, Output> outputs;
+	private Map<UUID, Preprocessor> preprocessors;
 	private Map<UUID, Trainable> trainables;
 	
 	private final BundleContext context;
@@ -53,6 +55,7 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		this.modules = modules.stream().collect(Collectors.toMap(m -> m.getId(), m -> m));
 		this.inputs = modules.stream().filter(m -> m instanceof Input).map(i -> (Input)i).collect(Collectors.toMap(i -> i.getId(), i -> i));
 		this.outputs = modules.stream().filter(m -> m instanceof Output).map(o -> (Output)o).collect(Collectors.toMap(o -> o.getId(), o -> o));
+		this.preprocessors = modules.stream().filter(m -> m instanceof Preprocessor).map(p -> (Preprocessor)p).collect(Collectors.toMap(p -> p.getId(), p -> p));
 		this.trainables = modules.stream().filter(m -> m instanceof Trainable).map(t -> (Trainable)t).collect(Collectors.toMap(t -> t.getId(), t -> t));
 	}
 	
@@ -292,6 +295,11 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		return trainables;
 	}
 
+	@Override
+	public Map<UUID, Preprocessor> getPreprocessors() {
+		return preprocessors;
+	}
+	
 	@Override
 	public Map<UUID, Module> getModules() {
 		return modules;

@@ -8,6 +8,7 @@ import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.Output;
+import be.iminds.iot.dianne.api.nn.module.Preprocessor;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -128,6 +129,12 @@ public interface NeuralNetwork {
 	 * @return
 	 */
 	Map<UUID, Trainable> getTrainables();
+	
+	/**
+	 * Get Preprocessor modules for this neural network instance
+	 * @return
+	 */
+	Map<UUID, Preprocessor> getPreprocessors();
 	
 	/**
 	 * Get all modules for this neural network instance

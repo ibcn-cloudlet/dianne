@@ -19,7 +19,7 @@ public class RegularizationProcessor extends AbstractProcessor {
 	private Map<UUID, Tensor> previousDelta = new HashMap<UUID, Tensor>();
 	
 	public RegularizationProcessor( AbstractProcessor p) {
-		super(p.factory, p.input, p.output, p.toTrain, p.dataset, p.config, p.logger);
+		super(p.factory, p.nn, p.dataset, p.config, p.logger);
 		decorated = p;
 		
 		String r = config.get("regularization");
@@ -37,7 +37,7 @@ public class RegularizationProcessor extends AbstractProcessor {
 		float error = decorated.processNext();
 		
 		// subtract previous parameters
-		toTrain.entrySet().stream().forEach(e -> {
+		nn.getTrainables().entrySet().stream().forEach(e -> {
 			Tensor params = e.getValue().getParameters();
 			Tensor deltaParams = e.getValue().getDeltaParameters();
 			factory.getTensorMath().sub(deltaParams, deltaParams, regularization, params);

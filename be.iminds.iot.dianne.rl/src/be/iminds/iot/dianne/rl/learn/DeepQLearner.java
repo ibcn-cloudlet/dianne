@@ -1,6 +1,7 @@
 package be.iminds.iot.dianne.rl.learn;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,9 +23,12 @@ import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.Output;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
+import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
+import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
+import be.iminds.iot.dianne.api.nn.platform.NeuralNetworkManager;
 import be.iminds.iot.dianne.api.nn.runtime.ModuleManager;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.api.rl.ExperiencePool;
@@ -42,19 +46,12 @@ public class DeepQLearner implements Learner {
 	private String[] logLabels = new String[]{"minibatch time (ms)"};
 	
 	private TensorFactory factory;
-	private ModuleManager runtime;
+	private NeuralNetworkManager dianne;
 	private DianneRepository repository;
 	private Map<String, ExperiencePool> pools = new HashMap<String, ExperiencePool>();
 
-	private NeuralNetworkInstanceDTO nni;
-	private Input input;
-	private Output output;
-	private Map<UUID, Trainable> toTrain;
-
-	private NeuralNetworkInstanceDTO targetNni;
-	private Input targetInput;
-	private Output targetOutput;
-	private Map<UUID, Trainable> targetToTrain;
+	private NeuralNetwork nn;
+	private NeuralNetwork target;
 
 	private Map<UUID, Tensor> previousParameters;
 	
@@ -76,8 +73,8 @@ public class DeepQLearner implements Learner {
 	}
 
 	@Reference
-	void setModuleManager(ModuleManager runtime) {
-		this.runtime = runtime;
+	void setNeuralNetworkManager(NeuralNetworkManager nnm) {
+		this.dianne = nnm;
 	}
 
 	@Reference
@@ -136,30 +133,20 @@ public class DeepQLearner implements Learner {
 		System.out.println("---");
 		
 
-		NeuralNetworkDTO nn = repository.loadNeuralNetwork(nnName);
+		NeuralNetworkInstanceDTO nni = dianne.deployNeuralNetwork(nnName, "Deep Q Learning NN instance");
+		nn = dianne.getNeuralNetwork(nni.id);
+		nn.getInput().setMode(EnumSet.of(Mode.BLOCKING));
 
-		UUID nnId = UUID.randomUUID();
-		List<ModuleInstanceDTO> moduleInstances = nn.modules.stream().map(m -> runtime.deployModule(m, nnId)).collect(Collectors.toList());
-		nni = new NeuralNetworkInstanceDTO(nnId, nnName, moduleInstances);
+		
+		NeuralNetworkInstanceDTO targeti = dianne.deployNeuralNetwork(nnName, "Deep Q Learning Target NN instance");
+		target = dianne.getNeuralNetwork(targeti.id);
+		target.getInput().setMode(EnumSet.of(Mode.BLOCKING));
 
-		UUID targetNnId = UUID.randomUUID();
-		List<ModuleInstanceDTO> targetModuleInstances = nn.modules.stream().map(m -> runtime.deployModule(m, targetNnId)).collect(Collectors.toList());
-		targetNni = new NeuralNetworkInstanceDTO(targetNnId, nnName, targetModuleInstances);
-
-		Supplier<Stream<Module>> modules = () -> nni.modules.stream().map(mi -> runtime.getModule(mi.moduleId, mi.nnId));
-		input = (Input) modules.get().filter(m -> m instanceof Input).findAny().get();
-		output = (Output) modules.get().filter(m -> m instanceof Output).findAny().get();
-		toTrain = modules.get().filter(m -> m instanceof Trainable).collect(Collectors.toMap(m -> m.getId(), m -> (Trainable) m));
-
-		Supplier<Stream<Module>> targetModules = () -> targetNni.modules.stream().map(mi -> runtime.getModule(mi.moduleId, mi.nnId));
-		targetInput = (Input) targetModules.get().filter(m -> m instanceof Input).findAny().get();
-		targetOutput = (Output) targetModules.get().filter(m -> m instanceof Output).findAny().get();
-		targetToTrain = targetModules.get().filter(m -> m instanceof Trainable).collect(Collectors.toMap(m -> m.getId(), m -> (Trainable) m));
 		
 		pool = pools.get(experiencePool);
 
 		// create a Processor from config
-		AbstractProcessor p = new TimeDifferenceProcessor(factory, input, output, toTrain, targetInput, targetOutput, pool, config, logger);
+		AbstractProcessor p = new TimeDifferenceProcessor(factory, nn,target, pool, config, logger);
 		if(config.get("regularization")!=null){
 			p = new RegularizationProcessor(p);
 		}
@@ -185,15 +172,12 @@ public class DeepQLearner implements Learner {
 		}
 	}
 
-	private void loadParameters(Map<UUID, Trainable>... modules) {
+	private void loadParameters(NeuralNetwork... nns) {
 		try {
-			List<UUID> uuids = new ArrayList<UUID>(toTrain.keySet());
-			Map<UUID, Tensor> parameters = repository.loadParameters(uuids, tag);
-			parameters.entrySet().stream().forEach(e -> {
-				for(Map<UUID, Trainable> m : modules){
-					m.get(e.getKey()).setParameters(e.getValue());
-				}
-			});
+			Map<UUID, Tensor> parameters = repository.loadParameters(nn.getTrainables().keySet(), tag);
+			for(NeuralNetwork nn : nns){
+				nn.setParameters(parameters);
+			}
 			previousParameters = parameters;
 		} catch (Exception ex) {
 			resetParameters();
@@ -206,29 +190,28 @@ public class DeepQLearner implements Learner {
 			resetParameters();
 		} else {
 			// load previous parameters
-			loadParameters(toTrain, targetToTrain);
+			loadParameters(nn, target);
 		}
 	}
 
 	private void resetParameters(){
-		toTrain.entrySet().stream().forEach(e -> e.getValue().reset());
+		nn.getTrainables().entrySet().stream().forEach(e -> e.getValue().reset());
 		
 		// collect parameters
-		Map<UUID, Tensor> parameters = toTrain.entrySet().stream()
-				.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().getParameters()));
+		Map<UUID, Tensor> parameters = nn.getParameters();
 		repository.storeParameters(parameters, tag);
 		
 		// copy to target
-		toTrain.entrySet().stream().forEach(e -> targetToTrain.get(e.getKey()).setParameters(e.getValue().getParameters()));
+		target.setParameters(nn.getParameters());
 		
 		// copy to previousParameters
-		previousParameters =  toTrain.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().getParameters().copyInto(null)));
+		previousParameters =  nn.getParameters().entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().copyInto(null)));
 	}
 	
 	private void publishDeltaParameters() {
-		Map<UUID, Tensor> deltaParameters = toTrain.entrySet().stream()
+		Map<UUID, Tensor> deltaParameters = nn.getParameters().entrySet().stream()
 				.collect(Collectors.toMap(e -> e.getKey(), e -> factory.getTensorMath().sub(null,
-						e.getValue().getParameters(), previousParameters.get(e.getKey()))));
+						e.getValue(), previousParameters.get(e.getKey()))));
 
 		repository.accParameters(deltaParameters, tag);
 		
@@ -258,7 +241,7 @@ public class DeepQLearner implements Learner {
 			System.out.println("Start learning...");
 			
 			for (long i = 1; learning; i++) {
-				toTrain.values().stream().forEach(Trainable::zeroDeltaParameters);
+				nn.getTrainables().values().stream().forEach(Trainable::zeroDeltaParameters);
 				
 				pool.lock();
 				try {
@@ -279,14 +262,14 @@ public class DeepQLearner implements Learner {
 					timestamp = t;
 				}
 
-				toTrain.values().stream().forEach(Trainable::updateParameters);
+				nn.getTrainables().values().stream().forEach(Trainable::updateParameters);
 
 				if (targetInterval > 0 && i % targetInterval == 0) {
 					publishDeltaParameters();
-					loadParameters(toTrain, targetToTrain);
+					loadParameters(nn, target);
 				} else if(syncInterval > 0 && i % syncInterval == 0){
 					publishDeltaParameters();
-					loadParameters(toTrain);
+					loadParameters(nn);
 				}
 			}
 
