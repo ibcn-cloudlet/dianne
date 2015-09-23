@@ -24,12 +24,12 @@ import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
-import be.iminds.iot.dianne.api.nn.platform.NeuralNetworkManager;
+import be.iminds.iot.dianne.api.nn.platform.Dianne;
 import be.iminds.iot.dianne.api.nn.runtime.DianneRuntime;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 
 @Component(property={"aiolos.export=false"})
-public class DianneNeuralNetworkManager implements NeuralNetworkManager {
+public class DianneImpl implements Dianne {
 
 	private DianneRepository repository;
 	private Map<UUID, DianneRuntime> runtimes = Collections.synchronizedMap(new HashMap<UUID, DianneRuntime>());

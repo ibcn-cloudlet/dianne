@@ -31,7 +31,7 @@ import be.iminds.iot.dianne.api.nn.module.Output;
 import be.iminds.iot.dianne.api.nn.module.Preprocessor;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
-import be.iminds.iot.dianne.api.nn.platform.NeuralNetworkManager;
+import be.iminds.iot.dianne.api.nn.platform.Dianne;
 import be.iminds.iot.dianne.api.nn.train.Criterion;
 import be.iminds.iot.dianne.api.nn.train.Evaluation;
 import be.iminds.iot.dianne.api.nn.train.Evaluator;
@@ -63,7 +63,7 @@ public class DianneLearner extends HttpServlet {
 	private static final JsonParser parser = new JsonParser();
 	
 	private Map<String, Dataset> datasets = new HashMap<String, Dataset>();
-	private NeuralNetworkManager dianne;
+	private Dianne dianne;
 
 	
 	private AsyncContext sse = null;
@@ -79,8 +79,8 @@ public class DianneLearner extends HttpServlet {
 	}
 	
 	@Reference
-	public void setNeuralNetworkManager(NeuralNetworkManager m){
-		this.dianne = m;
+	public void setDianne(Dianne d){
+		dianne = d;
 	}
 	
 	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 

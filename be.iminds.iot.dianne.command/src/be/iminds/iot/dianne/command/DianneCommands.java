@@ -27,7 +27,7 @@ import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
-import be.iminds.iot.dianne.api.nn.platform.NeuralNetworkManager;
+import be.iminds.iot.dianne.api.nn.platform.Dianne;
 import be.iminds.iot.dianne.api.nn.runtime.DianneRuntime;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.api.repository.RepositoryListener;
@@ -57,7 +57,7 @@ public class DianneCommands {
 	
 	Map<String, Dataset> datasets = Collections.synchronizedMap(new HashMap<String, Dataset>());
 	DianneRepository repository;
-	NeuralNetworkManager dianne;
+	Dianne dianne;
 	
 	// State
 	Map<UUID, ServiceRegistration> repoListeners = new HashMap<UUID, ServiceRegistration>();
@@ -334,8 +334,8 @@ public class DianneCommands {
 	}
 	
 	@Reference
-	public void setNeuralNetworkManager(NeuralNetworkManager nnMgr){
-		this.dianne = nnMgr;
+	public void setDianne(Dianne d){
+		dianne = d;
 	}
 
 	@Reference

@@ -16,7 +16,7 @@ import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.learn.Processor;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
-import be.iminds.iot.dianne.api.nn.platform.NeuralNetworkManager;
+import be.iminds.iot.dianne.api.nn.platform.Dianne;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.nn.learn.processors.AbstractProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.MomentumProcessor;
@@ -32,7 +32,7 @@ public class SimpleLearner implements Learner {
 	
 	protected TensorFactory factory;
 	protected DianneRepository repository;
-	protected NeuralNetworkManager dianne;
+	protected Dianne dianne;
 	protected Map<String, Dataset> datasets = new HashMap<String, Dataset>();
 	
 	protected Thread learnerThread = null;
@@ -182,8 +182,8 @@ public class SimpleLearner implements Learner {
 	}
 	
 	@Reference
-	void setNeuralNetworkManager(NeuralNetworkManager nnm){
-		this.dianne = nnm;
+	void setDianne(Dianne d){
+		dianne = d;
 	}
 	
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 

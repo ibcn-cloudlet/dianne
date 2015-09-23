@@ -9,13 +9,13 @@ import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 
 /**
- * The NeuralNetworkManager is a high-level management entity to control the deployment
+ * The Dianne interface is the main entry point to control the deployment
  * of (distributed) neural network instances.
  * 
  * @author tverbele
  *
  */
-public interface NeuralNetworkManager {
+public interface Dianne {
 
 	/**
 	 * Deploy an instance of a neural network on the local runtime
@@ -109,14 +109,14 @@ public interface NeuralNetworkManager {
 	 * Get a list of known neural networks
 	 * 
 	 * This is the aggregated list of all neural networks available 
-	 * in the DianneRepositories this NeuralNetworkManager has access to.
+	 * in the DianneRepositories.
 	 * 
-	 * @return the list of names that this NeuralNetworkManager can deploy
+	 * @return the list of names that can be deployed
 	 */
 	List<String> getSupportedNeuralNetworks();
 	
 	/**
-	 * A list of available Dianne runtimes this NeuralNetworkManager can deploy modules to
+	 * A list of available Dianne runtimes to which modules can be deployed to
 	 * 
 	 * @return list of available Dianne runtimes
 	 */

@@ -16,7 +16,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
-import be.iminds.iot.dianne.api.nn.platform.NeuralNetworkManager;
+import be.iminds.iot.dianne.api.nn.platform.Dianne;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.api.rl.Agent;
 import be.iminds.iot.dianne.api.rl.Environment;
@@ -34,7 +34,7 @@ public class DeepRLAgent implements Agent {
 	private Map<String, ExperiencePool> pools = new HashMap<String, ExperiencePool>();
 	private Map<String, Environment> envs = new HashMap<String, Environment>();
 	private Map<String, ActionStrategy> strategies = new HashMap<String, ActionStrategy>();
-	private NeuralNetworkManager dianne;
+	private Dianne dianne;
 
 	private NeuralNetwork nn;
 	private ExperiencePool pool;
@@ -61,8 +61,8 @@ public class DeepRLAgent implements Agent {
 	}
 	
 	@Reference
-	void setNeuralNetworkManager(NeuralNetworkManager nnm){
-		this.dianne = nnm;
+	void setDianne(Dianne d){
+		dianne = d;
 	}
 	
 	@Reference

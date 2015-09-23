@@ -32,7 +32,7 @@ import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
-import be.iminds.iot.dianne.api.nn.platform.NeuralNetworkManager;
+import be.iminds.iot.dianne.api.nn.platform.Dianne;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.dianne.tensor.util.ImageConverter;
@@ -57,7 +57,7 @@ public class DianneRunner extends HttpServlet {
 	// also keep datasets to already forward random sample while sending sample to the ui
 	private Random rand = new Random(System.currentTimeMillis());
 	private Map<String, Dataset> datasets = Collections.synchronizedMap(new HashMap<String, Dataset>());
-	private NeuralNetworkManager dianne;
+	private Dianne dianne;
 	// keep all labels for the UI... 
 	// TODO try to fetch labels on the fly?
 	private Map<UUID, String[]> labels = Collections.synchronizedMap(new HashMap<UUID, String[]>());
@@ -77,8 +77,8 @@ public class DianneRunner extends HttpServlet {
 	}
 	
 	@Reference
-	public void setNeuralNetworkManager(NeuralNetworkManager m){
-		this.dianne = m;
+	public void setDianne(Dianne d){
+		dianne = d;
 	}
 	
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 

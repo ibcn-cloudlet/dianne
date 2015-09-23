@@ -24,7 +24,7 @@ import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
-import be.iminds.iot.dianne.api.nn.platform.NeuralNetworkManager;
+import be.iminds.iot.dianne.api.nn.platform.Dianne;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.nn.util.DianneJSONConverter;
 
@@ -45,7 +45,7 @@ public class DianneDeployer extends HttpServlet {
 	private Map<UUID, String> runtimeNames = new HashMap<UUID, String>();
 
 	private DianneRepository repository;
-	private NeuralNetworkManager dianne;
+	private Dianne dianne;
 	
 	@Activate
 	public void activate(BundleContext context){
@@ -66,8 +66,8 @@ public class DianneDeployer extends HttpServlet {
 	}
 	
 	@Reference
-	public void setNeuralNetworkManager(NeuralNetworkManager m){
-		dianne = m;
+	public void setDianne(Dianne d){
+		dianne = d;
 	}
 
 	@Reference

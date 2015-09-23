@@ -19,7 +19,7 @@ import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
-import be.iminds.iot.dianne.api.nn.platform.NeuralNetworkManager;
+import be.iminds.iot.dianne.api.nn.platform.Dianne;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.api.rl.ExperiencePool;
 import be.iminds.iot.dianne.nn.learn.processors.AbstractProcessor;
@@ -36,7 +36,7 @@ public class DeepQLearner implements Learner {
 	private String[] logLabels = new String[]{"minibatch time (ms)"};
 	
 	private TensorFactory factory;
-	private NeuralNetworkManager dianne;
+	private Dianne dianne;
 	private DianneRepository repository;
 	private Map<String, ExperiencePool> pools = new HashMap<String, ExperiencePool>();
 
@@ -63,8 +63,8 @@ public class DeepQLearner implements Learner {
 	}
 
 	@Reference
-	void setNeuralNetworkManager(NeuralNetworkManager nnm) {
-		this.dianne = nnm;
+	void setDianne(Dianne d){
+		dianne = d;
 	}
 
 	@Reference
