@@ -18,7 +18,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.io.OutputDescription;
-import be.iminds.iot.dianne.api.io.OutputManager;
+import be.iminds.iot.dianne.api.io.DianneOutputs;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.things.api.Thing;
@@ -26,7 +26,7 @@ import be.iminds.iot.things.api.lamp.Lamp;
 
 
 @Component(immediate=true)
-public class LampOutputManager implements OutputManager {
+public class LampOutputs implements DianneOutputs {
 
 	private BundleContext context;
 	

@@ -18,7 +18,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.io.InputDescription;
-import be.iminds.iot.dianne.api.io.InputManager;
+import be.iminds.iot.dianne.api.io.DianneInputs;
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.things.api.Thing;
@@ -26,7 +26,7 @@ import be.iminds.iot.things.api.camera.Camera;
 import be.iminds.iot.things.api.camera.CameraListener;
 
 @Component(immediate=true)
-public class CameraInputManager implements InputManager {
+public class CameraInputs implements DianneInputs {
 
 	private BundleContext context;
 	

@@ -17,7 +17,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.io.OutputDescription;
-import be.iminds.iot.dianne.api.io.OutputManager;
+import be.iminds.iot.dianne.api.io.DianneOutputs;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -28,16 +28,16 @@ import com.google.gson.JsonPrimitive;
 	immediate = true)
 public class DianneOutput extends HttpServlet {
 	
-	private List<OutputManager> outputManagers = Collections.synchronizedList(new ArrayList<OutputManager>());
+	private List<DianneOutputs> outputs = Collections.synchronizedList(new ArrayList<DianneOutputs>());
 	
 	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
 			policy=ReferencePolicy.DYNAMIC)
-	public void addOutputManager(OutputManager mgr){
-		this.outputManagers.add(mgr);
+	public void addOutputs(DianneOutputs mgr){
+		this.outputs.add(mgr);
 	}
 	
-	public void removeOutputManager(OutputManager mgr){
-		this.outputManagers.remove(mgr);
+	public void removeOutputs(DianneOutputs mgr){
+		this.outputs.remove(mgr);
 	}
 	
 	@Override
@@ -46,27 +46,27 @@ public class DianneOutput extends HttpServlet {
 
 		String action = request.getParameter("action");
 		if("available-outputs".equals(action)){
-			JsonArray outputs = new JsonArray();
-			synchronized(outputManagers){
-				for(OutputManager m : outputManagers){
-					for(OutputDescription output : m.getAvailableOutputs()){
-						JsonObject o = new JsonObject();
-						o.add("name", new JsonPrimitive(output.getName()));
-						o.add("type", new JsonPrimitive(output.getType()));
-						outputs.add(o);
+			JsonArray availableOutputs = new JsonArray();
+			synchronized(outputs){
+				for(DianneOutputs o : outputs){
+					for(OutputDescription output : o.getAvailableOutputs()){
+						JsonObject ob = new JsonObject();
+						ob.add("name", new JsonPrimitive(output.getName()));
+						ob.add("type", new JsonPrimitive(output.getType()));
+						availableOutputs.add(ob);
 					}
 				}
 			}
-			response.getWriter().write(outputs.toString());
+			response.getWriter().write(availableOutputs.toString());
 			response.getWriter().flush();
 		} else if("setoutput".equals(action)){
 			String nnId = request.getParameter("nnId");
 			String outputId = request.getParameter("outputId");
 			String output = request.getParameter("output");
 			// TODO only forward to applicable outputmgr?
-			synchronized(outputManagers){
-				for(OutputManager m : outputManagers){
-					m.setOutput(UUID.fromString(outputId), UUID.fromString(nnId), output);
+			synchronized(outputs){
+				for(DianneOutputs o : outputs){
+					o.setOutput(UUID.fromString(outputId), UUID.fromString(nnId), output);
 				}
 			}
 		} else if("unsetoutput".equals(action)){
@@ -74,9 +74,9 @@ public class DianneOutput extends HttpServlet {
 			String outputId = request.getParameter("outputId");
 			String output = request.getParameter("output");
 			// TODO only forward to applicable outputmgr?
-			synchronized(outputManagers){
-				for(OutputManager m : outputManagers){
-					m.unsetOutput(UUID.fromString(outputId), UUID.fromString(nnId), output);
+			synchronized(outputs){
+				for(DianneOutputs o : outputs){
+					o.unsetOutput(UUID.fromString(outputId), UUID.fromString(nnId), output);
 				}
 			}
 		}

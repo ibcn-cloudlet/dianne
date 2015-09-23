@@ -4,13 +4,13 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * The OutputManager provides an API to send output from neural network
+ * The DianneOutputs interface provides an API to send output from neural network
  * Output modules to real things (devices) that can actuate upon this.
  * 
  * @author tverbele
  *
  */
-public interface OutputManager {
+public interface DianneOutputs {
 	
 	/**
 	 * List the available things that can act as output

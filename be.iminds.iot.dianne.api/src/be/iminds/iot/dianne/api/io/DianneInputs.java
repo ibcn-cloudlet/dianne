@@ -4,13 +4,13 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * The InputManager provides an API to couple real inputs from things 
+ * The DianneInputs interface provides an API to couple real inputs from things 
  * (devices) to actual neural network Input modules.
  * 
  * @author tverbele
  *
  */
-public interface InputManager {
+public interface DianneInputs {
 
 	/**
 	 * List the available things that can act as input

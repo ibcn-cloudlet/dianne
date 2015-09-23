@@ -27,7 +27,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.io.InputDescription;
-import be.iminds.iot.dianne.api.io.InputManager;
+import be.iminds.iot.dianne.api.io.DianneInputs;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.tensor.Tensor;
 
@@ -41,7 +41,7 @@ import com.google.gson.JsonPrimitive;
 	immediate = true)
 public class DianneInput extends HttpServlet {
 	
-	private List<InputManager> inputManagers = Collections.synchronizedList(new ArrayList<InputManager>());
+	private List<DianneInputs> inputs = Collections.synchronizedList(new ArrayList<DianneInputs>());
 
 	// Send event to UI when new input sample arrived
 	private AsyncContext sse = null;
@@ -57,12 +57,12 @@ public class DianneInput extends HttpServlet {
 	
 	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
 			policy=ReferencePolicy.DYNAMIC)
-	public void addInputManager(InputManager mgr){
-		this.inputManagers.add(mgr);
+	public void addInputs(DianneInputs mgr){
+		this.inputs.add(mgr);
 	}
 	
-	public void removeInputManager(InputManager mgr){
-		this.inputManagers.remove(mgr);
+	public void removeInputs(DianneInputs mgr){
+		this.inputs.remove(mgr);
 	}
 	
 	@Override
@@ -84,27 +84,27 @@ public class DianneInput extends HttpServlet {
 
 		String action = request.getParameter("action");
 		if("available-inputs".equals(action)){
-			JsonArray inputs = new JsonArray();
-			synchronized(inputManagers){
-				for(InputManager m : inputManagers){
-					for(InputDescription input : m.getAvailableInputs()){
+			JsonArray availableInputs = new JsonArray();
+			synchronized(inputs){
+				for(DianneInputs i : inputs){
+					for(InputDescription input : i.getAvailableInputs()){
 						JsonObject o = new JsonObject();
 						o.add("name", new JsonPrimitive(input.getName()));
 						o.add("type", new JsonPrimitive(input.getType()));
-						inputs.add(o);
+						availableInputs.add(o);
 					}
 				}
 			}
-			response.getWriter().write(inputs.toString());
+			response.getWriter().write(availableInputs.toString());
 			response.getWriter().flush();
 		} else if("setinput".equals(action)){
 			String nnId = request.getParameter("nnId");
 			String inputId = request.getParameter("inputId");
 			String input = request.getParameter("input");
-			// TODO only forward to applicable inputmgr?
-			synchronized(inputManagers){
-				for(InputManager m : inputManagers){
-					m.setInput(UUID.fromString(inputId), UUID.fromString(nnId), input);
+
+			synchronized(inputs){
+				for(DianneInputs i : inputs){
+					i.setInput(UUID.fromString(inputId), UUID.fromString(nnId), input);
 				}
 				
 				ForwardListener inputListener = new ForwardListener(){
@@ -153,10 +153,10 @@ public class DianneInput extends HttpServlet {
 			String nnId = request.getParameter("nnId");
 			String inputId = request.getParameter("inputId");
 			String input = request.getParameter("input");
-			// TODO only forward to applicable inputmgr?
-			synchronized(inputManagers){
-				for(InputManager m : inputManagers){
-					m.unsetInput(UUID.fromString(inputId), UUID.fromString(nnId), input);
+
+			synchronized(inputs){
+				for(DianneInputs i : inputs){
+					i.unsetInput(UUID.fromString(inputId), UUID.fromString(nnId), input);
 				}
 			}
 			
