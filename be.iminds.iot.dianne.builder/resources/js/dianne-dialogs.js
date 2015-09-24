@@ -55,6 +55,7 @@ function showConfigureModuleDialog(moduleItem) {
 function createNNModuleDialog(module, title, submit, cancel){
 	var dialog = renderTemplate("dialog", {
 		'id' : module.id,
+		'type': 'module',
 		'title' : title,
 		'submit': submit,
 		'cancel': cancel
@@ -267,6 +268,7 @@ function createLearnModuleDialog(id, moduleItem){
 	if(module.category==="Dataset"){
 		dialog = renderTemplate("dialog", {
 			id : id,
+			type: "dataset",
 			title : "Configure "+module.type+" dataset",
 			submit: "",
 			cancel: "Delete"
@@ -336,6 +338,7 @@ function createLearnModuleDialog(id, moduleItem){
 	} else if(module.category==="Trainer"){
 		dialog = renderTemplate("dialog", {
 			id : id,
+			type: "train",
 			title : "Train your network",
 			submit: "Train",
 			cancel: "Delete"
@@ -370,6 +373,7 @@ function createLearnModuleDialog(id, moduleItem){
 	} else if(module.category==="Evaluator"){
 		dialog = renderTemplate("dialog", {
 			id : id,
+			type: "evaluate",
 			title : "Evaluate your network",
 			submit: "Evaluate",
 			cancel: "Delete"
@@ -417,6 +421,7 @@ function createRunModuleDialog(id, moduleItem){
 	if(module.type==="CanvasInput"){
 		dialog = renderTemplate("dialog", {
 			id : id,
+			type: "canvas",
 			title : "Draw your input",
 			submit: "",
 			cancel: "Delete"
@@ -443,6 +448,7 @@ function createRunModuleDialog(id, moduleItem){
 	} else if(module.type==="ProbabilityOutput"){
 		dialog = renderTemplate("dialog", {
 			id : id,
+			type: "probability",
 			title : "Output probabilities",
 			submit: "",
 			cancel: "Delete"
@@ -474,15 +480,17 @@ function createRunModuleDialog(id, moduleItem){
 		}
 		
 		dialog.on('hidden.bs.modal', function () {
-			// TODO what if multiple dialogs?
-		    eventsource.close();
-		    eventsource = undefined;
+			if($(".probability").length == 1){
+				eventsource.close();
+		    	eventsource = undefined;
+			}
 		    $(this).closest(".modal").remove();
 		});
 		
 	} else if(module.category==="Dataset"){
 		dialog = renderTemplate("dialog", {
 			id : id,
+			type: "dataset",
 			title : "Input a sample of the "+module.type+" dataset",
 			submit: "",
 			cancel: "Delete"
@@ -497,6 +505,7 @@ function createRunModuleDialog(id, moduleItem){
 	} else if(module.type==="Camera"){
 		dialog = renderTemplate("dialog", {
 			id : id,
+			type: "camera",
 			title : "Camera input from "+module.name,
 			submit: "",
 			cancel: "Delete"
@@ -523,6 +532,7 @@ function createRunModuleDialog(id, moduleItem){
 	} else if(module.type==="URLInput"){
 		dialog = renderTemplate("dialog", {
 			id : id,
+			type: "url",
 			title : "Give an URL to forward",
 			submit: "",
 			cancel: "Delete"
