@@ -26,7 +26,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component
-public class SimpleLearner implements Learner {
+public class SGDLearner implements Learner {
 	
 	protected DataLogger logger;
 	
