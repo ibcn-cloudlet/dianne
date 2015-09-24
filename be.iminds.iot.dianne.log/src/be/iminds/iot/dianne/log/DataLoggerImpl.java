@@ -10,7 +10,7 @@ import org.osgi.service.component.annotations.Component;
 import be.iminds.iot.dianne.api.log.DataLogger;
 
 @Component
-public class SimpleDataLogger implements DataLogger {
+public class DataLoggerImpl implements DataLogger {
 
 	private float defaultAlpha = 0.01f;
 	private int defaultInterval = 1000;
