@@ -61,12 +61,12 @@ public class GreedyActionStrategy implements ActionStrategy {
 	}
 
 	@Reference
-	public void setTensorFactory(TensorFactory f){
+	void setTensorFactory(TensorFactory f){
 		this.factory =f;
 	}
 	
 	@Reference(cardinality = ReferenceCardinality.OPTIONAL)
-	public void setDataLogger(DataLogger l){
+	void setDataLogger(DataLogger l){
 		this.logger = l;
 		this.logger.setAlpha("epsilon", 1f);
 		this.logger.setAlpha("Q0", 1f);

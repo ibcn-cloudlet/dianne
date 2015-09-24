@@ -25,7 +25,7 @@ public class DianneLoader extends HttpServlet {
 	private DianneRepository repository;
 	
 	@Reference
-	public void setDianneRepository(DianneRepository repo){
+	void setDianneRepository(DianneRepository repo){
 		this.repository = repo;
 	}
 	

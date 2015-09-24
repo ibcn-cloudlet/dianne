@@ -34,16 +34,16 @@ public class DianneBuilder extends HttpServlet {
 	
 	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
 			policy=ReferencePolicy.DYNAMIC)
-	public void addModuleFactory(ModuleFactory factory){
+	void addModuleFactory(ModuleFactory factory){
 		factories.add(factory);
 	}
 	
-	public void removeModuleFactory(ModuleFactory factory){
+	void removeModuleFactory(ModuleFactory factory){
 		factories.remove(factory);
 	}
 	
 	@Reference
-	public void setHttpService(HttpService http){
+	void setHttpService(HttpService http){
 		try {
 			// TODO How to register resources with whiteboard pattern?
 			http.registerResources("/dianne", "res", null);

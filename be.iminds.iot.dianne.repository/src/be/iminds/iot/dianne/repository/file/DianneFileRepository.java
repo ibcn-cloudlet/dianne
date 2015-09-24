@@ -322,14 +322,14 @@ public class DianneFileRepository implements DianneRepository {
 	}
 	
 	@Reference
-	public void setTensorFactory(TensorFactory factory){
+	void setTensorFactory(TensorFactory factory){
 		this.factory = factory;
 	}
 	
 	@Reference(
 			cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
-	public void addRepositoryListener(RepositoryListener l, Map<String, Object> properties){
+	void addRepositoryListener(RepositoryListener l, Map<String, Object> properties){
 		String[] targets = (String[])properties.get("targets");
 		if(targets!=null){
 			listeners.put(l, Arrays.asList(targets));
@@ -338,7 +338,7 @@ public class DianneFileRepository implements DianneRepository {
 		}
 	}
 	
-	public void removeRepositoryListener(RepositoryListener l){
+	void removeRepositoryListener(RepositoryListener l){
 		listeners.remove(l);
 	}
 

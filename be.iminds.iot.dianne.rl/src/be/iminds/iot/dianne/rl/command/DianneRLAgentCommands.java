@@ -56,7 +56,7 @@ public class DianneRLAgentCommands {
 	}
 	
 	@Reference
-	public void setAgent(Agent agent){
+	void setAgent(Agent agent){
 		this.agent = agent;
 	}
 }

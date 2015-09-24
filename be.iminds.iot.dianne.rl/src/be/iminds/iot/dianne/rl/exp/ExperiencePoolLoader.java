@@ -77,7 +77,7 @@ public class ExperiencePoolLoader {
 	}
 	
 	@Reference
-	public void setConfigurationAdmin(ConfigurationAdmin ca){
+	void setConfigurationAdmin(ConfigurationAdmin ca){
 		this.configAdmin = ca;
 	}
 }

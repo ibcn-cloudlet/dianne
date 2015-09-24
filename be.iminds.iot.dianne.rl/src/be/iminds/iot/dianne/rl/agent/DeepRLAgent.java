@@ -71,34 +71,34 @@ public class DeepRLAgent implements Agent {
 	}
 
 	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
-	public void addExperiencePool(ExperiencePool pool, Map<String, Object> properties) {
+	void addExperiencePool(ExperiencePool pool, Map<String, Object> properties) {
 		String name = (String) properties.get("name");
 		this.pools.put(name, pool);
 	}
 
-	public void removeExperiencePool(ExperiencePool pool, Map<String, Object> properties) {
+	void removeExperiencePool(ExperiencePool pool, Map<String, Object> properties) {
 		String name = (String) properties.get("name");
 		this.pools.remove(name);
 	}
 
 	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
-	public void addEnvironment(Environment env, Map<String, Object> properties) {
+	void addEnvironment(Environment env, Map<String, Object> properties) {
 		String name = (String) properties.get("name");
 		this.envs.put(name, env);
 	}
 
-	public void removeEnvironment(Environment env, Map<String, Object> properties) {
+	void removeEnvironment(Environment env, Map<String, Object> properties) {
 		String name = (String) properties.get("name");
 		this.envs.remove(name);
 	}
 
 	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
-	public void addStrategy(ActionStrategy s, Map<String, Object> properties) {
+	void addStrategy(ActionStrategy s, Map<String, Object> properties) {
 		String strategy = (String) properties.get("strategy");
 		this.strategies.put(strategy, s);
 	}
 
-	public void removeStrategy(ActionStrategy s, Map<String, Object> properties) {
+	void removeStrategy(ActionStrategy s, Map<String, Object> properties) {
 		String strategy = (String) properties.get("strategy");
 		this.strategies.remove(strategy);
 	}

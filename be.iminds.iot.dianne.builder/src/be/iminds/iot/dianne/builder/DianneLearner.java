@@ -69,28 +69,28 @@ public class DianneLearner extends HttpServlet {
 	private AsyncContext sse = null;
 	
 	@Reference
-	public void setTensorFactory(TensorFactory factory){
+	void setTensorFactory(TensorFactory factory){
 		this.factory = factory;
 	}
 	
 	@Reference
-	public void setDianneRepository(DianneRepository repo){
+	void setDianneRepository(DianneRepository repo){
 		this.repository = repo;
 	}
 	
 	@Reference
-	public void setDianne(Dianne d){
+	void setDianne(Dianne d){
 		dianne = d;
 	}
 	
 	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
 			policy=ReferencePolicy.DYNAMIC)
-	public void addDataset(Dataset dataset, Map<String, Object> properties){
+	void addDataset(Dataset dataset, Map<String, Object> properties){
 		String name = (String) properties.get("name");
 		this.datasets.put(name, dataset);
 	}
 	
-	public void removeDataset(Dataset dataset, Map<String, Object> properties){
+	void removeDataset(Dataset dataset, Map<String, Object> properties){
 		String name = (String) properties.get("name");
 		this.datasets.remove(name);
 	}

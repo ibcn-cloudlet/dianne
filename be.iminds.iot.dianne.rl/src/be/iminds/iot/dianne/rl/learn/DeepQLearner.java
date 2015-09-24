@@ -73,12 +73,12 @@ public class DeepQLearner implements Learner {
 	}
 
 	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
-	public void addExperiencePool(ExperiencePool pool, Map<String, Object> properties) {
+	void addExperiencePool(ExperiencePool pool, Map<String, Object> properties) {
 		String name = (String) properties.get("name");
 		this.pools.put(name, pool);
 	}
 
-	public void removeExperiencePool(ExperiencePool pool, Map<String, Object> properties) {
+	void removeExperiencePool(ExperiencePool pool, Map<String, Object> properties) {
 		String name = (String) properties.get("name");
 		this.pools.remove(name);
 	}
@@ -269,7 +269,7 @@ public class DeepQLearner implements Learner {
 	}
 	
 	@Reference(cardinality = ReferenceCardinality.OPTIONAL)
-	public void setDataLogger(DataLogger l){
+	void setDataLogger(DataLogger l){
 		this.logger = l;
 	}
 }

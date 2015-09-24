@@ -19,7 +19,7 @@ public class JavaTensorSerializer extends Serializer<Tensor> {
 	private TensorFactory factory;
 	
 	@Reference
-	public void setTensorFactory(TensorFactory factory){
+	void setTensorFactory(TensorFactory factory){
 		this.factory = factory;
 	}
 	

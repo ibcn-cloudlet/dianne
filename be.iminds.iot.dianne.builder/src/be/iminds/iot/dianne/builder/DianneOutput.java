@@ -32,11 +32,11 @@ public class DianneOutput extends HttpServlet {
 	
 	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
 			policy=ReferencePolicy.DYNAMIC)
-	public void addOutputs(DianneOutputs mgr){
+	void addOutputs(DianneOutputs mgr){
 		this.outputs.add(mgr);
 	}
 	
-	public void removeOutputs(DianneOutputs mgr){
+	void removeOutputs(DianneOutputs mgr){
 		this.outputs.remove(mgr);
 	}
 	

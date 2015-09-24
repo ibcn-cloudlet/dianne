@@ -66,12 +66,12 @@ public class DianneDeployer extends HttpServlet {
 	}
 	
 	@Reference
-	public void setDianne(Dianne d){
+	void setDianne(Dianne d){
 		dianne = d;
 	}
 
 	@Reference
-	public void setDianneRepository(DianneRepository repo){
+	void setDianneRepository(DianneRepository repo){
 		this.repository = repo;
 	}
 	

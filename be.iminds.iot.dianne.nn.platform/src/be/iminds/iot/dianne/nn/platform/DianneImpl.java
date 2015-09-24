@@ -256,17 +256,17 @@ public class DianneImpl implements Dianne {
 	}
 	
 	@Reference
-	public void setDianneRepository(DianneRepository r){
+	void setDianneRepository(DianneRepository r){
 		repository = r;
 	}
 
 	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
 			policy=ReferencePolicy.DYNAMIC)
-	public void addDianneRuntime(DianneRuntime r, Map<String, Object> properties){
+	void addDianneRuntime(DianneRuntime r, Map<String, Object> properties){
 		runtimes.put(r.getRuntimeId(), r);
 	}
 	
-	public void removeDianneRuntime(DianneRuntime r, Map<String, Object> properties){
+	void removeDianneRuntime(DianneRuntime r, Map<String, Object> properties){
 		runtimes.values().remove(r);
 	}
 

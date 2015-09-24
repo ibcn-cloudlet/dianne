@@ -80,21 +80,21 @@ public class DianneRuntimeImpl implements DianneRuntime {
 	
 	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
 			policy=ReferencePolicy.DYNAMIC)
-	public void addModuleFactory(ModuleFactory factory){
+	void addModuleFactory(ModuleFactory factory){
 		this.moduleFactories.add(factory);
 	}
 	
-	public void removeModuleFactory(ModuleFactory factory){
+	void removeModuleFactory(ModuleFactory factory){
 		this.moduleFactories.remove(factory);
 	}
 	
 	@Reference(cardinality=ReferenceCardinality.OPTIONAL,
 				policy=ReferencePolicy.DYNAMIC)
-	public void setDianneRepository(DianneRepository repo){
+	void setDianneRepository(DianneRepository repo){
 		this.repository = repo;
 	}
 	
-	public void unsetDianneRepository(DianneRepository repo){
+	void unsetDianneRepository(DianneRepository repo){
 		if(this.repository == repo) 
 			this.repository = null;
 	}
@@ -102,7 +102,7 @@ public class DianneRuntimeImpl implements DianneRuntime {
 	@Reference(
 			cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
-	public synchronized void addModule(Module module, Map<String, Object> properties){
+	synchronized void addModule(Module module, Map<String, Object> properties){
 		UUID moduleId = UUID.fromString((String)properties.get("module.id"));
 		UUID nnId = UUID.fromString((String)properties.get("nn.id"));
 
@@ -120,7 +120,7 @@ public class DianneRuntimeImpl implements DianneRuntime {
 		
 	}
 	
-	public synchronized void updatedModule(Module module, Map<String, Object> properties){
+	synchronized void updatedModule(Module module, Map<String, Object> properties){
 		UUID moduleId = UUID.fromString((String)properties.get("module.id"));
 		UUID nnId = UUID.fromString((String)properties.get("nn.id"));
 
@@ -217,7 +217,7 @@ public class DianneRuntimeImpl implements DianneRuntime {
 		}
 	}
 	
-	public synchronized void removeModule(Module module, Map<String, Object> properties){
+	synchronized void removeModule(Module module, Map<String, Object> properties){
 		UUID moduleId = UUID.fromString((String)properties.get("module.id"));
 		UUID nnId = UUID.fromString((String)properties.get("nn.id"));
 		
@@ -235,7 +235,7 @@ public class DianneRuntimeImpl implements DianneRuntime {
 	@Reference(
 			cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
-	public synchronized void addForwardListener(ForwardListener l, Map<String, Object> properties){
+	synchronized void addForwardListener(ForwardListener l, Map<String, Object> properties){
 		String[] targets = (String[])properties.get("targets");
 		if(targets!=null){
 			for(String target : targets){
@@ -253,7 +253,7 @@ public class DianneRuntimeImpl implements DianneRuntime {
 		}
 	}
 	
-	public synchronized void removeForwardListener(ForwardListener l){
+	synchronized void removeForwardListener(ForwardListener l){
 		List<String> targets = forwardListeners.remove(l);
 		// TODO filter out the modules that actually have this listener registered?
 		synchronized(instances){
@@ -270,7 +270,7 @@ public class DianneRuntimeImpl implements DianneRuntime {
 	@Reference(
 			cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
-	public synchronized void addBackwardListener(BackwardListener l, Map<String, Object> properties){
+	synchronized void addBackwardListener(BackwardListener l, Map<String, Object> properties){
 		String[] targets = (String[])properties.get("targets");
 		if(targets!=null){
 			for(String target : targets){
@@ -288,7 +288,7 @@ public class DianneRuntimeImpl implements DianneRuntime {
 		}
 	}
 	
-	public synchronized void removeBackwardListener(BackwardListener l){
+	synchronized void removeBackwardListener(BackwardListener l){
 		List<String> targets = backwardListeners.remove(l);
 		// TODO filter out the modules that actually have this listener registered?
 		synchronized(instances){

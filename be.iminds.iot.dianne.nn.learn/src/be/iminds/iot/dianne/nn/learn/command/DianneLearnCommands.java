@@ -49,7 +49,7 @@ public class DianneLearnCommands {
 	}
 	
 	@Reference
-	public void setLearner(Learner l){
+	void setLearner(Learner l){
 		this.learner = l;
 	}
 }

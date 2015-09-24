@@ -188,18 +188,18 @@ public class SGDLearner implements Learner {
 	
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
-	public void addDataset(Dataset dataset, Map<String, Object> properties){
+	void addDataset(Dataset dataset, Map<String, Object> properties){
 		String name = (String) properties.get("name");
 		this.datasets.put(name, dataset);
 	}
 	
-	public void removeDataset(Dataset dataset, Map<String, Object> properties){
+	void removeDataset(Dataset dataset, Map<String, Object> properties){
 		String name = (String) properties.get("name");
 		this.datasets.remove(name);
 	}
 	
 	@Reference(cardinality = ReferenceCardinality.OPTIONAL)
-	public void setDataLogger(DataLogger l){
+	void setDataLogger(DataLogger l){
 		this.logger = l;
 	}
 }

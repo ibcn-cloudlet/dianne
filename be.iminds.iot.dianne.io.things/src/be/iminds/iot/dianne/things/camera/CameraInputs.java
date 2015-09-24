@@ -41,19 +41,19 @@ public class CameraInputs implements DianneInputs {
 	
 	
 	@Activate
-	public void activate(BundleContext context){
+	void activate(BundleContext context){
 		this.context = context;
 	}
 	
 	@Reference
-	public void setTensorFactory(TensorFactory factory){
+	void setTensorFactory(TensorFactory factory){
 		this.factory = factory;
 	}
 	
 	@Reference(
 			cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
-	public void addCamera(Camera c, Map<String, Object> properties){
+	void addCamera(Camera c, Map<String, Object> properties){
 		UUID id = (UUID) properties.get(Thing.ID);
 		String service = (String) properties.get(Thing.SERVICE);
 		
@@ -66,7 +66,7 @@ public class CameraInputs implements DianneInputs {
 		
 	}
 	
-	public void removeCamera(Camera c, Map<String, Object> properties){
+	void removeCamera(Camera c, Map<String, Object> properties){
 		UUID id = (UUID) properties.get(Thing.ID);
 		String service = (String) properties.get(Thing.SERVICE);
 		
@@ -79,14 +79,14 @@ public class CameraInputs implements DianneInputs {
 	
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
-	public void addInput(Input i, Map<String, Object> properties){
+	void addInput(Input i, Map<String, Object> properties){
 		String moduleId = (String)properties.get("module.id");
 		String nnId = (String)properties.get("module.id");
 		String id = nnId+":"+moduleId;
 		inputs.put(id, i);
 	}
 	
-	public void removeInput(Input i, Map<String, Object> properties){
+	void removeInput(Input i, Map<String, Object> properties){
 		String moduleId = (String)properties.get("module.id");
 		String nnId = (String)properties.get("module.id");
 		String id = nnId+":"+moduleId;

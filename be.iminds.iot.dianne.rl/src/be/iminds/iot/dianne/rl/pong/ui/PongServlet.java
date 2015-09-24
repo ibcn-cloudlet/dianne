@@ -56,7 +56,7 @@ public class PongServlet extends HttpServlet implements EnvironmentListener {
 	private long timestamp = System.currentTimeMillis();
 
 	@Activate
-	public void activate() {
+	void activate() {
 		try {
 			pongWebSocket = new PongWebSocketServer();
 			pongWebSocket.start();
@@ -67,7 +67,7 @@ public class PongServlet extends HttpServlet implements EnvironmentListener {
 	}
 
 	@Deactivate
-	public void deactivate() {
+	void deactivate() {
 		try {
 			pongWebSocket.stop();
 		} catch (Exception e) {
@@ -77,7 +77,7 @@ public class PongServlet extends HttpServlet implements EnvironmentListener {
 	}
 
 	@Reference
-	public void setHttpService(HttpService http) {
+	void setHttpService(HttpService http) {
 		try {
 			// TODO How to register resources with whiteboard pattern?
 			http.registerResources("/pong/ui", "res", null);
@@ -94,7 +94,7 @@ public class PongServlet extends HttpServlet implements EnvironmentListener {
 	}
 
 	@Reference
-	public void setPongEnvironment(PongEnvironment e) {
+	void setPongEnvironment(PongEnvironment e) {
 		this.pongEnvironment = e;
 	}
 
@@ -208,7 +208,7 @@ public class PongServlet extends HttpServlet implements EnvironmentListener {
 	}
 
 	@Reference
-	public void setTensorFactory(TensorFactory f) {
+	void setTensorFactory(TensorFactory f) {
 		this.factory = f;
 		if (agentAction != null) {
 			this.agentAction.setAction(factory.createTensor(new float[] { 0, 1,
@@ -217,7 +217,7 @@ public class PongServlet extends HttpServlet implements EnvironmentListener {
 	}
 
 	@Reference(cardinality = ReferenceCardinality.OPTIONAL, policy = ReferencePolicy.DYNAMIC)
-	public void setAgentAction(ManualActionController a) {
+	void setAgentAction(ManualActionController a) {
 		this.agentAction = a;
 		if (factory != null) {
 			this.agentAction.setAction(factory.createTensor(new float[] { 0, 1,
@@ -232,7 +232,7 @@ public class PongServlet extends HttpServlet implements EnvironmentListener {
 	}
 
 	@Reference
-	public void setAgent(Agent a) {
+	void setAgent(Agent a) {
 		this.agent = a;
 	}
 

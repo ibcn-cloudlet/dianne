@@ -57,11 +57,11 @@ public class DianneInput extends HttpServlet {
 	
 	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
 			policy=ReferencePolicy.DYNAMIC)
-	public void addInputs(DianneInputs mgr){
+	void addInputs(DianneInputs mgr){
 		this.inputs.add(mgr);
 	}
 	
-	public void removeInputs(DianneInputs mgr){
+	void removeInputs(DianneInputs mgr){
 		this.inputs.remove(mgr);
 	}
 	

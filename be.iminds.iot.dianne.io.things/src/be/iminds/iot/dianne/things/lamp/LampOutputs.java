@@ -39,7 +39,7 @@ public class LampOutputs implements DianneOutputs {
 	private int magicNumber = -1;
 	
 	@Activate
-	public void activate(BundleContext context){
+	void activate(BundleContext context){
 		this.context = context;
 		String number = context.getProperty("be.iminds.iot.dianne.things.light.index");
 		if(number!=null){
@@ -48,14 +48,14 @@ public class LampOutputs implements DianneOutputs {
 	}
 	
 	@Reference
-	public void setTensorFactory(TensorFactory factory){
+	void setTensorFactory(TensorFactory factory){
 		this.factory = factory;
 	}
 	
 	@Reference(
 			cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
-	public void addLight(Lamp l, Map<String, Object> properties){
+	void addLight(Lamp l, Map<String, Object> properties){
 		UUID id = (UUID) properties.get(Thing.ID);
 		String service = (String) properties.get(Thing.SERVICE);
 		
@@ -69,7 +69,7 @@ public class LampOutputs implements DianneOutputs {
 		lamps.put(service, l);
 	}
 	
-	public void removeLight(Lamp l, Map<String, Object> properties){
+	void removeLight(Lamp l, Map<String, Object> properties){
 		UUID id =(UUID) properties.get(Thing.ID);
 		String service = (String) properties.get(Thing.SERVICE);
 		lamps.remove(service);

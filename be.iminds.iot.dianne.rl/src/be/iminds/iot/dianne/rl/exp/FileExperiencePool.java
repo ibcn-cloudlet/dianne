@@ -252,7 +252,7 @@ public class FileExperiencePool implements ExperiencePool {
 	}
 	
 	@Reference
-	public void setTensorFactory(TensorFactory f){
+	void setTensorFactory(TensorFactory f){
 		this.factory = f;
 	}
 

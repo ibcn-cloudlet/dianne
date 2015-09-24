@@ -52,7 +52,7 @@ public class DianneModuleFactory implements ModuleFactory {
 	private final Map<String, ModuleTypeDTO> supportedModules = new HashMap<String, ModuleTypeDTO>();
 	
 	@Activate
-	public void activate(){
+	void activate(){
 		// build list of supported modules
 		// TODO use reflection for this?
 		
@@ -359,7 +359,7 @@ public class DianneModuleFactory implements ModuleFactory {
 	}
 	
 	@Reference
-	public void setTensorFactory(TensorFactory f){
+	void setTensorFactory(TensorFactory f){
 		this.factory = f;
 	}
 }

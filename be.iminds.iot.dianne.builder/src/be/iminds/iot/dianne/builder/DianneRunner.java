@@ -71,24 +71,24 @@ public class DianneRunner extends HttpServlet {
 	}
 	
 	@Reference
-	public void setTensorFactory(TensorFactory factory){
+	void setTensorFactory(TensorFactory factory){
 		this.factory = factory;
 		this.converter = new ImageConverter(factory);
 	}
 	
 	@Reference
-	public void setDianne(Dianne d){
+	void setDianne(Dianne d){
 		dianne = d;
 	}
 	
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
-	public void addDataset(Dataset dataset, Map<String, Object> properties){
+	void addDataset(Dataset dataset, Map<String, Object> properties){
 		String name = (String) properties.get("name");
 		this.datasets.put(name, dataset);
 	}
 	
-	public void removeDataset(Dataset dataset, Map<String, Object> properties){
+	void removeDataset(Dataset dataset, Map<String, Object> properties){
 		String name = (String) properties.get("name");
 		datasets.remove(name);
 	}

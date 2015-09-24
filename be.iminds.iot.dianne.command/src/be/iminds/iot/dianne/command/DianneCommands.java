@@ -1,6 +1,5 @@
 package be.iminds.iot.dianne.command;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -21,14 +20,10 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
-import be.iminds.iot.dianne.api.nn.module.Input;
-import be.iminds.iot.dianne.api.nn.module.Output;
-import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
-import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.platform.Dianne;
-import be.iminds.iot.dianne.api.nn.runtime.DianneRuntime;
+import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.api.repository.RepositoryListener;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -318,28 +313,28 @@ public class DianneCommands {
 	
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
-	public void addDataset(Dataset dataset, Map<String, Object> properties){
+	void addDataset(Dataset dataset, Map<String, Object> properties){
 		String name = (String) properties.get("name");
 		this.datasets.put(name, dataset);
 	}
 	
-	public void removeDataset(Dataset dataset, Map<String, Object> properties){
+	void removeDataset(Dataset dataset, Map<String, Object> properties){
 		String name = (String) properties.get("name");
 		this.datasets.remove(name);
 	}
 	
 	@Reference
-	public void setDianneRepository(DianneRepository repo){
+	void setDianneRepository(DianneRepository repo){
 		this.repository = repo;
 	}
 	
 	@Reference
-	public void setDianne(Dianne d){
+	void setDianne(Dianne d){
 		dianne = d;
 	}
 
 	@Reference
-	public void setTensorFactory(TensorFactory f){
+	void setTensorFactory(TensorFactory f){
 		this.factory = f;
 	}
 }

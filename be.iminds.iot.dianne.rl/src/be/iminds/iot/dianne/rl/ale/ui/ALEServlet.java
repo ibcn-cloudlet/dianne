@@ -42,12 +42,12 @@ public class ALEServlet extends HttpServlet implements EnvironmentListener {
 	private ImageConverter converter;
 
 	@Activate
-	public void activate(){
+	void activate(){
 		converter = new ImageConverter(factory);
 	}
 	
 	@Reference
-	public void setHttpService(HttpService http) {
+	void setHttpService(HttpService http) {
 		try {
 			// TODO How to register resources with whiteboard pattern?
 			http.registerResources("/ale/ui", "res", null);

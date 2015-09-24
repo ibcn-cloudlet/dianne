@@ -78,22 +78,22 @@ public class DianneRLCommands {
 	}
 	
 	@Reference
-	public void setAgent(Agent agent){
+	void setAgent(Agent agent){
 		this.agent = agent;
 	}
 	
 	@Reference
-	public void setLearner(Learner l){
+	void setLearner(Learner l){
 		this.learner = l;
 	}
 	
 	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
-	public void addExperiencePool(ExperiencePool pool, Map<String, Object> properties) {
+	void addExperiencePool(ExperiencePool pool, Map<String, Object> properties) {
 		String name = (String) properties.get("name");
 		this.pools.put(name, pool);
 	}
 
-	public void removeExperiencePool(ExperiencePool pool, Map<String, Object> properties) {
+	void removeExperiencePool(ExperiencePool pool, Map<String, Object> properties) {
 		String name = (String) properties.get("name");
 		this.pools.remove(name);
 	}
