@@ -538,7 +538,7 @@ function createRunModuleDialog(id, moduleItem){
 			cancel: "Delete"
 		}, $(document.body));
 		
-		dialog.find(".content").append("<img class='inputImage' width='224' height='224' style=\"margin-left:150px\"></img><br/><br/>");
+		dialog.find(".content").append("<img class='inputImage' width='224' height='auto' style=\"margin-left:150px\"></img><br/><br/>");
 		dialog.find(".content").append("<input class='urlInput' size='50' value='http://'></input>");
 		dialog.find(".content").append("<button class='btn' onclick='forwardURL(this, \""+module.input+"\")' style=\"margin-left:10px\">Forward</button>");
 	} else {
