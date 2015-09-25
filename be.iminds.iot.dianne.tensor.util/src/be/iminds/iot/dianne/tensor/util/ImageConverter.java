@@ -2,10 +2,13 @@ package be.iminds.iot.dianne.tensor.util;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+
+import javax.imageio.ImageIO;
 
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
@@ -51,6 +54,15 @@ public class ImageConverter {
 		byte[] data = Files.readAllBytes(Paths.get(fileName));
 		JpegDecoder decoder = new JpegDecoder();
 		BufferedImage img = decoder.read(data);
+		return readFromImage(img);
+	}
+	
+	
+	public Tensor readFromBytes(byte[] data) throws Exception {
+		BufferedImage img = ImageIO.read(new ByteArrayInputStream(data));
+		// decoder not working with mjpeg data
+		//JpegDecoder decoder = new JpegDecoder();
+		//BufferedImage img = decoder.read(data);
 		return readFromImage(img);
 	}
 

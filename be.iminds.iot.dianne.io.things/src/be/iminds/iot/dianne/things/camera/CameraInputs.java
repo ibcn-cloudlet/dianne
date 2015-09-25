@@ -81,14 +81,14 @@ public class CameraInputs implements DianneInputs {
 			policy=ReferencePolicy.DYNAMIC)
 	void addInput(Input i, Map<String, Object> properties){
 		String moduleId = (String)properties.get("module.id");
-		String nnId = (String)properties.get("module.id");
+		String nnId = (String)properties.get("nn.id");
 		String id = nnId+":"+moduleId;
 		inputs.put(id, i);
 	}
 	
 	void removeInput(Input i, Map<String, Object> properties){
 		String moduleId = (String)properties.get("module.id");
-		String nnId = (String)properties.get("module.id");
+		String nnId = (String)properties.get("nn.id");
 		String id = nnId+":"+moduleId;
 		inputs.remove(UUID.fromString(id));
 	}
@@ -112,8 +112,8 @@ public class CameraInputs implements DianneInputs {
 		if(cameraId!=null){
 			Camera camera = cameras.get(cameraId);
 			if(camera!=null){
-				camera.setFramerate(0.1f); // low framerate for overfeat
-				camera.start(320, 240, Camera.Format.RGB);
+				camera.setFramerate(2f); // low framerate for overfeat
+				camera.start(320, 240, Camera.Format.MJPEG);
 			}
 			
 			CameraInput i = new CameraInput(factory, inputs.get(id), 320, 240, 3);
