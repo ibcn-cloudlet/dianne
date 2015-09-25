@@ -456,7 +456,7 @@ function createRunModuleDialog(id, moduleItem){
 		
 		createOutputChart(dialog.find(".content"));
 		if(eventsource===undefined){
-			eventsource = new EventSource("run");
+			eventsource = new EventSource("run?nnId="+nn.id);
 			eventsource.onmessage = function(event){
 				var data = JSON.parse(event.data);
 				$.each(running, function(id, module){

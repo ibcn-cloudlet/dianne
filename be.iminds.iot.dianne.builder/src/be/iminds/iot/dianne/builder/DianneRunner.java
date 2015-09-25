@@ -7,20 +7,25 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Dictionary;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
 import javax.imageio.ImageIO;
 import javax.servlet.AsyncContext;
+import javax.servlet.AsyncEvent;
+import javax.servlet.AsyncListener;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -31,8 +36,8 @@ import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.Module.Mode;
-import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.platform.Dianne;
+import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.dianne.tensor.util.ImageConverter;
@@ -61,9 +66,6 @@ public class DianneRunner extends HttpServlet {
 	// keep all labels for the UI... 
 	// TODO try to fetch labels on the fly?
 	private Map<UUID, String[]> labels = Collections.synchronizedMap(new HashMap<UUID, String[]>());
-	
-	
-	private AsyncContext sse = null;
 	
 	@Activate
 	public void activate(BundleContext c){
@@ -102,8 +104,10 @@ public class DianneRunner extends HttpServlet {
 		response.setCharacterEncoding("UTF-8");
 		response.addHeader("Connection", "keep-alive");
 		
-		sse = request.startAsync();
-		sse.setTimeout(0); // no timeout => remove listener when error occurs.
+		// register forward listener for this
+		String nnId = request.getParameter("nnId");
+		SSEForwardListener listener = new SSEForwardListener(nnId, request.startAsync());
+		listener.register(context);
 	}
 	
 	@Override
@@ -130,7 +134,7 @@ public class DianneRunner extends HttpServlet {
 			NeuralNetwork nn = dianne.getNeuralNetwork(nnId);
 			if(nn!=null){
 				nn.getOutputs().entrySet().stream().forEach(e -> labels.put(e.getKey(), e.getValue().getOutputLabels()));
-				nn.forward(callback, UUID.fromString(inputId), t);
+				nn.forward((ForwardListener)null, UUID.fromString(inputId), t);
 			}
 			
 			
@@ -151,7 +155,7 @@ public class DianneRunner extends HttpServlet {
 			NeuralNetwork nn = dianne.getNeuralNetwork(nnId);
 			if(nn!=null){
 				nn.getOutputs().entrySet().stream().forEach(e -> labels.put(e.getKey(), e.getValue().getOutputLabels()));
-				nn.forward(callback, UUID.fromString(inputId), t);
+				nn.forward((ForwardListener)null, UUID.fromString(inputId), t);
 			}
 			
 		} else if(request.getParameter("mode")!=null){
@@ -177,7 +181,7 @@ public class DianneRunner extends HttpServlet {
 				NeuralNetwork nn = dianne.getNeuralNetwork(nnId);
 				if(nn!=null){
 					nn.getOutputs().entrySet().stream().forEach(e -> labels.put(e.getKey(), e.getValue().getOutputLabels()));
-					nn.forward(callback, UUID.fromString(inputId), t);
+					nn.forward((ForwardListener)null, UUID.fromString(inputId), t);
 				}
 				
 				JsonObject sample = new JsonObject();
@@ -265,28 +269,66 @@ public class DianneRunner extends HttpServlet {
 		return builder.toString();
 	}
 	
-	private final SSEForwardListener callback = new SSEForwardListener();
-	
 	private class SSEForwardListener implements ForwardListener {
 
-		@Override
-		public void onForward(UUID moduleId, Tensor output, String... tags) {
-			if(sse!=null){
-				try {
-					// TODO how to get the labels?
-					String sseMessage = outputSSEMessage(moduleId, labels.get(moduleId), output, tags);
-					PrintWriter writer = sse.getResponse().getWriter();
-					writer.write(sseMessage);
-					writer.flush();
-					if(writer.checkError()){
-						sse = null;
-					}
-				} catch(Exception e){
-					e.printStackTrace();
-					sse = null;
+		private final String nnId;
+		private final AsyncContext async;
+		private ServiceRegistration reg;
+		
+		public SSEForwardListener(String nnId, AsyncContext async) {
+			this.nnId = nnId;
+			this.async = async;
+			this.async.setTimeout(300000); // let it ultimately timeout if client is closed
+			
+			this.async.addListener(new AsyncListener() {
+				@Override
+				public void onTimeout(AsyncEvent e) throws IOException {
+					unregister();
 				}
-			}
+				@Override
+				public void onStartAsync(AsyncEvent e) throws IOException {
+					async.getResponse().getWriter().println("ping");
+					if(async.getResponse().getWriter().checkError()){
+						async.complete();
+					}
+				}
+				@Override
+				public void onError(AsyncEvent e) throws IOException {
+					unregister();
+				}
+				@Override
+				public void onComplete(AsyncEvent e) throws IOException {
+					unregister();
+				}
+			});
 		}
 		
+		public void register(BundleContext context){
+			Dictionary<String, Object> props = new Hashtable();
+			props.put("targets", new String[]{nnId});
+			props.put("aiolos.unique", true);
+			reg = context.registerService(ForwardListener.class, this, props);
+		}
+		
+		public void unregister(){
+			reg.unregister();
+		}
+		
+		@Override
+		public void onForward(UUID moduleId, Tensor output, String... tags) {
+			try {
+				// TODO how to get the labels?
+				String sseMessage = outputSSEMessage(moduleId, labels.get(moduleId), output, tags);
+				PrintWriter writer = async.getResponse().getWriter();
+				writer.write(sseMessage);
+				writer.flush();
+				if(writer.checkError()){
+					unregister();
+				}
+			} catch(Exception e){
+				e.printStackTrace();
+				unregister();
+			}	
+		}
 	}
 }
