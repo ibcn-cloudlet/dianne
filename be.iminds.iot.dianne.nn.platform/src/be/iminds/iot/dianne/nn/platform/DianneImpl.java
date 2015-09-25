@@ -1,6 +1,7 @@
 package be.iminds.iot.dianne.nn.platform;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -8,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -23,16 +23,20 @@ import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
-import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.platform.Dianne;
+import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.runtime.DianneRuntime;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
+import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component(property={"aiolos.export=false"})
 public class DianneImpl implements Dianne {
 
+	private TensorFactory factory;
 	private DianneRepository repository;
 	private Map<UUID, DianneRuntime> runtimes = Collections.synchronizedMap(new HashMap<UUID, DianneRuntime>());
+	
+	private Map<UUID, Map<UUID, Module>> modules = Collections.synchronizedMap(new HashMap<>());
 	
 	// available neural networks
 	private Map<UUID, NeuralNetworkInstanceDTO> nnis = Collections.synchronizedMap(new HashMap<UUID, NeuralNetworkInstanceDTO>());
@@ -45,10 +49,6 @@ public class DianneImpl implements Dianne {
 	@Activate
 	public void activate(BundleContext context) throws Exception {
 		frameworkId = UUID.fromString(context.getProperty(Constants.FRAMEWORK_UUID));
-		DianneRuntime localRuntime = runtimes.get(frameworkId);
-		if(localRuntime==null){
-			throw new Exception("There should at least be a local DianneRuntime available");
-		}
 		this.context = context;
 	}
 	
@@ -56,12 +56,18 @@ public class DianneImpl implements Dianne {
 	@Override
 	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name)
 			throws InstantiationException {
+		if(!runtimes.containsKey(frameworkId)){
+			throw new InstantiationException("No local runtime available");
+		}
 		return deployNeuralNetwork(name, null, frameworkId, new HashMap<UUID, UUID>());
 	}
 	
 	@Override
 	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description)
 			throws InstantiationException {
+		if(!runtimes.containsKey(frameworkId)){
+			throw new InstantiationException("No local runtime available");
+		}
 		return deployNeuralNetwork(name, description, frameworkId, new HashMap<UUID, UUID>());
 	}
 	
@@ -259,6 +265,11 @@ public class DianneImpl implements Dianne {
 	void setDianneRepository(DianneRepository r){
 		repository = r;
 	}
+	
+	@Reference
+	void setTensorFactory(TensorFactory f){
+		factory = f;
+	}
 
 	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
 			policy=ReferencePolicy.DYNAMIC)
@@ -270,6 +281,38 @@ public class DianneImpl implements Dianne {
 		runtimes.values().remove(r);
 	}
 
+	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
+			policy=ReferencePolicy.DYNAMIC)
+	void addModule(Module m, Map<String, Object> properties){
+		UUID moduleId = UUID.fromString((String)properties.get("module.id"));
+		UUID nnId = UUID.fromString((String)properties.get("nn.id"));
+	
+		synchronized(modules){
+			Map<UUID, Module> nnm = modules.get(nnId);
+			if(nnm==null){
+				nnm = new HashMap<>();
+				modules.put(nnId, nnm);
+			}
+			nnm.put(moduleId, m);
+		}
+	}
+	
+	void removeModule(Module m, Map<String, Object> properties){
+		UUID moduleId = UUID.fromString((String)properties.get("module.id"));
+		UUID nnId = UUID.fromString((String)properties.get("nn.id"));
+	
+		synchronized(modules){
+			Map<UUID, Module> nnm = modules.get(nnId);
+			if(nnm != null){ // should not be null?
+				nnm.remove(moduleId);
+				
+				if(nnm.size() == 0){
+					modules.remove(nnId);
+				}
+			}
+		}
+	}
+	
 	// use separte service tracker in order to have the actual service from the registry
 	// instead of the NeuralNetworkWrapper directly
 	@Override
@@ -308,14 +351,13 @@ public class DianneImpl implements Dianne {
 			}
 		} else {
 			// create/update wrapper and register
-			DianneRuntime localRuntime = runtimes.get(frameworkId);
-			List<Module> modules = nni.modules.values().stream().map( m -> localRuntime.getModule(m.moduleId, nni.id)).collect(Collectors.toList());
-
+			Collection<Module> m = modules.get(nni.id).values();
+					
 			NeuralNetworkWrapper nn = nns.get(nni.id);
 			if(nn!=null){
-				nn.setModules(modules);
+				nn.setModules(m);
 			} else {
-				nn = new NeuralNetworkWrapper(nni, modules, context);
+				nn = new NeuralNetworkWrapper(nni, m, repository, factory, context);
 				nns.put(nni.id, nn);
 				nn.register();
 			}

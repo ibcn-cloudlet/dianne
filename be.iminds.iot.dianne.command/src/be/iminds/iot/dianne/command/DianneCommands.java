@@ -24,7 +24,6 @@ import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.Dianne;
 import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
-import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.api.repository.RepositoryListener;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
@@ -51,7 +50,7 @@ public class DianneCommands {
 	TensorFactory factory; 
 	
 	Map<String, Dataset> datasets = Collections.synchronizedMap(new HashMap<String, Dataset>());
-	DianneRepository repository;
+	//DianneRepository repository;
 	Dianne dianne;
 	
 	// State
@@ -100,7 +99,7 @@ public class DianneCommands {
 	}
 	
 	public void nnAvailable(){
-		List<String> nns = repository.availableNeuralNetworks();
+		List<String> nns = dianne.getSupportedNeuralNetworks();
 		if(nns.size()==0){
 			System.out.println("No neural networks available");
 			return;
@@ -277,10 +276,13 @@ public class DianneCommands {
 	}
 	
 	private void loadParameters(NeuralNetworkInstanceDTO nn, String tag){
-		Map<UUID, Tensor> parameters = repository.loadParameters(nn.name, tag);
 		NeuralNetwork n = dianne.getNeuralNetwork(nn.id);
 		if(n!=null){
-			n.setParameters(parameters);
+			try {
+				n.loadParameters(tag);
+			} catch(Exception e){
+				System.out.println("Failed to load parameters with tag "+tag);
+			}
 		}
 	}
 	
@@ -306,7 +308,11 @@ public class DianneCommands {
 				String... tag) {
 			NeuralNetwork nn = dianne.getNeuralNetwork(nnId);
 			if(nn!=null){
-				moduleIds.stream().forEach(moduleId -> nn.setParameters(moduleId, repository.loadParameters(moduleId, tag)));
+				try {
+					nn.loadParameters(tag);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}
@@ -321,11 +327,6 @@ public class DianneCommands {
 	void removeDataset(Dataset dataset, Map<String, Object> properties){
 		String name = (String) properties.get("name");
 		this.datasets.remove(name);
-	}
-	
-	@Reference
-	void setDianneRepository(DianneRepository repo){
-		this.repository = repo;
 	}
 	
 	@Reference

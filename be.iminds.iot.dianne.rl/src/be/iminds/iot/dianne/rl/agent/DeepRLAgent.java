@@ -5,7 +5,6 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -15,22 +14,18 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
-import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.platform.Dianne;
-import be.iminds.iot.dianne.api.repository.DianneRepository;
+import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
 import be.iminds.iot.dianne.api.rl.Agent;
 import be.iminds.iot.dianne.api.rl.Environment;
 import be.iminds.iot.dianne.api.rl.ExperiencePool;
 import be.iminds.iot.dianne.api.rl.ExperiencePoolSample;
 import be.iminds.iot.dianne.rl.agent.strategy.ActionStrategy;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component
 public class DeepRLAgent implements Agent {
 
-	private TensorFactory factory;
-	private DianneRepository repository;
 	private Map<String, ExperiencePool> pools = new HashMap<String, ExperiencePool>();
 	private Map<String, Environment> envs = new HashMap<String, Environment>();
 	private Map<String, ActionStrategy> strategies = new HashMap<String, ActionStrategy>();
@@ -56,20 +51,10 @@ public class DeepRLAgent implements Agent {
 	private ActionStrategy actionStrategy;
 	
 	@Reference
-	void setTensorFactory(TensorFactory factory) {
-		this.factory = factory;
-	}
-	
-	@Reference
 	void setDianne(Dianne d){
 		dianne = d;
 	}
 	
-	@Reference
-	void setDianneRepository(DianneRepository repository){
-		this.repository = repository;
-	}
-
 	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
 	void addExperiencePool(ExperiencePool pool, Map<String, Object> properties) {
 		String name = (String) properties.get("name");
@@ -114,7 +99,7 @@ public class DeepRLAgent implements Agent {
 			throws Exception {
 		if (acting)
 			throw new Exception("Already running an Agent here");
-		else if (nnName == null || !repository.availableNeuralNetworks().contains(nnName))
+		else if (nnName == null || !dianne.getSupportedNeuralNetworks().contains(nnName))
 			throw new Exception("Network name " + nnName + " is null or not available");
 		else if (environment == null || !envs.containsKey(environment))
 			throw new Exception("Environment " + environment + " is null or not available");
@@ -184,15 +169,6 @@ public class DeepRLAgent implements Agent {
 		}
 	}
 	
-	private void loadParameters(){
-		try {
-			Map<UUID, Tensor> parameters = repository.loadParameters(nn.getTrainables().keySet(), tag);
-			nn.setParameters(parameters);
-		} catch(Exception e){
-			System.out.println("Error could not load parameters...");
-		}
-	}
-	
 	private Tensor selectActionFromObservation(Tensor state, long i) {
 		Tensor out = nn.forward(state);
 		return actionStrategy.selectActionFromOutput(out, i);
@@ -208,7 +184,11 @@ public class DeepRLAgent implements Agent {
 			for(long i = 0; acting; i++) {
 				if(i % syncInterval == 0){
 					// sync parameters
-					loadParameters();
+					try {
+						nn.loadParameters(tag);
+					} catch(Exception e){
+						System.out.println("Failed to load parameters with tag "+tag);
+					}
 				}
 				
 				Tensor action = selectActionFromObservation(observation, i);

@@ -45,7 +45,7 @@ public interface DianneRepository {
 	 * @return the parameter Tensor
 	 * @throws IOException
 	 */
-	Tensor loadParameters(UUID moduleId, String... tag);
+	Tensor loadParameters(UUID moduleId, String... tag) throws Exception;
 	
 	/**
 	 * Load the parameters for a number of moduleIds, optionally with some tags
@@ -55,7 +55,7 @@ public interface DianneRepository {
 	 * @return the parameters Tensors mapped by moduleId
 	 * @throws IOException
 	 */
-	Map<UUID, Tensor> loadParameters(Collection<UUID> moduleIds, String... tag);
+	Map<UUID, Tensor> loadParameters(Collection<UUID> moduleIds, String... tag) throws Exception;
 	
 	/**
 	 * Load all parameters for a given neural network name for some tags
@@ -63,7 +63,7 @@ public interface DianneRepository {
 	 * @param tag optional tags for the parameters
 	 * @return the parameters Tensor mapped by moduleId
 	 */
-	Map<UUID, Tensor> loadParameters(String nnName, String... tag);
+	Map<UUID, Tensor> loadParameters(String nnName, String... tag) throws Exception;
 	
 	/**
 	 * Store parameters for a given moduleId

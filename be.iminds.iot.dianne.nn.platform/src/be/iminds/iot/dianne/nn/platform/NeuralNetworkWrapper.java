@@ -1,10 +1,10 @@
 package be.iminds.iot.dianne.nn.platform;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -21,12 +21,17 @@ import be.iminds.iot.dianne.api.nn.module.Preprocessor;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
+import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public class NeuralNetworkWrapper implements NeuralNetwork {
 
 	private int count = 0;
 	private final static String SYNC_TAG = "sync"; 
+	
+	private final DianneRepository repository;
+	private final TensorFactory factory;
 	
 	private final NeuralNetworkInstanceDTO nn;
 	private Map<UUID, Module> modules;
@@ -44,14 +49,17 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	private ServiceRegistration<BackwardListener> backwardListenerReg;
 	private ServiceRegistration<NeuralNetwork> nnReg;
 	
-	public NeuralNetworkWrapper(NeuralNetworkInstanceDTO nn, List<Module> modules, BundleContext context) {
+	public NeuralNetworkWrapper(NeuralNetworkInstanceDTO nn, Collection<Module> modules, DianneRepository repo, TensorFactory factory, BundleContext context) {
 		this.nn = nn;
 		this.context = context;
+		
+		this.factory = factory;
+		this.repository = repo;
 		
 		setModules(modules);
 	}
 	
-	void setModules(List<Module> modules){
+	void setModules(Collection<Module> modules){
 		this.modules = modules.stream().collect(Collectors.toMap(m -> m.getId(), m -> m));
 		this.inputs = modules.stream().filter(m -> m instanceof Input).map(i -> (Input)i).collect(Collectors.toMap(i -> i.getId(), i -> i));
 		this.outputs = modules.stream().filter(m -> m instanceof Output).map(o -> (Output)o).collect(Collectors.toMap(o -> o.getId(), o -> o));
@@ -170,28 +178,35 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	}
 	
 	private String getTag(ForwardListener l){
-		String tag = "";
-		if(!delegateFw.containsKey(l)){
-			tag = ""+(count++);
-			delegateFw.put(l, tag);
-		} else {
-			tag = delegateFw.get(l);
+		String tag = null;
+		if(l!=null){
+			if(!delegateFw.containsKey(l)){
+				tag = ""+(count++);
+				delegateFw.put(l, tag);
+			} else {
+				tag = delegateFw.get(l);
+			}
 		}
 		return tag;
 	}
 	
 	private String getTag(BackwardListener l){
-		String tag = "";
-		if(!delegateBw.containsKey(l)){
-			tag = ""+(count++);
-			delegateBw.put(l, tag);
-		} else {
-			tag = delegateBw.get(l);
+		String tag = null;
+		if(l!=null){
+			if(!delegateBw.containsKey(l)){
+				tag = ""+(count++);
+				delegateBw.put(l, tag);
+			} else {
+				tag = delegateBw.get(l);
+			}
 		}
 		return tag;
 	}
 	
 	private String[] addTag(String[] tags, String tag){
+		if(tag==null)
+			return tags;
+		
 		int l = tags.length;
 		String[] t = Arrays.copyOf(tags, l+1);
 		t[l] = tag;
@@ -385,5 +400,31 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	public Map<UUID, Tensor> getParameters(){
 		return trainables.entrySet().stream()
 				.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().getParameters()));
+	}
+	
+	@Override
+	public void resetParameters(){
+		trainables.values().stream().forEach(t -> t.reset());
+	}
+
+	@Override
+	public void storeParameters(String... tag) {
+		repository.storeParameters(getParameters(), tag);
+	}
+
+	@Override
+	public void storeDeltaParameters(Map<UUID, Tensor> previous, String... tag) {
+		Map<UUID, Tensor> deltaParameters = trainables.entrySet().stream()
+				.collect(Collectors.toMap(e -> e.getKey(), e -> factory.getTensorMath().sub(null,
+						e.getValue().getParameters(), previous.get(e.getKey()))));
+
+		repository.accParameters(deltaParameters, tag);
+	}
+
+	@Override
+	public Map<UUID, Tensor> loadParameters(String... tag) throws Exception {
+		Map<UUID, Tensor> parameters = repository.loadParameters(nn.name, tag);
+		setParameters(parameters);
+		return parameters;
 	}
 }

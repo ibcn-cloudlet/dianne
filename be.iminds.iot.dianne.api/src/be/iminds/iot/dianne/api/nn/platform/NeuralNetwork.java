@@ -159,4 +159,30 @@ public interface NeuralNetwork {
 	 * Get all parameters for all neural network modules
 	 */
 	Map<UUID, Tensor> getParameters();
+	
+
+	/**
+	 * Reinitialize the parameters with random values
+	 */
+	void resetParameters();
+	
+	/**
+	 * Store the current parameters into the repository
+	 * @param tag
+	 */
+	void storeParameters(String... tag);
+
+	/**
+	 * Store the delta compared to previous in the repository
+	 * @param tag
+	 */
+	void storeDeltaParameters(Map<UUID, Tensor> previous, String... tag);
+	
+	/**
+	 * Load parameters from the repository into the network instance
+	 * @param tag
+	 * @return the parameters loaded from the repository
+	 * @throws exection when no parameters found with the given tags
+	 */
+	Map<UUID, Tensor> loadParameters(String... tag) throws Exception;
 }

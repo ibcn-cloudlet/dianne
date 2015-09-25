@@ -18,9 +18,8 @@ import be.iminds.iot.dianne.api.nn.learn.Processor;
 import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
-import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.platform.Dianne;
-import be.iminds.iot.dianne.api.repository.DianneRepository;
+import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
 import be.iminds.iot.dianne.api.rl.ExperiencePool;
 import be.iminds.iot.dianne.nn.learn.processors.AbstractProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.MomentumProcessor;
@@ -37,7 +36,6 @@ public class DeepQLearner implements Learner {
 	
 	private TensorFactory factory;
 	private Dianne dianne;
-	private DianneRepository repository;
 	private Map<String, ExperiencePool> pools = new HashMap<String, ExperiencePool>();
 
 	private NeuralNetwork nn;
@@ -67,11 +65,6 @@ public class DeepQLearner implements Learner {
 		dianne = d;
 	}
 
-	@Reference
-	void setDianneRepository(DianneRepository repository) {
-		this.repository = repository;
-	}
-
 	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
 	void addExperiencePool(ExperiencePool pool, Map<String, Object> properties) {
 		String name = (String) properties.get("name");
@@ -93,7 +86,7 @@ public class DeepQLearner implements Learner {
 	public void learn(String nnName, String experiencePool, Map<String, String> config) throws Exception {
 		if (learning)
 			throw new Exception("Already running a Learner here");
-		else if (nnName == null || !repository.availableNeuralNetworks().contains(nnName))
+		else if (nnName == null || !dianne.getSupportedNeuralNetworks().contains(nnName))
 			throw new Exception("Network name " + nnName + " is null or not available");
 		else if (experiencePool == null || !pools.containsKey(experiencePool))
 			throw new Exception("ExperiencePool " + experiencePool + " is null or not available");
@@ -164,11 +157,9 @@ public class DeepQLearner implements Learner {
 
 	private void loadParameters(NeuralNetwork... nns) {
 		try {
-			Map<UUID, Tensor> parameters = repository.loadParameters(nn.getTrainables().keySet(), tag);
 			for(NeuralNetwork nn : nns){
-				nn.setParameters(parameters);
+				previousParameters = nn.loadParameters(tag);
 			}
-			previousParameters = parameters;
 		} catch (Exception ex) {
 			resetParameters();
 		}
@@ -185,26 +176,16 @@ public class DeepQLearner implements Learner {
 	}
 
 	private void resetParameters(){
-		nn.getTrainables().entrySet().stream().forEach(e -> e.getValue().reset());
+		nn.resetParameters();
 		
-		// collect parameters
-		Map<UUID, Tensor> parameters = nn.getParameters();
-		repository.storeParameters(parameters, tag);
+		// store those parameters
+		nn.storeParameters(tag);
 		
 		// copy to target
 		target.setParameters(nn.getParameters());
 		
 		// copy to previousParameters
 		previousParameters =  nn.getParameters().entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().copyInto(null)));
-	}
-	
-	private void publishDeltaParameters() {
-		Map<UUID, Tensor> deltaParameters = nn.getParameters().entrySet().stream()
-				.collect(Collectors.toMap(e -> e.getKey(), e -> factory.getTensorMath().sub(null,
-						e.getValue(), previousParameters.get(e.getKey()))));
-
-		repository.accParameters(deltaParameters, tag);
-		
 	}
 
 	private class DeepQLearnerRunnable implements Runnable {
@@ -255,15 +236,15 @@ public class DeepQLearner implements Learner {
 				nn.getTrainables().values().stream().forEach(Trainable::updateParameters);
 
 				if (targetInterval > 0 && i % targetInterval == 0) {
-					publishDeltaParameters();
+					nn.storeDeltaParameters(previousParameters, tag);
 					loadParameters(nn, target);
 				} else if(syncInterval > 0 && i % syncInterval == 0){
-					publishDeltaParameters();
+					nn.storeDeltaParameters(previousParameters, tag);
 					loadParameters(nn);
 				}
 			}
 
-			publishDeltaParameters();
+			nn.storeDeltaParameters(previousParameters, tag);
 		}
 
 	}
