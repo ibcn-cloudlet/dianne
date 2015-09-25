@@ -1,0 +1,73 @@
+-runfw: org.eclipse.concierge
+
+-runbundles: \
+	osgi.enterprise;version='[5.0.0,5.1.0)',\
+	org.apache.felix.http.api;version='[2.3.2,2.4)',\
+	org.apache.felix.http.jetty;version='[2.3.2,2.4)',\
+	org.apache.felix.http.servlet-api;version='[1.0.1,1.1)',\
+	org.apache.felix.http.whiteboard;version='[2.3.2,2.4)',\
+	org.apache.felix.configadmin;version='[1.8.2,1.9)',\
+	org.apache.felix.gogo.command;version='[0.14.0,0.15)',\
+	org.apache.felix.gogo.runtime;version='[0.16.2,0.17)',\
+	org.apache.felix.gogo.shell;version='[0.10.0,0.11)',\
+	org.apache.felix.eventadmin;version='[1.4.2,1.5)',\
+	org.apache.felix.log;version='[1.0.1,1.0.2)',\
+	org.apache.felix.metatype;version='[1.0.10,1.1)',\
+	org.apache.felix.scr;version='[1.8.2,1.8.3)',\
+	com.sun.jna;version='[4.0.0,4.0.1)',\
+	jssc;version='[2.8.0,2.8.1)',\
+	org.philips.hue.sdkresources;version='[1.0.0,2.0.0)',\
+	org.philips.hue.huelocalsdk;version='[1.0.0,2.0.0)',\
+	org.dyamand.plugins.types.sensors;version='[0.2.0,0.2.1)',\
+	org.dyamand.plugins.support.sdp.v4l2;version='[0.2.0,0.2.1)',\
+	org.dyamand.plugins.support.sdp.enocean;version='[0.2.0,0.2.1)',\
+	org.dyamand.plugins.support.sdp.usb;version='[0.2.0,0.2.1)',\
+	org.dyamand.plugins.support.sdp.dyamand-hue;version='[0.1.2,0.2.0)',\
+	org.dyamand.osgi;version='[0.7.1,0.7.2)',\
+	be.iminds.iot.things.dyamand.adapter;version='[1.0.0,1.0.1)',\
+	kxml;version='[2.2.2,2.2.3)',\
+	com.google.gson;version='[2.2.4,2.3)',\
+	be.iminds.iot.dianne.tensor.th;version=latest,\
+	be.iminds.iot.dianne.tensor.util;version=latest,\
+	be.iminds.iot.dianne.nn;version=latest,\
+	be.iminds.iot.dianne.nn.runtime;version=latest,\
+	be.iminds.iot.dianne.nn.platform;version=latest,\
+	be.iminds.iot.dianne.nn.train;version=latest,\
+	be.iminds.iot.dianne.repository;version=latest,\
+	be.iminds.iot.dianne.dataset.imagenet;version=latest,\
+	be.iminds.iot.dianne.dataset.kaggle;version=latest,\
+	be.iminds.iot.dianne.dataset.mnist;version=latest,\
+	be.iminds.iot.dianne.builder;version=latest,\
+	be.iminds.iot.dianne.command;version=latest,\
+	be.iminds.iot.dianne.io.things;version=latest
+	
+
+	
+-runsystempackages: javax.naming,\
+	javax.net,\
+	javax.net.ssl,\
+	javax.sql,\
+	javax.xml.parsers,\
+	org.xml.sax,\
+	org.xml.sax.helpers,\
+	javax.xml.bind,\
+	javax.annotation,\
+	javax.annotation.meta,\
+	javax.management,\
+	javax.management.modelmbean,\
+	javax.management.remote,\
+	javax.security.auth,\
+	javax.security.cert,\
+	javax.imageio
+	
+-runproperties:\
+	org.osgi.framework.bootdelegation="sun.*",\
+	org.osgi.service.http.port=8080,\
+	org.apache.felix.http.jetty.maxFormSize=999999999,\
+	be.iminds.iot.dianne.storage="../tools/nn",\
+	be.iminds.iot.dianne.dataset.mnist.location="../tools/datasets/MNIST/",\
+	be.iminds.iot.dianne.dataset.imagenet.location="../tools/datasets/ImageNet/",\
+	be.iminds.iot.dianne.dataset.kaggle.location="../tools/datasets/Kaggle-CatvsDog/"
+
+-runvm: -d64 -Xms512m -Xmx4g
+
