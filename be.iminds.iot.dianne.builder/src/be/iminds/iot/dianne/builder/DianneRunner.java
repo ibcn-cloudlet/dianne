@@ -14,6 +14,7 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
 import javax.servlet.AsyncContext;
@@ -36,6 +37,7 @@ import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.Module.Mode;
+import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.Dianne;
 import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -63,9 +65,6 @@ public class DianneRunner extends HttpServlet {
 	private Random rand = new Random(System.currentTimeMillis());
 	private Map<String, Dataset> datasets = Collections.synchronizedMap(new HashMap<String, Dataset>());
 	private Dianne dianne;
-	// keep all labels for the UI... 
-	// TODO try to fetch labels on the fly?
-	private Map<UUID, String[]> labels = Collections.synchronizedMap(new HashMap<UUID, String[]>());
 	
 	@Activate
 	public void activate(BundleContext c){
@@ -106,8 +105,21 @@ public class DianneRunner extends HttpServlet {
 		
 		// register forward listener for this
 		String nnId = request.getParameter("nnId");
-		SSEForwardListener listener = new SSEForwardListener(nnId, request.startAsync());
-		listener.register(context);
+		
+		
+		NeuralNetworkInstanceDTO nn = dianne.getNeuralNetworkInstance(UUID.fromString(nnId));
+		if(nn!=null){
+			Map<UUID, String[]> labels = nn.modules.values().stream().map(i -> i.module)
+			.filter(m -> m.type.equals("Output"))
+			.filter(m -> m.properties.containsKey("labels"))
+			.collect(Collectors.toMap(m -> m.id, m -> {
+				String l = m.properties.get("labels");
+				l = l.substring(1, l.length()-1);
+				return l.split(",");
+			}));
+			SSEForwardListener listener = new SSEForwardListener(nnId, labels, request.startAsync());
+			listener.register(context);	
+		}
 	}
 	
 	@Override
@@ -133,7 +145,6 @@ public class DianneRunner extends HttpServlet {
 			
 			NeuralNetwork nn = dianne.getNeuralNetwork(nnId);
 			if(nn!=null){
-				nn.getOutputs().entrySet().stream().forEach(e -> labels.put(e.getKey(), e.getValue().getOutputLabels()));
 				nn.forward((ForwardListener)null, UUID.fromString(inputId), t);
 			}
 			
@@ -154,7 +165,6 @@ public class DianneRunner extends HttpServlet {
 			
 			NeuralNetwork nn = dianne.getNeuralNetwork(nnId);
 			if(nn!=null){
-				nn.getOutputs().entrySet().stream().forEach(e -> labels.put(e.getKey(), e.getValue().getOutputLabels()));
 				nn.forward((ForwardListener)null, UUID.fromString(inputId), t);
 			}
 			
@@ -180,7 +190,6 @@ public class DianneRunner extends HttpServlet {
 				
 				NeuralNetwork nn = dianne.getNeuralNetwork(nnId);
 				if(nn!=null){
-					nn.getOutputs().entrySet().stream().forEach(e -> labels.put(e.getKey(), e.getValue().getOutputLabels()));
 					nn.forward((ForwardListener)null, UUID.fromString(inputId), t);
 				}
 				
@@ -272,11 +281,15 @@ public class DianneRunner extends HttpServlet {
 	private class SSEForwardListener implements ForwardListener {
 
 		private final String nnId;
+		private final Map<UUID, String[]> labels;
 		private final AsyncContext async;
 		private ServiceRegistration reg;
 		
-		public SSEForwardListener(String nnId, AsyncContext async) {
+		public SSEForwardListener(String nnId,
+				Map<UUID, String[]> labels,
+				AsyncContext async) {
 			this.nnId = nnId;
+			this.labels = labels;
 			this.async = async;
 			this.async.setTimeout(300000); // let it ultimately timeout if client is closed
 			
@@ -317,7 +330,6 @@ public class DianneRunner extends HttpServlet {
 		@Override
 		public void onForward(UUID moduleId, Tensor output, String... tags) {
 			try {
-				// TODO how to get the labels?
 				String sseMessage = outputSSEMessage(moduleId, labels.get(moduleId), output, tags);
 				PrintWriter writer = async.getResponse().getWriter();
 				writer.write(sseMessage);
