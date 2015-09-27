@@ -1,4 +1,4 @@
-package be.iminds.iot.dianne.api.nn.platform;
+package be.iminds.iot.dianne.api.nn;
 
 import java.util.Map;
 import java.util.UUID;

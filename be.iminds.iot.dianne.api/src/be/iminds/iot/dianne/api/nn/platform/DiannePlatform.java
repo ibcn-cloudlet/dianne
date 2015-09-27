@@ -4,18 +4,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 
 /**
- * The Dianne interface is the main entry point to control the deployment
+ * The DiannePlatform interface is the main entry point to control the deployment
  * of (distributed) neural network instances.
  * 
  * @author tverbele
  *
  */
-public interface Dianne {
+public interface DiannePlatform {
 
 	/**
 	 * Deploy an instance of a neural network on the local runtime
@@ -75,11 +76,6 @@ public interface Dianne {
 	 */
 	NeuralNetworkInstanceDTO getNeuralNetworkInstance(UUID nnId);
 
-	/**
-	 * Get an NeuralNetwork interface for synchronously forward and backward tensors
-	 * through the network
-	 */
-	NeuralNetwork getNeuralNetwork(UUID nnId);
 	
 	/**
 	 * Deploy instances of neural network modules on a given runtime. If a nnId is given and some of the modules are already

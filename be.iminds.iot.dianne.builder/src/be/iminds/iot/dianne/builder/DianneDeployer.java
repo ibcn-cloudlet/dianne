@@ -24,7 +24,7 @@ import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
-import be.iminds.iot.dianne.api.nn.platform.Dianne;
+import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.nn.util.DianneJSONConverter;
 
@@ -45,7 +45,7 @@ public class DianneDeployer extends HttpServlet {
 	private Map<UUID, String> runtimeNames = new HashMap<UUID, String>();
 
 	private DianneRepository repository;
-	private Dianne dianne;
+	private DiannePlatform platform;
 	
 	@Activate
 	public void activate(BundleContext context){
@@ -66,8 +66,8 @@ public class DianneDeployer extends HttpServlet {
 	}
 	
 	@Reference
-	void setDianne(Dianne d){
-		dianne = d;
+	void setDianne(DiannePlatform d){
+		platform = d;
 	}
 
 	@Reference
@@ -111,7 +111,7 @@ public class DianneDeployer extends HttpServlet {
 			}
 			
 			try {
-				List<ModuleInstanceDTO> moduleInstances = dianne.deployModules(UUID.fromString(id), name, toDeploy, runtimeId);
+				List<ModuleInstanceDTO> moduleInstances = platform.deployModules(UUID.fromString(id), name, toDeploy, runtimeId);
 
 				// return json object with deployment
 				JsonObject result = new JsonObject();
@@ -131,10 +131,10 @@ public class DianneDeployer extends HttpServlet {
 			String id = request.getParameter("id");
 			String moduleId = request.getParameter("moduleId");
 			if(id!=null){
-				NeuralNetworkInstanceDTO nn = dianne.getNeuralNetworkInstance(UUID.fromString(id));
+				NeuralNetworkInstanceDTO nn = platform.getNeuralNetworkInstance(UUID.fromString(id));
 				if(nn!=null){
 					ModuleInstanceDTO moduleInstance = nn.modules.get(UUID.fromString(moduleId));
-					dianne.undeployModules(Collections.singletonList(moduleInstance));
+					platform.undeployModules(Collections.singletonList(moduleInstance));
 					
 					response.getWriter().write(new JsonPrimitive(id).toString());
 					response.getWriter().flush();
@@ -143,7 +143,7 @@ public class DianneDeployer extends HttpServlet {
 		} else if(action.equals("targets")){
 			JsonArray targets = new JsonArray();
 			
-			List<UUID> runtimes = dianne.getRuntimes();
+			List<UUID> runtimes = platform.getRuntimes();
 			runtimes.stream()
 					.map(runtimeId -> runtimeNames.get(runtimeId)==null ? runtimeId.toString() : runtimeNames.get(runtimeId))
 					.forEach(runtimeName -> targets.add(new JsonPrimitive(runtimeName)));
@@ -155,7 +155,7 @@ public class DianneDeployer extends HttpServlet {
 			if(id==null){
 				// list all options
 				JsonArray nns = new JsonArray();
-				dianne.getNeuralNetworkInstances().stream().forEach(
+				platform.getNeuralNetworkInstances().stream().forEach(
 						nni -> { JsonObject o = new JsonObject();
 								o.add("id", new JsonPrimitive(nni.id.toString()));
 								o.add("name", new JsonPrimitive(nni.name));
@@ -168,7 +168,7 @@ public class DianneDeployer extends HttpServlet {
 				response.getWriter().flush();
 				
 			} else {
-				NeuralNetworkInstanceDTO nni = dianne.getNeuralNetworkInstance(UUID.fromString(id));
+				NeuralNetworkInstanceDTO nni = platform.getNeuralNetworkInstance(UUID.fromString(id));
 				if(nni==null){
 					System.out.println("Failed to recover "+nni.id+" , instance not found");
 					return;

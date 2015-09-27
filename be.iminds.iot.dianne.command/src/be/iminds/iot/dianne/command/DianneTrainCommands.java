@@ -4,7 +4,8 @@ import java.util.UUID;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.DatasetRangeAdapter;
-import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
+import be.iminds.iot.dianne.api.nn.NeuralNetwork;
+import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.train.Evaluation;
 import be.iminds.iot.dianne.nn.train.eval.ArgMaxEvaluator;
 
@@ -29,7 +30,13 @@ public class DianneTrainCommands {
 			return;
 		}
 
-		NeuralNetwork nn = commands.dianne.getNeuralNetwork(UUID.fromString(nnId));
+		NeuralNetworkInstanceDTO nni = commands.platform.getNeuralNetworkInstance(UUID.fromString(nnId));
+		if(nni==null){
+			System.out.println("Neural network instance "+nnId+" not deployed");
+			return;
+		}
+		
+		NeuralNetwork nn = commands.dianne.getNeuralNetwork(nni);
 		if(nn==null){
 			System.out.println("Neural network instance "+nnId+" not available");
 			return;

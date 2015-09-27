@@ -1,7 +1,6 @@
 package be.iminds.iot.dianne.nn.platform;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,14 +22,13 @@ import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
-import be.iminds.iot.dianne.api.nn.platform.Dianne;
-import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
+import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.api.nn.runtime.DianneRuntime;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
-@Component(property={"aiolos.export=false"})
-public class DianneImpl implements Dianne {
+@Component
+public class DiannePlatformImpl implements DiannePlatform {
 
 	private TensorFactory factory;
 	private DianneRepository repository;
@@ -40,8 +38,6 @@ public class DianneImpl implements Dianne {
 	
 	// available neural networks
 	private Map<UUID, NeuralNetworkInstanceDTO> nnis = Collections.synchronizedMap(new HashMap<UUID, NeuralNetworkInstanceDTO>());
-	private Map<UUID, NeuralNetworkWrapper> nns = Collections.synchronizedMap(new HashMap<UUID, NeuralNetworkWrapper>());
-	private Map<UUID, NeuralNetwork> nnServices = Collections.synchronizedMap(new HashMap<UUID, NeuralNetwork>());
 	
 	private UUID frameworkId;
 	private BundleContext context;
@@ -123,9 +119,6 @@ public class DianneImpl implements Dianne {
 
 		NeuralNetworkInstanceDTO nni = new NeuralNetworkInstanceDTO(nnId, name, description, moduleInstances);
 		nnis.put(nnId, nni);
-		
-		updateNeuralNetwork(nnId);
-		
 		return nni;
 	}
 
@@ -135,9 +128,6 @@ public class DianneImpl implements Dianne {
 	
 		// remove all modules from nni
 		nnis.get(nni.id).modules.clear();
-		
-		updateNeuralNetwork(nni.id);
-	
 		nnis.remove(nni.id);
 	}
 
@@ -208,8 +198,6 @@ public class DianneImpl implements Dianne {
 			moduleInstances.add(moduleInstance);
 		}
 		
-		updateNeuralNetwork(nnId);
-		
 		return moduleInstances;
 	}
 
@@ -224,9 +212,6 @@ public class DianneImpl implements Dianne {
 			if(runtime!=null){
 				runtime.undeployModule(moduleInstance);
 			}
-		}
-		for(UUID nnId : nnIds){
-			updateNeuralNetwork(nnId);
 		}
 		for(UUID nnId : nnIds){
 			NeuralNetworkInstanceDTO nn = nnis.get(nnId);
@@ -311,57 +296,5 @@ public class DianneImpl implements Dianne {
 				}
 			}
 		}
-	}
-	
-	// use separte service tracker in order to have the actual service from the registry
-	// instead of the NeuralNetworkWrapper directly
-	@Override
-	public NeuralNetwork getNeuralNetwork(UUID nnId) {
-		NeuralNetwork nn = nnServices.get(nnId);
-		if(nn==null){
-			System.err.println("No neural network found with id "+nnId);
-		}
-		return nn;
-	}
-	
-	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
-			policy=ReferencePolicy.DYNAMIC)
-	public void addNeuralNetwork(NeuralNetwork nn, Map<String, Object> properties){
-		String nnId = (String)properties.get("nn.id");
-		nnServices.put(UUID.fromString(nnId), nn);
-	}
-	
-	public void removeNeuralNetwork(NeuralNetwork nn, Map<String, Object> properties){
-		String nnId = (String)properties.get("nn.id");
-		nnServices.remove(UUID.fromString(nnId));
-	}
-	
-	private void updateNeuralNetwork(UUID nnId){
-		NeuralNetworkInstanceDTO nni = nnis.get(nnId);
-		if(nni == null){
-			return;
-		}
-		
-		NeuralNetworkDTO template = repository.loadNeuralNetwork(nni.name);
-		if(nni.modules.size()!= template.modules.size()){
-			// not all modules deployed ... remove and unregister NN
-			NeuralNetworkWrapper nn = nns.remove(nni.id);
-			if(nn!=null){
-				nn.unregister();
-			}
-		} else {
-			// create/update wrapper and register
-			Collection<Module> m = modules.get(nni.id).values();
-					
-			NeuralNetworkWrapper nn = nns.get(nni.id);
-			if(nn!=null){
-				nn.setModules(m);
-			} else {
-				nn = new NeuralNetworkWrapper(nni, m, repository, factory, context);
-				nns.put(nni.id, nn);
-				nn.register();
-			}
-		}
-		
 	}
 }

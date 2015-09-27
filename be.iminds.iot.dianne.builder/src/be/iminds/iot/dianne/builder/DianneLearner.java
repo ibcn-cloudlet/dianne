@@ -25,13 +25,15 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.DatasetLabelAdapter;
 import be.iminds.iot.dianne.api.dataset.DatasetRangeAdapter;
+import be.iminds.iot.dianne.api.nn.Dianne;
+import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.Output;
 import be.iminds.iot.dianne.api.nn.module.Preprocessor;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
-import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
-import be.iminds.iot.dianne.api.nn.platform.Dianne;
+import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
+import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.api.nn.train.Criterion;
 import be.iminds.iot.dianne.api.nn.train.Evaluation;
 import be.iminds.iot.dianne.api.nn.train.Evaluator;
@@ -64,6 +66,7 @@ public class DianneLearner extends HttpServlet {
 	
 	private Map<String, Dataset> datasets = new HashMap<String, Dataset>();
 	private Dianne dianne;
+	private DiannePlatform platform;
 
 	
 	private AsyncContext sse = null;
@@ -81,6 +84,11 @@ public class DianneLearner extends HttpServlet {
 	@Reference
 	void setDianne(Dianne d){
 		dianne = d;
+	}
+	
+	@Reference
+	void setDiannePlatform(DiannePlatform p){
+		platform = p;
 	}
 	
 	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
@@ -116,7 +124,13 @@ public class DianneLearner extends HttpServlet {
 			System.out.println("No neural network instance specified");
 		}
 		UUID nnId = UUID.fromString(id);
-		NeuralNetwork nn = dianne.getNeuralNetwork(nnId);
+		NeuralNetworkInstanceDTO nni = platform.getNeuralNetworkInstance(nnId);
+		if(nni==null){
+			System.out.println("Neural network instance "+id+" not deployed");
+			return;
+		}
+		
+		NeuralNetwork nn = dianne.getNeuralNetwork(nni);
 		if(nn==null){
 			System.out.println("Neural network instance "+id+" not available");
 			return;

@@ -34,12 +34,13 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.nn.Dianne;
+import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
-import be.iminds.iot.dianne.api.nn.platform.Dianne;
-import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
+import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.dianne.tensor.util.ImageConverter;
@@ -65,6 +66,7 @@ public class DianneRunner extends HttpServlet {
 	private Random rand = new Random(System.currentTimeMillis());
 	private Map<String, Dataset> datasets = Collections.synchronizedMap(new HashMap<String, Dataset>());
 	private Dianne dianne;
+	private DiannePlatform platform;
 	
 	@Activate
 	public void activate(BundleContext c){
@@ -80,6 +82,11 @@ public class DianneRunner extends HttpServlet {
 	@Reference
 	void setDianne(Dianne d){
 		dianne = d;
+	}
+	
+	@Reference
+	void setDiannePlatform(DiannePlatform p){
+		platform = p;
 	}
 	
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
@@ -105,9 +112,7 @@ public class DianneRunner extends HttpServlet {
 		
 		// register forward listener for this
 		String nnId = request.getParameter("nnId");
-		
-		
-		NeuralNetworkInstanceDTO nn = dianne.getNeuralNetworkInstance(UUID.fromString(nnId));
+		NeuralNetworkInstanceDTO nn = platform.getNeuralNetworkInstance(UUID.fromString(nnId));
 		if(nn!=null){
 			Map<UUID, String[]> labels = nn.modules.values().stream().map(i -> i.module)
 			.filter(m -> m.type.equals("Output"))
@@ -131,6 +136,18 @@ public class DianneRunner extends HttpServlet {
 			return;
 		}
 		UUID nnId = UUID.fromString(id);
+		NeuralNetworkInstanceDTO nni = platform.getNeuralNetworkInstance(nnId);
+		if(nni==null){
+			System.out.println("Neural network instance "+id+" not deployed");
+			return;
+		}
+		
+		NeuralNetwork nn = dianne.getNeuralNetwork(nni);
+		if(nn==null){
+			System.out.println("Neural network instance "+id+" not available");
+			return;
+		}
+		
 		
 		if(request.getParameter("forward")!=null){
 			String inputId = request.getParameter("input");
@@ -143,11 +160,7 @@ public class DianneRunner extends HttpServlet {
 			float[] data = parseInput(sample.get("data").getAsJsonArray().toString());
 			Tensor t = factory.createTensor(data, channels, height, width);
 			
-			NeuralNetwork nn = dianne.getNeuralNetwork(nnId);
-			if(nn!=null){
-				nn.forward((ForwardListener)null, UUID.fromString(inputId), t);
-			}
-			
+			nn.forward((ForwardListener)null, UUID.fromString(inputId), t);
 			
 		} else if(request.getParameter("url")!=null){
 			String url = request.getParameter("url");
@@ -163,21 +176,15 @@ public class DianneRunner extends HttpServlet {
 				return;
 			}
 			
-			NeuralNetwork nn = dianne.getNeuralNetwork(nnId);
-			if(nn!=null){
-				nn.forward((ForwardListener)null, UUID.fromString(inputId), t);
-			}
+			nn.forward((ForwardListener)null, UUID.fromString(inputId), t);
 			
 		} else if(request.getParameter("mode")!=null){
 			String mode = request.getParameter("mode");
 			String targetId = request.getParameter("target");
 
-			NeuralNetwork nn = dianne.getNeuralNetwork(nnId);
-			if(nn!=null){
-				Module m = nn.getModules().get(UUID.fromString(targetId));
-				if(m!=null){
-					m.setMode(EnumSet.of(Mode.valueOf(mode)));
-				}
+			Module m = nn.getModules().get(UUID.fromString(targetId));
+			if(m!=null){
+				m.setMode(EnumSet.of(Mode.valueOf(mode)));
 			}
 		} else if(request.getParameter("dataset")!=null){
 			String dataset = request.getParameter("dataset");
@@ -188,10 +195,7 @@ public class DianneRunner extends HttpServlet {
 
 				Tensor t = d.getInputSample(rand.nextInt(d.size()));
 				
-				NeuralNetwork nn = dianne.getNeuralNetwork(nnId);
-				if(nn!=null){
-					nn.forward((ForwardListener)null, UUID.fromString(inputId), t);
-				}
+				nn.forward((ForwardListener)null, UUID.fromString(inputId), t);
 				
 				JsonObject sample = new JsonObject();
 				if(t.dims().length==3){

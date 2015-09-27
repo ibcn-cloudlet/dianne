@@ -20,10 +20,11 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.nn.Dianne;
+import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
-import be.iminds.iot.dianne.api.nn.platform.Dianne;
-import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
+import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.api.repository.RepositoryListener;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
@@ -50,8 +51,8 @@ public class DianneCommands {
 	TensorFactory factory; 
 	
 	Map<String, Dataset> datasets = Collections.synchronizedMap(new HashMap<String, Dataset>());
-	//DianneRepository repository;
 	Dianne dianne;
+	DiannePlatform platform;
 	
 	// State
 	Map<UUID, ServiceRegistration> repoListeners = new HashMap<UUID, ServiceRegistration>();
@@ -86,20 +87,20 @@ public class DianneCommands {
 	}
 	
 	public void runtimes(){
-		if(dianne.getRuntimes().size()==0){
+		if(platform.getRuntimes().size()==0){
 			System.out.println("No runtimes available");
 			return;
 		}
 		
 		System.out.println("Available Dianne runtimes:");
 		int i = 0;
-		for(UUID runtime : dianne.getRuntimes()){
+		for(UUID runtime : platform.getRuntimes()){
 			System.out.println("["+(i++)+"] "+runtime);
 		}
 	}
 	
 	public void nnAvailable(){
-		List<String> nns = dianne.getSupportedNeuralNetworks();
+		List<String> nns = platform.getSupportedNeuralNetworks();
 		if(nns.size()==0){
 			System.out.println("No neural networks available");
 			return;
@@ -113,7 +114,7 @@ public class DianneCommands {
 	}
 	
 	public void nn(){
-		List<NeuralNetworkInstanceDTO> nns = dianne.getNeuralNetworkInstances();
+		List<NeuralNetworkInstanceDTO> nns = platform.getNeuralNetworkInstances();
 		if(nns.size()==0){
 			System.out.println("No neural networks deployed");
 			return;
@@ -128,7 +129,7 @@ public class DianneCommands {
 	}
 	
 	public void nn(int index){
-		List<NeuralNetworkInstanceDTO> nns = dianne.getNeuralNetworkInstances();
+		List<NeuralNetworkInstanceDTO> nns = platform.getNeuralNetworkInstances();
 		if(index >= nns.size()){
 			System.out.println("No neural network deployed with index "+index);
 			return;
@@ -138,7 +139,7 @@ public class DianneCommands {
 	}
 	
 	public void nn(String id){
-		NeuralNetworkInstanceDTO nn = dianne.getNeuralNetworkInstance(UUID.fromString(id));
+		NeuralNetworkInstanceDTO nn = platform.getNeuralNetworkInstance(UUID.fromString(id));
 		if(nn==null){
 			System.out.println("No neural network deployed with id "+id);
 			return;
@@ -154,7 +155,7 @@ public class DianneCommands {
 	}
 	
 	public void nnDeploy(String name){
-		deploy(name, dianne.getRuntimes().get(0));
+		deploy(name, platform.getRuntimes().get(0));
 	}
 	
 	public void nnDeploy(String name, String id){
@@ -162,7 +163,7 @@ public class DianneCommands {
 	}
 	
 	public void nnDeploy(String name, int index){
-		deploy(name, dianne.getRuntimes().get(index));
+		deploy(name, platform.getRuntimes().get(index));
 	}
 	
 	public void nnDeploy(String name, String id, String tag){
@@ -172,23 +173,23 @@ public class DianneCommands {
 		loadParameters(nn, tag);
 		
 		// add updatelistener for tag
-		addRepositoryListener(nn.id, tag);
+		addRepositoryListener(nn, tag);
 	}
 	
 	public void nnDeploy(String name, int index, String tag){
-		NeuralNetworkInstanceDTO nn = deploy(name, dianne.getRuntimes().get(index));
+		NeuralNetworkInstanceDTO nn = deploy(name, platform.getRuntimes().get(index));
 		
 		// load parameters with tag
 		loadParameters(nn, tag);
 		
 		// add updatelistener for tag
-		addRepositoryListener(nn.id, tag);
+		addRepositoryListener(nn, tag);
 	}
 	
 
 	private synchronized NeuralNetworkInstanceDTO deploy(String name, UUID runtimeId){
 		try {
-			NeuralNetworkInstanceDTO nn = dianne.deployNeuralNetwork(name, runtimeId);
+			NeuralNetworkInstanceDTO nn = platform.deployNeuralNetwork(name, runtimeId);
 			System.out.println("Deployed instance of "+nn.name+" ("+nn.id.toString()+")");
 			return nn;
 		} catch (InstantiationException e) {
@@ -199,7 +200,7 @@ public class DianneCommands {
 	}
 	
 	public void nnUndeploy(String nnId){
-		NeuralNetworkInstanceDTO nn = dianne.getNeuralNetworkInstance(UUID.fromString(nnId));
+		NeuralNetworkInstanceDTO nn = platform.getNeuralNetworkInstance(UUID.fromString(nnId));
 		if(nn==null){
 			System.out.println("No neural network deployed with id "+nnId);
 			return;
@@ -208,7 +209,7 @@ public class DianneCommands {
 	}
 	
 	public void nnUndeploy(int index){
-		List<NeuralNetworkInstanceDTO> nns = dianne.getNeuralNetworkInstances();
+		List<NeuralNetworkInstanceDTO> nns = platform.getNeuralNetworkInstances();
 		if(index >= nns.size()){
 			System.out.println("No neural network with index "+index);
 			return;
@@ -218,7 +219,7 @@ public class DianneCommands {
 	}
 	
 	private void undeploy(NeuralNetworkInstanceDTO nn){
-		dianne.undeployNeuralNetwork(nn);
+		platform.undeployNeuralNetwork(nn);
 		
 		ServiceRegistration r = repoListeners.get(nn.id);
 		if(r!=null){
@@ -236,12 +237,18 @@ public class DianneCommands {
 		
 		final int index = sample == -1 ? rand.nextInt(d.size()) : sample;
 		
-		NeuralNetwork nn = dianne.getNeuralNetwork(UUID.fromString(nnId));
-		if(nn==null){
-			System.out.println("Neural network "+nnId+" not available");
+		NeuralNetworkInstanceDTO nni = platform.getNeuralNetworkInstance(UUID.fromString(nnId));
+		if(nni==null){
+			System.out.println("Neural network instance "+nnId+" not deployed");
 			return;
 		}
-	
+		
+		NeuralNetwork nn = dianne.getNeuralNetwork(nni);
+		if(nn==null){
+			System.out.println("Neural network instance "+nnId+" not available");
+			return;
+		}
+		
 		final String[] labels = nn.getOutputLabels();
 
 		// get input and forward
@@ -275,38 +282,38 @@ public class DianneCommands {
 		training.eval(dataset, nnId, start, end);
 	}
 	
-	private void loadParameters(NeuralNetworkInstanceDTO nn, String tag){
-		NeuralNetwork n = dianne.getNeuralNetwork(nn.id);
-		if(n!=null){
+	private void loadParameters(NeuralNetworkInstanceDTO nni, String tag){
+		NeuralNetwork nn = dianne.getNeuralNetwork(nni);
+		if(nn!=null){
 			try {
-				n.loadParameters(tag);
+				nn.loadParameters(tag);
 			} catch(Exception e){
 				System.out.println("Failed to load parameters with tag "+tag);
 			}
 		}
 	}
 	
-	private void addRepositoryListener(UUID nnId, String tag){
-		ParameterUpdateListener listener = new ParameterUpdateListener(nnId);
+	private void addRepositoryListener(NeuralNetworkInstanceDTO nni, String tag){
+		ParameterUpdateListener listener = new ParameterUpdateListener(nni);
 		Dictionary<String, Object> props = new Hashtable<String, Object>();
 		props.put("targets", new String[]{":"+tag});
 		props.put("aiolos.unique", true);
 		ServiceRegistration r = context.registerService(RepositoryListener.class, listener, props);
-		repoListeners.put(nnId, r);
+		repoListeners.put(nni.id, r);
 	}
 	
 	class ParameterUpdateListener implements RepositoryListener {
 
-		final UUID nnId;
+		final NeuralNetworkInstanceDTO nni;
 		
-		public ParameterUpdateListener(UUID nnId) {
-			this.nnId = nnId;
+		public ParameterUpdateListener(NeuralNetworkInstanceDTO nni) {
+			this.nni = nni;
 		}
 		
 		@Override
 		public void onParametersUpdate(Collection<UUID> moduleIds,
 				String... tag) {
-			NeuralNetwork nn = dianne.getNeuralNetwork(nnId);
+			NeuralNetwork nn = dianne.getNeuralNetwork(nni);
 			if(nn!=null){
 				try {
 					nn.loadParameters(tag);
@@ -327,6 +334,11 @@ public class DianneCommands {
 	void removeDataset(Dataset dataset, Map<String, Object> properties){
 		String name = (String) properties.get("name");
 		this.datasets.remove(name);
+	}
+	
+	@Reference
+	void setDiannePlatform(DiannePlatform p){
+		platform = p;
 	}
 	
 	@Reference
