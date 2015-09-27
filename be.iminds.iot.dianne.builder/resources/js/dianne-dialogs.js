@@ -55,7 +55,7 @@ function showConfigureModuleDialog(moduleItem) {
 function createNNModuleDialog(module, title, submit, cancel){
 	var dialog = renderTemplate("dialog", {
 		'id' : module.id,
-		'type': 'module',
+		'type': 'config',
 		'title' : title,
 		'submit': submit,
 		'cancel': cancel
