@@ -24,19 +24,10 @@ public class DianneLearnCommands {
 	private Learner learner;
 	private DiannePlatform platform;
 	
-	public void learn(String nnName, String dataset, String tag){
+	public void learn(String nnName, String dataset, String... properties){
 		try {
-			// default configuration values
-			Map<String, String> config = new HashMap<String, String>();
-			config.put("batchSize", "10");
-			config.put("criterion", "MSE");
-			config.put("learningRate", "0.1");
-			config.put("momentum", "0.9");
-			config.put("regularization", "0.001");
+			Map<String, String> config = createLearnerConfig(properties);
 			
-			if(tag!=null){
-				config.put("tag", tag);
-			}
 			NeuralNetworkInstanceDTO nni = platform.deployNeuralNetwork(nnName);
 			learner.learn(nni, dataset, config);
 		} catch(Exception e){
@@ -44,13 +35,29 @@ public class DianneLearnCommands {
 		}
 	}
 
-	public void learn(String nnName, String dataset){
-		learn(nnName, dataset, null);
-	}
-	
 	public void stopLearn(){
 		this.learner.stop();
 	}
+	
+	private Map<String, String> createLearnerConfig(String[] properties){
+		Map<String, String> config = new HashMap<String, String>();
+		// defaults
+		config.put("batchSize", "10");
+		config.put("criterion", "MSE");
+		config.put("learningRate", "0.1");
+		config.put("momentum", "0.9");
+		config.put("regularization", "0.001");
+
+		for(String property : properties){
+			String[] p = property.split("=");
+			if(p.length==2){
+				config.put(p[0].trim(), p[1].trim());
+			}
+		}
+		
+		return config;
+	}
+	
 	
 	@Reference
 	void setLearner(Learner l){
