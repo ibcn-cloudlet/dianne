@@ -7,6 +7,8 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.nn.learn.Learner;
+import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
+import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 
 /**
  * Separate component for learn commands ... should be moved to the command bundle later on
@@ -20,6 +22,7 @@ import be.iminds.iot.dianne.api.nn.learn.Learner;
 public class DianneLearnCommands {
 
 	private Learner learner;
+	private DiannePlatform platform;
 	
 	public void learn(String nnName, String dataset, String tag){
 		try {
@@ -34,7 +37,8 @@ public class DianneLearnCommands {
 			if(tag!=null){
 				config.put("tag", tag);
 			}
-			learner.learn(nnName, dataset, config);
+			NeuralNetworkInstanceDTO nni = platform.deployNeuralNetwork(nnName);
+			learner.learn(nni, dataset, config);
 		} catch(Exception e){
 			e.printStackTrace();
 		}
@@ -51,5 +55,10 @@ public class DianneLearnCommands {
 	@Reference
 	void setLearner(Learner l){
 		this.learner = l;
+	}
+	
+	@Reference
+	void setDiannePlatform(DiannePlatform p){
+		this.platform = p;
 	}
 }

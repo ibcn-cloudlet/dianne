@@ -3,7 +3,6 @@ package be.iminds.iot.dianne.nn.learn;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -12,12 +11,11 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.log.DataLogger;
+import be.iminds.iot.dianne.api.nn.Dianne;
+import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.learn.Processor;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
-import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
-import be.iminds.iot.dianne.api.nn.platform.Dianne;
-import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.nn.learn.processors.AbstractProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.MomentumProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.RegularizationProcessor;
@@ -31,7 +29,6 @@ public class SGDLearner implements Learner {
 	protected DataLogger logger;
 	
 	protected TensorFactory factory;
-	protected DianneRepository repository;
 	protected Dianne dianne;
 	protected Map<String, Dataset> datasets = new HashMap<String, Dataset>();
 	
@@ -50,7 +47,7 @@ public class SGDLearner implements Learner {
 	protected Map<UUID, Tensor> parameters = null;
 	
 	@Override
-	public void learn(String nnName, String dataset,
+	public void learn(NeuralNetworkInstanceDTO nni, String dataset,
 			Map<String, String> config) throws Exception {
 		if(learning){
 			throw new Exception("Already running a learning session here");
@@ -66,9 +63,7 @@ public class SGDLearner implements Learner {
 			throw new Exception("Dataset "+dataset+" not available");
 		}
 		
-		// Deploy an instance of nnName to train on
-		NeuralNetworkInstanceDTO nni = dianne.deployNeuralNetwork(nnName, "Learning NN instance");
-		nn = dianne.getNeuralNetwork(nni.id);
+		nn = dianne.getNeuralNetwork(nni);
 		
 		// load parameters
 		loadParameters();
@@ -141,8 +136,7 @@ public class SGDLearner implements Learner {
 
 	protected void loadParameters(){
 		try {
-			parameters = repository.loadParameters(nn.getTrainables().keySet(), tag);
-			nn.setParameters(parameters);
+			nn.loadParameters(tag);
 		} catch(Exception e){
 			// if no initial parameters available, publish the random initialize parameters of this instance as first parameters?
 			publishParameters();
@@ -157,14 +151,11 @@ public class SGDLearner implements Learner {
 		Map<UUID, Tensor> newParameters = nn.getParameters();
 				
 		if(parameters!=null){
-			// compose diff
-			Map<UUID, Tensor> accParameters = newParameters.entrySet().stream().collect(
-					Collectors.toMap(e -> e.getKey(), 
-									 e -> factory.getTensorMath().sub(null, newParameters.get(e.getKey()), parameters.get(e.getKey()))));
-			repository.accParameters(accParameters, tag);
+			// publish delta
+			nn.storeDeltaParameters(parameters, tag);
 		} else {
 			// just publish initial values
-			repository.storeParameters(newParameters, tag);
+			nn.storeParameters(tag);
 		}
 		
 		// fetch update again from repo (could be merged from other learners)
@@ -174,11 +165,6 @@ public class SGDLearner implements Learner {
 	@Reference
 	void setTensorFactory(TensorFactory f){
 		this.factory = f;
-	}
-	
-	@Reference
-	void setDianneRepository(DianneRepository r){
-		this.repository = r;
 	}
 	
 	@Reference

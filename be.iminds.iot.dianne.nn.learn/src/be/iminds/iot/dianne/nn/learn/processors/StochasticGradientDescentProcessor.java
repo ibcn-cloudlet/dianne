@@ -5,8 +5,8 @@ import java.util.Random;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.log.DataLogger;
+import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
-import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
 import be.iminds.iot.dianne.nn.learn.criterion.MSECriterion;
 import be.iminds.iot.dianne.nn.learn.criterion.NLLCriterion;
 import be.iminds.iot.dianne.tensor.Tensor;
