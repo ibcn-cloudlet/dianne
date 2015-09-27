@@ -102,14 +102,14 @@ public interface DiannePlatform {
 	
 	
 	/**
-	 * Get a list of known neural networks
+	 * Get a list of available neural networks
 	 * 
 	 * This is the aggregated list of all neural networks available 
 	 * in the DianneRepositories.
 	 * 
 	 * @return the list of names that can be deployed
 	 */
-	List<String> getSupportedNeuralNetworks();
+	List<String> getAvailableNeuralNetworks();
 	
 	/**
 	 * A list of available Dianne runtimes to which modules can be deployed to

@@ -235,7 +235,7 @@ public class DiannePlatformImpl implements DiannePlatform {
 	}
 	
 	@Override
-	public List<String> getSupportedNeuralNetworks() {
+	public List<String> getAvailableNeuralNetworks() {
 		return repository.availableNeuralNetworks();
 	}
 	

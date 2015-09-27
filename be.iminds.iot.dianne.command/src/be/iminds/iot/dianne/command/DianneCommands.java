@@ -100,7 +100,7 @@ public class DianneCommands {
 	}
 	
 	public void nnAvailable(){
-		List<String> nns = platform.getSupportedNeuralNetworks();
+		List<String> nns = platform.getAvailableNeuralNetworks();
 		if(nns.size()==0){
 			System.out.println("No neural networks available");
 			return;
