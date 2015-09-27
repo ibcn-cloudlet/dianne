@@ -6,7 +6,9 @@ import java.util.Map;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
-import be.iminds.iot.dianne.api.nn.learn.Learner;
+import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
+import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
+import be.iminds.iot.dianne.api.rl.QLearner;
 
 /**
  * Separate component for rl commands ... should be moved to the command bundle later on
@@ -19,11 +21,16 @@ import be.iminds.iot.dianne.api.nn.learn.Learner;
 		immediate=true)
 public class DianneRLLearnCommands {
 
-	private Learner learner;
+	private DiannePlatform platform;
+	
+	private QLearner learner;
 	
 	public void learn(String nnName, String dataset, String ... properties){
 		try {
-			learner.learn(nnName, dataset, createLearnConfig(properties));
+			NeuralNetworkInstanceDTO nni = platform.deployNeuralNetwork(nnName);
+			NeuralNetworkInstanceDTO targeti = platform.deployNeuralNetwork(nnName);
+			
+			learner.learn(nni, targeti, dataset, createLearnConfig(properties));
 		} catch(Exception e){
 			e.printStackTrace();
 		}
@@ -54,7 +61,12 @@ public class DianneRLLearnCommands {
 	}
 
 	@Reference
-	void setLearner(Learner l){
+	void setQLearner(QLearner l){
 		this.learner = l;
+	}
+	
+	@Reference
+	void setDiannePlatform(DiannePlatform p){
+		this.platform = p;
 	}
 }

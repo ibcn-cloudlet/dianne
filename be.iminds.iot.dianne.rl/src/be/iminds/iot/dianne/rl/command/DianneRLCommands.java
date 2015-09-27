@@ -1,9 +1,7 @@
 package be.iminds.iot.dianne.rl.command;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,9 +11,11 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
-import be.iminds.iot.dianne.api.nn.learn.Learner;
+import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
+import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.api.rl.Agent;
 import be.iminds.iot.dianne.api.rl.ExperiencePool;
+import be.iminds.iot.dianne.api.rl.QLearner;
 
 /**
  * Separate component for rl commands ... should be moved to the command bundle later on
@@ -30,8 +30,10 @@ import be.iminds.iot.dianne.api.rl.ExperiencePool;
 		immediate=true)
 public class DianneRLCommands {
 
+	private DiannePlatform platform;
+	
 	private Agent agent;
-	private Learner learner;
+	private QLearner learner;
 	private Map<String, ExperiencePool> pools = new HashMap<String, ExperiencePool>();
 
 	
@@ -42,9 +44,14 @@ public class DianneRLCommands {
 			agentConfig.put("tag", "run");
 			learnConfig.put("tag", "run");
 		}
-		agent.act(nnName, environment, experiencePool, agentConfig);
 		
-		learner.learn(nnName, experiencePool, learnConfig);
+		NeuralNetworkInstanceDTO agentnni = platform.deployNeuralNetwork(nnName);
+		NeuralNetworkInstanceDTO nni = platform.deployNeuralNetwork(nnName);
+		NeuralNetworkInstanceDTO targeti = platform.deployNeuralNetwork(nnName);
+		
+		agent.act(agentnni, environment, experiencePool, agentConfig);
+		
+		learner.learn(nni, targeti, experiencePool, learnConfig);
 	}
 	
 	public void dump(String name) throws Exception{
@@ -83,7 +90,7 @@ public class DianneRLCommands {
 	}
 	
 	@Reference
-	void setLearner(Learner l){
+	void setQLearner(QLearner l){
 		this.learner = l;
 	}
 	
@@ -96,5 +103,10 @@ public class DianneRLCommands {
 	void removeExperiencePool(ExperiencePool pool, Map<String, Object> properties) {
 		String name = (String) properties.get("name");
 		this.pools.remove(name);
+	}
+	
+	@Reference
+	void setDiannePlatform(DiannePlatform p){
+		this.platform = p;
 	}
 }

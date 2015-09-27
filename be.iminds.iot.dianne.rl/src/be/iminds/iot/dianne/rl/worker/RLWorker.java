@@ -10,9 +10,11 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
-import be.iminds.iot.dianne.api.nn.learn.Learner;
+import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
+import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.api.rl.Agent;
 import be.iminds.iot.dianne.api.rl.ExperiencePool;
+import be.iminds.iot.dianne.api.rl.QLearner;
 
 /**
  * Worker component that bootstraps a node with an Agent, Learner and local ExperiencePool
@@ -24,8 +26,10 @@ import be.iminds.iot.dianne.api.rl.ExperiencePool;
 @Component(immediate=true, configurationPolicy=ConfigurationPolicy.REQUIRE)
 public class RLWorker {
 	
+	private DiannePlatform platform;
+	
 	private Agent agent;
-	private Learner learner;
+	private QLearner learner;
 	private Map<String, ExperiencePool> pools = new HashMap<String, ExperiencePool>();
 
 	
@@ -38,7 +42,7 @@ public class RLWorker {
 		}
 		
 		final String pool = (String)properties.get("pool");
-		final String nn = (String)properties.get("nn");
+		final String nnName = (String)properties.get("nn");
 		final String env = (String)properties.get("environment");
 		
 		Thread t = new Thread( () -> {
@@ -53,13 +57,17 @@ public class RLWorker {
 			}
 			
 			try {
-				agent.act(nn, env, pool, config);
+				NeuralNetworkInstanceDTO nni = platform.deployNeuralNetwork(nnName);
+				agent.act(nni, env, pool, config);
 			} catch(Exception e){
 				System.err.println("Failed to start agent");
 				e.printStackTrace();
 			}
 			try {
-				learner.learn(nn, pool, config);
+				NeuralNetworkInstanceDTO nni = platform.deployNeuralNetwork(nnName);
+				NeuralNetworkInstanceDTO targeti = platform.deployNeuralNetwork(nnName);
+
+				learner.learn(nni, targeti, pool, config);
 			} catch(Exception e){
 				System.err.println("Failed to start learner");
 				e.printStackTrace();
@@ -74,7 +82,7 @@ public class RLWorker {
 	}
 	
 	@Reference
-	void setLearner(Learner l){
+	void setQLearner(QLearner l){
 		this.learner = l;
 	}
 	
@@ -94,4 +102,8 @@ public class RLWorker {
 		}
 	}
 	
+	@Reference
+	void setDiannePlatform(DiannePlatform p){
+		this.platform = p;
+	}
 }

@@ -3,7 +3,7 @@ package be.iminds.iot.dianne.rl.learn.processors;
 import java.util.Map;
 
 import be.iminds.iot.dianne.api.log.DataLogger;
-import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
+import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.rl.ExperiencePool;
 import be.iminds.iot.dianne.nn.learn.processors.StochasticGradientDescentProcessor;
 import be.iminds.iot.dianne.tensor.Tensor;

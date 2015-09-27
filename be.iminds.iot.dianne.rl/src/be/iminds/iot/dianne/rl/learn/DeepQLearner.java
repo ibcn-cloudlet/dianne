@@ -13,14 +13,14 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.log.DataLogger;
-import be.iminds.iot.dianne.api.nn.learn.Learner;
+import be.iminds.iot.dianne.api.nn.Dianne;
+import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.Processor;
 import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
-import be.iminds.iot.dianne.api.nn.platform.Dianne;
-import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
 import be.iminds.iot.dianne.api.rl.ExperiencePool;
+import be.iminds.iot.dianne.api.rl.QLearner;
 import be.iminds.iot.dianne.nn.learn.processors.AbstractProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.MomentumProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.RegularizationProcessor;
@@ -29,7 +29,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component
-public class DeepQLearner implements Learner {
+public class DeepQLearner implements QLearner {
 
 	private DataLogger logger;
 	private String[] logLabels = new String[]{"minibatch time (ms)"};
@@ -83,11 +83,10 @@ public class DeepQLearner implements Learner {
 	}
 
 	@Override
-	public void learn(String nnName, String experiencePool, Map<String, String> config) throws Exception {
+	public void learn(NeuralNetworkInstanceDTO nni,
+			NeuralNetworkInstanceDTO targeti, String experiencePool, Map<String, String> config) throws Exception {
 		if (learning)
 			throw new Exception("Already running a Learner here");
-		else if (nnName == null || !dianne.getSupportedNeuralNetworks().contains(nnName))
-			throw new Exception("Network name " + nnName + " is null or not available");
 		else if (experiencePool == null || !pools.containsKey(experiencePool))
 			throw new Exception("ExperiencePool " + experiencePool + " is null or not available");
 
@@ -116,13 +115,15 @@ public class DeepQLearner implements Learner {
 		System.out.println("---");
 		
 
-		NeuralNetworkInstanceDTO nni = dianne.deployNeuralNetwork(nnName, "Deep Q Learning NN instance");
-		nn = dianne.getNeuralNetwork(nni.id);
+		nn = dianne.getNeuralNetwork(nni);
+		if (nn == null)
+			throw new Exception("Network instance " + nni.id + " is not available");
 		nn.getInput().setMode(EnumSet.of(Mode.BLOCKING));
 
 		
-		NeuralNetworkInstanceDTO targeti = dianne.deployNeuralNetwork(nnName, "Deep Q Learning Target NN instance");
-		target = dianne.getNeuralNetwork(targeti.id);
+		target = dianne.getNeuralNetwork(targeti);
+		if (target == null)
+			throw new Exception("Target instance " + targeti.id + " is not available");
 		target.getInput().setMode(EnumSet.of(Mode.BLOCKING));
 
 		

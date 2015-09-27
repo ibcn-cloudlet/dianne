@@ -12,10 +12,10 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
+import be.iminds.iot.dianne.api.nn.Dianne;
+import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
-import be.iminds.iot.dianne.api.nn.platform.Dianne;
-import be.iminds.iot.dianne.api.nn.platform.NeuralNetwork;
 import be.iminds.iot.dianne.api.rl.Agent;
 import be.iminds.iot.dianne.api.rl.Environment;
 import be.iminds.iot.dianne.api.rl.ExperiencePool;
@@ -95,12 +95,10 @@ public class DeepRLAgent implements Agent {
 	}
 
 	@Override
-	public synchronized void act(String nnName, String environment, String experiencePool, Map<String, String> config)
+	public synchronized void act(NeuralNetworkInstanceDTO nni, String environment, String experiencePool, Map<String, String> config)
 			throws Exception {
 		if (acting)
 			throw new Exception("Already running an Agent here");
-		else if (nnName == null || !dianne.getSupportedNeuralNetworks().contains(nnName))
-			throw new Exception("Network name " + nnName + " is null or not available");
 		else if (environment == null || !envs.containsKey(environment))
 			throw new Exception("Environment " + environment + " is null or not available");
 		else if (experiencePool != null && !pools.containsKey(experiencePool))
@@ -141,8 +139,10 @@ public class DeepRLAgent implements Agent {
 		
 		actionStrategy.configure(config);
 		
-		NeuralNetworkInstanceDTO nni = dianne.deployNeuralNetwork(nnName, "Deep RL Agent NN");
-		nn = dianne.getNeuralNetwork(nni.id);
+		nn = dianne.getNeuralNetwork(nni);
+		if (nn == null)
+			throw new Exception("Network instance " + nni.id + " is not available");
+		
 		nn.getInput().setMode(EnumSet.of(Mode.BLOCKING));
 		
 		env = envs.get(environment);

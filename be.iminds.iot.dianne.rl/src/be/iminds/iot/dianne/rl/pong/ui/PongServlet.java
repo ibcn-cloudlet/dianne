@@ -23,6 +23,8 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.http.HttpService;
 
+import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
+import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.api.rl.Agent;
 import be.iminds.iot.dianne.api.rl.EnvironmentListener;
 import be.iminds.iot.dianne.rl.agent.api.ManualActionController;
@@ -34,6 +36,8 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 @Component(service = { javax.servlet.Servlet.class, EnvironmentListener.class }, property = {
 		"alias:String=/pong", "aiolos.proxy=false","target="+Pong.NAME }, immediate = true)
 public class PongServlet extends HttpServlet implements EnvironmentListener {
+
+	private DiannePlatform platform;
 
 	// the Pong environment that is viewed
 	private PongEnvironment pongEnvironment;
@@ -201,7 +205,8 @@ public class PongServlet extends HttpServlet implements EnvironmentListener {
 		Map<String, String> config = new HashMap<String, String>();
 		config.put("strategy", strategy);
 		try {
-			this.agent.act("DeepQPong", env, pool, config);
+			NeuralNetworkInstanceDTO nni = platform.deployNeuralNetwork("DeepQPong");
+			this.agent.act(nni, env, pool, config);
 		} catch (Exception e) {
 			this.agent.stop();
 		}
@@ -236,4 +241,8 @@ public class PongServlet extends HttpServlet implements EnvironmentListener {
 		this.agent = a;
 	}
 
+	@Reference
+	void setDiannePlatform(DiannePlatform p){
+		this.platform = p;
+	}
 }

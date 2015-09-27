@@ -6,6 +6,8 @@ import java.util.Map;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
+import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
+import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.api.rl.Agent;
 
 /**
@@ -19,6 +21,8 @@ import be.iminds.iot.dianne.api.rl.Agent;
 		immediate=true)
 public class DianneRLAgentCommands {
 
+	private DiannePlatform platform;
+	
 	private Agent agent;
 	
 	public void act(String nnName, String environment){
@@ -27,7 +31,9 @@ public class DianneRLAgentCommands {
 	
 	public void act(String nnName, String environment, String experiencePool, String... properties){
 		try {
-			agent.act(nnName, environment, experiencePool, createAgentConfig(properties));
+			NeuralNetworkInstanceDTO nni = platform.deployNeuralNetwork(nnName);
+			
+			agent.act(nni, environment, experiencePool, createAgentConfig(properties));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -58,5 +64,10 @@ public class DianneRLAgentCommands {
 	@Reference
 	void setAgent(Agent agent){
 		this.agent = agent;
+	}
+	
+	@Reference
+	void setDiannePlatform(DiannePlatform p){
+		this.platform = p;
 	}
 }
