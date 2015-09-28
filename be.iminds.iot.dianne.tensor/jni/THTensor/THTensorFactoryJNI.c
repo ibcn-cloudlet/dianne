@@ -16,9 +16,6 @@ static void throwException(const char * msg){
 	char *className = "java/lang/Exception";
 
 	exClass = (*env)->FindClass( env, className);
-	if (exClass == NULL) {
-		return throwNoClassDefError( env, className );
-	}
 
 	(*env)->ThrowNew( env, exClass, msg );
 }
