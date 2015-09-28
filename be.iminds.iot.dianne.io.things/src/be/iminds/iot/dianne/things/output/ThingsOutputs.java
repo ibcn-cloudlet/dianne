@@ -1,4 +1,4 @@
-package be.iminds.iot.dianne.things.lamp;
+package be.iminds.iot.dianne.things.output;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,7 +26,7 @@ import be.iminds.iot.things.api.lamp.Lamp;
 
 
 @Component(immediate=true)
-public class LampOutputs implements DianneOutputs {
+public class ThingsOutputs implements DianneOutputs {
 
 	private BundleContext context;
 	
@@ -87,9 +87,9 @@ public class LampOutputs implements DianneOutputs {
 	}
 
 	@Override
-	public void setOutput(UUID outputId, UUID nnId, String output) {
+	public void setOutput(UUID nnId, UUID outputId, String output) {
 		String id = nnId.toString()+":"+outputId.toString();
-		
+
 		Lamp l = lamps.get(output);
 		if(l!=null){
 			LampOutput o = new LampOutput(factory, l, magicNumber);
@@ -103,7 +103,7 @@ public class LampOutputs implements DianneOutputs {
 	}
 
 	@Override
-	public void unsetOutput(UUID outputId, UUID nnId, String output) {
+	public void unsetOutput(UUID nnId, UUID outputId, String output) {
 		String id = nnId.toString()+":"+outputId.toString();
 
 		ServiceRegistration r = registrations.remove(id);

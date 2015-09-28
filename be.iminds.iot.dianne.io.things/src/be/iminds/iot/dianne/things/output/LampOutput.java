@@ -1,4 +1,4 @@
-package be.iminds.iot.dianne.things.lamp;
+package be.iminds.iot.dianne.things.output;
 
 import java.awt.Color;
 import java.util.UUID;

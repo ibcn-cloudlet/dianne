@@ -66,7 +66,7 @@ public class DianneOutput extends HttpServlet {
 			// TODO only forward to applicable outputmgr?
 			synchronized(outputs){
 				for(DianneOutputs o : outputs){
-					o.setOutput(UUID.fromString(outputId), UUID.fromString(nnId), output);
+					o.setOutput(UUID.fromString(nnId), UUID.fromString(outputId), output);
 				}
 			}
 		} else if("unsetoutput".equals(action)){
@@ -76,7 +76,7 @@ public class DianneOutput extends HttpServlet {
 			// TODO only forward to applicable outputmgr?
 			synchronized(outputs){
 				for(DianneOutputs o : outputs){
-					o.unsetOutput(UUID.fromString(outputId), UUID.fromString(nnId), output);
+					o.unsetOutput(UUID.fromString(nnId), UUID.fromString(outputId), output);
 				}
 			}
 		}

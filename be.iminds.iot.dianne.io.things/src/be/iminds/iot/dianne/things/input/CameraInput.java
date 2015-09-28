@@ -1,4 +1,4 @@
-package be.iminds.iot.dianne.things.camera;
+package be.iminds.iot.dianne.things.input;
 
 import java.util.UUID;
 

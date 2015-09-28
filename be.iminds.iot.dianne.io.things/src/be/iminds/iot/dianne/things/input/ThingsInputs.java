@@ -1,4 +1,4 @@
-package be.iminds.iot.dianne.things.camera;
+package be.iminds.iot.dianne.things.input;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,7 +26,7 @@ import be.iminds.iot.things.api.camera.Camera;
 import be.iminds.iot.things.api.camera.CameraListener;
 
 @Component(immediate=true)
-public class CameraInputs implements DianneInputs {
+public class ThingsInputs implements DianneInputs {
 
 	private BundleContext context;
 	
@@ -35,7 +35,7 @@ public class CameraInputs implements DianneInputs {
 	private Map<String, UUID> cameraIds = Collections.synchronizedMap(new HashMap<String, UUID>());
 	private Map<UUID, Camera> cameras = Collections.synchronizedMap(new HashMap<UUID, Camera>());
 
-	// these are mapped by the string moduleId-nnId  ... TODO use ModuleInstanceDTO for this?
+	// these are mapped by the string nnId:moduleId  ... TODO use ModuleInstanceDTO for this?
 	private Map<String, Input> inputs = Collections.synchronizedMap(new HashMap<String, Input>());
 	private Map<String, ServiceRegistration> registrations =  Collections.synchronizedMap(new HashMap<String, ServiceRegistration>());
 	
@@ -90,7 +90,7 @@ public class CameraInputs implements DianneInputs {
 		String moduleId = (String)properties.get("module.id");
 		String nnId = (String)properties.get("nn.id");
 		String id = nnId+":"+moduleId;
-		inputs.remove(UUID.fromString(id));
+		inputs.remove(id);
 	}
 	
 	@Override
@@ -105,15 +105,19 @@ public class CameraInputs implements DianneInputs {
 	}
 
 	@Override
-	public void setInput(UUID inputId, UUID nnId, String input) {
+	public void setInput(UUID nnId, UUID inputId, String input) {
 		String id = nnId.toString()+":"+inputId.toString();
 		
 		UUID cameraId = cameraIds.get(input);
 		if(cameraId!=null){
 			Camera camera = cameras.get(cameraId);
 			if(camera!=null){
-				camera.setFramerate(2f); // low framerate for overfeat
-				camera.start(320, 240, Camera.Format.MJPEG);
+				try {
+					camera.setFramerate(15f);
+					camera.start(320, 240, Camera.Format.MJPEG);
+				} catch(Exception e){
+					System.err.println("Error starting camera");
+				}
 			}
 			
 			CameraInput i = new CameraInput(factory, inputs.get(id), 320, 240, 3);
@@ -127,7 +131,7 @@ public class CameraInputs implements DianneInputs {
 	}
 
 	@Override
-	public void unsetInput(UUID inputId, UUID nnId, String input) {
+	public void unsetInput(UUID nnId, UUID inputId, String input) {
 		String id = nnId.toString()+":"+inputId.toString();
 		
 		UUID cameraId = cameraIds.get(input);

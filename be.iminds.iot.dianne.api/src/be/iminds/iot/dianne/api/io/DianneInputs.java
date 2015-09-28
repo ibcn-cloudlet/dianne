@@ -22,19 +22,19 @@ public interface DianneInputs {
 	/**
 	 * Connect a real input to an Input module
 	 * 
-	 * @param inputId module ID of the neural network Input module
 	 * @param nnId ID of the neural network instance
+	 * @param inputId module ID of the neural network Input module
 	 * @param input the real input to connect to this Input
 	 */
-	void setInput(UUID inputId, UUID nnId, String input);
+	void setInput(UUID nnId, UUID inputId, String input);
 	
 	/**
 	 * Disconnect a real input from an Input module
 	 * 
-	 * @param inputId module ID of the neural network Input module
 	 * @param nnId ID of the neural network instance
+	 * @param inputId module ID of the neural network Input module
 	 * @param input the real input to disconnect this Input from
 	 */
-	void unsetInput(UUID inputId, UUID nnId, String input);
+	void unsetInput(UUID nnId, UUID inputId, String input);
 	
 }

@@ -104,7 +104,7 @@ public class DianneInput extends HttpServlet {
 
 			synchronized(inputs){
 				for(DianneInputs i : inputs){
-					i.setInput(UUID.fromString(inputId), UUID.fromString(nnId), input);
+					i.setInput(UUID.fromString(nnId), UUID.fromString(inputId), input);
 				}
 				
 				ForwardListener inputListener = new ForwardListener(){
@@ -156,7 +156,7 @@ public class DianneInput extends HttpServlet {
 
 			synchronized(inputs){
 				for(DianneInputs i : inputs){
-					i.unsetInput(UUID.fromString(inputId), UUID.fromString(nnId), input);
+					i.unsetInput(UUID.fromString(nnId), UUID.fromString(inputId), input);
 				}
 			}
 			

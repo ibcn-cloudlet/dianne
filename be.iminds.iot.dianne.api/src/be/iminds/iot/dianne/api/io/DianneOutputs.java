@@ -22,18 +22,18 @@ public interface DianneOutputs {
 	/**
 	 * Connect the output of an Output module to an output thing.
 	 * 
-	 * @param outputId module ID of the neural network Output module
 	 * @param nnId ID of the neural network instance
+	 * @param outputId module ID of the neural network Output module
 	 * @param output the real output to connect this Output module to
 	 */
-	void setOutput(UUID outputId, UUID nnId, String output);
+	void setOutput(UUID nnId, UUID outputId, String output);
 	
 	/**
 	 * Disconnect the output of an Output module from an output thing.
 	 * 
-	 * @param outputId module ID of the neural network Output module
 	 * @param nnId ID of the neural network instance
+	 * @param outputId module ID of the neural network Output module
 	 * @param output the real output to disconnect this Output module from
 	 */
-	void unsetOutput(UUID outputId, UUID nnId, String output);
+	void unsetOutput(UUID nnId, UUID outputId, String output);
 }

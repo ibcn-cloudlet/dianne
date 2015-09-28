@@ -1,6 +1,7 @@
--runfw: org.eclipse.concierge
+-runfw: org.eclipse.concierge;version='[1.1.0,2.0)'
 
 -runbundles: \
+	osgi.enroute.dto.bndlib.provider;version='[1.0.0,1.0.1)',\
 	osgi.enterprise;version='[5.0.0,5.1.0)',\
 	org.apache.felix.http.api;version='[2.3.2,2.4)',\
 	org.apache.felix.http.jetty;version='[2.3.2,2.4)',\
@@ -25,6 +26,7 @@
 	org.dyamand.plugins.support.sdp.dyamand-hue;version='[0.1.2,0.2.0)',\
 	org.dyamand.osgi;version='[0.7.1,0.7.2)',\
 	be.iminds.iot.things.dyamand.adapter;version='[1.0.0,1.0.1)',\
+	be.iminds.iot.things.api;version='[1.0.0,1.0.1)',\
 	kxml;version='[2.2.2,2.2.3)',\
 	com.google.gson;version='[2.2.4,2.3)',\
 	be.iminds.iot.dianne.tensor.th;version=latest,\
