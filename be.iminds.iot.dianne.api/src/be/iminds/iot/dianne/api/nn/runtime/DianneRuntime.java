@@ -66,12 +66,4 @@ public interface DianneRuntime {
 	 */
 	List<ModuleTypeDTO> getSupportedModules();
 	
-	/**
-	 * Get a reference to the actual Module service for a given moduleId/nnId
-	 * @param moduleId
-	 * @param nnId
-	 * @return reference to the Module service for this module
-	 */
-	Module getModule(UUID moduleId, UUID nnId);
-	
 }
