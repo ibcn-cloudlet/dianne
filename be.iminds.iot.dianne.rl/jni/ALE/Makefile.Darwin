@@ -1,8 +1,8 @@
 #---------------------------------------------------------------------------
 # Darwin settings
 # Compiler
-CC=gcc-5
-CXX=g++-5
+CC=gcc
+CXX=g++
 CCFLAGS += -DOSX -framework accelerate
 LIB := libALE.dylib
 SHARED := -dynamiclib

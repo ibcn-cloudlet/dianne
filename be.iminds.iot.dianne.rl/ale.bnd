@@ -5,10 +5,9 @@ Private-Package: be.iminds.iot.dianne.rl.ale;
 Bundle-Name: Dianne Arcade Learning Environment
 
 Bundle-NativeCode: \
-	Linux/x86_64/libALE.so;osname=Linux;processor=x86_64
-
+	Linux/x86_64/libALE.so;osname=Linux;processor=x86_64,\
+	Darwin/x86_64/libALE.dylib;osname=macosx;processor=x86_64
 #	Linux/armv7l/libALE.so;osname=Linux;processor=arm,\
-#	Darwin/x86_64/libALE.dylib;osname=macosx;processor=x86_64
 	
 -includeresource: \
 	native
