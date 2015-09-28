@@ -100,9 +100,14 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		}
 		return output;
 	}
+	
+	@Override
+	public void aforward(Tensor in, String... tags){
+		aforward((ForwardListener)null, in, tags);
+	}	
 
 	@Override
-	public void forward(ForwardListener callback, Tensor in, String... tags){
+	public void aforward(ForwardListener callback, Tensor in, String... tags){
 		if(inputs.size() > 1){
 			throw new RuntimeException("This neural network has more than one input");
 		}
@@ -111,7 +116,12 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	}
 	
 	@Override
-	public void forward(ForwardListener callback, UUID inputId, Tensor in,
+	public void aforward(UUID inputId, Tensor in, String... tags) {
+		aforward((ForwardListener)null, inputId, in, tags);
+	}
+	
+	@Override
+	public void aforward(ForwardListener callback, UUID inputId, Tensor in,
 			String... tags) {
 		String tag = getTag(callback);
 		Input input = inputs.get(inputId);
@@ -155,7 +165,12 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	}
 	
 	@Override
-	public void backward(BackwardListener callback, Tensor gradOut, String... tags){
+	public void abackward(Tensor gradOut, String... tags){
+		abackward((BackwardListener)null, gradOut, tags);
+	}
+	
+	@Override
+	public void abackward(BackwardListener callback, Tensor gradOut, String... tags){
 		if(outputs.size() > 1){
 			throw new RuntimeException("This neural network has more than one output");
 		}
@@ -164,7 +179,13 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	}
 	
 	@Override
-	public void backward(BackwardListener callback, UUID outputId,
+	public void abackward(UUID outputId,
+			Tensor gradOut, String... tags) {
+		abackward((BackwardListener)null, outputId,gradOut, tags);
+	}
+	
+	@Override
+	public void abackward(BackwardListener callback, UUID outputId,
 			Tensor gradOut, String... tags) {
 		String tag = getTag(callback);
 		Output output = outputs.get(outputId);

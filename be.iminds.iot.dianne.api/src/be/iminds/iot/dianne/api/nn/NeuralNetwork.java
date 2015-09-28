@@ -41,20 +41,34 @@ public interface NeuralNetwork {
 	Tensor forward(UUID inputId, UUID outputId, Tensor input, String... tags);
 	
 	/**
-	 * Asynchronously forward an input through the neural network. If you provided a ForwardListener
-	 * this will be called on output.
+	 * Asynchronously forward an input through the neural network.
 	 *
 	 * Only works for neural network with single input, single output; else use the method with
 	 * UUID inputId arg
 	 */
-	void forward(ForwardListener callback, Tensor input, String... tags);
+	void aforward(Tensor input, String... tags);
+	
+	/**
+	 * Asynchronously forward an input through the neural network. The provided ForwardListener
+	 * will be called on output.
+	 *
+	 * Only works for neural network with single input, single output; else use the method with
+	 * UUID inputId arg
+	 */
+	void aforward(ForwardListener callback, Tensor input, String... tags);
 
 	/**
-	 * Asynchronously forward an input through the neural network. If you provided a ForwardListener
-	 * this will be called on output.
+	 * Asynchronously forward an input through the neural network. 
 	 * 
 	 */
-	void forward(ForwardListener callback, UUID inputId, Tensor input, String... tags);
+	void aforward(UUID inputId, Tensor input, String... tags);
+
+	/**
+	 * Asynchronously forward an input through the neural network. The provided ForwardListener
+	 * will be called on output.
+	 * 
+	 */
+	void aforward(ForwardListener callback, UUID inputId, Tensor input, String... tags);
 
 	
 	/**
@@ -72,19 +86,32 @@ public interface NeuralNetwork {
 
 	
 	/**
-	 * Asynchronously backward an gradOutput through the neural network. If you provided a BackwardListener
-	 * this will be called on gradInput.
+	 * Asynchronously backward an gradOutput through the neural network.
 	 * 
 	 * Only works for neural network with single input, single output; else use the method with
 	 * UUID inputId and UUID outputId args
 	 */
-	void backward(BackwardListener callback, Tensor gradOutput, String... tags);
+	void abackward(Tensor gradOutput, String... tags);
 
 	/**
-	 * Asynchronously backward an gradOutput through the neural network. If you provided a BackwardListener
-	 * this will be called on gradInput.
+	 * Asynchronously backward an gradOutput through the neural network. The provided BackwardListener
+	 * will be called on gradInput.
+	 * 
+	 * Only works for neural network with single input, single output; else use the method with
+	 * UUID inputId and UUID outputId args
 	 */
-	void backward(BackwardListener callback, UUID outputId, Tensor gradOutput, String... tags);
+	void abackward(BackwardListener callback, Tensor gradOutput, String... tags);
+
+	/**
+	 * Asynchronously backward an gradOutput through the neural network.
+	 */
+	void abackward(UUID outputId, Tensor gradOutput, String... tags);
+
+	/**
+	 * Asynchronously backward an gradOutput through the neural network. The provided BackwardListener
+	 * will be called on gradInput.
+	 */
+	void abackward(BackwardListener callback, UUID outputId, Tensor gradOutput, String... tags);
 
 	/**
 	 * Get the input module in case of only one input
