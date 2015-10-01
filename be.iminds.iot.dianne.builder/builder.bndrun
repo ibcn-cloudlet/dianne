@@ -1,7 +1,6 @@
 -runfw: org.eclipse.concierge
 
 -runbundles: \
-	osgi.enterprise;version='[5.0.0,5.1.0)',\
 	org.apache.felix.http.api;version='[2.3.2,2.4)',\
 	org.apache.felix.http.jetty;version='[2.3.2,2.4)',\
 	org.apache.felix.http.servlet-api;version='[1.0.1,1.1)',\
