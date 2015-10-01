@@ -24,7 +24,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 @Component(service = { javax.servlet.Servlet.class }, 
-	property = { "alias:String=/dianne/output","aiolos.proxy=false" }, 
+	property = { "alias:String=/dianne/output",
+				 "osgi.http.whiteboard.servlet.pattern=/dianne/output",
+				 "aiolos.proxy=false" }, 
 	immediate = true)
 public class DianneOutput extends HttpServlet {
 	

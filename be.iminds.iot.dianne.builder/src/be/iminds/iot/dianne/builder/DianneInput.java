@@ -37,7 +37,10 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
 @Component(service = { javax.servlet.Servlet.class }, 
-	property = { "alias:String=/dianne/input","aiolos.proxy=false" }, 
+	property = { "alias:String=/dianne/input",
+		 	     "osgi.http.whiteboard.servlet.pattern=/dianne/input",
+		 	     "osgi.http.whiteboard.servlet.asyncSupported=Boolean:true",
+				 "aiolos.proxy=false" }, 
 	immediate = true)
 public class DianneInput extends HttpServlet {
 	

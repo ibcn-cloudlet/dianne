@@ -18,7 +18,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;
 
 @Component(service = { javax.servlet.Servlet.class }, 
-	property = { "alias:String=/dianne/load","aiolos.proxy=false" }, 
+	property = { "alias:String=/dianne/load",
+		 		 "osgi.http.whiteboard.servlet.pattern=/dianne/load",
+		 		 "aiolos.proxy=false" }, 
 	immediate = true)
 public class DianneLoader extends HttpServlet {
 	

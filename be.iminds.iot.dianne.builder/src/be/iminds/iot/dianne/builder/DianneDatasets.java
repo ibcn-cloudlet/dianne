@@ -30,7 +30,9 @@ import com.google.gson.JsonPrimitive;
 
 
 @Component(service = { javax.servlet.Servlet.class }, 
-	property = { "alias:String=/dianne/datasets","aiolos.proxy=false" }, 
+	property = { "alias:String=/dianne/datasets",
+		 		 "osgi.http.whiteboard.servlet.pattern=/dianne/datasets",
+				 "aiolos.proxy=false" }, 
 	immediate = true)
 public class DianneDatasets extends HttpServlet {
 

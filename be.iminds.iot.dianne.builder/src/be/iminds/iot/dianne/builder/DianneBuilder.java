@@ -26,7 +26,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 @Component(service={javax.servlet.Servlet.class},
-	property={"alias:String=/dianne/builder","aiolos.proxy=false"},
+	property={"alias:String=/dianne/builder",
+		 	  "osgi.http.whiteboard.servlet.pattern=/dianne/builder",
+			  "aiolos.proxy=false"},
 	immediate=true)
 public class DianneBuilder extends HttpServlet {
 
@@ -46,7 +48,7 @@ public class DianneBuilder extends HttpServlet {
 	void setHttpService(HttpService http){
 		try {
 			// TODO How to register resources with whiteboard pattern?
-			http.registerResources("/dianne", "res", null);
+			http.registerResources("/dianne/ui", "res", null);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

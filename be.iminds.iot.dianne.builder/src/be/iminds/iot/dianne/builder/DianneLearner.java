@@ -55,7 +55,10 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
 @Component(service = { javax.servlet.Servlet.class }, 
-	property = { "alias:String=/dianne/learner","aiolos.proxy=false" }, 
+	property = { "alias:String=/dianne/learner",
+		 		 "osgi.http.whiteboard.servlet.pattern=/dianne/learner",
+		 		 "osgi.http.whiteboard.servlet.asyncSupported=Boolean:true",
+				 "aiolos.proxy=false" }, 
 	immediate = true)
 public class DianneLearner extends HttpServlet {
 

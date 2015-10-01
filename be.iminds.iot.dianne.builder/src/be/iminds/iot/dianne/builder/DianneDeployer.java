@@ -34,7 +34,9 @@ import com.google.gson.JsonPrimitive;
 
 
 @Component(service = { javax.servlet.Servlet.class }, 
-	property = { "alias:String=/dianne/deployer","aiolos.proxy=false" }, 
+	property = { "alias:String=/dianne/deployer",
+				 "osgi.http.whiteboard.servlet.pattern=/dianne/deployer",
+				 "aiolos.proxy=false" }, 
 	immediate = true)
 public class DianneDeployer extends HttpServlet {
 

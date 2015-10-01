@@ -19,7 +19,9 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParser;
 
 @Component(service = { javax.servlet.Servlet.class }, 
-	property = { "alias:String=/dianne/save","aiolos.proxy=false" }, 
+	property = { "alias:String=/dianne/save",
+		 		 "osgi.http.whiteboard.servlet.pattern=/dianne/save",
+				 "aiolos.proxy=false" }, 
 	immediate = true)
 public class DianneSaver extends HttpServlet {
 

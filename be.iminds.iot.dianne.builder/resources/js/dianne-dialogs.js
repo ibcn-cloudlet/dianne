@@ -456,7 +456,7 @@ function createRunModuleDialog(id, moduleItem){
 		
 		createOutputChart(dialog.find(".content"));
 		if(eventsource===undefined){
-			eventsource = new EventSource("run?nnId="+nn.id);
+			eventsource = new EventSource("/dianne/run?nnId="+nn.id);
 			eventsource.onmessage = function(event){
 				var data = JSON.parse(event.data);
 				$.each(running, function(id, module){
@@ -517,7 +517,7 @@ function createRunModuleDialog(id, moduleItem){
 		cameraCanvasCtx = cameraCanvas.getContext('2d');
 		
 		if(cameraEventsource===undefined){
-			cameraEventsource = new EventSource("input");
+			cameraEventsource = new EventSource("/dianne/input");
 			cameraEventsource.onmessage = function(event){
 				var data = JSON.parse(event.data);
 				render(data, cameraCanvasCtx);
@@ -766,7 +766,7 @@ function learn(id){
 	// first create the chart
 	createErrorChart($("#dialog-"+id).find(".content"));
 
-	eventsource = new EventSource("learner");
+	eventsource = new EventSource("/dianne/learner");
 	eventsource.onmessage = function(event){
 		var data = JSON.parse(event.data);
 		var index = Number($("#dialog-"+id).find(".content").attr("data-highcharts-chart"));
@@ -809,7 +809,7 @@ function evaluate(id){
 	Highcharts.charts[index].series[0].setData(null, true, true, false);
 	$("#dialog-"+id).find(".accuracy").text("");
 
-	eventsource = new EventSource("learner");
+	eventsource = new EventSource("/dianne/learner");
 	eventsource.onmessage = function(event){
 		var data = JSON.parse(event.data);
 		var index = Number($("#dialog-"+id).find(".content").attr("data-highcharts-chart"));
