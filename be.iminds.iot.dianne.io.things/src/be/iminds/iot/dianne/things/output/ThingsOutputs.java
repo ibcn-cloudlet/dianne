@@ -55,8 +55,8 @@ public class ThingsOutputs implements DianneOutputs {
 	@Reference(
 			cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
-	void addLight(Lamp l, Map<String, Object> properties){
-		UUID id = (UUID) properties.get(Thing.ID);
+	void addLamp(Lamp l, Map<String, Object> properties){
+		UUID id = UUID.fromString((String)properties.get(Thing.ID));
 		String service = (String) properties.get(Thing.SERVICE);
 		
 		// TODO hard coded Hue for now...
@@ -69,8 +69,8 @@ public class ThingsOutputs implements DianneOutputs {
 		lamps.put(service, l);
 	}
 	
-	void removeLight(Lamp l, Map<String, Object> properties){
-		UUID id =(UUID) properties.get(Thing.ID);
+	void removeLamp(Lamp l, Map<String, Object> properties){
+		UUID id = UUID.fromString((String)properties.get(Thing.ID));
 		String service = (String) properties.get(Thing.SERVICE);
 		lamps.remove(service);
 	}

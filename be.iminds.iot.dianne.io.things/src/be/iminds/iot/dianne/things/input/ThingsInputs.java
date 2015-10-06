@@ -54,7 +54,7 @@ public class ThingsInputs implements DianneInputs {
 			cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
 	void addCamera(Camera c, Map<String, Object> properties){
-		UUID id = (UUID) properties.get(Thing.ID);
+		UUID id = UUID.fromString((String)properties.get(Thing.ID));
 		String service = (String) properties.get(Thing.SERVICE);
 		
 		String[] parts = service.split("_");
@@ -67,7 +67,7 @@ public class ThingsInputs implements DianneInputs {
 	}
 	
 	void removeCamera(Camera c, Map<String, Object> properties){
-		UUID id = (UUID) properties.get(Thing.ID);
+		UUID id = UUID.fromString((String)properties.get(Thing.ID));
 		String service = (String) properties.get(Thing.SERVICE);
 		
 		String[] parts = service.split("_");
