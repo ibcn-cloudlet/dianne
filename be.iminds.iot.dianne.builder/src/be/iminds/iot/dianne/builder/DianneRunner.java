@@ -53,7 +53,7 @@ import com.google.gson.JsonPrimitive;
 @Component(service = { javax.servlet.Servlet.class }, 
 	property = { "alias:String=/dianne/run",
 		 		 "osgi.http.whiteboard.servlet.pattern=/dianne/run",
-		 		 "osgi.http.whiteboard.servlet.asyncSupported=Boolean:true",
+		 		 "osgi.http.whiteboard.servlet.asyncSupported:Boolean=true",
 				 "aiolos.proxy=false" }, 
 	immediate = true)
 public class DianneRunner extends HttpServlet {
@@ -115,18 +115,27 @@ public class DianneRunner extends HttpServlet {
 		
 		// register forward listener for this
 		String nnId = request.getParameter("nnId");
+		if(nnId == null){
+			return;
+		}
+		
 		NeuralNetworkInstanceDTO nn = platform.getNeuralNetworkInstance(UUID.fromString(nnId));
 		if(nn!=null){
-			Map<UUID, String[]> labels = nn.modules.values().stream().map(i -> i.module)
-			.filter(m -> m.type.equals("Output"))
-			.filter(m -> m.properties.containsKey("labels"))
-			.collect(Collectors.toMap(m -> m.id, m -> {
-				String l = m.properties.get("labels");
-				l = l.substring(1, l.length()-1);
-				return l.split(",");
-			}));
-			SSEForwardListener listener = new SSEForwardListener(nnId, labels, request.startAsync());
-			listener.register(context);	
+			
+			try {
+				Map<UUID, String[]> labels = nn.modules.values().stream().map(i -> i.module)
+				.filter(m -> m.type.equals("Output"))
+				.filter(m -> m.properties.containsKey("labels"))
+				.collect(Collectors.toMap(m -> m.id, m -> {
+					String l = m.properties.get("labels");
+					l = l.substring(1, l.length()-1);
+					return l.split(",");
+				}));
+				SSEForwardListener listener = new SSEForwardListener(nnId, labels, request.startAsync());
+				listener.register(context);
+			} catch(Exception e){
+				e.printStackTrace();
+			}
 		}
 	}
 	
