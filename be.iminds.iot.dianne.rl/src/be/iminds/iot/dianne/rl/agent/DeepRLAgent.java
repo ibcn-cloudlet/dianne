@@ -182,7 +182,7 @@ public class DeepRLAgent implements Agent {
 			Tensor observation = env.getObservation();
 
 			for(long i = 0; acting; i++) {
-				if(i % syncInterval == 0){
+				if(syncInterval > 0 && i % syncInterval == 0){
 					// sync parameters
 					try {
 						nn.loadParameters(tag);

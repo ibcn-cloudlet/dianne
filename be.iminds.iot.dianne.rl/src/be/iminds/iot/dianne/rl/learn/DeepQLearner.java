@@ -51,7 +51,9 @@ public class DeepQLearner implements QLearner {
 
 	private String tag = "learn";
 	private int targetInterval = 1000;
-	private int syncInterval = 1;
+	private int syncInterval = 0;
+	private int storeInterval = 0;
+	private String storeTag = "store";
 	private int minSamples = 10000;
 	private boolean clean = false;
 
@@ -98,6 +100,12 @@ public class DeepQLearner implements QLearner {
 		
 		if (config.containsKey("syncInterval"))
 			syncInterval = Integer.parseInt(config.get("syncInterval"));
+		
+		if (config.containsKey("storeInterval"))
+			storeInterval = Integer.parseInt(config.get("storeInterval"));
+		
+		if (config.containsKey("storeTag"))
+			storeTag = config.get("storeTag");
 		
 		if (config.containsKey("minSamples"))
 			minSamples = Integer.parseInt(config.get("minSamples"));
@@ -239,9 +247,15 @@ public class DeepQLearner implements QLearner {
 				if (targetInterval > 0 && i % targetInterval == 0) {
 					nn.storeDeltaParameters(previousParameters, tag);
 					loadParameters(nn, target);
+					// also store these parameters tagged with batch number
+					nn.storeParameters(""+i);
 				} else if(syncInterval > 0 && i % syncInterval == 0){
 					nn.storeDeltaParameters(previousParameters, tag);
 					loadParameters(nn);
+				}
+				
+				if(storeInterval > 0 && i % storeInterval == 0){
+					nn.storeParameters(storeTag, ""+i);
 				}
 			}
 
