@@ -469,7 +469,13 @@ function createRunModuleDialog(id, moduleItem){
 
 							console.log(data.tags+" "+data.output);
 							if(data.tags.length != 0){
-								Highcharts.charts[index].setTitle({ text: JSON.stringify(data.tags)});
+								var title = "";
+								for(var i =0; i<data.tags.length; i++){
+									if(!isFinite(String(data.tags[i]))){
+										title+= data.tags[i]+" ";
+									}
+								}
+								Highcharts.charts[index].setTitle({text: title});
 							}
 							Highcharts.charts[index].series[0].setData(data.output, true, true, true);
 							Highcharts.charts[index].xAxis[0].setCategories(data.labels);
