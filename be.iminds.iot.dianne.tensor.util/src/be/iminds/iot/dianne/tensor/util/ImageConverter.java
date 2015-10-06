@@ -78,9 +78,6 @@ public class ImageConverter {
 	
 	private final TensorFactory factory;
 	
-	private JpegDecoder decoder = new JpegDecoder();
-	private JpegEncoder encoder = new JpegEncoder();
-	
 	private ImageReader ioDecoder;
 	private JPEGImageReadParam param;
 	
@@ -133,6 +130,7 @@ public class ImageConverter {
 		//BufferedImage img = ImageIO.read(new File(fileName));
 
 		byte[] data = Files.readAllBytes(Paths.get(fileName));
+		JpegDecoder decoder = new JpegDecoder();
 		BufferedImage img = decoder.read(data);
 		return readFromImage(img);
 	}
@@ -199,7 +197,7 @@ public class ImageConverter {
 	public void writeToFile(String fileName, Tensor t) throws Exception{
 		BufferedImage img = writeToImage(t);
 		
-		encoder = new JpegEncoder();
+		JpegEncoder encoder = new JpegEncoder();
 		BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream(new File(fileName)));
 		encoder.write(img, output);
 		output.flush();
