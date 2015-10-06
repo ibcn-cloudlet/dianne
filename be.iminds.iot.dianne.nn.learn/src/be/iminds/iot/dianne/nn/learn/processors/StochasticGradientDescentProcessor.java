@@ -1,28 +1,29 @@
 package be.iminds.iot.dianne.nn.learn.processors;
 
 import java.util.Map;
-import java.util.Random;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
+import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 import be.iminds.iot.dianne.nn.learn.criterion.MSECriterion;
 import be.iminds.iot.dianne.nn.learn.criterion.NLLCriterion;
+import be.iminds.iot.dianne.nn.learn.sampling.RandomSamplingStrategy;
+import be.iminds.iot.dianne.nn.learn.sampling.SequentialSamplingStrategy;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public class StochasticGradientDescentProcessor extends AbstractProcessor {
 
+	// sample strategy
+	protected SamplingStrategy sampling;
 	// error criterion
 	protected Criterion criterion;
 	// learning rate
 	protected float learningRate = 0.01f;
 	// batch size
 	protected int batchSize = 10;
-	
-	// random generator
-	private final Random rand = new Random(System.currentTimeMillis());
 	
 	// current error
 	protected float error = 0;
@@ -54,6 +55,22 @@ public class StochasticGradientDescentProcessor extends AbstractProcessor {
 			batchSize = Integer.parseInt(b);
 		}
 		
+		String s = config.get("samplingStrategy");
+		if(s != null){
+			if(s.equals("random")){
+				sampling = new RandomSamplingStrategy(dataset);
+			} else if(s.equals("sequential")){
+				sampling = new SequentialSamplingStrategy(dataset);
+			} else {
+				// random is default
+				sampling = new RandomSamplingStrategy(dataset);
+			}
+		} else {
+			// random is default
+			sampling = new RandomSamplingStrategy(dataset);
+		}
+				 
+		
 		System.out.println("StochasticGradientDescent");
 		System.out.println("* criterion = "+criterion.getClass().getName());
 		System.out.println("* learningRate = "+learningRate);
@@ -67,8 +84,8 @@ public class StochasticGradientDescentProcessor extends AbstractProcessor {
 		error = 0;
 
 		for(int i=0;i<batchSize;i++){
-			// random sample from Dataset
-			int index = rand.nextInt(dataset.size());
+			int index = sampling.next();
+			
 			Tensor in = dataset.getInputSample(index);
 
 			// forward
