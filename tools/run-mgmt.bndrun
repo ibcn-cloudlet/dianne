@@ -76,7 +76,10 @@ aiolos.version='latest'
 	javax.management.modelmbean,\
 	javax.management.remote,\
 	javax.security.auth,\
-	javax.security.cert
+	javax.security.cert,\
+	javax.imageio,\
+	javax.imageio.stream,\
+	javax.imageio.plugins.jpeg	
 
 -runproperties: \
 #	rsa.interface=eth1,\

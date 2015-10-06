@@ -58,7 +58,8 @@
 	javax.security.auth,\
 	javax.security.cert,\
 	javax.imageio,\
-	javax.imageio.stream
+	javax.imageio.stream,\
+	javax.imageio.plugins.jpeg	
 	
 -runproperties:\
 	org.osgi.service.http.port=8080,\
