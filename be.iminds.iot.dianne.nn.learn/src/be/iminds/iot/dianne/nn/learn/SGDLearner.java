@@ -1,5 +1,6 @@
 package be.iminds.iot.dianne.nn.learn;
 
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -15,11 +16,9 @@ import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.learn.Processor;
+import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
-import be.iminds.iot.dianne.nn.learn.processors.AbstractProcessor;
-import be.iminds.iot.dianne.nn.learn.processors.MomentumProcessor;
-import be.iminds.iot.dianne.nn.learn.processors.RegularizationProcessor;
-import be.iminds.iot.dianne.nn.learn.processors.StochasticGradientDescentProcessor;
+import be.iminds.iot.dianne.nn.learn.factory.LearnerFactory;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -36,7 +35,8 @@ public class SGDLearner implements Learner {
 	protected volatile boolean learning = false;
 	protected Processor processor;
 	
-	protected int updateInterval = 1000;
+	protected int syncInterval = 1000;
+	protected boolean clean = false;
 	
 	// the network we are currently training
 	protected NeuralNetwork nn;
@@ -57,6 +57,22 @@ public class SGDLearner implements Learner {
 			tag = config.get("tag"); 
 		}
 		
+		if(config.containsKey("syncInterval")){
+			syncInterval = Integer.parseInt(config.get("syncInterval")); 
+		}
+		
+		if (config.containsKey("clean")){
+			clean = Boolean.parseBoolean(config.get("clean"));
+		}
+		
+		System.out.println("Learner Configuration");
+		System.out.println("=====================");
+		System.out.println("* dataset = "+dataset);
+		System.out.println("* tag = "+tag);
+		System.out.println("* syncInterval = "+syncInterval);
+		System.out.println("* clean = " +clean);
+		System.out.println("---");
+		
 		// Fetch the dataset
 		Dataset d = datasets.get(dataset);
 		if(d==null){
@@ -64,9 +80,14 @@ public class SGDLearner implements Learner {
 		}
 		
 		nn = dianne.getNeuralNetwork(nni);
+		nn.getModules().values().stream().forEach(m -> m.setMode(EnumSet.of(Mode.BLOCKING)));
 		
-		// load parameters
-		loadParameters();
+		// initialize nn parameters
+		if(clean){
+			nn.resetParameters();
+		} else {
+			loadParameters();
+		}
 		
 		// first get parameters for preprocessing?
 		nn.getPreprocessors().values().stream().forEach(p -> {
@@ -76,14 +97,7 @@ public class SGDLearner implements Learner {
 		);
 		
 		// create a Processor from config
-		AbstractProcessor p = new StochasticGradientDescentProcessor(factory, nn, d, config, logger);
-		if(config.get("regularization")!=null){
-			p = new RegularizationProcessor(p);
-		}
-		if(config.get("momentum")!=null){
-			 p = new MomentumProcessor(new RegularizationProcessor(p));
-		}
-		processor = p;
+		processor = LearnerFactory.createProcessor(factory, nn, d, config, logger);
 		
 		learnerThread = new Thread(new Runnable() {
 			
@@ -108,8 +122,8 @@ public class SGDLearner implements Learner {
 							e.getValue().zeroDeltaParameters();
 						});
 						
-						if(updateInterval>0){
-							if(i % updateInterval == 0){
+						if(syncInterval>0){
+							if(i % syncInterval == 0){
 								// publish weights
 								publishParameters();
 							}

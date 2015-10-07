@@ -24,6 +24,7 @@ import be.iminds.iot.dianne.api.rl.QLearner;
 import be.iminds.iot.dianne.nn.learn.processors.AbstractProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.MomentumProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.RegularizationProcessor;
+import be.iminds.iot.dianne.rl.learn.factory.QLearnerFactory;
 import be.iminds.iot.dianne.rl.learn.processors.TimeDifferenceProcessor;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
@@ -138,14 +139,7 @@ public class DeepQLearner implements QLearner {
 		pool = pools.get(experiencePool);
 
 		// create a Processor from config
-		AbstractProcessor p = new TimeDifferenceProcessor(factory, nn,target, pool, config, logger);
-		if(config.get("regularization")!=null){
-			p = new RegularizationProcessor(p);
-		}
-		if(config.get("momentum")!=null){
-			 p = new MomentumProcessor(p);
-		}
-		processor = p;
+		processor = QLearnerFactory.createProcessor(factory, nn, target, pool, config, logger);
 
 		learningThread = new Thread(new DeepQLearnerRunnable());
 		learning = true;

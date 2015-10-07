@@ -18,18 +18,11 @@ public class RegularizationProcessor extends AbstractProcessor {
 	
 	private Map<UUID, Tensor> previousDelta = new HashMap<UUID, Tensor>();
 	
-	public RegularizationProcessor( AbstractProcessor p) {
-		super(p.factory, p.nn, p.dataset, p.config, p.logger);
-		decorated = p;
-		
-		String r = config.get("regularization");
-		if(r!=null){
-			regularization = Float.parseFloat(r);
-		}
-		
-		System.out.println("Regularization");
-		System.out.println("* factor = "+regularization);
-		System.out.println("---");
+	public RegularizationProcessor( AbstractProcessor p, float regularization) {
+		super(p.factory, p.nn, p.logger);
+		this.decorated = p;
+
+		this.regularization = regularization;
 	}
 	
 	@Override

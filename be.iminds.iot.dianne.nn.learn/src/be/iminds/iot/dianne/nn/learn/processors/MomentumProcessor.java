@@ -13,24 +13,15 @@ import be.iminds.iot.dianne.tensor.Tensor;
 public class MomentumProcessor extends AbstractProcessor {
 
 	private final Processor decorated;
-	
-	private float momentum = 0.9f;
+	private final float momentum;
 	
 	private Map<UUID, Tensor> previousDelta = new HashMap<UUID, Tensor>();
 	
-	public MomentumProcessor( AbstractProcessor p ) {
-		super(p.factory, p.nn, p.dataset, p.config, p.logger);
-		decorated = p;
+	public MomentumProcessor( AbstractProcessor p, float momentum ) {
+		super(p.factory, p.nn, p.logger);
+		this.decorated = p;
 		
-		String m = config.get("momentum");
-		if(m!=null){
-			momentum = Float.parseFloat(m);
-		}
-		
-		System.out.println("Momentum");
-		System.out.println("* rate = "+momentum);
-		System.out.println("---");
-		
+		this.momentum = momentum;
 	}
 	
 	@Override

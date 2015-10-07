@@ -1,9 +1,9 @@
 package be.iminds.iot.dianne.rl.learn.processors;
 
-import java.util.Map;
-
 import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
+import be.iminds.iot.dianne.api.nn.learn.Criterion;
+import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 import be.iminds.iot.dianne.api.rl.ExperiencePool;
 import be.iminds.iot.dianne.nn.learn.processors.StochasticGradientDescentProcessor;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -22,21 +22,18 @@ public class TimeDifferenceProcessor extends StochasticGradientDescentProcessor 
 	public TimeDifferenceProcessor(TensorFactory factory,
 			NeuralNetwork nn,
 			NeuralNetwork target,
-			ExperiencePool pool,
-			Map<String, String> config,
-			DataLogger logger) {
-		super(factory, nn, pool, config, logger);
+			DataLogger logger,
+			ExperiencePool pool, 
+			SamplingStrategy s,
+			Criterion c,
+			float learningRate,
+			int batchSize,
+			float discount) {
+		super(factory, nn, logger, pool, s, c, learningRate, batchSize);
 		
 		this.target = target;
-		
 		this.pool = pool;
-		
-		if(config.containsKey("discount"))
-			discountRate = Float.parseFloat(config.get("discount"));
-		
-		System.out.println("TimeDifferenceRL");
-		System.out.println("* discount rate = "+discountRate);
-		System.out.println("---");
+		this.discountRate = discount;
 	}
 
 	
