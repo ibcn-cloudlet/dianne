@@ -38,8 +38,7 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 				  "osgi.command.function=nnAvailable",
 				  "osgi.command.function=nnDeploy",
 				  "osgi.command.function=nnUndeploy",
-				  "osgi.command.function=sample",
-				  "osgi.command.function=eval"},
+				  "osgi.command.function=sample"},
 		immediate=true)
 public class DianneCommands {
 
@@ -57,18 +56,9 @@ public class DianneCommands {
 	// State
 	Map<UUID, ServiceRegistration> repoListeners = new HashMap<UUID, ServiceRegistration>();
 	
-	// Separate aggregation for training commands
-	private DianneTrainCommands training = null;
-	
 	@Activate
 	public void activate(BundleContext context){
 		this.context = context;
-		
-		try {
-			training = new DianneTrainCommands(this);
-		} catch(NoClassDefFoundError e){
-			//ignore
-		}
 	}
 	
 	public void datasets(){
@@ -272,16 +262,7 @@ public class DianneCommands {
 	public void sample(String dataset, String nnId, String...tags){
 		sample(dataset, nnId, -1, tags);
 	}
-	
-	public void eval(String dataset, String nnId, int start, int end){
-		if(training == null){
-			System.out.println("Training/Evaluation functions unavailable");
-			return;
-		}
 
-		training.eval(dataset, nnId, start, end);
-	}
-	
 	private void loadParameters(NeuralNetworkInstanceDTO nni, String tag){
 		NeuralNetwork nn = dianne.getNeuralNetwork(nni);
 		if(nn!=null){
