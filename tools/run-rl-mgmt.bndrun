@@ -82,7 +82,6 @@ jclouds.version='[1.8.0,1.9.0)'
 	be.iminds.iot.dianne.nn;version=latest,\
 	be.iminds.iot.dianne.nn.runtime;version=latest,\
 	be.iminds.iot.dianne.nn.platform;version=latest,\
-	be.iminds.iot.dianne.nn.train;version=latest,\
 	be.iminds.iot.dianne.builder;version=latest,\
 	be.iminds.iot.dianne.repository;version=latest,\
 	org.websocket;version='[1.0,1.1)',\

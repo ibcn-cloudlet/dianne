@@ -8,7 +8,6 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 	be.iminds.iot.dianne.tensor.api;version=latest,\
 	be.iminds.iot.dianne.api;version=latest,\
 	be.iminds.iot.dianne.nn.module;version=latest,\
-	be.iminds.iot.dianne.nn.train;version=latest,\
 	be.iminds.iot.dianne.nn.runtime;version=latest,\
 	be.iminds.iot.dianne.nn.util;version=latest
 	
