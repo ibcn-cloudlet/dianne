@@ -2,49 +2,39 @@ package be.iminds.iot.dianne.builder;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Dictionary;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.Hashtable;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
 import javax.servlet.AsyncContext;
+import javax.servlet.AsyncEvent;
+import javax.servlet.AsyncListener;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
-import be.iminds.iot.dianne.api.dataset.DatasetLabelAdapter;
-import be.iminds.iot.dianne.api.dataset.DatasetRangeAdapter;
-import be.iminds.iot.dianne.api.nn.Dianne;
-import be.iminds.iot.dianne.api.nn.NeuralNetwork;
-import be.iminds.iot.dianne.api.nn.module.Input;
-import be.iminds.iot.dianne.api.nn.module.Module;
-import be.iminds.iot.dianne.api.nn.module.Output;
-import be.iminds.iot.dianne.api.nn.module.Preprocessor;
-import be.iminds.iot.dianne.api.nn.module.Trainable;
+import be.iminds.iot.dianne.api.nn.eval.Evaluation;
+import be.iminds.iot.dianne.api.nn.eval.Evaluator;
+import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
-import be.iminds.iot.dianne.api.nn.train.Criterion;
-import be.iminds.iot.dianne.api.nn.train.Evaluation;
-import be.iminds.iot.dianne.api.nn.train.Evaluator;
-import be.iminds.iot.dianne.api.nn.train.Trainer;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
-import be.iminds.iot.dianne.nn.train.criterion.MSECriterion;
-import be.iminds.iot.dianne.nn.train.criterion.NLLCriterion;
-import be.iminds.iot.dianne.nn.train.eval.ArgMaxEvaluator;
-import be.iminds.iot.dianne.nn.train.eval.EvalProgressListener;
-import be.iminds.iot.dianne.nn.train.strategy.StochasticGradient;
-import be.iminds.iot.dianne.nn.train.strategy.TrainProgressListener;
+import be.iminds.iot.dianne.api.repository.RepositoryListener;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -62,17 +52,24 @@ import com.google.gson.JsonPrimitive;
 	immediate = true)
 public class DianneLearner extends HttpServlet {
 
+	private BundleContext context;
 	private TensorFactory factory;
 	private DianneRepository repository;
 	
 	private static final JsonParser parser = new JsonParser();
 	
 	private Map<String, Dataset> datasets = new HashMap<String, Dataset>();
-	private Dianne dianne;
 	private DiannePlatform platform;
+	private Learner learner;
+	private Evaluator evaluator;
 
-	
+	private int interval = 10;
 	private AsyncContext sse = null;
+	
+	@Activate
+	void activate(BundleContext context){
+		this.context = context;
+	}
 	
 	@Reference
 	void setTensorFactory(TensorFactory factory){
@@ -85,8 +82,13 @@ public class DianneLearner extends HttpServlet {
 	}
 	
 	@Reference
-	void setDianne(Dianne d){
-		dianne = d;
+	void setLearner(Learner l){
+		this.learner = l;
+	}
+	
+	@Reference
+	void setEvaluator(Evaluator e){
+		this.evaluator = e;
 	}
 	
 	@Reference
@@ -114,9 +116,26 @@ public class DianneLearner extends HttpServlet {
 		response.setHeader("Cache-Control", "no-cache");
 		response.setCharacterEncoding("UTF-8");
 		response.addHeader("Connection", "keep-alive");
+	
 		
-		sse = request.startAsync();
-		sse.setTimeout(0); // no timeout => remove listener when error occurs.
+		// register forward listener for this
+		String nnId = request.getParameter("nnId");
+		if(nnId == null){
+			return;
+		}
+		
+		NeuralNetworkInstanceDTO nn = platform.getNeuralNetworkInstance(UUID.fromString(nnId));
+		if(nn!=null){
+			try {
+				SSERepositoryListener listener = new SSERepositoryListener(nnId, request.startAsync());
+				listener.register(context);
+			} catch(Exception e){
+				e.printStackTrace();
+			}
+		}
+		
+//		sse = request.startAsync();
+//		sse.setTimeout(0); // no timeout => remove listener when error occurs.
 	}
 	
 	@Override
@@ -132,123 +151,74 @@ public class DianneLearner extends HttpServlet {
 			System.out.println("Neural network instance "+id+" not deployed");
 			return;
 		}
-		
-		NeuralNetwork nn = dianne.getNeuralNetwork(nni);
-		if(nn==null){
-			System.out.println("Neural network instance "+id+" not available");
+
+		String action = request.getParameter("action");
+		if(action.equals("stop")){
+			learner.stop();
 			return;
 		}
 		
-		// TODO check if parameters exist and are correct!
-		String action = request.getParameter("action");
 		String target = request.getParameter("target");
 		// this list consists of all ids of modules that are needed for trainer:
 		// the input, output, trainable and preprocessor modules
-		String modulesJsonString = request.getParameter("modules");
 		String configJsonString = request.getParameter("config");
 		
 		JsonObject configJson = parser.parse(configJsonString).getAsJsonObject();
 		
-		JsonObject processorConfig = (JsonObject) configJson.get(target);
+		JsonObject learnerConfig = (JsonObject) configJson.get(target);
 		
 		for(Entry<String, JsonElement> configs : configJson.entrySet()){
 			JsonObject datasetConfig = (JsonObject) configs.getValue();
 			if(datasetConfig.get("category").getAsString().equals("Dataset")
 					&& datasetConfig.get("input") !=null){
-				// found a dataset
-				// TODO what in case of multiple datasets?
+				String dataset = datasetConfig.get("dataset").getAsString();
 				if(action.equals("learn")){
-					Dataset trainSet = createTrainDataset(datasetConfig);
-					Trainer trainer = createTrainer(processorConfig);
-					Criterion loss = createLoss(processorConfig);
+					int start = 0;
+					int end = datasetConfig.get("train").getAsInt();
 					
-					// TODO check if modules are present
-					JsonArray moduleIds = parser.parse(modulesJsonString).getAsJsonArray();
+					int batch = learnerConfig.get("batch").getAsInt();
+					int epochs = learnerConfig.get("epochs").getAsInt();
+					float learningRate = learnerConfig.get("learningRate").getAsFloat();
+					float learningRateDecay = learnerConfig.get("learningRateDecay").getAsFloat();
+					String criterion = learnerConfig.get("loss").getAsString();
 					
-					Input input = null;
-					Output output = null;
-					List<Trainable> trainable = new ArrayList<Trainable>();
-					List<Preprocessor> preprocessors = new ArrayList<Preprocessor>();
-					
-					Iterator<JsonElement> it = moduleIds.iterator();
-					while(it.hasNext()){
-						String moduleId = it.next().getAsString();
-						Module m = nn.getModules().get(UUID.fromString(moduleId));
-						if(m instanceof Input){
-							// only include the input module connected to the dataset
-							if(datasetConfig.get("input").getAsString().equals(moduleId)){
-								input = (Input) m;
-							}
-						} else if(m instanceof Output){
-							// only include the output module connected to the trainer
-							if(processorConfig.get("output").getAsString().equals(moduleId)){
-								output = (Output) m;
-							}
-						} else {
-							if(m instanceof Trainable){
-								trainable.add((Trainable) m);
-							} else if(m instanceof Preprocessor){
-								preprocessors.add((Preprocessor) m);
-							}
-						}
-					}
-					trainer.train(input, output, trainable, preprocessors, loss, trainSet);
-					
-					//store in repository instead of json at client side
-					for(Trainable t : trainable){
-						repository.storeParameters(((Module)t).getId(), t.getParameters());
-					}
-					for(Preprocessor p : preprocessors){
-						repository.storeParameters(((Module)p).getId(), p.getParameters());
-					}
-					
-					JsonObject labels = new JsonObject();
-					labels.add(output.getId().toString(), new JsonPrimitive(Arrays.toString(output.getOutputLabels())));
-					
-					response.getWriter().write(labels.toString());
-					response.getWriter().flush();
-				}else if(action.equals("evaluate")){
-					Dataset testSet = createTestDataset(datasetConfig);
-					Evaluator e = createEvaluator(processorConfig);
-					
-					Input input = (Input) nn.getModules().get(UUID.fromString(datasetConfig.get("input").getAsString()));
-					Output output = (Output) nn.getModules().get(UUID.fromString(processorConfig.get("output").getAsString()));
-					
-					// Evaluate
-					Evaluation result = e.evaluate(input, output, testSet);
-					
-					JsonObject eval = new JsonObject();
-					eval.add("accuracy", new JsonPrimitive(result.accuracy()*100));
-					
-					Tensor confusionMatrix = result.getConfusionMatix();
-					JsonArray data = new JsonArray();
-					for(int i=0;i<confusionMatrix.size(0);i++){
-						for(int j=0;j<confusionMatrix.size(1);j++){
-							JsonArray element = new JsonArray();
-							element.add(new JsonPrimitive(i));
-							element.add(new JsonPrimitive(j));
-							element.add(new JsonPrimitive(confusionMatrix.get(i,j)));
-							data.add(element);
-						}
-					}
-					eval.add("confusionMatrix", data);
-					
-					response.getWriter().write(eval.toString());
-					response.getWriter().flush();
-				}
-				break;
-			}
-		}
-	}
-	
-	private Evaluator createEvaluator(JsonObject evaluatorConfig){
-		ArgMaxEvaluator evaluator = new ArgMaxEvaluator(factory);
-		evaluator.addProgressListener(new EvalProgressListener() {
-			
-			@Override
-			public void onProgress(Tensor confusionMatrix) {
-				if(sse!=null){
+					Map<String, String> config = new HashMap<>();
+					config.put("startIndex", ""+start);
+					config.put("endIndex", ""+end);
+					config.put("batchSize", ""+batch);
+					config.put("learningRate", ""+learningRate);
+					config.put("criterion", criterion);
+					config.put("syncInterval", ""+interval);
 					try {
+						learner.learn(nni, dataset, config);
+						
+						// TODO register a listener?
+						Dataset d = datasets.get(dataset);
+						if(d!=null){
+							JsonObject labels = new JsonObject();
+							labels.add(target, new JsonPrimitive(Arrays.toString(d.getLabels())));
+							response.getWriter().write(labels.toString());
+							response.getWriter().flush();
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				
+				}else if(action.equals("evaluate")){
+					int start = datasetConfig.get("train").getAsInt();
+					int end = start+datasetConfig.get("test").getAsInt();
+					
+					Map<String, String> config = new HashMap<>();
+					config.put("startIndex", ""+start);
+					config.put("endIndex", ""+end);
+					
+					try {
+						Evaluation result = evaluator.eval(nni, dataset, config);
+						
+						JsonObject eval = new JsonObject();
+						eval.add("accuracy", new JsonPrimitive(result.accuracy()*100));
+						
+						Tensor confusionMatrix = result.getConfusionMatix();
 						JsonArray data = new JsonArray();
 						for(int i=0;i<confusionMatrix.size(0);i++){
 							for(int j=0;j<confusionMatrix.size(1);j++){
@@ -259,100 +229,89 @@ public class DianneLearner extends HttpServlet {
 								data.add(element);
 							}
 						}
+						eval.add("confusionMatrix", data);
 						
-						StringBuilder builder = new StringBuilder();
-						builder.append("data: ").append(data.toString()).append("\n\n");
-		
-						PrintWriter writer = sse.getResponse().getWriter();
-						writer.write(builder.toString());
-						writer.flush();
+						response.getWriter().write(eval.toString());
+						response.getWriter().flush();
 					} catch(Exception e){
 						e.printStackTrace();
 					}
 				}
+				break;
 			}
-		});
-		return evaluator;
-	}
-	
-	private Criterion createLoss(JsonObject trainerConfig){
-		Criterion criterion = null;
-		String loss = trainerConfig.get("loss").getAsString();
-		if(loss.equals("MSE")){
-			criterion = new MSECriterion(factory);
-		} else if(loss.equals("NLL")){
-			criterion = new NLLCriterion(factory);
 		}
-		return criterion;
 	}
 	
-	private Trainer createTrainer(JsonObject trainerConfig){
-		int batch = trainerConfig.get("batch").getAsInt();
-		int epochs = trainerConfig.get("epochs").getAsInt();
-		float learningRate = trainerConfig.get("learningRate").getAsFloat();
-		float learningRateDecay = trainerConfig.get("learningRateDecay").getAsFloat();
-		StochasticGradient trainer = new StochasticGradient(batch, epochs, learningRate, learningRateDecay);
-		
-		trainer.addProgressListener(new TrainProgressListener() {
-			
-			@Override
-			public void onProgress(int epoch, int sample, float error) {
-				if(sse!=null){
-					try {
-						JsonObject data = new JsonObject();
-						data.add("epoch", new JsonPrimitive(epoch));
-						data.add("sample", new JsonPrimitive(sample));
-						data.add("error", new JsonPrimitive(error));
-						StringBuilder builder = new StringBuilder();
-						builder.append("data: ").append(data.toString()).append("\n\n");
+	private class SSERepositoryListener implements RepositoryListener{
 
-						PrintWriter writer = sse.getResponse().getWriter();
-						writer.write(builder.toString());
-						writer.flush();
-					} catch(Exception e){
-						e.printStackTrace();
+		private final String nnId;
+		private final AsyncContext async;
+
+		private ServiceRegistration reg;
+		
+		private int i = 0;
+		
+		public SSERepositoryListener(String nnId, AsyncContext async){
+			this.nnId = nnId;
+			this.async = async;
+			
+			this.async.setTimeout(300000); // let it ultimately timeout if client is closed
+			
+			this.async.addListener(new AsyncListener() {
+				@Override
+				public void onTimeout(AsyncEvent e) throws IOException {
+					unregister();
+				}
+				@Override
+				public void onStartAsync(AsyncEvent e) throws IOException {
+					async.getResponse().getWriter().println("ping");
+					if(async.getResponse().getWriter().checkError()){
+						async.complete();
 					}
 				}
-			}
-		});
-		return trainer;
-	}
-	
-	private Dataset createTestDataset(JsonObject datasetConfig){
-		Dataset d = createDataset(datasetConfig);
-		int start = datasetConfig.get("train").getAsInt();
-		int end = start+datasetConfig.get("test").getAsInt();
-		return new DatasetRangeAdapter(d, start, end);
-	}
-	
-	private Dataset createTrainDataset(JsonObject datasetConfig){
-		Dataset d = createDataset(datasetConfig);
-		int start = 0;
-		int end = datasetConfig.get("train").getAsInt();
-		return new DatasetRangeAdapter(d, start, end);
-	}
-	
-	private Dataset createDataset(JsonObject datasetConfig){
-		// TODO check if dataset exists?
-		String dataset = datasetConfig.get("dataset").getAsString();
-		Dataset d = datasets.get(dataset);
+				@Override
+				public void onError(AsyncEvent e) throws IOException {
+					unregister();
+				}
+				@Override
+				public void onComplete(AsyncEvent e) throws IOException {
+					unregister();
+				}
+			});
+		}
 		
-		JsonArray l = datasetConfig.get("labels").getAsJsonArray();
-		String[] labels = new String[l.size()];
-		int i = 0;
-		Iterator<JsonElement> it = l.iterator();
-		while(it.hasNext()){
-			String label = it.next().getAsString();
-			labels[i++] = label;
+		@Override
+		public void onParametersUpdate(UUID nnId, Collection<UUID> moduleIds,
+				String... tag) {
+			try {
+				JsonObject data = new JsonObject();
+				data.add("sample", new JsonPrimitive(interval*(i++)));
+				data.add("error", new JsonPrimitive(learner.getError()));
+				StringBuilder builder = new StringBuilder();
+				builder.append("data: ").append(data.toString()).append("\n\n");
+				
+				PrintWriter writer = async.getResponse().getWriter();
+				writer.write(builder.toString());
+				writer.flush();
+				if(writer.checkError()){
+					unregister();
+				}
+			} catch(Exception e){
+				e.printStackTrace();
+				unregister();
+			}	
 		}
-		if(Arrays.equals(d.getLabels(), labels)){
-			return d;
-		} else {
-			boolean other = labels[labels.length-1].equals("other");
-			if(other){
-				labels = Arrays.copyOfRange(labels, 0, labels.length-1);
-			}
-			return new DatasetLabelAdapter(factory, d, labels, other);
+	
+		public void register(BundleContext context){
+			Dictionary<String, Object> props = new Hashtable();
+			props.put("targets", new String[]{":"+nnId});
+			props.put("aiolos.unique", true);
+			reg = context.registerService(RepositoryListener.class, this, props);
 		}
+		
+		public void unregister(){
+			reg.unregister();
+		}
+		
 	}
 }

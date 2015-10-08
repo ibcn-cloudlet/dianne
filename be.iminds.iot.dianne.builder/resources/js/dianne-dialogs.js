@@ -284,33 +284,6 @@ function createLearnModuleDialog(id, moduleItem){
 			dialog.find('.content')
 		);
 		
-	
-		$.each(datasets[module.dataset].labels, function(index, label){
-			if($.inArray(label, module.labels) > -1){
-				dialog.find('.labels').append(
-					'<label class="checkbox-inline"><input type="checkbox" checked value="'+label+'">'+label+'</label>'
-				);
-			} else {
-				dialog.find('.labels').append(
-					'<label class="checkbox-inline"><input type="checkbox" value="'+label+'">'+label+'</label>'
-				);		
-			}
-		});
-		dialog.find('.labels').append(
-			'<label class="checkbox-inline"><input type="checkbox" value="other">other</label>'
-		);
-		dialog.find(':checkbox').change(function() {
-			var labels = [];
-			var dialog = $(this.closest('.modal'));
-			var id = dialog.find('.module-id').val();
-			dialog.find(':checkbox').each(function(index, checkbox){
-				if($(checkbox).is(':checked')){
-					labels.push($(checkbox).val());
-				}
-			});
-			learning[id].labels = labels;
-		});
-	
 		dialog.find(".slider").slider({
 			orientation: "vertical",
 			range: true,
@@ -332,7 +305,6 @@ function createLearnModuleDialog(id, moduleItem){
 			}
 		}).find(".ui-slider-handle").remove();
 		
-		// TODO make this a shuffle button?
 		dialog.find(".submit").remove();
 	
 	} else if(module.category==="Trainer"){
@@ -346,7 +318,6 @@ function createLearnModuleDialog(id, moduleItem){
 		
 		
 		// form options
-		// TODO fetch parameters from server?
 		renderTemplate("form-train", {
 				id : module.id,
 				loss : module.loss,
@@ -359,16 +330,29 @@ function createLearnModuleDialog(id, moduleItem){
 		
 		
 		dialog.find(".submit").click(function(e){
-			var id = $(this).closest(".modal").find(".module-id").val();
-			
-			var trainer = learning[id];
-			trainer.loss = $(this).closest(".modal").find("#loss").val();
-			trainer.batch = $(this).closest(".modal").find("#batch").val();
-			trainer.epochs = $(this).closest(".modal").find("#epochs").val();
-			trainer.learningRate = $(this).closest(".modal").find("#learningRate").val();
-			trainer.learningRateDecay = $(this).closest(".modal").find("#learningRateDecay").val();
+			console.log("HOERA "+$(this));
+		    $(this).text(function(i, text){
+		    	if(text === "Train"){
+		    		var id = $(this).closest(".modal").find(".module-id").val();
+					
+					var trainer = learning[id];
+					trainer.loss = $(this).closest(".modal").find("#loss").val();
+					trainer.batch = $(this).closest(".modal").find("#batch").val();
+					trainer.epochs = $(this).closest(".modal").find("#epochs").val();
+					trainer.learningRate = $(this).closest(".modal").find("#learningRate").val();
+					trainer.learningRateDecay = $(this).closest(".modal").find("#learningRateDecay").val();
 
-			learn(id);
+					learn(id);
+		    		return "Stop";
+		    	} else {
+		    		$.post("/dianne/learner", {"action":"stop",
+		    			"id": nn.id});
+		    		return "Train";
+		    	}
+		    	
+		         return text === "Train" ? "Stop" : "Train";
+		    });
+			
 		});
 	} else if(module.category==="Evaluator"){
 		dialog = renderTemplate("dialog", {
@@ -772,7 +756,7 @@ function learn(id){
 	// first create the chart
 	createErrorChart($("#dialog-"+id).find(".content"));
 
-	eventsource = new EventSource("/dianne/learner");
+	eventsource = new EventSource("/dianne/learner?nnId="+nn.id);
 	eventsource.onmessage = function(event){
 		var data = JSON.parse(event.data);
 		var index = Number($("#dialog-"+id).find(".content").attr("data-highcharts-chart"));
@@ -781,22 +765,9 @@ function learn(id){
 		Highcharts.charts[index].series[0].addPoint([x, y], true, true, false);
 	};
 	
-	var modules = [];
-	$.each(nn.modules, function(id, module){
-		if(module.category==="Input-Output" 
-			|| module.category==="Preprocessing"){
-			modules.push(id);
-		} else {
-			if(module.trainable==="true"){
-				modules.push(id);
-			}
-		}
-	});
-	
 	$.post("/dianne/learner", {"action":"learn",
 		"id": nn.id,
 		"config":JSON.stringify(learning),
-		"modules": JSON.stringify(modules),
 		"target": id}, 
 			function( data ) {
 				// only returns labels of output module
