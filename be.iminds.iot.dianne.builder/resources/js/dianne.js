@@ -696,7 +696,7 @@ function save(name){
 	
 	// save modules
 	var s = {};
-	s.modules = nn;
+	s.modules = nn.modules;
 	s.name = name;
 	
 	var modulesJson = JSON.stringify(s);
