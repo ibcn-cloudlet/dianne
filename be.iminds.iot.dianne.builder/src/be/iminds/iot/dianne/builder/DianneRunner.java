@@ -264,6 +264,12 @@ public class DianneRunner extends HttpServlet {
 			}
 		} else {
 			labels = outputLabels;
+			if(labels==null){
+				labels = new String[output.size()];
+				for(int i=0;i<labels.length;i++){
+					labels[i] = ""+i;
+				}
+			}
 			values = output.get();
 		}
 		
