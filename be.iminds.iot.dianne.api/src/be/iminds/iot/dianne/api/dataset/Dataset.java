@@ -6,6 +6,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
  * A Dataset is a collection of input data and the corresponding output classes.
  * 
  * The input tensor can be an n-dimensional input (likely 1-D (sequence) or 2-D (images))
+ * The input values range between 0 and 1.
  * 
  * The output tensor is a 1 dimensional vector filled with zeros and only 1 for the classes
  * that are represented by the corresponding input sample. 
