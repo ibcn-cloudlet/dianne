@@ -46,6 +46,14 @@ public class SGDLearner implements Learner {
 	// initial parameters
 	protected Map<UUID, Tensor> parameters = null;
 	
+	private static final float alpha = 1e-2f;
+	protected float error = 0;
+	
+	@Override
+	public float getError(){
+		return error;
+	}
+	
 	@Override
 	public void learn(NeuralNetworkInstanceDTO nni, String dataset,
 			Map<String, String> config) throws Exception {
@@ -105,15 +113,17 @@ public class SGDLearner implements Learner {
 			public void run() {
 				learning = true;
 				int i = 0;
-				float runningAvg = 0;
-				float error = 0;
+				float err = 0;
 
 				do {
-					i++;
-					error = processor.processNext();
-					runningAvg+= error;
-					
-					System.out.println(error+" - "+runningAvg/i);
+					err = processor.processNext();
+					if(i==0){
+						error = err;
+					} else {
+						error = (1 - alpha) * error + alpha * err;
+					}
+
+					System.out.println(err+" - "+error);
 					
 					if(error >= 0){
 						
@@ -130,10 +140,11 @@ public class SGDLearner implements Learner {
 						}
 					}
 					
-
-				} while(learning && error >= 0);
+					i++;
+				} while(learning);
 				System.out.println("Stopped learning");
 				publishParameters();
+				learning = false;
 			}
 		});
 		learnerThread.start();

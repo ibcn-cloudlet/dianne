@@ -25,6 +25,11 @@ public interface Learner {
 	void learn(NeuralNetworkInstanceDTO nni, String dataset, Map<String, String> config) throws Exception;
 	
 	/**
+	 * @return the current (running avg) error perceived by the Learner
+	 */
+	float getError();
+	
+	/**
 	 * Stop the current learning session.
 	 */
 	void stop();
