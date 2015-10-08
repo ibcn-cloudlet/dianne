@@ -292,7 +292,7 @@ public class DianneCommands {
 		}
 		
 		@Override
-		public void onParametersUpdate(Collection<UUID> moduleIds,
+		public void onParametersUpdate(UUID nnId, Collection<UUID> moduleIds,
 				String... tag) {
 			NeuralNetwork nn = dianne.getNeuralNetwork(nni);
 			if(nn!=null){

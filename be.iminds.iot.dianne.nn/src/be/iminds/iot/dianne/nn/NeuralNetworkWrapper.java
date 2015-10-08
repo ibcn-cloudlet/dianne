@@ -427,7 +427,7 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 
 	@Override
 	public void storeParameters(String... tag) {
-		repository.storeParameters(getParameters(), tag);
+		repository.storeParameters(nn.id, getParameters(), tag);
 	}
 
 	@Override
@@ -436,7 +436,7 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 				.collect(Collectors.toMap(e -> e.getKey(), e -> factory.getTensorMath().sub(null,
 						e.getValue().getParameters(), previous.get(e.getKey()))));
 
-		repository.accParameters(deltaParameters, tag);
+		repository.accParameters(nn.id, deltaParameters, tag);
 	}
 
 	@Override

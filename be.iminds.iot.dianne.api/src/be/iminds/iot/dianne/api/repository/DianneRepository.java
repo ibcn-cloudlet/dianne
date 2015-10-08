@@ -59,6 +59,7 @@ public interface DianneRepository {
 	
 	/**
 	 * Load all parameters for a given neural network name for some tags
+	 * 
 	 * @param nnName name of the neural network
 	 * @param tag optional tags for the parameters
 	 * @return the parameters Tensor mapped by moduleId
@@ -68,36 +69,40 @@ public interface DianneRepository {
 	/**
 	 * Store parameters for a given moduleId
 	 *
+	 * @param nnId the nn instance these parameters originate from
 	 * @param moduleId the moduleId for which these parameters are applicable
 	 * @param parameters the parameters Tensor
 	 * @param tag optional tags for the parameters
 	 */
-	void storeParameters(UUID moduleId, Tensor parameters, String... tag);
+	void storeParameters(UUID nnId, UUID moduleId, Tensor parameters, String... tag);
 	
 	/**
 	 * Update the parameters for a given moduleId with this diff
 	 * 
+	 * @param nnId the nn instance these parameters originate from
 	 * @param moduleId the moduleId for which these parameters are applicable
 	 * @param accParameters a diff with the old parameters
 	 * @param tag optional tags for the parameters
 	 */
-	void accParameters(UUID moduleId, Tensor accParameters, String... tag);
+	void accParameters(UUID nnId, UUID moduleId, Tensor accParameters, String... tag);
 	
 	/**
 	 * Store parameters for a number of modules
 	 *
+	 * @param nnId the nn instance these parameters originate from
 	 * @param parameters the parameters Tensors mapped by moduleIds
 	 * @param tag optional tags for the parameters
 	 */
-	void storeParameters(Map<UUID, Tensor> parameters, String... tag);
+	void storeParameters(UUID nnId, Map<UUID, Tensor> parameters, String... tag);
 	 
 	/**
 	 * Update the parameters for a number of modules with this diff
 	 * 
+	 * @param nnId the nn instance these parameters originate from
 	 * @param accParameters a diff with the old parameters mapped by moduleId
 	 * @param tag optional tags for the parameters
 	 */
-	void accParameters(Map<UUID, Tensor> accParameters, String... tag);
+	void accParameters(UUID nnId, Map<UUID, Tensor> accParameters, String... tag);
 	
 
 	// these are some helper methods for saving the jsplumb layout of the UI builder

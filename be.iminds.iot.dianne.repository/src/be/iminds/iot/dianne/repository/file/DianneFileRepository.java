@@ -193,35 +193,35 @@ public class DianneFileRepository implements DianneRepository {
 	}
 	
 	@Override
-	public synchronized void storeParameters(UUID moduleId, Tensor parameters, String... tag) {
+	public synchronized void storeParameters(UUID nnId, UUID moduleId, Tensor parameters, String... tag) {
 		store(moduleId, parameters, tag);
 		
-		notifyListeners(Collections.singleton(moduleId), tag);
+		notifyListeners(nnId, Collections.singleton(moduleId), tag);
 	}
 	
 	@Override
-	public synchronized void storeParameters(Map<UUID, Tensor> parameters, String... tag) {
+	public synchronized void storeParameters(UUID nnId, Map<UUID, Tensor> parameters, String... tag) {
 		parameters.entrySet().stream().forEach(e -> store(e.getKey(), e.getValue(), tag));
 		
 		List<UUID> uuids = new ArrayList<UUID>();
 		uuids.addAll(parameters.keySet());
-		notifyListeners(uuids, tag);
+		notifyListeners(nnId, uuids, tag);
 	}
 	
 	@Override
-	public synchronized void accParameters(UUID moduleId, Tensor accParameters, String... tag){
+	public synchronized void accParameters(UUID nnId, UUID moduleId, Tensor accParameters, String... tag){
 		acc(moduleId, accParameters, tag);
 		
-		notifyListeners(Collections.singleton(moduleId), tag);
+		notifyListeners(nnId, Collections.singleton(moduleId), tag);
 	}
 
 	@Override
-	public synchronized void accParameters(Map<UUID, Tensor> accParameters, String... tag) {
+	public synchronized void accParameters(UUID nnId, Map<UUID, Tensor> accParameters, String... tag) {
 		accParameters.entrySet().stream().forEach(e -> acc(e.getKey(), e.getValue(), tag));
 		
 		List<UUID> uuids = new ArrayList<UUID>();
 		uuids.addAll(accParameters.keySet());
-		notifyListeners(uuids, tag);
+		notifyListeners(nnId, uuids, tag);
 
 	}
 	
@@ -271,24 +271,28 @@ public class DianneFileRepository implements DianneRepository {
 		return pid;
 	}
 	
-	private void notifyListeners(Collection<UUID> moduleIds, String... tag){
+	private void notifyListeners(UUID nnId, Collection<UUID> moduleIds, String... tag){
 		synchronized(listeners){
+			// match tags and nnId
+			List<String> tags = new ArrayList<String>(tag.length+1);
+			tags.addAll(Arrays.asList(tag));
+			tags.add(nnId.toString());
 			final List<RepositoryListener> toNotify = listeners.entrySet()
 					.stream()
-					.filter( e -> match(e.getValue(), moduleIds, tag))
+					.filter( e -> match(e.getValue(), moduleIds, tags))
 					.map( e -> e.getKey())
 					.collect(Collectors.toList());
 			
 			executor.execute( ()->{
 				for(RepositoryListener l : toNotify){
-					l.onParametersUpdate(moduleIds, tag);
+					l.onParametersUpdate(nnId, moduleIds, tag);
 				}
 			});
 			
 		}
 	}
 	
-	private boolean match(Collection<String> targets, Collection<UUID> moduleIds, String[] tag){
+	private boolean match(Collection<String> targets, Collection<UUID> moduleIds, List<String> tags){
 		// match everything if targets = null
 		if(targets==null){
 			return true;
@@ -307,9 +311,8 @@ public class DianneFileRepository implements DianneRepository {
 			// some tag provided
 			for(int i=1;i<split.length;i++){
 				String t = split[i];
-				if(tag!=null){
-					List<String> tagList = Arrays.asList(tag);
-					if(!tagList.contains(t)){
+				if(tags!=null){
+					if(!tags.contains(t)){
 						return false;
 					}
 				} else {
