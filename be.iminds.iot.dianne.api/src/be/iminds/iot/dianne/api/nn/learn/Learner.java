@@ -1,6 +1,7 @@
 package be.iminds.iot.dianne.api.nn.learn;
 
 import java.util.Map;
+import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 
@@ -15,6 +16,11 @@ import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 public interface Learner {
 
 	/**
+	 * @return uuid of this learner - same as the frameworkId this learner is deployed on
+	 */
+	UUID getLearnerId();
+	
+	/**
 	 * Start learning for a given neural network and dataset, using the given processor.
 	 * The learning will start in a background thread and this method immediately returns.
 	 * 
@@ -28,6 +34,11 @@ public interface Learner {
 	 * @return the current progress of the Learner
 	 */
 	LearnProgress getProgress();
+	
+	/**
+	 * @return whether or not this learner is busy
+	 */
+	boolean isBusy();
 	
 	/**
 	 * Stop the current learning session.

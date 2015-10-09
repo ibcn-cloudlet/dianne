@@ -2,7 +2,11 @@ package be.iminds.iot.dianne.nn.eval;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
@@ -18,8 +22,10 @@ import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
-@Component
+@Component(property={"aiolos.unique=true"})
 public class ArgMaxEvaluator implements Evaluator {
+	
+	protected UUID evaluatorId;
 	
 	protected DataLogger logger;
 	
@@ -27,6 +33,10 @@ public class ArgMaxEvaluator implements Evaluator {
 	protected Dianne dianne;
 	protected Map<String, Dataset> datasets = new HashMap<String, Dataset>();
 	
+	@Override
+	public UUID getEvaluatorId(){
+		return evaluatorId;
+	}
 
 	@Override
 	public synchronized Evaluation eval(NeuralNetworkInstanceDTO nni, String dataset,
@@ -89,6 +99,10 @@ public class ArgMaxEvaluator implements Evaluator {
 		return e;
 	}
 
+	@Activate
+	public void activate(BundleContext context){
+		this.evaluatorId = UUID.fromString(context.getProperty(Constants.FRAMEWORK_UUID));
+	}
 	
 	@Reference
 	void setTensorFactory(TensorFactory f){

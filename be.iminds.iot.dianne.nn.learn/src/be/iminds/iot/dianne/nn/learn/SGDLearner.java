@@ -6,6 +6,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
@@ -24,8 +27,10 @@ import be.iminds.iot.dianne.nn.learn.factory.LearnerFactory;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
-@Component
+@Component(property={"aiolos.unique=true"})
 public class SGDLearner implements Learner {
+	
+	protected UUID learnerId;
 	
 	protected DataLogger logger;
 	
@@ -51,6 +56,16 @@ public class SGDLearner implements Learner {
 	private static final float alpha = 1e-2f;
 	protected float error = 0;
 	protected long i = 0;
+	
+	@Override
+	public UUID getLearnerId(){
+		return learnerId;
+	}
+	
+	@Override
+	public boolean isBusy(){
+		return learning;
+	}
 	
 	@Override
 	public LearnProgress getProgress(){
@@ -189,6 +204,11 @@ public class SGDLearner implements Learner {
 		
 		// fetch update again from repo (could be merged from other learners)
 		loadParameters();
+	}
+	
+	@Activate
+	public void activate(BundleContext context){
+		this.learnerId = UUID.fromString(context.getProperty(Constants.FRAMEWORK_UUID));
 	}
 	
 	@Reference
