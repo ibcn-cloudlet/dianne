@@ -30,6 +30,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.eval.Evaluator;
+import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
@@ -284,9 +285,10 @@ public class DianneLearner extends HttpServlet {
 		public void onParametersUpdate(UUID nnId, Collection<UUID> moduleIds,
 				String... tag) {
 			try {
+				LearnProgress progress = learner.getProgress();
 				JsonObject data = new JsonObject();
-				data.add("sample", new JsonPrimitive(interval*(i++)));
-				data.add("error", new JsonPrimitive(learner.getError()));
+				data.add("sample", new JsonPrimitive(progress.iteration));
+				data.add("error", new JsonPrimitive(progress.error));
 				StringBuilder builder = new StringBuilder();
 				builder.append("data: ").append(data.toString()).append("\n\n");
 				

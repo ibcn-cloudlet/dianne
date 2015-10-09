@@ -4,6 +4,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -14,6 +15,7 @@ import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
+import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.learn.Processor;
 import be.iminds.iot.dianne.api.nn.module.Module.Mode;
@@ -48,10 +50,11 @@ public class SGDLearner implements Learner {
 	
 	private static final float alpha = 1e-2f;
 	protected float error = 0;
+	protected long i = 0;
 	
 	@Override
-	public float getError(){
-		return error;
+	public LearnProgress getProgress(){
+		return new LearnProgress(i, error);
 	}
 	
 	@Override
@@ -112,7 +115,7 @@ public class SGDLearner implements Learner {
 			@Override
 			public void run() {
 				learning = true;
-				int i = 0;
+				i = 0;
 				float err = 0;
 
 				do {
@@ -161,10 +164,11 @@ public class SGDLearner implements Learner {
 
 	protected void loadParameters(){
 		try {
-			nn.loadParameters(tag);
-		} catch(Exception e){
-			// if no initial parameters available, publish the random initialize parameters of this instance as first parameters?
-			publishParameters();
+			parameters = nn.loadParameters(tag);
+		} catch(Exception ex){
+			// if no initial parameters available, publish the random initialize parameters of this instance as first parameters
+			nn.storeParameters(tag);
+			parameters =  nn.getParameters().entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().copyInto(null)));
 			System.out.println("No initial parameters available, publish these random values as initial parameters...");
 		}
 	}
