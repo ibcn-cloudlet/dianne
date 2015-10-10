@@ -10,7 +10,7 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 	osgi.promise
 	
 -dsannotations: *
-Bundle-Name: Dianne Platform
+Bundle-Name: Dianne Coordinator
 Private-Package: \
 	be.iminds.iot.dianne.coordinator,\
 	be.iminds.iot.dianne.coordinator.command
