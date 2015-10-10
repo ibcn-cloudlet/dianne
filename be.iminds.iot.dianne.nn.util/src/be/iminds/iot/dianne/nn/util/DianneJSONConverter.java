@@ -32,11 +32,14 @@ public class DianneJSONConverter {
 	private static final JsonParser parser = new JsonParser();
 	
 	public static NeuralNetworkDTO parseJSON(String s){
+		JsonObject json = parser.parse(s).getAsJsonObject();
+		return parseJSON(json);
+	}
+	
+	public static NeuralNetworkDTO parseJSON(JsonObject json){
 		String name = null;
 		List<ModuleDTO> modules = new ArrayList<ModuleDTO>();
 
-		// name could be missing if constructed straight from UI Builder
-		JsonObject json = parser.parse(s).getAsJsonObject();
 		if(json.has("name")){
 			name = json.get("name").getAsString();
 		}
@@ -54,6 +57,8 @@ public class DianneJSONConverter {
 		
 		return new NeuralNetworkDTO(name, modules);
 	}
+	
+	
 	
 	public static ModuleDTO parseModuleJSON(String module){
 		JsonObject moduleJson = parser.parse(module).getAsJsonObject();

@@ -1,0 +1,18 @@
+Bundle-Version: 0.2.0.${tstamp}
+
+Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
+-buildpath: \
+	biz.aQute.junit,\
+	osgi.core;version=5.0,\
+	osgi.enterprise;version=5.0,\
+	be.iminds.iot.dianne.tensor.api;version=latest,\
+	be.iminds.iot.dianne.api;version=latest,\
+	osgi.promise,\
+	com.google.gson,\
+	be.iminds.iot.dianne.nn.util;version=latest
+	
+-dsannotations: *
+Bundle-Name: Dianne JSON RPC
+Private-Package: \
+	be.iminds.iot.dianne.jsonrpc,\
+	be.iminds.iot.dianne.nn.util
