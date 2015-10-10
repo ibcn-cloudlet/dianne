@@ -1,0 +1,86 @@
+{
+	"jsonrpc": "2.0", 
+	"method": "learn", 
+	"params": [
+		{
+		  "name": "testje",
+		  "modules": {
+		    "1f72495a-da2f-e575-d056-a414f9924a66": {
+		      "id": "1f72495a-da2f-e575-d056-a414f9924a66",
+		      "type": "Input",
+		      "next": [
+		        "57f8c73d-10f7-e7b4-ec92-82143ae7a4d1"
+		      ],
+		      "name": "Input",
+		      "category": "Input-Output"
+		    },
+		    "5545e5cc-cd5b-170e-3043-f3c0b57cdd42": {
+		      "id": "5545e5cc-cd5b-170e-3043-f3c0b57cdd42",
+		      "type": "Output",
+		      "prev": [
+		        "99abf48e-dabb-1d1f-8f79-075b682f67fb"
+		      ],
+		      "name": "Output",
+		      "category": "Input-Output"
+		    },
+		    "57f8c73d-10f7-e7b4-ec92-82143ae7a4d1": {
+		      "id": "57f8c73d-10f7-e7b4-ec92-82143ae7a4d1",
+		      "type": "Linear",
+		      "next": [
+		        "0c0b42d6-44dd-3533-0649-465e00f1ca6b"
+		      ],
+		      "prev": [
+		        "1f72495a-da2f-e575-d056-a414f9924a66"
+		      ],
+		      "output": "20",
+		      "input": "784",
+		      "name": "Linear",
+		      "category": "Layer",
+		      "trainable": "true"
+		    },
+		    "0c0b42d6-44dd-3533-0649-465e00f1ca6b": {
+		      "id": "0c0b42d6-44dd-3533-0649-465e00f1ca6b",
+		      "type": "Sigmoid",
+		      "next": [
+		        "a9e53149-9d72-ce1f-02cb-9353fbb50496"
+		      ],
+		      "prev": [
+		        "57f8c73d-10f7-e7b4-ec92-82143ae7a4d1"
+		      ],
+		      "name": "Sigmoid",
+		      "category": "Activation"
+		    },
+		    "a9e53149-9d72-ce1f-02cb-9353fbb50496": {
+		      "id": "a9e53149-9d72-ce1f-02cb-9353fbb50496",
+		      "type": "Linear",
+		      "next": [
+		        "99abf48e-dabb-1d1f-8f79-075b682f67fb"
+		      ],
+		      "prev": [
+		        "0c0b42d6-44dd-3533-0649-465e00f1ca6b"
+		      ],
+		      "output": "10",
+		      "input": "20",
+		      "name": "Linear",
+		      "category": "Layer",
+		      "trainable": "true"
+		    },
+		    "99abf48e-dabb-1d1f-8f79-075b682f67fb": {
+		      "id": "99abf48e-dabb-1d1f-8f79-075b682f67fb",
+		      "type": "Softmax",
+		      "next": [
+		        "5545e5cc-cd5b-170e-3043-f3c0b57cdd42"
+		      ],
+		      "prev": [
+		        "a9e53149-9d72-ce1f-02cb-9353fbb50496"
+		      ],
+		      "name": "Softmax",
+		      "category": "Activation"
+		    }
+		  }
+		},
+		"MNIST",
+		{}
+	], 
+	"id": "1"
+}
