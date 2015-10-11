@@ -3,8 +3,8 @@ package be.iminds.iot.dianne.api.nn;
 import java.util.Map;
 import java.util.UUID;
 
-import be.iminds.iot.dianne.api.nn.module.BackwardListener;
-import be.iminds.iot.dianne.api.nn.module.ForwardListener;
+import org.osgi.util.promise.Promise;
+
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.Output;
@@ -27,92 +27,63 @@ public interface NeuralNetwork {
 	NeuralNetworkInstanceDTO getNeuralNetworkInstance();
 	
 	/**
-	 * Do a forward through the neural network synchronously, blocks until you get the output
-	 * 
-	 * Only works for neural network with single input, single output; else use the method with
-	 * UUID inputId and UUID outputId args
+	 * Forward input through the neural network
+	 * @param inputId id of the Input module to forward the input to
+	 * @param outputId id of the Output module to get the output from
+	 * @param input the input tensor
+	 * @param tags optional array of tags
+	 * @return result
 	 */
-	Tensor forward(Tensor input, String... tags);
+	Promise<NeuralNetworkResult> forward(UUID inputId, UUID outputId, Tensor input, String... tags);
 
 	/**
-	 * Do a forward through the neural network synchronously, blocks until you get the output
+	 * Blocking call that returns the output Tensor after forwarding input.
 	 * 
+	 * This method is applicable for neural networks with one input and one output module.
+	 * 
+	 * @param input
+	 * @param tags
+	 * @return
 	 */
-	Tensor forward(UUID inputId, UUID outputId, Tensor input, String... tags);
+	default Tensor forward(Tensor input, String... tags){
+		Tensor result = null;
+		try {
+			result = forward(null, null, input, tags).getValue().tensor;
+		} catch(Exception e){
+			throw new RuntimeException("Error forwarding input", e);
+		}
+		return result;
+	}
+
+	/**
+	 * Backward gradOutput through the neural network
+	 * @param outputId id of the Output module to backpropagate the gradOutput 
+	 * @param inputId id of the Input module to gather the gradInput
+	 * @param gradOutput the gradOutput tensor
+	 * @param tags optional array of tags
+	 * @return
+	 */
+	Promise<NeuralNetworkResult> backward(UUID outputId, UUID inputId, Tensor gradOutput, String... tags);
+
+	/**
+	 * Blocking call that returns the gradInput Tensor after back propagating gradOutput.
+	 * 
+	 * This method is applicable for neural networks with one input and one output module.
+	 * 
+	 * @param input
+	 * @param tags
+	 * @return
+	 */
+	default Tensor backward(Tensor gradOutput, String... tags){
+		Tensor result = null;
+		try {
+			result = backward(null, null, gradOutput, tags).getValue().tensor;
+		} catch(Exception e){
+			throw new RuntimeException("Error back propagating gradOutput", e);
+		}
+		return result;
+	}
 	
-	/**
-	 * Asynchronously forward an input through the neural network.
-	 *
-	 * Only works for neural network with single input, single output; else use the method with
-	 * UUID inputId arg
-	 */
-	void aforward(Tensor input, String... tags);
-	
-	/**
-	 * Asynchronously forward an input through the neural network. The provided ForwardListener
-	 * will be called on output.
-	 *
-	 * Only works for neural network with single input, single output; else use the method with
-	 * UUID inputId arg
-	 */
-	void aforward(ForwardListener callback, Tensor input, String... tags);
-
-	/**
-	 * Asynchronously forward an input through the neural network. 
-	 * 
-	 */
-	void aforward(UUID inputId, Tensor input, String... tags);
-
-	/**
-	 * Asynchronously forward an input through the neural network. The provided ForwardListener
-	 * will be called on output.
-	 * 
-	 */
-	void aforward(ForwardListener callback, UUID inputId, Tensor input, String... tags);
-
-	
-	/**
-	 * Do a backward through the neural network synchronously, blocks until you get the gradInput
-	 * 
-	 * Only works for neural network with single input, single output; else use the method with
-	 * UUID inputId and UUID outputId args
-	 */
-	Tensor backward(Tensor gradOutput, String... tags);
-
-	/**
-	 * Do a backward through the neural network synchronously, blocks until you get the gradInput
-	 */
-	Tensor backward(UUID outputId, UUID inputId, Tensor gradOutput, String... tags);
-
-	
-	/**
-	 * Asynchronously backward an gradOutput through the neural network.
-	 * 
-	 * Only works for neural network with single input, single output; else use the method with
-	 * UUID inputId and UUID outputId args
-	 */
-	void abackward(Tensor gradOutput, String... tags);
-
-	/**
-	 * Asynchronously backward an gradOutput through the neural network. The provided BackwardListener
-	 * will be called on gradInput.
-	 * 
-	 * Only works for neural network with single input, single output; else use the method with
-	 * UUID inputId and UUID outputId args
-	 */
-	void abackward(BackwardListener callback, Tensor gradOutput, String... tags);
-
-	/**
-	 * Asynchronously backward an gradOutput through the neural network.
-	 */
-	void abackward(UUID outputId, Tensor gradOutput, String... tags);
-
-	/**
-	 * Asynchronously backward an gradOutput through the neural network. The provided BackwardListener
-	 * will be called on gradInput.
-	 */
-	void abackward(BackwardListener callback, UUID outputId, Tensor gradOutput, String... tags);
-
 	/**
 	 * Get the input module in case of only one input
 	 * @return

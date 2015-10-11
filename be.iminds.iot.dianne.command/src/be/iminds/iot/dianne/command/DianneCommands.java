@@ -245,15 +245,23 @@ public class DianneCommands {
 		try {
 			Tensor in = d.getInputSample(index);
 			long t1 = System.currentTimeMillis();
-			Tensor out = nn.forward(in, tags);
-			long t2 = System.currentTimeMillis();
+			nn.forward(null, null, in, tags).then(
+				p -> {
+						long t2 = System.currentTimeMillis();
+
+						Tensor out = p.getValue().tensor;
+						int clazz = factory.getTensorMath().argmax(out);
+						float max = factory.getTensorMath().max(out);
+						String label = labels[clazz];
+					
+						System.out.println("Sample "+index+" (with tags "+Arrays.toString(tags)+") classified as: "+label+" (probability: "+max+")");
+						System.out.println("Forward time: "+(t2-t1)+" ms");
+						
+						return null;
+					}
+				);
 		
-			int clazz = factory.getTensorMath().argmax(out);
-			float max = factory.getTensorMath().max(out);
-			String label = labels[clazz];
-		
-			System.out.println("Sample "+index+" (with tags "+Arrays.toString(tags)+") classified as: "+label+" (probability: "+max+")");
-			System.out.println("Forward time: "+(t2-t1)+" ms");
+			
 		} catch(Exception e ){
 			e.printStackTrace();
 		} 

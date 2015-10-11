@@ -172,7 +172,7 @@ public class DianneRunner extends HttpServlet {
 			float[] data = parseInput(sample.get("data").getAsJsonArray().toString());
 			Tensor t = factory.createTensor(data, channels, height, width);
 			
-			nn.aforward(UUID.fromString(inputId), t);
+			nn.forward(UUID.fromString(inputId), null, t);
 			
 		} else if(request.getParameter("url")!=null){
 			String url = request.getParameter("url");
@@ -188,7 +188,7 @@ public class DianneRunner extends HttpServlet {
 				return;
 			}
 			
-			nn.aforward(UUID.fromString(inputId), t);
+			nn.forward(UUID.fromString(inputId), null, t);
 			
 		} else if(request.getParameter("mode")!=null){
 			String mode = request.getParameter("mode");
@@ -207,7 +207,7 @@ public class DianneRunner extends HttpServlet {
 
 				Tensor t = d.getInputSample(rand.nextInt(d.size()));
 				
-				nn.aforward(UUID.fromString(inputId), t);
+				nn.forward(UUID.fromString(inputId), null, t);
 				
 				JsonObject sample = new JsonObject();
 				if(t.dims().length==3){

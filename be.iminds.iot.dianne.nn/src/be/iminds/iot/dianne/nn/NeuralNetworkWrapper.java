@@ -1,7 +1,7 @@
 package be.iminds.iot.dianne.nn;
 
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -11,8 +11,11 @@ import java.util.stream.Collectors;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.util.promise.Deferred;
+import org.osgi.util.promise.Promise;
 
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
+import be.iminds.iot.dianne.api.nn.NeuralNetworkResult;
 import be.iminds.iot.dianne.api.nn.module.BackwardListener;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Input;
@@ -28,8 +31,7 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 public class NeuralNetworkWrapper implements NeuralNetwork {
 
 	private int count = 0;
-	private final static String SYNC_TAG = "sync"; 
-	
+
 	private final DianneRepository repository;
 	private final TensorFactory factory;
 	
@@ -41,13 +43,13 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	private Map<UUID, Trainable> trainables;
 	
 	private final BundleContext context;
-	private WaitingForwardListener forwardListener;
-	private WaitingBackwardListener backwardListener;
-	private Map<ForwardListener, String> delegateFw = new HashMap<ForwardListener, String>();
-	private Map<BackwardListener, String> delegateBw = new HashMap<BackwardListener, String>();
+	private ServiceRegistration<NeuralNetwork> nnReg;
 	private ServiceRegistration<ForwardListener> forwardListenerReg;
 	private ServiceRegistration<BackwardListener> backwardListenerReg;
-	private ServiceRegistration<NeuralNetwork> nnReg;
+
+	
+	private Map<String, Deferred<NeuralNetworkResult>> inProgress = Collections.synchronizedMap(new HashMap<String, Deferred<NeuralNetworkResult>>());
+	private Map<String, UUID> interestedModules = Collections.synchronizedMap(new HashMap<String, UUID>());
 	
 	public NeuralNetworkWrapper(NeuralNetworkInstanceDTO nn, Collection<Module> modules, DianneRepository repo, TensorFactory factory, BundleContext context) {
 		this.nn = nn;
@@ -70,164 +72,69 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	}
 
 	@Override
-	public Tensor forward(Tensor in, String... tags) {
-		if(inputs.size() > 1){
-			throw new RuntimeException("This neural network has more than one input");
+	public Promise<NeuralNetworkResult> forward(UUID inputId, UUID outputId, Tensor in, String... tags){
+		Input input = null;
+		if(inputId!=null){
+			input = inputs.get(inputId);
 		}
-		return forward(inputs.keySet().iterator().next(), outputs.keySet().iterator().next(), in, tags);
-	}
-	
-	@Override
-	public synchronized Tensor forward(UUID inputId, UUID outputId, Tensor in,
-			String... tags) {
-		Tensor output = null;
-		synchronized(forwardListener){
-			if(!outputs.containsKey(outputId)){
-				throw new RuntimeException("This neural network does not have output "+inputId);
-			}
-			
-			Input input = inputs.get(inputId);
-			if(input==null){
-				throw new RuntimeException("This neural network does not have input "+inputId);
-			}
-			
-			input.input(in, addTag(tags, SYNC_TAG));
-			try {
-				forwardListener.wait(outputId);
-			} catch (InterruptedException e) {
-			}
-			output = forwardListener.get();;
-		}
-		return output;
-	}
-	
-	@Override
-	public void aforward(Tensor in, String... tags){
-		aforward((ForwardListener)null, in, tags);
-	}	
-
-	@Override
-	public void aforward(ForwardListener callback, Tensor in, String... tags){
-		if(inputs.size() > 1){
-			throw new RuntimeException("This neural network has more than one input");
-		}
-		String tag = getTag(callback);
-		inputs.values().iterator().next().input(in, addTag(tags, tag));
-	}
-	
-	@Override
-	public void aforward(UUID inputId, Tensor in, String... tags) {
-		aforward((ForwardListener)null, inputId, in, tags);
-	}
-	
-	@Override
-	public void aforward(ForwardListener callback, UUID inputId, Tensor in,
-			String... tags) {
-		String tag = getTag(callback);
-		Input input = inputs.get(inputId);
 		if(input==null){
-			throw new RuntimeException("This neural network does not have input "+inputId);
+			input = inputs.values().iterator().next();
 		}
+		
+		String tag = getTag();
+		if(outputId!=null){
+			interestedModules.put(tag, outputId);
+		}
+		
+		Deferred<NeuralNetworkResult> d = new Deferred<>();
+		inProgress.put(tag, d);
+		
 		input.input(in, addTag(tags, tag));
+		
+		return d.getPromise();
 	}
-
+	
 	@Override
-	public Tensor backward(Tensor gradOut, String... tags) {
-		if(outputs.size() > 1){
-			throw new RuntimeException("This neural network has more than one output");
+	public Promise<NeuralNetworkResult> backward(UUID outputId, UUID inputId, Tensor gradOut, String... tags){
+		Output output = null;
+		if(outputId!=null){
+			output = outputs.get(outputId);
 		}
-		return backward(outputs.keySet().iterator().next(),
-				inputs.keySet().iterator().next(), gradOut, tags);
-	}
-	
-	@Override
-	public synchronized Tensor backward(UUID outputId, UUID inputId, Tensor gradOut,
-			String... tags) {
-		Tensor gradInput = null;
-		synchronized(backwardListener){
-			if(!inputs.containsKey(inputId)){
-				throw new RuntimeException("This neural network does not have input "+inputId);
-			}
-			
-			Output output = outputs.get(outputId);
-			if(output==null){
-				throw new RuntimeException("This neural network does not have output "+outputId);
-			}
-			
-			output.backpropagate(gradOut, addTag(tags, SYNC_TAG));
-			try {
-				backwardListener.wait(inputId);
-			} catch (InterruptedException e) {
-			}
-			gradInput = backwardListener.get();
-		}
-		return gradInput;
-	}
-	
-	@Override
-	public void abackward(Tensor gradOut, String... tags){
-		abackward((BackwardListener)null, gradOut, tags);
-	}
-	
-	@Override
-	public void abackward(BackwardListener callback, Tensor gradOut, String... tags){
-		if(outputs.size() > 1){
-			throw new RuntimeException("This neural network has more than one output");
-		}
-		String tag = getTag(callback);
-		outputs.values().iterator().next().backpropagate(gradOut, addTag(tags, tag));
-	}
-	
-	@Override
-	public void abackward(UUID outputId,
-			Tensor gradOut, String... tags) {
-		abackward((BackwardListener)null, outputId,gradOut, tags);
-	}
-	
-	@Override
-	public void abackward(BackwardListener callback, UUID outputId,
-			Tensor gradOut, String... tags) {
-		String tag = getTag(callback);
-		Output output = outputs.get(outputId);
 		if(output==null){
-			throw new RuntimeException("This neural network does not have output "+outputId);
+			output = outputs.values().iterator().next();
 		}
+		
+		String tag = getTag();
+		if(outputId!=null){
+			interestedModules.put(tag, outputId);
+		}
+		
+		Deferred<NeuralNetworkResult> d = new Deferred<>();
+		inProgress.put(tag, d);
+		
 		output.backpropagate(gradOut, addTag(tags, tag));
+		
+		return d.getPromise();
 	}
 	
-	private String getTag(ForwardListener l){
-		String tag = null;
-		if(l!=null){
-			if(!delegateFw.containsKey(l)){
-				tag = ""+(count++);
-				delegateFw.put(l, tag);
-			} else {
-				tag = delegateFw.get(l);
-			}
+	
+
+	private String getTag(){
+		synchronized(this){
+			return ""+count++;
 		}
-		return tag;
 	}
 	
-	private String getTag(BackwardListener l){
-		String tag = null;
-		if(l!=null){
-			if(!delegateBw.containsKey(l)){
-				tag = ""+(count++);
-				delegateBw.put(l, tag);
-			} else {
-				tag = delegateBw.get(l);
-			}
-		}
-		return tag;
-	}
+	
 	
 	private String[] addTag(String[] tags, String tag){
 		if(tag==null)
 			return tags;
 		
 		int l = tags.length;
-		String[] t = Arrays.copyOf(tags, l+1);
-		t[l] = tag;
+		String[] t = new String[l+1];
+		System.arraycopy(tags, 0, t, 1, tags.length);
+		t[0] = tag;
 		return t;
 	}
 	
@@ -246,27 +153,61 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		return t;
 	}
 	
-	private boolean containsTag(String[] tags, String tag){
-		for(String t : tags){
-			if(t.equals(tag)){
-				return true;
-			}
-		}
-		return false;
-	}
 	
 	void register(){
 		Dictionary<String, Object> propertiesFw = new Hashtable<String, Object>();
 		propertiesFw.put("targets", new String[]{nn.id.toString()});
 		propertiesFw.put("aiolos.unique", true);
-		forwardListener = new WaitingForwardListener();
-		forwardListenerReg = context.registerService(ForwardListener.class, forwardListener, propertiesFw);
+		forwardListenerReg = context.registerService(ForwardListener.class, new ForwardListener() {
+			
+			@Override
+			public void onForward(UUID moduleId, Tensor output, String... tags) {
+				if(tags==null || tags.length==0)
+					return;
+				
+				String tag = tags[0];
+				
+				if(interestedModules.containsKey(tag)){
+					if(!moduleId.equals(interestedModules.get(tag))){
+						return;
+					}
+				}
+				
+				interestedModules.remove(tag);
+				Deferred<NeuralNetworkResult> d = inProgress.remove(tag);
+				if(d!=null){
+					NeuralNetworkResult r = new NeuralNetworkResult(output, removeTag(tags, tag));
+					d.resolve(r);
+				}
+			}
+		}, propertiesFw);
 	
 		Dictionary<String, Object> propertiesBw = new Hashtable<String, Object>();
 		propertiesBw.put("targets", new String[]{nn.id.toString()});
 		propertiesBw.put("aiolos.unique", true);
-		backwardListener = new WaitingBackwardListener();
-		backwardListenerReg = context.registerService(BackwardListener.class, backwardListener, propertiesBw);	
+		backwardListenerReg = context.registerService(BackwardListener.class, new BackwardListener() {
+			
+			@Override
+			public void onBackward(UUID moduleId, Tensor gradInput, String... tags) {
+				if(tags==null || tags.length==0)
+					return;
+				
+				String tag = tags[0];
+				
+				if(interestedModules.containsKey(tag)){
+					if(!moduleId.equals(interestedModules.get(tag))){
+						return;
+					}
+				}
+				
+				interestedModules.remove(tag);
+				Deferred<NeuralNetworkResult> d = inProgress.remove(tag);
+				if(d!=null){
+					NeuralNetworkResult r = new NeuralNetworkResult(gradInput, removeTag(tags, tag));
+					d.resolve(r);
+				}
+			}
+		}, propertiesBw);	
 		
 		Dictionary<String, Object> properties = new Hashtable<String, Object>();
 		properties.put("nn.id", nn.id.toString());
@@ -338,66 +279,6 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		return modules;
 	}
 
-	private class WaitingForwardListener implements ForwardListener {
-
-		private Tensor out;
-		private UUID waitId;
-		
-		public Tensor get(){
-			return out;
-		}
-		
-		public void wait(UUID moduleId) throws InterruptedException {
-			this.waitId = moduleId;
-			this.wait();
-		}
-		
-		@Override
-		public void onForward(UUID moduleId, Tensor output, String... tags) {
-			delegateFw.entrySet().stream()
-				.filter(e -> containsTag(tags, e.getValue()))
-				.forEach(e -> e.getKey().onForward(moduleId, output, removeTag(tags, e.getValue())));
-			
-			if(containsTag(tags, SYNC_TAG)){
-				out = output;
-				synchronized(forwardListener){
-					if(moduleId.equals(waitId))
-						forwardListener.notifyAll();
-				}
-			}
-		}
-	}
-	
-	private class WaitingBackwardListener implements BackwardListener {
-		
-		private Tensor gradInput;
-		private UUID waitId;
-		
-		public Tensor get(){
-			return gradInput;
-		}
-		
-		public void wait(UUID moduleId) throws InterruptedException {
-			this.waitId = moduleId;
-			this.wait();
-		}
-		
-		@Override
-		public void onBackward(UUID moduleId, Tensor gradIn, String... tags) {
-			delegateBw.entrySet().stream()
-				.filter(e -> containsTag(tags, e.getValue()))
-				.forEach(e -> e.getKey().onBackward(moduleId, gradIn, removeTag(tags, e.getValue())));
-			
-			if(containsTag(tags, SYNC_TAG)){
-				gradInput = gradIn;
-				synchronized(backwardListener){
-					if(moduleId.equals(waitId))
-						backwardListener.notifyAll();
-				}
-			}
-		}
-	}
-
 	@Override
 	public void setParameters(Map<UUID, Tensor> parameters) {
 		parameters.entrySet().forEach(e -> {
@@ -435,7 +316,6 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		Map<UUID, Tensor> deltaParameters = trainables.entrySet().stream()
 				.collect(Collectors.toMap(e -> e.getKey(), e -> factory.getTensorMath().sub(null,
 						e.getValue().getParameters(), previous.get(e.getKey()))));
-
 		repository.accParameters(nn.id, deltaParameters, tag);
 	}
 

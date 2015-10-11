@@ -172,6 +172,8 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 			
 			// if stop ... assemble result object and resolve
 			if(stop){
+				learner.stop();
+				
 				try {
 					Map<String, String> testConfig = new HashMap<>(config);
 					parseRange(testConfig, "testSet");
