@@ -16,6 +16,7 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.coordinator.DianneCoordinator;
+import be.iminds.iot.dianne.api.coordinator.LearnResult;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.nn.util.DianneJSONConverter;
 
@@ -54,28 +55,18 @@ public class DianneJSONRPCServer {
 					JsonWriter writer = new JsonWriter(new PrintWriter((socket.getOutputStream())));
 					writer.flush();
 					JsonReader reader = new JsonReader(new InputStreamReader(socket.getInputStream()));
-					
+
 					// read input
 					JsonParser parser = new JsonParser();
-					JsonObject request = parser.parse(reader).getAsJsonObject();
-
+					JsonObject request = null; 
+					try {
+						request = parser.parse(reader).getAsJsonObject();
+					} catch(Exception e){
+						writeError(writer, null, -32700, "Parse error");
+						return;
+					}
+					
 					System.out.println("REQUEST "+request.toString());
-					if(!request.has("jsonrpc")){
-						System.out.println("Invalid JSONRPC request");
-						return;
-					}
-					
-					if(!request.get("jsonrpc").getAsString().equals("2.0")){
-						System.out.println("Wrong JSONRPC version: "+request.get("jsonrpc").getAsString());
-						return;
-					}
-					
-					if(!request.has("method")){
-						System.out.println("No method specified");
-						return;
-					}
-
-					String method = request.get("method").getAsString();
 
 					
 					String i = "null";
@@ -84,6 +75,22 @@ public class DianneJSONRPCServer {
 					}
 					final String id = i;
 					
+					if(!request.has("jsonrpc")){
+						writeError(writer, id, -32600, "Invalid JSONRPC request");
+						return;
+					}
+					
+					if(!request.get("jsonrpc").getAsString().equals("2.0")){
+						writeError(writer, id, -32600, "Wrong JSONRPC version: "+request.get("jsonrpc").getAsString());
+						return;
+					}
+					
+					if(!request.has("method")){
+						writeError(writer, id, -32600, "No method specified");
+						return;
+					}
+
+					String method = request.get("method").getAsString();
 					
 					// for now only supported method
 					if(method.equals("learn")){
@@ -99,25 +106,22 @@ public class DianneJSONRPCServer {
 									.entrySet().stream().collect(Collectors.toMap( e -> e.getKey(), e -> e.getValue().getAsString()));
 
 						} catch(Exception e){
-							System.out.println("Incorrect parameters provided");
+							writeError(writer, id, -32602, "Incorrect parameters provided: "+e.getMessage());
 							return;
 						}
 						
 						// call coordinator
-						coordinator.learn(nn, dataset, config).then(p -> {
-
-							// write output when promise resolves
-							writer.beginObject();
-							writer.name("jsonrpc");
-							writer.value("2.0");
-							writer.name("id");
-							writer.value(id);
-							writer.endObject();
-							writer.flush();
-							
+						coordinator.learn(nn, dataset, config)
+						.then(p -> {
+							writeResult(writer, id, p.getValue());
 							return null;
+						}, p -> {
+							writeError(writer, id, -32603, "Error during learning: "+p.getFailure().getMessage());
 						});
 						
+					} else {
+						writeError(writer, id, -32601, "Method "+method+" not found");
+						return;
 					}
 				}
 			} catch(Exception e){
@@ -131,6 +135,42 @@ public class DianneJSONRPCServer {
 		public void start(){
 			Thread t = new Thread(this);
 			t.start();
+		}
+		
+		private void writeError(JsonWriter writer, String id, int code, String message) throws Exception {
+			writer.beginObject();
+			writer.name("jsonrpc");
+			writer.value("2.0");
+			writer.name("id");
+			writer.value(id);
+			writer.name("error");
+			writer.beginObject();
+			// error object
+			writer.name("code");
+			writer.value(code);
+			writer.name("message");
+			writer.value(message);
+			writer.endObject();
+			// end error object
+			writer.endObject();
+			writer.flush();					
+		}
+		
+		private void writeResult(JsonWriter writer, String id, LearnResult result) throws Exception{
+			writer.beginObject();
+			writer.name("jsonrpc");
+			writer.value("2.0");
+			writer.name("id");
+			writer.value(id);
+			writer.name("result");
+			writer.beginArray();
+			// write result object
+			writer.beginObject();
+			writer.endObject();
+			// end result object
+			writer.endArray();
+			writer.endObject();
+			writer.flush();			
 		}
 	}
 
