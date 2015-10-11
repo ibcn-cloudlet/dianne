@@ -34,14 +34,14 @@ public class Evaluation {
 	/**
 	 * @return the total evaluation time
 	 */
-	public long getEvaluationTime(){
+	public long evaluationTime(){
 		return time;
 	}
 	
 	/**
 	 * @return average time for processing one sample
 	 */
-	public float getSampleTime(){
+	public float forwardTime(){
 		float total = factory.getTensorMath().sum(confusionMatrix);
 		float sampleTime = time/total;
 		return sampleTime;

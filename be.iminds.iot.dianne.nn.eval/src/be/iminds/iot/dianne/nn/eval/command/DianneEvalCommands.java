@@ -31,7 +31,7 @@ public class DianneEvalCommands {
 			NeuralNetworkInstanceDTO nni = platform.deployNeuralNetwork(nnName);
 			Evaluation e = evaluator.eval(nni, dataset, config);
 			System.out.println("Accuracy "+e.accuracy());
-			System.out.println("Sample time "+e.getSampleTime()+" ms");
+			System.out.println("Sample time "+e.forwardTime()+" ms");
 		} catch(Exception e){
 			e.printStackTrace();
 		}
