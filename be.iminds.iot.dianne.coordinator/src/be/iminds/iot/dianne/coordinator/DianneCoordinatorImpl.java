@@ -20,6 +20,7 @@ import org.osgi.util.promise.Promise;
 
 import be.iminds.iot.dianne.api.coordinator.DianneCoordinator;
 import be.iminds.iot.dianne.api.coordinator.LearnResult;
+import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.eval.Evaluator;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.learn.Learner;
@@ -142,11 +143,16 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 			
 			// if stop ... assemble result object and resolve
 			if(stop){
-				LearnResult result = new LearnResult();
-				// TODO evaluate on test set?
-				// TODO evaluate time on multiple platforms?
-				deferred.resolve(result);
-				done();
+				try {
+					Evaluation eval = evaluator.eval(nni, dataset, config);
+					// TODO evaluate time on other/multiple platforms?
+					LearnResult result = new LearnResult(eval.accuracy(), eval.forwardTime());
+					deferred.resolve(result);
+				} catch(Exception e){
+					deferred.fail(e);
+				} finally {
+					done();
+				}
 			}
 		}
 		

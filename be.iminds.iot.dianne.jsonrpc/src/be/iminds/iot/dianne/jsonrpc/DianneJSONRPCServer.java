@@ -166,6 +166,10 @@ public class DianneJSONRPCServer {
 			writer.beginArray();
 			// write result object
 			writer.beginObject();
+			writer.name("accuracy");
+			writer.value(result.accuracy);
+			writer.name("forwardTime");
+			writer.value(result.forwardTime);
 			writer.endObject();
 			// end result object
 			writer.endArray();
