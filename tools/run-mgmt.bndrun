@@ -53,11 +53,14 @@ aiolos.version='latest'
 	be.iminds.iot.dianne.nn.runtime;version=latest,\
 	be.iminds.iot.dianne.nn.platform;version=latest,\
 	be.iminds.iot.dianne.nn.learn;version=latest,\
+	be.iminds.iot.dianne.nn.eval;version=latest,\
 	be.iminds.iot.dianne.repository;version=latest,\
 	be.iminds.iot.dianne.dataset.mnist;version=latest,\
 	be.iminds.iot.dianne.dataset.imagenet;version=latest,\
 	be.iminds.iot.dianne.builder;version=latest,\
 	be.iminds.iot.dianne.command;version=latest,\
+	osgi.promise;version='[6.0.0,6.0.1)'
+	
 	
 
 -runstorage: generated/mgmt

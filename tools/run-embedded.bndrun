@@ -6,6 +6,7 @@ aiolos.version='latest'
 
 -resolve.effective: active
 -runbundles: \
+	osgi.promise;version='[6.0.0,6.0.1)',\
 	org.apache.felix.gogo.command;version='[0.14.0,0.15)',\
 	org.apache.felix.gogo.runtime;version='[0.16.2,0.17)',\
 	org.apache.felix.gogo.shell;version='[0.10.0,0.11)',\
