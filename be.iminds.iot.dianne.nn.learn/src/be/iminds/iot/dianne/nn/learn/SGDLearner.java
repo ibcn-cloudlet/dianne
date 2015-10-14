@@ -143,26 +143,21 @@ public class SGDLearner implements Learner {
 
 					System.out.println(err+" - "+error);
 					
-					if(error >= 0){
+					nn.getTrainables().entrySet().stream().forEach(e -> {
+						e.getValue().updateParameters(1.0f);
+						e.getValue().zeroDeltaParameters();
+					});
 						
-						nn.getTrainables().entrySet().stream().forEach(e -> {
-							e.getValue().updateParameters(1.0f);
-							e.getValue().zeroDeltaParameters();
-						});
-						
-						if(syncInterval>0){
-							if(i % syncInterval == 0){
-								// publish weights
-								publishParameters();
-							}
+					if(syncInterval>0){
+						if(i % syncInterval == 0){
+							// publish weights
+							publishParameters();
 						}
 					}
 					
 					i++;
 				} while(learning);
 				System.out.println("Stopped learning");
-				publishParameters();
-				learning = false;
 			}
 		});
 		learnerThread.start();
@@ -172,8 +167,10 @@ public class SGDLearner implements Learner {
 	public void stop() {
 		if(learning){
 			learning = false;
-			learnerThread.interrupt();
-			learnerThread = null;
+			try {
+				learnerThread.join();
+			} catch (InterruptedException e) {
+			}
 		}
 	}
 
@@ -181,19 +178,14 @@ public class SGDLearner implements Learner {
 		try {
 			parameters = nn.loadParameters(tag);
 		} catch(Exception ex){
-			// if no initial parameters available, publish the random initialize parameters of this instance as first parameters
-			nn.storeParameters(tag);
-			parameters =  nn.getParameters().entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().copyInto(null)));
-			System.out.println("No initial parameters available, publish these random values as initial parameters...");
+			System.out.println("Failed to load parameters "+tag);
+			ex.printStackTrace();
 		}
 	}
 	
 	protected void publishParameters(){
 		System.out.println("Publish parameters");
 		
-		// collect all parameter deltas to update repository
-		Map<UUID, Tensor> newParameters = nn.getParameters();
-				
 		if(parameters!=null){
 			// publish delta
 			nn.storeDeltaParameters(parameters, tag);
