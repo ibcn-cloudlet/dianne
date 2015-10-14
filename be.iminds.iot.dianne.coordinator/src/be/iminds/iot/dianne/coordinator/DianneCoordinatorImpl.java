@@ -2,6 +2,7 @@ package be.iminds.iot.dianne.coordinator;
 
 import java.util.Collection;
 import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Queue;
@@ -87,10 +88,18 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		
 		private ServiceRegistration<RepositoryListener> reg;
 		
+		private boolean done = false;
+		
+		private long maxIterations = Long.MAX_VALUE;
+		
 		public LearnJob(NeuralNetworkDTO nn, Map<String, String> config, String dataset){
 			this.nn = nn;
 			this.config = config;
 			this.dataset = dataset;
+			
+			if(config.containsKey("maxIterations")){
+				maxIterations = Long.parseLong(config.get("maxIterations"));
+			}
 		}
 		
 		Promise<LearnResult> getPromise(){
@@ -103,7 +112,13 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		}
 		
 		public void run(){
-			System.out.println("Executing learn job!");
+			System.out.println("Start Learn Job");
+			System.out.println("===============");
+			System.out.println("* nn: "+nn.name);
+			System.out.println("* dataset: "+dataset);
+			System.out.println("* maxIterations: "+maxIterations);
+			System.out.println("---");
+
 	
 			// do the actual Learning
 			try {
@@ -118,8 +133,12 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 				
 				// TODO provide dataset?
 				
+				// set trainging set
+				Map<String, String> learnConfig = new HashMap<>(config);
+				parseRange(learnConfig, "trainingSet");
+				
 				// start learning
-				learner.learn(nni, dataset, config);
+				learner.learn(nni, dataset, learnConfig);
 				
 				// TODO timeout?
 			
@@ -135,16 +154,28 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		@Override
 		public void onParametersUpdate(UUID nnId, Collection<UUID> moduleIds,
 				String... tag) {
+			if(done){
+				return;
+			}
+			
 			// check stop conditition
 			LearnProgress progress = learner.getProgress();
 			
-			// TODO stop condition? - Evaluate on validation set?
-			boolean stop = progress.iteration > 10000;
+			// maxIterations stop condition 
+			boolean stop = progress.iteration > maxIterations;
+			
+			// TODO other stop conditions
+			// - check error rate evolution (on train and/or validationSet)
+			// - stop at a certain error rate
+			// - stop after certain time
+			// ...
 			
 			// if stop ... assemble result object and resolve
 			if(stop){
 				try {
-					Evaluation eval = evaluator.eval(nni, dataset, config);
+					Map<String, String> testConfig = new HashMap<>(config);
+					parseRange(testConfig, "testSet");
+					Evaluation eval = evaluator.eval(nni, dataset, testConfig);
 					// TODO evaluate time on other/multiple platforms?
 					LearnResult result = new LearnResult(eval.accuracy(), eval.forwardTime());
 					deferred.resolve(result);
@@ -157,6 +188,8 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		}
 		
 		private void done(){
+			done = true;
+			
 			if(reg!=null)
 				reg.unregister();
 			
@@ -167,6 +200,22 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		}
 	}
 
+	
+	private void parseRange(Map<String, String> config, String set){
+		String range = config.get(set);
+		if(range!=null){
+			try {
+				String[] split = range.split(":");
+				int startIndex = Integer.parseInt(split[0]);
+				int endIndex = Integer.parseInt(split[1]);
+				
+				config.put("startIndex", ""+startIndex);
+				config.put("endIndex", ""+endIndex);
+			} catch(Exception e){
+				System.out.println(set+" wrongly specified, should be startIndex:endIndex");
+			}
+		}
+	}
 	
 	@Activate
 	void activate(BundleContext context){
