@@ -30,6 +30,7 @@
 	be.iminds.iot.dianne.builder;version=latest,\
 	be.iminds.iot.dianne.command;version=latest,\
 	be.iminds.iot.dianne.coordinator;version=latest,\
+	be.iminds.iot.dianne.jsonrpc;version=latest,\
 	osgi.promise;version='[6.0.0,6.0.1)'
 	
 	

@@ -80,7 +80,14 @@
 		  }
 		},
 		"MNIST",
-		{}
+		{
+			"clean": "true",
+			"learningRate": "0.1",
+			"batchSize": "10",
+			"trainingSet": "0:60000",
+			"testSet": "60001:70000",
+			"maxIterations": "10000"
+		}
 	], 
 	"id": "1"
 }
