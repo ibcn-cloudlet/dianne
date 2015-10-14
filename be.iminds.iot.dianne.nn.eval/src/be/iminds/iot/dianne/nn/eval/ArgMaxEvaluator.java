@@ -33,6 +33,8 @@ public class ArgMaxEvaluator implements Evaluator {
 	protected Dianne dianne;
 	protected Map<String, Dataset> datasets = new HashMap<String, Dataset>();
 	
+	protected String tag = "learn";
+	
 	@Override
 	public UUID getEvaluatorId(){
 		return evaluatorId;
@@ -51,7 +53,6 @@ public class ArgMaxEvaluator implements Evaluator {
 		int startIndex = 0;
 		int endIndex = d.size();
 		
-		String tag = null;
 		if(config.containsKey("tag")){
 			tag = config.get("tag"); 
 		}
