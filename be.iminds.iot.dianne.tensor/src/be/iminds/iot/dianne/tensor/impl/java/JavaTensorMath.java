@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Contributors:
- *     Tim Verbelen, Steven Bohez
+ *     Tim Verbelen, Steven Bohez, Elias De Coninck
  *******************************************************************************/
 package be.iminds.iot.dianne.tensor.impl.java;
 
@@ -611,7 +611,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		int[] kernelDims = {outputDims[0], inputDims.length == 2 ? 1 : inputDims[0], inputDims[1] - outputDims[1] + 1, inputDims[2] - outputDims[2] + 1};
 		
 		if(add != null && add != res)
-			add.copyInto(res);
+			res = add.copyInto(res);
 		else if(res == null || !res.hasDim(kernelDims)){
 			res = factory.createTensor(kernelDims);
 		}
