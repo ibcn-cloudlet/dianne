@@ -401,6 +401,7 @@ public class DianneRuntimeImpl implements DianneRuntime {
 		
 		ModuleInstanceDTO instance =  new ModuleInstanceDTO(dto, nnId, runtimeId);
 		this.instances.put(moduleId, nnId, instance);
+
 		return instance;
 	}
 
@@ -410,6 +411,8 @@ public class DianneRuntimeImpl implements DianneRuntime {
 			System.out.println("Can only undeploy module instances that are deployed here...");
 			return;
 		}
+		
+		instances.remove(dto.moduleId, dto.nnId);
 		
 		ServiceRegistration reg = registrations.remove(dto.moduleId, dto.nnId);
 		if(reg!=null){
@@ -421,13 +424,10 @@ public class DianneRuntimeImpl implements DianneRuntime {
 			}
 		}
 		
-		instances.remove(dto.moduleId, dto.nnId);
-		
 		if(!registrations.containsKey(dto.moduleId)){
 			nextMap.remove(dto.moduleId);
 			prevMap.remove(dto.moduleId);
 		}
-		
 	}
 	
 	@Override
