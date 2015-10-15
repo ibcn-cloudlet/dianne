@@ -86,7 +86,7 @@ public class DianneImpl implements Dianne {
 	void removeModule(Module m, Map<String, Object> properties){
 		UUID moduleId = UUID.fromString((String)properties.get("module.id"));
 		UUID nnId = UUID.fromString((String)properties.get("nn.id"));
-	
+
 		synchronized(modules){
 			Map<UUID, Module> nnm = modules.get(nnId);
 			if(nnm != null){ // should not be null?
@@ -100,7 +100,8 @@ public class DianneImpl implements Dianne {
 		
 		// a module is removed, tear down NeuralNetwork service
 		NeuralNetworkWrapper nn = nns.remove(nnId);
-		nn.unregister();
+		if(nn!=null)
+			nn.unregister();
 	}
 	
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
