@@ -119,7 +119,7 @@ function setupDeployToolbox(){
 	$.post("/dianne/deployer", {"action" : "targets"}, 
 			function( data ) {
 				$.each(data, function(index, target){
-					addToolboxItem(target, target, 'Targets','deploy');
+					addToolboxItem(target.split("-",1), target, 'Targets','deploy');
 				});
 			}
 			, "json");
@@ -218,17 +218,17 @@ function addToolboxItem(name, type, category, mode){
 			}
 		});
 	} else {
-		var c = deploymentColors[name]; 
+		var c = deploymentColors[type]; 
 		if(c === undefined){
 			c = nextColor();
-			deploymentColors[name] = c;
+			deploymentColors[type] = c;
 		}
 		module.css('background-color', c);
 		module.css('opacity', 0.5);
 		module.click(function() {
 			$('#toolbox').find('.module').css('opacity',0.5);
 			$(this).css('opacity',0.8);
-			selectedTarget = $(this).attr('name');
+			selectedTarget = $(this).attr('type');
 		});
 	}
 }
