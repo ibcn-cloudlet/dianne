@@ -72,7 +72,9 @@
 	be.iminds.iot.dianne.storage="../tools/nn",\
 	be.iminds.iot.dianne.dataset.mnist.location="../tools/datasets/MNIST/",\
 	be.iminds.iot.dianne.dataset.imagenet.location="../tools/datasets/ImageNet/",\
-	be.iminds.iot.dianne.dataset.kaggle.location="../tools/datasets/Kaggle-CatvsDog/"
+	be.iminds.iot.dianne.dataset.kaggle.location="../tools/datasets/Kaggle-CatvsDog/",\
+	be.iminds.iot.dianne.runtime.name="Local"
+	
 
 -runvm: -d64 -Xms512m -Xmx4g
 

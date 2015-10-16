@@ -1,5 +1,6 @@
 package be.iminds.iot.dianne.command;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
+import java.util.Map.Entry;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -84,8 +86,9 @@ public class DianneCommands {
 		
 		System.out.println("Available Dianne runtimes:");
 		int i = 0;
-		for(UUID runtime : platform.getRuntimes()){
-			System.out.println("["+(i++)+"] "+runtime);
+		
+		for(Entry<UUID, String> runtime : platform.getRuntimes().entrySet()){
+			System.out.println("["+(i++)+"] "+runtime.getKey()+" - "+runtime.getValue());
 		}
 	}
 	
@@ -145,7 +148,7 @@ public class DianneCommands {
 	}
 	
 	public void nnDeploy(String name){
-		deploy(name, platform.getRuntimes().get(0));
+		deploy(name, platform.getRuntimes().keySet().iterator().next());
 	}
 	
 	public void nnDeploy(String name, String id){
@@ -153,7 +156,8 @@ public class DianneCommands {
 	}
 	
 	public void nnDeploy(String name, int index){
-		deploy(name, platform.getRuntimes().get(index));
+		List<UUID> runtimes = new ArrayList<UUID>(platform.getRuntimes().keySet());
+		deploy(name, runtimes.get(index));
 	}
 	
 	public void nnDeploy(String name, String id, String tag){
@@ -167,7 +171,8 @@ public class DianneCommands {
 	}
 	
 	public void nnDeploy(String name, int index, String tag){
-		NeuralNetworkInstanceDTO nn = deploy(name, platform.getRuntimes().get(index));
+		List<UUID> runtimes = new ArrayList<UUID>(platform.getRuntimes().keySet());
+		NeuralNetworkInstanceDTO nn = deploy(name, runtimes.get(index));
 		
 		// load parameters with tag
 		loadParameters(nn, tag);

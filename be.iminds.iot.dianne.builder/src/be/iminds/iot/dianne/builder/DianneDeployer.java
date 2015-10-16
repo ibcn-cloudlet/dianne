@@ -40,31 +40,11 @@ import com.google.gson.JsonPrimitive;
 	immediate = true)
 public class DianneDeployer extends HttpServlet {
 
-	//public static final UUID UI_NN_ID = UUID.randomUUID();
-
-	// mapping from string to UUID
-	private Map<String, UUID> runtimeUUIDs = new HashMap<String, UUID>();
-	private Map<UUID, String> runtimeNames = new HashMap<UUID, String>();
-
 	private DianneRepository repository;
 	private DiannePlatform platform;
 	
 	@Activate
 	public void activate(BundleContext context){
-		// hard coded mapping of known UUIDs to human readable names
-		// TODO read this from config file or something?
-		registerRuntimeName(UUID.fromString("00000000-0000-0000-0000-000000000000"), "Laptop");
-		registerRuntimeName(UUID.fromString("00000000-0000-0000-0000-000000000001"), "Raspberry Pi");
-		registerRuntimeName(UUID.fromString("00000000-0000-0000-0000-000000000002"), "Server");
-		registerRuntimeName(UUID.fromString("00000000-0000-0000-0000-000000000003"), "Intel Edison");
-		registerRuntimeName(UUID.fromString("00000000-0000-0000-0000-000000000004"), "nVidia Jetson");
-		registerRuntimeName(UUID.fromString("00000000-0000-0000-0000-000000000005"), "GPU Server");
-		registerRuntimeName(UUID.fromString(context.getProperty(Constants.FRAMEWORK_UUID)), "Local");
-	}
-	
-	private void registerRuntimeName(UUID runtimeId, String runtimeName){
-		runtimeNames.put(runtimeId, runtimeName);
-		runtimeUUIDs.put(runtimeName, runtimeId);
 	}
 	
 	@Reference
@@ -104,13 +84,7 @@ public class DianneDeployer extends HttpServlet {
 			}
 				
 			String target = request.getParameter("target");
-			if(target == null){
-				target = "Local"; // if no target specified, hard coded local target for now
-			}
-			UUID runtimeId = runtimeUUIDs.get(target);
-			if(runtimeId==null){
-				runtimeId = UUID.fromString(target);
-			}
+			UUID runtimeId = UUID.fromString(target);
 			
 			try {
 				List<ModuleInstanceDTO> moduleInstances = platform.deployModules(UUID.fromString(id), name, toDeploy, runtimeId);
@@ -145,10 +119,14 @@ public class DianneDeployer extends HttpServlet {
 		} else if(action.equals("targets")){
 			JsonArray targets = new JsonArray();
 			
-			List<UUID> runtimes = platform.getRuntimes();
-			runtimes.stream()
-					.map(runtimeId -> runtimeNames.get(runtimeId)==null ? runtimeId.toString() : runtimeNames.get(runtimeId))
-					.forEach(runtimeName -> targets.add(new JsonPrimitive(runtimeName)));
+			Map<UUID, String> runtimes = platform.getRuntimes();
+			runtimes.entrySet().stream()
+				.forEach(e -> {
+					JsonObject o = new JsonObject();
+					o.add("id", new JsonPrimitive(e.getKey().toString()));
+					o.add("name", new JsonPrimitive(e.getValue()));
+					targets.add(o);
+				});
 			
 			response.getWriter().write(targets.toString());
 			response.getWriter().flush();
@@ -202,7 +180,7 @@ public class DianneDeployer extends HttpServlet {
 	private JsonObject deploymentToJSON(Collection<ModuleInstanceDTO> moduleInstances){
 		JsonObject deployment = new JsonObject();
 		for(ModuleInstanceDTO moduleInstance : moduleInstances){
-			String runtime = runtimeNames.get(moduleInstance.runtimeId);
+			String runtime = moduleInstance.runtimeId.toString();
 			if(runtime==null){
 				runtime = moduleInstance.runtimeId.toString();
 			}

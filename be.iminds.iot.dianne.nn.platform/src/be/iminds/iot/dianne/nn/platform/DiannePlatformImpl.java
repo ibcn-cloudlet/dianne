@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -240,10 +241,12 @@ public class DiannePlatformImpl implements DiannePlatform {
 	}
 	
 	@Override
-	public List<UUID> getRuntimes() {
-		List<UUID> list = new ArrayList<UUID>();
-		list.addAll(runtimes.keySet());
-		return list;
+	public Map<UUID, String> getRuntimes() {
+		/* TODO this will invoke a (remote) call to each runtime each time runtimes are fetched
+		 This is not optimal ... should be handled better with for example service property.
+		 Change this once we move to R6 and use configurer for this? */ 
+		Map<UUID, String> result = runtimes.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().getRuntimeName()));
+		return result;
 	}
 	
 	@Reference

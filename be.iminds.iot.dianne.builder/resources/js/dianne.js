@@ -119,7 +119,7 @@ function setupDeployToolbox(){
 	$.post("/dianne/deployer", {"action" : "targets"}, 
 			function( data ) {
 				$.each(data, function(index, target){
-					addToolboxItem(target.split("-",1), target, 'Targets','deploy');
+					addToolboxItem(target.name, target.id, 'Targets','deploy');
 				});
 			}
 			, "json");

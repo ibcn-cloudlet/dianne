@@ -45,6 +45,7 @@ public class DianneRuntimeImpl implements DianneRuntime {
 
 	private BundleContext context;
 	private UUID runtimeId;
+	private String name;
 	
 	private List<ModuleFactory> moduleFactories = Collections.synchronizedList(new ArrayList<ModuleFactory>());
 	
@@ -67,6 +68,10 @@ public class DianneRuntimeImpl implements DianneRuntime {
 	public void activate(BundleContext context){
 		this.context = context;
 		this.runtimeId = UUID.fromString(context.getProperty(Constants.FRAMEWORK_UUID));
+		this.name = context.getProperty("be.iminds.iot.dianne.runtime.name");
+		if(name==null){
+			name = runtimeId.toString().substring(0, runtimeId.toString().indexOf('-'));
+		}
 	}
 	
 	@Deactivate
@@ -469,6 +474,11 @@ public class DianneRuntimeImpl implements DianneRuntime {
 	@Override
 	public UUID getRuntimeId() {
 		return runtimeId;
+	}
+
+	@Override
+	public String getRuntimeName() {
+		return name;
 	}
 	
 	private void configureNext(Module m, UUID nnId){

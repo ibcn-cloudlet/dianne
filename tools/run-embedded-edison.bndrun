@@ -12,5 +12,5 @@
 	be.iminds.iot.dianne.tensor.java;version=latest
 
 -runproperties.edison: \
-	org.osgi.framework.uuid=00000000-0000-0000-0000-000000000003
+	be.iminds.iot.dianne.runtime.name="Edison"
 	

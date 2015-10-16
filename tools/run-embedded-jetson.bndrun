@@ -12,5 +12,5 @@
 	be.iminds.iot.dianne.tensor.cuda;version=latest	
 
 -runproperties.jetson: \
-	org.osgi.framework.uuid=00000000-0000-0000-0000-000000000004
+	be.iminds.iot.dianne.runtime.name="nVidia Jetson"
 	

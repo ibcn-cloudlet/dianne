@@ -112,11 +112,11 @@ public interface DiannePlatform {
 	List<String> getAvailableNeuralNetworks();
 	
 	/**
-	 * A list of available Dianne runtimes to which modules can be deployed to
+	 * A map of available Dianne runtimes to which modules can be deployed to
 	 * 
 	 * @return list of available Dianne runtimes
 	 */
-	List<UUID> getRuntimes();
+	Map<UUID, String> getRuntimes();
 
 	
 	

@@ -26,6 +26,12 @@ public interface DianneRuntime {
 	UUID getRuntimeId();
 	
 	/**
+	 * A human readable name for this runtime (used in UI / CLI)
+	 * @return
+	 */
+	String getRuntimeName();
+	
+	/**
 	 * Deploy a single Module on this runtime
 	 * 
 	 * @param dto the ModuleDTO describing which Module to deploy
