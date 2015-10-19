@@ -11,6 +11,8 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.osgi.util.promise.Deferred;
+import org.osgi.util.promise.Promise;
 
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
@@ -32,26 +34,52 @@ public class DianneImpl implements Dianne {
 	private Map<UUID, NeuralNetworkWrapper> nns = Collections.synchronizedMap(new HashMap<UUID, NeuralNetworkWrapper>());
 	private Map<UUID, NeuralNetwork> nnServices = Collections.synchronizedMap(new HashMap<UUID, NeuralNetwork>());
 	
+	// a set of nnIds to watch for and bring online once all modules are there
+	private Map<UUID, ToWatch> toWatchFor = Collections.synchronizedMap(new HashMap<>());
+	
+	private class ToWatch {
+		NeuralNetworkInstanceDTO nni;
+		Deferred<NeuralNetwork> deferred;
+	}
 	
 	@Override
-	public NeuralNetwork getNeuralNetwork(NeuralNetworkInstanceDTO nni) {
+	public Promise<NeuralNetwork> getNeuralNetwork(NeuralNetworkInstanceDTO nni) {
+		Deferred<NeuralNetwork> result = new Deferred<>();
+		
 		NeuralNetwork nn = nnServices.get(nni.id);
 		if(nn!=null){
-			return nn;
+			result.resolve(nn);
+			return result.getPromise();
 		}
 		
+		ToWatch w = new ToWatch();
+		w.nni = nni;
+		w.deferred = result; 
+		toWatchFor.put(nni.id, w);
+		
+		createNeuralNetwork(nni.id);
+		
+		return result.getPromise();
+	}
+
+	private void createNeuralNetwork(UUID nnId){
 		// try to create new NeuralNetworkWrapper for this instance
-		Map<UUID, Module> m = modules.get(nni.id);
+		if(!toWatchFor.containsKey(nnId))
+			return;
+		
+		NeuralNetworkInstanceDTO nni = toWatchFor.get(nnId).nni;
+		
+		Map<UUID, Module> m = modules.get(nnId);
 		if(m.size() == nni.modules.size()){
 			// all modules available
 			NeuralNetworkWrapper wrapper = new NeuralNetworkWrapper(nni, m.values(), repository, factory, context);
 			wrapper.register();
 			nns.put(nni.id, wrapper);
+		} else {
+			System.out.println("Tried to create service for NN "+nnId+", but not all modules are present.");
 		}
-		
-		return nnServices.get(nni.id);
 	}
-
+	
 	@Activate
 	public void activate(BundleContext ctx){
 		this.context = ctx;
@@ -81,6 +109,8 @@ public class DianneImpl implements Dianne {
 			}
 			nnm.put(moduleId, m);
 		}
+		
+		createNeuralNetwork(nnId);
 	}
 	
 	void removeModule(Module m, Map<String, Object> properties){
@@ -102,13 +132,20 @@ public class DianneImpl implements Dianne {
 		NeuralNetworkWrapper nn = nns.remove(nnId);
 		if(nn!=null)
 			nn.unregister();
+		
 	}
 	
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
 	public void addNeuralNetwork(NeuralNetwork nn, Map<String, Object> properties){
 		String nnId = (String)properties.get("nn.id");
-		nnServices.put(UUID.fromString(nnId), nn);
+		UUID id = UUID.fromString(nnId);
+		nnServices.put(id, nn);
+		
+		ToWatch watched = toWatchFor.remove(id);
+		if(watched!=null){
+			watched.deferred.resolve(nn);
+		}
 	}
 	
 	public void removeNeuralNetwork(NeuralNetwork nn, Map<String, Object> properties){

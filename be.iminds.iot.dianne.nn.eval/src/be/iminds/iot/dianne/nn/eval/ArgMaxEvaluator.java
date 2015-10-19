@@ -74,8 +74,11 @@ public class ArgMaxEvaluator implements Evaluator {
 		System.out.println("---");
 		
 		
-		NeuralNetwork nn = dianne.getNeuralNetwork(nni);
-		nn.loadParameters(tag);
+		NeuralNetwork nn = null;
+		try {
+			nn = dianne.getNeuralNetwork(nni).getValue();
+		} catch (Exception e) {
+		}		nn.loadParameters(tag);
 	
 		Tensor confusion = null;
 		long t1 = System.currentTimeMillis();

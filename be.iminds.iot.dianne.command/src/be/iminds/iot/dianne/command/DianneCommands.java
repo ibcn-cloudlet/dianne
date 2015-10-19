@@ -238,7 +238,11 @@ public class DianneCommands {
 			return;
 		}
 		
-		NeuralNetwork nn = dianne.getNeuralNetwork(nni);
+		NeuralNetwork nn = null;
+		try {
+			nn = dianne.getNeuralNetwork(nni).getValue();
+		} catch (Exception e) {
+		}
 		if(nn==null){
 			System.out.println("Neural network instance "+nnId+" not available");
 			return;
@@ -277,7 +281,11 @@ public class DianneCommands {
 	}
 
 	private void loadParameters(NeuralNetworkInstanceDTO nni, String tag){
-		NeuralNetwork nn = dianne.getNeuralNetwork(nni);
+		NeuralNetwork nn = null;
+		try {
+			nn = dianne.getNeuralNetwork(nni).getValue();
+		} catch (Exception e) {
+		}
 		if(nn!=null){
 			try {
 				nn.loadParameters(tag);
@@ -307,7 +315,11 @@ public class DianneCommands {
 		@Override
 		public void onParametersUpdate(UUID nnId, Collection<UUID> moduleIds,
 				String... tag) {
-			NeuralNetwork nn = dianne.getNeuralNetwork(nni);
+			NeuralNetwork nn = null;
+			try {
+				nn = dianne.getNeuralNetwork(nni).getValue();
+			} catch (Exception e) {
+			}
 			if(nn!=null){
 				try {
 					nn.loadParameters(tag);

@@ -105,7 +105,10 @@ public class SGDLearner implements Learner {
 			throw new Exception("Dataset "+dataset+" not available");
 		}
 		
-		nn = dianne.getNeuralNetwork(nni);
+		try {
+			nn = dianne.getNeuralNetwork(nni).getValue();
+		} catch (Exception e) {
+		}
 		nn.getModules().values().stream().forEach(m -> m.setMode(EnumSet.of(Mode.BLOCKING)));
 		
 		// initialize nn parameters

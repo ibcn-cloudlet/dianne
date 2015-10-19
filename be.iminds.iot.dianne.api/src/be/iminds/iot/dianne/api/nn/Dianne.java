@@ -1,5 +1,7 @@
 package be.iminds.iot.dianne.api.nn;
 
+import org.osgi.util.promise.Promise;
+
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 
 /**
@@ -10,6 +12,6 @@ import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
  */
 public interface Dianne {
 
-	NeuralNetwork getNeuralNetwork(NeuralNetworkInstanceDTO nn);
+	Promise<NeuralNetwork> getNeuralNetwork(NeuralNetworkInstanceDTO nn);
 	
 }

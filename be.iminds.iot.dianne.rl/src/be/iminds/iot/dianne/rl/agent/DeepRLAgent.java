@@ -139,7 +139,9 @@ public class DeepRLAgent implements Agent {
 		
 		actionStrategy.configure(config);
 		
-		nn = dianne.getNeuralNetwork(nni);
+		try {
+			nn = dianne.getNeuralNetwork(nni).getValue();
+		} catch(Exception e){}
 		if (nn == null)
 			throw new Exception("Network instance " + nni.id + " is not available");
 		

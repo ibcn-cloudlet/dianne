@@ -123,14 +123,16 @@ public class DeepQLearner implements QLearner {
 		System.out.println("* clean = "+clean);
 		System.out.println("---");
 		
-
-		nn = dianne.getNeuralNetwork(nni);
+		try {
+			nn = dianne.getNeuralNetwork(nni).getValue();
+		} catch(Exception e){}
 		if (nn == null)
 			throw new Exception("Network instance " + nni.id + " is not available");
 		nn.getInput().setMode(EnumSet.of(Mode.BLOCKING));
 
-		
-		target = dianne.getNeuralNetwork(targeti);
+		try {
+			target = dianne.getNeuralNetwork(targeti).getValue();
+		} catch(Exception e){}
 		if (target == null)
 			throw new Exception("Target instance " + targeti.id + " is not available");
 		target.getInput().setMode(EnumSet.of(Mode.BLOCKING));

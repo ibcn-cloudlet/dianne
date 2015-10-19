@@ -3,6 +3,7 @@ package be.iminds.iot.dianne.builder;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
@@ -154,7 +155,11 @@ public class DianneRunner extends HttpServlet {
 			return;
 		}
 		
-		NeuralNetwork nn = dianne.getNeuralNetwork(nni);
+		NeuralNetwork nn = null;
+		try {
+			nn = dianne.getNeuralNetwork(nni).getValue();
+		} catch (Exception e) {
+		}
 		if(nn==null){
 			System.out.println("Neural network instance "+id+" not available");
 			return;
