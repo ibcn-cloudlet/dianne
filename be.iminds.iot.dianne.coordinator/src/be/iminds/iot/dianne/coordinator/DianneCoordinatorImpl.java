@@ -162,7 +162,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 			LearnProgress progress = learner.getProgress();
 			
 			// maxIterations stop condition 
-			boolean stop = progress.iteration > maxIterations;
+			boolean stop = progress.iteration >= maxIterations;
 			
 			// TODO other stop conditions
 			// - check error rate evolution (on train and/or validationSet)
