@@ -50,7 +50,8 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	
 	@Override
 	public Promise<LearnResult> learn(NeuralNetworkDTO nn, String dataset, Map<String, String> config) {
-
+		repository.storeNeuralNetwork(nn);
+		
 		LearnJob job = new LearnJob(nn, config, dataset);
 		queue.add(job);
 		next();
