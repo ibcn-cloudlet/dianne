@@ -4,7 +4,6 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -79,6 +78,8 @@ public class SGDLearner implements Learner {
 			throw new Exception("Already running a learning session here");
 		}
 		
+		i = 0;
+		
 		if(config.containsKey("tag")){
 			tag = config.get("tag"); 
 		}
@@ -114,6 +115,7 @@ public class SGDLearner implements Learner {
 		// initialize nn parameters
 		if(clean){
 			nn.resetParameters();
+			publishParameters();
 		} else {
 			loadParameters();
 		}
@@ -133,10 +135,13 @@ public class SGDLearner implements Learner {
 			@Override
 			public void run() {
 				learning = true;
-				i = 0;
 				float err = 0;
 
 				do {
+					nn.getTrainables().entrySet().stream().forEach(e -> {
+						e.getValue().zeroDeltaParameters();
+					});
+					
 					err = processor.processNext();
 					if(i==0){
 						error = err;
@@ -144,15 +149,14 @@ public class SGDLearner implements Learner {
 						error = (1 - alpha) * error + alpha * err;
 					}
 
-					System.out.println(err+" - "+error);
+					//System.out.println(error);
 					
 					nn.getTrainables().entrySet().stream().forEach(e -> {
 						e.getValue().updateParameters(1.0f);
-						e.getValue().zeroDeltaParameters();
 					});
 						
 					if(syncInterval>0){
-						if(i % syncInterval == 0){
+						if(i!=0 && i % syncInterval == 0){
 							// publish weights
 							publishParameters();
 						}
