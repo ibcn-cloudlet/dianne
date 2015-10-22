@@ -1,5 +1,6 @@
 package be.iminds.iot.dianne.api.nn;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.UUID;
 
@@ -47,9 +48,14 @@ public interface NeuralNetwork {
 	 */
 	default Tensor forward(Tensor input, String... tags){
 		Tensor result = null;
+		Promise<NeuralNetworkResult> p = forward(null, null, input, tags);
 		try {
-			result = forward(null, null, input, tags).getValue().tensor;
-		} catch(Exception e){
+			if(p.getFailure()!=null){
+				throw new RuntimeException("Error forwarding input", p.getFailure());
+			}
+		
+			result = p.getValue().tensor;
+		} catch(InterruptedException|InvocationTargetException e){
 			throw new RuntimeException("Error forwarding input", e);
 		}
 		return result;
@@ -76,9 +82,14 @@ public interface NeuralNetwork {
 	 */
 	default Tensor backward(Tensor gradOutput, String... tags){
 		Tensor result = null;
+		Promise<NeuralNetworkResult> p = backward(null, null, gradOutput, tags);
 		try {
-			result = backward(null, null, gradOutput, tags).getValue().tensor;
-		} catch(Exception e){
+			if(p.getFailure()!=null){
+				throw new RuntimeException("Error back propagating gradOutput", p.getFailure());
+			}
+		
+			result = p.getValue().tensor;
+		} catch(InterruptedException|InvocationTargetException e){
 			throw new RuntimeException("Error back propagating gradOutput", e);
 		}
 		return result;

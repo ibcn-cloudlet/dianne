@@ -51,6 +51,8 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	private Map<String, Deferred<NeuralNetworkResult>> inProgress = Collections.synchronizedMap(new HashMap<String, Deferred<NeuralNetworkResult>>());
 	private Map<String, UUID> interestedModules = Collections.synchronizedMap(new HashMap<String, UUID>());
 	
+	private boolean valid = true;
+	
 	public NeuralNetworkWrapper(NeuralNetworkInstanceDTO nn, Collection<Module> modules, DianneRepository repo, TensorFactory factory, BundleContext context) {
 		this.nn = nn;
 		this.context = context;
@@ -73,6 +75,10 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 
 	@Override
 	public Promise<NeuralNetworkResult> forward(UUID inputId, UUID outputId, Tensor in, String... tags){
+		if(!valid){
+			throw new RuntimeException("This neural network object is no longer valid");
+		}
+		
 		Input input = null;
 		if(inputId!=null){
 			input = inputs.get(inputId);
@@ -96,6 +102,10 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	
 	@Override
 	public Promise<NeuralNetworkResult> backward(UUID outputId, UUID inputId, Tensor gradOut, String... tags){
+		if(!valid){
+			throw new RuntimeException("This neural network object is no longer valid");
+		}
+		
 		Output output = null;
 		if(outputId!=null){
 			output = outputs.get(outputId);
@@ -189,8 +199,9 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 			
 			@Override
 			public void onBackward(UUID moduleId, Tensor gradInput, String... tags) {
-				if(tags==null || tags.length==0)
+				if(tags==null || tags.length==0) {
 					return;
+				}
 				
 				String tag = tags[0];
 				
@@ -205,6 +216,8 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 				if(d!=null){
 					NeuralNetworkResult r = new NeuralNetworkResult(gradInput, removeTag(tags, tag));
 					d.resolve(r);
+				} else {
+					System.err.println("No deferred for tag "+tag+" ?!");
 				}
 			}
 		}, propertiesBw);	
@@ -213,9 +226,13 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		properties.put("nn.id", nn.id.toString());
 		properties.put("aiolos.export", false);
 		nnReg = context.registerService(NeuralNetwork.class, this, properties);
+		
+		valid = true;
 	}
 	
 	void unregister(){
+		valid = false;
+		
 		forwardListenerReg.unregister();
 		backwardListenerReg.unregister();
 		nnReg.unregister();
@@ -223,6 +240,10 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 
 	@Override
 	public Input getInput(){
+		if(!valid){
+			throw new RuntimeException("This neural network object is no longer valid");
+		}
+		
 		if(inputs.size() > 1){
 			throw new RuntimeException("This neural network has more than one input");
 		}
@@ -231,11 +252,19 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	
 	@Override
 	public Map<UUID, Input> getInputs() {
+		if(!valid){
+			throw new RuntimeException("This neural network object is no longer valid");
+		}
+		
 		return inputs;
 	}
 
 	@Override
 	public Output getOutput(){
+		if(!valid){
+			throw new RuntimeException("This neural network object is no longer valid");
+		}
+		
 		if(outputs.size() > 1){
 			throw new RuntimeException("This neural network has more than one output");
 		}
@@ -244,11 +273,19 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	
 	@Override
 	public Map<UUID, Output> getOutputs() {
+		if(!valid){
+			throw new RuntimeException("This neural network object is no longer valid");
+		}
+		
 		return outputs;
 	}
 
 	@Override
 	public String[] getOutputLabels() {
+		if(!valid){
+			throw new RuntimeException("This neural network object is no longer valid");
+		}
+		
 		if(outputs.size() > 1){
 			throw new RuntimeException("This neural network has more than one output");
 		}
@@ -257,6 +294,10 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 
 	@Override
 	public String[] getOutputLabels(UUID outputId) {
+		if(!valid){
+			throw new RuntimeException("This neural network object is no longer valid");
+		}
+		
 		Output output = outputs.get(outputId);
 		if(output==null){
 			throw new RuntimeException("This neural network does not have output "+outputId);
@@ -266,21 +307,37 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 
 	@Override
 	public Map<UUID, Trainable> getTrainables() {
+		if(!valid){
+			throw new RuntimeException("This neural network object is no longer valid");
+		}
+		
 		return trainables;
 	}
 
 	@Override
 	public Map<UUID, Preprocessor> getPreprocessors() {
+		if(!valid){
+			throw new RuntimeException("This neural network object is no longer valid");
+		}
+		
 		return preprocessors;
 	}
 	
 	@Override
 	public Map<UUID, Module> getModules() {
+		if(!valid){
+			throw new RuntimeException("This neural network object is no longer valid");
+		}
+		
 		return modules;
 	}
 
 	@Override
 	public void setParameters(Map<UUID, Tensor> parameters) {
+		if(!valid){
+			throw new RuntimeException("This neural network object is no longer valid");
+		}
+		
 		parameters.entrySet().forEach(e -> {
 			Trainable t = trainables.get(e.getKey());
 			if(t!=null)
@@ -290,6 +347,10 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 
 	@Override
 	public void setParameters(UUID moduleId, Tensor parameters) {
+		if(!valid){
+			throw new RuntimeException("This neural network object is no longer valid");
+		}
+		
 		Trainable t = trainables.get(moduleId);
 		if(t!=null)
 			t.setParameters(parameters);
@@ -297,22 +358,38 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 
 	@Override
 	public Map<UUID, Tensor> getParameters(){
+		if(!valid){
+			throw new RuntimeException("This neural network object is no longer valid");
+		}
+		
 		return trainables.entrySet().stream()
 				.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().getParameters()));
 	}
 	
 	@Override
 	public void resetParameters(){
+		if(!valid){
+			throw new RuntimeException("This neural network object is no longer valid");
+		}
+		
 		trainables.values().stream().forEach(t -> t.reset());
 	}
 
 	@Override
 	public void storeParameters(String... tag) {
+		if(!valid){
+			throw new RuntimeException("This neural network object is no longer valid");
+		}
+		
 		repository.storeParameters(nn.id, getParameters(), tag);
 	}
 
 	@Override
 	public void storeDeltaParameters(Map<UUID, Tensor> previous, String... tag) {
+		if(!valid){
+			throw new RuntimeException("This neural network object is no longer valid");
+		}
+		
 		Map<UUID, Tensor> deltaParameters = trainables.entrySet().stream()
 				.collect(Collectors.toMap(e -> e.getKey(), e -> factory.getTensorMath().sub(null,
 						e.getValue().getParameters(), previous.get(e.getKey()))));
@@ -321,6 +398,10 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 
 	@Override
 	public Map<UUID, Tensor> loadParameters(String... tag) throws Exception {
+		if(!valid){
+			throw new RuntimeException("This neural network object is no longer valid");
+		}
+		
 		Map<UUID, Tensor> parameters = repository.loadParameters(nn.name, tag);
 		setParameters(parameters);
 		return parameters;
