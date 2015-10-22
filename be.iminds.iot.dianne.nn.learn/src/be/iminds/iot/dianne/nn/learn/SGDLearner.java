@@ -56,6 +56,8 @@ public class SGDLearner implements Learner {
 	protected float error = 0;
 	protected long i = 0;
 	
+	protected boolean trace = false;
+	
 	@Override
 	public UUID getLearnerId(){
 		return learnerId;
@@ -90,6 +92,10 @@ public class SGDLearner implements Learner {
 		
 		if (config.containsKey("clean")){
 			clean = Boolean.parseBoolean(config.get("clean"));
+		}
+		
+		if (config.containsKey("trace")){
+			trace = Boolean.parseBoolean(config.get("trace"));
 		}
 		
 		System.out.println("Learner Configuration");
@@ -149,7 +155,8 @@ public class SGDLearner implements Learner {
 						error = (1 - alpha) * error + alpha * err;
 					}
 
-					//System.out.println(error);
+					if(trace)
+						System.out.println(error);
 					
 					nn.getTrainables().entrySet().stream().forEach(e -> {
 						e.getValue().updateParameters(1.0f);
@@ -191,8 +198,6 @@ public class SGDLearner implements Learner {
 	}
 	
 	protected void publishParameters(){
-		System.out.println("Publish parameters");
-		
 		if(parameters!=null){
 			// publish delta
 			nn.storeDeltaParameters(parameters, tag);
