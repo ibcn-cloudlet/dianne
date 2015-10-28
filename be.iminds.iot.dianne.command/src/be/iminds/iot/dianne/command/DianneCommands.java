@@ -184,9 +184,10 @@ public class DianneCommands {
 
 	private synchronized NeuralNetworkInstanceDTO deploy(String name, UUID runtimeId){
 		try {
-			NeuralNetworkInstanceDTO nn = platform.deployNeuralNetwork(name, runtimeId);
-			System.out.println("Deployed instance of "+nn.name+" ("+nn.id.toString()+")");
-			return nn;
+			NeuralNetworkInstanceDTO nni = platform.deployNeuralNetwork(name, runtimeId);
+			System.out.println("Deployed instance of "+nni.name+" ("+nni.id.toString()+")");
+			dianne.getNeuralNetwork(nni).then(p -> {p.getValue().loadParameters(); return null;});
+			return nni;
 		} catch (InstantiationException e) {
 			System.out.println("Error deploying instance of "+name);
 			e.printStackTrace();

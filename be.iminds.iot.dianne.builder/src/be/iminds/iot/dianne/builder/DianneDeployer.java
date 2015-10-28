@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -15,11 +14,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.Constants;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
+import be.iminds.iot.dianne.api.nn.Dianne;
+import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
@@ -42,14 +42,20 @@ public class DianneDeployer extends HttpServlet {
 
 	private DianneRepository repository;
 	private DiannePlatform platform;
+	private Dianne dianne;
 	
 	@Activate
 	public void activate(BundleContext context){
 	}
 	
 	@Reference
-	void setDianne(DiannePlatform d){
-		platform = d;
+	void setDianne(Dianne d){
+		this.dianne = d;
+	}
+	
+	@Reference
+	void setDiannePlatform(DiannePlatform p){
+		platform = p;
 	}
 
 	@Reference
@@ -87,8 +93,15 @@ public class DianneDeployer extends HttpServlet {
 			UUID runtimeId = UUID.fromString(target);
 			
 			try {
-				List<ModuleInstanceDTO> moduleInstances = platform.deployModules(UUID.fromString(id), name, toDeploy, runtimeId);
+				UUID nnId = UUID.fromString(id);
+				List<ModuleInstanceDTO> moduleInstances = platform.deployModules(nnId, name, toDeploy, runtimeId);
 
+				try {
+					NeuralNetworkInstanceDTO nni = platform.getNeuralNetworkInstance(nnId);
+					dianne.getNeuralNetwork(nni).then(p -> {p.getValue().loadParameters(); return null;});
+				} catch(Exception e){
+				}
+				
 				// return json object with deployment
 				JsonObject result = new JsonObject();
 				JsonObject deployment = deploymentToJSON(moduleInstances);
