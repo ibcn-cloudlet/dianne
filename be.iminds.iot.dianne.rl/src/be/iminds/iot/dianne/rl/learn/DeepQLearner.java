@@ -181,7 +181,7 @@ public class DeepQLearner implements QLearner {
 	}
 
 	private void resetParameters(){
-		nn.resetParameters();
+		nn.randomizeParameters();
 		
 		// store those parameters
 		nn.storeParameters(tag);

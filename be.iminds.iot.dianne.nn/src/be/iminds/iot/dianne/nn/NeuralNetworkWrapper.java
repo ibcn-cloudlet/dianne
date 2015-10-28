@@ -367,12 +367,12 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	}
 	
 	@Override
-	public void resetParameters(){
+	public void randomizeParameters(){
 		if(!valid){
 			throw new RuntimeException("This neural network object is no longer valid");
 		}
 		
-		trainables.values().stream().forEach(t -> t.reset());
+		trainables.values().stream().forEach(t -> t.randomize());
 	}
 
 	@Override

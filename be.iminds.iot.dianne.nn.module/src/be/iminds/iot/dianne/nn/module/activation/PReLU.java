@@ -28,17 +28,17 @@ public class PReLU extends AbstractTrainableModule{
 		super(factory, id);
 		this.init = init;
 		init();
-		reset();
 	}
 	
 	private void init() {
 		parameters = factory.createTensor(1);
 		deltaParameters = factory.createTensor(1);
-		
+		parameters.fill(0.0f);
+		deltaParameters.fill(0.0f);
 	}
 
 	@Override
-	public void reset(){
+	public void randomize(){
 		parameters.set(init, 0);
 	}
 	

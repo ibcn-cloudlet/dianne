@@ -44,12 +44,13 @@ public class Linear extends AbstractTrainableModule {
 		deltaBias = deltaParameters.narrow(0, outSize*inSize, outSize);
 		deltaBias.reshape(outSize);
 		
-		reset();
+		parameters.fill(0.0f);
+		deltaParameters.fill(0.0f);
 	}
 	
 	@Override 
-	public void reset(){
-		// initialize weights uniform [-std, std] with std = 1/sqrt(noInputs)  [from torch]
+	public void randomize(){
+		// randomize weights uniform [-std, std] with std = 1/sqrt(noInputs)  [from torch]
 		parameters.rand();
 		float std = (float) (1f/Math.sqrt(inSize));
 		parameters = factory.getTensorMath().mul(parameters, parameters, 2*std);

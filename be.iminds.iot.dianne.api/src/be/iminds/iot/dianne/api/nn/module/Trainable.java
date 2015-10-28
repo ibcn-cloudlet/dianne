@@ -66,8 +66,8 @@ public interface Trainable extends Module {
 	void setParameters(final Tensor parameters);
 	
 	/**
-	 * Re-initialize parameters with random values
+	 * Set parameters with random values
 	 */
-	void reset();
+	void randomize();
 
 }

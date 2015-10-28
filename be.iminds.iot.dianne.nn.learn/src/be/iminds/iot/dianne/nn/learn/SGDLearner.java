@@ -120,7 +120,7 @@ public class SGDLearner implements Learner {
 		
 		// initialize nn parameters
 		if(clean){
-			nn.resetParameters();
+			nn.randomizeParameters();
 			publishParameters();
 		} else {
 			loadParameters();
@@ -192,8 +192,9 @@ public class SGDLearner implements Learner {
 		try {
 			parameters = nn.loadParameters(tag);
 		} catch(Exception ex){
-			System.out.println("Failed to load parameters "+tag);
-			ex.printStackTrace();
+			System.out.println("Failed to load parameters "+tag+", fill with random parameters");
+			nn.randomizeParameters();
+			publishParameters();
 		}
 	}
 	

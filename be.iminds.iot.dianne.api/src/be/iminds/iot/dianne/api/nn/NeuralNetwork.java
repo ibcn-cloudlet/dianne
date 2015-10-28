@@ -171,9 +171,9 @@ public interface NeuralNetwork {
 	
 
 	/**
-	 * Reinitialize the parameters with random values
+	 * Fill the parameters with random values
 	 */
-	void resetParameters();
+	void randomizeParameters();
 	
 	/**
 	 * Store the current parameters into the repository
