@@ -45,6 +45,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	//private Map<UUID, Evaluator> evaluators = Collections.synchronizedMap(new HashMap<>());
 	
 	private Queue<LearnJob> queue = new LinkedBlockingQueue<>();
+
 	
 	private ExecutorService pool = Executors.newCachedThreadPool();
 	
@@ -63,6 +64,23 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	public Promise<LearnResult> learn(String nnName, String dataset, Map<String, String> config) {
 		return learn(repository.loadNeuralNetwork(nnName), dataset, config);
 	}
+	
+	@Override
+	public Promise<Evaluation> eval(NeuralNetworkDTO nn, String dataset, Map<String, String> config) {
+		// TODO evaluate time on other/multiple platforms?
+		repository.storeNeuralNetwork(nn);
+		
+		EvaluationJob job = new EvaluationJob(nn, config, dataset);
+		job.start(evaluator);
+		
+		return job.getPromise();
+	}
+
+	@Override
+	public Promise<Evaluation> eval(String nnName, String dataset, Map<String, String> config) {
+		return eval(repository.loadNeuralNetwork(nnName), dataset, config);
+	}
+	
 	
 	// try to do next job
 	private void next(){
@@ -107,7 +125,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 			return deferred.getPromise();
 		}
 		
-		void start(Learner learner){
+		public void start(Learner learner){
 			this.learner = learner;
 			pool.execute(this);
 		}
@@ -176,11 +194,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 				learner.stop();
 				
 				try {
-					Map<String, String> testConfig = new HashMap<>(config);
-					testConfig.put("range", config.get("testSet"));
-					Evaluation eval = evaluator.eval(nni, dataset, testConfig);
-					// TODO evaluate time on other/multiple platforms?
-					LearnResult result = new LearnResult(eval.accuracy(), eval.forwardTime());
+					LearnResult result = new LearnResult(progress.error, progress.iteration);
 					deferred.resolve(result);
 				} catch(Exception e){
 					deferred.fail(e);
@@ -203,6 +217,57 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		}
 	}
 
+	
+	private class EvaluationJob implements Runnable {
+
+		private Deferred<Evaluation> deferred = new Deferred<>();
+		
+		private NeuralNetworkDTO nn;
+		private Map<String, String> config;
+		private String dataset;
+		
+		private Evaluator evaluator;
+		private NeuralNetworkInstanceDTO nni;
+		
+		public EvaluationJob(NeuralNetworkDTO nn, Map<String, String> config, String dataset){
+			this.nn = nn;
+			this.config = config;
+			this.dataset = dataset;
+		}
+		
+		public void start(Evaluator evaluator){
+			this.evaluator = evaluator;
+			pool.execute(this);
+		}
+		
+		@Override
+		public void run() {
+			try {
+				// deploy nn
+				nni = platform.deployNeuralNetwork(nn.name, "Dianne Coordinator EvaluationJob", evaluator.getEvaluatorId());
+				
+				Map<String, String> evalConfig = new HashMap<>(config);
+				if(!evalConfig.containsKey("range")){
+					evalConfig.put("range", config.get("testSet"));
+				}
+				
+				Evaluation eval = evaluator.eval(nni, dataset, evalConfig);
+				deferred.resolve(eval);
+				
+			} catch(Exception e){
+				deferred.fail(e);
+			} finally {
+				if(nni!=null){
+					platform.undeployNeuralNetwork(nni);
+				}
+			}
+		}
+		
+		public Promise<Evaluation> getPromise(){
+			return deferred.getPromise();
+		}
+		
+	}
 	
 	private void parseRange(Map<String, String> config, String set){
 		String range = config.get(set);

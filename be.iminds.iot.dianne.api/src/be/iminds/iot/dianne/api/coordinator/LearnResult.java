@@ -7,14 +7,14 @@ package be.iminds.iot.dianne.api.coordinator;
  */
 public class LearnResult {
 
-	/** Accuracy on the test set **/
-	public float accuracy;
-	/** Time in ms to forward one sample **/
-	public float forwardTime;
+	/** avg error as perceived by the learner **/
+	public float error;
+	/** iterations executed **/
+	public long iterations;
 	
 	
-	public LearnResult(float accuracy, float forwardTime){
-		this.accuracy = accuracy;
-		this.forwardTime = forwardTime;
+	public LearnResult(float error, long iterations){
+		this.error = error;
+		this.iterations = iterations;
 	}
 }
