@@ -14,11 +14,14 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.util.promise.Promise;
 
 import be.iminds.iot.dianne.api.coordinator.DianneCoordinator;
 import be.iminds.iot.dianne.api.coordinator.LearnResult;
+import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.nn.util.DianneJSONConverter;
+import be.iminds.iot.dianne.tensor.Tensor;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -92,15 +95,20 @@ public class DianneJSONRPCServer {
 
 					String method = request.get("method").getAsString();
 					
-					// for now only supported method
-					if(method.equals("learn")){
-						NeuralNetworkDTO nn;
+					if(method.equals("learn")
+							|| method.equals("eval") ){
+						String nnName = null;
+						NeuralNetworkDTO nn = null;
 						String dataset;
 						Map<String, String> config;
 						
 						try {
 							JsonArray params = request.get("params").getAsJsonArray();
-							nn = DianneJSONConverter.parseJSON(params.get(0).getAsJsonObject());
+							if(params.get(0).isJsonPrimitive()){
+								nnName = params.get(0).getAsString();
+							} else {
+								nn = DianneJSONConverter.parseJSON(params.get(0).getAsJsonObject());
+							}
 							dataset = params.get(1).getAsString();
 							config = params.get(2).getAsJsonObject()
 									.entrySet().stream().collect(Collectors.toMap( e -> e.getKey(), e -> e.getValue().getAsString()));
@@ -111,14 +119,37 @@ public class DianneJSONRPCServer {
 						}
 						
 						// call coordinator
-						coordinator.learn(nn, dataset, config)
-						.then(p -> {
-							writeResult(writer, id, p.getValue());
-							return null;
-						}, p -> {
-							writeError(writer, id, -32603, "Error during learning: "+p.getFailure().getMessage());
-						});
+						if(method.equals("learn")){
+							// learn
+							Promise<LearnResult> result = null;
+							if(nnName!=null){
+								result= coordinator.learn(nnName, dataset, config);
+							} else {
+								result = coordinator.learn(nn, dataset, config);
+							}
+							result.then(p -> {
+								writeLearnResult(writer, id, p.getValue());
+								return null;
+							}, p -> {
+								writeError(writer, id, -32603, "Error during learning: "+p.getFailure().getMessage());
+							});
+						} else {
+							// eval
+							Promise<Evaluation> result = null;
+							if(nnName!=null){
+								result= coordinator.eval(nnName, dataset, config);
+							} else {
+								result = coordinator.eval(nn, dataset, config);
+							}
+							result.then(p -> {
+								writeEvalResult(writer, id, p.getValue());
+								return null;
+							}, p -> {
+								writeError(writer, id, -32603, "Error during learning: "+p.getFailure().getMessage());
+							});
+						}
 						
+					
 					} else {
 						writeError(writer, id, -32601, "Method "+method+" not found");
 						return;
@@ -156,7 +187,28 @@ public class DianneJSONRPCServer {
 			writer.flush();					
 		}
 		
-		private void writeResult(JsonWriter writer, String id, LearnResult result) throws Exception{
+		private void writeLearnResult(JsonWriter writer, String id, LearnResult result) throws Exception{
+			writer.beginObject();
+			writer.name("jsonrpc");
+			writer.value("2.0");
+			writer.name("id");
+			writer.value(id);
+			writer.name("result");
+			writer.beginArray();
+			// write result object
+			writer.beginObject();
+			writer.name("error");
+			writer.value(result.error);
+			writer.name("iterations");
+			writer.value(result.iterations);
+			writer.endObject();
+			// end result object
+			writer.endArray();
+			writer.endObject();
+			writer.flush();			
+		}
+		
+		private void writeEvalResult(JsonWriter writer, String id, Evaluation result) throws Exception{
 			writer.beginObject();
 			writer.name("jsonrpc");
 			writer.value("2.0");
@@ -167,9 +219,19 @@ public class DianneJSONRPCServer {
 			// write result object
 			writer.beginObject();
 			writer.name("accuracy");
-			writer.value(result.accuracy);
+			writer.value(result.accuracy());
 			writer.name("forwardTime");
-			writer.value(result.forwardTime);
+			writer.value(result.forwardTime());
+			writer.name("outputs");
+			writer.beginArray();
+			for(Tensor t : result.getOutputs()){
+				writer.beginArray();
+				for(float f : t.get()){
+					writer.value(f);
+				}
+				writer.endArray();
+			}
+			writer.endArray();
 			writer.endObject();
 			// end result object
 			writer.endArray();

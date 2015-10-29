@@ -82,12 +82,13 @@
 		"MNIST",
 		{
 			"clean": "true",
+			"trace": "true",
+			"tag": "test",
 			"learningRate": "0.01",
 			"batchSize": "10",
 			"momentum": "0.9",
 			"regularization":"0.0001",
 			"trainingSet": "0:60000",
-			"testSet": "60001:70000",
 			"maxIterations": "10000"
 		}
 	], 

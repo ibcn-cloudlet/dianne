@@ -21,11 +21,20 @@ public class JSONRPCTester {
 		JsonReader reader = new JsonReader(new InputStreamReader(s.getInputStream()));
 		JsonParser parser = new JsonParser();
 		
-		byte[] bytes = Files.readAllBytes(FileSystems.getDefault().getPath("test", "request"));
-		out.write(bytes);
+		// learn
+		byte[] learnRequest = Files.readAllBytes(FileSystems.getDefault().getPath("test", "learnRequest"));
+		out.write(learnRequest);
 		
-		JsonElement result = parser.parse(reader);
-		System.out.println(result.toString());
+		JsonElement learnResult = parser.parse(reader);
+		System.out.println(learnResult.toString());
+		
+		// eval
+		byte[] evalRequest = Files.readAllBytes(FileSystems.getDefault().getPath("test", "evalRequest"));
+		out.write(evalRequest);
+		
+		JsonElement evalResult = parser.parse(reader);
+		System.out.println(evalResult.toString());
+		
 	}
 	
 }
