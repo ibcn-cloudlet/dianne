@@ -2,6 +2,7 @@ package be.iminds.iot.dianne.nn.eval;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,7 @@ import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.eval.Evaluator;
+import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
@@ -104,7 +106,8 @@ public class ArgMaxEvaluator implements Evaluator {
 		try {
 			nn = dianne.getNeuralNetwork(nni).getValue();
 		} catch (Exception e) {
-		}		
+		}
+		nn.getModules().values().stream().forEach(m -> m.setMode(EnumSet.of(Mode.BLOCKING)));
 		
 		if(tag==null){
 			nn.loadParameters();
