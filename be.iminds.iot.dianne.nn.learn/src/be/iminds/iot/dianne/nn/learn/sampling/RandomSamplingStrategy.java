@@ -8,17 +8,15 @@ public class RandomSamplingStrategy implements SamplingStrategy{
 
 	private Random random = new Random(System.currentTimeMillis());
 	
-	private int startIndex;
-	private int endIndex;
+	private int[] indices;
 	
-	public RandomSamplingStrategy(int startIndex, int endIndex) {
-		this.startIndex = startIndex;
-		this.endIndex = endIndex;
+	public RandomSamplingStrategy(int[] indices) {
+		this.indices = indices;
 	}
 	
 	@Override
 	public int next() {
-		return random.nextInt(endIndex-startIndex) + startIndex;
+		return indices[random.nextInt(indices.length)];
 	}
 
 }

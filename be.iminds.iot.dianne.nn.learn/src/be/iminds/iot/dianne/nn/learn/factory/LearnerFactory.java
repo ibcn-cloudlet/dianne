@@ -1,5 +1,7 @@
 package be.iminds.iot.dianne.nn.learn.factory;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
@@ -104,40 +106,77 @@ public class LearnerFactory {
 	}
 	
 	public static SamplingStrategy createSamplingStrategy(Dataset d, Map<String, String> config){
-		int startIndex = 0;
-		int endIndex = d.size();
 		
-		String start = config.get("startIndex");
-		if(start!=null){
-			startIndex = Integer.parseInt(start);
+		int[] indices = null;
+		String range = config.get("range");
+		if(range!=null){
+			indices = parseRange(range);
+			
+			System.out.println("Dataset range");
+			System.out.println("* range = "+Arrays.toString(indices));
+			System.out.println("---");
+		} else {
+			int startIndex = 0;
+			int endIndex = d.size();
+			
+			String start = config.get("startIndex");
+			if(start!=null){
+				startIndex = Integer.parseInt(start);
+			}
+			
+			String end = config.get("endIndex");
+			if(end!=null){
+				endIndex = Integer.parseInt(end);
+			}
+			
+			int index = startIndex;
+			indices = new int[endIndex-startIndex];
+			for(int i=0;i<indices.length;i++){
+				indices[i] = index++;
+			}
+			
+			System.out.println("Dataset range");
+			System.out.println("* startIndex = "+startIndex);
+			System.out.println("* endIndex = "+endIndex);
+			System.out.println("---");
 		}
-		
-		String end = config.get("endIndex");
-		if(end!=null){
-			endIndex = Integer.parseInt(end);
-		}
-		
-		System.out.println("Dataset range");
-		System.out.println("* startIndex = "+startIndex);
-		System.out.println("* endIndex = "+endIndex);
-		System.out.println("---");
 
 		SamplingStrategy sampling = null;
 		String s = config.get("samplingStrategy");
 		if(s != null){
 			if(s.equals("random")){
-				sampling = new RandomSamplingStrategy(startIndex, endIndex);
+				sampling = new RandomSamplingStrategy(indices);
 			} else if(s.equals("sequential")){
-				sampling = new SequentialSamplingStrategy(startIndex, endIndex);
+				sampling = new SequentialSamplingStrategy(indices);
 			} else {
 				// random is default
-				sampling = new RandomSamplingStrategy(startIndex, endIndex);
+				sampling = new RandomSamplingStrategy(indices);
 			}
 		} else {
 			// random is default
-			sampling = new RandomSamplingStrategy(startIndex, endIndex);
+			sampling = new RandomSamplingStrategy(indices);
 		}
 		
 		return sampling;
+	}
+	
+	private static int[] parseRange(String range){
+		ArrayList<Integer> list = new ArrayList<>();
+		String[] subranges = range.split(",");
+		for(String subrange : subranges){
+			String[] s = subrange.split(":");
+			if(s.length==2){
+				for(int i=Integer.parseInt(s[0]);i<Integer.parseInt(s[1]);i++){
+					list.add(i);
+				}
+			} else {
+				list.add(Integer.parseInt(s[0]));
+			}
+		}
+		int[] array = new int[list.size()];
+		for(int i=0;i<list.size();i++){
+			array[i] = list.get(i);
+		}
+		return array;
 	}
 }

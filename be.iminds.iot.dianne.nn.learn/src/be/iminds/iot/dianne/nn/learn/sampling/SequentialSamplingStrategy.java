@@ -6,21 +6,19 @@ public class SequentialSamplingStrategy implements SamplingStrategy{
 
 	private int index;
 
-	private int startIndex;
-	private int endIndex;
+	private int[] indices;
 	
-	public SequentialSamplingStrategy(int startIndex, int endIndex) {
-		this.startIndex = startIndex;
-		this.endIndex = endIndex;
-		this.index = startIndex;
+	public SequentialSamplingStrategy(int[] indices) {
+		this.indices = indices;
+		this.index = 0;
 	}
 	
 	@Override
 	public int next() {
-		if(index >= endIndex){
-			index = startIndex;
+		if(index >= indices.length){
+			index = 0;
 		}
-		return index++;
+		return indices[index++];
 	}
 
 }

@@ -136,7 +136,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 				
 				// set trainging set
 				Map<String, String> learnConfig = new HashMap<>(config);
-				parseRange(learnConfig, "trainingSet");
+				learnConfig.put("range", config.get("trainingSet"));
 				
 				// start learning
 				learner.learn(nni, dataset, learnConfig);
@@ -177,7 +177,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 				
 				try {
 					Map<String, String> testConfig = new HashMap<>(config);
-					parseRange(testConfig, "testSet");
+					testConfig.put("range", config.get("testSet"));
 					Evaluation eval = evaluator.eval(nni, dataset, testConfig);
 					// TODO evaluate time on other/multiple platforms?
 					LearnResult result = new LearnResult(eval.accuracy(), eval.forwardTime());

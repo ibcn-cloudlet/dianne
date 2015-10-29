@@ -1,5 +1,7 @@
 package be.iminds.iot.dianne.nn.eval;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -50,28 +52,51 @@ public class ArgMaxEvaluator implements Evaluator {
 			throw new Exception("Dataset "+dataset+" not available");
 		}
 		
-		int startIndex = 0;
-		int endIndex = d.size();
 		
 		if(config.containsKey("tag")){
 			tag = config.get("tag"); 
-		}
-		
-		if(config.containsKey("startIndex")){
-			startIndex = Integer.parseInt(config.get("startIndex")); 
-		}
-		
-		if(config.containsKey("endIndex")){
-			endIndex = Integer.parseInt(config.get("endIndex")); 
 		}
 		
 		System.out.println("Evaluator Configuration");
 		System.out.println("=======================");
 		System.out.println("* dataset = "+dataset);
 		System.out.println("* tag = "+tag);
-		System.out.println("* startIndex = "+startIndex);
-		System.out.println("* endIndex = " +endIndex);
-		System.out.println("---");
+		
+		
+		int[] indices = null;
+		String range = config.get("range");
+		if(range!=null){
+			indices = parseRange(range);
+			
+			System.out.println("Dataset range");
+			System.out.println("* range = "+Arrays.toString(indices));
+			System.out.println("---");
+		} else {
+			int startIndex = 0;
+			int endIndex = d.size();
+			
+			String start = config.get("startIndex");
+			if(start!=null){
+				startIndex = Integer.parseInt(start);
+			}
+			
+			String end = config.get("endIndex");
+			if(end!=null){
+				endIndex = Integer.parseInt(end);
+			}
+			
+			int index = startIndex;
+			indices = new int[endIndex-startIndex];
+			for(int i=0;i<indices.length;i++){
+				indices[i] = index++;
+			}
+			
+			System.out.println("Dataset range");
+			System.out.println("* startIndex = "+startIndex);
+			System.out.println("* endIndex = "+endIndex);
+			System.out.println("---");
+		}
+		
 		
 		
 		NeuralNetwork nn = null;
@@ -84,8 +109,8 @@ public class ArgMaxEvaluator implements Evaluator {
 	
 		Tensor confusion = null;
 		long t1 = System.currentTimeMillis();
-		for(int i=startIndex;i<endIndex;i++){
-			Tensor in = d.getInputSample(i);
+		for(int i=0;i<indices.length;i++){
+			Tensor in = d.getInputSample(indices[i]);
 			Tensor out = nn.forward(in);
 			
 			if(confusion==null){
@@ -135,6 +160,26 @@ public class ArgMaxEvaluator implements Evaluator {
 	@Reference(cardinality = ReferenceCardinality.OPTIONAL)
 	void setDataLogger(DataLogger l){
 		this.logger = l;
+	}
+	
+	private int[] parseRange(String range){
+		ArrayList<Integer> list = new ArrayList<>();
+		String[] subranges = range.split(",");
+		for(String subrange : subranges){
+			String[] s = subrange.split(":");
+			if(s.length==2){
+				for(int i=Integer.parseInt(s[0]);i<Integer.parseInt(s[1]);i++){
+					list.add(i);
+				}
+			} else {
+				list.add(Integer.parseInt(s[0]));
+			}
+		}
+		int[] array = new int[list.size()];
+		for(int i=0;i<list.size();i++){
+			array[i] = list.get(i);
+		}
+		return array;
 	}
 
 }
