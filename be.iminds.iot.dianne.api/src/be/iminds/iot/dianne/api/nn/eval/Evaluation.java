@@ -1,5 +1,7 @@
 package be.iminds.iot.dianne.api.nn.eval;
 
+import java.util.List;
+
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -13,15 +15,18 @@ public class Evaluation {
 
 	protected final TensorFactory factory;
 	
+	// the actual outputs 
+	private List<Tensor> outputs;
 	// resulting confusion matrix
 	private Tensor confusionMatrix;
 	// time to run the evaluation
 	private long time;
 	
-	public Evaluation(TensorFactory factory, Tensor confusionMatrix, long time){
+	public Evaluation(TensorFactory factory, Tensor confusionMatrix, List<Tensor> outputs, long time){
 		assert confusionMatrix.dim() == 2;
 		assert confusionMatrix.dims()[0] == confusionMatrix.dims()[1];
 		this.confusionMatrix = confusionMatrix;
+		this.outputs = outputs;
 		this.factory = factory;
 		this.time = time;
 	}
@@ -45,6 +50,14 @@ public class Evaluation {
 		float total = factory.getTensorMath().sum(confusionMatrix);
 		float sampleTime = time/total;
 		return sampleTime;
+	}
+	
+	public List<Tensor> getOutputs(){
+		return outputs;
+	}
+	
+	public Tensor getOutput(int index){
+		return outputs.get(index);
 	}
 	
 	/**

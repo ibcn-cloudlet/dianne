@@ -3,6 +3,7 @@ package be.iminds.iot.dianne.nn.eval;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -35,7 +36,7 @@ public class ArgMaxEvaluator implements Evaluator {
 	protected Dianne dianne;
 	protected Map<String, Dataset> datasets = new HashMap<String, Dataset>();
 	
-	protected String tag = "learn";
+	protected String tag = null;
 	
 	@Override
 	public UUID getEvaluatorId(){
@@ -105,13 +106,19 @@ public class ArgMaxEvaluator implements Evaluator {
 		} catch (Exception e) {
 		}		
 		
-		nn.loadParameters(tag);
+		if(tag==null){
+			nn.loadParameters();
+		} else {
+			nn.loadParameters(tag);
+		}
 	
 		Tensor confusion = null;
+		List<Tensor> outputs = new ArrayList<Tensor>();
 		long t1 = System.currentTimeMillis();
 		for(int i=0;i<indices.length;i++){
 			Tensor in = d.getInputSample(indices[i]);
 			Tensor out = nn.forward(in);
+			outputs.add(out);
 			
 			if(confusion==null){
 				int outputSize = out.size();
@@ -126,7 +133,7 @@ public class ArgMaxEvaluator implements Evaluator {
 		}
 		long t2 = System.currentTimeMillis();
 		
-		Evaluation e = new Evaluation(factory, confusion, t2-t1);
+		Evaluation e = new Evaluation(factory, confusion, outputs, t2-t1);
 		return e;
 	}
 
