@@ -338,11 +338,7 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 			throw new RuntimeException("This neural network object is no longer valid");
 		}
 		
-		parameters.entrySet().forEach(e -> {
-			Trainable t = trainables.get(e.getKey());
-			if(t!=null)
-				t.setParameters(e.getValue());
-		});
+		parameters.entrySet().forEach(e -> setParameters(e.getKey(), e.getValue()));
 	}
 
 	@Override
@@ -352,8 +348,14 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		}
 		
 		Trainable t = trainables.get(moduleId);
-		if(t!=null)
+		if(t!=null){
 			t.setParameters(parameters);
+		} else {
+			Preprocessor p = preprocessors.get(moduleId);
+			if(p!=null){
+				p.setParameters(parameters);
+			}
+		}
 	}
 
 	@Override
@@ -362,8 +364,10 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 			throw new RuntimeException("This neural network object is no longer valid");
 		}
 		
-		return trainables.entrySet().stream()
+		Map<UUID, Tensor> parameters = trainables.entrySet().stream()
 				.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().getParameters()));
+		preprocessors.entrySet().stream().forEach(e -> parameters.put(e.getKey(), e.getValue().getParameters()));
+		return parameters;
 	}
 	
 	@Override
@@ -401,7 +405,6 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		if(!valid){
 			throw new RuntimeException("This neural network object is no longer valid");
 		}
-		
 		Map<UUID, Tensor> parameters = repository.loadParameters(nn.name, tag);
 		setParameters(parameters);
 		return parameters;
