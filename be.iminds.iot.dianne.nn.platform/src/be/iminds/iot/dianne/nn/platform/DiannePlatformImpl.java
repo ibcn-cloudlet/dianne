@@ -42,6 +42,9 @@ public class DiannePlatformImpl implements DiannePlatform {
 	
 	private UUID frameworkId;
 	private BundleContext context;
+
+	// waiting set to wait until remote service available when migrating
+	private Set<String> toWait = new HashSet<>();
 	
 	@Activate
 	public void activate(BundleContext context) throws Exception {
@@ -186,16 +189,38 @@ public class DiannePlatformImpl implements DiannePlatform {
 				continue;
 			}
 			
+			// if migrate - copy parameters from old
+			// TODO should we copy parameters or rather load defaults
+			//Tensor parameters = null;
+			//if(old!=null){
+			//	parameters = runtimes.get(old.runtimeId).getModuleParameters(old);
+			//}
+			if(old!=null){
+				synchronized(toWait){
+					toWait.add(nnId+":"+old.moduleId);
+				}
+			}
+
 			ModuleInstanceDTO moduleInstance = runtime.deployModule(module, nnId);
-			
-			// put in NeuralNetworkInstance DTO
-			nni.modules.put(moduleInstance.moduleId, moduleInstance);
 			
 			// migrate - undeploy old
 			if(old!=null){
+				synchronized(toWait){
+					if(toWait.contains(nnId+":"+old.moduleId)){
+						try {
+							// TODO which timeout
+							toWait.wait(10000);
+						} catch (InterruptedException e) {
+						}
+					}
+				}
+				
 				undeployModules(Collections.singletonList(old));
 			}
 			
+			
+			// put in NeuralNetworkInstance DTO
+			nni.modules.put(moduleInstance.moduleId, moduleInstance);
 			moduleInstances.add(moduleInstance);
 		}
 		
@@ -282,6 +307,16 @@ public class DiannePlatformImpl implements DiannePlatform {
 				modules.put(nnId, nnm);
 			}
 			nnm.put(moduleId, m);
+		}
+	}
+
+	void updatedModule(Module m, Map<String, Object> properties){
+		UUID moduleId = UUID.fromString((String)properties.get("module.id"));
+		UUID nnId = UUID.fromString((String)properties.get("nn.id"));
+		
+		synchronized(toWait){
+			toWait.remove(nnId+":"+moduleId);
+			toWait.notifyAll();
 		}
 	}
 	
