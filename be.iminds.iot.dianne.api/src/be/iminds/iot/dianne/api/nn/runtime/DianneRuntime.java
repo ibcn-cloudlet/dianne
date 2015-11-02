@@ -3,10 +3,10 @@ package be.iminds.iot.dianne.api.nn.runtime;
 import java.util.List;
 import java.util.UUID;
 
-import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleTypeDTO;
+import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
  * The DianneRuntime is responsible for the correct deployment and configuration 
@@ -36,10 +36,22 @@ public interface DianneRuntime {
 	 * 
 	 * @param dto the ModuleDTO describing which Module to deploy
 	 * @param nnId the neural network instance this module instance will belong to
+	 * @param tags the tags of parameters to load for this module
 	 * @return the ModuleInstanceDTO of the deployed module
 	 * @throws InstantiationException when it failed to construct the desired module instance
 	 */
-	ModuleInstanceDTO deployModule(ModuleDTO dto, UUID nnId);
+	ModuleInstanceDTO deployModule(ModuleDTO dto, UUID nnId, String... tags);
+	
+	/**
+	 * Deploy a single Module on this runtime and provide parameters
+	 * 
+	 * @param dto the ModuleDTO describing which Module to deploy
+	 * @param nnId the neural network instance this module instance will belong to
+	 * @param parameters the parameters to initialize this module with
+	 * @return the ModuleInstanceDTO of the deployed module
+	 * @throws InstantiationException when it failed to construct the desired module instance
+	 */
+	ModuleInstanceDTO deployModule(ModuleDTO dto, UUID nnId, Tensor parameters);
 	
 	/**
 	 * Undeploy a single ModuleInstance on this runtime
@@ -61,6 +73,13 @@ public interface DianneRuntime {
 	 * @return list of deployed module instances
 	 */
 	List<ModuleInstanceDTO> getModules();
+	
+	/**
+	 * Get the parameters of a currently deployed module
+	 * @param module
+	 * @return
+	 */
+	Tensor getModuleParameters(ModuleInstanceDTO module);
 	
 	/**
 	 * Get a list of supported module types that this runtime can deploy. 

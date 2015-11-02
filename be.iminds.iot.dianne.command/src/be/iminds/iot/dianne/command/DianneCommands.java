@@ -186,7 +186,6 @@ public class DianneCommands {
 		try {
 			NeuralNetworkInstanceDTO nni = platform.deployNeuralNetwork(name, runtimeId);
 			System.out.println("Deployed instance of "+nni.name+" ("+nni.id.toString()+")");
-			dianne.getNeuralNetwork(nni).then(p -> {p.getValue().loadParameters(); return null;});
 			return nni;
 		} catch (InstantiationException e) {
 			System.out.println("Error deploying instance of "+name);

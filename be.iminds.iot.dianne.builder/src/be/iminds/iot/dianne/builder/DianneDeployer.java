@@ -95,12 +95,7 @@ public class DianneDeployer extends HttpServlet {
 			try {
 				UUID nnId = UUID.fromString(id);
 				List<ModuleInstanceDTO> moduleInstances = platform.deployModules(nnId, name, toDeploy, runtimeId);
-
-				try {
-					NeuralNetworkInstanceDTO nni = platform.getNeuralNetworkInstance(nnId);
-					dianne.getNeuralNetwork(nni).then(p -> {p.getValue().loadParameters(); return null;});
-				} catch(Exception e){
-				}
+				// default parameters are loaded
 				
 				// return json object with deployment
 				JsonObject result = new JsonObject();

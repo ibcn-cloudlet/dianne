@@ -47,6 +47,8 @@ public class DianneRuntimeImpl implements DianneRuntime {
 	private UUID runtimeId;
 	private String name;
 	
+	private DianneRepository repository;
+	
 	private List<ModuleFactory> moduleFactories = Collections.synchronizedList(new ArrayList<ModuleFactory>());
 	
 	// All known modules
@@ -79,6 +81,17 @@ public class DianneRuntimeImpl implements DianneRuntime {
 				reg.unregister();
 			}
 		}
+	}
+
+	@Reference(cardinality = ReferenceCardinality.OPTIONAL, 
+			policy = ReferencePolicy.DYNAMIC)
+	void setDianneRepository(DianneRepository repo) {
+		this.repository = repo;
+	}
+
+	void unsetDianneRepository(DianneRepository repo) {
+		if (this.repository == repo)
+			this.repository = null;
 	}
 	
 	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
@@ -294,7 +307,7 @@ public class DianneRuntimeImpl implements DianneRuntime {
 	}
 	
 	@Override
-	public synchronized ModuleInstanceDTO deployModule(ModuleDTO dto, UUID nnId){
+	public synchronized ModuleInstanceDTO deployModule(ModuleDTO dto, UUID nnId, Tensor parameters){
 		// Create and register module
 		Module module = null;
 		synchronized(moduleFactories){
@@ -342,6 +355,15 @@ public class DianneRuntimeImpl implements DianneRuntime {
 			}
 		}
 		
+		// set parameters if provided
+		if(parameters!=null){
+			if(module instanceof Trainable){
+				((Trainable)module).setParameters(parameters);
+			} else if(module instanceof Preprocessor){
+				((Preprocessor)module).setParameters(parameters);
+			}
+		}
+		
 		String[] classes;
 		if(module instanceof Input){
 			classes = new String[]{Module.class.getName(),Input.class.getName()};
@@ -380,6 +402,22 @@ public class DianneRuntimeImpl implements DianneRuntime {
 	}
 
 	@Override
+	public ModuleInstanceDTO deployModule(ModuleDTO dto, UUID nnId, String... tags){
+		Tensor parameters = null;
+		if(repository != null){
+			// TODO should we check first whether this module actually has parameters?
+			try {
+				parameters = repository.loadParameters(dto.id, tags);
+			} catch(Exception e){
+				// ignore
+				//System.out.println("Failed to load parameters for module "+dto.id+" with tags "+Arrays.toString(tags));
+			}
+		}
+		return deployModule(dto, nnId, parameters);
+	}
+
+	
+	@Override
 	public synchronized void undeployModule(ModuleInstanceDTO dto) {
 		if(!dto.runtimeId.equals(runtimeId)){
 			System.out.println("Can only undeploy module instances that are deployed here...");
@@ -395,6 +433,7 @@ public class DianneRuntimeImpl implements DianneRuntime {
 			} catch(IllegalStateException e){
 				// happens when the service was registered on behalf of the (config) bundle
 				// that is uninstalled (then service is allready unregistered)
+				e.printStackTrace();
 			}
 		}
 		
@@ -429,6 +468,20 @@ public class DianneRuntimeImpl implements DianneRuntime {
 		return modules;
 	}
 
+	@Override
+	public Tensor getModuleParameters(ModuleInstanceDTO module){
+		Tensor t = null;
+		Module m = modules.get(module.moduleId, module.nnId);
+		if(m != null){
+			if(m instanceof Trainable){
+				t = ((Trainable)m).getParameters();
+			} else if(m instanceof Preprocessor){
+				t = ((Preprocessor)m).getParameters();
+			}
+		}
+		return t;
+	}
+	
 	@Override
 	public List<ModuleTypeDTO> getSupportedModules() {
 		List<ModuleTypeDTO> supported = new ArrayList<ModuleTypeDTO>();
