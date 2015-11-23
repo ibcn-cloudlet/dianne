@@ -17,6 +17,12 @@ html, body {
 	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
+.logo {
+	float: left;
+	margin: 5px 10px;
+	height: 4em;
+}
+
 /* For side shadow and padding to stay below header/above footer */
 .site-wrapper {
 	width: 100%;
