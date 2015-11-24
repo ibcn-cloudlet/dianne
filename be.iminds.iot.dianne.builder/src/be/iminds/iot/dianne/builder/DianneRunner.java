@@ -40,6 +40,7 @@ import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.Module.Mode;
+import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -368,6 +369,11 @@ public class DianneRunner extends HttpServlet {
 				e.printStackTrace();
 				unregister();
 			}	
+		}
+
+		@Override
+		public void onError(UUID moduleId, ModuleException e, String... tags) {
+			e.printStackTrace();
 		}
 	}
 }

@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
 import be.iminds.iot.dianne.api.nn.module.Module;
+import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -41,12 +42,17 @@ public abstract class Fork extends AbstractModule {
 				nextsBusy.get(m).set(true);
 			}
 			
-			runExecutor.execute(new ForwardForkRunnable(m, outputs.get(id), tags));
+			if(exception == null){
+				runExecutor.execute(new ForwardForkRunnable(m, outputs.get(id), tags));
+			} else {				
+				runExecutor.execute(new ForwardForkRunnable(m, exception, tags));
+			}
 		}
 	}
 	
-	@Override
-	public synchronized void forward(final UUID moduleId, final Tensor input, final String... tags) {
+	
+	
+	protected synchronized void forward(final UUID moduleId, final ModuleException ex, final Tensor input, final String... tags) {
 		// skip or block when nexts are not ready processing previous output of this module
 		synchronized(nextsBusy){
 			while(nextBusy()){
@@ -66,32 +72,39 @@ public abstract class Fork extends AbstractModule {
 		
 		this.input = input;
 		this.tags = tags;
+		this.exception = ex;
 		
 		// calculates new outputs
-		if(output!=null){
-			synchronized(output){
-				synchronized(input){
-					forward();
+		if(exception == null){
+			try {
+				if(output!=null){
+					synchronized(output){
+						synchronized(input){
+							forward();
+						}
+					}
+				} else {
+					synchronized(input){
+						forward();
+					}
 				}
-			}
-		} else {
-			synchronized(input){
-				forward();
+			} catch(Exception e){
+				exception = new ModuleException(this.id, this.getClass().getName(), true, e);
 			}
 		}
-		
-		if(next!=null)
-			callNext();
-	
+
 		if(fwdListeners.size()>0)
 			notifyForwardListeners();
 		
+		if(next!=null)
+			callNext();
+		
 	}
 	
-	@Override
-	public void backward(final UUID moduleId, final Tensor gradOutput, final String... tags) {
+	protected void backward(final UUID moduleId, final ModuleException ex, final Tensor gradOutput, final String... tags) {
 		this.tags = tags;
 		this.gradOutputs.put(moduleId, gradOutput);
+		this.exception = ex;
 		
 		// when wait-for-all mode, wait until all gradOutput is updated
 		if(mode.contains(Mode.WAIT_FOR_ALL) && next!=null && next.length>1){
@@ -108,14 +121,21 @@ public abstract class Fork extends AbstractModule {
 			}
 		} 
 		
-		backward();
+		if(exception == null){
+			try {
+				backward();
+			} catch(Exception e){
+				exception = new ModuleException(this.id, this.getClass().getName(), false, e);
+			}
+		}
+
+		if(bwListeners.size()>0)
+			notifyBackwardListeners();
 		
 		// backward on separate thread
 		if(prev!=null)
 			callPrevious();
-		
-		if(bwListeners.size()>0)
-			notifyBackwardListeners();
+
 	}
 	
 	@Override
@@ -145,15 +165,28 @@ public abstract class Fork extends AbstractModule {
 		private final Module m;
 		private final String[] tags;
 		private final Tensor tensor;
+		private final ModuleException ex;
 		
 		public ForwardForkRunnable(Module m, Tensor tensor, String[] tags){
 			this.m = m;
 			this.tags = tags;
 			this.tensor = tensor;
+			this.ex = null;
+		}
+		
+		public ForwardForkRunnable(Module m, ModuleException ex, String[] tags){
+			this.m = m;
+			this.tags = tags;
+			this.tensor = null;
+			this.ex = ex;
 		}
 		
 		public void run(){
-			m.forward(id, tensor, tags);
+			if(ex==null){
+				m.forward(id, tensor, tags);
+			} else {
+				m.forward(id, ex, tags);
+			}
 			synchronized(nextsBusy){
 				nextsBusy.get(m).set(false);
 				nextsBusy.notifyAll();

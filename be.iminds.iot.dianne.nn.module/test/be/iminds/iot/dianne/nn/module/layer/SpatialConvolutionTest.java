@@ -17,6 +17,7 @@ import org.junit.runners.Parameterized.Parameters;
 
 import be.iminds.iot.dianne.api.nn.module.BackwardListener;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
+import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;
@@ -122,6 +123,11 @@ public class SpatialConvolutionTest {
 				o.fill(0.1f);
 				conv.backward(UUID.randomUUID(), o);
 			}
+
+			@Override
+			public void onError(UUID moduleId, ModuleException e, String... tags) {
+				e.printStackTrace();
+			}
 		});
 		
 		conv.addBackwardListener(new BackwardListener() {
@@ -129,6 +135,11 @@ public class SpatialConvolutionTest {
 			public void onBackward(UUID moduleId, Tensor gi, String... tags) {
 				gi.copyInto(gradInput);
 //				System.out.println("BACKWARD CONV "+gradInput);
+			}
+
+			@Override
+			public void onError(UUID moduleId, ModuleException e, String... tags) {
+				e.printStackTrace();
 			}
 		});
 		conv.forward(UUID.randomUUID(), input);
@@ -222,6 +233,11 @@ public class SpatialConvolutionTest {
 				synchronized(lock){
 					lock.notifyAll();
 				}
+			}
+
+			@Override
+			public void onError(UUID moduleId, ModuleException e, String... tags) {
+				e.printStackTrace();
 			}
 		});
 		long t1 = System.currentTimeMillis();

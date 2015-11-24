@@ -12,6 +12,7 @@ import org.osgi.framework.ServiceReference;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Module;
+import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 
@@ -50,6 +51,11 @@ public class MNISTTest extends AbstractDianneTest {
 					lock.notifyAll();
 				}
 			}
+
+			@Override
+			public void onError(UUID moduleId, ModuleException e, String... tags) {
+				e.printStackTrace();
+			}
 		});
 		
 		// Write intermediate output to file
@@ -69,6 +75,11 @@ public class MNISTTest extends AbstractDianneTest {
 						writer.close();
 					} catch(Exception e){
 					}
+				}
+
+				@Override
+				public void onError(UUID moduleId, ModuleException e, String... tags) {
+					e.printStackTrace();
 				}
 			});
 		}

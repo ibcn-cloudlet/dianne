@@ -20,6 +20,7 @@ import be.iminds.iot.dianne.api.nn.module.BackwardListener;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.api.nn.module.Module;
+import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.api.nn.module.Output;
 import be.iminds.iot.dianne.api.nn.module.Preprocessor;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
@@ -190,6 +191,26 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 					d.resolve(r);
 				}
 			}
+
+			@Override
+			public void onError(UUID moduleId, ModuleException e, String... tags) {
+				if(tags==null || tags.length==0)
+					return;
+				
+				String tag = tags[0];
+				
+				if(interestedModules.containsKey(tag)){
+					if(!moduleId.equals(interestedModules.get(tag))){
+						return;
+					}
+				}
+				
+				interestedModules.remove(tag);
+				Deferred<NeuralNetworkResult> d = inProgress.remove(tag);
+				if(d!=null){
+					d.fail(e);
+				}
+			}
 		}, propertiesFw);
 	
 		Dictionary<String, Object> propertiesBw = new Hashtable<String, Object>();
@@ -216,6 +237,29 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 				if(d!=null){
 					NeuralNetworkResult r = new NeuralNetworkResult(gradInput, removeTag(tags, tag));
 					d.resolve(r);
+				} else {
+					System.err.println("No deferred for tag "+tag+" ?!");
+				}
+			}
+
+			@Override
+			public void onError(UUID moduleId, ModuleException e, String... tags) {
+				if(tags==null || tags.length==0) {
+					return;
+				}
+				
+				String tag = tags[0];
+				
+				if(interestedModules.containsKey(tag)){
+					if(!moduleId.equals(interestedModules.get(tag))){
+						return;
+					}
+				}
+				
+				interestedModules.remove(tag);
+				Deferred<NeuralNetworkResult> d = inProgress.remove(tag);
+				if(d!=null){
+					d.fail(e);
 				} else {
 					System.err.println("No deferred for tag "+tag+" ?!");
 				}

@@ -49,6 +49,8 @@ public abstract class AbstractModule implements Module {
 	// contains the Tensor (reference) given by previous
 	protected Tensor gradOutput;
 	
+	protected ModuleException exception;
+	
 	// The next module reference
 	protected Module[] next;
 	// The prev module references
@@ -109,16 +111,30 @@ public abstract class AbstractModule implements Module {
 			nextBusy.set(true);
 		}
 		// default AbstractModule just assumes one next and one previous, use Fork otherwise
-		runExecutor.execute(new ForwardRunnable(next[0], output, tags));
+		if(exception==null)
+			runExecutor.execute(new ForwardRunnable(next[0], output, tags));
+		else 
+			runExecutor.execute(new ForwardRunnable(next[0], exception, tags));
 	}
 	
 	protected void callPrevious(){
 		// default AbstractModule just assumes one next and one previous, use Join otherwise
-		runExecutor.execute(new BackwardRunnable(prev[0], gradInput, tags));
+		if(exception==null){
+			runExecutor.execute(new BackwardRunnable(prev[0], gradInput, tags));
+		} else {
+			runExecutor.execute(new BackwardRunnable(prev[0], exception, tags));
+		}
 	}
 	
-	@Override
-	public synchronized void forward(final UUID moduleId, final Tensor input, final String... tags) {
+	public void forward(final UUID moduleId, final Tensor input, final String... tags){
+		forward(moduleId, null, input, tags);
+	}
+
+	public void forward(final UUID moduleId, final ModuleException ex, final String... tags){
+		forward(moduleId, ex, null, tags);
+	}
+	
+	protected synchronized void forward(final UUID moduleId, final ModuleException ex, final Tensor input, final String... tags) {
 		// skip or block when next is not ready processing previous output of this module
 		synchronized(nextBusy){
 			if(nextBusy.get()){
@@ -138,19 +154,26 @@ public abstract class AbstractModule implements Module {
 		
 		this.input = input;
 		this.tags = tags;
+		this.exception = ex;
 		
 		// calculates new outputs
-		if(output!=null){
-			synchronized(output){
-				synchronized(input){
-					forward();
+		if(exception == null){
+			try {
+				if(output!=null){
+					synchronized(output){
+						synchronized(input){
+							forward();
+						}
+					}
+				} else {
+					synchronized(input){
+						forward();
+					}
 				}
+			} catch(Exception e){
+				exception = new ModuleException(this.id, this.getClass().getName(), true, e);
 			}
-		} else {
-			synchronized(input){
-				forward();
-			}
-		}
+		} 
 
 		// notify listeners
 		if(fwdListeners.size()>0)
@@ -163,14 +186,28 @@ public abstract class AbstractModule implements Module {
 	}
 	
 	protected abstract void forward();
-	
-	@Override
+
 	public void backward(final UUID moduleId, final Tensor gradOutput, final String... tags) {
+		backward(moduleId, null, gradOutput, tags); 
+	}
+
+	public void backward(final UUID moduleId, final ModuleException ex, final String... tags) {
+		backward(moduleId, ex, null, tags);
+	}
+	
+	protected synchronized void backward(final UUID moduleId, final ModuleException ex, final Tensor gradOutput, final String... tags) {
 		this.gradOutput = gradOutput;
 		this.tags = tags;
+		this.exception = ex;
 		
 		// calculates new gradInputs
-		backward();
+		if(ex==null){
+			try {
+				backward();
+			} catch(Exception e){
+				exception = new ModuleException(this.id, this.getClass().getName(), false, e);
+			}
+		}
 		
 		// notify listeners
 		if(bwListeners.size()>0)
@@ -207,16 +244,28 @@ public abstract class AbstractModule implements Module {
 	}
 	
 	protected void notifyForwardListeners(){
-		final Tensor outputCopy = output.copyInto(null);
-		final String[] tagsCopy = (tags == null) ? null : Arrays.copyOf(tags, tags.length);
 		final List<ForwardListener> fwdListenersCopy = new ArrayList<ForwardListener>();
 		synchronized(fwdListeners){
 			fwdListenersCopy.addAll(fwdListeners);
 		}
-		listenerExecutor.execute(()->{
-			fwdListenersCopy.stream().forEach(
-					f -> f.onForward(id, outputCopy, tagsCopy));
-		});
+		
+		if(!fwdListenersCopy.isEmpty()){
+			final String[] tagsCopy = (tags == null) ? null : Arrays.copyOf(tags, tags.length);
+
+			if(exception!=null){
+				listenerExecutor.execute(()->{
+					fwdListenersCopy.stream().forEach(
+							f -> f.onError(id, exception, tagsCopy));
+				});
+			} else {
+				final Tensor outputCopy = output.copyInto(null);
+				
+				listenerExecutor.execute(()->{
+					fwdListenersCopy.stream().forEach(
+							f -> f.onForward(id, outputCopy, tagsCopy));
+				});
+			}
+		}
 	}
 	
 	public void addBackwardListener(BackwardListener listener){
@@ -228,39 +277,60 @@ public abstract class AbstractModule implements Module {
 	}
 	
 	protected void notifyBackwardListeners(){
-		final Tensor gradInputCopy = gradInput.copyInto(null);
-		final String[] tagsCopy = (tags == null) ? null : Arrays.copyOf(tags, tags.length);
 		final List<BackwardListener> bwListenersCopy = new ArrayList<BackwardListener>();
 		synchronized(bwListeners){
 			bwListenersCopy.addAll(bwListeners);
 		}
-		listenerExecutor.execute(()->{
-			bwListenersCopy.stream().forEach(
-					b->b.onBackward(id, gradInputCopy, tagsCopy));
-		});
+		
+		if(!bwListenersCopy.isEmpty()){
+			final String[] tagsCopy = (tags == null) ? null : Arrays.copyOf(tags, tags.length);
+
+			if(exception!=null){
+				listenerExecutor.execute(()->{
+					bwListenersCopy.stream().forEach(
+							b->b.onError(id, exception, tagsCopy));
+				});
+			} else {
+				final Tensor gradInputCopy = gradInput.copyInto(null);
+				
+				listenerExecutor.execute(()->{
+					bwListenersCopy.stream().forEach(
+							b->b.onBackward(id, gradInputCopy, tagsCopy));
+				});
+			}
+		}
 	}
 	
 	protected final class ForwardRunnable implements Runnable {
 		private final Module m;
 		private final String[] tags;
 		private final Tensor tensor;
+		private final ModuleException ex;
 		
 		public ForwardRunnable(Module m, Tensor tensor, String[] tags){
 			this.m = m;
 			this.tags = tags;
 			this.tensor = tensor;
+			this.ex = null;
+		}
+		
+		public ForwardRunnable(Module m, ModuleException ex, String[] tags){
+			this.m = m;
+			this.tags = tags;
+			this.tensor = null;
+			this.ex = ex;
 		}
 		
 		public void run(){
-			try {
+			if(ex==null){
 				m.forward(id, tensor, tags);
-			} catch(Throwable t ){
-				System.err.println("Error in forward of module "+m.getClass().getName()+" "+m.getId()+": "+t.getMessage());
-			} finally {
-				synchronized(nextBusy){
-					nextBusy.set(false);
-					nextBusy.notifyAll();
-				}
+			} else {
+				m.forward(id, ex, tags);
+			}
+
+			synchronized(nextBusy){
+				nextBusy.set(false);
+				nextBusy.notifyAll();
 			}
 		}
 	}
@@ -269,19 +339,29 @@ public abstract class AbstractModule implements Module {
 		private final Module m;
 		private final String[] tags;
 		private final Tensor tensor;
+		private final ModuleException ex;
 		
 		public BackwardRunnable(Module m, Tensor tensor, String[] tags){
 			this.m = m;
 			this.tags = tags;
 			this.tensor = tensor;
+			this.ex = null;
+		}
+		
+		public BackwardRunnable(Module m, ModuleException ex, String[] tags){
+			this.m = m;
+			this.tags = tags;
+			this.tensor = null;
+			this.ex = ex;
 		}
 		
 		public void run(){
-			try {
+			if(ex==null){
 				m.backward(id, tensor, tags);
-			} catch(Throwable t ){
-				System.err.println("Error in backward of module "+m.getClass().getName()+" "+m.getId()+": "+t.getMessage());
+			} else {
+				m.backward(id, ex, tags);
 			}
+			
 		}
 	}
 	

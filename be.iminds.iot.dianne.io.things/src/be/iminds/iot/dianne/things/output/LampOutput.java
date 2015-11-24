@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
+import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.things.api.lamp.Lamp;
@@ -64,6 +65,10 @@ public class LampOutput implements ForwardListener {
 		}
 	}
 
+	@Override
+	public void onError(UUID moduleId, ModuleException e, String... tags) {
+		// TODO set lamp color on error?
+	}
 	
 	
 	// generate rgb color from just hue (0..1) (set saturation and value to max)
@@ -108,5 +113,5 @@ public class LampOutput implements ForwardListener {
 		Color rgb = new Color(r, g, b);
 		return rgb;
 	}
-	
+
 }

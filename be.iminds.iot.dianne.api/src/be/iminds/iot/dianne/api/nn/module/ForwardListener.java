@@ -25,6 +25,7 @@ public interface ForwardListener {
 	 * @param output a copy of the output data
 	 * @param tags a copy of the tags provided
 	 */
-	void onForward(UUID moduleId, final Tensor output, final String... tags);
+	void onForward(final UUID moduleId, final Tensor output, final String... tags);
 	
+	void onError(final UUID moduleId, final ModuleException e, final String...tags);
 }

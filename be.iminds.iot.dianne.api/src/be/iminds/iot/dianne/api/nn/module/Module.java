@@ -44,6 +44,8 @@ public interface Module {
 	 */
 	void forward(final UUID moduleId, final Tensor input, final String... tags);
 	
+	void forward(final UUID moduleId, ModuleException e, final String... tags);
+	
 	/**
 	 * Perform a backward pass
 	 * @param moduleId the UUID of the Module where this gradOutput comes from
@@ -51,6 +53,8 @@ public interface Module {
 	 * @param tags optional tags for identifying this gradOutput
 	 */
 	void backward(final UUID moduleId, final Tensor gradOutput, final String... tags);
+	
+	void backward(final UUID moduleId, final ModuleException e, final String... tags);
 	
 	/**
 	 * Configure the next Module(s)

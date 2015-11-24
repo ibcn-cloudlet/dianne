@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.Module.Mode;
+import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -41,8 +42,7 @@ public abstract class Join extends AbstractModule {
 		}
 	}
 	
-	@Override
-	public synchronized void forward(final UUID moduleId, final Tensor input, final String... tags) {
+	protected synchronized void forward(final UUID moduleId, final ModuleException ex, final Tensor input, final String... tags) {
 		synchronized(nextBusy){
 			if(nextBusy.get()){
 				// next is busy, either block or skip
@@ -61,29 +61,39 @@ public abstract class Join extends AbstractModule {
 		
 		this.inputs.put(moduleId, input);
 		this.tags = tags;
+		this.exception = ex;
 		
-		// when in wait-for-all mode, wait for input from each prev
-		if(mode.contains(Mode.WAIT_FOR_ALL) && prev!=null && prev.length>1){
-			synchronized(prevLock){
-				prevLock.get(moduleId).set(true);
-				for(AtomicBoolean b : prevLock.values()){
-					if(!b.get()){
-						return;
+		if(this.exception==null){
+		
+			// when in wait-for-all mode, wait for input from each prev
+			if(mode.contains(Mode.WAIT_FOR_ALL) && prev!=null && prev.length>1){
+				synchronized(prevLock){
+					prevLock.get(moduleId).set(true);
+					for(AtomicBoolean b : prevLock.values()){
+						if(!b.get()){
+							return;
+						}
+					}
+					for(AtomicBoolean b : prevLock.values()){
+						b.set(false);
 					}
 				}
-				for(AtomicBoolean b : prevLock.values()){
-					b.set(false);
-				}
+			} 
+			
+			try {
+				forward();
+			} catch(Exception e){
+				this.exception = new ModuleException(this.id, this.getClass().getName(), true, e);
 			}
-		} 
 		
-		forward();
+		} 
+
+		if(fwdListeners.size()>0)
+			notifyForwardListeners();
 		
 		if(next!=null)
 			callNext();
 	
-		if(fwdListeners.size()>0)
-			notifyForwardListeners();
 	}
 	
 	@Override

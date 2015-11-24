@@ -29,6 +29,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import be.iminds.iot.dianne.api.io.InputDescription;
 import be.iminds.iot.dianne.api.io.DianneInputs;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
+import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 import com.google.gson.JsonArray;
@@ -144,6 +145,11 @@ public class DianneInput extends HttpServlet {
 								writer.flush();
 							} catch(Exception e){}
 						}
+					}
+
+					@Override
+					public void onError(UUID moduleId, ModuleException e, String... tags) {
+						e.printStackTrace();
 					}
 				};
 				Dictionary<String, Object> properties = new Hashtable<String, Object>();

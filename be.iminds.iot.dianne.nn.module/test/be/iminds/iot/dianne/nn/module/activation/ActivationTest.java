@@ -15,6 +15,7 @@ import org.junit.runners.Parameterized.Parameters;
 import be.iminds.iot.dianne.api.nn.module.BackwardListener;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Module;
+import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;
@@ -51,6 +52,11 @@ public class ActivationTest {
 
 				m.backward(UUID.randomUUID(), gradOutput);
 			}
+
+			@Override
+			public void onError(UUID moduleId, ModuleException e, String... tags) {
+				e.printStackTrace();
+			}
 		});
 
 		m.addBackwardListener(new BackwardListener() {
@@ -61,6 +67,11 @@ public class ActivationTest {
 				synchronized (m) {
 					m.notify();
 				}
+			}
+
+			@Override
+			public void onError(UUID moduleId, ModuleException e, String... tags) {
+				e.printStackTrace();
 			}
 		});
 

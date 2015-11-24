@@ -12,6 +12,7 @@ import org.osgi.framework.ServiceReference;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Module;
+import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 
@@ -47,6 +48,16 @@ public class WrongSizeTest extends AbstractDianneTest {
 			public void onForward(UUID moduleId, Tensor output, String... tags) {
 				output.copyInto(result);
 			
+				synchronized(lock){
+					lock.notifyAll();
+				}
+			}
+
+			@Override
+			public void onError(UUID moduleId, ModuleException e, String... tags) {
+				System.out.println("ERROR!");
+				e.printStackTrace();
+				
 				synchronized(lock){
 					lock.notifyAll();
 				}
