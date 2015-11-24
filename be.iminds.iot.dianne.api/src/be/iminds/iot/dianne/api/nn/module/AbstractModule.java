@@ -252,11 +252,15 @@ public abstract class AbstractModule implements Module {
 		}
 		
 		public void run(){
-			m.forward(id, tensor, tags);
-			
-			synchronized(nextBusy){
-				nextBusy.set(false);
-				nextBusy.notifyAll();
+			try {
+				m.forward(id, tensor, tags);
+			} catch(Throwable t ){
+				System.err.println("Error in forward of module "+m.getClass().getName()+" "+m.getId()+": "+t.getMessage());
+			} finally {
+				synchronized(nextBusy){
+					nextBusy.set(false);
+					nextBusy.notifyAll();
+				}
 			}
 		}
 	}
@@ -273,7 +277,11 @@ public abstract class AbstractModule implements Module {
 		}
 		
 		public void run(){
-			m.backward(id, tensor, tags);
+			try {
+				m.backward(id, tensor, tags);
+			} catch(Throwable t ){
+				System.err.println("Error in backward of module "+m.getClass().getName()+" "+m.getId()+": "+t.getMessage());
+			}
 		}
 	}
 	
