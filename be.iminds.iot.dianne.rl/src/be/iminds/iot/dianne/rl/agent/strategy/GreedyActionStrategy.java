@@ -7,11 +7,12 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 
 import be.iminds.iot.dianne.api.log.DataLogger;
+import be.iminds.iot.dianne.rl.agent.api.ExplorationController;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component(property={"strategy=greedy"})
-public class GreedyActionStrategy implements ActionStrategy {
+public class GreedyActionStrategy implements ActionStrategy, ExplorationController {
 	
 	private TensorFactory factory;
 	
@@ -72,6 +73,12 @@ public class GreedyActionStrategy implements ActionStrategy {
 		this.logger.setAlpha("Q0", 1f);
 		this.logger.setAlpha("Q1", 1f);
 		this.logger.setAlpha("Q2", 1f);
+	}
+
+	@Override
+	public void setExploration(float exploration) {
+		this.epsilonMax = exploration;
+		this.epsilonMin = exploration;
 	}
 
 }
