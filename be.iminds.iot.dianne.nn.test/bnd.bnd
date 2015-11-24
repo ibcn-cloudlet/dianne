@@ -12,6 +12,7 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 	be.iminds.iot.dianne.nn.util;version=latest
 	
 -runbundles: \
+biz.aQute.junit,\
 	osgi.promise;version='[6.0.0,6.0.1)',\
 	org.apache.felix.scr;version='[1.8.2,1.8.3)',\
 	org.apache.felix.configadmin;version='[1.6.0,1.7.0)',\
@@ -36,7 +37,10 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 -runfw: org.eclipse.concierge
 -runsystempackages:\
 	sun.reflect,\
-	javax.xml.bind
+	javax.xml.bind,\
+	javax.imageio,\
+	javax.imageio.plugins.jpeg,\
+	javax.imageio.stream
 	
 -runvm: -d64 -Xms512m -Xmx4g	
 	
