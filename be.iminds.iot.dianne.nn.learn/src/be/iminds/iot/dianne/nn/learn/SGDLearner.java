@@ -80,8 +80,11 @@ public class SGDLearner implements Learner {
 			throw new Exception("Already running a learning session here");
 		}
 		
+		// reset
+		parameters = null;
 		i = 0;
 		
+		// read config
 		if(config.containsKey("tag")){
 			tag = config.get("tag"); 
 		}
