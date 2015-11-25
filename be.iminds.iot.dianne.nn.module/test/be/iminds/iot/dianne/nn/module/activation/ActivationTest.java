@@ -52,11 +52,6 @@ public class ActivationTest {
 
 				m.backward(UUID.randomUUID(), gradOutput);
 			}
-
-			@Override
-			public void onError(UUID moduleId, ModuleException e, String... tags) {
-				e.printStackTrace();
-			}
 		});
 
 		m.addBackwardListener(new BackwardListener() {
@@ -67,11 +62,6 @@ public class ActivationTest {
 				synchronized (m) {
 					m.notify();
 				}
-			}
-
-			@Override
-			public void onError(UUID moduleId, ModuleException e, String... tags) {
-				e.printStackTrace();
 			}
 		});
 

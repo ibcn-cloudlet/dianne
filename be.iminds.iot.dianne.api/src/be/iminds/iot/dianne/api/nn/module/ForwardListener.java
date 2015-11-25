@@ -27,5 +27,7 @@ public interface ForwardListener {
 	 */
 	void onForward(final UUID moduleId, final Tensor output, final String... tags);
 	
-	void onError(final UUID moduleId, final ModuleException e, final String...tags);
+	default void onError(final UUID moduleId, final ModuleException e, final String...tags){
+		e.printStackTrace();
+	}
 }

@@ -52,10 +52,6 @@ public class MNISTTest extends AbstractDianneTest {
 				}
 			}
 
-			@Override
-			public void onError(UUID moduleId, ModuleException e, String... tags) {
-				e.printStackTrace();
-			}
 		});
 		
 		// Write intermediate output to file
@@ -75,11 +71,6 @@ public class MNISTTest extends AbstractDianneTest {
 						writer.close();
 					} catch(Exception e){
 					}
-				}
-
-				@Override
-				public void onError(UUID moduleId, ModuleException e, String... tags) {
-					e.printStackTrace();
 				}
 			});
 		}

@@ -52,11 +52,6 @@ public class OverfeatTest extends AbstractDianneTest {
 					lock.notifyAll();
 				}
 			}
-
-			@Override
-			public void onError(UUID moduleId, ModuleException e, String... tags) {
-				e.printStackTrace();
-			}
 		});
 
 		// Write intermediate output to file
@@ -76,11 +71,6 @@ public class OverfeatTest extends AbstractDianneTest {
 						writer.close();
 					} catch(Exception e){
 					}
-				}
-
-				@Override
-				public void onError(UUID moduleId, ModuleException e, String... tags) {
-					e.printStackTrace();
 				}
 			});
 		}

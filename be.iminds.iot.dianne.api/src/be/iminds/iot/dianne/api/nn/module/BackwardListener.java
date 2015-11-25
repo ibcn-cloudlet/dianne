@@ -27,5 +27,7 @@ public interface BackwardListener {
 	 */
 	void onBackward(final UUID moduleId, final Tensor gradInput, final String... tags);
 	
-	void onError(final UUID moduleId, final ModuleException e, final String... tags);
+	default void onError(final UUID moduleId, final ModuleException e, final String... tags){
+		e.printStackTrace();
+	}
 }

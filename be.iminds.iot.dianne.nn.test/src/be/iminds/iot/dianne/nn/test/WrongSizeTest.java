@@ -55,7 +55,6 @@ public class WrongSizeTest extends AbstractDianneTest {
 
 			@Override
 			public void onError(UUID moduleId, ModuleException e, String... tags) {
-				System.out.println("ERROR!");
 				e.printStackTrace();
 				
 				synchronized(lock){

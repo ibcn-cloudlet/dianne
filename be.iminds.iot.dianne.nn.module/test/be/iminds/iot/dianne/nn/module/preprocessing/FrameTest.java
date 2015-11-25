@@ -66,11 +66,6 @@ public class FrameTest {
 					lock.notifyAll();
 				}
 			}
-
-			@Override
-			public void onError(UUID moduleId, ModuleException e, String... tags) {
-				e.printStackTrace();
-			}
 		});
 		long t1 = System.currentTimeMillis();
 		frame.forward(UUID.randomUUID(), input);
