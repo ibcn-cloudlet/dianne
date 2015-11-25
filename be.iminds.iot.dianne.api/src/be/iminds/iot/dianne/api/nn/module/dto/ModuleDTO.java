@@ -20,12 +20,12 @@ public class ModuleDTO {
 	public final String type;
 	
 	// UUID(s) of the next Modules in the neural network
-	public final UUID[] next;
+	public UUID[] next;
 	// UUID(s) of the previous Modules in the neural network
-	public final UUID[] prev;
+	public UUID[] prev;
 	
 	// Specific properties for this Module
-	public final Map<String, String> properties;
+	public Map<String, String> properties;
 
 	
 	public ModuleDTO(UUID id, String type, 

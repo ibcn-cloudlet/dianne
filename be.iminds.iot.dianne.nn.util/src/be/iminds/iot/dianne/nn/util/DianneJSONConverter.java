@@ -188,8 +188,10 @@ public class DianneJSONConverter {
 			module.add("prev", prev);
 		}
 		
-		for(String k : dto.properties.keySet()){
-			module.add(k, new JsonPrimitive(dto.properties.get(k)));
+		if(dto.properties!=null){
+			for(String k : dto.properties.keySet()){
+				module.add(k, new JsonPrimitive(dto.properties.get(k)));
+			}
 		}
 		
 		return module;
