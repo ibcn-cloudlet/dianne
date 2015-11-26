@@ -130,7 +130,7 @@ public class ArgMaxEvaluator implements Evaluator {
 			}
 			
 			int predicted = factory.getTensorMath().argmax(out);
-			int real = factory.getTensorMath().argmax(d.getOutputSample(i));
+			int real = factory.getTensorMath().argmax(d.getOutputSample(indices[i]));
 				
 			confusion.set(confusion.get(real, predicted)+1, real, predicted);
 		}
