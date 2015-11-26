@@ -84,6 +84,26 @@ function setModus(m){
 }
 
 /**
+ * Lock UI mode (handy for interactive demos) on ctrl
+ */
+
+window.addEventListener("keydown", checkKeyPressed, false);
+
+var locked = false;
+
+function checkKeyPressed(e) {
+    if (e.keyCode == "17") {
+    	if(!locked){
+    		$(".controls").hide();
+    		locked = true;
+    	} else {
+    		$(".controls").show();
+    		locked = false;
+    	}
+    }
+}
+
+/**
  * On ready, fill the toolbox with available supported modules
  */
 $( document ).ready(function() {
