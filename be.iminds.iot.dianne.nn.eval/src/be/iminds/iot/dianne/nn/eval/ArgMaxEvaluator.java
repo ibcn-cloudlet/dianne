@@ -72,7 +72,7 @@ public class ArgMaxEvaluator implements Evaluator {
 			indices = parseRange(range);
 			
 			System.out.println("Dataset range");
-			System.out.println("* range = "+Arrays.toString(indices));
+			System.out.println("* range = "+range);
 			System.out.println("---");
 		} else {
 			int startIndex = 0;
