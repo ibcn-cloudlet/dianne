@@ -151,7 +151,7 @@ public class DianneJSONConverter {
 		return output;
 	}
 	
-	private static JsonObject toJson(NeuralNetworkDTO dto){
+	public static JsonObject toJson(NeuralNetworkDTO dto){
 		JsonObject nn = new JsonObject();
 		
 		JsonObject modules = new JsonObject();
@@ -166,7 +166,7 @@ public class DianneJSONConverter {
 		return nn;
 	}
 	
-	private static JsonObject toJson(ModuleDTO dto){
+	public static JsonObject toJson(ModuleDTO dto){
 		JsonObject module = new JsonObject();
 		
 		module.add("id", new JsonPrimitive(dto.id.toString()));
