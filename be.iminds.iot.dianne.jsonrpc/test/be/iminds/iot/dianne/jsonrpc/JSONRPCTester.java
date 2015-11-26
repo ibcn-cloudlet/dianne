@@ -6,15 +6,13 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
 import com.google.gson.stream.JsonReader;
 
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
-import be.iminds.iot.dianne.nn.util.DianneJSONConverter;
+import be.iminds.iot.dianne.nn.util.DianneJSONRPCRequestFactory;
 import be.iminds.iot.dianne.nn.util.DianneNeuralNetworkBuilder;
 import be.iminds.iot.dianne.nn.util.DianneNeuralNetworkBuilder.Activation;
 
@@ -43,7 +41,7 @@ public class JSONRPCTester {
 		learnProperties.put("regularization", "0.0001");
 		learnProperties.put("trainingSet", "0:60000");
 		learnProperties.put("maxIterations", "10000");
-		JsonObject learnRequestJson = createLearnRequest(1, nn, dataset, learnProperties);
+		JsonObject learnRequestJson = DianneJSONRPCRequestFactory.createLearnRequest(1, nn, dataset, learnProperties);
 		byte[] learnRequest = learnRequestJson.toString().getBytes();
 		out.write(learnRequest);
 		
@@ -56,7 +54,7 @@ public class JSONRPCTester {
 		evalProperties.put("clean", "true");
 		evalProperties.put("tag", "test");	
 		evalProperties.put("testSet", "60000:70000");
-		JsonObject evalRequestJson = createEvalRequest(2, nn.name, dataset, evalProperties);
+		JsonObject evalRequestJson = DianneJSONRPCRequestFactory.createEvalRequest(2, nn.name, dataset, evalProperties);
 		byte[] evalRequest = evalRequestJson.toString().getBytes();
 		out.write(evalRequest);
 		
@@ -66,45 +64,5 @@ public class JSONRPCTester {
 			result = result.substring(0, 1000)+"...";
 		}
 		System.out.println(result);
-
-		
-		
-	}
-	
-	public static JsonObject createLearnRequest(int id, NeuralNetworkDTO nn, String dataset, Map<String, String> properties){
-		JsonObject request = new JsonObject();
-		request.add("jsonrpc", new JsonPrimitive("2.0"));
-		request.add("method", new JsonPrimitive("learn"));
-		request.add("id", new JsonPrimitive(id));
-		
-		JsonArray params = new JsonArray();
-		params.add(DianneJSONConverter.toJson(nn));
-		params.add(new JsonPrimitive(dataset));
-		params.add(createJsonFromMap(properties));
-		request.add("params", params);
-		
-		return request;
-	}
-	
-	public static JsonObject createEvalRequest(int id, String nnName, String dataset, Map<String, String> properties){
-		JsonObject request = new JsonObject();
-		request.add("jsonrpc", new JsonPrimitive("2.0"));
-		request.add("method", new JsonPrimitive("eval"));
-		request.add("id", new JsonPrimitive(id));
-		
-		JsonArray params = new JsonArray();
-		params.add(new JsonPrimitive(nnName));
-		params.add(new JsonPrimitive(dataset));
-		params.add(createJsonFromMap(properties));
-		request.add("params", params);
-		
-		return request;
-		
-	}
-	
-	private static JsonObject createJsonFromMap(Map<String, String> map){
-		JsonObject json = new JsonObject();
-		map.entrySet().stream().forEach(e -> json.add(e.getKey(), new JsonPrimitive(e.getValue())));
-		return json;
 	}
 }

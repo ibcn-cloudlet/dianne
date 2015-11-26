@@ -8,4 +8,6 @@ Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 	be.iminds.iot.dianne.api;version=latest
 
 Bundle-Name: Dianne Utilities
-Export-Package: be.iminds.iot.dianne.nn.util
+Export-Package: \
+	be.iminds.iot.dianne.nn.util,\
+	be.iminds.iot.dianne.api.nn.module.dto
