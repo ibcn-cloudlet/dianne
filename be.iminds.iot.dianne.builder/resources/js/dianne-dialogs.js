@@ -439,6 +439,8 @@ function createRunModuleDialog(id, moduleItem){
 		}, $(document.body));
 		
 		createOutputChart(dialog.find(".content"));
+		dialog.find(".content").append("<span class='time'></span>");
+
 		if(eventsource===undefined){
 			eventsource = new EventSource("/dianne/run?nnId="+nn.id);
 			eventsource.onmessage = function(event){
@@ -464,6 +466,15 @@ function createRunModuleDialog(id, moduleItem){
 							Highcharts.charts[index].series[0].setData(data.output, true, true, true);
 							Highcharts.charts[index].xAxis[0].setCategories(data.labels);
 						}
+						
+						if(data.time === undefined){
+							$("#dialog-"+module.id).find(".content").find('.time').hide();
+						} else {
+							$("#dialog-"+module.id).find(".content").find('.time').text('Forward time: '+data.time+' ms')
+							$("#dialog-"+module.id).find(".content").find('.time').show();
+
+						}
+						
 					}
 				});
 			};

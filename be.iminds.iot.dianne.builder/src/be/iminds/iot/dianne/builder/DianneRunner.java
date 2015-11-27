@@ -3,7 +3,6 @@ package be.iminds.iot.dianne.builder;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
@@ -72,6 +71,10 @@ public class DianneRunner extends HttpServlet {
 	private Map<String, Dataset> datasets = Collections.synchronizedMap(new HashMap<String, Dataset>());
 	private Dianne dianne;
 	private DiannePlatform platform;
+	
+	// can be used for timestamping, but won't always work (i.e. when multiple sources trigger inputs at the same time)
+	// works for basic demo purposes though
+	private long start,stop;
 	
 	@Activate
 	public void activate(BundleContext c){
@@ -178,7 +181,8 @@ public class DianneRunner extends HttpServlet {
 			float[] data = parseInput(sample.get("data").getAsJsonArray().toString());
 			Tensor t = factory.createTensor(data, channels, height, width);
 			
-			nn.forward(UUID.fromString(inputId), null, t);
+			start = System.currentTimeMillis();
+			nn.forward(UUID.fromString(inputId), null, t, "ui");
 			
 		} else if(request.getParameter("url")!=null){
 			String url = request.getParameter("url");
@@ -194,7 +198,8 @@ public class DianneRunner extends HttpServlet {
 				return;
 			}
 			
-			nn.forward(UUID.fromString(inputId), null, t);
+			start = System.currentTimeMillis();
+			nn.forward(UUID.fromString(inputId), null, t, "ui");
 			
 		} else if(request.getParameter("mode")!=null){
 			String mode = request.getParameter("mode");
@@ -213,7 +218,8 @@ public class DianneRunner extends HttpServlet {
 
 				Tensor t = d.getInputSample(rand.nextInt(d.size()));
 				
-				nn.forward(UUID.fromString(inputId), null, t);
+				start = System.currentTimeMillis();
+				nn.forward(UUID.fromString(inputId), null, t, "ui");
 				
 				JsonObject sample = new JsonObject();
 				if(t.dims().length==3){
@@ -241,7 +247,7 @@ public class DianneRunner extends HttpServlet {
 		return result;
 	}
 	
-	private String outputSSEMessage(UUID outputId, String[] outputLabels, Tensor output, String...tags){
+	private String outputSSEMessage(UUID outputId, String[] outputLabels, Tensor output, long time, String...tags){
 		JsonObject data = new JsonObject();
 
 		// format output as [['label', val],['label2',val2],...] for in highcharts
@@ -291,10 +297,15 @@ public class DianneRunner extends HttpServlet {
 		}
 		data.add("labels", l);
 		
+		if(time > 0){
+			data.add("time", new JsonPrimitive(time));
+		}
+
 		if(tags!=null){
 			JsonArray ta = new JsonArray();
 			for(String tt : tags){
-				ta.add(new JsonPrimitive(tt));
+				if(!tt.equals("ui")) // ignore the ui tag
+					ta.add(new JsonPrimitive(tt));
 			}
 			data.add("tags",ta);
 		}
@@ -357,8 +368,18 @@ public class DianneRunner extends HttpServlet {
 		
 		@Override
 		public void onForward(UUID moduleId, Tensor output, String... tags) {
+			stop = System.currentTimeMillis();
 			try {
-				String sseMessage = outputSSEMessage(moduleId, labels.get(moduleId), output, tags);
+				// one can only measure time for samples that were forwarded from the UI
+				long time = -1;
+				if(tags!=null){
+					for(String t : tags){
+						if(t.equals("ui")){
+							time = stop-start;
+						}
+					}
+				}
+				String sseMessage = outputSSEMessage(moduleId, labels.get(moduleId), output, time, tags);
 				PrintWriter writer = async.getResponse().getWriter();
 				writer.write(sseMessage);
 				writer.flush();
