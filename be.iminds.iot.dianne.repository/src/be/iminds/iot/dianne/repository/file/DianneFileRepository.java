@@ -102,6 +102,11 @@ public class DianneFileRepository implements DianneRepository {
 		
 		File n = new File(dir+"/"+nn.name+"/modules.txt");
 		
+		File locked = new File(dir+"/"+nn.name+"/.locked");
+		if(locked.exists()){
+			throw new RuntimeException("Cannot store neural network "+nn.name+", this is locked!");
+		}
+		
 		String output = DianneJSONConverter.toJsonString(nn, true);
 		
 		PrintWriter p = null;
