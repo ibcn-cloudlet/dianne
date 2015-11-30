@@ -9,6 +9,7 @@ Bundle-Description: Dianne Tensor implementation based on Torch's TH C lib
 
 Bundle-NativeCode: \
 	Linux/x86_64/libTHTensor.so;osname=Linux;processor=x86_64,\
+	Linux/i686/libTHTensor.so;osname=Linux;processor=i686,\
 	Linux/armv7l/libTHTensor.so;osname=Linux;processor=arm,\
 	Darwin/x86_64/libTHTensor.dylib;osname=macosx;processor=x86_64
 	
