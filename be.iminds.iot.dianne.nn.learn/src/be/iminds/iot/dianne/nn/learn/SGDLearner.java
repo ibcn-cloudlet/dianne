@@ -47,7 +47,7 @@ public class SGDLearner implements Learner {
 	// the network we are currently training
 	protected NeuralNetwork nn;
 	
-	protected String tag = "learn";
+	protected String tag = null;
 	
 	// initial parameters
 	protected Map<UUID, Tensor> parameters = null;
@@ -193,7 +193,11 @@ public class SGDLearner implements Learner {
 
 	protected void loadParameters(){
 		try {
-			parameters = nn.loadParameters(tag);
+			if(tag==null){
+				nn.loadParameters();
+			} else {
+				parameters = nn.loadParameters(tag);
+			}
 		} catch(Exception ex){
 			System.out.println("Failed to load parameters "+tag+", fill with random parameters");
 			nn.randomizeParameters();
@@ -204,10 +208,18 @@ public class SGDLearner implements Learner {
 	protected void publishParameters(){
 		if(parameters!=null){
 			// publish delta
-			nn.storeDeltaParameters(parameters, tag);
+			if(tag==null){
+				nn.storeDeltaParameters(parameters);
+			} else {
+				nn.storeDeltaParameters(parameters, tag);
+			}
 		} else {
 			// just publish initial values
-			nn.storeParameters(tag);
+			if(tag==null){
+				nn.storeParameters();
+			} else {
+				nn.storeParameters(tag);
+			}
 		}
 		
 		// fetch update again from repo (could be merged from other learners)
