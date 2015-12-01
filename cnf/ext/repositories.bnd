@@ -15,7 +15,9 @@ repourl="http://aiolos.intec.ugent.be/repositories"
 	aQute.bnd.deployer.repository.FixedIndexedRepo; name=AIOLOS; locations=${repourl}/be.iminds.aiolos/index.xml,\
 	aQute.bnd.deployer.repository.FixedIndexedRepo; name=DYAMAND; locations=${repourl}/org.dyamand/index.xml,\
 	aQute.bnd.deployer.repository.FixedIndexedRepo; name=Firefly; locations=${repourl}/be.iminds.iot.firefly/index.xml,\
-	aQute.bnd.deployer.repository.FixedIndexedRepo; name=enRoute; locations=https://raw.githubusercontent.com/osgi/osgi.enroute/master/cnf/distro/index.xml
+	aQute.bnd.deployer.repository.FixedIndexedRepo; name=enRoute; locations=https://raw.githubusercontent.com/osgi/osgi.enroute/master/cnf/distro/index.xml,\
+	aQute.bnd.deployer.repository.FixedIndexedRepo; name=Launch; locations=${repourl}/launch/index.xml,\
+	
 
 
 	
