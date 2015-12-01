@@ -162,9 +162,9 @@ public class DianneFileRepository implements DianneRepository {
 		
 		NeuralNetworkDTO nn = loadNeuralNetwork(nnName);
 		for(ModuleDTO m : nn.modules){
-			try {
+			if(hasParameters(m)){
 				parameters.put(m.id, load(m.id, tag));
-			} catch(Exception e){}
+			}
 		}
 		return parameters;
 	}
@@ -274,6 +274,18 @@ public class DianneFileRepository implements DianneRepository {
 			}
 		}
 		return pid;
+	}
+	
+	// TODO get this information from the ModuleTypeDTO?
+	private boolean hasParameters(ModuleDTO module){
+		if(module.type.equals("Linear")
+				|| module.type.equals("Convolution")
+				|| module.type.equals("Normalization")
+				|| module.type.equals("PReLU")
+				|| module.type.equals("Masked Maxpooling")){
+			return true;
+		}
+		return false;
 	}
 	
 	private void notifyListeners(UUID nnId, Collection<UUID> moduleIds, String... tag){
