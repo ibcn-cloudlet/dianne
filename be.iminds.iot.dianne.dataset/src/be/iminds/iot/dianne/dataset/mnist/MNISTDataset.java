@@ -75,9 +75,6 @@ public class MNISTDataset implements Dataset{
 			assert magic == 2049;
 			int noLabels = readInt(labelInput);
 
-			System.out.println("Reading MNIST dataset");
-			System.out.println("#Images: "+noImages+" #Rows: "+noRows+" #Columns: "+noColumns+" #Labels: "+noLabels);
-
 			assert noLabels == noImages;
 			
 			noSamples += noImages;
