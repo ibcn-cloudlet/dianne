@@ -109,10 +109,15 @@ public class ArgMaxEvaluator implements Evaluator {
 		}
 		nn.getModules().values().stream().forEach(m -> m.setMode(EnumSet.of(Mode.BLOCKING)));
 		
-		if(tag==null){
-			nn.loadParameters();
-		} else {
-			nn.loadParameters(tag);
+		try {
+			if(tag==null){
+				nn.loadParameters();
+			} else {
+				nn.loadParameters(tag);
+			}
+		} catch(Exception e){
+			// ignore if no parameters found
+			System.out.println("No parameters loaded for this evaluation - network is not yet trained?");
 		}
 	
 		Tensor confusion = null;
