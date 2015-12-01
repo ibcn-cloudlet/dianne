@@ -118,7 +118,9 @@ public class DianneDeployer extends HttpServlet {
 				NeuralNetworkInstanceDTO nn = platform.getNeuralNetworkInstance(UUID.fromString(id));
 				if(nn!=null){
 					ModuleInstanceDTO moduleInstance = nn.modules.get(UUID.fromString(moduleId));
-					platform.undeployModules(Collections.singletonList(moduleInstance));
+					if(moduleInstance!=null)
+						platform.undeployModules(Collections.singletonList(moduleInstance));
+				
 					
 					response.getWriter().write(new JsonPrimitive(id).toString());
 					response.getWriter().flush();
