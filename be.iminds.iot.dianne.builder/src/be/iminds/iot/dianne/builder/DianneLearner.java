@@ -286,6 +286,9 @@ public class DianneLearner extends HttpServlet {
 				String... tag) {
 			try {
 				LearnProgress progress = learner.getProgress();
+				if(progress.iteration == 0) // ignore if no progress yet
+					return;
+				
 				JsonObject data = new JsonObject();
 				data.add("sample", new JsonPrimitive(progress.iteration));
 				data.add("error", new JsonPrimitive(progress.error));
