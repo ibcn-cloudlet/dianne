@@ -1,0 +1,86 @@
+html, body {
+	height: 100%;
+	width: 100%;
+	margin: 0;
+	padding: 0;
+	position: relative;
+}
+
+h2 {
+	color: #e20177;
+}
+
+a,
+a:hover
+{
+	color: #e20177;
+}
+
+.landing {
+	padding-top: 50px;
+	min-height: 100%;
+}
+
+.main-content {
+	padding-bottom: 20px;
+}
+
+.anchor {
+    padding-top: 60px;
+    margin-top: -60px;
+}
+
+.team {
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+
+/* 
+ * Button color
+ */
+
+.btn-dianne { 
+  color: #ffffff; 
+  background-color: #E20177; 
+  border-color: #AB0058; 
+} 
+ 
+.btn-dianne:hover, 
+.btn-dianne:focus, 
+.btn-dianne:active, 
+.btn-dianne.active, 
+.open .dropdown-toggle.btn-dianne { 
+  color: #ffffff; 
+  background-color: #E20177; 
+  border-color: #AB0058; 
+} 
+ 
+.btn-dianne:active, 
+.btn-dianne.active, 
+.open .dropdown-toggle.btn-dianne { 
+  background-image: none; 
+} 
+ 
+.btn-dianne.disabled, 
+.btn-dianne[disabled], 
+fieldset[disabled] .btn-dianne, 
+.btn-dianne.disabled:hover, 
+.btn-dianne[disabled]:hover, 
+fieldset[disabled] .btn-dianne:hover, 
+.btn-dianne.disabled:focus, 
+.btn-dianne[disabled]:focus, 
+fieldset[disabled] .btn-dianne:focus, 
+.btn-dianne.disabled:active, 
+.btn-dianne[disabled]:active, 
+fieldset[disabled] .btn-dianne:active, 
+.btn-dianne.disabled.active, 
+.btn-dianne[disabled].active, 
+fieldset[disabled] .btn-dianne.active { 
+  background-color: #E20177; 
+  border-color: #AB0058; 
+} 
+ 
+.btn-dianne .badge { 
+  color: #E20177; 
+  background-color: #ffffff; 
+}
