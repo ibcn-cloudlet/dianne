@@ -160,6 +160,7 @@ function createDeployModuleDialog(id, moduleItem){
 					});
 				}
 				, "json");
+
 	} else {
 		dialog.find('.form-items').append("<p>This module is deployed to "+deployment[id]+"</p>");
 	}
@@ -710,6 +711,7 @@ function render(tensor, canvasCtx){
  */
 
 function deployAll(){
+	$("#spinnerwrap").show();
 	$.post("/dianne/deployer", {"action":"deploy",
 			"name":nn.name,
 			"modules":JSON.stringify(nn.modules),
@@ -717,6 +719,7 @@ function deployAll(){
 			function( data ) {
 				nn.id = data.id;
 				$.each( data.deployment, color);
+				$("#spinnerwrap").hide();
 			}
 			, "json");
 }
@@ -728,6 +731,7 @@ function undeployAll(){
 }
 
 function deploy(id, target){
+	$("#spinnerwrap").show();
 	$.post("/dianne/deployer", {"action":"deploy", 
 		"id": nn.id,
 		"name":nn.name,
@@ -736,15 +740,18 @@ function deploy(id, target){
 			function( data ) {
 				nn.id = data.id;
 				$.each( data.deployment, color );
+				$("#spinnerwrap").hide();
 			}
 			, "json");
 }
 
-function undeploy(id){
+function undeploy(id){		
+	$("#spinnerwrap").show();
 	$.post("/dianne/deployer", {"action":"undeploy","id":nn.id,"moduleId":id}, 
 			function( data ) {
 				deployment[id] = undefined;
 				$("#"+id).css('background-color', '');
+				$("#spinnerwrap").hide();
 			}
 			, "json");
 }

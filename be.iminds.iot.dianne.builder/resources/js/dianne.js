@@ -110,6 +110,7 @@ $( document ).ready(function() {
 	// show correct mode
 	setModus(currentMode);
 	$("#toolbox").mCustomScrollbar({ theme: "minimal" });
+	$("#spinnerwrap").hide();
 });
 
 
