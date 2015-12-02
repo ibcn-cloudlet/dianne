@@ -67,7 +67,7 @@ libTH.a:
 	cd TH; mkdir -p build; cd build; rm -f libTH.a; cmake ..; make; cp libTH.a ../..; cp THGeneral.h ..
 
 libTHC.a:
-	cd THC; mkdir -p build; cd build; rm -f libTHC.a; cmake ..; make; cp libTHC.a ../..
+	cd cutorch/lib/THC; mkdir -p build; cd build; rm -f libTHC.a; cmake ..; make; cp libTHC.a ../../../..
 
 libopenblas.a:
 	cd OpenBLAS; make; cp libopenblas.a ..
