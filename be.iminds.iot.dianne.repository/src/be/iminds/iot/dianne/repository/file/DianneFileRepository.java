@@ -182,14 +182,30 @@ public class DianneFileRepository implements DianneRepository {
 				}
 			}
 			if(f!=null){
+				// load tensor in chuncks, slightly slower than one copy from Java to native,
+				// but reduces memory usage a lot for big tensors
+				int bufferSize = 10000;
+				float[] data = new float[bufferSize];
 				DataInputStream is = new DataInputStream(new BufferedInputStream(new FileInputStream(f)));
 				int length = is.readInt();
-				float[] data = new float[length];
-				for(int i=0;i<length;i++){
-					data[i] = is.readFloat();
+				Tensor t = factory.createTensor(length);
+				int index = 0;
+				while(length > 0){
+					if(length<bufferSize){
+						bufferSize = length;
+						data = new float[bufferSize];
+					}
+					for(int i=0;i<bufferSize;i++){
+						data[i] = is.readFloat();
+					}
+					
+					t.narrow(0, index, bufferSize).set(data);;
+					
+					length -= bufferSize;
+					index+= bufferSize;
 				}
 				is.close();
-				return factory.createTensor(data, new int[]{length});
+				return t;
 			}
 			throw new FileNotFoundException();
 		} catch(Exception e){
