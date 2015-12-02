@@ -51,4 +51,8 @@
         <ant dir="tools" target="kill" />
     </target>
 
+    <target name="mnist">
+        <ant dir="tools" target="mnist" />
+    </target>
+
 </project>

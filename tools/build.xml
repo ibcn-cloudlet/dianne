@@ -84,6 +84,50 @@
             <arg value="launch.bndrun"/>
         </java>     
     </target>
+	
+	<target name="file-checks">
+	   <available file="nn/mnist" type="dir"  property="nn.available"/>
+	   <available file="datasets/MNIST" type="dir" property="dataset.available"/>
+	</target>
+	
+	<target name="download-nn" unless="nn.available">
+		<echo message="Download MNIST example neural network"/>
+		<mkdir dir="nn"/>
+		<get src="http://dianne.intec.ugent.be/nn/mnist.tar.gz" dest="mnist.tar.gz"/>
+		<gunzip src="mnist.tar.gz"/>
+		<untar src="mnist.tar" dest="nn"/>
+	  	<delete file="mnist.tar.gz"/>
+	  	<delete file="mnist.tar"/>
+	</target>
+	
+	<target name="download-dataset" unless="dataset.available">
+		<echo message="Download MNIST dataset"/>
+		<mkdir dir="datasets"/>
+		<get src="http://dianne.intec.ugent.be/datasets/MNIST.tar.gz" dest="MNIST.tar.gz"/>
+		<gunzip src="MNIST.tar.gz"/>
+		<untar src="MNIST.tar" dest="datasets"/>
+	  	<delete file="MNIST.tar.gz"/>
+	  	<delete file="MNIST.tar"/>
+	</target>
+	
+	<target name="mnist" depends="file-checks,download-nn,download-dataset">
+		<echo message="Launching DIANNE MNIST demo"/>
+	  	<delete dir="resources"/>
+	  	<mkdir dir="resources"/>
+	  	<copy todir="resources">
+	    	<fileset dir="configs/local"/>
+	    	<fileset dir="configs">
+	      		<include name="*.xml"/>
+	      		<include name="*.cfg"/>
+		    </fileset>
+	  	</copy>
+	    <java jar="../cnf/plugins/biz.aQute.bnd/biz.aQute.bnd-2.4.0.jar" fork="true">
+	    	<jvmarg value="-Dconfig=local"/>
+	        <jvmarg value="-Dmode=launch"/>
+	        <jvmarg value="-Dbndrun=run-mgmt.bndrun"/>
+	        <arg value="launch.bndrun"/>
+	    </java>     
+	</target>
               	
   	<target name="jar" depends="build-project">
 		<mkdir dir="generated" />
