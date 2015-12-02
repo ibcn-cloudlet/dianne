@@ -81,7 +81,10 @@ public class SpatialConvolution extends AbstractTrainableModule {
 	@Override
 	protected void forward() {
 		// TODO check input planes dim?
-		// TODO check kernel sizes?
+		// TODO check kernel sizes
+		if(input.dim() == 2) {
+			input.reshape(1, input.size(0), input.size(1));
+		}
 		
 		output = factory.getTensorMath().spatialconvolve(output, bias, input, weights, strideX, strideY, padX, padY);
 	}

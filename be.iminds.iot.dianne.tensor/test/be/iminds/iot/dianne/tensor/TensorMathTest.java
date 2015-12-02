@@ -791,6 +791,20 @@ public class TensorMathTest<T extends Tensor<T>> {
 	}
 	
 	@Test
+	public void testSpatialDMaxpool(){
+		float[] data = new float[]{1.0f, 0.0f, 0.0f, 1.0f,
+									0.0f, 1.0f, 0.0f, 0.0f};
+		T t1 = factory.createTensor(data, 2, 2, 2);
+		
+		T t2 = factory.createTensor(1, 1, 2);
+		t2.fill(2.0f);
+		
+		T exp = factory.getTensorMath().mul(null, t1, 2.0f);
+		
+		Assert.assertEquals(exp, math.spatialdmaxpool(null, t2, t1, 2, 2, 2, 2));
+	}
+	
+	@Test
 	public void testScaleUp(){
 		float[] data = new float[]{0, 0, 0, 0, 1, 0, 0, 0, 0}; 
 		T t = factory.createTensor(data, 3, 3);

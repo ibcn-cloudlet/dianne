@@ -725,7 +725,7 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sp
 	long kW = weight->size[3];
 	long outputHeight = gradOutput->size[1];
 	long outputWidth = gradOutput->size[2];
-	long inputHeight = (outputHeight - 1) * sy + Kh - 2*py;
+	long inputHeight = (outputHeight - 1) * sy + kH - 2*py;
 	long inputWidth = (outputWidth - 1) * sx + kW - 2*px;
 
 	THTensor_(resize3d)(
@@ -733,13 +733,12 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sp
 				state,
 	#endif
 				gradInput, noInputPlanes, inputHeight, inputWidth);
-	#ifdef CUDA
 
-#ifdef CUDA
-	// use separate cunn implementation
-	THCudaTensor_spatialdinconvolve(state, gradInput, gradOutput,
-			weight, sx, sy, px, py);
-#else
+//#ifdef CUDA
+//	// use separate cunn implementation
+//	THCudaTensor_spatialdinconvolve(state, gradInput, gradOutput,
+//			weight, sx, sy, px, py);
+//#else
 	// add padding to gradinput if necessary
 	if(px!=0 || py!=0){
 		THTensor* padded = THTensor_(new)(
@@ -781,26 +780,23 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sp
 		#endif
 					gradInput);
 
-
 		THTensor_(narrow)(
 		#ifdef CUDA
 					state,
 		#endif
 					narrowed, narrowed, 1, py, inputHeight);
-		}
 
 		THTensor_(narrow)(
 		#ifdef CUDA
 					state,
 		#endif
 					narrowed, narrowed, 2, px, inputWidth);
-		}
 
 		THTensor_(copy)(
 		#ifdef CUDA
 				state,
 		#endif
-				gradInputCopy, narrowed);
+				gradInputAlias, narrowed);
 
 		THTensor_(free)(
 		#ifdef CUDA
@@ -814,17 +810,17 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sp
 	#endif
 				gradInput);
 
-		gradInput = gradInputCopy;
+		gradInput = gradInputAlias;
 	}
 
-#endif
+//#endif
 	return gradInput;
 }
 
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_spatialdkerconvolve
-  (JNIEnv * env, jobject o, jlong res, jlong add, jlong g, jlong t, jint sx, jint sy, jint px, jint py){
+  (JNIEnv * env, jobject o, jlong res, jlong a, jlong g, jlong t, jint sx, jint sy, jint px, jint py){
 	THTensor* gradKer = getTHTensor(res);
-	THTensor* add = (THTensor*) add;
+	THTensor* add = (THTensor*) a;
 	THTensor* gradOutput = (THTensor*) g;
 	THTensor* input = (THTensor*) t;
 
@@ -843,13 +839,11 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sp
 	#endif
 				gradKer, noOutputPlanes, noInputPlanes, kH, kW);
 
-	#ifdef CUDA
-
-#ifdef CUDA
-	// use separate cunn implementation
-	THCudaTensor_spatialdkerconvolve(state, gradKer, add,
-			gradOutput, input, sx, sy, px, py);
-#else
+//#ifdef CUDA
+//	// use separate cunn implementation
+//	THCudaTensor_spatialdkerconvolve(state, gradKer, add,
+//			gradOutput, input, sx, sy, px, py);
+//#else
 	// add if necessary
 	if(gradKer != add) {
 		THTensor_(copy)(
@@ -871,7 +865,7 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sp
 		input = padded;
 	}
 
-	THTensor_(conv2DRevgerm)(gradKer, 1.0, 1.0, input, gradOutput, sy, sx);
+	THTensor_(conv2DRevger)(gradKer, 1.0, 1.0, input, gradOutput, sy, sx);
 
 	// if padded, free padded input
 	if(px!=0 || py!=0){
@@ -882,7 +876,7 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sp
 				input);
 	}
 
-#endif
+//#endif
 	return gradKer;
 }
 
