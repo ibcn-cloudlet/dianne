@@ -180,7 +180,8 @@ public class DianneLearner extends HttpServlet {
 					int batch = learnerConfig.get("batch").getAsInt();
 					int epochs = learnerConfig.get("epochs").getAsInt();
 					float learningRate = learnerConfig.get("learningRate").getAsFloat();
-					float learningRateDecay = learnerConfig.get("learningRateDecay").getAsFloat();
+					float momentum = learnerConfig.get("momentum").getAsFloat();
+					float regularization = learnerConfig.get("regularization").getAsFloat();
 					String criterion = learnerConfig.get("loss").getAsString();
 					
 					Map<String, String> config = new HashMap<>();
@@ -188,6 +189,8 @@ public class DianneLearner extends HttpServlet {
 					config.put("endIndex", ""+end);
 					config.put("batchSize", ""+batch);
 					config.put("learningRate", ""+learningRate);
+					config.put("momentum", ""+momentum);
+					config.put("regularization", ""+regularization);
 					config.put("criterion", criterion);
 					config.put("syncInterval", ""+interval);
 					try {

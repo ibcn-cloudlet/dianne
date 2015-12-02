@@ -325,13 +325,13 @@ function createLearnModuleDialog(id, moduleItem){
 				batch: module.batch,
 				epochs: module.epochs,
 				learningRate: module.learningRate,
-				learningRateDecay: module.learningRateDecay
+				momentum: module.momentum,
+				regularization: module.regularization
 			},
 			dialog.find('.form-items'));
 		
 		
 		dialog.find(".submit").click(function(e){
-			console.log("HOERA "+$(this));
 		    $(this).text(function(i, text){
 		    	if(text === "Train"){
 		    		var id = $(this).closest(".modal").find(".module-id").val();
@@ -341,7 +341,8 @@ function createLearnModuleDialog(id, moduleItem){
 					trainer.batch = $(this).closest(".modal").find("#batch").val();
 					trainer.epochs = $(this).closest(".modal").find("#epochs").val();
 					trainer.learningRate = $(this).closest(".modal").find("#learningRate").val();
-					trainer.learningRateDecay = $(this).closest(".modal").find("#learningRateDecay").val();
+					trainer.momentum = $(this).closest(".modal").find("#momentum").val();
+					trainer.regularization = $(this).closest(".modal").find("#regularization").val();
 
 					learn(id);
 		    		return "Stop";
