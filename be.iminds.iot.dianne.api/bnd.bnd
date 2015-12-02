@@ -1,6 +1,5 @@
 Bundle-Version: 0.2.0.${tstamp}
 
-Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 Export-Package: \
 	be.iminds.iot.dianne.api.coordinator,\
 	be.iminds.iot.dianne.api.dataset,\

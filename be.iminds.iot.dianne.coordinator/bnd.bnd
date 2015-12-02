@@ -1,6 +1,5 @@
 Bundle-Version: 0.2.0.${tstamp}
 
-Bundle-Copyright: Copyright Ghent University - iMinds (c) 2014
 -buildpath: \
 	biz.aQute.junit,\
 	osgi.core;version=5.0,\
