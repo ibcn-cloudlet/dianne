@@ -219,26 +219,6 @@ public class THTensorMath implements TensorMath<THTensor> {
 	public int argmin(THTensor tensor) {
 		return argmin(tensor.address);
 	}
-
-	@Override
-	public THTensor convolution2D(THTensor res, THTensor mat1, THTensor mat2,
-			int sx, int sy, int mode, boolean flip) {
-		if(flip)
-			throw new UnsupportedOperationException();
-		long l = convolution2D(res==null ? 0 : res.address, mat1.address, mat2.address,
-				sx, sy, mode, flip);
-		return res==null ? new THTensor(l) : res;
-	}
-
-	@Override
-	public THTensor addconvolution2D(THTensor res, THTensor mat, THTensor mat1,
-			THTensor mat2, int sx, int sy, int mode, boolean flip) {
-		if(flip)
-			throw new UnsupportedOperationException();
-		long l = addconvolution2D(res==null ? 0 : res.address, mat.address, mat1.address, mat2.address,
-				sx, sy, mode, flip);
-		return res==null ? new THTensor(l) : res;
-	}
 	
 	@Override
 	public THTensor spatialconvolve(THTensor res, THTensor add, THTensor mat,
@@ -246,6 +226,22 @@ public class THTensorMath implements TensorMath<THTensor> {
 		long l = spatialconvolve(res==null ? 0 : res.address, add.address, mat.address,
 				k.address, sx, sy, px, py);
 		return res==null ? new THTensor(l) : res;
+	}
+	
+	@Override
+	public THTensor spatialdinconvolve(THTensor res, THTensor g, THTensor k,
+			int sx, int sy, int px, int py) {
+		long l = spatialdinconvolve(res==null ? 0 : res.address, g.address, k.address,
+				sx, sy, px, py);
+		return res == null ? new THTensor(l) : res;
+	}
+	
+	@Override
+	public THTensor spatialdkerconvolve(THTensor res, THTensor add, THTensor g,
+			THTensor k, int sx, int sy, int px, int py) {
+		long l = spatialdkerconvolve(res == null ? 0 : res.address, add.address, g.address,
+				k.address, sx, sy, px, py);
+		return res == null ? new THTensor(l) : res;
 	}
 
 	@Override
@@ -345,15 +341,15 @@ public class THTensorMath implements TensorMath<THTensor> {
 	private native int argmax(long tensor);
 
 	private native int argmin(long tensor);
-
-	private native long convolution2D(long res, long mat1, long mat2, int sx,
-			int sy, int mode, boolean flip);
-
-	private native long addconvolution2D(long res, long mat, long mat1,
-			long mat2, int sx, int sy, int mode, boolean flip);
 	
 	private native long spatialconvolve(long res, long add, long t,
 			long k, int sx, int sy, int px, int py);
+	
+	private native long spatialdinconvolve(long res, long g, long k,
+			int sx, int sy, int px, int py);
+	
+	private native long spatialdkerconvolve(long res, long add, long g,
+			long t, int sx, int sy, int px, int py);
 
 	private native long zeropad(long res, long t, int... paddings);
 

@@ -76,10 +76,8 @@ public class Linear extends AbstractTrainableModule {
 
 	@Override
 	public void accGradParameters() {
-		if(gradOutput!=null){
-			deltaWeights = factory.getTensorMath().addvv(deltaWeights, deltaWeights, gradOutput, input);
-			deltaBias = factory.getTensorMath().add(deltaBias, deltaBias, gradOutput);
-		}
+		deltaWeights = factory.getTensorMath().addvv(deltaWeights, deltaWeights, gradOutput, input);
+		deltaBias = factory.getTensorMath().add(deltaBias, deltaBias, gradOutput);
 	}
 
 }

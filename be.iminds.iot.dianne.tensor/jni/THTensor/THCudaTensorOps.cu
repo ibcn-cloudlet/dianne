@@ -580,6 +580,18 @@ extern "C" {
 		
 	}
 	
+	void THCudaTensor_spatialdinconvolve(THCState *state, THCudaTensor *gradInput, THCudaTensor *gradOutput,
+		THCudaTensor* weight, int dW, int dH, pW, pH)
+	{
+		// TODO
+	}
+	
+	void void THCudaTensor_spatialdkerconvolve(THCState *state, THCudaTensor *gradKer, THCudaTensor *add,
+		THCudaTensor* gradOutput, THCudaTensor* input, int dW, int dH, int pW, int pH)
+	{
+		// TODO
+	}
+	
 	void THCudaTensor_scale2d(THCState *state, THCudaTensor *output, THCudaTensor *input)
 	{
 		long output_c, output_h, output_w;

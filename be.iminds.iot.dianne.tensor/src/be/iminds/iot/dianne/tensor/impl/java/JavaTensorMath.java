@@ -239,7 +239,6 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		return res;
 	}
 
-
 	@Override
 	public JavaTensor addmv(JavaTensor res, final JavaTensor vec1, final JavaTensor mat,
 			final JavaTensor vec2) {
@@ -381,7 +380,6 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		return index;
 	}
 	
-	
 	@Override
 	public int argmin(final JavaTensor tensor) {
 		float min = Float.MAX_VALUE;
@@ -395,21 +393,18 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		}
 		return index;
 	}
-
-	@Override
-	public JavaTensor convolution2D(JavaTensor res, JavaTensor mat1, JavaTensor mat2, int stride_x, int stride_y, int mode, boolean flip) {
-		return addconvolution2D(res, null, mat1, mat2, stride_x, stride_y, mode, flip);
-	}
 	
-	@Override
-	public JavaTensor addconvolution2D(JavaTensor res, JavaTensor mat, JavaTensor mat1, JavaTensor mat2, int stride_x, int stride_y, int mode, boolean flip) {
+	private JavaTensor addconvolution2D(JavaTensor res, JavaTensor mat, JavaTensor mat1, JavaTensor mat2, int stride_x, int stride_y, int mode, boolean flip) {
 		JavaTensor kernel = mat2;
 		if(flip){
 			kernel = factory.createTensor(mat2.dims);
 			int k = kernel.data.length-1;
-			for(int i=0;i<kernel.data.length;i++){
-				kernel.data[i] = mat2.data[(mat2.indices==null? k-- : mat2.indices[k--])];
-			}
+			if(mat2.indices==null)
+				for(int i=0;i<kernel.data.length;i++)
+					kernel.data[i] = mat2.data[k--];
+			else
+				for(int i=0;i<kernel.data.length;i++)
+					kernel.data[i] = mat2.data[ mat2.indices[k--]];
 		}
 		if(mode == 1){
 			// full
@@ -487,7 +482,6 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		return r;
 	}
 	
-
 	@Override
 	public JavaTensor spatialconvolve(JavaTensor res, JavaTensor add,
 			JavaTensor mat, JavaTensor k, int sx, int sy, int px, int py) {
@@ -511,11 +505,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	
 		final JavaTensor output = res;
 	
-		JavaTensor padded = null;
-		if(px !=0 || py !=0){
-			padded = factory.getTensorMath().zeropad(padded, mat, 0, py, px);
-		}
-		final JavaTensor input = padded==null? mat : padded;
+		final JavaTensor input = px !=0 || py !=0 ? factory.getTensorMath().zeropad(null, mat, 0, py, px) : mat;
 		
 		IntStream
 		.range(0, noOutputPlanes)
@@ -524,17 +514,96 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 			JavaTensor planeKernels = k.select(0, i);
 			JavaTensor outputPlane = output.select(0, i);
 			outputPlane.fill(0.0f);
+			
+			if(noInputPlanes == 1) {
+				JavaTensor kernel = planeKernels.select(0, 0);
 
-			for (int j = 0; j < noInputPlanes; j++) {
-				JavaTensor kernel = planeKernels.select(0, j);
-
-				addconvolution2D(outputPlane, outputPlane, noInputPlanes == 1 ? input : input.select(0, j), 
+				addconvolution2D(outputPlane, outputPlane, input, 
 								kernel, sx, sy, 0, false);
+			} else {
+				for (int j = 0; j < noInputPlanes; j++) {
+					JavaTensor kernel = planeKernels.select(0, j);
+	
+					addconvolution2D(outputPlane, outputPlane, input.select(0, j), 
+									kernel, sx, sy, 0, false);
+				}
 			}
 
 			// add bias
 			add(outputPlane, outputPlane, add.get(i));
 		});
+		
+		return res;
+	}
+	
+	@Override
+	public JavaTensor spatialdinconvolve(JavaTensor res,
+			JavaTensor g, JavaTensor k, int sx, int sy, int px, int py) {
+		if(sx!=1 || sy!=1 || px != 0 || py != 0){
+			// TODO also implement this for strides != 1 & pads != 0
+			throw new UnsupportedOperationException();
+		}
+		
+		int[] outputDims = g.dims();
+		int[] kernelDims = k.dims();
+		int[] inputDims = {kernelDims[1], outputDims[1] + kernelDims[2] - 1, outputDims[2] + kernelDims[3] - 1};
+		
+		// backward based on http://andrew.gibiansky.com/blog/machine-learning/convolutional-neural-networks/
+		if(res == null || !res.hasDim(inputDims)){
+			res = factory.createTensor(inputDims);
+		}
+		
+		// TODO create subtensors once and reuse?
+		for(int i=0;i<inputDims[0];i++){
+			JavaTensor planeKernels = k.select(1, i);
+			JavaTensor gradInputPlane = res.select(0, i);
+			gradInputPlane.fill(0.0f);
+			for(int j=0;j<outputDims[0];j++){
+				JavaTensor kernel = planeKernels.select(0, j);
+				
+				// update gradInput
+				// this should be "full" convolution and flipped kernel?
+				addconvolution2D(gradInputPlane, gradInputPlane,
+						g.select(0, j), kernel, 1, 1, 1, true);
+			}
+		}
+		
+		return res;
+	}
+	
+	@Override
+	public JavaTensor spatialdkerconvolve(JavaTensor res, JavaTensor add,
+			JavaTensor g, JavaTensor t, int sx, int sy, int px, int py) {
+		if(sx!=1 || sy!=1 || px != 0 || py != 0){
+			// TODO also implement this for strides != 1 & pads != 0
+			throw new UnsupportedOperationException();
+		}
+		
+		int[] outputDims = g.dims();
+		int[] inputDims = t.dims();
+		int[] kernelDims = {outputDims[0], inputDims.length == 2 ? 1 : inputDims[0], inputDims[1] - outputDims[1] + 1, inputDims[2] - outputDims[2] + 1};
+		
+		if(add != null && add != res)
+			add.copyInto(res);
+		else if(res == null || !res.hasDim(kernelDims)){
+			res = factory.createTensor(kernelDims);
+		}
+		
+		// calculate grad weights based on http://andrew.gibiansky.com/blog/machine-learning/convolutional-neural-networks/
+		int noOutputPlanes = outputDims[0];
+		int noInputPlanes = inputDims.length == 2 ? 1 : inputDims[0];
+		
+		for(int i=0;i<noOutputPlanes;i++){
+			JavaTensor planeGradKernels = res.select(0, i);
+		
+			for(int j=0;j<noInputPlanes;j++){
+				JavaTensor gradKernel = planeGradKernels.select(0, j);
+				
+				//  update gradKernel
+				addconvolution2D(gradKernel, gradKernel, 
+						noInputPlanes== 1 ? t : t.select(0, j), g.select(0, i), 1, 1, 0, false);
+			}
+		}
 		
 		return res;
 	}
@@ -561,7 +630,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		return res;
 	}
 	
-	public JavaTensor maxpool2D(JavaTensor res, JavaTensor mat1, int w, int h, int stride_x, int stride_y) {
+	private JavaTensor maxpool2D(JavaTensor res, JavaTensor mat1, int w, int h, int stride_x, int stride_y) {
 		int r_h = (mat1.size(0) - h )/stride_y + 1;
 		int r_w = (mat1.size(1) - w )/stride_x + 1;
 		int skip = mat1.size(1);
@@ -588,7 +657,7 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 		return res;
 	}
 	
-	public JavaTensor dmaxpool2D(JavaTensor res, JavaTensor mat2, JavaTensor mat1, int w, int h, int stride_x, int stride_y) {
+	private JavaTensor dmaxpool2D(JavaTensor res, JavaTensor mat2, JavaTensor mat1, int w, int h, int stride_x, int stride_y) {
 		int r_h = (mat1.size(0) - h )/stride_y + 1;
 		int r_w = (mat1.size(1) - w )/stride_x + 1;
 		int skip = mat1.size(1);
@@ -619,7 +688,6 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 
 		return res;
 	}
-
 
 	@Override
 	public JavaTensor spatialmaxpool(JavaTensor res, JavaTensor t, int w, int h, int stride_x, int stride_y) {

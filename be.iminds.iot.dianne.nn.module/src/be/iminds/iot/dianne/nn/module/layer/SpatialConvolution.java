@@ -80,20 +80,8 @@ public class SpatialConvolution extends AbstractTrainableModule {
 	
 	@Override
 	protected void forward() {
-		int[] outDims = new int[3];
-		outDims[0] = noOutputPlanes;
-
-		if(input.dim()==2){
-			outDims[1] = (input.size(0) + 2*padY - kernelHeight)/strideY + 1;
-			outDims[2] = (input.size(1) + 2*padX - kernelWidth)/strideX + 1;
-		} else if(input.dim()==3){
-			outDims[1] = (input.size(1) + 2*padY - kernelHeight )/strideY + 1;
-			outDims[2] = (input.size(2) + 2*padX - kernelWidth )/strideX + 1;
-		} // else error?
-		if(output==null || !output.hasDim(outDims)){
-			output = factory.createTensor(outDims);
-		}
-		// TODO check input planes dim? // check kernel sizes?
+		// TODO check input planes dim?
+		// TODO check kernel sizes?
 		
 		output = factory.getTensorMath().spatialconvolve(output, bias, input, weights, strideX, strideY, padX, padY);
 	}
@@ -103,58 +91,15 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		if(deltaParameters==null){
 			initDeltaParameters();
 		}
-		if(strideX!=1 || strideY!=1){
-			// TODO also implement this for strides != 1
-			throw new UnsupportedOperationException();
-		}
-		
-		// backward based on http://andrew.gibiansky.com/blog/machine-learning/convolutional-neural-networks/
-		if(gradInput == null || !gradInput.sameDim(input)){
-			gradInput = factory.createTensor(input.dims());
-		}
-		
-		// TODO create subtensors once and reuse?
-		for(int i=0;i<noInputPlanes;i++){
-			Tensor planeKernels = weights.select(1, i);
-			Tensor gradInputPlane = noInputPlanes== 1 ? gradInput : gradInput.select(0, i);
-			gradInputPlane.fill(0.0f);
-			for(int j=0;j<noOutputPlanes;j++){
-				Tensor kernel = planeKernels.select(0, j);
-				
-				// update gradInput
-				// this should be "full" convolution and flipped kernel?
-				factory.getTensorMath().addconvolution2D(gradInputPlane, gradInputPlane,
-						gradOutput.select(0, j), kernel, 1, 1, 1, true);
-			}
-		}
+
+		gradInput = factory.getTensorMath().spatialdinconvolve(gradInput, gradOutput, weights, strideX, strideY, padX, padY);
 	}
 
 	@Override
 	public void accGradParameters() {
-		if(strideX!=1 || strideY!=1){
-			// TODO also implement this for strides != 1
-			throw new UnsupportedOperationException();
-		}
+		deltaWeights = factory.getTensorMath().spatialdkerconvolve(deltaWeights, deltaWeights, gradOutput, input, strideX, strideY, padX, padY);
 		
-		// calculate grad weights based on http://andrew.gibiansky.com/blog/machine-learning/convolutional-neural-networks/
-		if(gradOutput!=null){
-			for(int i=0;i<noOutputPlanes;i++){
-				Tensor planeGradKernels = deltaWeights.select(0, i);
-			
-				for(int j=0;j<noInputPlanes;j++){
-					Tensor gradKernel = planeGradKernels.select(0, j);
-					
-					//  update gradKernel
-					factory.getTensorMath().addconvolution2D(gradKernel, gradKernel, 
-							noInputPlanes== 1 ? input : input.select(0, j), gradOutput.select(0, i), 1, 1, 0, false);
-				}
-			}
-			
-			// grad bias
-			for(int i=0;i<noOutputPlanes;i++){
-				float sum = factory.getTensorMath().sum(gradOutput.select(0, i));
-				deltaBias.set(deltaBias.get(i)+sum, i);
-			}
-		}
+		for(int i = 0; i < noOutputPlanes; i++)
+			deltaBias.set(factory.getTensorMath().sum(gradOutput.select(0, i)), i);
 	}
 }

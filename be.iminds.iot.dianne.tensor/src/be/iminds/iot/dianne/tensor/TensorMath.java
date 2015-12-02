@@ -208,20 +208,6 @@ public interface TensorMath<T extends Tensor<T>> {
 	 * Return index of the min element (treats T as 1 dim vector)
 	 */
 	int argmin(final T tensor);
-	
-	/**
-	 * Calculate 2D convolution mat1 * mat2
-	 * 
-	 * mode is an integer:
-	 * mode = 0 : valid convolution
-	 * mode = 1 : full convolution
-	 */
-	T convolution2D(T res, final T mat1, final T mat2, final int sx, final int sy, final int mode, final boolean flip);
-
-	/**
-	 * Calculate 2D convolution mat1 * mat2 and add mat 
-	 */
-	T addconvolution2D(T res, final T add, final T mat1, final T mat2, final int sx, final int sy, final int mode, final boolean flip);
 
 	/**
 	 * Spatial convolution
@@ -231,6 +217,16 @@ public interface TensorMath<T extends Tensor<T>> {
 	 * For each input plane j it convolves with k[i][j] to get the output plane i and add add[i], with strides sx,sy and padding px,py
 	 */
 	T spatialconvolve(T res, final T add, final T t, final T k, final int sx, final int sy, final int px, final int py);
+	
+	/**
+	 * Spatial convolution gradient to input
+	 */
+	T spatialdinconvolve(T res, final T g, final T k, final int sx, final int sy, final int px, final int py);
+	
+	/**
+	 * Spatial convolution gradient to kernel
+	 */
+	T spatialdkerconvolve(T res, final T add, final T g, final T t, final int sx, final int sy, final int px, final int py);
 	
 	/**
 	 * Add paddings to tensor t, set padding size for each dimension

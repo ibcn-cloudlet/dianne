@@ -621,162 +621,6 @@ JNIEXPORT jint JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_arg
 	return index;
 }
 
-JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_convolution2D(
-		JNIEnv * env, jobject o, jlong dst, jlong src, jlong k, jint sx, jint sy, jint mode,
-		jboolean flip) {
-	Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_addconvolution2D(
-			env, o, dst, 0, src, k, sx, sy, mode, flip);
-}
-
-JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_addconvolution2D(
-		JNIEnv * env, jobject o, jlong dst, jlong add, jlong src, jlong k, jint sx, jint sy, jint mode,
-		jboolean flip) {
-	THTensor* r = getTHTensor(dst);
-
-	THTensor* t = (THTensor*) src;
-	THTensor* kernel = (THTensor*) k;
-
-	long kernelWidth = kernel->size[1];
-	long kernelHeight = kernel->size[0];
-	long inputWidth = t->size[1];
-	long inputHeight = t->size[0];
-
-	if(flip){
-		// TODO flip kernel?
-	}
-
-	long outputWidth;
-	long outputHeight;
-	char type[2];
-
-	if(mode==1){
-		// full
-		outputWidth  = inputWidth + (kernelWidth - 1);
-		outputHeight = inputHeight + (kernelHeight - 1);
-
-#ifdef CUDA
-		type[0] = 'f';
-		type[1] = 'x';
-#else
-		type[0] = 'F';
-#endif
-
-	} else {
-		// valid
-		outputWidth  = (inputWidth - kernelWidth) / sx + 1;
-		outputHeight = (inputHeight - kernelHeight) / sy + 1;
-#ifdef CUDA
-		type[0] = 'v';
-		type[1] = 'x';
-#else
-		type[0] = 'V';
-#endif
-	}
-
-	// initialize output with add or zero
-	THTensor_(resize2d)(
-#ifdef CUDA
-			state,
-#endif
-			r, outputHeight, outputWidth);
-	if(add!=0){
-		THTensor_(copy)(
-#ifdef CUDA
-				state,
-#endif
-				r, add);
-	} else {
-	    THTensor_(zero)(
-#ifdef CUDA
-	    		state,
-#endif
-	    		r);
-	}
-
-	// resize to 3d in/out and use conv2Dmv
-	THTensor_(resize3d)(
-#ifdef CUDA
-			state,
-#endif
-			r, 1, outputHeight, outputWidth);
-	THTensor_(resize3d)(
-#ifdef CUDA
-			state,
-#endif
-			t, 1, inputHeight, inputWidth);
-	THTensor_(resize4d)(
-#ifdef CUDA
-			state,
-#endif
-			kernel, 1, 1, kernelHeight, kernelWidth);
-
-#ifdef CUDA
-	THTensor_(conv2Dmv)(state, r, 1.0, t, kernel, sy, sx, type);
-#else
-	THTensor_(conv2Dmv)(r, 1.0, 1.0, t, kernel, sy, sx, type, "X");
-#endif
-
-
-	// resize back to 2d tensors
-	THTensor_(resize2d)(
-#ifdef CUDA
-			state,
-#endif
-			r, outputHeight, outputWidth);
-	THTensor_(resize2d)(
-#ifdef CUDA
-			state,
-#endif
-			t, inputHeight, inputWidth);
-	THTensor_(resize2d)(
-#ifdef CUDA
-			state,
-#endif
-			kernel, kernelHeight, kernelWidth);
-
-	return r;
-}
-
-JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_maxpool2D(
-		JNIEnv * env, jobject o, jlong dst, jlong src, jint w, jint h, jint sx, jint sy) {
-
-	THTensor* t = (THTensor*) src;
-	int inputWidth = t->size[1];
-	int inputHeight = t->size[0];
-
-	int outputWidth = (inputWidth - w)/sx + 1;
-	int outputHeight = (inputHeight - h)/sy + 1;
-
-	// use 3d tensor here to use spatialmaxpool function
-	THTensor* r = getTHTensor3(dst, 1, outputHeight, outputWidth);
-	THTensor_(resize3d)(
-#ifdef CUDA
-			state,
-#endif
-			t, 1, inputHeight, inputWidth);
-
-	spatialmaxpool(r, t, w, h, sx, sy);
-
-	THTensor_(resize2d)(
-#ifdef CUDA
-			state,
-#endif
-			t, inputHeight, inputWidth);
-	THTensor_(resize2d)(
-#ifdef CUDA
-			state,
-#endif
-			r, outputHeight, outputWidth);
-
-	return r;
-}
-
-
-JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_dmaxpool2D(
-		JNIEnv * env, jobject o, jlong dst, jlong m2, jlong m1, jint w, jint h, jint sx, jint sy) {
-}
-
-
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_spatialconvolve
   (JNIEnv * env, jobject o, jlong dst, jlong add, jlong src, jlong k, jint sx, jint sy, jint px, jint py){
 	THTensor* output = getTHTensor(dst);
@@ -791,6 +635,7 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sp
 	long inputHeight = input->size[1];
 	long outputWidth = (inputWidth + 2*px - kW) / sx + 1;
 	long outputHeight = (inputHeight + 2*py - kH) / sy + 1;
+
 	THTensor_(resize3d)(
 #ifdef CUDA
 			state,
@@ -867,6 +712,179 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sp
 	return output;
 }
 
+JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_spatialdinconvolve
+  (JNIEnv * env, jobject o, jlong res, jlong g, jlong k, jint sx, jint sy, jint px, jint py){
+	THTensor* gradInput = getTHTensor(res);
+	THTensor* gradOutput = (THTensor*) g;
+	THTensor* weight = (THTensor*) k;
+
+	THTensor* gradInputAlias = gradInput;
+
+	long noInputPlanes = weight->size[1];
+	long kH = weight->size[2];
+	long kW = weight->size[3];
+	long outputHeight = gradOutput->size[1];
+	long outputWidth = gradOutput->size[2];
+	long inputHeight = (outputHeight - 1) * sy + Kh - 2*py;
+	long inputWidth = (outputWidth - 1) * sx + kW - 2*px;
+
+	THTensor_(resize3d)(
+	#ifdef CUDA
+				state,
+	#endif
+				gradInput, noInputPlanes, inputHeight, inputWidth);
+	#ifdef CUDA
+
+#ifdef CUDA
+	// use separate cunn implementation
+	THCudaTensor_spatialdinconvolve(state, gradInput, gradOutput,
+			weight, sx, sy, px, py);
+#else
+	// add padding to gradinput if necessary
+	if(px!=0 || py!=0){
+		THTensor* padded = THTensor_(new)(
+		#ifdef CUDA
+					state
+		#endif
+		);
+		int p[3] = {0, py, px};
+		zeropad(padded, gradInput, p);
+		gradInput = padded;
+	}
+
+	/* gradient to input */
+	THTensor *tweight = THTensor_(newTranspose)(
+#ifdef CUDA
+			state,
+#endif
+			weight,0,1);
+
+#ifdef CUDA
+	char type[] = "fc";
+	THTensor_(conv2Dmv)(state, gradInput, 0.0, gradOutput, tweight, sy, sx, type);
+#else
+	THTensor_(conv2Dmv)(gradInput, 0.0, 1.0, gradOutput, tweight, sy, sx, "F","C");
+#endif
+
+	THTensor_(free)(
+#ifdef CUDA
+			state,
+#endif
+			tweight);
+
+	// if padded, free padded input
+	if(px!=0 || py!=0){
+		// first narrow and copy
+		THTensor* narrowed = THTensor_(newWithTensor)(
+		#ifdef CUDA
+					state,
+		#endif
+					gradInput);
+
+
+		THTensor_(narrow)(
+		#ifdef CUDA
+					state,
+		#endif
+					narrowed, narrowed, 1, py, inputHeight);
+		}
+
+		THTensor_(narrow)(
+		#ifdef CUDA
+					state,
+		#endif
+					narrowed, narrowed, 2, px, inputWidth);
+		}
+
+		THTensor_(copy)(
+		#ifdef CUDA
+				state,
+		#endif
+				gradInputCopy, narrowed);
+
+		THTensor_(free)(
+		#ifdef CUDA
+				state,
+		#endif
+				narrowed);
+
+		THTensor_(free)(
+	#ifdef CUDA
+				state,
+	#endif
+				gradInput);
+
+		gradInput = gradInputCopy;
+	}
+
+#endif
+	return gradInput;
+}
+
+JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_spatialdkerconvolve
+  (JNIEnv * env, jobject o, jlong res, jlong add, jlong g, jlong t, jint sx, jint sy, jint px, jint py){
+	THTensor* gradKer = getTHTensor(res);
+	THTensor* add = (THTensor*) add;
+	THTensor* gradOutput = (THTensor*) g;
+	THTensor* input = (THTensor*) t;
+
+	long noInputPlanes = input->size[0];
+	long noOutputPlanes = gradOutput->size[0];
+	long outputHeight = gradOutput->size[1];
+	long outputWidth = gradOutput->size[2];
+	long inputHeight = input->size[1];
+	long inputWidth = input->size[2];
+	long kH = inputHeight + 2*py - (outputHeight - 1) / sy;
+	long kW = inputWidth + 2*px - (outputWidth - 1) / sx;
+
+	THTensor_(resize4d)(
+	#ifdef CUDA
+				state,
+	#endif
+				gradKer, noOutputPlanes, noInputPlanes, kH, kW);
+
+	#ifdef CUDA
+
+#ifdef CUDA
+	// use separate cunn implementation
+	THCudaTensor_spatialdkerconvolve(state, gradKer, add,
+			gradOutput, input, sx, sy, px, py);
+#else
+	// add if necessary
+	if(gradKer != add) {
+		THTensor_(copy)(
+	#ifdef CUDA
+				state,
+	#endif
+				gradKer, add);
+	}
+
+	// if px,py!=0 : add padding to input
+	if(px!=0 || py!=0){
+		THTensor* padded = THTensor_(new)(
+		#ifdef CUDA
+					state
+		#endif
+		);
+		int p[3] = {0, py, px};
+		zeropad(padded, input, p);
+		input = padded;
+	}
+
+	THTensor_(conv2DRevgerm)(gradKer, 1.0, 1.0, input, gradOutput, sy, sx);
+
+	// if padded, free padded input
+	if(px!=0 || py!=0){
+		THTensor_(free)(
+	#ifdef CUDA
+				state,
+	#endif
+				input);
+	}
+
+#endif
+	return gradKer;
+}
 
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_zeropad
   (JNIEnv * env, jobject o, jlong dst, jlong src, jintArray paddings){
@@ -928,12 +946,10 @@ void zeropad(THTensor* r, THTensor* t, int* p){
 			narrowed);
 }
 
-
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_spatialmaxpool
   (JNIEnv * env, jobject o, jlong dst, jlong src, jint w, jint h, jint sx, jint sy){
 	THTensor* t = (THTensor*) src;
 	THTensor* r = getTHTensor3(dst, t->size[0], (t->size[1] - h)/sy+1, (t->size[2]-w)/sx + 1);
-
 
 #ifdef CUDA
 	THCudaTensor_spatialmaxpool(state, r, t, w, h, sx, sy);
@@ -1040,7 +1056,6 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sp
 	return r;
 
 }
-
 
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_scale2d
   (JNIEnv * env, jobject o, jlong dst, jlong src, jintArray dims){
