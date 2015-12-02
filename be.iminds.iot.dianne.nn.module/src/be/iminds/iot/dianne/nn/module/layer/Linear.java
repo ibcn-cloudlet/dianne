@@ -19,32 +19,36 @@ public class Linear extends AbstractTrainableModule {
 	
 	public Linear(TensorFactory factory, int inSize, int outSize){
 		super(factory);
-		init(inSize, outSize);
+		initParameters(inSize, outSize);
 	}
 	
 	public Linear(TensorFactory factory, UUID id, int inSize, int outSize){
 		super(factory, id);
-		init(inSize, outSize);
+		initParameters(inSize, outSize);
 	}
 	
-	private void init(int inSize, int outSize){
+	private void initParameters(int inSize, int outSize){
 		this.inSize = inSize;
 		this.outSize = outSize;
 		
 		parameters = factory.createTensor(outSize*(inSize+1));
-		deltaParameters = factory.createTensor(outSize*(inSize+1));
 		
 		weights = parameters.narrow(0, 0, outSize*inSize);
 		weights.reshape(outSize, inSize);
 		bias = parameters.narrow(0, outSize*inSize, outSize);
 		bias.reshape(outSize);
 
+		parameters.fill(0.0f);
+	}
+	
+	private void initDeltaParameters(){
+		deltaParameters = factory.createTensor(outSize*(inSize+1));
+		
 		deltaWeights = deltaParameters.narrow(0, 0, outSize*inSize);
 		deltaWeights.reshape(outSize, inSize);
 		deltaBias = deltaParameters.narrow(0, outSize*inSize, outSize);
 		deltaBias.reshape(outSize);
 		
-		parameters.fill(0.0f);
 		deltaParameters.fill(0.0f);
 	}
 	
@@ -64,6 +68,9 @@ public class Linear extends AbstractTrainableModule {
 
 	@Override
 	protected void backward() {
+		if(deltaParameters==null){
+			initDeltaParameters();
+		}
 		gradInput = factory.getTensorMath().tmv(gradInput, weights, gradOutput);
 	}
 

@@ -28,7 +28,7 @@ public class SpatialConvolution extends AbstractTrainableModule {
 			int kernelWidth, int kernelHeight,
 			int strideX, int strideY, boolean pad){
 		super(factory);
-		init(noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY, pad);
+		initParameters(noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY, pad);
 	}
 	
 	public SpatialConvolution(TensorFactory factory, UUID id,
@@ -36,10 +36,10 @@ public class SpatialConvolution extends AbstractTrainableModule {
 			int kernelWidth, int kernelHeight,
 			int strideX, int strideY, boolean pad){
 		super(factory, id);
-		init(noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY, pad);
+		initParameters(noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY, pad);
 	}
 	
-	protected void init(int noInputPlanes, int noOutputPlanes, 
+	protected void initParameters(int noInputPlanes, int noOutputPlanes, 
 			int kernelWidth, int kernelHeight, int strideX, int strideY, boolean pad){
 		this.noInputPlanes = noInputPlanes;
 		this.noOutputPlanes = noOutputPlanes;
@@ -57,12 +57,15 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		weights.reshape(noOutputPlanes, noInputPlanes, kernelWidth, kernelHeight);
 		bias = parameters.narrow(0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight, noOutputPlanes);
 		
+		parameters.fill(0.0f);
+	}
+	
+	protected void initDeltaParameters(){
 		deltaParameters = factory.createTensor(noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight+noOutputPlanes);
 		deltaWeights = deltaParameters.narrow(0, 0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight);
 		deltaWeights.reshape(noOutputPlanes, noInputPlanes, kernelWidth, kernelHeight);
 		deltaBias = deltaParameters.narrow(0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight, noOutputPlanes);
 		
-		parameters.fill(0.0f);
 		deltaParameters.fill(0.0f);
 	}
 	
@@ -97,6 +100,9 @@ public class SpatialConvolution extends AbstractTrainableModule {
 
 	@Override
 	protected void backward() {
+		if(deltaParameters==null){
+			initDeltaParameters();
+		}
 		if(strideX!=1 || strideY!=1){
 			// TODO also implement this for strides != 1
 			throw new UnsupportedOperationException();
