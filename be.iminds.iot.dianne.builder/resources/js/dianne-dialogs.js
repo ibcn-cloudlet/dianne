@@ -813,12 +813,14 @@ function evaluate(id){
 	Highcharts.charts[index].series[0].setData(null, true, true, false);
 	$("#dialog-"+id).find(".accuracy").text("");
 
+	// TODO there are no more intermediate updates now...
 	eventsource = new EventSource("/dianne/learner");
 	eventsource.onmessage = function(event){
 		var data = JSON.parse(event.data);
 		var index = Number($("#dialog-"+id).find(".content").attr("data-highcharts-chart"));
 		Highcharts.charts[index].series[0].setData(data, true, true, false);
 	}
+	$("#spinnerwrap").show();
 	$.post("/dianne/learner", {"action":"evaluate",
 		"id": nn.id,
 		"config":JSON.stringify(learning),
@@ -830,6 +832,8 @@ function evaluate(id){
 				
 				var index = Number($("#dialog-"+id).find(".content").attr("data-highcharts-chart"));
 				Highcharts.charts[index].series[0].setData(data.confusionMatrix, true, true, false);
+				
+				$("#spinnerwrap").hide();
 			}
 			, "json");
 }
