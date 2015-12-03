@@ -86,23 +86,35 @@ function setModus(m){
 }
 
 /**
- * Lock UI mode (handy for interactive demos) on ctrl
+ * Lock UI mode (handy for interactive demos in kiosk mode) on ctrl+k
  */
 
 window.addEventListener("keydown", checkKeyPressed, false);
+window.addEventListener("keyup", checkKeyReleased, false);
 
+var ctrl = false;
 var locked = false;
 
 function checkKeyPressed(e) {
     if (e.keyCode == "17") {
-    	if(!locked){
-    		$(".controls").hide();
-    		locked = true;
-    	} else {
-    		$(".controls").show();
-    		locked = false;
+    	ctrl = true
+    } else if(e.keyCode == "75"){
+    	if(ctrl){
+	    	if(!locked){
+	    		$(".controls").hide();
+	    		locked = true;
+	    	} else {
+	    		$(".controls").show();
+	    		locked = false;
+	    	}
     	}
     }
+}
+
+function checkKeyReleased(e) {
+    if (e.keyCode == "17") {
+    	ctrl = false;
+    } 
 }
 
 /**
