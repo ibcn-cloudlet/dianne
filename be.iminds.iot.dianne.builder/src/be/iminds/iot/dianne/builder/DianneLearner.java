@@ -178,7 +178,6 @@ public class DianneLearner extends HttpServlet {
 					int end = datasetConfig.get("train").getAsInt();
 					
 					int batch = learnerConfig.get("batch").getAsInt();
-					int epochs = learnerConfig.get("epochs").getAsInt();
 					float learningRate = learnerConfig.get("learningRate").getAsFloat();
 					float momentum = learnerConfig.get("momentum").getAsFloat();
 					float regularization = learnerConfig.get("regularization").getAsFloat();
@@ -193,10 +192,8 @@ public class DianneLearner extends HttpServlet {
 					config.put("regularization", ""+regularization);
 					config.put("criterion", criterion);
 					config.put("syncInterval", ""+interval);
+					
 					try {
-						learner.learn(nni, dataset, config);
-						
-						// TODO register a listener?
 						Dataset d = datasets.get(dataset);
 						if(d!=null){
 							JsonObject labels = new JsonObject();
@@ -204,6 +201,9 @@ public class DianneLearner extends HttpServlet {
 							response.getWriter().write(labels.toString());
 							response.getWriter().flush();
 						}
+						
+						learner.learn(nni, dataset, config);
+
 					} catch (Exception e) {
 						e.printStackTrace();
 					}

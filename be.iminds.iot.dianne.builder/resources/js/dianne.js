@@ -395,7 +395,6 @@ function addModule(moduleItem){
 		// TODO this is hard coded
 		//module.strategy = "Stochastic Gradient Descent";
 		module.batch = 10;
-		module.epochs = 1;
 		module.learningRate = 0.5;
 		module.momentum = 0.9;
 		module.regularization = 0;

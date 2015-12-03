@@ -323,7 +323,6 @@ function createLearnModuleDialog(id, moduleItem){
 				id : module.id,
 				loss : module.loss,
 				batch: module.batch,
-				epochs: module.epochs,
 				learningRate: module.learningRate,
 				momentum: module.momentum,
 				regularization: module.regularization
@@ -339,7 +338,6 @@ function createLearnModuleDialog(id, moduleItem){
 					var trainer = learning[id];
 					trainer.loss = $(this).closest(".modal").find("#loss").val();
 					trainer.batch = $(this).closest(".modal").find("#batch").val();
-					trainer.epochs = $(this).closest(".modal").find("#epochs").val();
 					trainer.learningRate = $(this).closest(".modal").find("#learningRate").val();
 					trainer.momentum = $(this).closest(".modal").find("#momentum").val();
 					trainer.regularization = $(this).closest(".modal").find("#regularization").val();
@@ -915,8 +913,8 @@ function createErrorChart(container) {
             title: {
                 text: 'Error'
             },
-            max: 1,
-            floor: 0,
+            max: 3,
+            min: 0,
             plotLines: [{
                 value: 0,
                 width: 1,
