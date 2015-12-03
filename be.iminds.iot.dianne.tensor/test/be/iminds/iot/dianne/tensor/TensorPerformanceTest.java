@@ -139,17 +139,17 @@ public class TensorPerformanceTest<T extends Tensor<T>> {
 		Assert.assertTrue((time)<5);
 	}
 
-	@Test
-	public void testConv(){
-		long t1 = System.currentTimeMillis();
-		for(int i=0;i<count;i++)
-			factory.getTensorMath().convolution2D(null, input, kernel, 1, 1, 2, false);
-		long t2 = System.currentTimeMillis();
-		
-		float time = (float)(t2-t1)/count;
-		System.out.println("conv: "+time+" ms");
-		Assert.assertTrue((time)<5);
-	}
+//	@Test
+//	public void testConv(){
+//		long t1 = System.currentTimeMillis();
+//		for(int i=0;i<count;i++)
+//			factory.getTensorMath().convolution2D(null, input, kernel, 1, 1, 2, false);
+//		long t2 = System.currentTimeMillis();
+//		
+//		float time = (float)(t2-t1)/count;
+//		System.out.println("conv: "+time+" ms");
+//		Assert.assertTrue((time)<5);
+//	}
 	
 	@Test
 	public void testSpatialConv(){
