@@ -89,10 +89,13 @@ public class DianneDeployer extends HttpServlet {
 				toDeploy.add(module);
 			}
 				
-			String target = request.getParameter("target");
-			UUID runtimeId = UUID.fromString(target);
-			
 			try {
+				String target = request.getParameter("target");
+				if(target==null){
+					throw new Exception("No DIANNE runtime selected to deploy to");
+				}
+				UUID runtimeId = UUID.fromString(target);
+				
 				UUID nnId = UUID.fromString(id);
 				List<ModuleInstanceDTO> moduleInstances = platform.deployModules(nnId, name, toDeploy, runtimeId);
 				// default parameters are loaded
@@ -107,9 +110,15 @@ public class DianneDeployer extends HttpServlet {
 					response.getWriter().flush();
 				} catch(IOException e){}
 			
-			} catch(InstantiationException e){
-				System.out.println("Failed to deploy modules: "+e.getMessage());
-			}
+			} catch(Exception ex){
+				System.out.println("Failed to deploy modules: "+ex.getMessage());
+				JsonObject result = new JsonObject();
+				result.add("error", new JsonPrimitive("Failed to deploy modules: "+ex.getMessage()));
+				try {
+					response.getWriter().write(result.toString());
+					response.getWriter().flush();
+				} catch(IOException e){}
+			} 
 				
 		} else if(action.equals("undeploy")){
 			String id = request.getParameter("id");

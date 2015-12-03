@@ -718,8 +718,12 @@ function deployAll(){
 			"modules":JSON.stringify(nn.modules),
 			"target":selectedTarget}, 
 			function( data ) {
-				nn.id = data.id;
-				$.each( data.deployment, color);
+				if(data.error!==undefined){
+					error(data.error);
+				} else {
+					nn.id = data.id;
+					$.each( data.deployment, color);
+				}
 				$("#spinnerwrap").hide();
 			}
 			, "json");
@@ -739,8 +743,12 @@ function deploy(id, target){
 		"module":JSON.stringify(nn.modules[id]),
 		"target": target}, 
 			function( data ) {
-				nn.id = data.id;
-				$.each( data.deployment, color );
+				if(data.error!==undefined){
+					error(data.error);
+				} else {
+					nn.id = data.id;
+					$.each( data.deployment, color );
+				}
 				$("#spinnerwrap").hide();
 			}
 			, "json");
@@ -970,4 +978,9 @@ function createConfusionChart(container) {
             }
         }]
     });
+}
+
+// error handler
+function error(message){
+	window.alert(message);
 }
