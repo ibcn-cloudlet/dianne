@@ -865,7 +865,11 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sp
 		input = padded;
 	}
 
-	THTensor_(conv2DRevger)(gradKer, 1.0, 1.0, input, gradOutput, sy, sx);
+	THTensor_(conv2DRevger)(
+#ifdef CUDA
+			state,
+#endif
+			gradKer, 1.0, 1.0, input, gradOutput, sy, sx);
 
 	// if padded, free padded input
 	if(px!=0 || py!=0){
@@ -1002,7 +1006,7 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sp
 			r);
 
 #ifdef CUDA
-	THCudaTensor_spatialdmaxpool(state, r, t2, t1, w, h, sx, sy);
+	THCudaTensor_spatialdmaxpool(state, r, t2, t, w, h, sx, sy);
 #else
 	int noPlanes = t->size[0];
 	int iwidth = t->size[2];
