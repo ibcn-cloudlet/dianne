@@ -25,5 +25,5 @@ javac.target: 1.8
 javac.debug:  on
 
 # Bnd Options
--sources:       true
+-sources:       false
 -sourcepath:    ${project}/src
