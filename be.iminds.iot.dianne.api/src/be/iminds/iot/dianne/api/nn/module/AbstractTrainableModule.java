@@ -31,7 +31,9 @@ public abstract class AbstractTrainableModule extends AbstractModule implements 
 
 	@Override
 	public void zeroDeltaParameters() {
-		deltaParameters.fill(0.0f);
+		if(deltaParameters!=null){
+			deltaParameters.fill(0.0f);
+		}
 	}
 
 	@Override
