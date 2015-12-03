@@ -13,6 +13,8 @@ or [OpenJDK](http://openjdk.java.net/)
 
 - [Apache Ant](http://ant.apache.org/) version 1.9 or higher 
 
+**Note**: At the moment we only have native code builds for Linux and Mac, Windows is currently not supported. Windows users can run DIANNE but have to use the Java tensor implementations (i.e. replacing `be.iminds.iot.dianne.tensor.th` by `be.iminds.iot.dianne.tensor.java` in each .bndrun file). The web UI is tested with the latest Firefox and Chrome browsers. 
+
 To develop and build OSGi bundles, the [BND](http://www.aqute.biz/Bnd/Bnd) tool is used. 
 This is included in the git repository, so no additional download is required. Although
 any code editor suffices to develop for DIANNE, we recommend the following setup:
@@ -55,15 +57,15 @@ The DIANNE web UI should show up:
 
 ![DIANNE web UI](figures/1.png)
 
-You can start building your own neural network by dragging and dropping components on the canvas. However, to start, we will load an example neural network by clicking the `Load` menu item:
+You can start building your own neural network by dragging and dropping components on the canvas. However, to start, we will load an example neural network by clicking the `Load` menu item. Choose the `mnist` neural network and hit the `Load` button in the dialog. Now a simple fully connected neural network with one hidden layer and sigmoid activation functions is shown.
 
 ![Load a predefined neural network](figures/2.png)
 
-Choose the `mnist` neural network and hit the `Load` button. Now a simple fully connected neural network with one hidden layer and sigmoid activation functions is shown.
+To deploy this neural network, go to the deploy mode by clicking the `Deploy` menu item top right. Now, instead of available neural network building blocks, you will see all available DIANNE runtimes.
 
 ![The example MNIST neural network](figures/3.png)
 
-To deploy this neural network, go to the deploy mode by clicking the `Deploy` menu item top right. Now, instead of available neural network building blocks, you will see all available DIANNE runtimes. Right now this is only one, your local environment. To deploy the neural network modules, click on the `Local` runtime box, and next click `Deploy All`. You can also click the `Local` runtime box, and then click on each of the modules separately. Congratulations, you have just deployed your first neural network on DIANNE.
+ Right now this is only one, your local environment. To deploy the neural network modules, click on the `Local` runtime box, and next click `Deploy All`. You can also click the `Local` runtime box, and then click on each of the modules separately. Congratulations, you have just deployed your first neural network on DIANNE.
 
 ![Deployed example MNIST neural network](figures/4.png)
 
@@ -80,7 +82,7 @@ You can now go ahead and build and train your own neural network. To clear the c
 2.Build and train your own neural network
 -----------------------------------------
 
-To build your own neural network, drag and drop modules from the toolbox onto the canvas. Connect the modules together such that you start with an `Input` module and end with an `Output` module, for example:
+To build your own neural network, drag and drop modules from the toolbox onto the canvas. You can scroll down the toolbox list, and you can (un)collapse categories by clicking on the category title.  Connect the modules together such that you start with an `Input` module and end with an `Output` module, for example:
 
 ![The example MNIST neural network](figures/3.png)
 
