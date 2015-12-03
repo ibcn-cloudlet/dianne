@@ -70,6 +70,7 @@ function setModus(m){
 			jsPlumb.show($(this).attr('id'),true);
 			$(this).show();
 		});
+		jsPlumb.repaintEverything();
 	} else if(currentMode === "run"){
 		console.log("switch to run");
 		$("#menu-run").addClass("active");
@@ -80,6 +81,7 @@ function setModus(m){
 			jsPlumb.show($(this).attr('id'),true);
 			$(this).show();
 		});
+		jsPlumb.repaintEverything();
 	}
 }
 
