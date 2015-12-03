@@ -325,7 +325,8 @@ function createLearnModuleDialog(id, moduleItem){
 				batch: module.batch,
 				learningRate: module.learningRate,
 				momentum: module.momentum,
-				regularization: module.regularization
+				regularization: module.regularization,
+				clean: module.clean
 			},
 			dialog.find('.form-items'));
 		
@@ -341,6 +342,7 @@ function createLearnModuleDialog(id, moduleItem){
 					trainer.learningRate = $(this).closest(".modal").find("#learningRate").val();
 					trainer.momentum = $(this).closest(".modal").find("#momentum").val();
 					trainer.regularization = $(this).closest(".modal").find("#regularization").val();
+					trainer.clean = $(this).closest(".modal").find("#clean").is(':checked');
 
 					learn(id);
 		    		return "Stop";

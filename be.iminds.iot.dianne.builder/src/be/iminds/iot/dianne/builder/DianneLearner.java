@@ -182,6 +182,7 @@ public class DianneLearner extends HttpServlet {
 					float momentum = learnerConfig.get("momentum").getAsFloat();
 					float regularization = learnerConfig.get("regularization").getAsFloat();
 					String criterion = learnerConfig.get("loss").getAsString();
+					boolean clean = learnerConfig.get("clean").getAsBoolean();
 					
 					Map<String, String> config = new HashMap<>();
 					config.put("startIndex", ""+start);
@@ -192,6 +193,7 @@ public class DianneLearner extends HttpServlet {
 					config.put("regularization", ""+regularization);
 					config.put("criterion", criterion);
 					config.put("syncInterval", ""+interval);
+					config.put("clean", clean ? "true" : "false");
 					
 					try {
 						Dataset d = datasets.get(dataset);

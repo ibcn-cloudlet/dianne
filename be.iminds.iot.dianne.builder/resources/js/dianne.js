@@ -411,6 +411,7 @@ function addModule(moduleItem){
 		module.momentum = 0.9;
 		module.regularization = 0;
 		module.loss = "MSE";
+		module.clean = false;
 	}
 	
 	// add to one of the module maps
