@@ -447,38 +447,42 @@ function createRunModuleDialog(id, moduleItem){
 			eventsource = new EventSource("/dianne/run?nnId="+nn.id);
 			eventsource.onmessage = function(event){
 				var data = JSON.parse(event.data);
-				$.each(running, function(id, module){
-					// choose right RunOutput to set the chart of
-					if(module.output===data.id){
-						var attr = $("#dialog-"+module.id).find(".content").attr("data-highcharts-chart");
-						if(attr!==undefined){
-							var index = Number(attr);
-							// data.output is tensor representation as string, should be parsed first
-
-							console.log(data.tags+" "+data.output);
-							if(data.tags.length != 0){
-								var title = "";
-								for(var i =0; i<data.tags.length; i++){
-									if(!isFinite(String(data.tags[i]))){
-										title+= data.tags[i]+" ";
+				if(data.error!==undefined){
+					error(data.error);
+				} else {
+					$.each(running, function(id, module){
+						// choose right RunOutput to set the chart of
+						if(module.output===data.id){
+							var attr = $("#dialog-"+module.id).find(".content").attr("data-highcharts-chart");
+							if(attr!==undefined){
+								var index = Number(attr);
+								// data.output is tensor representation as string, should be parsed first
+	
+								console.log(data.tags+" "+data.output);
+								if(data.tags.length != 0){
+									var title = "";
+									for(var i =0; i<data.tags.length; i++){
+										if(!isFinite(String(data.tags[i]))){
+											title+= data.tags[i]+" ";
+										}
 									}
+									Highcharts.charts[index].setTitle({text: title});
 								}
-								Highcharts.charts[index].setTitle({text: title});
+								Highcharts.charts[index].series[0].setData(data.output, true, true, true);
+								Highcharts.charts[index].xAxis[0].setCategories(data.labels);
 							}
-							Highcharts.charts[index].series[0].setData(data.output, true, true, true);
-							Highcharts.charts[index].xAxis[0].setCategories(data.labels);
+							
+							if(data.time === undefined){
+								$("#dialog-"+module.id).find(".content").find('.time').hide();
+							} else {
+								$("#dialog-"+module.id).find(".content").find('.time').text('Forward time: '+data.time+' ms')
+								$("#dialog-"+module.id).find(".content").find('.time').show();
+	
+							}
+							
 						}
-						
-						if(data.time === undefined){
-							$("#dialog-"+module.id).find(".content").find('.time').hide();
-						} else {
-							$("#dialog-"+module.id).find(".content").find('.time').text('Forward time: '+data.time+' ms')
-							$("#dialog-"+module.id).find(".content").find('.time').show();
-
-						}
-						
-					}
-				});
+					});
+				}
 			};
 		}
 		

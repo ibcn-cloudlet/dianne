@@ -317,6 +317,17 @@ public class DianneRunner extends HttpServlet {
 		return builder.toString();
 	}
 	
+	private String errorSSEMessage(ModuleException exception){
+		JsonObject data = new JsonObject();
+		
+		data.add("id", new JsonPrimitive(exception.moduleId.toString()));
+		data.add("error", new JsonPrimitive(exception.getMessage()));
+		
+		StringBuilder builder = new StringBuilder();
+		builder.append("data: ").append(data.toString()).append("\n\n");
+		return builder.toString();
+	}
+	
 	private class SSEForwardListener implements ForwardListener {
 
 		private final String nnId;
@@ -393,8 +404,26 @@ public class DianneRunner extends HttpServlet {
 		}
 
 		@Override
-		public void onError(UUID moduleId, ModuleException e, String... tags) {
-			e.printStackTrace();
+		public void onError(UUID moduleId, ModuleException ex, String... tags) {
+			try {
+				// only show exceptions for samples fired by UI 
+				boolean show = false;
+				if(tags!=null){
+					for(String t : tags){
+						if(t.equals("ui")){
+							show = true;
+						}
+					}
+				}
+				if(show){
+					String sseMessage = errorSSEMessage(ex);
+					PrintWriter writer = async.getResponse().getWriter();
+					writer.write(sseMessage);
+					writer.flush();
+				}
+
+			} catch(Exception e){
+			}	
 		}
 	}
 }
