@@ -986,5 +986,7 @@ function createConfusionChart(container) {
 
 // error handler
 function error(message){
-	window.alert(message);
+	renderTemplate("error", {
+		'message' : message
+	}, $("#alerts"));
 }

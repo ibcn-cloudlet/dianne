@@ -59,11 +59,13 @@
 			</div>
 		</header>
 
-
 		<div class="container-fluid">
 			<div id="builder" class="row">
 				<div id="toolbox" class="col-xs-4 col-md-2"></div>
-				<div id="canvas" class="col-xs-8 col-md-10"></div>
+				<div id="canvas" class="col-xs-8 col-md-10">
+					<div id="alerts">
+					</div>
+				</div>
 			</div>
 		</div>
 
@@ -219,6 +221,13 @@
 		</div>
 	</div>
 	</script>
+	
+	<script type="x-tmpl-mustache" id="error">
+		<div id="alert" class="alert alert-danger fade in">
+			<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+  			<strong>Error: </strong>{{message}}
+		</div>
+	</script>	
 	
 	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 	<script src="js/lib/jquery.min.js"></script>

@@ -823,8 +823,9 @@ function load(name){
 	
 	$.post("/dianne/load", {"action":"load", "name":name}, 
 			function( data ) {
-				// empty canvas?
-				$('#canvas').empty();
+				// empty canvas - keep alerts div
+				var alerts = $('#canvas #alerts').detach();
+				$('#canvas').empty().append(alerts);
 		
 				nn.modules = data.nn.modules;
 				loadLayout(data.layout);

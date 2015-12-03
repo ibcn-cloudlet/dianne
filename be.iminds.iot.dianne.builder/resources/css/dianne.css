@@ -291,4 +291,14 @@ footer {
   0%    { transform: rotate(0deg); }
   100%  { transform: rotate(360deg); }
 }
+
+/*
+ * Alert
+ */
+ 
+#alerts {
+	margin-top: 20px;
+	position: relative;
+	z-index: 999;
+} 
  
