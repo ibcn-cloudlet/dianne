@@ -193,14 +193,18 @@ public class DianneFileRepository implements DianneRepository {
 	
 	private Tensor load(UUID moduleId, String... tag){
 		try {
-			File d = new File(dir);
-			File f = null;
-			for(String l : d.list()){
-				f = new File(dir+"/"+l+"/"+parametersId(moduleId, tag));
-				if(f.exists()){
-					break;
-				} else {
-					f = null;
+			// first check weights, next check all other nn dirs
+			File f = new File(dir+"/weights/"+parametersId(moduleId, tag));
+			if(!f.exists()){
+				f = null;
+				File d = new File(dir);
+				for(String l : d.list()){
+					f = new File(dir+"/"+l+"/"+parametersId(moduleId, tag));
+					if(f.exists()){
+						break;
+					} else {
+						f = null;
+					}
 				}
 			}
 			if(f!=null){
