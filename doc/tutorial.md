@@ -8,7 +8,7 @@ In order to build and run DIANNE the following is required:
 
 - [Git](http://git-scm.com/)
 
-- Java JDK (minimal version 1.6) i.e. [Oracle JDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html) 
+- Java JDK (minimal version **1.8**) i.e. [Oracle JDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html) 
 or [OpenJDK](http://openjdk.java.net/)
 
 - [Apache Ant](http://ant.apache.org/) version 1.9 or higher 
