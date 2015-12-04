@@ -13,7 +13,7 @@ or [OpenJDK](http://openjdk.java.net/)
 
 - [Apache Ant](http://ant.apache.org/) version 1.9 or higher 
 
-**Note**: At the moment we only have native code builds for Linux and Mac, Windows is currently not supported. Windows users can run DIANNE but have to use the Java tensor implementations (i.e. replacing `be.iminds.iot.dianne.tensor.th` by `be.iminds.iot.dianne.tensor.java` in each .bndrun file). The web UI is tested with the latest Firefox and Chrome browsers. 
+**Note**: At the moment we only have native code builds for Linux and Mac. To run the native code you might need to install **libgfortan3** on your machine. Windows is currently not supported. Windows users can run DIANNE but have to use the Java tensor implementations (i.e. replacing `be.iminds.iot.dianne.tensor.th` by `be.iminds.iot.dianne.tensor.java` in each .bndrun file). The web UI is tested with the latest Firefox and Chrome browsers. 
 
 To develop and build OSGi bundles, the [BND](http://www.aqute.biz/Bnd/Bnd) tool is used. 
 This is included in the git repository, so no additional download is required. Although
@@ -65,9 +65,11 @@ To deploy this neural network, go to the deploy mode by clicking the `Deploy` me
 
 ![The example MNIST neural network](figures/3.png)
 
- Right now this is only one, your local environment. To deploy the neural network modules, click on the `Local` runtime box, and next click `Deploy All`. You can also click the `Local` runtime box, and then click on each of the modules separately. Congratulations, you have just deployed your first neural network on DIANNE.
+ Right now this is only one, your local environment. To deploy the neural network modules, click on the `Local` runtime box, and next click `Deploy All`. You can also click the `Local` runtime box, and then click on each of the modules separately. 
 
 ![Deployed example MNIST neural network](figures/4.png)
+
+Congratulations, you have just deployed your first neural network on DIANNE.
 
 Now to see this neural network in action, click the `Run` menu item top right. You can skip the `Learn` tab for now since we already trained this neural network for you. In the `Run` tab, drag the `MNIST` dataset on the canvas and connect it to the `Input` module. Similarly select an `Output probabilities` block and connect the `Output` module to it:
 
@@ -84,33 +86,33 @@ You can now go ahead and build and train your own neural network. To clear the c
 
 To build your own neural network, drag and drop modules from the toolbox onto the canvas. You can scroll down the toolbox list, and you can (un)collapse categories by clicking on the category title.  Connect the modules together such that you start with an `Input` module and end with an `Output` module, for example:
 
-![The example MNIST neural network](figures/3.png)
+![The example MNIST neural network](figures/7.png)
 
 Next, configure the modules by double clicking on them. Both the `Linear` modules need to be configured with an input and output size. Since we are working with the MNIST dataset, which is consists of 28x28 single channel images, the input of the first `Linear` is 28 x 28 = 784. The output is the number of hidden neurons we would like, for example 40.
 
-![Configure first Linear](figures/7.png)
+![Configure first Linear](figures/8.png)
 
 The second `Linear` module will then take 40 inputs, and the output will be the number of output classes, in the case of MNIST this is 10.
 
-![Configure second Linear](figures/8.png)
+![Configure second Linear](figures/9.png)
 
 Now deploy this neural network. When hitting the `Deploy` menu item, you will first be asked to save this neural network. Just give it a name you like
 
-![Save your neural network](figures/9.png)
+![Save your neural network](figures/10.png)
 
 Now click the `Learn` menu item to train your neural network. Start by adding an `MNIST` dataset and connecting this to your `Input`. Double clicking the dataset allows you to select how many samples will be used for training and how many will be used for testing. 
 
 To convince yourself that the neural network is actually not trained at all, connect an `Arg Max Evaluator`, double click on it and click `evaluate`. From the confusion matrix you can see that the neural network is not yet trained.
 
-![Untrained network](figures/10.png)
+![Untrained network](figures/11.png)
 
 Now connect an `SGD Trainer` block to the `Output` and open the training dialog by double clicking on it. The default parameters should suffice for this example, so click `Train`. Now the training procedure should start and you should see how the error decreases as training proceeds. 
 
-![Training your neural network](figures/11.png)
+![Training your neural network](figures/12.png)
 
 Click `Stop` when you are satisfied with the training. After a few minutes of training, your network should be able to reach over 90 per cent accuracy. Run the `Arg Max Evaluator` again. The confusion matrix should now highlight the diagonal meaning that the neural network performs good.
 
-![Evaluating the trained network](figures/12.png)
+![Evaluating the trained network](figures/13.png)
 
 To convince yourself even further, you can go ahead to the `Run` tab and see the outputs for individual samples.
 
