@@ -24,7 +24,7 @@
 #define THTENSOR_CUDA_JNI_H
 
 #include "TH/TH.h"
-#include "THC/THC.h"
+#include "cutorch/lib/THC/THC.h"
 
 #ifdef THTensor_
 #undef THTensor_

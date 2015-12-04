@@ -5,9 +5,9 @@
 extern "C" {
 #include "THCudaTensorOps.h"
 }
-#include "THC/THCApply.cuh"
-#include "THC/THCTensorMath.h"
-#include "THC/THCBlas.h"
+#include "cutorch/lib/THC/THCApply.cuh"
+#include "cutorch/lib/THC/THCTensorMath.h"
+#include "cutorch/lib/THC/THCBlas.h"
 
 #include <thrust/device_ptr.h>
 #include <thrust/device_vector.h>
