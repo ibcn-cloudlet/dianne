@@ -86,6 +86,9 @@ public class DianneRuntimeImpl implements DianneRuntime {
 	private Map<ForwardListener, List<String>> forwardListeners = new HashMap<ForwardListener, List<String>>();
 	private Map<BackwardListener, List<String>> backwardListeners = new HashMap<BackwardListener, List<String>>();
 
+	// Blacklisted module uuids that should not be deployed on this runtime
+	List<UUID> blacklist = new ArrayList<>();
+	
 	@Activate
 	public void activate(BundleContext context){
 		this.context = context;
@@ -93,6 +96,18 @@ public class DianneRuntimeImpl implements DianneRuntime {
 		this.name = context.getProperty("be.iminds.iot.dianne.runtime.name");
 		if(name==null){
 			name = runtimeId.toString().substring(0, runtimeId.toString().indexOf('-'));
+		}
+		
+		String blacklistString = context.getProperty("be.iminds.iot.dianne.runtime.blacklist");
+		if(blacklistString!=null){
+			String[] blacklistModules = blacklistString.split(",");
+			for(String b : blacklistModules){
+				try {
+					blacklist.add(UUID.fromString(b));
+				} catch(Exception e){
+					System.err.println("Error blacklisting moduleId "+b);
+				}
+			}
 		}
 	}
 	
@@ -330,6 +345,10 @@ public class DianneRuntimeImpl implements DianneRuntime {
 	
 	@Override
 	public synchronized ModuleInstanceDTO deployModule(ModuleDTO dto, UUID nnId, Tensor parameters){
+		if(blacklist.contains(dto.id)){
+			throw new RuntimeException("Module "+dto.id+" cannot be deployed on runtime "+name);
+		}
+		
 		// Create and register module
 		Module module = null;
 		synchronized(moduleFactories){
@@ -339,7 +358,11 @@ public class DianneRuntimeImpl implements DianneRuntime {
 					ModuleFactory mFactory = it.next();
 					module = mFactory.createModule(dto);
 				} catch(InstantiationException e){
-					
+					// means this factory cannot create this module type ... ignore
+				} catch(Exception ex){
+					// something seriously went wrong
+					// out of memory?
+					throw new RuntimeException(ex.getCause().getMessage());
 				}
 			}
 		}
@@ -425,6 +448,10 @@ public class DianneRuntimeImpl implements DianneRuntime {
 
 	@Override
 	public ModuleInstanceDTO deployModule(ModuleDTO dto, UUID nnId, String... tags){
+		if(blacklist.contains(dto.id)){
+			throw new RuntimeException("Module "+dto.id+" cannot be deployed on runtime "+name);
+		}
+		
 		Tensor parameters = null;
 		if(repository != null){
 			// TODO should we check first whether this module actually has parameters?
