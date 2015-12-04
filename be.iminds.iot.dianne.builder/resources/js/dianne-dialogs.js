@@ -937,7 +937,6 @@ function createErrorChart(container) {
             title: {
                 text: 'Error'
             },
-            max: 3,
             min: 0,
             plotLines: [{
                 value: 0,
@@ -956,7 +955,7 @@ function createErrorChart(container) {
             data: (function () {
                 // generate an array of empty data
                 var data = [],i;
-                for (i = -19; i <= 0; i += 1) {
+                for (i = -29; i <= 0; i += 1) {
                     data.push({
                         x: 0,
                         y: null
