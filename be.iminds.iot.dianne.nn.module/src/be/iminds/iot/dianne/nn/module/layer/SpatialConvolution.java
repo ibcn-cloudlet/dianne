@@ -104,7 +104,7 @@ public class SpatialConvolution extends AbstractTrainableModule {
 	protected void forward() {
 		// TODO check input planes dim?
 		// TODO check kernel sizes
-		if(input.dim() == 2) {
+		if(input.dim() == 2 && noInputPlanes == 1) {
 			input.reshape(1, input.size(0), input.size(1));
 		}
 		
@@ -115,6 +115,10 @@ public class SpatialConvolution extends AbstractTrainableModule {
 	protected void backward() {
 		if(deltaParameters==null){
 			initDeltaParameters();
+		}
+		
+		if(gradOutput.dim() == 1) {
+			gradOutput.reshape(output.dims());
 		}
 
 		gradInput = factory.getTensorMath().spatialdinconvolve(gradInput, gradOutput, weights, strideX, strideY, padX, padY);
