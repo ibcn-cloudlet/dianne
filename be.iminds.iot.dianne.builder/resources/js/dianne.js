@@ -168,8 +168,8 @@ function setupBuildToolbox(){
 
 function setupDeployToolbox(){
 	$('#toolbox .mCSB_container').empty();
-	$('<button id="deployAll" class="btn btn-default" onclick="deployAll();return false;">Deploy all</button>').appendTo($('#toolbox .mCSB_container'));
-	$('<button id="undeployAll" class="btn btn-default"  onclick="undeployAll();return false;">Undeploy all</button>').appendTo($('#toolbox .mCSB_container'));
+	$('<button id="deployAll" class="btn btn-default controls" onclick="deployAll();return false;">Deploy all</button>').appendTo($('#toolbox .mCSB_container'));
+	$('<button id="undeployAll" class="btn btn-default controls"  onclick="undeployAll();return false;">Undeploy all</button>').appendTo($('#toolbox .mCSB_container'));
 	
 	selectedTarget = undefined;
 	
