@@ -1,3 +1,5 @@
+Bundle-Version: 0.3.0.${tstamp}
+
 -buildpath: \
 	osgi.enterprise;version=5.0,\
 	com.esotericsoftware.kryo;version=2.23,\
