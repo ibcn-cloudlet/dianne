@@ -1,5 +1,5 @@
-#-runpath: biz.aQute.remote.launcher
-#
+-runpath: biz.aQute.remote.launcher
+
 #-runremote: \
 #	legolas; \
 #		jdb     =   1044; \
@@ -9,8 +9,12 @@
 -include: run-embedded.bndrun
 
 -runbundles.edison: \
-	be.iminds.iot.dianne.tensor.java;version=latest
+	be.iminds.iot.dianne.tensor.th;version=latest
 
 -runproperties.edison: \
-	be.iminds.iot.dianne.runtime.name="Edison"
+	rsa.timeout=600000,\
+	aiolos.monitor.service.size.ignore=true,\
+	be.iminds.iot.dianne.storage="nn",\
+	be.iminds.iot.dianne.runtime.name="Edison",\
+	be.iminds.iot.dianne.runtime.blacklist="745eb02f-9de2-2676-3446-78617362f67b"
 	
