@@ -97,7 +97,15 @@ public class Linear extends AbstractTrainableModule {
 	
 	@Override
 	protected void forward() {
-		output = factory.getTensorMath().addmv(output, bias, weights, input);
+		// if size smaller than inSize, add zeros
+		Tensor in = input;
+		if(in.size() < inSize){
+			in = factory.createTensor(inSize);
+			in.fill(0.0f);
+			Tensor narrow = in.narrow(0, input.size());
+			input.copyInto(narrow);
+		}
+		output = factory.getTensorMath().addmv(output, bias, weights, in);
 	}
 
 	@Override
