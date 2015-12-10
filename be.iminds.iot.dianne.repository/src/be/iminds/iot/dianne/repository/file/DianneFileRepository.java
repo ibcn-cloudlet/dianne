@@ -227,7 +227,7 @@ public class DianneFileRepository implements DianneRepository {
 		Map<UUID, Tensor> parameters  = new HashMap<>();
 		
 		NeuralNetworkDTO nn = loadNeuralNetwork(nnName);
-		for(ModuleDTO m : nn.modules){
+		for(ModuleDTO m : nn.modules.values()){
 			if(hasParameters(m)){
 				parameters.put(m.id, load(m.id, tag));
 			}

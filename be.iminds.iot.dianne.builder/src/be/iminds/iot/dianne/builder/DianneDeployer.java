@@ -104,7 +104,7 @@ public class DianneDeployer extends HttpServlet {
 			if(request.getParameter("modules")!=null){
 				String modulesJsonString = request.getParameter("modules");
 				NeuralNetworkDTO nn = DianneJSONConverter.parseJSON(modulesJsonString); 
-				toDeploy.addAll(nn.modules);
+				toDeploy.addAll(nn.modules.values());
 			} else if(request.getParameter("module")!=null){
 				String moduleJsonString = request.getParameter("module");
 				ModuleDTO module = DianneJSONConverter.parseModuleJSON(moduleJsonString);

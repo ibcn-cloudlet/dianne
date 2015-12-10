@@ -22,7 +22,11 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.nn.module.dto;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Represents a Neural Network being a list of ModuleDTOs and a name.
@@ -39,12 +43,17 @@ public class NeuralNetworkDTO {
 	public final String name;
 	
 	// the ModuleDTOs that this neural network consists of
-	public final List<ModuleDTO> modules;
+	public final Map<UUID, ModuleDTO> modules;
 	
 	
-	public NeuralNetworkDTO(String name, List<ModuleDTO> modules){
+	public NeuralNetworkDTO(String name, Map<UUID, ModuleDTO> modules){
 		this.name = name;
 		this.modules = modules;
+	}
+	
+	public NeuralNetworkDTO(String name, List<ModuleDTO> moduleList){
+		this.name = name;
+		this.modules = moduleList.stream().collect(Collectors.toMap(m -> m.id, m -> m));
 	}
 	
 	@Override

@@ -126,7 +126,7 @@ public class DiannePlatformImpl implements DiannePlatform {
 		UUID nnId = UUID.randomUUID();
 		
 		Map<UUID, ModuleInstanceDTO> moduleInstances = new HashMap<UUID, ModuleInstanceDTO>();
-		for(ModuleDTO module : neuralNetwork.modules){
+		for(ModuleDTO module : neuralNetwork.modules.values()){
 			UUID targetRuntime = deployment.get(module.id);
 			if(targetRuntime==null){
 				targetRuntime = runtimeId;

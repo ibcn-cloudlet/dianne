@@ -177,7 +177,7 @@ public class DianneJSONConverter {
 		JsonObject nn = new JsonObject();
 		
 		JsonObject modules = new JsonObject();
-		for(ModuleDTO m : dto.modules){
+		for(ModuleDTO m : dto.modules.values()){
 			JsonObject module = toJson(m);
 			modules.add(m.id.toString(), module);
 		}

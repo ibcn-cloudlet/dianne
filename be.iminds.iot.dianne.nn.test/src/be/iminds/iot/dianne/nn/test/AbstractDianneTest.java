@@ -79,7 +79,7 @@ public class AbstractDianneTest extends TestCase {
     	NeuralNetworkDTO nn = DianneJSONConverter.parseJSON(json);
     	
     	List<ModuleInstanceDTO> instances = new ArrayList<ModuleInstanceDTO>();
-    	for(ModuleDTO module : nn.modules){
+    	for(ModuleDTO module : nn.modules.values()){
     		ModuleInstanceDTO mi = mm.deployModule(module, TEST_NN_ID);
 	    	instances.add(mi);
     	}
