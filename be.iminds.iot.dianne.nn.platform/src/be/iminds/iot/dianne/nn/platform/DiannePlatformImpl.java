@@ -288,6 +288,11 @@ public class DiannePlatformImpl implements DiannePlatform {
 	}
 	
 	@Override
+	public NeuralNetworkDTO getAvailableNeuralNetwork(String name) {
+		return repository.loadNeuralNetwork(name);
+	}
+	
+	@Override
 	public Map<UUID, String> getRuntimes() {
 		/* TODO this will invoke a (remote) call to each runtime each time runtimes are fetched
 		 This is not optimal ... should be handled better with for example service property.

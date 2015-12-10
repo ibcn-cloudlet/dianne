@@ -26,9 +26,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
+import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 
 /**
@@ -132,6 +132,13 @@ public interface DiannePlatform {
 	 * @return the list of names that can be deployed
 	 */
 	List<String> getAvailableNeuralNetworks();
+	
+	/**
+	 * Get the structure of a neural network by name
+	 * @param name
+	 * @return the NeuralNetworkDTO describing the neural network structure
+	 */
+	NeuralNetworkDTO getAvailableNeuralNetwork(String name);
 	
 	/**
 	 * A map of available Dianne runtimes to which modules can be deployed to
