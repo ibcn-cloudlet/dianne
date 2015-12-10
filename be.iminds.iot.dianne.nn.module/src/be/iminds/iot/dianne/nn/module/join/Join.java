@@ -105,7 +105,12 @@ public abstract class Join extends AbstractModule {
 						b.set(false);
 					}
 				}
+			} else if(mode.contains(Mode.WAIT_FOR_FIRST)){
+				if(!moduleId.equals(prevIds[0])){
+					return;
+				}
 			}
+			
 			
 			try {
 				forward();

@@ -47,7 +47,15 @@ import be.iminds.iot.dianne.tensor.Tensor;
  */
 public interface Module {
 	
-	public enum Mode {BLOCKING, SKIP, FORWARD_ON_CHANGE, WAIT_FOR_ALL}
+	/**
+	 * Different modes for a module:
+	 * - BLOCKING: module will block input if busy with processing previous input
+	 * - SKIP: module will skip any input while busy processing previous input
+	 * - FORWARD_ON_CHANGE: in case of join modules: forward when any input changes
+	 * - WAIT_FOR_ALL: in case of join modules: wait for all inputs to be updated before forwarding
+	 * - WAIT_FOR_FIRST: in case of join modules: wait for first input to be updated before forwarding, use this in case of recurrent neural networks
+	 */
+	public enum Mode {BLOCKING, SKIP, FORWARD_ON_CHANGE, WAIT_FOR_ALL, WAIT_FOR_FIRST}
 	
 	/**
 	 * Get the identifier of this Module. This identifies the Module type and configuration, but
