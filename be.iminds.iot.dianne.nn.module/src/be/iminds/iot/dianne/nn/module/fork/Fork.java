@@ -22,6 +22,7 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.module.fork;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -75,6 +76,10 @@ public abstract class Fork extends AbstractModule {
 	
 	
 	protected synchronized void forward(final UUID moduleId, final ModuleException ex, final Tensor input, final String... tags) {
+		if(TRACE){
+			System.out.println("FORK "+this.id+" ("+this.getClass().getName()+")  FROM "+moduleId+" "+Arrays.toString(input.dims())+" "+Arrays.toString(tags));
+		}
+		
 		// skip or block when nexts are not ready processing previous output of this module
 		synchronized(nextsBusy){
 			while(nextBusy()){
@@ -124,6 +129,10 @@ public abstract class Fork extends AbstractModule {
 	}
 	
 	protected void backward(final UUID moduleId, final ModuleException ex, final Tensor gradOutput, final String... tags) {
+		if(TRACE){
+			System.out.println("BACKWARD FORK "+this.id+" ("+this.getClass().getName()+")  FROM "+moduleId+" "+Arrays.toString(input.dims())+" "+Arrays.toString(tags));
+		}
+		
 		this.tags = tags;
 		this.gradOutputs.put(moduleId, gradOutput);
 		this.exception = ex;

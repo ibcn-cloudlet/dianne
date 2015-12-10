@@ -22,6 +22,7 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.module.join;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -65,6 +66,10 @@ public abstract class Join extends AbstractModule {
 	}
 	
 	protected synchronized void forward(final UUID moduleId, final ModuleException ex, final Tensor input, final String... tags) {
+		if(TRACE){
+			System.out.println("JOIN "+this.id+" ("+this.getClass().getName()+")  FROM "+moduleId+" "+Arrays.toString(input.dims())+" "+Arrays.toString(tags));
+		}
+		
 		synchronized(nextBusy){
 			if(nextBusy.get()){
 				// next is busy, either block or skip
@@ -100,7 +105,7 @@ public abstract class Join extends AbstractModule {
 						b.set(false);
 					}
 				}
-			} 
+			}
 			
 			try {
 				forward();

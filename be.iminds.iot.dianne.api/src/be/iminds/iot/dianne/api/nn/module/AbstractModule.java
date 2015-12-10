@@ -46,6 +46,8 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
  */
 public abstract class AbstractModule implements Module {
 
+	protected final static boolean TRACE = true;
+	
 	// the factory for this module
 	protected final TensorFactory factory;
 	
@@ -157,6 +159,9 @@ public abstract class AbstractModule implements Module {
 	}
 	
 	protected synchronized void forward(final UUID moduleId, final ModuleException ex, final Tensor input, final String... tags) {
+		if(TRACE){
+			System.out.println("FORWARD "+this.id+" ("+this.getClass().getName()+")  FROM "+moduleId+" "+Arrays.toString(input.dims())+" "+Arrays.toString(tags));
+		}
 		// skip or block when next is not ready processing previous output of this module
 		synchronized(nextBusy){
 			if(nextBusy.get()){
@@ -218,6 +223,10 @@ public abstract class AbstractModule implements Module {
 	}
 	
 	protected synchronized void backward(final UUID moduleId, final ModuleException ex, final Tensor gradOutput, final String... tags) {
+		if(TRACE){
+			System.out.println("BACKWARD "+this.id+" ("+this.getClass().getName()+")  FROM "+moduleId+" "+Arrays.toString(input.dims())+" "+Arrays.toString(tags));
+		}
+		
 		this.gradOutput = gradOutput;
 		this.tags = tags;
 		this.exception = ex;
