@@ -61,14 +61,17 @@ public abstract class Fork extends AbstractModule {
 		for(int i=0; i< next.length;i++){
 			UUID id = nextIds[i];
 			Module m = next[i];
-			synchronized(nextsBusy){
-				nextsBusy.get(m).set(true);
-			}
 			
-			if(exception == null){
-				runExecutor.execute(new ForwardForkRunnable(m, outputs.get(id), tags));
-			} else {				
-				runExecutor.execute(new ForwardForkRunnable(m, exception, tags));
+			if(m!=null){
+				synchronized(nextsBusy){
+					nextsBusy.get(m).set(true);
+				}
+				
+				if(exception == null){
+					runExecutor.execute(new ForwardForkRunnable(m, outputs.get(id), tags));
+				} else {				
+					runExecutor.execute(new ForwardForkRunnable(m, exception, tags));
+				}
 			}
 		}
 	}
@@ -180,14 +183,16 @@ public abstract class Fork extends AbstractModule {
 			this.nextLock.clear();
 			this.nextsBusy.clear();
 			for(int i=0;i<next.length;i++){
-				UUID id = next[i].getId();
-				// make sure that UUIDs are in keys
-				// TODO better fix for this?
-				this.nextIds[i] = id;
-				this.outputs.put(id, null);
-				this.gradOutputs.put(id, null);
-				this.nextLock.put(id, new AtomicBoolean(false));
-				this.nextsBusy.put(next[i], new AtomicBoolean(false));
+				if(next[i]!=null){
+					UUID id = next[i].getId();
+					// make sure that UUIDs are in keys
+					// TODO better fix for this?
+					this.nextIds[i] = id;
+					this.outputs.put(id, null);
+					this.gradOutputs.put(id, null);
+					this.nextLock.put(id, new AtomicBoolean(false));
+					this.nextsBusy.put(next[i], new AtomicBoolean(false));
+				}
 			}
 		}
 	}

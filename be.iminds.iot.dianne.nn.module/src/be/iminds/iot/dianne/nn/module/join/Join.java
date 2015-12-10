@@ -61,7 +61,8 @@ public abstract class Join extends AbstractModule {
 			UUID id = prevIds[i];
 			Module m = prev[i];
 			
-			runExecutor.execute(new BackwardRunnable(m, gradInputs.get(id), tags));
+			if(m!=null)
+				runExecutor.execute(new BackwardRunnable(m, gradInputs.get(id), tags));
 		}
 	}
 	
@@ -139,11 +140,13 @@ public abstract class Join extends AbstractModule {
 			for(int i=0;i<prev.length;i++){
 				// make sure that UUIDs are in keys
 				// TODO better fix for this?
-				UUID id = prev[i].getId();
-				prevIds[i] = id;
-				inputs.put(id, null);
-				gradInputs.put(id, null);
-				prevLock.put(id, new AtomicBoolean(false));
+				if(prev[i]!=null){
+					UUID id = prev[i].getId();
+					prevIds[i] = id;
+					inputs.put(id, null);
+					gradInputs.put(id, null);
+					prevLock.put(id, new AtomicBoolean(false));
+				}
 			}
 		}
 	}
