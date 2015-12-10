@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.ModuleException;
+import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -153,7 +154,11 @@ public abstract class Fork extends AbstractModule {
 					b.set(false);
 				}
 			}
-		} 
+		} else if(mode.contains(Mode.WAIT_FOR_FIRST)){
+			if(!moduleId.equals(nextIds[0])){
+				return;
+			}
+		}
 		
 		if(exception == null){
 			try {
