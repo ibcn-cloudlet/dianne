@@ -104,6 +104,7 @@ public class Linear extends AbstractTrainableModule {
 			in.fill(0.0f);
 			Tensor narrow = in.narrow(0, input.size());
 			input.copyInto(narrow);
+			input = in;
 		}
 		output = factory.getTensorMath().addmv(output, bias, weights, in);
 	}
