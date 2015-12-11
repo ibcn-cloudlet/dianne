@@ -23,9 +23,12 @@
 package be.iminds.iot.dianne.rnn.command;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.UUID;
 
 import org.osgi.service.component.annotations.Component;
@@ -35,12 +38,14 @@ import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
 import be.iminds.iot.dianne.api.nn.module.Module;
+import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.nn.learn.criterion.MSECriterion;
+import be.iminds.iot.dianne.nn.learn.criterion.NLLCriterion;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -50,8 +55,8 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 @Component(
 		service=Object.class,
 		property={"osgi.command.scope=dianne",
+				  "osgi.command.function=recurrentLinks",
 				  "osgi.command.function=generate",
-				  "osgi.command.function=generate2",
 				  "osgi.command.function=bptt"},
 		immediate=true)
 public class DianneRNNCommands {
@@ -62,11 +67,30 @@ public class DianneRNNCommands {
 	
 	private final String chars = "abcde";
 	
+	public void recurrentLinks(String nnName){
+		Set<RecurrentLink> recurrentLinks = findRecurrentLinks(platform.getAvailableNeuralNetwork(nnName));
+		for(RecurrentLink l : recurrentLinks){
+			System.out.println("Recurrent link "+l.from.id+" ("+l.from.type+") -> "+l.to.id+" ("+l.to.type+")");
+		}
+	}
+	
 	public void generate(String nnName, char start, int n){
 		// forward of a rnn
 		try {
 			NeuralNetworkInstanceDTO nni = platform.deployNeuralNetwork(nnName, "test rnn");
 			NeuralNetwork nn = dianne.getNeuralNetwork(nni).getValue();
+
+			// set recurrent modules to WAIT_FOR_FIRST
+			// TODO get a better solution for this?!
+			Set<RecurrentLink> recurrentLinks = findRecurrentLinks(platform.getAvailableNeuralNetwork(nnName));
+			for(RecurrentLink l : recurrentLinks){
+				Module m1 = nn.getModules().get(l.from.id);
+				m1.setMode(EnumSet.of(Mode.BLOCKING, Mode.WAIT_FOR_FIRST));
+				
+				Module m2 = nn.getModules().get(l.to.id);
+				m2.setMode(EnumSet.of(Mode.BLOCKING, Mode.WAIT_FOR_FIRST));
+			}
+			
 			try {
 				nn.loadParameters("test");
 			} catch(Exception e){
@@ -89,17 +113,20 @@ public class DianneRNNCommands {
 	}
 	
 	public void bptt(String nnName){
+		bptt(nnName, 25, 1000);
+	}
+	
+	public void bptt(String nnName, int length, int iterations){
 		// training of a rnn by unfolding
 		try {
-			int length = 25;
-			
-			Criterion criterion = new MSECriterion(factory);
+			//Criterion criterion = new MSECriterion(factory);
+			Criterion criterion = new NLLCriterion(factory);
 			
 			Random rand = new Random();
 			String sequence = "aaabbbcccdddeeeaaabbbcccdddeeeaaabbbcccdddeeeaaabbbcccdddeeeaaabbbcccdddeeeaaabbbcccdddeeeaaabbbcccdddeee";
 			
 			// find recurrent links to unfold
-			List<RecurrentLink> recurrentLinks = findRecurrentLinks(platform.getAvailableNeuralNetwork(nnName));
+			Set<RecurrentLink> recurrentLinks = findRecurrentLinks(platform.getAvailableNeuralNetwork(nnName));
 		
 			List<NeuralNetworkInstanceDTO> nnis = new ArrayList<>(length);
 			List<NeuralNetwork> nns = new ArrayList<>(length);
@@ -117,6 +144,7 @@ public class DianneRNNCommands {
 				for(RecurrentLink l : recurrentLinks){
 					// next should be forwarded to next nn in unfolded list
 					Module m1 = nns.get(i).getModules().get(l.from.id);
+					m1.setMode(EnumSet.of(Mode.BLOCKING, Mode.WAIT_FOR_FIRST));
 					Module[] next = new Module[l.from.next.length];
 					for(int j=0;j<next.length;j++){
 						if(l.from.next[j].equals(l.to.id)){
@@ -134,6 +162,7 @@ public class DianneRNNCommands {
 					
 					// previous should be backwarded to prev nn in unfolded list
 					Module m2 = nns.get(i).getModules().get(l.to.id);
+					m2.setMode(EnumSet.of(Mode.BLOCKING, Mode.WAIT_FOR_FIRST));
 					Module[] prev = new Module[l.to.prev.length];
 					for(int j=0;j<prev.length;j++){
 						if(l.to.prev[j].equals(l.from.id)){
@@ -157,7 +186,6 @@ public class DianneRNNCommands {
 			nns.get(0).storeParameters("test");
 			
 			
-			int iterations = 1000;
 			float learningRate = 0.01f;
 			for(int l=0;l<iterations;l++){
 	
@@ -231,10 +259,22 @@ public class DianneRNNCommands {
 	private class RecurrentLink {
 		ModuleDTO from;
 		ModuleDTO to;
+		
+		public int hashCode(){
+			return from.hashCode()+to.hashCode();
+		}
+		
+		public boolean equals(Object other){
+			if(!(other instanceof RecurrentLink)){
+				return false;
+			}
+			RecurrentLink o = (RecurrentLink) other;
+			return o.from.equals(from) && o.to.equals(to);
+		}
 	}
 	
-	private List<RecurrentLink> findRecurrentLinks(NeuralNetworkDTO nn){
-		List<RecurrentLink> links = new ArrayList<>();
+	private Set<RecurrentLink> findRecurrentLinks(NeuralNetworkDTO nn){
+		Set<RecurrentLink> links = new HashSet<>();
 		
 		// should have only one input?
 		ModuleDTO input = nn.modules.values().stream().filter(m -> m.type.equals("Input")).findFirst().get();
@@ -243,19 +283,27 @@ public class DianneRNNCommands {
 		return links;
 	}
 	
-	private void visit(List<UUID> visited, List<RecurrentLink> links, ModuleDTO toVisit, Map<UUID, ModuleDTO> modules){
+	private void visit(List<UUID> visited, Set<RecurrentLink> links, ModuleDTO toVisit, Map<UUID, ModuleDTO> modules){
 		visited.add(toVisit.id);
+
 		if(toVisit.next==null){
 			return;
 		}
 		for(UUID nxt : toVisit.next){
 			if(visited.contains(nxt)){
-				RecurrentLink l = new RecurrentLink();
-				l.from = toVisit;
-				l.to = modules.get(nxt);
-				links.add(l);
+				ModuleDTO nxtModule = modules.get(nxt);
+				if(toVisit.next.length>1){
+					RecurrentLink l = new RecurrentLink();
+					l.from = toVisit;
+					l.to = nxtModule;
+					links.add(l);
+				}
 			} else {
-				visit(visited, links, modules.get(nxt), modules);
+				List<UUID> list = visited;
+				if(toVisit.next.length>0){
+					list = new ArrayList<>(visited);
+				}
+				visit(list, links, modules.get(nxt), modules);
 			}
 		}
 	}
