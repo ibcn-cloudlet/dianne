@@ -42,7 +42,7 @@ public class Accumulate extends Join {
 	protected void forward() {
 		// accumulate inputs
 		if(output==null){
-			output = factory.createTensor(inputs.values().iterator().next().dims());
+			output = factory.createTensor(inputs.values().stream().filter(t -> t !=null).findFirst().get().dims());
 		}
 		output.fill(0.0f);
 		for(Tensor t : inputs.values()){
