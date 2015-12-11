@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Contributors:
- *     Tim Verbelen, Steven Bohez
+ *     Tim Verbelen, Steven Bohez, Elias De Coninck
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.module.activation;
 
@@ -26,8 +26,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.UUID;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,7 +36,6 @@ import org.junit.runners.Parameterized.Parameters;
 import be.iminds.iot.dianne.api.nn.module.BackwardListener;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Module;
-import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;
@@ -167,7 +165,6 @@ public class ActivationTest {
 		Tensor expOutput = factory.createTensor(eo, 11);
 
 		float[] eg = new float[] { 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 1f, 1f, 1f, 1f, 1f };
-
 		Tensor expGradInput = factory.createTensor(eg, 11);
 
 		Module m = new PReLU(factory, 0.1f);
