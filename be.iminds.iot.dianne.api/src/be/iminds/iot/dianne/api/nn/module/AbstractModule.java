@@ -95,7 +95,7 @@ public abstract class AbstractModule implements Module {
 	protected Set<BackwardListener> bwListeners = Collections.synchronizedSet(new HashSet<BackwardListener>());
 
 	// Mode
-	protected EnumSet<Mode> mode = EnumSet.of(Mode.BLOCKING, Mode.WAIT_FOR_FIRST);
+	protected EnumSet<Mode> mode = EnumSet.of(Mode.BLOCKING, Mode.WAIT_FOR_ALL);
 	
 	// Allows to set a common executor for multple module instances
 	public void setRunExecutorService(ExecutorService executor){
