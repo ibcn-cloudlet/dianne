@@ -54,6 +54,7 @@ import be.iminds.iot.dianne.nn.module.io.OutputImpl;
 import be.iminds.iot.dianne.nn.module.join.Accumulate;
 import be.iminds.iot.dianne.nn.module.join.Concat;
 import be.iminds.iot.dianne.nn.module.layer.Dropout;
+import be.iminds.iot.dianne.nn.module.join.Multiply;
 import be.iminds.iot.dianne.nn.module.layer.Linear;
 import be.iminds.iot.dianne.nn.module.layer.MaskedMaxPooling;
 import be.iminds.iot.dianne.nn.module.layer.SpatialConvolution;
@@ -108,6 +109,8 @@ public class DianneModuleFactory implements ModuleFactory {
 		addSupportedType(new ModuleTypeDTO("Duplicate", "Fork", false));
 		
 		addSupportedType(new ModuleTypeDTO("Accumulate", "Join", false));
+		
+		addSupportedType(new ModuleTypeDTO("Multiply", "Join", false));
 		
 		addSupportedType(new ModuleTypeDTO("Split", "Fork", false));
 		
@@ -251,6 +254,11 @@ public class DianneModuleFactory implements ModuleFactory {
 		case "Accumulate":
 		{
 			module = new Accumulate(factory, id);
+			break;
+		}
+		case "Multiply":
+		{
+			module = new Multiply(factory, id);
 			break;
 		}
 		case "Split":
