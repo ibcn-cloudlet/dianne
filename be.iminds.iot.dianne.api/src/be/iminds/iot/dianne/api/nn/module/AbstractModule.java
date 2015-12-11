@@ -85,7 +85,7 @@ public abstract class AbstractModule implements Module {
 	protected AtomicBoolean nextBusy = new AtomicBoolean();
 	
 	// Thread executor to perform calculations on
-	protected ExecutorService runExecutor = Executors.newSingleThreadExecutor();
+	protected ExecutorService runExecutor = Executors.newCachedThreadPool();
 	// Thread executor to notify listeners
 	protected ExecutorService listenerExecutor = Executors.newSingleThreadExecutor();
 
