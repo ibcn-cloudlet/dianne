@@ -30,7 +30,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
 import be.iminds.iot.dianne.api.nn.module.Module;
-import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
@@ -57,7 +56,7 @@ public abstract class Join extends AbstractModule {
 	
 	protected void callPrevious(){
 		// call all previous
-		for(int i=0; i< next.length;i++){
+		for(int i=0; i< prev.length;i++){
 			UUID id = prevIds[i];
 			Module m = prev[i];
 			
