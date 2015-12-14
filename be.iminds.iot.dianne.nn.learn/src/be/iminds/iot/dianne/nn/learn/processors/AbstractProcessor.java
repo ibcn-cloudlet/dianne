@@ -29,10 +29,10 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public abstract class AbstractProcessor implements Processor {
 
+	private final AbstractProcessor decorated;
+	
 	protected final TensorFactory factory;
-	
 	protected final NeuralNetwork nn;
-	
 	protected final DataLogger logger;
 	
 	public AbstractProcessor(TensorFactory factory, 
@@ -41,8 +41,30 @@ public abstract class AbstractProcessor implements Processor {
 		this.factory = factory;
 		this.nn = nn;
 		this.logger = logger;
+		
+		this.decorated = null;
+	}
+	
+	public AbstractProcessor(AbstractProcessor decorated){
+		this.factory = decorated.factory;
+		this.nn = decorated.nn;
+		this.logger = decorated.logger;
+		
+		this.decorated = decorated;
 	}
 
 	@Override
-	public abstract float processNext();
+	final public float processNext(){
+		float error = 0;
+		
+		if(decorated!=null){
+			error = decorated.processNext();
+		}
+		
+		error = processNext(error);
+		return error;
+	}
+	
+	protected abstract float processNext(float error);
+	
 }

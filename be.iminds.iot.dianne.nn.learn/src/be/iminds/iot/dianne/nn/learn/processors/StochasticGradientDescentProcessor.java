@@ -22,47 +22,23 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.learn.processors;
 
-import be.iminds.iot.dianne.api.dataset.Dataset;
-import be.iminds.iot.dianne.api.log.DataLogger;
-import be.iminds.iot.dianne.api.nn.NeuralNetwork;
-import be.iminds.iot.dianne.api.nn.learn.Criterion;
-import be.iminds.iot.dianne.api.nn.learn.Processor;
-import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
-import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
-
 public class StochasticGradientDescentProcessor extends AbstractProcessor {
 
-	private final Processor decorated;
-	
 	private final float learningRate;
 	
 	public StochasticGradientDescentProcessor( AbstractProcessor p, float learningRate ) {
-		super(p.factory, p.nn, p.logger);
-		this.decorated = p;
-		
+		super(p);
 		this.learningRate = learningRate;
 	}
 	
-	
 	@Override
-	public float processNext() {
-		float error = decorated.processNext();
-
+	public float processNext(float error) {
 		// apply learning rate
-		applyLearningRate();
+		// multiply with learning rate
+		nn.getTrainables().values().stream().forEach(
+				m -> factory.getTensorMath().mul(m.getDeltaParameters(), m.getDeltaParameters(), -learningRate));
 		
 		return error;
 	}
 
-	protected void accGradParameters(){
-		// acc gradParameters
-		nn.getTrainables().values().stream().forEach(m -> m.accGradParameters());
-	}
-	
-	protected void applyLearningRate(){
-		// multiply with learning rate
-		nn.getTrainables().values().stream().forEach(
-				m -> factory.getTensorMath().mul(m.getDeltaParameters(), m.getDeltaParameters(), -learningRate));
-	}
 }

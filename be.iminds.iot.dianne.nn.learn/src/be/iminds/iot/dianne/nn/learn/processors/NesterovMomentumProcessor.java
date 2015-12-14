@@ -34,24 +34,18 @@ import be.iminds.iot.dianne.tensor.Tensor;
  */
 public class NesterovMomentumProcessor extends AbstractProcessor {
 
-	private final Processor decorated;
 	private final float momentum;
 	
 	private Map<UUID, Tensor> previousVelocity = new HashMap<UUID, Tensor>();
 	private Map<UUID, Tensor> velocity = new HashMap<UUID, Tensor>();
-
 	
 	public NesterovMomentumProcessor( AbstractProcessor p, float momentum ) {
-		super(p.factory, p.nn, p.logger);
-		this.decorated = p;
-		
+		super(p);
 		this.momentum = momentum;
 	}
 	
 	@Override
-	public float processNext() {
-		float error = decorated.processNext();
-		
+	public float processNext(float error) {
 		// copy to previous velocity
 		velocity.entrySet().stream().forEach(e -> {
 			Tensor v = e.getValue();

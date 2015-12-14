@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import be.iminds.iot.dianne.api.nn.learn.Processor;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
@@ -34,22 +33,17 @@ import be.iminds.iot.dianne.tensor.Tensor;
  */
 public class MomentumProcessor extends AbstractProcessor {
 
-	private final Processor decorated;
 	private final float momentum;
 	
 	private Map<UUID, Tensor> velocity = new HashMap<UUID, Tensor>();
 	
 	public MomentumProcessor( AbstractProcessor p, float momentum ) {
-		super(p.factory, p.nn, p.logger);
-		this.decorated = p;
-		
+		super(p);
 		this.momentum = momentum;
 	}
 	
 	@Override
-	public float processNext() {
-		float error = decorated.processNext();
-		
+	public float processNext(float error) {
 		// add momentum
 		nn.getTrainables().entrySet().stream().forEach(e -> {
 			Tensor v = velocity.get(e.getKey());

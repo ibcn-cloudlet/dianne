@@ -62,7 +62,7 @@ public class MinibatchProcessor extends AbstractProcessor {
 	
 	
 	@Override
-	public float processNext() {
+	public float processNext(float e) {
 		error = 0;
 
 		for(int i=0;i<batchSize;i++){
