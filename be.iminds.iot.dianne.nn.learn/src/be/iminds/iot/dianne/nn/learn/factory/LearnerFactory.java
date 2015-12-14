@@ -23,7 +23,6 @@
 package be.iminds.iot.dianne.nn.learn.factory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Map;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
@@ -35,7 +34,9 @@ import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 import be.iminds.iot.dianne.nn.learn.criterion.MSECriterion;
 import be.iminds.iot.dianne.nn.learn.criterion.NLLCriterion;
 import be.iminds.iot.dianne.nn.learn.processors.AbstractProcessor;
+import be.iminds.iot.dianne.nn.learn.processors.MinibatchProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.MomentumProcessor;
+import be.iminds.iot.dianne.nn.learn.processors.NesterovMomentumProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.RegularizationProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.StochasticGradientDescentProcessor;
 import be.iminds.iot.dianne.nn.learn.sampling.RandomSamplingStrategy;
@@ -71,7 +72,7 @@ public class LearnerFactory {
 		SamplingStrategy s = createSamplingStrategy(d, config);
 		
 		AbstractProcessor p = new StochasticGradientDescentProcessor(factory, nn, logger,d, s, c, 
-				learningRate, batchSize);
+                               learningRate, batchSize);
 		
 		System.out.println("StochasticGradientDescent");
 		System.out.println("* criterion = "+c.getClass().getName());
@@ -104,6 +105,15 @@ public class LearnerFactory {
 			AbstractProcessor m = new MomentumProcessor(p, momentum);
 			
 			System.out.println("Momentum");
+			System.out.println("* rate = "+momentum);
+			System.out.println("---");
+			
+			return m;
+		} else if(config.get("nesterov")!=null){
+			float momentum = Float.parseFloat(config.get("nesterov"));
+			AbstractProcessor m = new NesterovMomentumProcessor(p, momentum);
+			
+			System.out.println("Nesterov momentum");
 			System.out.println("* rate = "+momentum);
 			System.out.println("---");
 			
