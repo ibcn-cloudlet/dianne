@@ -37,7 +37,7 @@ public class MomentumProcessor extends AbstractProcessor {
 	private final Processor decorated;
 	private final float momentum;
 	
-	private Map<UUID, Tensor> previousDelta = new HashMap<UUID, Tensor>();
+	private Map<UUID, Tensor> velocity = new HashMap<UUID, Tensor>();
 	
 	public MomentumProcessor( AbstractProcessor p, float momentum ) {
 		super(p.factory, p.nn, p.logger);
@@ -52,19 +52,18 @@ public class MomentumProcessor extends AbstractProcessor {
 		
 		// add momentum
 		nn.getTrainables().entrySet().stream().forEach(e -> {
-			Tensor prev = previousDelta.get(e.getKey());
-			if(prev!=null){
+			Tensor v = velocity.get(e.getKey());
+			if(v!=null){
 				Tensor deltaParams = e.getValue().getDeltaParameters();
-				factory.getTensorMath().add(deltaParams, deltaParams , momentum, prev);
+				factory.getTensorMath().add(deltaParams, deltaParams , momentum, v);
 			}
 		});
 		
-		// copy to previousGrad
+		// copy to velocity
 		nn.getTrainables().entrySet().stream().forEach(e -> {
-			Tensor prev = previousDelta.get(e.getKey());
+			Tensor v = velocity.get(e.getKey());
 			Tensor deltaParams = e.getValue().getDeltaParameters();
-			deltaParams.copyInto(prev);
-			previousDelta.put(e.getKey(), deltaParams);
+			velocity.put(e.getKey(), deltaParams.copyInto(v));
 		});
 		
 		return error;
