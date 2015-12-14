@@ -475,6 +475,25 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_ds
 	return r;
 }
 
+JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_sqrt(
+		JNIEnv * env, jobject o, jlong dst, jlong src) {
+	THTensor* r = getTHTensor(dst);
+	THTensor* t = (THTensor*) src;
+	THTensor_(resizeAs)(
+#ifdef CUDA
+			state,
+#endif
+			r, t);
+
+	THTensor_(sqrt)(
+#ifdef CUDA
+			state,
+#endif
+			r, t);
+
+	return r;
+}
+
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensorMath_thresh__JJFFF(
 		JNIEnv * env, jobject o, jlong dst, jlong src, jfloat thres, jfloat coeff, jfloat of) {
 	THTensor* r = getTHTensor(dst);

@@ -173,6 +173,13 @@ public class THTensorMath implements TensorMath<THTensor> {
 		long l = dsigmoid(res==null ? 0 : res.address, tensor.address);
 		return res==null ? new THTensor(l) : res;
 	}
+	
+	@Override
+	public THTensor sqrt(THTensor res, THTensor tensor) {
+		long l = sqrt(res==null ? 0 : res.address, tensor.address);
+		return res==null ? new THTensor(l) : res;
+	}
+
 
 	@Override
 	public THTensor thresh(THTensor res, THTensor tensor, float thresh,
@@ -339,6 +346,8 @@ public class THTensorMath implements TensorMath<THTensor> {
 	private native long sigmoid(long res, long tensor);
 
 	private native long dsigmoid(long res, long tensor);
+	
+	private native long sqrt(long res, long tensor);
 
 	private native long thresh(long res, long tensor, float thresh,
 			float coeff, float offset);

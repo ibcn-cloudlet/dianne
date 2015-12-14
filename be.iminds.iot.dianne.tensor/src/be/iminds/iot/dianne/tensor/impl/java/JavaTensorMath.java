@@ -328,6 +328,11 @@ public class JavaTensorMath implements TensorMath<JavaTensor> {
 	public JavaTensor dsigmoid(JavaTensor res, final JavaTensor tensor) {
 		return apply(res, params -> params[0]*(1.0f - params[0]), tensor);
 	}
+	
+	@Override
+	public JavaTensor sqrt(JavaTensor res, final JavaTensor tensor) {
+		return apply(res, params -> (float)Math.sqrt(params[0]), tensor);
+	}
 
 	@Override
 	public JavaTensor dthresh(JavaTensor res, final JavaTensor tensor, final float thresh, final float coeff) {

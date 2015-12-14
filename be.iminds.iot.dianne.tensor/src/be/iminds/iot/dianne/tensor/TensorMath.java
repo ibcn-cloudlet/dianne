@@ -177,6 +177,11 @@ public interface TensorMath<T extends Tensor<T>> {
 	T dsigmoid(T res, final T tensor);
 	
 	/**
+	 * Calculate sqrt for each element
+	 */
+	T sqrt(T res, final T tensor);
+	
+	/**
 	 * All elements smaller than thresh are set to coeff * val + offset
 	 */
 	T thresh(T res, final T tensor, final float thresh, final float coeff, final float offset);
