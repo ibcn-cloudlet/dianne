@@ -34,6 +34,7 @@ import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 import be.iminds.iot.dianne.nn.learn.criterion.MSECriterion;
 import be.iminds.iot.dianne.nn.learn.criterion.NLLCriterion;
 import be.iminds.iot.dianne.nn.learn.processors.AbstractProcessor;
+import be.iminds.iot.dianne.nn.learn.processors.AdadeltaProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.AdagradProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.MinibatchProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.MomentumProcessor;
@@ -93,6 +94,13 @@ public class LearnerFactory {
 		}
 		
 		switch(method){
+		case "Adadelta":
+			p = new AdadeltaProcessor(p, decayRate);
+			
+			System.out.println("Adadelta");
+			System.out.println("* decayRate = "+decayRate);
+			System.out.println("---");
+			break;
 		case "Adagrad":
 			p = new AdagradProcessor(p, learningRate);
 			
@@ -120,9 +128,7 @@ public class LearnerFactory {
 			System.out.println("---");
 			break;
 		}
-		
 
-		
 		return p;
 	}
 	
