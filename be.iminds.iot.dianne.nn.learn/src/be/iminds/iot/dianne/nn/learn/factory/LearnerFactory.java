@@ -71,8 +71,9 @@ public class LearnerFactory {
 		Criterion c = createCriterion(factory, config);
 		SamplingStrategy s = createSamplingStrategy(d, config);
 		
-		AbstractProcessor p = new StochasticGradientDescentProcessor(factory, nn, logger,d, s, c, 
-                               learningRate, batchSize);
+		AbstractProcessor p = new StochasticGradientDescentProcessor(
+				new MinibatchProcessor(factory, nn, logger,d, s, c, batchSize), 
+				learningRate);
 		
 		System.out.println("StochasticGradientDescent");
 		System.out.println("* criterion = "+c.getClass().getName());

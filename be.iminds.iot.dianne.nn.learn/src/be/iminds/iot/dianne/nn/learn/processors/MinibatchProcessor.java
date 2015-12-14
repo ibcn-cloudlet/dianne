@@ -26,33 +26,64 @@ import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
-import be.iminds.iot.dianne.api.nn.learn.Processor;
 import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
-public class StochasticGradientDescentProcessor extends AbstractProcessor {
+public class MinibatchProcessor extends AbstractProcessor {
 
-	private final Processor decorated;
+	// dataset
+	protected final Dataset dataset;
+	// sample strategy
+	protected final SamplingStrategy sampling;
+	// error criterion
+	protected final Criterion criterion;
+	// batch size
+	protected final int batchSize;
 	
-	private final float learningRate;
+	// current error
+	protected float error = 0;
 	
-	public StochasticGradientDescentProcessor( AbstractProcessor p, float learningRate ) {
-		super(p.factory, p.nn, p.logger);
-		this.decorated = p;
+	public MinibatchProcessor(TensorFactory factory, 
+			NeuralNetwork nn, 
+			DataLogger logger, 
+			Dataset d, 
+			SamplingStrategy s,
+			Criterion c,
+			int batchSize) {
+		super(factory, nn, logger);
+	
+		this.dataset = d;
+		this.sampling = s;
+		this.criterion = c;
 		
-		this.learningRate = learningRate;
+		this.batchSize = batchSize;
 	}
 	
 	
 	@Override
 	public float processNext() {
-		float error = decorated.processNext();
+		error = 0;
 
-		// apply learning rate
-		applyLearningRate();
+		for(int i=0;i<batchSize;i++){
+			// new sample
+			int index = sampling.next();
+			Tensor in = dataset.getInputSample(index);
+
+			// forward
+			Tensor out = nn.forward(in, ""+index);
+			
+			// evaluate criterion
+			Tensor gradOut = getGradOut(out, index);
+			
+			// backward
+			Tensor gradIn = nn.backward(gradOut, ""+index);
+			
+			// acc grad params
+			accGradParameters();
+		}
 		
-		return error;
+		return error/batchSize;
 	}
 
 	protected void accGradParameters(){
@@ -60,9 +91,9 @@ public class StochasticGradientDescentProcessor extends AbstractProcessor {
 		nn.getTrainables().values().stream().forEach(m -> m.accGradParameters());
 	}
 	
-	protected void applyLearningRate(){
-		// multiply with learning rate
-		nn.getTrainables().values().stream().forEach(
-				m -> factory.getTensorMath().mul(m.getDeltaParameters(), m.getDeltaParameters(), -learningRate));
+	protected Tensor getGradOut(Tensor out, int index){
+		Tensor e = criterion.error(out, dataset.getOutputSample(index));
+		error += e.get(0);
+		return criterion.grad(out, dataset.getOutputSample(index));
 	}
 }

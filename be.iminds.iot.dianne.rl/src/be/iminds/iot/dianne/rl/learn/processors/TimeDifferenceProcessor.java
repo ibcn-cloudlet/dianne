@@ -27,11 +27,12 @@ import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
 import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 import be.iminds.iot.dianne.api.rl.ExperiencePool;
+import be.iminds.iot.dianne.nn.learn.processors.MinibatchProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.StochasticGradientDescentProcessor;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
-public class TimeDifferenceProcessor extends StochasticGradientDescentProcessor {
+public class TimeDifferenceProcessor extends MinibatchProcessor {
 	
 	private final String[] logLabels = new String[]{"Q", "Target Q", "Error"};
 	
@@ -48,10 +49,9 @@ public class TimeDifferenceProcessor extends StochasticGradientDescentProcessor 
 			ExperiencePool pool, 
 			SamplingStrategy s,
 			Criterion c,
-			float learningRate,
 			int batchSize,
 			float discount) {
-		super(factory, nn, logger, pool, s, c, learningRate, batchSize);
+		super(factory, nn, logger, pool, s, c, batchSize);
 		
 		this.target = target;
 		this.pool = pool;

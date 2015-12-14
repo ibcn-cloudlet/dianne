@@ -32,6 +32,7 @@ import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 import be.iminds.iot.dianne.api.rl.ExperiencePool;
 import be.iminds.iot.dianne.nn.learn.factory.LearnerFactory;
 import be.iminds.iot.dianne.nn.learn.processors.AbstractProcessor;
+import be.iminds.iot.dianne.nn.learn.processors.StochasticGradientDescentProcessor;
 import be.iminds.iot.dianne.rl.learn.processors.TimeDifferenceProcessor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -72,8 +73,8 @@ public class QLearnerFactory {
 		Criterion c = LearnerFactory.createCriterion(factory, config);
 		SamplingStrategy s = LearnerFactory.createSamplingStrategy(pool, config);
 		
-		AbstractProcessor p = new TimeDifferenceProcessor(factory, nn, target, logger, pool, s, c, 
-				learningRate, batchSize, discount);
+		AbstractProcessor p = new StochasticGradientDescentProcessor(new TimeDifferenceProcessor(factory, nn, target, logger, pool, s, c, 
+				 batchSize, discount), learningRate);
 		
 		System.out.println("TimeDifferenceRL");
 		System.out.println("* criterion = "+c.getClass().getName());
