@@ -58,11 +58,7 @@ public class LearnerFactory {
 	
 	public static AbstractProcessor createSGDProcessor(TensorFactory factory, 
 			NeuralNetwork nn, Dataset d, Map<String, String> config, DataLogger logger){
-		float learningRate = 0.001f;
-		if(config.get("learningRate")!=null){
-			learningRate = Float.parseFloat(config.get("learningRate"));
-		}
-		
+
 		int batchSize = 10;
 		if(config.get("batchSize")!=null){
 			batchSize = Integer.parseInt(config.get("batchSize"));
@@ -71,16 +67,46 @@ public class LearnerFactory {
 		Criterion c = createCriterion(factory, config);
 		SamplingStrategy s = createSamplingStrategy(d, config);
 		
-		AbstractProcessor p = new StochasticGradientDescentProcessor(
-				new MinibatchProcessor(factory, nn, logger,d, s, c, batchSize), 
-				learningRate);
+		AbstractProcessor p = new MinibatchProcessor(factory, nn, logger,d, s, c, batchSize);
 		
-		System.out.println("StochasticGradientDescent");
+		System.out.println("Minibatch trainer");
 		System.out.println("* criterion = "+c.getClass().getName());
 		System.out.println("* sampling = "+ s.getClass().getName());
-		System.out.println("* learningRate = "+learningRate);
 		System.out.println("* batchSize = "+batchSize);
 		System.out.println("---");
+		
+		String method = "SGD";
+		if(config.get("method")!=null){
+			method = config.get("method");
+		}
+		
+		float learningRate = 0.01f;
+		if(config.get("learningRate")!=null){
+			learningRate = Float.parseFloat(config.get("learningRate"));
+		}
+		
+		switch(method){
+		case "Adagrad":
+			p = new StochasticGradientDescentProcessor(p, learningRate);
+			
+			System.out.println("Adagrad");
+			System.out.println("* learningRate = "+learningRate);
+			System.out.println("---");
+			break;
+		default:
+			if(!method.equals("SGD")){
+				System.out.println("Method "+method+" unknown, fall back to SGD");
+			}
+			
+			p = new StochasticGradientDescentProcessor(p, learningRate);
+			
+			System.out.println("StochasticGradientDescent");
+			System.out.println("* learningRate = "+learningRate);
+			System.out.println("---");
+			break;
+		}
+		
+
 		
 		return p;
 	}
