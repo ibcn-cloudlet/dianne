@@ -53,16 +53,11 @@ public class MomentumProcessor extends AbstractProcessor {
 		// add momentum
 		nn.getTrainables().entrySet().stream().forEach(e -> {
 			Tensor v = velocity.get(e.getKey());
+			Tensor deltaParams = e.getValue().getDeltaParameters();
 			if(v!=null){
-				Tensor deltaParams = e.getValue().getDeltaParameters();
 				factory.getTensorMath().add(deltaParams, deltaParams , momentum, v);
 			}
-		});
-		
-		// copy to velocity
-		nn.getTrainables().entrySet().stream().forEach(e -> {
-			Tensor v = velocity.get(e.getKey());
-			Tensor deltaParams = e.getValue().getDeltaParameters();
+			// keep velocity
 			velocity.put(e.getKey(), deltaParams.copyInto(v));
 		});
 		

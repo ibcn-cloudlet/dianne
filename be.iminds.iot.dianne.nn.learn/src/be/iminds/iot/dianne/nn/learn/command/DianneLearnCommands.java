@@ -66,7 +66,8 @@ public class DianneLearnCommands {
 		// defaults
 		config.put("batchSize", "10");
 		config.put("criterion", "MSE");
-		config.put("learningRate", "0.1");
+		config.put("learningRate", "0.01");
+		config.put("momentum", "0.9");
 
 		for(String property : properties){
 			String[] p = property.split("=");
