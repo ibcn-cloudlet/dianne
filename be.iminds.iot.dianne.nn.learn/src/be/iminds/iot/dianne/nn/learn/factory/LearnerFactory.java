@@ -150,6 +150,11 @@ public class LearnerFactory {
 	public static AbstractProcessor addMomentum(AbstractProcessor p, Map<String, String> config){
 		if(config.get("momentum")!=null){
 			float momentum = Float.parseFloat(config.get("momentum"));
+			
+			if(momentum==0.0f){
+				return p;
+			}
+			
 			AbstractProcessor m = new MomentumProcessor(p, momentum);
 			
 			System.out.println("Momentum");
@@ -159,6 +164,11 @@ public class LearnerFactory {
 			return m;
 		} else if(config.get("nesterov")!=null){
 			float momentum = Float.parseFloat(config.get("nesterov"));
+			
+			if(momentum==0.0f){
+				return p;
+			}
+			
 			AbstractProcessor m = new NesterovMomentumProcessor(p, momentum);
 			
 			System.out.println("Nesterov momentum");

@@ -343,6 +343,7 @@ function createLearnModuleDialog(id, moduleItem){
 		// form options
 		renderTemplate("form-train", {
 				id : module.id,
+				method : module.method,
 				loss : module.loss,
 				batch: module.batch,
 				learningRate: module.learningRate,
@@ -359,6 +360,7 @@ function createLearnModuleDialog(id, moduleItem){
 		    		var id = $(this).closest(".modal").find(".module-id").val();
 					
 					var trainer = learning[id];
+					trainer.method = $(this).closest(".modal").find("#method").val();
 					trainer.loss = $(this).closest(".modal").find("#loss").val();
 					trainer.batch = $(this).closest(".modal").find("#batch").val();
 					trainer.learningRate = $(this).closest(".modal").find("#learningRate").val();

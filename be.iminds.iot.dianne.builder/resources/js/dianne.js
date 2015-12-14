@@ -426,8 +426,7 @@ function addModule(moduleItem){
 		module.train = module.total - module.test;
 		module.validation = 0;
 	} else if(category==="Trainer"){
-		// TODO this is hard coded
-		//module.strategy = "Stochastic Gradient Descent";
+		module.method = "GD";
 		module.batch = 10;
 		module.learningRate = 0.01;
 		module.momentum = 0.9;
