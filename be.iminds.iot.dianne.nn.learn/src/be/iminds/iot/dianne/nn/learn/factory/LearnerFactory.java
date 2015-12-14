@@ -34,9 +34,11 @@ import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 import be.iminds.iot.dianne.nn.learn.criterion.MSECriterion;
 import be.iminds.iot.dianne.nn.learn.criterion.NLLCriterion;
 import be.iminds.iot.dianne.nn.learn.processors.AbstractProcessor;
+import be.iminds.iot.dianne.nn.learn.processors.AdagradProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.MinibatchProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.MomentumProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.NesterovMomentumProcessor;
+import be.iminds.iot.dianne.nn.learn.processors.RMSpropProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.RegularizationProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.StochasticGradientDescentProcessor;
 import be.iminds.iot.dianne.nn.learn.sampling.RandomSamplingStrategy;
@@ -85,14 +87,27 @@ public class LearnerFactory {
 			learningRate = Float.parseFloat(config.get("learningRate"));
 		}
 		
+		float decayRate = 0.9f;
+		if(config.get("decayRate")!=null){
+			decayRate = Float.parseFloat(config.get("decayRate"));
+		}
+		
 		switch(method){
 		case "Adagrad":
-			p = new StochasticGradientDescentProcessor(p, learningRate);
+			p = new AdagradProcessor(p, learningRate);
 			
 			System.out.println("Adagrad");
 			System.out.println("* learningRate = "+learningRate);
 			System.out.println("---");
 			break;
+		case "RMSprop":
+			p = new RMSpropProcessor(p, learningRate, decayRate);
+			
+			System.out.println("RMSprop");
+			System.out.println("* learningRate = "+learningRate);
+			System.out.println("* decayRate = "+decayRate);
+			System.out.println("---");
+			break;	
 		default:
 			if(!method.equals("SGD")){
 				System.out.println("Method "+method+" unknown, fall back to SGD");
