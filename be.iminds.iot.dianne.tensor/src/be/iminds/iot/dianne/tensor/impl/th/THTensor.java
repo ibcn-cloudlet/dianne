@@ -109,6 +109,11 @@ public class THTensor implements Tensor<THTensor> {
 	public void randn() {
 		randn(address);
 	}
+	
+	@Override
+	public void bernoulli(float p) {
+		bernoulli(address, p);
+	}
 
 	@Override
 	public boolean sameDim(final Tensor<?> other) {
@@ -247,6 +252,8 @@ public class THTensor implements Tensor<THTensor> {
 	private native void rand(long src);
 
 	private native void randn(long src);
+	
+	private native void bernoulli(long src, float p);
 
 	private native long copyInto(long src, long other);
 

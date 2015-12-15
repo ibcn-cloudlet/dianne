@@ -376,6 +376,22 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensor_randn
 }
 
 
+JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensor_bernoulli
+  (JNIEnv * env, jobject o, jlong src, jfloat p){
+	THTensor* tensor = (THTensor*) src;
+
+#ifdef CUDA
+	THTensor_(bernoulli)(state, tensor, p);
+#else
+	if(generator==0){
+		generator = THGenerator_new();
+	}
+
+	THTensor_(bernoulli)(tensor, generator, p);
+#endif
+}
+
+
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_impl_th_THTensor_copyInto
   (JNIEnv * env, jobject o, jlong src, jlong res){
 	THTensor* tensor = (THTensor*) src;

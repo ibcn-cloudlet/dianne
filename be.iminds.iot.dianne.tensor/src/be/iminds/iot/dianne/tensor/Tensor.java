@@ -103,6 +103,11 @@ public interface Tensor<T extends Tensor<T>> {
 	void randn();
 	
 	/**
+	 * fill with 0 or 1 sampled using Bernoulli distribution with 0 <= p <= 1
+	 */
+	void bernoulli(float p);
+	
+	/**
 	 * check if other tensor has same dimensions
 	 */
 	boolean sameDim(final Tensor<?> other);

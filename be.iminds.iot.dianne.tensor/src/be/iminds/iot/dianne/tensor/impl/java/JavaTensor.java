@@ -191,6 +191,15 @@ public class JavaTensor implements Tensor<JavaTensor> {
 			data[(indices==null ? i : indices[i])] = (float) random.nextGaussian();
 		}
 	}
+	
+	@Override
+	public void bernoulli(float p) {
+		for(int i=0;i< (indices==null? data.length : indices.length);i++){
+			float f = random.nextFloat();
+			float b = f > p ? 0 : 1;
+			data[(indices==null ? i : indices[i])] = b;
+		}
+	}
 
 	@Override
 	public boolean equals(Object other){
