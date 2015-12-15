@@ -53,6 +53,7 @@ import be.iminds.iot.dianne.nn.module.io.InputImpl;
 import be.iminds.iot.dianne.nn.module.io.OutputImpl;
 import be.iminds.iot.dianne.nn.module.join.Accumulate;
 import be.iminds.iot.dianne.nn.module.join.Concat;
+import be.iminds.iot.dianne.nn.module.layer.Dropout;
 import be.iminds.iot.dianne.nn.module.layer.Linear;
 import be.iminds.iot.dianne.nn.module.layer.MaskedMaxPooling;
 import be.iminds.iot.dianne.nn.module.layer.SpatialConvolution;
@@ -81,6 +82,9 @@ public class DianneModuleFactory implements ModuleFactory {
 		addSupportedType( new ModuleTypeDTO("Linear", "Layer", true, 
 					new ModulePropertyDTO("Input size", "input", Integer.class.getName()),
 					new ModulePropertyDTO("Output size", "output", Integer.class.getName())));
+
+		addSupportedType( new ModuleTypeDTO("Dropout", "Layer", true, 
+				new ModulePropertyDTO("Dropout rate", "dropout", Float.class.getName())));
 		
 		addSupportedType(new ModuleTypeDTO("Sigmoid", "Activation", false));
 		
@@ -172,6 +176,12 @@ public class DianneModuleFactory implements ModuleFactory {
 			int output = Integer.parseInt(dto.properties.get("output"));
 			
 			module = new Linear(factory, id, input, output);
+			break;
+		}
+		case "Dropout":
+		{
+			float dropout = Float.parseFloat(dto.properties.get("dropout"));
+			module = new Dropout(factory, id, dropout);
 			break;
 		}
 		case "Tanh":
