@@ -60,6 +60,10 @@ public class Linear extends AbstractTrainableModule {
 		this.inSize = inSize;
 		this.outSize = outSize;
 		
+		if(parameters.size()!=outSize*(inSize+1)){
+			parameters.reshape(outSize*(inSize+1));
+		}
+		
 		weights = parameters.narrow(0, 0, outSize*inSize);
 		weights.reshape(outSize, inSize);
 		bias = parameters.narrow(0, outSize*inSize, outSize);

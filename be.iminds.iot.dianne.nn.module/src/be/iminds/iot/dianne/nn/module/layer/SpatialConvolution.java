@@ -73,6 +73,10 @@ public class SpatialConvolution extends AbstractTrainableModule {
 	
 	protected void init(int noInputPlanes, int noOutputPlanes, 
 			int kernelWidth, int kernelHeight, int strideX, int strideY, boolean pad){
+		if(parameters.size()!=(noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight+noOutputPlanes)){
+			parameters.reshape(noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight+noOutputPlanes);
+		}
+		
 		this.noInputPlanes = noInputPlanes;
 		this.noOutputPlanes = noOutputPlanes;
 		this.kernelWidth = kernelWidth;
