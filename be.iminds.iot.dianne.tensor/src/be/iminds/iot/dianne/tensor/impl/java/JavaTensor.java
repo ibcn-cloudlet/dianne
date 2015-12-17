@@ -291,6 +291,9 @@ public class JavaTensor implements Tensor<JavaTensor> {
 
 	@Override
 	public JavaTensor copyInto(JavaTensor other) {
+		if(other == this)
+			return this;
+		
 		if(other == null
 				|| this.size() != other.size())
 			other = new JavaTensor(dims);

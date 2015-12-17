@@ -146,7 +146,10 @@ public class THTensor implements Tensor<THTensor> {
 		THTensor copy = other;
 		if(copy==null){
 			copy = new THTensor(dims);
+		} else if(copy.address==this.address){
+			return this;
 		}
+		
 		copyInto(address, copy.address);
 		return copy;
 	}
