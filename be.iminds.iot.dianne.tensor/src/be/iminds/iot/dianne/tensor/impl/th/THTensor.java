@@ -200,6 +200,9 @@ public class THTensor implements Tensor<THTensor> {
 			return false;
 		} 
 		THTensor o = (THTensor) other;
+		if(o.address == address){
+			return true;
+		}
 		return equals(o);
 	}
 	
