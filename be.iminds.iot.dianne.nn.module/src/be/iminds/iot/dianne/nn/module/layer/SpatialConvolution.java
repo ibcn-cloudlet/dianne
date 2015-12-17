@@ -49,19 +49,29 @@ public class SpatialConvolution extends AbstractTrainableModule {
 			int noInputPlanes, int noOutputPlanes, 
 			int kernelWidth, int kernelHeight,
 			int strideX, int strideY, boolean pad){
-		super(factory);
-		initParameters(noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY, pad);
+		super(factory, factory.createTensor(noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight+noOutputPlanes));
+		init(noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY, pad);
+		parameters.fill(0.0f);
 	}
 	
 	public SpatialConvolution(TensorFactory factory, UUID id,
 			int noInputPlanes, int noOutputPlanes, 
 			int kernelWidth, int kernelHeight,
 			int strideX, int strideY, boolean pad){
-		super(factory, id);
-		initParameters(noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY, pad);
+		super(factory, id, factory.createTensor(noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight+noOutputPlanes));
+		init(noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY, pad);
+		parameters.fill(0.0f);
 	}
 	
-	protected void initParameters(int noInputPlanes, int noOutputPlanes, 
+	public SpatialConvolution(TensorFactory factory, UUID id, Tensor parameters,
+			int noInputPlanes, int noOutputPlanes, 
+			int kernelWidth, int kernelHeight,
+			int strideX, int strideY, boolean pad){
+		super(factory, id, parameters);
+		init(noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY, pad);
+	}
+	
+	protected void init(int noInputPlanes, int noOutputPlanes, 
 			int kernelWidth, int kernelHeight, int strideX, int strideY, boolean pad){
 		this.noInputPlanes = noInputPlanes;
 		this.noOutputPlanes = noOutputPlanes;
@@ -74,12 +84,9 @@ public class SpatialConvolution extends AbstractTrainableModule {
 			this.padY = (kernelHeight-1)/2;
 		}
 		
-		parameters = factory.createTensor(noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight+noOutputPlanes);
 		weights = parameters.narrow(0, 0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight);
 		weights.reshape(noOutputPlanes, noInputPlanes, kernelWidth, kernelHeight);
 		bias = parameters.narrow(0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight, noOutputPlanes);
-		
-		parameters.fill(0.0f);
 	}
 	
 	protected void initDeltaParameters(){
@@ -96,8 +103,8 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		// randomize weights uniform [-std, std] with std = 1/sqrt(kW*kH*noInputPlanes)  [from torch]
 		parameters.rand();
 		float std = (float) (1f/Math.sqrt(kernelWidth*kernelHeight*noInputPlanes));
-		parameters = factory.getTensorMath().mul(parameters, parameters, 2*std);
-		parameters = factory.getTensorMath().sub(parameters, parameters, std);
+		factory.getTensorMath().mul(parameters, parameters, 2*std);
+		factory.getTensorMath().sub(parameters, parameters, std);
 	}
 	
 	@Override

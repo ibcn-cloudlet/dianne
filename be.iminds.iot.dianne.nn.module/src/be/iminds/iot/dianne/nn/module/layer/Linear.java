@@ -40,27 +40,30 @@ public class Linear extends AbstractTrainableModule {
 	private Tensor deltaBias;
 	
 	public Linear(TensorFactory factory, int inSize, int outSize){
-		super(factory);
-		initParameters(inSize, outSize);
+		super(factory, factory.createTensor(outSize*(inSize+1)));
+		init(inSize, outSize);
+		parameters.fill(0.0f);
 	}
 	
 	public Linear(TensorFactory factory, UUID id, int inSize, int outSize){
-		super(factory, id);
-		initParameters(inSize, outSize);
+		super(factory, id, factory.createTensor(outSize*(inSize+1)));
+		init(inSize, outSize);
+		parameters.fill(0.0f);
 	}
 	
-	private void initParameters(int inSize, int outSize){
+	public Linear(TensorFactory factory, UUID id, Tensor parameters, int inSize, int outSize){
+		super(factory, id, parameters);
+		init(inSize, outSize);
+	}
+	
+	private void init(int inSize, int outSize){
 		this.inSize = inSize;
 		this.outSize = outSize;
-		
-		parameters = factory.createTensor(outSize*(inSize+1));
 		
 		weights = parameters.narrow(0, 0, outSize*inSize);
 		weights.reshape(outSize, inSize);
 		bias = parameters.narrow(0, outSize*inSize, outSize);
 		bias.reshape(outSize);
-
-		parameters.fill(0.0f);
 	}
 	
 	private void initDeltaParameters(){
@@ -79,8 +82,8 @@ public class Linear extends AbstractTrainableModule {
 		// randomize weights uniform [-std, std] with std = 1/sqrt(noInputs)  [from torch]
 		parameters.rand();
 		float std = (float) (1f/Math.sqrt(inSize));
-		parameters = factory.getTensorMath().mul(parameters, parameters, 2*std);
-		parameters = factory.getTensorMath().sub(parameters, parameters, std);		
+		factory.getTensorMath().mul(parameters, parameters, 2*std);
+		factory.getTensorMath().sub(parameters, parameters, std);		
 	}
 	
 	@Override

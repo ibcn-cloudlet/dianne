@@ -356,7 +356,7 @@ public class DianneRuntimeImpl implements DianneRuntime {
 			while(module == null && it.hasNext()){
 				try {
 					ModuleFactory mFactory = it.next();
-					module = mFactory.createModule(dto);
+					module = mFactory.createModule(dto, parameters);
 				} catch(InstantiationException e){
 					// means this factory cannot create this module type ... ignore
 				} catch(Exception ex){
@@ -397,15 +397,6 @@ public class DianneRuntimeImpl implements DianneRuntime {
 			if(labels!=null){
 				String[] l = parseStrings(labels);
 				((Output)module).setOutputLabels(l);
-			}
-		}
-		
-		// set parameters if provided
-		if(parameters!=null){
-			if(module instanceof Trainable){
-				((Trainable)module).setParameters(parameters);
-			} else if(module instanceof Preprocessor){
-				((Preprocessor)module).setParameters(parameters);
 			}
 		}
 		

@@ -27,6 +27,7 @@ import java.util.List;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleTypeDTO;
+import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
  * A ModuleFactory knows how to create Module instances from a ModuleDTO.
@@ -40,10 +41,20 @@ public interface ModuleFactory {
 	/**
 	 * Create a new Module instance from a ModuleDTO
 	 * @param dto the dto describing the module to construct
-	 * @return a reference to the constructed Module
+	 * @return the constructed Module
 	 * @throws InstantiationException thrown when it failed to instantiate the Module
 	 */
 	Module createModule(ModuleDTO dto) throws InstantiationException;
+	
+	/**
+	 * Create a new Module instance from a ModuleDTO, if this is a trainable module parameters
+	 * can be passed here for construction
+	 * @param dto the dto describing the module to construct
+	 * @param parameters parameters to pass for module construction
+	 * @return the constructed module
+	 * @throws InstantiationException
+	 */
+	Module createModule(ModuleDTO dto, Tensor parameters) throws InstantiationException;
 	
 	/**
 	 * Get the list of module types that this factory can construct

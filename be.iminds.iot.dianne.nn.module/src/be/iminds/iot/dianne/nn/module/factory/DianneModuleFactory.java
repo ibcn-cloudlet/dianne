@@ -62,6 +62,7 @@ import be.iminds.iot.dianne.nn.module.preprocessing.Frame;
 import be.iminds.iot.dianne.nn.module.preprocessing.Narrow;
 import be.iminds.iot.dianne.nn.module.preprocessing.Normalization;
 import be.iminds.iot.dianne.nn.module.preprocessing.Scale;
+import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component(property={"aiolos.export=false"})
@@ -159,9 +160,17 @@ public class DianneModuleFactory implements ModuleFactory {
 
 	}
 	
+	
 	@Override
 	public Module createModule(ModuleDTO dto)
 			throws InstantiationException {
+		return createModule(dto, null);
+	}
+	
+	@Override
+	public Module createModule(ModuleDTO dto, Tensor parameters)
+			throws InstantiationException {
+
 		AbstractModule module = null;
 		
 		// TODO use reflection for this?
@@ -175,7 +184,11 @@ public class DianneModuleFactory implements ModuleFactory {
 			int input = Integer.parseInt(dto.properties.get("input"));
 			int output = Integer.parseInt(dto.properties.get("output"));
 			
-			module = new Linear(factory, id, input, output);
+			if(parameters!=null){
+				module = new Linear(factory, id, parameters, input, output);
+			} else {
+				module = new Linear(factory, id, input, output);
+			}
 			break;
 		}
 		case "Dropout":
@@ -207,6 +220,9 @@ public class DianneModuleFactory implements ModuleFactory {
 		case "PReLU":
 		{
 			module = new PReLU(factory, id);
+			if(parameters!=null){
+				((PReLU)module).setParameters(parameters);
+			}
 			break;
 		}
 		case "Threshold":
@@ -270,7 +286,11 @@ public class DianneModuleFactory implements ModuleFactory {
 
 			boolean pad = hasProperty(dto.properties,"pad") ? Boolean.parseBoolean(dto.properties.get("pad")) : false;
 
-			module = new SpatialConvolution(factory, id, noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY, pad);
+			if(parameters!=null){
+				module = new SpatialConvolution(factory, id, parameters, noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY, pad);
+			} else {
+				module = new SpatialConvolution(factory, id, noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY, pad);
+			}
 			break;
 		}
 		case "MaxPooling":
@@ -287,6 +307,9 @@ public class DianneModuleFactory implements ModuleFactory {
 		case "Normalization":
 		{
 			module = new Normalization(factory, id);
+			if(parameters!=null){
+				((Normalization)module).setParameters(parameters);
+			}
 			break;
 		}
 		case "Narrow":

@@ -36,16 +36,18 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
  */
 public abstract class AbstractTrainableModule extends AbstractModule implements Trainable {
 
-	protected Tensor parameters;
+	protected final Tensor parameters;
 	protected Tensor deltaParameters;
 	protected boolean fixed = false;
 	
-	public AbstractTrainableModule(TensorFactory factory) {
+	public AbstractTrainableModule(TensorFactory factory, Tensor parameters) {
 		super(factory);
+		this.parameters = parameters;
 	}
 	
-	public AbstractTrainableModule(TensorFactory factory, UUID id) {
+	public AbstractTrainableModule(TensorFactory factory, UUID id, Tensor parameters) {
 		super(factory, id);
+		this.parameters = parameters;
 	}
 	
 	@Override
@@ -84,9 +86,6 @@ public abstract class AbstractTrainableModule extends AbstractModule implements 
 	
 	@Override
 	public void setParameters(Tensor params){
-		if(parameters==null){
-			parameters = factory.createTensor(params.dims());
-		}
 		params.copyInto(parameters);
 	}
 }

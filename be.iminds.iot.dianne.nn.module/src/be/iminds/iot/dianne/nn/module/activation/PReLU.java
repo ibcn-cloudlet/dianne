@@ -37,7 +37,7 @@ public class PReLU extends AbstractTrainableModule{
 	}
 	
 	public PReLU(TensorFactory factory, float init) {
-		super(factory);
+		super(factory, factory.createTensor(1));
 		this.init = init;
 		init();
 	}
@@ -47,13 +47,12 @@ public class PReLU extends AbstractTrainableModule{
 	}
 
 	public PReLU(TensorFactory factory, UUID id, float init) {
-		super(factory, id);
+		super(factory, id, factory.createTensor(1));
 		this.init = init;
 		init();
 	}
 	
 	private void init() {
-		parameters = factory.createTensor(1);
 		deltaParameters = factory.createTensor(1);
 		parameters.fill(0.0f);
 		deltaParameters.fill(0.0f);
