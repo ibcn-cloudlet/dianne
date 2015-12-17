@@ -360,6 +360,7 @@ public class DianneRuntimeImpl implements DianneRuntime {
 				} catch(InstantiationException e){
 					// means this factory cannot create this module type ... ignore
 				} catch(Exception ex){
+					ex.printStackTrace();
 					// something seriously went wrong
 					// out of memory?
 					throw new RuntimeException(ex.getCause().getMessage());
