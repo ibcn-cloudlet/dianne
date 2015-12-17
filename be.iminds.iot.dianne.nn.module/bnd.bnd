@@ -5,7 +5,8 @@ Bundle-Version: 0.3.0.${tstamp}
 	osgi.enterprise;version=5.0,\
 	be.iminds.iot.dianne.tensor.api;version=latest,\
 	be.iminds.iot.dianne.tensor.util;version=latest,\
-	be.iminds.iot.dianne.api;version=latest
+	be.iminds.iot.dianne.api;version=latest,\
+	osgi.promise
 Export-Package: \
 	be.iminds.iot.dianne.api.nn.module,\
 	be.iminds.iot.dianne.api.nn.module.factory,\
@@ -13,6 +14,7 @@ Export-Package: \
 -dsannotations: *
 Private-Package: \
 	be.iminds.iot.dianne.nn.module.activation,\
+	be.iminds.iot.dianne.nn.module.composite,\
 	be.iminds.iot.dianne.nn.module.factory,\
 	be.iminds.iot.dianne.nn.module.preprocessing,\
 	be.iminds.iot.dianne.nn.module.join,\
