@@ -53,9 +53,7 @@ public class PReLU extends AbstractTrainableModule{
 	}
 	
 	private void init() {
-		deltaParameters = factory.createTensor(1);
 		parameters.fill(0.0f);
-		deltaParameters.fill(0.0f);
 	}
 
 	@Override
@@ -70,6 +68,9 @@ public class PReLU extends AbstractTrainableModule{
 
 	@Override
 	protected void backward() {
+		if(deltaParameters==null){
+			initDeltaParameters(null);
+		}
 		gradInput = factory.getTensorMath().cmul(gradInput, gradOutput,
 				factory.getTensorMath().dthresh(gradInput, input, 0f, parameters.get(0)));
 	}
@@ -84,5 +85,15 @@ public class PReLU extends AbstractTrainableModule{
 		
 		deltaParameters = factory.getTensorMath().add(deltaParameters, deltaParameters,
 				factory.getTensorMath().dot(temp, gradOutput));
+	}
+
+	@Override
+	public void initDeltaParameters(Tensor deltas) {
+		if(deltas==null){
+			deltaParameters = factory.createTensor(1);
+		} else {
+			deltaParameters = deltas;
+		}
+		deltaParameters.fill(0.0f);
 	}
 }

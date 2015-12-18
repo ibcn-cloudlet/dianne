@@ -70,8 +70,13 @@ public class Linear extends AbstractTrainableModule {
 		bias.reshape(outSize);
 	}
 	
-	private void initDeltaParameters(){
-		deltaParameters = factory.createTensor(outSize*(inSize+1));
+	public void initDeltaParameters(Tensor deltas){
+		if(deltas==null){
+			deltaParameters = factory.createTensor(outSize*(inSize+1));
+		} else {
+			// TODO check size?
+			deltaParameters = deltas;
+		}
 		
 		deltaWeights = deltaParameters.narrow(0, 0, outSize*inSize);
 		deltaWeights.reshape(outSize, inSize);
@@ -98,7 +103,7 @@ public class Linear extends AbstractTrainableModule {
 	@Override
 	protected void backward() {
 		if(deltaParameters==null){
-			initDeltaParameters();
+			initDeltaParameters(null);
 		}
 		gradInput = factory.getTensorMath().tmv(gradInput, weights, gradOutput);
 	}

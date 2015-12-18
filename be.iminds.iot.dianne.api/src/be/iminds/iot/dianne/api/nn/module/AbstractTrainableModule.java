@@ -74,6 +74,8 @@ public abstract class AbstractTrainableModule extends AbstractModule implements 
 		}
 	}
 
+	public abstract void initDeltaParameters(Tensor deltas);
+	
 	@Override
 	public Tensor getDeltaParameters(){
 		return deltaParameters;

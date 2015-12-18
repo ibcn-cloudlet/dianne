@@ -93,8 +93,13 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		bias = parameters.narrow(0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight, noOutputPlanes);
 	}
 	
-	protected void initDeltaParameters(){
-		deltaParameters = factory.createTensor(noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight+noOutputPlanes);
+	public void initDeltaParameters(Tensor deltas){
+		if(deltas==null){
+			deltaParameters = factory.createTensor(noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight+noOutputPlanes);
+		} else {
+			// TODO check size?
+			deltaParameters = deltas;
+		}
 		deltaWeights = deltaParameters.narrow(0, 0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight);
 		deltaWeights.reshape(noOutputPlanes, noInputPlanes, kernelWidth, kernelHeight);
 		deltaBias = deltaParameters.narrow(0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight, noOutputPlanes);
@@ -125,7 +130,7 @@ public class SpatialConvolution extends AbstractTrainableModule {
 	@Override
 	protected void backward() {
 		if(deltaParameters==null){
-			initDeltaParameters();
+			initDeltaParameters(null);
 		}
 		
 		if(gradOutput.dim() == 1) {

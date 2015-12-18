@@ -47,8 +47,13 @@ public class CompositeModule extends AbstractTrainableModule {
 		this.parameterMapping = parameterMapping;
 	}
 	
-	private void initDeltaParameters(){
-		deltaParameters = factory.createTensor(parameters.dims());
+	public void initDeltaParameters(Tensor t){
+		if(t==null){
+			deltaParameters = factory.createTensor(parameters.dims());
+		} else {
+			// TODO check size?
+			deltaParameters = t;
+		}
 		
 		deltas = new HashMap<>();
 		int offset = 0;
@@ -57,6 +62,7 @@ public class CompositeModule extends AbstractTrainableModule {
 			Entry<UUID, Integer> e = it.next();
 			int size = e.getValue();
 			Tensor narrowed = deltaParameters.narrow(0, offset, size);
+			((AbstractTrainableModule)nn.getTrainables().get(e.getKey())).initDeltaParameters(narrowed);
 			deltas.put(e.getKey(), narrowed);
 			offset += size;
 		}
@@ -81,7 +87,7 @@ public class CompositeModule extends AbstractTrainableModule {
 	@Override
 	protected void backward() {
 		if(deltaParameters==null){
-			initDeltaParameters();
+			initDeltaParameters(null);
 		}
 		gradInput = nn.backward(gradOutput);
 	}
@@ -94,7 +100,7 @@ public class CompositeModule extends AbstractTrainableModule {
 		nn.getTrainables().entrySet().forEach(e -> e.getValue().accGradParameters());
 		
 		// copy to composite deltaParameters 
-		nn.getTrainables().entrySet().forEach(e -> e.getValue().getDeltaParameters().copyInto(deltas.get(e.getKey())));
+		//nn.getTrainables().entrySet().forEach(e -> e.getValue().getDeltaParameters().copyInto(deltas.get(e.getKey())));
 
 	}
 	
