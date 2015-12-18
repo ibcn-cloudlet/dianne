@@ -97,7 +97,7 @@ public class CompositeModuleFactory implements ModuleFactory {
 
 		// find any composite properties defined as ${property key} and replace
 		ModuleTypeDTO compositeType = supportedModules.get(nnName);
-		for(ModuleDTO m : nnDescription.modules){
+		for(ModuleDTO m : nnDescription.modules.values()){
 			m.properties.replaceAll((key, value) -> {
 				if(!value.contains("$")){
 					return value;
@@ -133,7 +133,7 @@ public class CompositeModuleFactory implements ModuleFactory {
 		int total = 0;
 		int size = 0;
 		LinkedHashMap<UUID, Integer> parameterMapping = new LinkedHashMap<>();
-		for(ModuleDTO m : nnDescription.modules){
+		for(ModuleDTO m : nnDescription.modules.values()){
 			switch(m.type){
 			case "Linear":
 				int inSize = Integer.parseInt(m.properties.get("input"));
@@ -203,7 +203,7 @@ public class CompositeModuleFactory implements ModuleFactory {
 		
 		// deploy each module and inject narrowed part of parameters
 		Map<UUID, ModuleInstanceDTO> deployed = new HashMap<>();
-		for(ModuleDTO m : nnDescription.modules){
+		for(ModuleDTO m : nnDescription.modules.values()){
 			try {
 				ModuleInstanceDTO mi = runtime.deployModule(m, id, narrowed.get(m.id));
 				deployed.put(mi.moduleId, mi);
