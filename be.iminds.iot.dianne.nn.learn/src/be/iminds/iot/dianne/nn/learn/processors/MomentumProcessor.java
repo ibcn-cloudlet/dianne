@@ -53,6 +53,9 @@ public class MomentumProcessor extends AbstractProcessor {
 			}
 			// keep velocity
 			velocity.put(e.getKey(), deltaParams.copyInto(v));
+			
+			// set DeltaParameters to be sure in case of remote module instance
+			e.getValue().setDeltaParameters(deltaParams);
 		});
 		
 		return error;

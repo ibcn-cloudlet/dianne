@@ -71,6 +71,8 @@ public class RMSpropProcessor extends AbstractProcessor {
 			// now div by cached tensor
 			factory.getTensorMath().cdiv(deltaParams, deltaParams, squared);
 			
+			// set DeltaParameters to be sure in case of remote module instance
+			e.getValue().setDeltaParameters(deltaParams);
 		});
 		
 		return error;

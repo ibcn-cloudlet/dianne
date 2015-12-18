@@ -94,13 +94,10 @@ public class CompositeModule extends AbstractTrainableModule {
 
 	@Override
 	public void accGradParameters() {
-		// since delta parameters are kept in separate tensor here, this introduces some overhead
-		// i.e. each time the delta of individual composing modules is copied over to this deltaparams
-		// TODO fix this by also injecting our deltaparams tensor into the modules?
 		nn.getTrainables().entrySet().forEach(e -> e.getValue().accGradParameters());
 		
-		// copy to composite deltaParameters 
-		//nn.getTrainables().entrySet().forEach(e -> e.getValue().getDeltaParameters().copyInto(deltas.get(e.getKey())));
+		// copy to composite deltaParameters (in case both same Tensor no actual copy will be done - to let it work for remotely deployed modules) 
+		nn.getTrainables().entrySet().forEach(e -> e.getValue().setDeltaParameters(deltas.get(e.getKey())));
 
 	}
 	

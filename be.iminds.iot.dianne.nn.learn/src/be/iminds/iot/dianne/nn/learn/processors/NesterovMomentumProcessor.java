@@ -83,6 +83,9 @@ public class NesterovMomentumProcessor extends AbstractProcessor {
 			
 			Tensor v = velocity.get(e.getKey());
 			factory.getTensorMath().add(deltaParams, deltaParams , (1+momentum), v);
+			
+			// set DeltaParameters to be sure in case of remote module instance
+			e.getValue().setDeltaParameters(deltaParams);
 		});
 		
 		return error;

@@ -84,6 +84,9 @@ public class AdadeltaProcessor extends AbstractProcessor {
 			deltaParams.copyInto(s);
 			s = factory.getTensorMath().cmul(s, s, s);
 			deltaSq = factory.getTensorMath().add(deltaSq, deltaSq, (1-decayRate), s);
+			
+			// set DeltaParameters to be sure in case of remote module instance
+			e.getValue().setDeltaParameters(deltaParams);
 		});
 		
 		return error;

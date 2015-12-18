@@ -22,6 +22,8 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.learn.processors;
 
+import be.iminds.iot.dianne.tensor.Tensor;
+
 public class StochasticGradientDescentProcessor extends AbstractProcessor {
 
 	private final float learningRate;
@@ -34,9 +36,15 @@ public class StochasticGradientDescentProcessor extends AbstractProcessor {
 	@Override
 	public float processNext(float error) {
 		// apply learning rate
-		// multiply with learning rate
-		nn.getTrainables().values().stream().forEach(
-				m -> factory.getTensorMath().mul(m.getDeltaParameters(), m.getDeltaParameters(), -learningRate));
+		nn.getTrainables().values().stream().forEach(m -> {
+			Tensor deltaParams = m.getDeltaParameters();
+
+			factory.getTensorMath().mul(deltaParams, deltaParams, -learningRate);
+					
+			// set DeltaParameters to be sure in case of remote module instance
+			m.setDeltaParameters(deltaParams);
+		});
+		
 		
 		return error;
 	}
