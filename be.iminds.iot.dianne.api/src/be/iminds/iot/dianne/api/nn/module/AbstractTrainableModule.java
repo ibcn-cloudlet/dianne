@@ -82,6 +82,11 @@ public abstract class AbstractTrainableModule extends AbstractModule implements 
 	}
 	
 	@Override
+	public void setDeltaParameters(Tensor deltas){
+		deltas.copyInto(deltaParameters);
+	}
+	
+	@Override
 	public Tensor getParameters(){
 		return parameters;
 	}

@@ -72,6 +72,12 @@ public interface Trainable extends Module {
 	Tensor getDeltaParameters();
 	
 	/**
+	 * Set new delta parameters for this Module. These deltas are copied.
+	 * @param deltaParameters new deltas on the parameters
+	 */
+	void setDeltaParameters(final Tensor deltaParameters);
+	
+	/**
 	 * Return the current parameters
 	 * 
 	 * Attention: at the moment this returns a reference to the parameters,
