@@ -41,6 +41,7 @@ import be.iminds.iot.dianne.api.nn.module.AbstractModule;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
+import be.iminds.iot.dianne.api.nn.module.dto.ModulePropertyDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleTypeDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
@@ -65,20 +66,10 @@ public class CompositeModuleFactory implements ModuleFactory {
 	
 	@Activate
 	void activate(){
-		// build list of supported modules
-		// TODO use reflection for this?
-		
-		// which neural networks should be exposed as modules here?
-		//addSupportedType( new ModuleTypeDTO("Linear", "Layer", true, 
-		//			new ModulePropertyDTO("Input size", "input", Integer.class.getName()),
-		//			new ModulePropertyDTO("Output size", "output", Integer.class.getName())));
-
-		for(String nn : repository.availableNeuralNetworks()){
-			// TODO which NNs to make available as composite modules
-			// TODO which are the parameters? template in NeuralNetworkDTO? 
-			addSupportedType( new ModuleTypeDTO(nn, "Composite", true ));
+		// fetch all supported composite types from the repository
+		for(ModuleTypeDTO t : repository.availableCompositeModules()){
+			addSupportedType(t);
 		}
-
 	}
 	
 	
@@ -101,8 +92,40 @@ public class CompositeModuleFactory implements ModuleFactory {
 			throw new InstantiationException("Could not instantiate module of type "+nnName);
 		}
 		
+		
 		NeuralNetworkDTO nnDescription = repository.loadNeuralNetwork(nnName);
 
+		// find any composite properties defined as ${property key} and replace
+		ModuleTypeDTO compositeType = supportedModules.get(nnName);
+		for(ModuleDTO m : nnDescription.modules){
+			m.properties.replaceAll((key, value) -> {
+				if(!value.contains("$")){
+					return value;
+				}
+				for(ModulePropertyDTO p : compositeType.properties){
+					value = value.replace("${"+p.id+"}", dto.properties.get(p.id));
+				}
+				if(value.contains("$")){
+					int i1 = value.indexOf("$");
+					int i2 = value.indexOf("}", i1);		
+					throw new RuntimeException("Could not find value for "+value.substring(i1, i2+1));
+				}
+				
+				// figure out whether result should be an int or float
+				String clazz = null;
+				ModuleTypeDTO type = runtime.getSupportedModules().stream().filter(s -> s.type.equals(m.type)).findFirst().get();
+				for(ModulePropertyDTO p : type.properties){
+					if(p.id.equals(key)){
+						clazz = p.clazz;
+					}
+				}
+				
+				value = eval(value, clazz);
+				
+				return value;
+			});
+		}
+		
 		// calculate parameters Tensor size
 		// TODO should this somehow be made available by the module(dto) or something?
 		// This is now replicated properties parsing code from the other factory
@@ -229,6 +252,50 @@ public class CompositeModuleFactory implements ModuleFactory {
 	
 	private void addSupportedType(ModuleTypeDTO t){
 		supportedModules.put(t.type, t);
+	}
+	
+	// evaluate simple expressions a+b, a-b, a*b or a/c
+	// for now only supports float or int return type
+	private String eval(String expression, String clazz){
+		int op = -1;
+		op = expression.indexOf('+');
+		if(op==-1)
+			op = expression.indexOf('-');
+		if(op==-1)
+			op = expression.indexOf('*');
+		if(op==-1)
+			op = expression.indexOf('/');
+		if(op==-1)
+			return expression;
+		
+		
+		String s1 = expression.substring(0, op);
+		float a1 = Float.parseFloat(s1);
+		String s2 = expression.substring(op+1);
+		float a2 = Float.parseFloat(s2);
+		char operator = expression.charAt(op);
+		
+		float result = 0;
+		switch(operator){
+		case '+':
+			result = a1+a2;
+			break;
+		case '-':
+			result = a1-a2;
+			break;
+		case '*':
+			result = a1*a2;
+			break;
+		case '/':
+			result = a1/a2;
+			break;
+		}
+		
+		if(clazz.equals("java.lang.Integer")){
+			return ""+((int)result);
+		} else {
+			return ""+result;
+		}
 	}
 	
 	@Reference
