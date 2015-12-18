@@ -363,13 +363,13 @@ public class DianneRuntimeImpl implements DianneRuntime {
 					ex.printStackTrace();
 					// something seriously went wrong
 					// out of memory?
-					throw new RuntimeException(ex.getCause().getMessage());
+					throw new RuntimeException("Failed to instantiate module "+dto.type+" "+dto.id+" - "+ex.getClass().getName()+": "+ex.getMessage());
 				}
 			}
 		}
 
 		if(module==null){
-			throw new RuntimeException(new InstantiationException("Failed to instantiate module"));
+			throw new RuntimeException("Failed to instantiate module "+dto.type+" "+dto.id);
 		}
 		
 		// configure next/prev
