@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import be.iminds.iot.dianne.api.nn.module.dto.ModuleTypeDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.tensor.Tensor;
 
@@ -39,6 +40,13 @@ import be.iminds.iot.dianne.tensor.Tensor;
  */
 public interface DianneRepository {
 
+	/**
+	 * Some neural network descriptions can also be loaded as a CompositeModule
+	 * using the CompositeModuleFactory
+	 * @return list of available composite types
+	 */
+	List<ModuleTypeDTO> availableCompositeModules();
+	
 	/**
 	 * Get a list of available neural networks
 	 * @return list of available neural networks

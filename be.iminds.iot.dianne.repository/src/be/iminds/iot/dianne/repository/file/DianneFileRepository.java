@@ -24,6 +24,7 @@ package be.iminds.iot.dianne.repository.file;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -31,6 +32,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -41,6 +43,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -54,15 +57,17 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
+import com.google.gson.JsonParser;
+
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
+import be.iminds.iot.dianne.api.nn.module.dto.ModulePropertyDTO;
+import be.iminds.iot.dianne.api.nn.module.dto.ModuleTypeDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.api.repository.RepositoryListener;
 import be.iminds.iot.dianne.nn.util.DianneJSONConverter;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
-
-import com.google.gson.JsonParser;
 
 @Component(immediate=true)
 public class DianneFileRepository implements DianneRepository {
@@ -93,15 +98,54 @@ public class DianneFileRepository implements DianneRepository {
 	}
 
 	@Override
+	public List<ModuleTypeDTO> availableCompositeModules(){
+		List<ModuleTypeDTO> composites = new ArrayList<ModuleTypeDTO>();
+		File d = new File(dir);
+		for(File f : d.listFiles()){
+			if(!f.isDirectory())
+				continue;
+
+			// a composite module is identified by a .composite configuration file in the nn folder
+			File configFile = new File(f.getPath()+File.separator+".composite");
+			if(!configFile.exists())
+				continue;
+			
+			String type = f.getName();
+			String category = "Composite";
+			
+			// the .composite file can contain a number of configurable properties of the component
+			// these are formatted one per line, with on each line
+			// <property name>,<property key>,<property class type, i.e. java.lang.Integer>
+			// these properties can be referred to in the Neural Network description as ${<property key>} 
+			try {
+				List<String> lines = Files.readAllLines(configFile.toPath());
+				List<ModulePropertyDTO> properties = lines.stream().map(line -> {
+					String[] entries = line.split(",");
+					return new ModulePropertyDTO(entries[0], entries[1], entries[2]);
+				}).collect(Collectors.toList());
+				ModulePropertyDTO[] array = new ModulePropertyDTO[properties.size()];
+				properties.toArray(array);
+	
+				ModuleTypeDTO compositeType = new ModuleTypeDTO(type, category, true, array);
+				composites.add(compositeType);
+			} catch(Exception e ){
+				e.printStackTrace();
+			}
+		}
+		return composites;
+	}
+	
+	@Override
 	public List<String> availableNeuralNetworks() {
 		List<String> nns = new ArrayList<String>();
 		File d = new File(dir);
 		for(File f : d.listFiles()){
-			if(f.isDirectory()){
-				String name = f.getName();
-				if(!name.equals("weights")){
-					nns.add(f.getName());
-				}
+			if(!f.isDirectory())
+				continue;
+				
+			String name = f.getName();
+			if(!name.equals("weights")){
+				nns.add(f.getName());
 			}
 		}
 		return nns;
