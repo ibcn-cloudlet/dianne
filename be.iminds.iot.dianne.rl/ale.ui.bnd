@@ -2,4 +2,4 @@
 Private-Package: be.iminds.iot.dianne.rl.ale.ui
 Bundle-Name: Dianne ALE UI
 
-Include-Resource: res=resources/ale
+-includeresource: res=resources/ale
