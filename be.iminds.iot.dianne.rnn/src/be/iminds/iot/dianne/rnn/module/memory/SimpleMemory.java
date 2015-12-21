@@ -54,7 +54,7 @@ public class SimpleMemory extends AbstractMemory {
 
 	@Override
 	protected void updateOutput() {
-		memory.copyInto(output);
+		output = memory.copyInto(output);
 	}
 
 	@Override
