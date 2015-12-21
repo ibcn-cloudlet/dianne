@@ -310,7 +310,7 @@ function nextColor(){
 // definition of source Endpoints
 var sourceStyle = {
 	isSource:true,
-	anchor : "Right",	
+	//anchor : "Right",	
 	paintStyle:{ 
 		strokeStyle:"#555", 
 		fillStyle:"#FFF", 
@@ -337,7 +337,7 @@ var sourceStyle = {
 // the definition of target Endpoints 
 var targetStyle = {
 	isTarget:true,
-	anchor: "Left",					
+	//anchor: "Left",					
 	paintStyle:{ 
 		fillStyle:"#333"
 	},
@@ -453,30 +453,33 @@ function addModule(moduleItem){
 function setupModule(moduleItem, type, category){
 	// TODO this should not be hard coded?
 	if(type==="Input"){
-		jsPlumb.addEndpoint(moduleItem, sourceStyle);
-		jsPlumb.addEndpoint(moduleItem, targetStyle, {endpoint:"Rectangle",filter:":not(.build)",maxConnections:-1});
+		jsPlumb.addEndpoint(moduleItem, sourceStyle, {anchor: "Right"});
+		jsPlumb.addEndpoint(moduleItem, targetStyle, {anchor: "Left",endpoint:"Rectangle",filter:":not(.build)",maxConnections:-1});
 	} else if(type==="Output"){
-		jsPlumb.addEndpoint(moduleItem, sourceStyle, {endpoint:"Rectangle", maxConnections:-1});
-		jsPlumb.addEndpoint(moduleItem, targetStyle);
+		jsPlumb.addEndpoint(moduleItem, sourceStyle, {anchor: "Right",endpoint:"Rectangle", maxConnections:-1});
+		jsPlumb.addEndpoint(moduleItem, targetStyle, {anchor: "Left"});
 	} else if(category==="Trainer" || category==="Evaluator"){
-		jsPlumb.addEndpoint(moduleItem, targetStyle, {endpoint:"Rectangle"});
+		jsPlumb.addEndpoint(moduleItem, targetStyle, {anchor: "Left", endpoint:"Rectangle"});
+	} else if(category==="Memory"){
+		jsPlumb.addEndpoint(moduleItem, sourceStyle, {anchor: "Left"});
+		jsPlumb.addEndpoint(moduleItem, targetStyle, {anchor: "Right"});
 	} else if(category==="Dataset"){ 
-		jsPlumb.addEndpoint(moduleItem, sourceStyle, {endpoint:"Rectangle"});
+		jsPlumb.addEndpoint(moduleItem, sourceStyle, {anchor: "Right",endpoint:"Rectangle"});
 	} else if(category==="Input"){ 
-		jsPlumb.addEndpoint(moduleItem, sourceStyle, {endpoint:"Rectangle"});
+		jsPlumb.addEndpoint(moduleItem, sourceStyle, {anchor: "Right",endpoint:"Rectangle"});
 	} else if(category==="Visualize"){ 
-		jsPlumb.addEndpoint(moduleItem, targetStyle, {endpoint:"Rectangle"});
+		jsPlumb.addEndpoint(moduleItem, targetStyle, {anchor: "Left",endpoint:"Rectangle"});
 	} else if(category==="Output"){ 
-		jsPlumb.addEndpoint(moduleItem, targetStyle, {endpoint:"Rectangle"});
+		jsPlumb.addEndpoint(moduleItem, targetStyle, {anchor: "Left",endpoint:"Rectangle"});
 	} else if(category==="Fork") {
-		jsPlumb.addEndpoint(moduleItem, sourceStyle, {maxConnections:-1});
-		jsPlumb.addEndpoint(moduleItem, targetStyle);
+		jsPlumb.addEndpoint(moduleItem, sourceStyle, {anchor: "Right",maxConnections:-1});
+		jsPlumb.addEndpoint(moduleItem, targetStyle, {anchor: "Left"});
 	} else if(category==="Join") {
-		jsPlumb.addEndpoint(moduleItem, sourceStyle);
-		jsPlumb.addEndpoint(moduleItem, targetStyle, {maxConnections:-1});
+		jsPlumb.addEndpoint(moduleItem, sourceStyle, {anchor: "Right"});
+		jsPlumb.addEndpoint(moduleItem, targetStyle, {anchor: "Left", maxConnections:-1});
 	} else {
-		jsPlumb.addEndpoint(moduleItem, sourceStyle);
-		jsPlumb.addEndpoint(moduleItem, targetStyle);
+		jsPlumb.addEndpoint(moduleItem, sourceStyle, {anchor: "Right"});
+		jsPlumb.addEndpoint(moduleItem, targetStyle, {anchor: "Left"});
 	}
 	
 	// show dialog on double click
