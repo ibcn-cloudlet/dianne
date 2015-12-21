@@ -105,8 +105,10 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 			throw new RuntimeException("This neural network object is no longer valid");
 		}
 		
+		String tag = getTag();
+		
 		// first trigger all memories
-		memories.values().forEach(Memory::triggerForward);
+		memories.values().forEach(m -> m.triggerForward(addTag(tags, tag)));
 		
 		Input input = null;
 		if(inputId!=null){
@@ -116,7 +118,6 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 			input = inputs.values().iterator().next();
 		}
 		
-		String tag = getTag();
 		if(outputId!=null){
 			interestedModules.put(tag, outputId);
 		}
@@ -135,8 +136,10 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 			throw new RuntimeException("This neural network object is no longer valid");
 		}
 		
+		String tag = getTag();
+
 		// first trigger all memories
-		memories.values().forEach(Memory::triggerBackward);
+		memories.values().forEach(m -> m.triggerBackward(addTag(tags, tag)));
 		
 		Output output = null;
 		if(outputId!=null){
@@ -146,7 +149,6 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 			output = outputs.values().iterator().next();
 		}
 		
-		String tag = getTag();
 		if(outputId!=null){
 			interestedModules.put(tag, outputId);
 		}

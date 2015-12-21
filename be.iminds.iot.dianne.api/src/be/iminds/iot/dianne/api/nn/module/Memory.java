@@ -39,12 +39,12 @@ public interface Memory extends Module {
 	/**
 	 * Trigger the memory to forward output to the next Module
 	 */
-	public void triggerForward();
+	public void triggerForward(final String... tags);
 	
 	/**
 	 * Trigger the memory to backward gradInput to the previous Module
 	 */
-	public void triggerBackward();
+	public void triggerBackward(final String... tags);
 	
 	/**
 	 * Get the current raw memory data

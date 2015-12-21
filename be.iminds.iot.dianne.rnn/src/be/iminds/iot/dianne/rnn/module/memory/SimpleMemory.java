@@ -45,7 +45,6 @@ public class SimpleMemory extends AbstractMemory {
 		super(factory, id, t);
 	}
 
-
 	@Override
 	protected void updateMemory() {
 		// simple memory just forwards ...

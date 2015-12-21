@@ -28,7 +28,6 @@ import java.util.UUID;
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
 import be.iminds.iot.dianne.api.nn.module.Memory;
 import be.iminds.iot.dianne.api.nn.module.ModuleException;
-import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -113,7 +112,9 @@ public abstract class AbstractMemory extends AbstractModule implements Memory {
 	protected abstract void updateOutput();
 	
 	@Override
-	public synchronized void triggerForward() {
+	public synchronized void triggerForward(String... tags) {
+		this.tags = tags;
+		
 		updateOutput();
 		
 		// notify listeners
@@ -146,7 +147,9 @@ public abstract class AbstractMemory extends AbstractModule implements Memory {
 	}
 
 	@Override
-	public synchronized void triggerBackward() {
+	public synchronized void triggerBackward(String... tags) {
+		this.tags = tags;
+		
 		// notify listeners
 		if(bwListeners.size()>0)
 			notifyBackwardListeners();
