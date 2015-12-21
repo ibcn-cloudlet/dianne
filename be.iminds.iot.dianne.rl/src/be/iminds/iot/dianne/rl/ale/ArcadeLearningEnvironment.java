@@ -66,14 +66,20 @@ public class ArcadeLearningEnvironment implements Environment {
 
 	private String rom = "roms/pong.bin"; 
 	private int skip = 1;
-	private int observationLength = 1; // number of frames in an observation
+	private int observationLength = 4; // number of frames in an observation
 	private Tensor observation;
+	private boolean grayscale = true; // convert to grayscale
     
     @Activate
     public void activate(BundleContext context) throws Exception {
     	String r = context.getProperty("be.iminds.iot.dianne.rl.ale.rom");
     	if(r!=null){
     		rom = r;
+    	}
+    	
+    	String gray = context.getProperty("be.iminds.iot.dianne.rl.ale.grayscale");
+    	if(gray!=null){
+    		grayscale = Boolean.parseBoolean(gray);
     	}
     	
 		String sk = context.getProperty("be.iminds.iot.dianne.rl.ale.skip");
@@ -103,18 +109,27 @@ public class ArcadeLearningEnvironment implements Environment {
 	public float performAction(Tensor action) {
 		int r = 0;
 		
-		if(observationLength > 1){
-			float[] total = new float[observationLength*3*210*160];
-			for(int i=0;i<observationLength;i++){
-				r += performAction(factory.getTensorMath().argmax(action));
-				System.arraycopy(getScreen(), 0, total, i*3*210*160, 3*210*160);
-	    	}
-			observation = factory.createTensor(total, observationLength, 3, 210, 160);
-		} else {
-			r = performAction(factory.getTensorMath().argmax(action));
-	    	observation = factory.createTensor(getScreen(), 3, 210, 160);
-		}
+		int channels = grayscale ? 1 : 3;
+		observation = factory.createTensor(observationLength*channels, 210, 160);
 		
+		for(int i=0;i<observationLength;i++){
+			r += performAction(factory.getTensorMath().argmax(action));
+			
+			Tensor screen = factory.createTensor(getScreen(), 3, 210, 160);
+			if(grayscale){
+				Tensor gray = factory.createTensor(210,160);
+				screen.select(0, 0).copyInto(gray);
+				factory.getTensorMath().add(gray, gray, screen.select(0, 1));
+				factory.getTensorMath().add(gray, gray, screen.select(0, 2));
+				factory.getTensorMath().div(gray, gray, 3);
+				
+				gray.copyInto(observation.select(0, i));
+			} else {
+				screen.select(0, 0).copyInto(observation.select(0, 3*i));
+				screen.select(0, 1).copyInto(observation.select(0, 3*i+1));
+				screen.select(0, 2).copyInto(observation.select(0, 3*i+2));
+			}
+		}
 		
     	final float reward = r;
 		synchronized(listeners){
@@ -136,15 +151,28 @@ public class ArcadeLearningEnvironment implements Environment {
 	@Override
 	public void reset() {
 		resetGame();
-		if(observationLength > 1 ){
-	    	float[] total = new float[observationLength*3*210*160];
-	    	for(int i=0;i<observationLength;i++){
-	    		System.arraycopy(getScreen(), 0, total, i*3*210*160, 3*210*160);
-	    	}
-        	observation = factory.createTensor(total, observationLength, 3, 210, 160);
-    	} else {
-        	observation = factory.createTensor(getScreen(), 3, 210, 160);
-    	}
+		
+		int channels = grayscale ? 1 : 3;
+		observation = factory.createTensor(observationLength*channels, 210, 160);
+		
+		Tensor screen = factory.createTensor(getScreen(), 3, 210, 160);
+		if(grayscale){
+			Tensor gray = factory.createTensor(210,160);
+			screen.select(0, 0).copyInto(gray);
+			factory.getTensorMath().add(gray, gray, screen.select(0, 1));
+			factory.getTensorMath().add(gray, gray, screen.select(0, 2));
+			factory.getTensorMath().div(gray, gray, 3);
+				
+			for(int i=0;i<observationLength;i++){
+				gray.copyInto(observation.select(0, i));
+			}
+		} else {
+			for(int i=0;i<observationLength;i++){
+				screen.select(0, 0).copyInto(observation.select(0, 3*i));
+				screen.select(0, 1).copyInto(observation.select(0, 3*i+1));
+				screen.select(0, 2).copyInto(observation.select(0, 3*i+2));
+			}
+		}
 	}
 
 	private native void loadROM(String rom);

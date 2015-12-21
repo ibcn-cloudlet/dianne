@@ -25,7 +25,6 @@ package be.iminds.iot.dianne.rl.ale.ui;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -40,6 +39,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -62,10 +62,16 @@ public class ALEServlet extends HttpServlet implements EnvironmentListener {
 	private Map<String, CameraStream> streams = new HashMap<>();
 	private TensorFactory factory;
 	private ImageConverter converter;
+	private boolean grayscale = true;
 
 	@Activate
-	void activate(){
+	void activate(BundleContext context){
 		converter = new ImageConverter(factory);
+		
+    	String gray = context.getProperty("be.iminds.iot.dianne.rl.ale.grayscale");
+    	if(gray!=null){
+    		grayscale = Boolean.parseBoolean(gray);
+    	}
 	}
 	
 	@Reference
@@ -113,10 +119,10 @@ public class ALEServlet extends HttpServlet implements EnvironmentListener {
 	public void onAction(float reward, Tensor nextState) {
 		try {
 			BufferedImage img = null;
-			if(nextState.dim()==3){
-				img = converter.writeToImage(nextState);
-			} else if(nextState.dim()==4){
+			if(grayscale){
 				img = converter.writeToImage(nextState.select(0, nextState.size(0)-1));
+			} else {
+				img = converter.writeToImage(nextState.narrow(0, nextState.size(0)-4, 3));
 			}
 			
 			ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -132,7 +138,6 @@ public class ALEServlet extends HttpServlet implements EnvironmentListener {
 					try {
 						s.sendFrame(jpeg);
 					} catch(IOException e){
-						streams.remove(s.getClient());
 						it.remove();
 						s.close();
 					}
@@ -149,7 +154,6 @@ public class ALEServlet extends HttpServlet implements EnvironmentListener {
 		long sleep = interval - (t - timestamp);
 		timestamp = t;
 
-		// since the PongListeners are called synchronously, slow it down here
 		if (sleep > 0) {
 			try {
 				Thread.sleep(sleep);
