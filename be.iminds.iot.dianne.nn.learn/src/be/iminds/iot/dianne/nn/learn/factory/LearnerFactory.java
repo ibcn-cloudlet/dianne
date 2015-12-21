@@ -78,6 +78,10 @@ public class LearnerFactory {
 		System.out.println("* batchSize = "+batchSize);
 		System.out.println("---");
 		
+		return selectSGDMethod(p, config);
+	}
+	
+	public static AbstractProcessor selectSGDMethod(AbstractProcessor p, Map<String, String> config){
 		String method = "SGD";
 		if(config.get("method")!=null){
 			method = config.get("method");
@@ -131,6 +135,7 @@ public class LearnerFactory {
 
 		return p;
 	}
+	
 	
 	public static AbstractProcessor addRegularization(AbstractProcessor p, Map<String, String> config){
 		if(config.get("regularization")!=null){
