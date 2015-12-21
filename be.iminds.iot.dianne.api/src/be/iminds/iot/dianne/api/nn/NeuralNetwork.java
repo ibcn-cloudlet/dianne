@@ -29,6 +29,7 @@ import java.util.UUID;
 import org.osgi.util.promise.Promise;
 
 import be.iminds.iot.dianne.api.nn.module.Input;
+import be.iminds.iot.dianne.api.nn.module.Memory;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.Output;
 import be.iminds.iot.dianne.api.nn.module.Preprocessor;
@@ -166,6 +167,12 @@ public interface NeuralNetwork {
 	 * @return
 	 */
 	Map<UUID, Preprocessor> getPreprocessors();
+	
+	/**
+	 * Get Memory modules for this neural network instance
+	 * @return
+	 */
+	Map<UUID, Memory> getMemories();
 	
 	/**
 	 * Get all modules for this neural network instance

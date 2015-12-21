@@ -41,6 +41,7 @@ import be.iminds.iot.dianne.api.nn.NeuralNetworkResult;
 import be.iminds.iot.dianne.api.nn.module.BackwardListener;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Input;
+import be.iminds.iot.dianne.api.nn.module.Memory;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.api.nn.module.Output;
@@ -63,6 +64,7 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	private Map<UUID, Input> inputs;
 	private Map<UUID, Output> outputs;
 	private Map<UUID, Preprocessor> preprocessors;
+	private Map<UUID, Memory> memories;
 	private Map<UUID, Trainable> trainables;
 	
 	private final BundleContext context;
@@ -87,6 +89,7 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		this.inputs = modules.stream().filter(m -> m instanceof Input).map(i -> (Input)i).collect(Collectors.toMap(i -> i.getId(), i -> i));
 		this.outputs = modules.stream().filter(m -> m instanceof Output).map(o -> (Output)o).collect(Collectors.toMap(o -> o.getId(), o -> o));
 		this.preprocessors = modules.stream().filter(m -> m instanceof Preprocessor).map(p -> (Preprocessor)p).collect(Collectors.toMap(p -> p.getId(), p -> p));
+		this.memories = modules.stream().filter(m -> m instanceof Memory).map(m -> (Memory)m).collect(Collectors.toMap(m -> m.getId(), m -> m));
 		this.trainables = modules.stream().filter(m -> m instanceof Trainable).map(t -> (Trainable)t).collect(Collectors.toMap(t -> t.getId(), t -> t));
 
 	}
@@ -101,6 +104,9 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		if(!valid){
 			throw new RuntimeException("This neural network object is no longer valid");
 		}
+		
+		// first trigger all memories
+		memories.values().forEach(Memory::triggerForward);
 		
 		Input input = null;
 		if(inputId!=null){
@@ -128,6 +134,9 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		if(!valid){
 			throw new RuntimeException("This neural network object is no longer valid");
 		}
+		
+		// first trigger all memories
+		memories.values().forEach(Memory::triggerBackward);
 		
 		Output output = null;
 		if(outputId!=null){
@@ -387,6 +396,15 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		}
 		
 		return preprocessors;
+	}
+	
+	@Override
+	public Map<UUID, Memory> getMemories() {
+		if(!valid){
+			throw new RuntimeException("This neural network object is no longer valid");
+		}
+		
+		return memories;
 	}
 	
 	@Override
