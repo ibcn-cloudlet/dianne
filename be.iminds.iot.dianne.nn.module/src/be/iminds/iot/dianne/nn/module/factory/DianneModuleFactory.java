@@ -69,9 +69,6 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 @Component(property={"aiolos.export=false"})
 public class DianneModuleFactory implements ModuleFactory {
 
-	private ExecutorService runExecutor = Executors.newCachedThreadPool();
-	private ExecutorService listenerExecutor = Executors.newCachedThreadPool();
-	
 	private TensorFactory factory;
 	
 	private final Map<String, ModuleTypeDTO> supportedModules = new HashMap<String, ModuleTypeDTO>();
@@ -389,10 +386,6 @@ public class DianneModuleFactory implements ModuleFactory {
 		default:
 			throw new InstantiationException("Could not instantiate module of type "+type);
 		}
-		
-		// re-use a cached threadpool
-		module.setRunExecutorService(runExecutor);
-		module.setListenerExecutorService(listenerExecutor);
 		
 		return module;
 	}

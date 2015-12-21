@@ -85,9 +85,9 @@ public abstract class AbstractModule implements Module {
 	protected AtomicBoolean nextBusy = new AtomicBoolean();
 	
 	// Thread executor to perform calculations on
-	protected ExecutorService runExecutor = Executors.newCachedThreadPool();
+	protected static ExecutorService runExecutor = Executors.newCachedThreadPool();
 	// Thread executor to notify listeners
-	protected ExecutorService listenerExecutor = Executors.newSingleThreadExecutor();
+	protected static ExecutorService listenerExecutor = Executors.newSingleThreadExecutor();
 
 	
 	// Listeners
@@ -96,24 +96,6 @@ public abstract class AbstractModule implements Module {
 
 	// Mode
 	protected EnumSet<Mode> mode = EnumSet.of(Mode.BLOCKING, Mode.WAIT_FOR_ALL);
-	
-	// Allows to set a common executor for multple module instances
-	public void setRunExecutorService(ExecutorService executor){
-		List<Runnable> todo = this.runExecutor.shutdownNow();
-		this.runExecutor = executor;
-		for(Runnable r : todo){
-			this.runExecutor.execute(r);
-		}
-	}
-	
-	// Allows to set a common listener executor for multple module instances
-	public void setListenerExecutorService(ExecutorService executor){
-		List<Runnable> todo = this.listenerExecutor.shutdownNow();
-		this.listenerExecutor = executor;
-		for(Runnable r : todo){
-			this.listenerExecutor.execute(r);
-		}
-	}
 	
 	public AbstractModule(TensorFactory factory) {
 		this.id = UUID.randomUUID();
