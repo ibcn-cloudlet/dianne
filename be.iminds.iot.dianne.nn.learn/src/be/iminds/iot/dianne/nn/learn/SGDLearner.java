@@ -151,6 +151,9 @@ public class SGDLearner implements Learner {
 			loadParameters();
 		}
 		
+		// store the labels
+		nn.setOutputLabels(d.getLabels());
+		
 		// first get parameters for preprocessing?
 		nn.getPreprocessors().values().stream().forEach(p -> {
 			if(!p.isPreprocessed())

@@ -157,6 +157,9 @@ public class DeepQLearner implements QLearner {
 
 		
 		pool = pools.get(experiencePool);
+		
+		// store the labels
+		nn.setOutputLabels(pool.getLabels());
 
 		// create a Processor from config
 		processor = QLearnerFactory.createProcessor(factory, nn, target, pool, config, logger);
