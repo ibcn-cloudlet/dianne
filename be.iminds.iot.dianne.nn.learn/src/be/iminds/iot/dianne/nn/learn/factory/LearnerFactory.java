@@ -215,46 +215,49 @@ public class LearnerFactory {
 			System.out.println("Dataset range");
 			System.out.println("* range = "+range);
 			System.out.println("---");
-		} else {
-			int startIndex = 0;
-			int endIndex = d.size();
-			
+		} else  {
 			String start = config.get("startIndex");
-			if(start!=null){
-				startIndex = Integer.parseInt(start);
-			}
-			
 			String end = config.get("endIndex");
-			if(end!=null){
-				endIndex = Integer.parseInt(end);
-			}
 			
-			int index = startIndex;
-			indices = new int[endIndex-startIndex];
-			for(int i=0;i<indices.length;i++){
-				indices[i] = index++;
+			if(start!=null || end !=null){
+				int startIndex = 0;
+				int endIndex = d.size();
+				
+				if(start!=null){
+					startIndex = Integer.parseInt(start);
+				}
+				
+				if(end!=null){
+					endIndex = Integer.parseInt(end);
+				}
+				
+				int index = startIndex;
+				indices = new int[endIndex-startIndex];
+				for(int i=0;i<indices.length;i++){
+					indices[i] = index++;
+				}
+				
+				System.out.println("Dataset range");
+				System.out.println("* startIndex = "+startIndex);
+				System.out.println("* endIndex = "+endIndex);
+				System.out.println("---");
 			}
-			
-			System.out.println("Dataset range");
-			System.out.println("* startIndex = "+startIndex);
-			System.out.println("* endIndex = "+endIndex);
-			System.out.println("---");
 		}
 
 		SamplingStrategy sampling = null;
 		String s = config.get("samplingStrategy");
 		if(s != null){
 			if(s.equals("random")){
-				sampling = new RandomSamplingStrategy(indices);
+				sampling = new RandomSamplingStrategy(d, indices);
 			} else if(s.equals("sequential")){
-				sampling = new SequentialSamplingStrategy(indices);
+				sampling = new SequentialSamplingStrategy(d, indices);
 			} else {
 				// random is default
-				sampling = new RandomSamplingStrategy(indices);
+				sampling = new RandomSamplingStrategy(d, indices);
 			}
 		} else {
 			// random is default
-			sampling = new RandomSamplingStrategy(indices);
+			sampling = new RandomSamplingStrategy(d, indices);
 		}
 		
 		return sampling;
