@@ -224,6 +224,8 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 				if(d!=null){
 					NeuralNetworkResult r = new NeuralNetworkResult(output, removeTag(tags, tag));
 					d.resolve(r);
+				} else {
+					System.err.println("No deferred for tag "+tag+" ?!");
 				}
 			}
 
@@ -244,6 +246,8 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 				Deferred<NeuralNetworkResult> d = inProgress.remove(tag);
 				if(d!=null){
 					d.fail(e);
+				} else {
+					System.err.println("No deferred for tag "+tag+" ?!");
 				}
 			}
 		}, propertiesFw);
