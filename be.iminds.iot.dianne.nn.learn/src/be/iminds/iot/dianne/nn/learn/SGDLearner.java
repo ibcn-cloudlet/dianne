@@ -164,41 +164,46 @@ public class SGDLearner implements Learner {
 		// create a Processor from config
 		processor = LearnerFactory.createProcessor(factory, nn, d, config, logger);
 		
+		learning = true;
 		learnerThread = new Thread(new Runnable() {
-			
 			@Override
 			public void run() {
-				learning = true;
-				float err = 0;
+				try {
+					float err = 0;
 
-				do {
-					nn.getTrainables().entrySet().stream().forEach(e -> {
-						e.getValue().zeroDeltaParameters();
-					});
-					
-					err = processor.processNext();
-					if(i==0){
-						error = err;
-					} else {
-						error = (1 - alpha) * error + alpha * err;
-					}
-
-					if(trace)
-						System.out.println(error);
-					
-					nn.getTrainables().entrySet().stream().forEach(e -> {
-						e.getValue().updateParameters(1.0f);
-					});
+					do {
+						nn.getTrainables().entrySet().stream().forEach(e -> {
+							e.getValue().zeroDeltaParameters();
+						});
 						
-					if(syncInterval>0){
-						if(i!=0 && i % syncInterval == 0){
-							// publish weights
-							publishParameters();
+						err = processor.processNext();
+						if(i==0){
+							error = err;
+						} else {
+							error = (1 - alpha) * error + alpha * err;
 						}
-					}
-					
-					i++;
-				} while(learning);
+	
+						if(trace)
+							System.out.println(error);
+						
+						nn.getTrainables().entrySet().stream().forEach(e -> {
+							e.getValue().updateParameters(1.0f);
+						});
+							
+						if(syncInterval>0){
+							if(i!=0 && i % syncInterval == 0){
+								// publish weights
+								publishParameters();
+							}
+						}
+						
+						i++;
+					} while(learning);
+				} catch(Throwable t){
+					System.err.println("Error during learning");
+					t.printStackTrace();
+					learning = false;
+				}
 				System.out.println("Stopped learning");
 			}
 		});

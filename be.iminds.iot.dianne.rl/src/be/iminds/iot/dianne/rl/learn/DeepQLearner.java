@@ -164,8 +164,8 @@ public class DeepQLearner implements QLearner {
 		// create a Processor from config
 		processor = QLearnerFactory.createProcessor(factory, nn, target, pool, config, logger);
 
-		learningThread = new Thread(new DeepQLearnerRunnable());
 		learning = true;
+		learningThread = new Thread(new DeepQLearnerRunnable());
 		learningThread.start();
 	}
 
@@ -220,63 +220,72 @@ public class DeepQLearner implements QLearner {
 
 		@Override
 		public void run() {
-			double error = 0, avgError = 0;
-			long timestamp = System.currentTimeMillis();
-			
-			initializeParameters();
-			
-			// wait until pool has some samples
-			if(pool.size() < minSamples){
-				System.out.println("Experience pool has too few samples, waiting a bit to start learning...");
-				while(pool.size() < minSamples){
-					try {
-						Thread.sleep(5000);
-					} catch (InterruptedException e) {
+			try {
+				
+				double error = 0, avgError = 0;
+				long timestamp = System.currentTimeMillis();
+				
+				initializeParameters();
+				
+				// wait until pool has some samples
+				if(pool.size() < minSamples){
+					System.out.println("Experience pool has too few samples, waiting a bit to start learning...");
+					while(pool.size() < minSamples){
+						try {
+							Thread.sleep(5000);
+						} catch (InterruptedException e) {
+						}
 					}
 				}
-			}
-			System.out.println("Start learning...");
-			
-			for (long i = 1; learning; i++) {
-				nn.getTrainables().values().stream().forEach(Trainable::zeroDeltaParameters);
+				System.out.println("Start learning...");
 				
-				pool.lock();
-				try {
-					error = processor.processNext();
-					if(Double.isInfinite(error) || Double.isNaN(error)){
-						System.out.println(i+" ERROR IS "+error);
+				for (long i = 1; learning; i++) {
+					nn.getTrainables().values().stream().forEach(Trainable::zeroDeltaParameters);
+					
+					pool.lock();
+					try {
+						error = processor.processNext();
+						if(Double.isInfinite(error) || Double.isNaN(error)){
+							System.out.println(i+" ERROR IS "+error);
+						}
+						
+					} finally {
+						pool.unlock();
 					}
 					
-				} finally {
-					pool.unlock();
+					avgError = (1 - alpha) * avgError + alpha * error;
+	
+					if(logger!=null){
+						long t = System.currentTimeMillis();
+						logger.log("TIME", logLabels, (float)(t-timestamp));
+						timestamp = t;
+					}
+	
+					nn.getTrainables().values().stream().forEach(Trainable::updateParameters);
+	
+					if (targetInterval > 0 && i % targetInterval == 0) {
+						nn.storeDeltaParameters(previousParameters, tag);
+						loadParameters(nn, target);
+						// also store these parameters tagged with batch number
+						nn.storeParameters(""+i);
+					} else if(syncInterval > 0 && i % syncInterval == 0){
+						nn.storeDeltaParameters(previousParameters, tag);
+						loadParameters(nn);
+					}
+					
+					if(storeInterval > 0 && i % storeInterval == 0){
+						nn.storeParameters(storeTag, ""+i);
+					}
 				}
-				
-				avgError = (1 - alpha) * avgError + alpha * error;
-
-				if(logger!=null){
-					long t = System.currentTimeMillis();
-					logger.log("TIME", logLabels, (float)(t-timestamp));
-					timestamp = t;
-				}
-
-				nn.getTrainables().values().stream().forEach(Trainable::updateParameters);
-
-				if (targetInterval > 0 && i % targetInterval == 0) {
-					nn.storeDeltaParameters(previousParameters, tag);
-					loadParameters(nn, target);
-					// also store these parameters tagged with batch number
-					nn.storeParameters(""+i);
-				} else if(syncInterval > 0 && i % syncInterval == 0){
-					nn.storeDeltaParameters(previousParameters, tag);
-					loadParameters(nn);
-				}
-				
-				if(storeInterval > 0 && i % storeInterval == 0){
-					nn.storeParameters(storeTag, ""+i);
-				}
+	
+				nn.storeDeltaParameters(previousParameters, tag);
+			
+			} catch(Throwable t){
+				System.err.println("Error during learning");
+				t.printStackTrace();
+				learning = false;
 			}
-
-			nn.storeDeltaParameters(previousParameters, tag);
+			System.out.println("Stopped learning");
 		}
 
 	}
