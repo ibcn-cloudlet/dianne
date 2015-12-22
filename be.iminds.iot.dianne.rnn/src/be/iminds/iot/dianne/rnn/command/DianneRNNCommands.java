@@ -23,12 +23,10 @@
 package be.iminds.iot.dianne.rnn.command;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.Set;
 import java.util.UUID;
 
 import org.osgi.service.component.annotations.Component;
@@ -37,15 +35,10 @@ import org.osgi.service.component.annotations.Reference;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
-import be.iminds.iot.dianne.api.nn.module.Module;
-import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
-import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
-import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.nn.learn.criterion.MSECriterion;
-import be.iminds.iot.dianne.nn.learn.criterion.NLLCriterion;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -55,7 +48,6 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 @Component(
 		service=Object.class,
 		property={"osgi.command.scope=dianne",
-				  "osgi.command.function=recurrentLinks",
 				  "osgi.command.function=generate",
 				  "osgi.command.function=bptt"},
 		immediate=true)
@@ -67,34 +59,15 @@ public class DianneRNNCommands {
 	
 	private final String chars = "abcde";
 	
-	public void recurrentLinks(String nnName){
-		Set<RecurrentLink> recurrentLinks = findRecurrentLinks(platform.getAvailableNeuralNetwork(nnName));
-		for(RecurrentLink l : recurrentLinks){
-			System.out.println("Recurrent link "+l.from.id+" ("+l.from.type+") -> "+l.to.id+" ("+l.to.type+")");
-		}
-	}
-	
 	public void generate(String nnName, char start, int n){
 		// forward of a rnn
 		try {
 			NeuralNetworkInstanceDTO nni = platform.deployNeuralNetwork(nnName, "test rnn");
 			NeuralNetwork nn = dianne.getNeuralNetwork(nni).getValue();
-
-			// set recurrent modules to WAIT_FOR_FIRST
-			// TODO get a better solution for this?!
-			Set<RecurrentLink> recurrentLinks = findRecurrentLinks(platform.getAvailableNeuralNetwork(nnName));
-			for(RecurrentLink l : recurrentLinks){
-				Module m1 = nn.getModules().get(l.from.id);
-				m1.setMode(EnumSet.of(Mode.BLOCKING, Mode.WAIT_FOR_FIRST));
-				
-				Module m2 = nn.getModules().get(l.to.id);
-				m2.setMode(EnumSet.of(Mode.BLOCKING, Mode.WAIT_FOR_FIRST));
-			}
-			
 			try {
 				nn.loadParameters("test");
 			} catch(Exception e){
-				System.out.println("Failed to load nn parameters");
+				System.out.println("Failed loading parameters.");
 			}
 			
 			String result = ""+start;
@@ -107,6 +80,8 @@ public class DianneRNNCommands {
 			}
 			
 			System.out.println(result);
+			
+			platform.undeployNeuralNetwork(nni);
 		} catch(Exception e){
 			e.printStackTrace();
 		}
@@ -119,193 +94,107 @@ public class DianneRNNCommands {
 	public void bptt(String nnName, int length, int iterations){
 		// training of a rnn by unfolding
 		try {
-			//Criterion criterion = new MSECriterion(factory);
-			Criterion criterion = new NLLCriterion(factory);
+			Criterion criterion = new MSECriterion(factory);
+			//Criterion criterion = new NLLCriterion(factory);
 			
 			Random rand = new Random();
 			String sequence = "aaabbbcccdddeeeaaabbbcccdddeeeaaabbbcccdddeeeaaabbbcccdddeeeaaabbbcccdddeeeaaabbbcccdddeeeaaabbbcccdddeee";
 			
-			// find recurrent links to unfold
-			Set<RecurrentLink> recurrentLinks = findRecurrentLinks(platform.getAvailableNeuralNetwork(nnName));
-		
-			List<NeuralNetworkInstanceDTO> nnis = new ArrayList<>(length);
-			List<NeuralNetwork> nns = new ArrayList<>(length);
-			
-			// create nn instances
-			for(int i=0;i<length;i++){
-				NeuralNetworkInstanceDTO nni = platform.deployNeuralNetwork(nnName);
-				nnis.add(nni);
-				NeuralNetwork nn = dianne.getNeuralNetwork(nni).getValue();
-				nns.add(nn);
-			}
-			
-			// unfold the next/prev of the recurrent links
-			for(int i=0;i<length;i++){
-				for(RecurrentLink l : recurrentLinks){
-					// next should be forwarded to next nn in unfolded list
-					Module m1 = nns.get(i).getModules().get(l.from.id);
-					m1.setMode(EnumSet.of(Mode.BLOCKING, Mode.WAIT_FOR_FIRST));
-					Module[] next = new Module[l.from.next.length];
-					for(int j=0;j<next.length;j++){
-						if(l.from.next[j].equals(l.to.id)){
-							// forward to next nn
-							if(i==length-1){
-								next[j] = null;
-							} else {
-								next[j] = nns.get(i+1).getModules().get(l.from.next[j]);
-							}
-						} else {
-							next[j] = nns.get(i).getModules().get(l.from.next[j]);
-						}
-					}
-					m1.setNext(next);
-					
-					// previous should be backwarded to prev nn in unfolded list
-					Module m2 = nns.get(i).getModules().get(l.to.id);
-					m2.setMode(EnumSet.of(Mode.BLOCKING, Mode.WAIT_FOR_FIRST));
-					Module[] prev = new Module[l.to.prev.length];
-					for(int j=0;j<prev.length;j++){
-						if(l.to.prev[j].equals(l.from.id)){
-							// backward to prev nn
-							if(i==0){
-								prev[j] = null;
-							} else {
-								prev[j] = nns.get(i-1).getModules().get(l.to.prev[j]);
-							}
-						} else {
-							prev[j] = nns.get(i).getModules().get(l.to.prev[j]);
-						}
-					}
-					m2.setPrevious(prev);
-				}
-			}
+			NeuralNetworkInstanceDTO nni = platform.deployNeuralNetwork(nnName);
+			NeuralNetwork nn = dianne.getNeuralNetwork(nni).getValue();
 			
 			
 			// initialize parameters
-			nns.get(0).randomizeParameters();
-			nns.get(0).storeParameters("test");
+			nn.randomizeParameters();
+			nn.storeParameters("test");
 			
 			
-			float learningRate = 0.01f;
+			float learningRate = 0.001f;
 			for(int l=0;l<iterations;l++){
 	
 				// load parameters
-				Map<UUID, Tensor> previousParameters = null;
-				for(int k=0;k<nns.size();k++){
-					try {
-						previousParameters = nns.get(k).loadParameters("test");
-					}catch(Exception e){
-						e.printStackTrace();
-					}
-				}
+				Map<UUID, Tensor> previousParameters = nn.loadParameters("test");
 				
 				// zero delta params
-				for(int k=0;k<nns.size();k++){
-					nns.get(k).getTrainables().values().stream().forEach(Trainable::zeroDeltaParameters);
-				}
+				nn.getTrainables().values().stream().forEach(Trainable::zeroDeltaParameters);
 				
-				// forward
+				// keep all memories intermediate states
+				Map<UUID, Tensor[]> memories = new HashMap<UUID, Tensor[]>();
+				nn.getMemories().entrySet().forEach(e -> {
+					Tensor[] mems = new Tensor[length];
+					for(int i=0;i<length;i++){
+						mems[i] = e.getValue().getMemory().copyInto(null);
+					}
+					memories.put(e.getKey(), mems);
+				});
+				
+				// forward the sequence
 				int offset = rand.nextInt(20);
+				Tensor[] inputs = new Tensor[length];
 				Tensor[] outputs = new Tensor[length];
 				for(int i=0;i<length;i++){
-					// forward the sequence
-					Tensor out = nns.get(i).forward(asTensor(sequence.charAt(offset+i)));
+					// store input and memory
+					inputs[i] = asTensor(sequence.charAt(offset+i));
+					final int index = i;
+					nn.getMemories().entrySet().forEach(e ->{
+						e.getValue().getMemory().copyInto(memories.get(e.getKey())[index]);
+					});
+					
+					// forward
+					Tensor out = nn.forward(inputs[i]);
+					
+					// store output
 					outputs[i] = out;
+
 				}
+
 				
 				// backward
 				float error = 0;
 				for(int i=length-1;i>=0;i--){
 					Tensor target = asTensor(sequence.charAt(offset+i+1));
-					float e = criterion.error(outputs[i], target).get(0);
-					error+=e;
+					float err = criterion.error(outputs[i], target).get(0);
+					error+=err;
 					Tensor grad = criterion.grad(outputs[i], target);
-					nns.get(i).backward(grad);
+					
+					// first forward again with correct state and memories
+					final int index = i;
+					nn.getMemories().entrySet().forEach(e -> {
+						e.getValue().setMemory(memories.get(e.getKey())[index]);
+					});
+					nn.forward(inputs[i]);
+					
+					// TODO set grad to zero for all intermediates?
+					//if(i!=length-1){
+					//	grad.fill(0.0f);
+					//}
+					nn.backward(grad);
 					
 					// acc grad
-					nns.get(i).getTrainables().values().stream().forEach(m -> m.accGradParameters());
+					nn.getTrainables().values().stream().forEach(m -> m.accGradParameters());
 					
 				}
 				System.out.println(error);
 
 				// apply learning rate
-				for(int k=0;k<nns.size();k++){
-					nns.get(k).getTrainables().values().stream().forEach(
-							m -> factory.getTensorMath().mul(m.getDeltaParameters(), m.getDeltaParameters(), -learningRate));
-				}
+				nn.getTrainables().values().stream().forEach(
+						m -> factory.getTensorMath().mul(m.getDeltaParameters(), m.getDeltaParameters(), -learningRate));
 				
 				// update parameters
-				for(int k=0;k<nns.size();k++){
-					nns.get(k).getTrainables().values().stream().forEach(Trainable::updateParameters);
-				}
+				nn.getTrainables().values().stream().forEach(Trainable::updateParameters);
 				
 				// store deltas
-				for(int k=0;k<nns.size();k++){
-					nns.get(k).storeDeltaParameters(previousParameters, "test");
-				}
+				nn.storeDeltaParameters(previousParameters, "test");
+				
 			
 			}
 			
-			for(NeuralNetworkInstanceDTO nni : nnis){
-				platform.undeployNeuralNetwork(nni);
-			}
+			platform.undeployNeuralNetwork(nni);
 			
 		} catch(Exception e){
 			e.printStackTrace();
 		}
 		
-	}
-	
-	private class RecurrentLink {
-		ModuleDTO from;
-		ModuleDTO to;
-		
-		public int hashCode(){
-			return from.hashCode()+to.hashCode();
-		}
-		
-		public boolean equals(Object other){
-			if(!(other instanceof RecurrentLink)){
-				return false;
-			}
-			RecurrentLink o = (RecurrentLink) other;
-			return o.from.equals(from) && o.to.equals(to);
-		}
-	}
-	
-	private Set<RecurrentLink> findRecurrentLinks(NeuralNetworkDTO nn){
-		Set<RecurrentLink> links = new HashSet<>();
-		
-		// should have only one input?
-		ModuleDTO input = nn.modules.values().stream().filter(m -> m.type.equals("Input")).findFirst().get();
-		visit(new ArrayList<UUID>(), links, input, nn.modules);
-		
-		return links;
-	}
-	
-	private void visit(List<UUID> visited, Set<RecurrentLink> links, ModuleDTO toVisit, Map<UUID, ModuleDTO> modules){
-		visited.add(toVisit.id);
-
-		if(toVisit.next==null){
-			return;
-		}
-		for(UUID nxt : toVisit.next){
-			if(visited.contains(nxt)){
-				ModuleDTO nxtModule = modules.get(nxt);
-				if(toVisit.next.length>1){
-					RecurrentLink l = new RecurrentLink();
-					l.from = toVisit;
-					l.to = nxtModule;
-					links.add(l);
-				}
-			} else {
-				List<UUID> list = visited;
-				if(toVisit.next.length>0){
-					list = new ArrayList<>(visited);
-				}
-				visit(list, links, modules.get(nxt), modules);
-			}
-		}
 	}
 	
 	private Tensor asTensor(char c){
