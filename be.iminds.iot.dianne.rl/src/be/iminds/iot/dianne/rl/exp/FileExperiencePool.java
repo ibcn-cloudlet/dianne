@@ -50,7 +50,7 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 @Component(immediate=true,
 	configurationPolicy=ConfigurationPolicy.REQUIRE,
 	service={ExperiencePool.class, Dataset.class},
-	property={"aiolos.unique=true"})
+	property={"aiolos.unique=true, aiolos.combine=*"})
 public class FileExperiencePool implements ExperiencePool {
 
 	private TensorFactory factory;

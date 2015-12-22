@@ -31,6 +31,7 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
+import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.rnn.SequenceDataset;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
@@ -41,7 +42,8 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
  * @author tverbele
  *
  */
-@Component(immediate=true, property={"name=CharSequence","aiolos.unique=true"})
+@Component(immediate=true, service={SequenceDataset.class, Dataset.class},
+	property={"name=CharSequence","aiolos.unique=true","aiolos.combine=*"})
 public class CharSequenceDataset implements SequenceDataset{
 
 	private TensorFactory factory;
