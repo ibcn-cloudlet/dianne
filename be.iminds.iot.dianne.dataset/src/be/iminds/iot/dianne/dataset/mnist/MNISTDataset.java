@@ -47,7 +47,7 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
  * @author tverbele
  *
  */
-@Component(immediate=true, property={"name=MNIST","aiolos.callback=be.iminds.iot.dianne.api.dataset.Dataset"})
+@Component(immediate=true, property={"name=MNIST","aiolos.unique=true"})
 public class MNISTDataset implements Dataset{
 
 	private TensorFactory factory;

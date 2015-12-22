@@ -50,7 +50,7 @@ import be.iminds.iot.dianne.tensor.util.ImageConverter;
  * @author tverbele
  *
  */
-@Component(immediate = true, property = {"name=ImageNet","aiolos.callback=be.iminds.iot.dianne.api.dataset.Dataset" })
+@Component(immediate = true, property = {"name=ImageNet","aiolos.unique=true" })
 public class ImageNetDataset implements Dataset {
 
 	private TensorFactory factory;

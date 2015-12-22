@@ -37,7 +37,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.dianne.tensor.util.ImageConverter;
 
-@Component(immediate = true, property = {"name=Kaggle (CatvsDog)","aiolos.callback=be.iminds.iot.dianne.api.dataset.Dataset" })
+@Component(immediate = true, property = {"name=Kaggle (CatvsDog)","aiolos.unique=true" })
 public class CatvsDogDataset implements Dataset {
 
 	private TensorFactory factory;
