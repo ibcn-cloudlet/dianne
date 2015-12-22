@@ -48,6 +48,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import be.iminds.iot.dianne.api.nn.module.BackwardListener;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Input;
+import be.iminds.iot.dianne.api.nn.module.Memory;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.Output;
 import be.iminds.iot.dianne.api.nn.module.Preprocessor;
@@ -410,6 +411,8 @@ public class DianneRuntimeImpl implements DianneRuntime {
 			classes = new String[]{Module.class.getName(),Trainable.class.getName()};
 		} else if(module instanceof Preprocessor){
 			classes = new String[]{Module.class.getName(),Preprocessor.class.getName()};
+		} else if(module instanceof Memory){
+			classes = new String[]{Module.class.getName(),Memory.class.getName()};
 		} else {
 			classes = new String[]{Module.class.getName()};
 		}
