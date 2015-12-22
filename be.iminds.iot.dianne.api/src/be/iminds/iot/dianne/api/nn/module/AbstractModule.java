@@ -142,7 +142,7 @@ public abstract class AbstractModule implements Module {
 	
 	protected synchronized void forward(final UUID moduleId, final ModuleException ex, final Tensor input, final String... tags) {
 		if(TRACE){
-			System.out.println("FORWARD "+this.id+" ("+this.getClass().getName()+")  FROM "+moduleId+" "+Arrays.toString(input.dims())+" "+Arrays.toString(tags));
+			System.out.println("FORWARD "+this.id+" ("+this.getClass().getName()+")  FROM "+moduleId+" "+(input==null?"null":Arrays.toString(input.dims()))+" "+Arrays.toString(tags));
 		}
 		// skip or block when next is not ready processing previous output of this module
 		synchronized(nextBusy){
@@ -206,7 +206,7 @@ public abstract class AbstractModule implements Module {
 	
 	protected synchronized void backward(final UUID moduleId, final ModuleException ex, final Tensor gradOutput, final String... tags) {
 		if(TRACE){
-			System.out.println("BACKWARD "+this.id+" ("+this.getClass().getName()+")  FROM "+moduleId+" "+Arrays.toString(gradOutput.dims())+" "+Arrays.toString(tags));
+			System.out.println("BACKWARD "+this.id+" ("+this.getClass().getName()+")  FROM "+moduleId+" "+(gradOutput == null ? "null":Arrays.toString(gradOutput.dims()))+" "+Arrays.toString(tags));
 		}
 		
 		this.gradOutput = gradOutput;
@@ -304,7 +304,7 @@ public abstract class AbstractModule implements Module {
 							b->b.onError(id, exception, tagsCopy));
 				});
 			} else {
-				final Tensor gradInputCopy = gradInput.copyInto(null);
+				final Tensor gradInputCopy = (gradInput==null ? null : gradInput.copyInto(null));
 				
 				listenerExecutor.execute(()->{
 					bwListenersCopy.stream().forEach(
