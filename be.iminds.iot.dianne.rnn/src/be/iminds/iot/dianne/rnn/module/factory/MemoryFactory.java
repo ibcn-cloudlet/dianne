@@ -54,7 +54,7 @@ public class MemoryFactory implements ModuleFactory {
 		// build list of supported modules
 		// TODO use reflection for this?
 		
-		addSupportedType( new ModuleTypeDTO("Simple Memory", "Memory", true, 
+		addSupportedType( new ModuleTypeDTO("Memory", "Memory", true, 
 					new ModulePropertyDTO("Memory size", "size", Integer.class.getName())));
 	}
 	
@@ -77,7 +77,7 @@ public class MemoryFactory implements ModuleFactory {
 		UUID id = dto.id;
 
 		switch(type){
-		case "Simple Memory":
+		case "Memory":
 		{
 			int size = Integer.parseInt(dto.properties.get("size"));
 			
