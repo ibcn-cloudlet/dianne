@@ -2,6 +2,7 @@ Bundle-Version: 0.3.0.${tstamp}
 
 Export-Package: \
 	be.iminds.iot.dianne.api.coordinator,\
+	be.iminds.iot.dianne.api.rnn,\
 	be.iminds.iot.dianne.api.dataset,\
 	be.iminds.iot.dianne.api.nn.eval,\
 	be.iminds.iot.dianne.api.log,\
