@@ -54,10 +54,12 @@ public class DianneRNNCommands {
 
 	private TensorFactory factory;
 	
+	protected NeuralNetworkInstanceDTO nni;
+	
 	public void generate(String nnName, String start, int n){
 		// forward of a rnn
 		try {
-			NeuralNetworkInstanceDTO nni = platform.deployNeuralNetwork(nnName, "test rnn");
+			nni = platform.deployNeuralNetwork(nnName, "test rnn");
 			NeuralNetwork nn = dianne.getNeuralNetwork(nni).getValue();
 			
 			String result = ""+start;
@@ -74,9 +76,10 @@ public class DianneRNNCommands {
 			
 			System.out.println(result);
 			
-			platform.undeployNeuralNetwork(nni);
 		} catch(Exception e){
 			e.printStackTrace();
+		} finally {
+			platform.undeployNeuralNetwork(nni);
 		}
 	}
 	
@@ -85,15 +88,17 @@ public class DianneRNNCommands {
 		try {
 			Map<String, String> config = createLearnerConfig(properties);
 			
-			NeuralNetworkInstanceDTO nni = platform.deployNeuralNetwork(nnName);
+			nni = platform.deployNeuralNetwork(nnName);
 			learner.learn(nni, dataset, config);
 		} catch(Exception e){
 			e.printStackTrace();
-		}
+			platform.undeployNeuralNetwork(nni);
+		} 
 	}
 
 	public void stopBptt(){
 		this.learner.stop();
+		platform.undeployNeuralNetwork(nni);
 	}
 	
 	private Map<String, String> createLearnerConfig(String[] properties){
@@ -119,6 +124,9 @@ public class DianneRNNCommands {
 	private char nextChar(NeuralNetwork nn, char current){
 		// construct input tensor
 		String[] labels = nn.getOutputLabels();
+		if(labels==null){
+			throw new RuntimeException("Neural network "+nn.getNeuralNetworkInstance().name+" is not trained and has no labels");
+		}
 		Tensor in = factory.createTensor(labels.length);
 		in.fill(0.0f);
 		int index = 0;
