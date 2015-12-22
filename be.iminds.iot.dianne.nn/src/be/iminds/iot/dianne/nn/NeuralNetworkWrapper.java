@@ -47,6 +47,8 @@ import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.api.nn.module.Output;
 import be.iminds.iot.dianne.api.nn.module.Preprocessor;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
+import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
+import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -383,6 +385,52 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	}
 
 	@Override
+	public void setOutputLabels(String[] labels) {
+		if(!valid){
+			throw new RuntimeException("This neural network object is no longer valid");
+		}
+		
+		if(outputs.size() > 1){
+			throw new RuntimeException("This neural network has more than one output");
+		}
+		UUID outputId = outputs.keySet().iterator().next();
+		outputs.get(outputId).setOutputLabels(labels);
+		// also store in repository
+		storeOutputLabels(outputId, labels);
+	}
+
+	@Override
+	public void setOutputLabels(UUID outputId, String[] labels) {
+		if(!valid){
+			throw new RuntimeException("This neural network object is no longer valid");
+		}
+		
+		Output output = outputs.get(outputId);
+		if(output==null){
+			throw new RuntimeException("This neural network does not have output "+outputId);
+		}
+		output.setOutputLabels(labels);
+		// also store in repository
+		storeOutputLabels(outputId, labels);
+	}
+	
+	private void storeOutputLabels(UUID outputId, String[] labels){
+		NeuralNetworkDTO dto = repository.loadNeuralNetwork(nn.name);
+		ModuleDTO outputDTO = dto.modules.get(outputId);
+		String labelString = "[";
+		for(int i=0;i<labels.length;i++){
+			labelString+=labels[i];
+			if(i!=labels.length-1){
+				labelString+=", ";
+			} else {
+				labelString+="]";
+			}
+		}
+		outputDTO.properties.put("labels", labelString);
+		repository.storeNeuralNetwork(dto);
+	}
+	
+	@Override
 	public Map<UUID, Trainable> getTrainables() {
 		if(!valid){
 			throw new RuntimeException("This neural network object is no longer valid");
@@ -495,4 +543,5 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		setParameters(parameters);
 		return parameters;
 	}
+
 }

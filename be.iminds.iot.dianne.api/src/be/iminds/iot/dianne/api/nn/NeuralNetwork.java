@@ -157,6 +157,21 @@ public interface NeuralNetwork {
 	String[] getOutputLabels(UUID outputId);
 	
 	/**
+	 * Set the output labels for the neural network output.
+	 * 
+	 * Only works for neural network with single output module.
+	 * @return
+	 */
+	void setOutputLabels(String[] labels);
+	
+	/**
+	 * Set output labels for the Output module with outputId
+	 * @return
+	 */
+	void setOutputLabels(UUID outputId, String[] labels);
+	
+	
+	/**
 	 * Get Trainable modules for this neural network instance
 	 * @return
 	 */
