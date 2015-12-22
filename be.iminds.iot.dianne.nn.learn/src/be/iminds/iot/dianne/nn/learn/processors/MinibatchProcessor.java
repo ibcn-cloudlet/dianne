@@ -75,25 +75,22 @@ public class MinibatchProcessor extends AbstractProcessor {
 			
 			// evaluate criterion
 			Tensor gradOut = getGradOut(out, index);
-			
+
 			// backward
 			Tensor gradIn = nn.backward(gradOut, ""+index);
 			
-			// acc grad params
-			accGradParameters();
+			// acc gradParameters
+			nn.getTrainables().values().stream().forEach(m -> m.accGradParameters());
 		}
 		
 		return error/batchSize;
 	}
 
-	protected void accGradParameters(){
-		// acc gradParameters
-		nn.getTrainables().values().stream().forEach(m -> m.accGradParameters());
-	}
-	
+	// This allows to override the getGradOut  (i.e. in TimeDifferenceProcessor for RL)
 	protected Tensor getGradOut(Tensor out, int index){
-		Tensor e = criterion.error(out, dataset.getOutputSample(index));
-		error += e.get(0);
+		Tensor err = criterion.error(out, dataset.getOutputSample(index));
+		error += err.get(0);
 		return criterion.grad(out, dataset.getOutputSample(index));
 	}
+
 }
