@@ -22,6 +22,7 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.module.layer;
 
+import java.util.Arrays;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractTrainableModule;
@@ -132,10 +133,8 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		if(deltaParameters==null){
 			initDeltaParameters(null);
 		}
-		
-		if(gradOutput.dim() == 1) {
-			gradOutput.reshape(output.dims());
-		}
+			
+		gradOutput.reshape(output.dims());
 
 		gradInput = factory.getTensorMath().spatialdinconvolve(gradInput, gradOutput, weights, strideX, strideY, padX, padY);
 	}
