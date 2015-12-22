@@ -52,7 +52,7 @@ public interface Dataset {
 	/**
 	 * Get an input sample from the dataset
 	 * 
-	 * @param index the index to fetch, should be smaller then size()
+	 * @param index the index to fetch, should be smaller than size()
 	 * @return the input sample at position index
 	 */
 	Tensor getInputSample(final int index);
@@ -60,7 +60,7 @@ public interface Dataset {
 	/**
 	 * Get an output vector from the dataset
 	 * 
-	 * @param index the index to fetch, should be smaller then size()
+	 * @param index the index to fetch, should be smaller than size()
 	 * @return the output vector corresponding with input sample index
 	 */
 	Tensor getOutputSample(final int index);
