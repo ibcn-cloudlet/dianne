@@ -61,6 +61,7 @@ public class FileExperiencePool implements ExperiencePool {
 	private int stateSize; // size of the state Tensor
 	private int actionSize; // size of the action Tensor
 	private int maxSize = 1000000; // max size of the experience pool
+	private boolean memoryOnly = false; // flag to store everything only in memory and not write to file
 	
 	private ReadWriteLock rwLock = new ReentrantReadWriteLock(true);
 	
@@ -83,6 +84,10 @@ public class FileExperiencePool implements ExperiencePool {
 		
 		if(config.containsKey("maxSize"))
 			this.maxSize = Integer.parseInt((String) config.get("maxSize"));
+		
+		if(config.containsKey("memoryOnly")){
+			this.memoryOnly = Boolean.parseBoolean((String) config.get("memoryOnly"));
+		}
 
 		samples = new ArrayList<ExperiencePoolSample>(maxSize);
 		
@@ -203,10 +208,12 @@ public class FileExperiencePool implements ExperiencePool {
 	@Override
 	public void addSample(Tensor state, Tensor action, float reward,
 			Tensor nextState) {
-		
 		ExperiencePoolSample s = new ExperiencePoolSample(state, action, reward, nextState);
 		add(s);
-		write(s);
+		
+		if(!memoryOnly){
+			write(s);
+		}
 	}
 	
 	@Override
@@ -217,9 +224,11 @@ public class FileExperiencePool implements ExperiencePool {
 		}
 		rwLock.writeLock().unlock();
 		
-		synchronized(file){
-			for(ExperiencePoolSample s : ss){
-				write(s);
+		if(!memoryOnly){
+			synchronized(file){
+				for(ExperiencePoolSample s : ss){
+					write(s);
+				}
 			}
 		}
 	}
