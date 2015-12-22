@@ -140,6 +140,11 @@ public class LearnerFactory {
 	public static AbstractProcessor addRegularization(AbstractProcessor p, Map<String, String> config){
 		if(config.get("regularization")!=null){
 			float regularization = Float.parseFloat(config.get("regularization"));
+			
+			if(regularization==0.0f){
+				return p;
+			}
+			
 			RegularizationProcessor r = new RegularizationProcessor(p, regularization);
 			
 			System.out.println("Regularization");
