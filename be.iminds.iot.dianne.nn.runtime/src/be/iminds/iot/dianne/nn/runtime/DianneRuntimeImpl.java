@@ -46,6 +46,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.nn.module.BackwardListener;
+import be.iminds.iot.dianne.api.nn.module.Composite;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.api.nn.module.Memory;
@@ -401,13 +402,24 @@ public class DianneRuntimeImpl implements DianneRuntime {
 				((Output)module).setOutputLabels(l);
 			}
 		}
+
+		
+		UUID moduleId = module.getId();
+		Dictionary<String, Object> props = new Hashtable<String, Object>();
+		props.put("module.id", moduleId.toString());
+		props.put("module.type", dto.type);
+		props.put("nn.id", nnId.toString());
+		
 		
 		String[] classes;
 		if(module instanceof Input){
 			classes = new String[]{Module.class.getName(),Input.class.getName()};
-		}else if(module instanceof Output){
+		} else if(module instanceof Output){
 			classes = new String[]{Module.class.getName(),Output.class.getName()};
-		} else if(module instanceof Trainable){
+		} else if(module instanceof Composite){
+			classes = new String[]{Module.class.getName(),Composite.class.getName()};
+			props.put("composite.nn.id", ((Composite)module).getNNi().id.toString());
+		}else if(module instanceof Trainable){
 			classes = new String[]{Module.class.getName(),Trainable.class.getName()};
 		} else if(module instanceof Preprocessor){
 			classes = new String[]{Module.class.getName(),Preprocessor.class.getName()};
@@ -417,12 +429,6 @@ public class DianneRuntimeImpl implements DianneRuntime {
 			classes = new String[]{Module.class.getName()};
 		}
 		
-		UUID moduleId = module.getId();
-		
-		Dictionary<String, Object> props = new Hashtable<String, Object>();
-		props.put("module.id", moduleId.toString());
-		props.put("module.type", dto.type);
-		props.put("nn.id", nnId.toString());
 		
 		// make sure that for each module all interfaces are behind a single proxy 
 		// and that each module is uniquely proxied
@@ -472,12 +478,20 @@ public class DianneRuntimeImpl implements DianneRuntime {
 		
 		ServiceRegistration reg = registrations.remove(dto.moduleId, dto.nnId);
 		if(reg!=null){
+			// check if this is a composite ... if so, also undeploy composing modules
+			// TODO only works if these modules are not migrated in the mean time?
+			String compositeNNi = (String)reg.getReference().getProperty("composite.nn.id");
+
 			try {
 				reg.unregister();
 			} catch(IllegalStateException e){
 				// happens when the service was registered on behalf of the (config) bundle
 				// that is uninstalled (then service is allready unregistered)
 				e.printStackTrace();
+			}
+			
+			if(compositeNNi!=null){
+				undeployModules(UUID.fromString(compositeNNi));
 			}
 		}
 		

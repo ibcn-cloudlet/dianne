@@ -86,7 +86,7 @@ public class CompositeModuleFactory implements ModuleFactory {
 		AbstractModule module = null;
 		
 		String nnName = dto.type;
-		UUID id = dto.id;
+		UUID compositeId = dto.id;
 
 		if(!supportedModules.containsKey(nnName)){
 			throw new InstantiationException("Could not instantiate module of type "+nnName);
@@ -130,9 +130,13 @@ public class CompositeModuleFactory implements ModuleFactory {
 		// TODO should this somehow be made available by the module(dto) or something?
 		// This is now replicated properties parsing code from the other factory
 		// and size calculation from the module impl :-(
+		
+		// for composite we combine training parameters and memory state ... becomes messy?
 		int total = 0;
+		int memory = 0;
 		int size = 0;
 		LinkedHashMap<UUID, Integer> parameterMapping = new LinkedHashMap<>();
+		LinkedHashMap<UUID, Integer> memoryMapping = new LinkedHashMap<>();
 		for(ModuleDTO m : nnDescription.modules.values()){
 			switch(m.type){
 			case "Linear":
@@ -154,6 +158,11 @@ public class CompositeModuleFactory implements ModuleFactory {
 				size = 1;
 				parameterMapping.put(m.id, size);
 				break;
+			case "Memory":
+				size =  Integer.parseInt(m.properties.get("size"));
+				memoryMapping.put(m.id, size);
+				memory+=size;
+				break;
 			default : 
 				size = 0;
 				break;
@@ -161,7 +170,7 @@ public class CompositeModuleFactory implements ModuleFactory {
 			total+=size;
 		}
 		
-		// narrow for each trainable module
+		// narrow for each trainable and memory module
 		boolean hasParameters = true;
 		if(parameters == null){
 			parameters = factory.createTensor(total);
@@ -185,7 +194,7 @@ public class CompositeModuleFactory implements ModuleFactory {
 			if(!hasParameters){
 				// try first with composite module id as tag
 				try {
-					Tensor t = repository.loadParameters(e.getKey(), id.toString());
+					Tensor t = repository.loadParameters(e.getKey(), compositeId.toString());
 					t.copyInto(narrow);
 				} catch (Exception e1) {
 					// try again without tag
@@ -193,7 +202,7 @@ public class CompositeModuleFactory implements ModuleFactory {
 						Tensor t = repository.loadParameters(e.getKey());
 						t.copyInto(narrow);
 					} catch (Exception e2) {
-						// no paramters found
+						// no parameters found
 					}
 				}
 			}
@@ -201,30 +210,45 @@ public class CompositeModuleFactory implements ModuleFactory {
 			offset+=s;
 		}
 		
+		Iterator<Entry<UUID, Integer>> it2 = memoryMapping.entrySet().iterator();
+		while(it2.hasNext()){
+			Entry<UUID, Integer> e = it2.next();
+			int s = e.getValue();
+			Tensor narrow = parameters.narrow(0, offset, s);
+			narrowed.put(e.getKey(), narrow);
+			
+			// TODO could one provide initial memory values? for now set to zero
+			narrow.fill(0.0f);
+			
+			offset+=s;
+		}
+		
 		// deploy each module and inject narrowed part of parameters
+		UUID compositeNNid = UUID.randomUUID();
+		
 		Map<UUID, ModuleInstanceDTO> deployed = new HashMap<>();
 		for(ModuleDTO m : nnDescription.modules.values()){
 			try {
-				ModuleInstanceDTO mi = runtime.deployModule(m, id, narrowed.get(m.id));
+				ModuleInstanceDTO mi = runtime.deployModule(m, compositeNNid, narrowed.get(m.id));
 				deployed.put(mi.moduleId, mi);
 			} catch(Exception e){
 				for(ModuleInstanceDTO mi : deployed.values()){
 					runtime.undeployModule(mi);
 				}
-				throw new RuntimeException("Failed to deploy composite module "+id+": "+e.getMessage());
+				throw new RuntimeException("Failed to deploy composite module "+compositeNNid+": "+e.getMessage());
 			}
 		}
-		NeuralNetworkInstanceDTO nnDTO = new NeuralNetworkInstanceDTO(id, nnName, deployed);
+		NeuralNetworkInstanceDTO nnDTO = new NeuralNetworkInstanceDTO(compositeNNid, nnName, deployed);
 		
 		// get NeuralNetwork object
 		try {
 			NeuralNetwork nn = dianne.getNeuralNetwork(nnDTO).getValue();
 			
 			// create CompositeModule with parameters and NeuralNetwork
-			module = new CompositeModule(factory, id, parameters, nn, parameterMapping);
+			module = new CompositeModule(factory, compositeId, parameters.narrow(0, total-memory), parameters.narrow(total-memory, memory), nn, parameterMapping);
 			
 		} catch (Exception e) {
-			throw new RuntimeException("Failed to deploy composite module "+id+": "+e.getMessage());
+			throw new RuntimeException("Failed to deploy composite module "+compositeId+": "+e.getMessage());
 		} 
 
 		return module;

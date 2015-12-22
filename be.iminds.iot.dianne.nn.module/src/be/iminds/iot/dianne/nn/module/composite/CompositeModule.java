@@ -31,19 +31,25 @@ import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.AbstractTrainableModule;
+import be.iminds.iot.dianne.api.nn.module.Composite;
+import be.iminds.iot.dianne.api.nn.module.Memory;
+import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
-public class CompositeModule extends AbstractTrainableModule {
+public class CompositeModule extends AbstractTrainableModule implements Composite, Memory {
 
 	private final NeuralNetwork nn;
 	private final LinkedHashMap<UUID, Integer> parameterMapping;
+
+	private final Tensor memory;
 	
 	private Map<UUID, Tensor> deltas;
 	
-	public CompositeModule(TensorFactory factory, UUID id, Tensor parameters, NeuralNetwork nn, LinkedHashMap<UUID, Integer> parameterMapping){
+	public CompositeModule(TensorFactory factory, UUID id, Tensor parameters, Tensor memory, NeuralNetwork nn, LinkedHashMap<UUID, Integer> parameterMapping){
 		super(factory, id, parameters);
 		this.nn = nn;
+		this.memory = memory;
 		this.parameterMapping = parameterMapping;
 	}
 	
@@ -109,6 +115,31 @@ public class CompositeModule extends AbstractTrainableModule {
 		
 		// also forward to composing modules
 		nn.getTrainables().values().forEach(m -> m.zeroDeltaParameters());
+	}
+
+	@Override
+	public void triggerForward(final String... tags) {
+		nn.getMemories().values().forEach(m -> m.triggerForward(tags));
+	}
+
+	@Override
+	public void triggerBackward(final String... tags) {
+		nn.getMemories().values().forEach(m -> m.triggerBackward(tags));
+	}
+
+	@Override
+	public Tensor getMemory() {
+		return memory;
+	}
+
+	@Override
+	public void setMemory(Tensor memory) {
+		memory.copyInto(this.memory);
+	}
+
+	@Override
+	public NeuralNetworkInstanceDTO getNNi() {
+		return nn.getNeuralNetworkInstance();
 	}
 
 }
