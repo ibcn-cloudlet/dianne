@@ -1,0 +1,3 @@
+-dsannotations: *
+Bundle-Name: Dianne Char Sequence Dataset
+Private-Package: be.iminds.iot.dianne.rnn.dataset.chars

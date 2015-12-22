@@ -33,6 +33,8 @@
 	be.iminds.iot.dianne.coordinator;version=latest,\
 	be.iminds.iot.dianne.jsonrpc;version=latest,\
 	be.iminds.iot.dianne.rnn.module;version=latest,\
+	be.iminds.iot.dianne.rnn.learn;version=latest,\
+	be.iminds.iot.dianne.rnn.dataset.chars;version=latest,\
 	be.iminds.iot.dianne.rnn.command;version=latest
 	
 	
