@@ -34,9 +34,9 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
-import be.iminds.iot.dianne.api.rl.Agent;
-import be.iminds.iot.dianne.api.rl.ExperiencePool;
-import be.iminds.iot.dianne.api.rl.QLearner;
+import be.iminds.iot.dianne.api.rl.agent.Agent;
+import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
+import be.iminds.iot.dianne.api.rl.learn.QLearner;
 
 /**
  * Worker component that bootstraps a node with an Agent, Learner and local ExperiencePool

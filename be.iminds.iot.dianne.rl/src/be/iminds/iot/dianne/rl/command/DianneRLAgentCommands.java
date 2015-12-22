@@ -30,7 +30,7 @@ import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
-import be.iminds.iot.dianne.api.rl.Agent;
+import be.iminds.iot.dianne.api.rl.agent.Agent;
 
 /**
  * Separate component for rl commands ... should be moved to the command bundle later on

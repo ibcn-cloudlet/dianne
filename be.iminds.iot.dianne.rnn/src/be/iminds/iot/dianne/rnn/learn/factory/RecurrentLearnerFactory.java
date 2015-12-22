@@ -29,7 +29,7 @@ import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
 import be.iminds.iot.dianne.api.nn.learn.Processor;
 import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
-import be.iminds.iot.dianne.api.rnn.SequenceDataset;
+import be.iminds.iot.dianne.api.rnn.dataset.SequenceDataset;
 import be.iminds.iot.dianne.nn.learn.factory.LearnerFactory;
 import be.iminds.iot.dianne.nn.learn.processors.AbstractProcessor;
 import be.iminds.iot.dianne.rnn.learn.processors.BpttProcessor;

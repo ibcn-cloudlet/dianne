@@ -20,39 +20,32 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.api.rl;
+package be.iminds.iot.dianne.api.rl.environment;
 
 import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
- * The Environment implements the system an RL Agent is trying to control. It
- * maintains an internal state which is (partially) visible trough observations.
- * Agents performing actions on the Environment will change this state.
+ * Notify a listener when an Action is performed on the Environment
  * 
- * @author smbohez
+ * Useful for creating a UI for the Environment
+ * 
+ * Use the target property on the EnvironmentListener service to specify which specific
+ * Environment to listen to
+ * 
+ * @author tverbele
  *
  */
-public interface Environment {
+public interface EnvironmentListener {
 
 	/**
-	 * Perform an action on the Environment and receive the associated return
-	 * given the current state.
+	 * Called when an action is executed
 	 * 
-	 * @param action the action to be performed on the environment
-	 * @return the reward received for performing that action
-	 */
-	float performAction(final Tensor action);
-
-	/**
-	 * Get an observation of the current state of the environment.
+	 * This method is called synchronously, thus a UI can slow down the Agent
+	 * for better visualization
 	 * 
-	 * @return an observation of the current state
+	 * @param reward the reward resulting from this action
+	 * @param nextState the next state tensor
 	 */
-	Tensor getObservation();
-
-	/**
-	 * Reset the environment to the initial configuration (if possible).
-	 */
-	void reset();
-
+	public void onAction(float reward, Tensor nextState);
+	
 }

@@ -1,22 +1,28 @@
 Bundle-Version: 0.3.0.${tstamp}
 
 Export-Package: \
-	be.iminds.iot.dianne.api.coordinator,\
-	be.iminds.iot.dianne.api.rnn,\
-	be.iminds.iot.dianne.api.dataset,\
-	be.iminds.iot.dianne.api.nn.eval,\
-	be.iminds.iot.dianne.api.log,\
 	be.iminds.iot.dianne.api.nn,\
-	be.iminds.iot.dianne.api.nn.learn,\
-	be.iminds.iot.dianne.api.nn.platform,\
 	be.iminds.iot.dianne.api.nn.runtime,\
-	be.iminds.iot.dianne.api.repository,\
-	be.iminds.iot.dianne.api.rl,\
-	be.iminds.iot.dianne.api.nn.train,\
 	be.iminds.iot.dianne.api.nn.module,\
 	be.iminds.iot.dianne.api.nn.module.dto,\
+	be.iminds.iot.dianne.api.nn.module.factory,\
+	be.iminds.iot.dianne.api.nn.learn,\
+	be.iminds.iot.dianne.api.nn.eval,\
+	be.iminds.iot.dianne.api.nn.platform,\
+	be.iminds.iot.dianne.api.coordinator,\
+	be.iminds.iot.dianne.api.dataset,\
+	be.iminds.iot.dianne.api.log,\
+	be.iminds.iot.dianne.api.repository,\
 	be.iminds.iot.dianne.api.io,\
-	be.iminds.iot.dianne.api.nn.module.factory
+	be.iminds.iot.dianne.api.rnn,\
+	be.iminds.iot.dianne.api.rnn.dataset,\
+	be.iminds.iot.dianne.api.rnn.learn,\
+	be.iminds.iot.dianne.api.rl,\
+	be.iminds.iot.dianne.api.rl.agent,\
+	be.iminds.iot.dianne.api.rl.dataset,\
+	be.iminds.iot.dianne.api.rl.environment,\
+	be.iminds.iot.dianne.api.rl.learn
+
 Bundle-Name: Dianne API
 Bundle-Description: API bundle for the Dianne project
 -buildpath: \

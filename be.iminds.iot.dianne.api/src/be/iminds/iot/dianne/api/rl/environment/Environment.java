@@ -20,31 +20,39 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.api.rl;
+package be.iminds.iot.dianne.api.rl.environment;
 
 import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
- * A helper class for representing one sample of an experience pool
+ * The Environment implements the system an RL Agent is trying to control. It
+ * maintains an internal state which is (partially) visible trough observations.
+ * Agents performing actions on the Environment will change this state.
  * 
- * @author tverbele
+ * @author smbohez
  *
  */
-public class ExperiencePoolSample {
+public interface Environment {
 
-	public final Tensor state;
-	public final Tensor action;
-	public final float reward;
-	public final Tensor nextState;
-	
-	public ExperiencePoolSample(
-			final Tensor state, 
-			final Tensor action,
-			final float reward,
-			final Tensor nextState){
-		this.state = state;
-		this.action = action;
-		this.reward = reward;
-		this.nextState = nextState;
-	}
+	/**
+	 * Perform an action on the Environment and receive the associated return
+	 * given the current state.
+	 * 
+	 * @param action the action to be performed on the environment
+	 * @return the reward received for performing that action
+	 */
+	float performAction(final Tensor action);
+
+	/**
+	 * Get an observation of the current state of the environment.
+	 * 
+	 * @return an observation of the current state
+	 */
+	Tensor getObservation();
+
+	/**
+	 * Reset the environment to the initial configuration (if possible).
+	 */
+	void reset();
+
 }

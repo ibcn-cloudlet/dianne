@@ -20,7 +20,7 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.api.rnn;
+package be.iminds.iot.dianne.api.rnn.learn;
 
 import java.util.Map;
 import java.util.UUID;

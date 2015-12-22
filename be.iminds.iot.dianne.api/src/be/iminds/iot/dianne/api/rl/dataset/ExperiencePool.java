@@ -20,7 +20,7 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.api.rl;
+package be.iminds.iot.dianne.api.rl.dataset;
 
 import java.util.Collection;
 

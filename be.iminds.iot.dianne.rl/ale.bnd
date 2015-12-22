@@ -1,5 +1,4 @@
-Export-Package: \
-	be.iminds.iot.dianne.api.rl
+Export-Package: be.iminds.iot.dianne.api.rl.environment
 -dsannotations: *
 Private-Package: be.iminds.iot.dianne.rl.ale;
 Bundle-Name: Dianne Arcade Learning Environment

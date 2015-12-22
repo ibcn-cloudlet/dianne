@@ -20,32 +20,31 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.api.rl;
+package be.iminds.iot.dianne.api.rl.dataset;
 
 import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
- * Notify a listener when an Action is performed on the Environment
- * 
- * Useful for creating a UI for the Environment
- * 
- * Use the target property on the EnvironmentListener service to specify which specific
- * Environment to listen to
+ * A helper class for representing one sample of an experience pool
  * 
  * @author tverbele
  *
  */
-public interface EnvironmentListener {
+public class ExperiencePoolSample {
 
-	/**
-	 * Called when an action is executed
-	 * 
-	 * This method is called synchronously, thus a UI can slow down the Agent
-	 * for better visualization
-	 * 
-	 * @param reward the reward resulting from this action
-	 * @param nextState the next state tensor
-	 */
-	public void onAction(float reward, Tensor nextState);
+	public final Tensor state;
+	public final Tensor action;
+	public final float reward;
+	public final Tensor nextState;
 	
+	public ExperiencePoolSample(
+			final Tensor state, 
+			final Tensor action,
+			final float reward,
+			final Tensor nextState){
+		this.state = state;
+		this.action = action;
+		this.reward = reward;
+		this.nextState = nextState;
+	}
 }

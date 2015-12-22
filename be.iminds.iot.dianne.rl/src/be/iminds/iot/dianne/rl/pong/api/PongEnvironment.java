@@ -22,7 +22,7 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rl.pong.api;
 
-import be.iminds.iot.dianne.api.rl.Environment;
+import be.iminds.iot.dianne.api.rl.environment.Environment;
 
 /**
  * PongEnvironment service for the Pong UI bundle

@@ -47,8 +47,8 @@ import org.osgi.service.http.HttpService;
 
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
-import be.iminds.iot.dianne.api.rl.Agent;
-import be.iminds.iot.dianne.api.rl.EnvironmentListener;
+import be.iminds.iot.dianne.api.rl.agent.Agent;
+import be.iminds.iot.dianne.api.rl.environment.EnvironmentListener;
 import be.iminds.iot.dianne.rl.agent.api.ManualActionController;
 import be.iminds.iot.dianne.rl.pong.Pong;
 import be.iminds.iot.dianne.rl.pong.api.PongEnvironment;

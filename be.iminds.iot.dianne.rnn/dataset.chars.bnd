@@ -1,3 +1,6 @@
 -dsannotations: *
 Bundle-Name: Dianne Char Sequence Dataset
 Private-Package: be.iminds.iot.dianne.rnn.dataset.chars
+Export-Package: \
+	be.iminds.iot.dianne.api.dataset,\
+	be.iminds.iot.dianne.api.rnn.dataset

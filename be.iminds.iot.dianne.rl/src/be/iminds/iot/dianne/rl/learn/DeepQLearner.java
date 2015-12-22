@@ -41,13 +41,9 @@ import be.iminds.iot.dianne.api.nn.learn.Processor;
 import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
-import be.iminds.iot.dianne.api.rl.ExperiencePool;
-import be.iminds.iot.dianne.api.rl.QLearner;
-import be.iminds.iot.dianne.nn.learn.processors.AbstractProcessor;
-import be.iminds.iot.dianne.nn.learn.processors.MomentumProcessor;
-import be.iminds.iot.dianne.nn.learn.processors.RegularizationProcessor;
+import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
+import be.iminds.iot.dianne.api.rl.learn.QLearner;
 import be.iminds.iot.dianne.rl.learn.factory.QLearnerFactory;
-import be.iminds.iot.dianne.rl.learn.processors.TimeDifferenceProcessor;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 

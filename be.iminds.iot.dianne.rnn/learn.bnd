@@ -4,4 +4,4 @@ Private-Package: \
 	be.iminds.iot.dianne.rnn.learn,\
 	be.iminds.iot.dianne.rnn.learn.factory,\
 	be.iminds.iot.dianne.rnn.learn.processors
-Export-Package: be.iminds.iot.dianne.api.rnn
+Export-Package: be.iminds.iot.dianne.api.rnn.learn

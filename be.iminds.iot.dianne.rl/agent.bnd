@@ -1,6 +1,6 @@
 Export-Package: \
-	be.iminds.iot.dianne.api.rl,\
 	be.iminds.iot.dianne.rl.agent.api,\
+	be.iminds.iot.dianne.api.rl.agent,\
 	be.iminds.iot.dianne.api.log
 -dsannotations: *
 Private-Package:  \
