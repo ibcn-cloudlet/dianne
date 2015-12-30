@@ -70,6 +70,10 @@ public class ArcadeLearningEnvironment implements Environment {
 	private Tensor observation;
 	private boolean grayscale = true; // convert to grayscale
     
+	// placeholder tensors for generating observation
+	private Tensor screen; 
+	private Tensor gray;
+	
     @Activate
     public void activate(BundleContext context) throws Exception {
     	String r = context.getProperty("be.iminds.iot.dianne.rl.ale.rom");
@@ -77,9 +81,9 @@ public class ArcadeLearningEnvironment implements Environment {
     		rom = r;
     	}
     	
-    	String gray = context.getProperty("be.iminds.iot.dianne.rl.ale.grayscale");
-    	if(gray!=null){
-    		grayscale = Boolean.parseBoolean(gray);
+    	String grays = context.getProperty("be.iminds.iot.dianne.rl.ale.grayscale");
+    	if(grays!=null){
+    		grayscale = Boolean.parseBoolean(grays);
     	}
     	
 		String sk = context.getProperty("be.iminds.iot.dianne.rl.ale.skip");
@@ -97,6 +101,15 @@ public class ArcadeLearningEnvironment implements Environment {
     		throw new Exception("ROM "+rom+" does not exist!");
     	}
     	
+    	// init screen tensor
+    	screen = factory.createTensor(3, 210, 160);
+    	if(grayscale){
+    		gray = factory.createTensor(210, 160);
+    	}
+		int channels = grayscale ? 1 : 3;
+		observation = factory.createTensor(observationLength*channels, 210, 160);
+
+    	
     	loadROM(rom);
     	setFrameskip(skip);
     	
@@ -109,15 +122,12 @@ public class ArcadeLearningEnvironment implements Environment {
 	public float performAction(Tensor action) {
 		int r = 0;
 		
-		int channels = grayscale ? 1 : 3;
-		observation = factory.createTensor(observationLength*channels, 210, 160);
-		
 		for(int i=0;i<observationLength;i++){
 			r += performAction(factory.getTensorMath().argmax(action));
 			
-			Tensor screen = factory.createTensor(getScreen(), 3, 210, 160);
+			screen.set(getScreen());
+			
 			if(grayscale){
-				Tensor gray = factory.createTensor(210,160);
 				screen.select(0, 0).copyInto(gray);
 				factory.getTensorMath().add(gray, gray, screen.select(0, 1));
 				factory.getTensorMath().add(gray, gray, screen.select(0, 2));
@@ -144,7 +154,7 @@ public class ArcadeLearningEnvironment implements Environment {
 		if(gameOver()){
 			return null;
 		} else {
-			return observation;
+			return observation.copyInto(null);
 		}
 	}
 
@@ -152,12 +162,8 @@ public class ArcadeLearningEnvironment implements Environment {
 	public void reset() {
 		resetGame();
 		
-		int channels = grayscale ? 1 : 3;
-		observation = factory.createTensor(observationLength*channels, 210, 160);
-		
-		Tensor screen = factory.createTensor(getScreen(), 3, 210, 160);
+		screen.set(getScreen());
 		if(grayscale){
-			Tensor gray = factory.createTensor(210,160);
 			screen.select(0, 0).copyInto(gray);
 			factory.getTensorMath().add(gray, gray, screen.select(0, 1));
 			factory.getTensorMath().add(gray, gray, screen.select(0, 2));
