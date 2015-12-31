@@ -60,6 +60,7 @@ public class DeepRLAgent implements Agent {
 	private Thread actingThread;
 	private volatile boolean acting;
 	private int syncInterval = 10000;
+	private int gcInterval = 1000;
 	
 	// separate thread for updating the experience pool
 	private Thread experienceUploadThread;
@@ -129,6 +130,10 @@ public class DeepRLAgent implements Agent {
 		if(config.containsKey("tag"))
 			tag = config.get("tag"); 
 		
+		if(config.containsKey("gcInterval")){
+			gcInterval = Integer.parseInt(config.get("gcInterval"));
+		}
+		
 		if (config.containsKey("clean"))
 			clean = Boolean.parseBoolean(config.get("clean"));
 		
@@ -151,6 +156,7 @@ public class DeepRLAgent implements Agent {
 		System.out.println("* strategy = "+strategy);
 		System.out.println("* clean = "+clean);
 		System.out.println("* syncInterval = "+syncInterval);
+		System.out.println("* gcInterval = "+gcInterval);
 		System.out.println("* experienceInterval = "+experienceInterval);
 		System.out.println("* experienceSize = "+experienceSize);
 		System.out.println("---");
@@ -193,6 +199,8 @@ public class DeepRLAgent implements Agent {
 		}
 	}
 	
+	private Tensor action = null;
+	
 	private Tensor selectActionFromObservation(Tensor state, long i) {
 		Tensor out = nn.forward(state);
 		return actionStrategy.selectActionFromOutput(out, i);
@@ -222,14 +230,20 @@ public class DeepRLAgent implements Agent {
 
 				synchronized(samples){
 					samples.add(new ExperiencePoolSample(observation, action, reward, nextObservation));
-					samples.notifyAll();
+					if(i % experienceInterval == 0){
+						samples.notifyAll();
+					}
 				}
 
 				observation = nextObservation;
 				// if nextObservation was null, this is a terminal state - reset environment and start over
-				if(observation == null){
+				if(env.getObservation() == null){
 					env.reset();
 					observation = env.getObservation();
+				}
+
+				if(gcInterval > 0 && i % gcInterval == 0){
+					System.gc();
 				}
 			}
 		}
@@ -251,7 +265,7 @@ public class DeepRLAgent implements Agent {
 			while(acting){
 				List<ExperiencePoolSample> toUpdate = new ArrayList<>();
 				synchronized(samples){
-					if(samples.size() > experienceInterval){
+					if(samples.size() >= experienceInterval){
 						toUpdate.addAll(samples);
 						samples.clear();
 					} else {
