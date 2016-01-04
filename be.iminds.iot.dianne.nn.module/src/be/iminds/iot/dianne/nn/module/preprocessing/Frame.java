@@ -22,7 +22,6 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.module.preprocessing;
 
-import java.util.Arrays;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
@@ -33,6 +32,8 @@ public class Frame extends AbstractModule {
 
 	// dims of the scaled tensor
 	private final int[] targetDims;
+	
+	private Tensor narrowed;
 	
 	public Frame(TensorFactory factory, final int... dims){
 		super(factory);
@@ -90,7 +91,7 @@ public class Frame extends AbstractModule {
 			}
 		}
 		
-		Tensor narrowed = in.narrow(ranges);
+		narrowed = in.narrow(ranges);
 		output = factory.getTensorMath().scale2D(output, narrowed, targetDims);
 	}
 
