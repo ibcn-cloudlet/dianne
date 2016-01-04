@@ -38,8 +38,8 @@ import be.iminds.iot.dianne.api.rl.learn.QLearner;
 @Component(
 		service=Object.class,
 		property={"osgi.command.scope=dianne",
-				  "osgi.command.function=learn",
-				  "osgi.command.function=stopLearn"},
+				  "osgi.command.function=rlearn",
+				  "osgi.command.function=stopRlearn"},
 		immediate=true)
 public class DianneRLLearnCommands {
 
@@ -47,7 +47,7 @@ public class DianneRLLearnCommands {
 	
 	private QLearner learner;
 	
-	public void learn(String nnName, String dataset, String ... properties){
+	public void rlearn(String nnName, String dataset, String ... properties){
 		try {
 			NeuralNetworkInstanceDTO nni = platform.deployNeuralNetwork(nnName);
 			NeuralNetworkInstanceDTO targeti = platform.deployNeuralNetwork(nnName);
@@ -58,7 +58,7 @@ public class DianneRLLearnCommands {
 		}
 	}
 
-	public void stopLearn(){
+	public void stopRlearn(){
 		this.learner.stop();
 	}
 	
