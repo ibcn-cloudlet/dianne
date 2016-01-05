@@ -229,7 +229,7 @@ public class DianneLearner extends HttpServlet {
 							response.getWriter().flush();
 						}
 						
-						learner.learn(nni, dataset, config);
+						learner.learn(dataset, config, nni);
 
 					} catch (Exception e) {
 						e.printStackTrace();

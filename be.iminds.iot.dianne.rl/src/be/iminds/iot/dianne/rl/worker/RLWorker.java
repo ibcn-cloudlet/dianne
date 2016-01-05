@@ -89,7 +89,7 @@ public class RLWorker {
 				NeuralNetworkInstanceDTO nni = platform.deployNeuralNetwork(nnName);
 				NeuralNetworkInstanceDTO targeti = platform.deployNeuralNetwork(nnName);
 
-				learner.learn(nni, targeti, pool, config);
+				learner.learn(pool, config, nni, targeti);
 			} catch(Exception e){
 				System.err.println("Failed to start learner");
 				e.printStackTrace();

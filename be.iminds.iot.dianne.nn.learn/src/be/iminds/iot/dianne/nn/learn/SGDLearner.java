@@ -96,8 +96,7 @@ public class SGDLearner implements Learner {
 	}
 	
 	@Override
-	public void learn(NeuralNetworkInstanceDTO nni, String dataset,
-			Map<String, String> config) throws Exception {
+	public void learn(String dataset, Map<String, String> config, NeuralNetworkInstanceDTO... nni) throws Exception {
 		if(learning){
 			throw new Exception("Already running a learning session here");
 		}
@@ -138,7 +137,7 @@ public class SGDLearner implements Learner {
 		}
 		
 		try {
-			nn = dianne.getNeuralNetwork(nni).getValue();
+			nn = dianne.getNeuralNetwork(nni[0]).getValue();
 		} catch (Exception e) {
 		}
 		nn.getModules().values().stream().forEach(m -> m.setMode(EnumSet.of(Mode.BLOCKING)));

@@ -51,7 +51,7 @@ public class DianneLearnCommands {
 			Map<String, String> config = createLearnerConfig(properties);
 			
 			NeuralNetworkInstanceDTO nni = platform.deployNeuralNetwork(nnName);
-			learner.learn(nni, dataset, config);
+			learner.learn(dataset, config, nni);
 		} catch(Exception e){
 			e.printStackTrace();
 		}

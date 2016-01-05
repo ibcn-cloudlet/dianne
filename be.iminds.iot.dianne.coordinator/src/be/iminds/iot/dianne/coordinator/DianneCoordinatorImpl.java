@@ -179,7 +179,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 				learnConfig.put("range", config.get("trainingSet"));
 				
 				// start learning
-				learner.learn(nni, dataset, learnConfig);
+				learner.learn(dataset, learnConfig, nni);
 				
 				// TODO timeout?
 			

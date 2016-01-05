@@ -28,6 +28,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
@@ -37,6 +40,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
+import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.learn.Processor;
 import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
@@ -49,6 +53,8 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component
 public class DeepQLearner implements QLearner {
+
+	protected UUID learnerId;
 
 	private DataLogger logger;
 	private String[] logLabels = new String[]{"minibatch time (ms)"};
@@ -75,6 +81,9 @@ public class DeepQLearner implements QLearner {
 	private String storeTag = "store";
 	private int minSamples = 10000;
 	private boolean clean = false;
+	
+	protected float error = 0;
+	protected long i = 0;
 
 	@Reference
 	void setTensorFactory(TensorFactory factory) {
@@ -96,6 +105,11 @@ public class DeepQLearner implements QLearner {
 		String name = (String) properties.get("name");
 		this.pools.remove(name);
 	}
+	
+	@Activate
+	public void activate(BundleContext context){
+		this.learnerId = UUID.fromString(context.getProperty(Constants.FRAMEWORK_UUID));
+	}
 
 	@Deactivate
 	void deactivate() {
@@ -104,8 +118,7 @@ public class DeepQLearner implements QLearner {
 	}
 
 	@Override
-	public void learn(NeuralNetworkInstanceDTO nni,
-			NeuralNetworkInstanceDTO targeti, String experiencePool, Map<String, String> config) throws Exception {
+	public void learn(String experiencePool, Map<String, String> config, NeuralNetworkInstanceDTO... nni) throws Exception {
 		if (learning)
 			throw new Exception("Already running a Learner here");
 		else if (experiencePool == null || !pools.containsKey(experiencePool))
@@ -142,17 +155,17 @@ public class DeepQLearner implements QLearner {
 		System.out.println("---");
 		
 		try {
-			nn = dianne.getNeuralNetwork(nni).getValue();
+			nn = dianne.getNeuralNetwork(nni[0]).getValue();
 		} catch(Exception e){}
 		if (nn == null)
-			throw new Exception("Network instance " + nni.id + " is not available");
+			throw new Exception("Network instance " + nni[0].id + " is not available");
 		nn.getInput().setMode(EnumSet.of(Mode.BLOCKING));
 
 		try {
-			target = dianne.getNeuralNetwork(targeti).getValue();
+			target = dianne.getNeuralNetwork(nni[1]).getValue();
 		} catch(Exception e){}
 		if (target == null)
-			throw new Exception("Target instance " + targeti.id + " is not available");
+			throw new Exception("Target instance " + nni[1].id + " is not available");
 		target.getInput().setMode(EnumSet.of(Mode.BLOCKING));
 
 		
@@ -164,6 +177,9 @@ public class DeepQLearner implements QLearner {
 		// create a Processor from config
 		processor = QLearnerFactory.createProcessor(factory, nn, target, pool, config, logger);
 
+		i = 0;
+		error = 0;
+		
 		learning = true;
 		learningThread = new Thread(new DeepQLearnerRunnable());
 		learningThread.start();
@@ -216,13 +232,13 @@ public class DeepQLearner implements QLearner {
 
 	private class DeepQLearnerRunnable implements Runnable {
 
-		private static final double alpha = 1e-2;
+		private static final float alpha = 1e-2f;
 
 		@Override
 		public void run() {
 			try {
 				
-				double error = 0, avgError = 0;
+				float err = 0;
 				long timestamp = System.currentTimeMillis();
 				
 				initializeParameters();
@@ -239,21 +255,21 @@ public class DeepQLearner implements QLearner {
 				}
 				System.out.println("Start learning...");
 				
-				for (long i = 1; learning; i++) {
+				for (i = 1; learning; i++) {
 					nn.getTrainables().values().stream().forEach(Trainable::zeroDeltaParameters);
 					
 					pool.lock();
 					try {
-						error = processor.processNext();
-						if(Double.isInfinite(error) || Double.isNaN(error)){
-							System.out.println(i+" ERROR IS "+error);
+						err = processor.processNext();
+						if(Double.isInfinite(err) || Double.isNaN(err)){
+							System.out.println(i+" ERROR IS "+err);
 						}
 						
 					} finally {
 						pool.unlock();
 					}
 					
-					avgError = (1 - alpha) * avgError + alpha * error;
+					error = (1 - alpha) * error + alpha * err;
 	
 					if(logger!=null){
 						long t = System.currentTimeMillis();
@@ -293,5 +309,20 @@ public class DeepQLearner implements QLearner {
 	@Reference(cardinality = ReferenceCardinality.OPTIONAL)
 	void setDataLogger(DataLogger l){
 		this.logger = l;
+	}
+
+	@Override
+	public UUID getLearnerId() {
+		return learnerId;
+	}
+
+	@Override
+	public LearnProgress getProgress() {
+		return new LearnProgress(i, error);
+	}
+
+	@Override
+	public boolean isBusy() {
+		return learning;
 	}
 }

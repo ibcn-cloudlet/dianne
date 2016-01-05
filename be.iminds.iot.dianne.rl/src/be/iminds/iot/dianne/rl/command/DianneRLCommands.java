@@ -73,7 +73,7 @@ public class DianneRLCommands {
 		
 		agent.act(agentnni, environment, experiencePool, agentConfig);
 		
-		learner.learn(nni, targeti, experiencePool, learnConfig);
+		learner.learn(experiencePool, learnConfig, nni, targeti);
 	}
 	
 	public void dump(String name) throws Exception{

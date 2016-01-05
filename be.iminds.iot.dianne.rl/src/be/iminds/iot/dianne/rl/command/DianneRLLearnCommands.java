@@ -52,7 +52,7 @@ public class DianneRLLearnCommands {
 			NeuralNetworkInstanceDTO nni = platform.deployNeuralNetwork(nnName);
 			NeuralNetworkInstanceDTO targeti = platform.deployNeuralNetwork(nnName);
 			
-			learner.learn(nni, targeti, dataset, createLearnConfig(properties));
+			learner.learn(dataset, createLearnConfig(properties), nni, targeti);
 		} catch(Exception e){
 			e.printStackTrace();
 		}

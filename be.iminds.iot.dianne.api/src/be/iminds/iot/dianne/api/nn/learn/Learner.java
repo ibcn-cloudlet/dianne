@@ -46,11 +46,12 @@ public interface Learner {
 	 * Start learning for a given neural network and dataset, using the given processor.
 	 * The learning will start in a background thread and this method immediately returns.
 	 * 
-	 * @param nni the neural network instance that should be updated
 	 * @param dataset the name of the dataset to process for learning
 	 * @param config the learner configuration to use
+	 * @param nni the neural network instance(s) that should be used for learning
+	 *
 	 */
-	void learn(NeuralNetworkInstanceDTO nni, String dataset, Map<String, String> config) throws Exception;
+	void learn(String dataset, Map<String, String> config, NeuralNetworkInstanceDTO... nni) throws Exception;
 	
 	/**
 	 * @return the current progress of the Learner

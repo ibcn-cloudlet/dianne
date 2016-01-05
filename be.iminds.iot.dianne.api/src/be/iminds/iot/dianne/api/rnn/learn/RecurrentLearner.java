@@ -22,11 +22,7 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.rnn.learn;
 
-import java.util.Map;
-import java.util.UUID;
-
-import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
-import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
+import be.iminds.iot.dianne.api.nn.learn.Learner;
 
 /**
  * The RecurrentLearner implements the flow of the learning process for training recurrent
@@ -37,35 +33,6 @@ import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
  * @author tverbele
  *
  */
-public interface RecurrentLearner {
+public interface RecurrentLearner extends Learner {
 
-	/**
-	 * @return uuid of this learner - same as the frameworkId this learner is deployed on
-	 */
-	UUID getLearnerId();
-	
-	/**
-	 * Start learning for a given neural network and dataset, using the given processor.
-	 * The learning will start in a background thread and this method immediately returns.
-	 * 
-	 * @param nni the neural network instance that should be updated
-	 * @param dataset the name of the dataset to process for learning
-	 * @param config the learner configuration to use
-	 */
-	void learn(NeuralNetworkInstanceDTO nni, String dataset, Map<String, String> config) throws Exception;
-	
-	/**
-	 * @return the current progress of the Learner
-	 */
-	LearnProgress getProgress();
-	
-	/**
-	 * @return whether or not this learner is busy
-	 */
-	boolean isBusy();
-	
-	/**
-	 * Stop the current learning session.
-	 */
-	void stop();
 }
