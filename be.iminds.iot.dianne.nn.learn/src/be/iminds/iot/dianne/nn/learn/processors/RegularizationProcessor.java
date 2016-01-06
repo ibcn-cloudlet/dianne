@@ -22,22 +22,23 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.learn.processors;
 
+import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
  * Additional learning techniques like Momentum can be implemented as a Processor decorator
  */
-public class RegularizationProcessor extends AbstractProcessor {
+public class RegularizationProcessor extends GradientProcessor {
 
 	private float regularization = 0.001f;
 	
-	public RegularizationProcessor( AbstractProcessor p, float regularization) {
+	public RegularizationProcessor( GradientProcessor p, float regularization) {
 		super(p);
 		this.regularization = regularization;
 	}
 	
 	@Override
-	public float processNext(float error) {
+	public void updateDelta(long i) {
 		// subtract previous parameters
 		nn.getTrainables().entrySet().stream().forEach(e -> {
 			Tensor params = e.getValue().getParameters();
@@ -47,8 +48,6 @@ public class RegularizationProcessor extends AbstractProcessor {
 			// set DeltaParameters to be sure in case of remote module instance
 			e.getValue().setDeltaParameters(deltaParams);
 		});
-		
-		return error;
 	}
 
 }

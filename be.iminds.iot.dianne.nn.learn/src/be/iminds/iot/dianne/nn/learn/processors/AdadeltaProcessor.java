@@ -26,9 +26,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import be.iminds.iot.dianne.api.log.DataLogger;
+import be.iminds.iot.dianne.api.nn.NeuralNetwork;
+import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorFactory;
 
-public class AdadeltaProcessor extends AbstractProcessor {
+public class AdadeltaProcessor extends GradientProcessor {
 
 	private final float decayRate;
 	
@@ -36,15 +40,14 @@ public class AdadeltaProcessor extends AbstractProcessor {
 	private final Map<UUID, Tensor> meanSquaredDelta = new HashMap<>();
 
 	
-	public AdadeltaProcessor( AbstractProcessor p, float decayRate) {
-		super(p);
+	public AdadeltaProcessor(TensorFactory factory, NeuralNetwork nn, DataLogger logger, float decayRate) {
+		super(factory, nn, logger);
 		
 		this.decayRate = decayRate;
 	}
 	
 	@Override
-	public float processNext(float error) {
-
+	public void updateDelta(long i) {
 		nn.getTrainables().entrySet().stream().forEach(e -> {
 			Tensor deltaParams = e.getValue().getDeltaParameters();
 			
@@ -88,8 +91,6 @@ public class AdadeltaProcessor extends AbstractProcessor {
 			// set DeltaParameters to be sure in case of remote module instance
 			e.getValue().setDeltaParameters(deltaParams);
 		});
-		
-		return error;
 	}
 
 }

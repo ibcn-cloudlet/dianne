@@ -20,7 +20,7 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.nn.learn.factory;
+package be.iminds.iot.dianne.nn.learn;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -29,14 +29,12 @@ import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
-import be.iminds.iot.dianne.api.nn.learn.Processor;
+import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 import be.iminds.iot.dianne.nn.learn.criterion.MSECriterion;
 import be.iminds.iot.dianne.nn.learn.criterion.NLLCriterion;
-import be.iminds.iot.dianne.nn.learn.processors.AbstractProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.AdadeltaProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.AdagradProcessor;
-import be.iminds.iot.dianne.nn.learn.processors.MinibatchProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.MomentumProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.NesterovMomentumProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.RMSpropProcessor;
@@ -46,42 +44,22 @@ import be.iminds.iot.dianne.nn.learn.sampling.RandomSamplingStrategy;
 import be.iminds.iot.dianne.nn.learn.sampling.SequentialSamplingStrategy;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
-public class LearnerFactory {
+public class LearnerUtil {
 
-	public static Processor createProcessor(TensorFactory factory, 
+	public static GradientProcessor createGradientProcessor(TensorFactory factory, 
 			NeuralNetwork nn, 
 			Dataset d, 
 			Map<String, String> config,
 			DataLogger logger){
-		AbstractProcessor p = createSGDProcessor(factory, nn, d, config, logger);
+		GradientProcessor p = createSGDProcessor(factory, nn, d, config, logger);
 		p = addRegularization(p, config);
 		p = addMomentum(p, config);
-		return (Processor) p;
+		return p;
 	}
 	
-	public static AbstractProcessor createSGDProcessor(TensorFactory factory, 
+	public static GradientProcessor createSGDProcessor(TensorFactory factory, 
 			NeuralNetwork nn, Dataset d, Map<String, String> config, DataLogger logger){
-
-		int batchSize = 10;
-		if(config.get("batchSize")!=null){
-			batchSize = Integer.parseInt(config.get("batchSize"));
-		}
 		
-		Criterion c = createCriterion(factory, config);
-		SamplingStrategy s = createSamplingStrategy(d, config);
-		
-		AbstractProcessor p = new MinibatchProcessor(factory, nn, logger,d, s, c, batchSize);
-		
-		System.out.println("Minibatch trainer");
-		System.out.println("* criterion = "+c.getClass().getName());
-		System.out.println("* sampling = "+ s.getClass().getName());
-		System.out.println("* batchSize = "+batchSize);
-		System.out.println("---");
-		
-		return selectSGDMethod(p, config);
-	}
-	
-	public static AbstractProcessor selectSGDMethod(AbstractProcessor p, Map<String, String> config){
 		String method = "SGD";
 		if(config.get("method")!=null){
 			method = config.get("method");
@@ -97,23 +75,24 @@ public class LearnerFactory {
 			decayRate = Float.parseFloat(config.get("decayRate"));
 		}
 		
+		GradientProcessor p = null;
 		switch(method){
 		case "Adadelta":
-			p = new AdadeltaProcessor(p, decayRate);
+			p = new AdadeltaProcessor(factory, nn, logger, decayRate);
 			
 			System.out.println("Adadelta");
 			System.out.println("* decayRate = "+decayRate);
 			System.out.println("---");
 			break;
 		case "Adagrad":
-			p = new AdagradProcessor(p, learningRate);
+			p = new AdagradProcessor(factory, nn, logger, learningRate);
 			
 			System.out.println("Adagrad");
 			System.out.println("* learningRate = "+learningRate);
 			System.out.println("---");
 			break;
 		case "RMSprop":
-			p = new RMSpropProcessor(p, learningRate, decayRate);
+			p = new RMSpropProcessor(factory, nn, logger, learningRate, decayRate);
 			
 			System.out.println("RMSprop");
 			System.out.println("* learningRate = "+learningRate);
@@ -125,7 +104,7 @@ public class LearnerFactory {
 				System.out.println("Method "+method+" unknown, fall back to SGD");
 			}
 			
-			p = new StochasticGradientDescentProcessor(p, learningRate);
+			p = new StochasticGradientDescentProcessor(factory, nn, logger, learningRate);
 			
 			System.out.println("StochasticGradientDescent");
 			System.out.println("* learningRate = "+learningRate);
@@ -136,8 +115,7 @@ public class LearnerFactory {
 		return p;
 	}
 	
-	
-	public static AbstractProcessor addRegularization(AbstractProcessor p, Map<String, String> config){
+	public static GradientProcessor addRegularization(GradientProcessor p, Map<String, String> config){
 		if(config.get("regularization")!=null){
 			float regularization = Float.parseFloat(config.get("regularization"));
 			
@@ -157,7 +135,7 @@ public class LearnerFactory {
 		}
 	}
 	
-	public static AbstractProcessor addMomentum(AbstractProcessor p, Map<String, String> config){
+	public static GradientProcessor addMomentum(GradientProcessor p, Map<String, String> config){
 		if(config.get("momentum")!=null){
 			float momentum = Float.parseFloat(config.get("momentum"));
 			
@@ -165,7 +143,7 @@ public class LearnerFactory {
 				return p;
 			}
 			
-			AbstractProcessor m = new MomentumProcessor(p, momentum);
+			GradientProcessor m = new MomentumProcessor(p, momentum);
 			
 			System.out.println("Momentum");
 			System.out.println("* rate = "+momentum);
@@ -179,7 +157,7 @@ public class LearnerFactory {
 				return p;
 			}
 			
-			AbstractProcessor m = new NesterovMomentumProcessor(p, momentum);
+			GradientProcessor m = new NesterovMomentumProcessor(p, momentum);
 			
 			System.out.println("Nesterov momentum");
 			System.out.println("* rate = "+momentum);

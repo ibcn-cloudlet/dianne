@@ -26,24 +26,25 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
  * Additional learning techniques like Momentum can be implemented as a Processor decorator
  */
-public class MomentumProcessor extends AbstractProcessor {
+public class MomentumProcessor extends GradientProcessor {
 
 	private final float momentum;
 	
 	private Map<UUID, Tensor> velocity = new HashMap<UUID, Tensor>();
 	
-	public MomentumProcessor( AbstractProcessor p, float momentum ) {
+	public MomentumProcessor( GradientProcessor p, float momentum ) {
 		super(p);
 		this.momentum = momentum;
 	}
 	
 	@Override
-	public float processNext(float error) {
+	public void updateDelta(long i) {
 		// add momentum
 		nn.getTrainables().entrySet().stream().forEach(e -> {
 			Tensor v = velocity.get(e.getKey());
@@ -57,8 +58,6 @@ public class MomentumProcessor extends AbstractProcessor {
 			// set DeltaParameters to be sure in case of remote module instance
 			e.getValue().setDeltaParameters(deltaParams);
 		});
-		
-		return error;
 	}
 
 }

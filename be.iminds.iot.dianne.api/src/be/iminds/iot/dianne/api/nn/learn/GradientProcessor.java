@@ -20,22 +20,30 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.nn.learn.processors;
+package be.iminds.iot.dianne.api.nn.learn;
 
 import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
-import be.iminds.iot.dianne.api.nn.learn.Processor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
-public abstract class AbstractProcessor implements Processor {
+/**
+ * The GradientProcessor processes the accumulated gradients of a neural network 
+ * and calcultes actual deltas to update the parameters with. GradientProcessors
+ * can be stacked where each GradientProcessor in the pipeline updates the deltas in
+ * a specific way.
+ * 
+ * @author tverbele
+ *
+ */
+public abstract class GradientProcessor {
 
-	private final AbstractProcessor decorated;
+	private final GradientProcessor decorated;
 	
 	protected final TensorFactory factory;
 	protected final NeuralNetwork nn;
 	protected final DataLogger logger;
 	
-	public AbstractProcessor(TensorFactory factory, 
+	public GradientProcessor(TensorFactory factory, 
 			NeuralNetwork nn,
 			DataLogger logger){
 		this.factory = factory;
@@ -45,7 +53,7 @@ public abstract class AbstractProcessor implements Processor {
 		this.decorated = null;
 	}
 	
-	public AbstractProcessor(AbstractProcessor decorated){
+	public GradientProcessor(GradientProcessor decorated){
 		this.factory = decorated.factory;
 		this.nn = decorated.nn;
 		this.logger = decorated.logger;
@@ -53,18 +61,18 @@ public abstract class AbstractProcessor implements Processor {
 		this.decorated = decorated;
 	}
 
-	@Override
-	final public float processNext(){
-		float error = 0;
-		
+	final public void calculateDelta(long i){
 		if(decorated!=null){
-			error = decorated.processNext();
+			decorated.calculateDelta(i);
 		}
 		
-		error = processNext(error);
-		return error;
+		updateDelta(i);
 	}
 	
-	protected abstract float processNext(float error);
+	/**
+	 * Update the deltas for the neural network instance
+	 * @param i the iteration the learner is currently in - can be used for decaying parameters etc
+	 */
+	protected abstract void updateDelta(long i);
 	
 }
