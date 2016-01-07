@@ -174,6 +174,11 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	
 	
 	private String[] addTag(String[] tags, String tag){
+		if(tags==null){
+			String[] t = new String[1];
+			t[0] = tag;
+			return t;
+		}
 		if(tag==null)
 			return tags;
 		
@@ -523,7 +528,10 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 			throw new RuntimeException("This neural network object is no longer valid");
 		}
 		
-		repository.storeParameters(nn.id, getParameters(), tag);
+		if(tag == null)
+			repository.storeParameters(nn.id, getParameters()); 
+		else 
+			repository.storeParameters(nn.id, getParameters(), tag);
 	}
 
 	@Override
@@ -535,7 +543,11 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		Map<UUID, Tensor> deltaParameters = trainables.entrySet().stream()
 				.collect(Collectors.toMap(e -> e.getKey(), e -> factory.getTensorMath().sub(null,
 						e.getValue().getParameters(), previous.get(e.getKey()))));
-		repository.accParameters(nn.id, deltaParameters, tag);
+		if(tag == null)
+			repository.accParameters(nn.id, deltaParameters);
+		else 
+			repository.accParameters(nn.id, deltaParameters, tag);
+			
 	}
 
 	@Override
@@ -543,7 +555,8 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		if(!valid){
 			throw new RuntimeException("This neural network object is no longer valid");
 		}
-		Map<UUID, Tensor> parameters = repository.loadParameters(nn.name, tag);
+
+		Map<UUID, Tensor> parameters = tag==null? repository.loadParameters(nn.name) : repository.loadParameters(nn.name, tag);
 		setParameters(parameters);
 		return parameters;
 	}

@@ -32,11 +32,11 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
+import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.api.rl.agent.Agent;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
-import be.iminds.iot.dianne.api.rl.learn.QLearner;
 
 /**
  * Worker component that bootstraps a node with an Agent, Learner and local ExperiencePool
@@ -51,7 +51,7 @@ public class RLWorker {
 	private DiannePlatform platform;
 	
 	private Agent agent;
-	private QLearner learner;
+	private Learner learner;
 	private Map<String, ExperiencePool> pools = new HashMap<String, ExperiencePool>();
 
 	
@@ -103,8 +103,8 @@ public class RLWorker {
 		this.agent = agent;
 	}
 	
-	@Reference
-	void setQLearner(QLearner l){
+	@Reference(target="(dianne.learner.type=deepq)")
+	void setLearner(Learner l){
 		this.learner = l;
 	}
 	

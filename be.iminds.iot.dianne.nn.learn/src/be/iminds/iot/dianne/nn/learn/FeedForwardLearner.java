@@ -27,9 +27,12 @@ import java.util.Map;
 import org.osgi.service.component.annotations.Component;
 
 import be.iminds.iot.dianne.api.nn.learn.Learner;
+import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.tensor.Tensor;
 
-@Component(service=Learner.class, property={"aiolos.unique=true"})
+@Component(service=Learner.class, 
+	property={"aiolos.unique=true",
+			  "dianne.learner.type=feedforward"})
 public class FeedForwardLearner extends AbstractLearner {
 	
 	protected int batchSize = 10;
@@ -76,9 +79,7 @@ public class FeedForwardLearner extends AbstractLearner {
 		gradientProcessor.calculateDelta(i);
 		
 		// update parameters
-		nn.getTrainables().entrySet().stream().forEach(e -> {
-			e.getValue().updateParameters();
-		});
+		nn.getTrainables().values().stream().forEach(Trainable::updateParameters);
 		
 		return err/batchSize;
 	}

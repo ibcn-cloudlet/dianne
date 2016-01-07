@@ -28,9 +28,9 @@ import java.util.Map;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
+import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
-import be.iminds.iot.dianne.api.rl.learn.QLearner;
 
 /**
  * Separate component for rl commands ... should be moved to the command bundle later on
@@ -45,7 +45,7 @@ public class DianneRLLearnCommands {
 
 	private DiannePlatform platform;
 	
-	private QLearner learner;
+	private Learner learner;
 	
 	public void rlearn(String nnName, String dataset, String ... properties){
 		try {
@@ -82,8 +82,8 @@ public class DianneRLLearnCommands {
 		return config;
 	}
 
-	@Reference
-	void setQLearner(QLearner l){
+	@Reference(target="(dianne.learner.type=deepq)")
+	void setLearner(Learner l){
 		this.learner = l;
 	}
 	

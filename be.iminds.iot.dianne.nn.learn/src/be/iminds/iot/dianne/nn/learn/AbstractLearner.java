@@ -26,6 +26,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -76,7 +77,7 @@ public abstract class AbstractLearner implements Learner {
 	protected String tag = null;
 	
 	// initial parameters
-	protected Map<UUID, Tensor> parameters = null;
+	protected Map<UUID, Tensor> previousParameters = null;
 	
 	private static final float alpha = 1e-2f;
 	protected float error = 0;
@@ -108,7 +109,7 @@ public abstract class AbstractLearner implements Learner {
 		learning = true;
 		try {
 			// reset
-			parameters = null;
+			previousParameters = null;
 			i = 0;
 			
 			// Fetch the dataset
@@ -152,12 +153,7 @@ public abstract class AbstractLearner implements Learner {
 							System.out.println(error);
 						
 						// publish parameters to repository
-						if(syncInterval>0){
-							if(i!=0 && i % syncInterval == 0){
-								// publish weights
-								publishParameters();
-							}
-						}
+						publishParameters(i);
 						
 						i++;
 					} while(learning);
@@ -240,56 +236,38 @@ public abstract class AbstractLearner implements Learner {
 	 */
 	protected void initializeParameters(){
 		if(clean){
-			nn.randomizeParameters();
-			publishParameters();
+			resetParameters();
 		} else {
 			loadParameters();
 		}
 	}
 
 	/**
-	 * Load parameters for all neural network instances from the repository
-	 * 
-	 * Also store those values to calculate delta updates in publishParameters() 
+	 * Publish parameters (or deltas ) to the repository
 	 */
-	protected void loadParameters(){
-		try {
-			if(tag==null){
-				nn.loadParameters();
-			} else {
-				parameters = nn.loadParameters(tag);
-			}
-		} catch(Exception ex){
-			System.out.println("Failed to load parameters "+tag+", fill with random parameters");
-			nn.randomizeParameters();
-			publishParameters();
+	protected void publishParameters(long i){
+		if(syncInterval>0 && i!=0 && i % syncInterval == 0){
+			// publish delta
+			nn.storeDeltaParameters(previousParameters, tag);
+				
+			// fetch update again from repo (could be merged from other learners)
+			loadParameters();
 		}
 	}
 	
-	/**
-	 * Publish parameters (or deltas ) to the repository
-	 * 
-	 * Called each time syncInterval iterations are processed
-	 */
-	protected void publishParameters(){
-		if(parameters!=null){
-			// publish delta
-			if(tag==null){
-				nn.storeDeltaParameters(parameters);
-			} else {
-				nn.storeDeltaParameters(parameters, tag);
-			}
-		} else {
-			// just publish initial values
-			if(tag==null){
-				nn.storeParameters();
-			} else {
-				nn.storeParameters(tag);
-			}
+	private void resetParameters(){
+		nn.randomizeParameters();
+		nn.storeParameters(tag);
+		previousParameters =  nn.getParameters().entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().copyInto(null)));
+	}
+	
+	private void loadParameters(){
+		try {
+			previousParameters = nn.loadParameters(tag);
+		} catch(Exception ex){
+			System.out.println("Failed to load parameters "+tag+", fill with random parameters");
+			resetParameters();
 		}
-		
-		// fetch update again from repo (could be merged from other learners)
-		loadParameters();
 	}
 	
 	/**
@@ -317,29 +295,29 @@ public abstract class AbstractLearner implements Learner {
 	}
 	
 	@Reference
-	void setTensorFactory(TensorFactory f){
+	protected void setTensorFactory(TensorFactory f){
 		this.factory = f;
 	}
 	
 	@Reference
-	void setDianne(Dianne d){
+	protected void setDianne(Dianne d){
 		dianne = d;
 	}
 	
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
-	void addDataset(Dataset dataset, Map<String, Object> properties){
+	protected void addDataset(Dataset dataset, Map<String, Object> properties){
 		String name = (String) properties.get("name");
 		this.datasets.put(name, dataset);
 	}
 	
-	void removeDataset(Dataset dataset, Map<String, Object> properties){
+	protected void removeDataset(Dataset dataset, Map<String, Object> properties){
 		String name = (String) properties.get("name");
 		this.datasets.remove(name);
 	}
 	
 	@Reference(cardinality = ReferenceCardinality.OPTIONAL)
-	void setDataLogger(DataLogger l){
+	protected void setDataLogger(DataLogger l){
 		this.logger = l;
 	}
 }

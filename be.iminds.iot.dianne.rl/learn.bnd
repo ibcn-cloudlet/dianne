@@ -1,9 +1,4 @@
-Export-Package: \
-	be.iminds.iot.dianne.api.log,\
-	be.iminds.iot.dianne.api.rl.learn
+Export-Package: be.iminds.iot.dianne.api.log
 -dsannotations: *
-Private-Package: \
-	be.iminds.iot.dianne.rl.learn;,\
-	be.iminds.iot.dianne.rl.learn.factory,\
-	be.iminds.iot.dianne.rl.learn.processors
+Private-Package: be.iminds.iot.dianne.rl.learn;
 Bundle-Name: Dianne Reinforcement Learner
