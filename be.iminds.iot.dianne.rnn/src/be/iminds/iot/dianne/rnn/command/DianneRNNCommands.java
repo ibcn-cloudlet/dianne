@@ -30,9 +30,9 @@ import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
+import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
-import be.iminds.iot.dianne.api.rnn.learn.RecurrentLearner;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
@@ -50,7 +50,7 @@ public class DianneRNNCommands {
 
 	private Dianne dianne;
 	private DiannePlatform platform;
-	private RecurrentLearner learner;
+	private Learner learner;
 
 	private TensorFactory factory;
 	
@@ -162,8 +162,8 @@ public class DianneRNNCommands {
 		this.platform = p;
 	}
 	
-	@Reference
-	void setRecurrentLearner(RecurrentLearner l){
+	@Reference(target="(dianne.learner.type=recurrent)")
+	void setLearner(Learner l){
 		this.learner = l;
 	}
 }
