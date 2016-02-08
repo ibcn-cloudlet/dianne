@@ -45,7 +45,9 @@
 				
 				<nav class='controls'>
 					<ul id="modes" class="nav masthead-nav control-group">
-						<li><a href="#" id="mode-dashboard" class="active">Dashboard</a></li>
+						<li><a href="#" id="mode-dashboard" onclick="setModus('dashboard');return false;" class="active">Dashboard</a></li>
+						<li><a href="#" id="mode-jobs" onclick="setModus('jobs');return false;">Running Jobs</a></li>
+						<li><a href="#" id="mode-infrastructure" onclick="setModus('infrastructure');return false;">Infrastructure</a></li>
 					</ul>
 				</nav>
 			</div>
@@ -54,7 +56,7 @@
 		<div class="container-fluid">
 			<div id="dashboard" class="row mCustomScrollbar" data-mcs-theme="minimal">
 				
-				<div class="col-lg-4 col-md-6">
+				<div class="block dashboard col-lg-4 col-md-6">
 					<div class="panel panel-default status">
 					  	<div class="panel-heading">Status</div>
 					  	<div class="panel-body">							
@@ -82,10 +84,18 @@
 					 </div>
 				</div>
 				
-				<div class="col-lg-8 col-md-6">
+				<div class="block dashboard col-lg-8 col-md-6">
 					<div class="panel panel-default notifications">
 					  	<div class="panel-heading">Notifications</div>
 					  	<div id="alerts">
+						  	<div class="alert alert-info fade in">
+								<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+					  			Job "MNIST cascade training 17" started.
+							</div>						  	
+						  	<div class="alert alert-info fade in">
+								<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+					  			Job "MNIST cascade training 16" started.
+							</div>	
 						  	<div class="alert alert-success fade in">
 								<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
 					  			Job "MNIST cascade training 15" successfully finished.
@@ -105,12 +115,12 @@
 							<div class="alert alert-success fade in">
 								<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
 					  			Job "MNIST cascade training 14" successfully finished.
-							</div>
+							</div>					  	
 					  	</div>
 					 </div>
 				</div>
 				
-				<div class="col-lg-4 col-md-6">
+				<div class="block dashboard col-lg-4 col-md-6">
 					<div class="panel panel-default queue">
 					  	<div class="panel-heading">Job queue</div>
 					  	<div class="panel-body">
@@ -126,14 +136,14 @@
 							  	<span class="badge">RL</span>
 							    <h4 class="list-group-item-heading">ALE Breakout</h4>
 							    <p class="list-group-item-text">
-							    	NN: DeepQPong | Dataset: Breakout
+							    	NN: DeepQBreakout | Dataset: Breakout
 							    </p>
 							  </a>
 							  <a href="#" class="list-group-item">
 							  	<span class="badge">RNN</span>
 							    <h4 class="list-group-item-heading">Shakespeare text generation</h4>
 							    <p class="list-group-item-text">
-							    	NN: LSTMTest | Dataset: Shakespeare
+							    	NN: LSTMShakespeare | Dataset: Shakespeare
 							    </p>
 							  </a>
 							  <a href="#" class="list-group-item">
@@ -148,7 +158,89 @@
 					 </div>
 				</div>
 				
-				<div class="col-lg-4 col-md-6">
+				<div class="block dashboard col-lg-4 col-md-6">
+					<div class="panel panel-default running">
+					  	<div class="panel-heading">Jobs running</div>
+					  	<div class="panel-body">
+							<div class="list-group">
+							  <a href="#" class="list-group-item">
+							  	<span class="badge">FF</span>
+							    <h4 class="list-group-item-heading">MNIST cascade training 16</h4>
+							    <p class="list-group-item-text">
+							    	NN: MNISTCascade | Dataset: MNIST
+							    </p>
+							  </a>
+							  <a href="#" class="list-group-item">
+							  	<span class="badge">FF</span>
+							    <h4 class="list-group-item-heading">MNIST cascade training 17</h4>
+							    <p class="list-group-item-text">
+							    	NN: MNISTCascade | Dataset: MNIST
+							    </p>
+							  </a>							  
+							  <a href="#" class="list-group-item">
+							  	<span class="badge">RL</span>
+							    <h4 class="list-group-item-heading">ALE Pong</h4>
+							    <p class="list-group-item-text">
+							    	NN: DeepQPong | Dataset: Pong
+							    </p>
+							  </a>
+							  <a href="#" class="list-group-item">
+							  	<span class="badge">RNN</span>
+							    <h4 class="list-group-item-heading">LSTM test</h4>
+							    <p class="list-group-item-text">
+							    	NN: LSTMTest | Dataset: Shakespeare
+							    </p>
+							  </a>
+							  <a href="#" class="list-group-item">
+							  	<span class="badge">FF</span>
+							    <h4 class="list-group-item-heading">CIFAR cascading</h4>
+							    <p class="list-group-item-text">
+							    	NN: CIFARCascade | Dataset: CIFAR
+							    </p>
+							  </a>
+							  <a href="#" class="list-group-item">
+							  	<span class="badge">FF</span>
+							    <h4 class="list-group-item-heading">CIFAR minification 1</h4>
+							    <p class="list-group-item-text">
+							    	NN: CIFARmini1 | Dataset: CIFAR
+							    </p>
+							  </a>
+							  <a href="#" class="list-group-item">
+							  	<span class="badge">FF</span>
+							    <h4 class="list-group-item-heading">CIFAR minification 2</h4>
+							    <p class="list-group-item-text">
+							    	NN: CIFARmini2 | Dataset: CIFAR
+							    </p>
+							  </a>
+							  <a href="#" class="list-group-item">
+							  	<span class="badge">FF</span>
+							    <h4 class="list-group-item-heading">CIFAR minification 3</h4>
+							    <p class="list-group-item-text">
+							    	NN: CIFARmini3 | Dataset: CIFAR
+							    </p>
+							  </a>
+							</div>
+					  	</div>
+					 </div>
+				</div>
+				
+				<div class="block dashboard col-lg-4 col-md-6">
+					<div class="panel panel-default resources">
+					  	<div class="panel-heading">Resources</div>
+					  	<div class="panel-body">
+					  		<b>17 machines online</b> <br/><br/>
+					  		Average resource usage:							
+							<div class="row">
+								<div id="memory-chart" class="col-sm-6">
+								</div>
+								<div id="cpu-chart" class="col-sm-6">
+								</div>
+							</div>
+					  	</div>
+					 </div>
+				</div>
+				
+				<div class="block jobs col-lg-4 col-md-6">
 					<div class="panel panel-default job">
 					  	<div class="panel-heading"><span class="badge pull-right">FF</span>CIFAR-10 training</div>
 					  	<div class="panel-body">
@@ -163,7 +255,7 @@
 					 </div>
 				</div>
 				
-				<div class="col-lg-4 col-md-6">
+				<div class="block jobs col-lg-4 col-md-6">
 					<div class="panel panel-default job">
 					  	<div class="panel-heading"><span class="badge pull-right">RL</span>Atari Pong</div>
 					  	<div class="panel-body">
@@ -177,7 +269,7 @@
 					 </div>
 				</div>
 				
-				<div class="col-lg-4 col-md-6">
+				<div class="block jobs col-lg-4 col-md-6">
 					<div class="panel panel-default job">
 					  	<div class="panel-heading">Learn Job 3</div>
 					  	<div class="panel-body">A Basic Panel</div>
@@ -185,7 +277,7 @@
 					 </div>
 				</div>
 				
-				<div class="col-lg-4 col-md-6">
+				<div class="block jobs col-lg-4 col-md-6">
 					<div class="panel panel-default job">
 					  	<div class="panel-heading">Learn Job 4</div>
 					  	<div class="panel-body">A Basic Panel</div>
@@ -193,7 +285,7 @@
 					 </div>
 				</div>
 				
-				<div class="col-lg-4 col-md-6">
+				<div class="block jobs col-lg-4 col-md-6">
 					<div class="panel panel-default job">
 					  	<div class="panel-heading">Learn Job 5</div>
 					  	<div class="panel-body">A Basic Panel</div>
@@ -201,6 +293,28 @@
 					 </div>
 				</div>
 				
+				
+				<div class="block infrastructure col-lg-4 col-md-6">
+					<div class="panel panel-default resources">
+					  	<div class="panel-heading">Wall2-GPU1</div>
+					  	<div class="panel-body">
+					  		<b>n104-06.wall2.ilabt.iminds.be</b>
+					  		<ul>
+								<li>CPU: Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz</li>
+								<li>GPU: GeForce GTX 980 </li>
+								<li>IP: 10.2.33.169</li>
+							</ul>
+					  		<br/>
+					  		Resource usage:							
+							<div class="row">
+								<div id="gpu1-mem" class="col-sm-6">
+								</div>
+								<div id="gpu1-cpu" class="col-sm-6">
+								</div>
+							</div>
+					  	</div>
+					 </div>
+				</div>
 			</div>
 		</div>
 
@@ -224,6 +338,8 @@
 	<script src="js/lib/mustache.js"></script>
 	<!-- Highcharts Script  -->
 	<script src="js/lib/highcharts.js"></script>
+	<script src="js/lib/highcharts-more.js"></script>
+	<script src="js/lib/highcharts-solid-gauge.js"></script>
 	<!-- Our own scripts -->
 	<script src="js/dianne-dashboard.js"></script>
 	

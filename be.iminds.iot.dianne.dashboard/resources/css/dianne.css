@@ -45,26 +45,43 @@ html, body {
 	margin-bottom: 5px;
 }
 
+.panel {
+	overflow: hidden;
+}
+
 .big {
 	font-size: 1.2em
 }
 
 /* Add fixed heights for dashboard panels */
 .status {
-	height: 300px;
+	height: 350px;
+}
+
+.notifications {
+	height: 350px;
+	overflow-y: scroll;
 }
 
 .queue {
 	height: 400px;
+	overflow-y: scroll;
 }
 
-.notifications {
-	height: 300px;
+.running {
+	height: 400px;
+	overflow-y: scroll;
+}
+
+.resources {
+	height: 400px;
 }
 
 .job {
 	height: 400px;
 }
+
+
 
 @media ( min-width : 466px) {
 	.site-wrapper {

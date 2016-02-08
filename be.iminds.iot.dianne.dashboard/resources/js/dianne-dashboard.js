@@ -25,13 +25,30 @@ function submitJob(){
 	window.alert("Submit a job!");
 }
 
+function setModus(mode){
+	$(".active").removeClass("active");
+	
+	if(mode === "dashboard"){
+		$(".block").addClass('hidden');
+		$(".block").filter( ".dashboard" ).removeClass('hidden');
+		$("#mode-dashboard").addClass("active");
+	} else if(mode === "jobs"){
+		$(".block").addClass('hidden');
+		$(".block").filter( ".jobs" ).removeClass('hidden');
+		$("#mode-jobs").addClass("active");
+	} else if(mode === "infrastructure"){
+		$(".block").addClass('hidden');
+		$(".block").filter( ".infrastructure" ).removeClass('hidden');
+		$("#mode-infrastructure").addClass("active");
+	}
+}
+
 
 // placeholder charts
 $(function () {
 
     $(document).ready(function () {
-    	
-    	
+    	setModus('dashboard');
     	
     	// gradient fill for pie chart
     	 Highcharts.getOptions().colors = Highcharts.map(Highcharts.getOptions().colors, function (color) {
@@ -95,8 +112,107 @@ $(function () {
             }]
         });
         
+        // gauge charts
+        var gaugeOptions = {
+                chart: {
+                    type: 'solidgauge',
+                    height: 200
+                },
+                title: null,
+                pane: {
+                    center: ['50%', '85%'],
+                    size: '140%',
+                    startAngle: -90,
+                    endAngle: 90,
+                    background: {
+                        backgroundColor: (Highcharts.theme && Highcharts.theme.background2) || '#EEE',
+                        innerRadius: '60%',
+                        outerRadius: '100%',
+                        shape: 'arc'
+                    }
+                },
+                tooltip: {
+                    enabled: false
+                },
+                // the value axis
+                yAxis: {
+                	color: {
+                	    radialGradient: { cx: 0.5, cy: 0.5, r: 0.5 },
+                	    stops: [
+                	       [0, '#003399'],
+                	       [1, '#3366AA']
+                	    ]
+                	},
+                    lineWidth: 0,
+                    minorTickInterval: null,
+                    tickPixelInterval: 400,
+                    tickWidth: 0,
+                    title: {
+                        y: -70
+                    },
+                    labels: {
+                        y: 16
+                    }
+                },
+                plotOptions: {
+                    solidgauge: {
+                        dataLabels: {
+                            y: 5,
+                            borderWidth: 0,
+                            useHTML: true
+                        }
+                    }
+                }
+            };
+        
+        $('#cpu-chart').highcharts(Highcharts.merge(gaugeOptions, {
+            yAxis: {
+                min: 0,
+                max: 100,
+                title: {
+                    text: 'Average CPU usage'
+                }
+            },
+            credits: {
+                enabled: false
+            },
+            series: [{
+                name: 'CPU',
+                data: [68],
+                dataLabels: {
+                    format: '<div style="text-align:center"><span style="font-size:25px;color:' +
+                        ((Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black') + '">{y:.1f}%</span></div>'
+                },
+                tooltip: {
+                    valueSuffix: ' %'
+                }
+            }]
+
+        }));
+
+        $('#memory-chart').highcharts(Highcharts.merge(gaugeOptions, {
+            yAxis: {
+                min: 0,
+                max: 100,
+                title: {
+                    text: 'Average Memory Usage'
+                }
+            },
+            series: [{
+                name: 'Memory',
+                data: [54],
+                dataLabels: {
+                    format: '<div style="text-align:center"><span style="font-size:25px;color:' +
+                        ((Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black') + '">{y:.1f}%</span></div>'
+                },
+                tooltip: {
+                    valueSuffix: ' %'
+                }
+            }]
+        }));
         
         
+        // learn job charts
         $('#chart1').highcharts({
             chart: {
                 height: 250,
@@ -156,5 +272,52 @@ $(function () {
                 data: [-0.1, -0.5, -0.8, -0.7, -0.4, -0.2, 0.4]
             }]
         });
+        
+        
+        $('#gpu1-cpu').highcharts(Highcharts.merge(gaugeOptions, {
+            yAxis: {
+                min: 0,
+                max: 100,
+                title: {
+                    text: 'CPU usage'
+                }
+            },
+            credits: {
+                enabled: false
+            },
+            series: [{
+                name: 'CPU',
+                data: [95],
+                dataLabels: {
+                    format: '<div style="text-align:center"><span style="font-size:25px;color:' +
+                        ((Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black') + '">{y:.1f}%</span></div>'
+                },
+                tooltip: {
+                    valueSuffix: ' %'
+                }
+            }]
+
+        }));
+
+        $('#gpu1-mem').highcharts(Highcharts.merge(gaugeOptions, {
+            yAxis: {
+                min: 0,
+                max: 100,
+                title: {
+                    text: 'Memory Usage'
+                }
+            },
+            series: [{
+                name: 'Memory',
+                data: [87],
+                dataLabels: {
+                    format: '<div style="text-align:center"><span style="font-size:25px;color:' +
+                        ((Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black') + '">{y:.1f}%</span></div>'
+                },
+                tooltip: {
+                    valueSuffix: ' %'
+                }
+            }]
+        }));
     });
 });
