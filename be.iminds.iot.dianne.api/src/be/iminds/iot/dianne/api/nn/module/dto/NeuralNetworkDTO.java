@@ -53,7 +53,10 @@ public class NeuralNetworkDTO {
 	
 	public NeuralNetworkDTO(String name, List<ModuleDTO> moduleList){
 		this.name = name;
-		this.modules = moduleList.stream().collect(Collectors.toMap(m -> m.id, m -> m));
+		this.modules = new HashMap<>();
+		for(ModuleDTO dto : moduleList){
+			modules.put(dto.id, dto);
+		}
 	}
 	
 	@Override

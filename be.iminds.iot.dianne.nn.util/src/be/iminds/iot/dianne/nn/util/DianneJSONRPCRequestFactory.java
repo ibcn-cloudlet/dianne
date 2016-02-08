@@ -23,6 +23,7 @@
 package be.iminds.iot.dianne.nn.util;
 
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -65,7 +66,9 @@ public class DianneJSONRPCRequestFactory {
 	
 	private static JsonObject createJsonFromMap(Map<String, String> map){
 		JsonObject json = new JsonObject();
-		map.entrySet().stream().forEach(e -> json.add(e.getKey(), new JsonPrimitive(e.getValue())));
+		for(Entry<String, String> e : map.entrySet()){
+			json.add(e.getKey(), new JsonPrimitive(e.getValue()));
+		}
 		return json;
 	}
 	
