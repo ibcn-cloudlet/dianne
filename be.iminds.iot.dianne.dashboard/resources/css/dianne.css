@@ -1,0 +1,165 @@
+/*
+ * Globals
+ */
+
+/* Links */
+a, a:focus, a:hover {
+	color: #555;
+}
+
+/*
+ * Base structure
+ */
+html, body {
+	height: 100%;
+	background-color: #FFF;
+	color: #333;
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.logo {
+	float: left;
+	margin: 5px 10px;
+	height: 4em;
+}
+
+/* For side shadow and padding to stay below header/above footer */
+.site-wrapper {
+	width: 100%;
+	height: 100%; /* For at least Firefox */
+	min-height: 100%;
+	padding: 196px 0 90px 0;
+}
+
+/*
+* fix for scrollbars
+*/
+.container-fluid, #builder, #toolbox, #canvas {
+	height: 100%;
+}
+#toolbox {
+	overflow-y: auto;
+}
+#toolbox .mCSB_container {
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+#canvas {
+	overflow: auto;
+}
+/*
+* end fix scrollbars
+*/
+
+
+@media ( min-width : 466px) {
+	.site-wrapper {
+		padding: 170px 0 90px 0;
+	}
+}
+@media ( min-width : 640px) {
+	.site-wrapper {
+		padding: 128px 0 90px 0;
+	}
+}
+@media ( min-width : 768px) {
+	.site-wrapper {
+		padding: 112px 0 90px 0;
+	}
+}
+@media ( min-width : 981px) {
+	.site-wrapper {
+		padding: 75px 0 90px 0;
+	}
+}
+
+/* Padding for spacing */
+.inner {
+	padding: 30px;
+}
+
+/*
+ * Header
+ */
+.custom-navbar {
+	background-color: #FFF;
+	-webkit-box-shadow: 0 0 10px rgba(0, 0, 0, .5);
+	box-shadow: 0 0 10px rgba(0, 0, 0, .5);
+}
+
+.masthead-image {
+	float: left;
+	margin: 0px 10px 0px 10px;
+	width: 75px;
+}
+
+.masthead-brand {
+	margin: auto 0;
+}
+
+.masthead-nav>li {
+	display: inline-block;
+}
+
+.masthead-nav>li+li {
+	margin-left: 20px;
+}
+
+.masthead-nav > li > a {
+  	border-bottom: 2px solid transparent;
+}
+.masthead-nav > li > a:hover,
+.masthead-nav > li > a:focus,
+.masthead-nav > li > a.active,
+.masthead-nav > li > a.active:hover,
+.masthead-nav > li > a.active:focus {
+  	background-color: transparent;
+  	border-bottom-color: #888;
+}
+
+.actions-nav {
+ 	padding: 0;
+ 	float: left;
+ 	margin-left: 20px;
+}
+.actions-nav > li {
+  display: inline-block;
+  margin: 0 10px;
+}
+.actions-nav > li > a {
+  color: #888;
+}
+.actions-nav > li > a:hover,
+.actions-nav > li > a:focus {
+  background-color: transparent;
+}
+
+@media ( min-width : 768px) {
+	.masthead-brand {
+		float: left;
+	}
+	.masthead-nav {
+		float: right;
+	}
+}
+
+/*
+ * Footer
+ */
+footer {
+	color: #555;
+	text-align: center;
+	-webkit-box-shadow: 0px 0 100px rgba(0, 0, 0, .5);
+	box-shadow: 0 0 10px rgba(0, 0, 0, .5);
+}
+
+.custom-footer {
+	background-color: #FFF;
+}
+
+.footer-image {
+	float: right;
+	margin: 0px 10px 0px 10px;
+	height: 75px;
+}
+ 
