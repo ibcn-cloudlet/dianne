@@ -31,26 +31,40 @@ html, body {
 	padding: 196px 0 90px 0;
 }
 
-/*
-* fix for scrollbars
-*/
-.container-fluid, #builder, #toolbox, #canvas {
-	height: 100%;
+/* Add padding to not stick to the edges */
+#dashboard {
+	padding: 10px 10px 10px 10px;
 }
-#toolbox {
-	overflow-y: auto;
-}
-#toolbox .mCSB_container {
-	padding-top: 10px;
-	padding-bottom: 10px;
-}
-#canvas {
-	overflow: auto;
-}
-/*
-* end fix scrollbars
-*/
 
+#alerts {
+	padding: 10px 10px 10px 10px;
+}
+
+.alert {
+	padding: 6px;
+	margin-bottom: 5px;
+}
+
+.big {
+	font-size: 1.2em
+}
+
+/* Add fixed heights for dashboard panels */
+.status {
+	height: 300px;
+}
+
+.queue {
+	height: 400px;
+}
+
+.notifications {
+	height: 300px;
+}
+
+.job {
+	height: 400px;
+}
 
 @media ( min-width : 466px) {
 	.site-wrapper {

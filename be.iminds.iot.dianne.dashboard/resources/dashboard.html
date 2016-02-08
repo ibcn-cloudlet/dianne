@@ -15,7 +15,6 @@
 <link rel="stylesheet" href="css/bootstrap.min.css">
 <link rel="stylesheet" href="css/jquery-ui.css">
 <!-- Styles -->
-<link rel="stylesheet" href="css/jquery.mCustomScrollbar.min.css">
 <link rel="stylesheet" href="css/dianne.css">
 <!-- icon -->
 <link rel="icon" type="image/png" href="images/icon.png">
@@ -53,8 +52,155 @@
 		</header>
 
 		<div class="container-fluid">
-			<div id="dashboard" class="row">
-
+			<div id="dashboard" class="row mCustomScrollbar" data-mcs-theme="minimal">
+				
+				<div class="col-lg-4 col-md-6">
+					<div class="panel panel-default status">
+					  	<div class="panel-heading">Status</div>
+					  	<div class="panel-body">							
+							<div id="status" class="row">
+								<div id="status-msg" class="col-sm-6 big">
+									<b>System</b>
+									<ul>
+										<li>8 jobs running on 12 machines</li>
+										<li>5 machines idle</li>
+									</ul>
+									<b>Repository</b>
+									<ul>
+										<li>Network I/O: 12Mbps/3Mbps</li>
+										<li>Storage: 120 of 150Gb used</li>
+									</ul>
+									<b>Uptime</b>
+									<ul>
+										<li>12 days, 4 hours and 12 minutes</li>
+									</ul>
+								</div>
+								<div id="status-chart" class="col-sm-6">
+								</div>
+							</div>
+					  	</div>
+					 </div>
+				</div>
+				
+				<div class="col-lg-8 col-md-6">
+					<div class="panel panel-default notifications">
+					  	<div class="panel-heading">Notifications</div>
+					  	<div id="alerts">
+						  	<div class="alert alert-success fade in">
+								<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+					  			Job "MNIST cascade training 15" successfully finished.
+							</div>
+							<div class="alert alert-danger fade in">
+								<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+					  			<strong>Error: </strong>Job "ALE Breakout" failed unexpectedly.
+							</div>
+							<div class="alert alert-warning fade in">
+								<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+					  			Node "Wall-GPU1" has not responded for the last hour.
+							</div>		
+							<div class="alert alert-info fade in">
+								<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+					  			Job "MNIST cascade training 15" started.
+							</div>
+							<div class="alert alert-success fade in">
+								<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+					  			Job "MNIST cascade training 14" successfully finished.
+							</div>
+					  	</div>
+					 </div>
+				</div>
+				
+				<div class="col-lg-4 col-md-6">
+					<div class="panel panel-default queue">
+					  	<div class="panel-heading">Job queue</div>
+					  	<div class="panel-body">
+							<div class="list-group">
+							  <a href="#" class="list-group-item">
+							  	<span class="badge">RL</span>
+							    <h4 class="list-group-item-heading">Pong continuous action space</h4>
+							    <p class="list-group-item-text">
+							    	NN: DeepQNetwork | Dataset: Pong
+							    </p>
+							  </a>
+							  <a href="#" class="list-group-item">
+							  	<span class="badge">RL</span>
+							    <h4 class="list-group-item-heading">ALE Breakout</h4>
+							    <p class="list-group-item-text">
+							    	NN: DeepQPong | Dataset: Breakout
+							    </p>
+							  </a>
+							  <a href="#" class="list-group-item">
+							  	<span class="badge">RNN</span>
+							    <h4 class="list-group-item-heading">Shakespeare text generation</h4>
+							    <p class="list-group-item-text">
+							    	NN: LSTMTest | Dataset: Shakespeare
+							    </p>
+							  </a>
+							  <a href="#" class="list-group-item">
+							  	<span class="badge">FF</span>
+							    <h4 class="list-group-item-heading">ImageNet cascading</h4>
+							    <p class="list-group-item-text">
+							    	NN: Cascade1 | Dataset: ImageNet
+							    </p>
+							  </a>
+							</div>
+					  	</div>
+					 </div>
+				</div>
+				
+				<div class="col-lg-4 col-md-6">
+					<div class="panel panel-default job">
+					  	<div class="panel-heading"><span class="badge pull-right">FF</span>CIFAR-10 training</div>
+					  	<div class="panel-body">
+					  		<div>
+					  			<p>NN: CIFARCascade | Dataset: CIFAR-10</p>
+					  			<p>Running on 1 node | Uptime: 4 hours and 10 minutes</p>
+					  		</div>
+					  		<div id="chart1">
+					  		</div>
+					  	
+					  	</div>
+					 </div>
+				</div>
+				
+				<div class="col-lg-4 col-md-6">
+					<div class="panel panel-default job">
+					  	<div class="panel-heading"><span class="badge pull-right">RL</span>Atari Pong</div>
+					  	<div class="panel-body">
+					  		<div>
+					  			<p>NN: DeepQNetwork | Dataset: ALEPong</p>
+					  			<p>Running on 4 nodes | Uptime: 1 day, 3 hours and 4 minutes</p>
+					  		</div>
+					  		<div id="chart2">
+					  		</div>
+					  	</div>
+					 </div>
+				</div>
+				
+				<div class="col-lg-4 col-md-6">
+					<div class="panel panel-default job">
+					  	<div class="panel-heading">Learn Job 3</div>
+					  	<div class="panel-body">A Basic Panel</div>
+					  	
+					 </div>
+				</div>
+				
+				<div class="col-lg-4 col-md-6">
+					<div class="panel panel-default job">
+					  	<div class="panel-heading">Learn Job 4</div>
+					  	<div class="panel-body">A Basic Panel</div>
+					  	
+					 </div>
+				</div>
+				
+				<div class="col-lg-4 col-md-6">
+					<div class="panel panel-default job">
+					  	<div class="panel-heading">Learn Job 5</div>
+					  	<div class="panel-body">A Basic Panel</div>
+					  	
+					 </div>
+				</div>
+				
 			</div>
 		</div>
 
@@ -78,8 +224,6 @@
 	<script src="js/lib/mustache.js"></script>
 	<!-- Highcharts Script  -->
 	<script src="js/lib/highcharts.js"></script>
-	<!-- Custom scrollbar -->
-	<script src="js/lib/jquery.mCustomScrollbar.concat.min.js"></script>
 	<!-- Our own scripts -->
 	<script src="js/dianne-dashboard.js"></script>
 	
