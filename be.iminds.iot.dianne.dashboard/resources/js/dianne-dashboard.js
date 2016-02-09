@@ -336,5 +336,11 @@ $(function () {
      
      	setModus('dashboard');
 
+     	
+     	DIANNE.learn().then(function(data){
+     		console.log("LEARNED! "+JSON.stringify(data));
+     	}, function(err){
+     		console.log("Error! "+err);
+     	});
     });
 });
