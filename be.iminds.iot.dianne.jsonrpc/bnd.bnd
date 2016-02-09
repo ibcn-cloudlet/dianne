@@ -8,7 +8,9 @@ Bundle-Version: 0.3.0.${tstamp}
 	be.iminds.iot.dianne.api;version=latest,\
 	osgi.promise,\
 	com.google.gson,\
-	be.iminds.iot.dianne.nn.util;version=latest
+	be.iminds.iot.dianne.nn.util;version=latest,\
+	org.apache.felix.http.servlet-api,\
+	org.apache.felix.http.api
 	
 -dsannotations: *
 Bundle-Name: Dianne JSON RPC
