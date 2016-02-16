@@ -141,12 +141,15 @@ public interface DiannePlatform {
 	NeuralNetworkDTO getAvailableNeuralNetwork(String name);
 	
 	/**
+	 * A list of available Datasets
+	 */
+	List<String> getAvailableDatasets();
+	
+	/**
 	 * A map of available Dianne runtimes to which modules can be deployed to
 	 * 
 	 * @return list of available Dianne runtimes
 	 */
 	Map<UUID, String> getRuntimes();
 
-	
-	
 }

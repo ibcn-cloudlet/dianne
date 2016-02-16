@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.osgi.framework.BundleContext;
@@ -40,6 +41,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
+import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
@@ -55,12 +57,14 @@ public class DiannePlatformImpl implements DiannePlatform {
 
 	private TensorFactory factory;
 	private DianneRepository repository;
-	private Map<UUID, DianneRuntime> runtimes = Collections.synchronizedMap(new HashMap<UUID, DianneRuntime>());
+	private Map<UUID, DianneRuntime> runtimes = new ConcurrentHashMap<UUID, DianneRuntime>();
 	
-	private Map<UUID, Map<UUID, Module>> modules = Collections.synchronizedMap(new HashMap<>());
+	private Map<UUID, Map<UUID, Module>> modules = new ConcurrentHashMap<>();
 	
 	// available neural networks
-	private Map<UUID, NeuralNetworkInstanceDTO> nnis = Collections.synchronizedMap(new HashMap<UUID, NeuralNetworkInstanceDTO>());
+	private Map<UUID, NeuralNetworkInstanceDTO> nnis = new ConcurrentHashMap<UUID, NeuralNetworkInstanceDTO>();
+	// available datasets
+	private Map<String, Dataset> datasets = new ConcurrentHashMap<String, Dataset>();
 	
 	private UUID frameworkId;
 	private BundleContext context;
@@ -293,6 +297,11 @@ public class DiannePlatformImpl implements DiannePlatform {
 	}
 	
 	@Override
+	public List<String> getAvailableDatasets(){
+		return new ArrayList<>(datasets.keySet());
+	}
+	
+	@Override
 	public Map<UUID, String> getRuntimes() {
 		/* TODO this will invoke a (remote) call to each runtime each time runtimes are fetched
 		 This is not optimal ... should be handled better with for example service property.
@@ -361,5 +370,17 @@ public class DiannePlatformImpl implements DiannePlatform {
 				}
 			}
 		}
+	}
+	
+	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
+			policy=ReferencePolicy.DYNAMIC)
+	void addDataset(Dataset dataset, Map<String, Object> properties){
+		String name = (String) properties.get("name");
+		this.datasets.put(name, dataset);
+	}
+	
+	void removeDataset(Dataset dataset, Map<String, Object> properties){
+		String name = (String) properties.get("name");
+		datasets.remove(name);
 	}
 }
