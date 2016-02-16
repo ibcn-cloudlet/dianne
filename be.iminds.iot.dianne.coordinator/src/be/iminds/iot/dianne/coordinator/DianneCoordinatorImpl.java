@@ -22,62 +22,60 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.coordinator;
 
-import java.util.Collection;
-import java.util.Dictionary;
-import java.util.HashMap;
-import java.util.Hashtable;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.stream.Collectors;
 
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
-import org.osgi.util.promise.Deferred;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.util.promise.Promise;
 
 import be.iminds.iot.dianne.api.coordinator.DianneCoordinator;
+import be.iminds.iot.dianne.api.coordinator.EvaluationResult;
+import be.iminds.iot.dianne.api.coordinator.Job;
 import be.iminds.iot.dianne.api.coordinator.LearnResult;
-import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.eval.Evaluator;
-import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
-import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
-import be.iminds.iot.dianne.api.repository.RepositoryListener;
 
 @Component
 public class DianneCoordinatorImpl implements DianneCoordinator {
 
-	private BundleContext context;
+	BundleContext context;
 
-	private DiannePlatform platform;
-	private DianneRepository repository;
-	// TODO for now only one learner and evaluator
-	private Learner learner;
-	private Evaluator evaluator;
-	//private Map<UUID, Learner> learners = Collections.synchronizedMap(new HashMap<>());
-	//private Map<UUID, Evaluator> evaluators = Collections.synchronizedMap(new HashMap<>());
-	
-	private Queue<LearnJob> queue = new LinkedBlockingQueue<>();
+	DiannePlatform platform;
+	DianneRepository repository;
 
+	Queue<AbstractJob> queue = new LinkedBlockingQueue<>();
+	Set<AbstractJob> running = new HashSet<>();
 	
-	private ExecutorService pool = Executors.newCachedThreadPool();
+	Map<UUID, Learner> learners = new ConcurrentHashMap<>();
+	Map<UUID, Evaluator> evaluators = new ConcurrentHashMap<>();
+	
+	ExecutorService pool = Executors.newCachedThreadPool();
 	
 	@Override
 	public Promise<LearnResult> learn(NeuralNetworkDTO nn, String dataset, Map<String, String> config) {
 		repository.storeNeuralNetwork(nn);
 		
-		LearnJob job = new LearnJob(nn, config, dataset);
+		LearnJob job = new LearnJob(this, nn, dataset, config);
 		queue.add(job);
-		next();
+		schedule();
 		
 		return job.getPromise();
 	}
@@ -88,225 +86,77 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	}
 	
 	@Override
-	public Promise<Evaluation> eval(NeuralNetworkDTO nn, String dataset, Map<String, String> config) {
+	public Promise<EvaluationResult> eval(NeuralNetworkDTO nn, String dataset, Map<String, String> config) {
 		// TODO evaluate time on other/multiple platforms?
 		repository.storeNeuralNetwork(nn);
 		
-		EvaluationJob job = new EvaluationJob(nn, config, dataset);
-		job.start(evaluator);
+		EvaluationJob job = new EvaluationJob(this, nn, dataset, config);
+		queue.add(job);
+		schedule();
 		
 		return job.getPromise();
 	}
 
 	@Override
-	public Promise<Evaluation> eval(String nnName, String dataset, Map<String, String> config) {
+	public Promise<EvaluationResult> eval(String nnName, String dataset, Map<String, String> config) {
 		return eval(repository.loadNeuralNetwork(nnName), dataset, config);
+	}
+	
+	@Override
+	public List<Job> queuedJobs() {
+		return queue.stream().map(j -> j.get()).collect(Collectors.toList());
+	}
+
+	@Override
+	public List<Job> runningJobs() {
+		return running.stream().map(j -> j.get()).collect(Collectors.toList());
+	}
+
+	@Override
+	public List<Job> allJobs() {
+		List<Job> all = new ArrayList<>();
+		all.addAll(queuedJobs());
+		all.addAll(runningJobs());
+		return all;
 	}
 	
 	
 	// try to do next job
-	private void next(){
-		// TODO one should keep a separate list of available learners
-		// when calling start the learner is not yet busy...
-		if(!learner.isBusy()){
-			LearnJob job = queue.poll();
-			if(job!=null){
-				job.start(learner);
-			}
-		}
+	void done(AbstractJob job){
+		// remove from running list
+		running.remove(job);
+		
+		// TODO safe results to disc/archive?
+		
+		// schedule new one
+		schedule();
 	}
 	
-	private class LearnJob implements RepositoryListener, Runnable {
+	void schedule(){
+		// TODO what if not enough learners/evaluators or no matching learners/evaluators?
 		
-		private Deferred<LearnResult> deferred = new Deferred<>();
-		
-		private NeuralNetworkDTO nn;
-		private Map<String, String> config;
-		private String dataset;
-		
-		private Learner learner;
-		private NeuralNetworkInstanceDTO nni;
-		
-		private ServiceRegistration<RepositoryListener> reg;
-		
-		private boolean done = false;
-		
-		private long maxIterations = Long.MAX_VALUE;
-		
-		public LearnJob(NeuralNetworkDTO nn, Map<String, String> config, String dataset){
-			this.nn = nn;
-			this.config = config;
-			this.dataset = dataset;
-			
-			if(config.containsKey("maxIterations")){
-				maxIterations = Long.parseLong(config.get("maxIterations"));
-			}
-		}
-		
-		Promise<LearnResult> getPromise(){
-			return deferred.getPromise();
-		}
-		
-		public void start(Learner learner){
-			this.learner = learner;
-			pool.execute(this);
-		}
-		
-		public void run(){
-			System.out.println("Start Learn Job");
-			System.out.println("===============");
-			System.out.println("* nn: "+nn.name);
-			System.out.println("* dataset: "+dataset);
-			System.out.println("* maxIterations: "+maxIterations);
-			System.out.println("---");
-
-	
-			// do the actual Learning
-			try {
-				// deploy nn
-				nni = platform.deployNeuralNetwork(nn.name, "Dianne Coordinator LearnJob", learner.getLearnerId());
-				
-				// register RepositoryListener
-				Dictionary<String, Object> props = new Hashtable();
-				props.put("targets", new String[]{":"+nni.id.toString()});
-				props.put("aiolos.unique", true);
-				reg = context.registerService(RepositoryListener.class, this, props);
-				
-				// TODO provide dataset?
-				
-				// set trainging set
-				Map<String, String> learnConfig = new HashMap<>(config);
-				learnConfig.put("range", config.get("trainingSet"));
-				
-				// start learning
-				learner.learn(dataset, learnConfig, nni);
-				
-				// TODO timeout?
-			
-			} catch(Exception e){
-				System.out.println("Job failed");
-				e.printStackTrace();
-				
-				deferred.fail(e);
-				done();
-			}
-		}
-
-		@Override
-		public void onParametersUpdate(UUID nnId, Collection<UUID> moduleIds,
-				String... tag) {
-			if(done){
-				return;
-			}
-			
-			// check stop conditition
-			LearnProgress progress = learner.getProgress();
-			
-			// maxIterations stop condition 
-			boolean stop = progress.iteration >= maxIterations;
-			
-			// TODO other stop conditions
-			// - check error rate evolution (on train and/or validationSet)
-			// - stop at a certain error rate
-			// - stop after certain time
-			// ...
-			
-			// if stop ... assemble result object and resolve
-			if(stop){
-				learner.stop();
-				
-				try {
-					LearnResult result = new LearnResult(progress.error, progress.iteration);
-					deferred.resolve(result);
-				} catch(Exception e){
-					deferred.fail(e);
-				} finally {
-					done();
-				}
-			}
-		}
-		
-		private void done(){
-			done = true;
-			
-			if(reg!=null)
-				reg.unregister();
-			
-			if(nni!=null)
-				platform.undeployNeuralNetwork(nni);
-			
-			next();
+		// try to schedule the next job on the queue
+		AbstractJob job = queue.peek();
+		// TODO check the config whether this one can execute
+		if(job instanceof LearnJob){
+			// search free learner
+			// TODO keep the free/occupied learners
+			Learner l = learners.values().stream().filter(learner -> learner.isBusy() == false).findFirst().get();
+			ArrayList<UUID> targets = new ArrayList<>();
+			targets.add(l.getLearnerId());
+			queue.poll().start(targets, pool);
+		} if(job instanceof EvaluationJob){
+			// search free evaluator
+			// TODO keep the free/occupied learners
+			// TODO isBusy for evaluators?
+			Evaluator e = evaluators.values().stream().findFirst().get();
+			ArrayList<UUID> targets = new ArrayList<>();
+			targets.add(e.getEvaluatorId());
+			queue.poll().start(targets, pool);
 		}
 	}
 
-	
-	private class EvaluationJob implements Runnable {
 
-		private Deferred<Evaluation> deferred = new Deferred<>();
-		
-		private NeuralNetworkDTO nn;
-		private Map<String, String> config;
-		private String dataset;
-		
-		private Evaluator evaluator;
-		private NeuralNetworkInstanceDTO nni;
-		
-		public EvaluationJob(NeuralNetworkDTO nn, Map<String, String> config, String dataset){
-			this.nn = nn;
-			this.config = config;
-			this.dataset = dataset;
-		}
-		
-		public void start(Evaluator evaluator){
-			this.evaluator = evaluator;
-			pool.execute(this);
-		}
-		
-		@Override
-		public void run() {
-			try {
-				// deploy nn
-				nni = platform.deployNeuralNetwork(nn.name, "Dianne Coordinator EvaluationJob", evaluator.getEvaluatorId());
-				
-				Map<String, String> evalConfig = new HashMap<>(config);
-				if(!evalConfig.containsKey("range")){
-					evalConfig.put("range", config.get("testSet"));
-				}
-				
-				Evaluation eval = evaluator.eval(nni, dataset, evalConfig);
-				deferred.resolve(eval);
-				
-			} catch(Exception e){
-				deferred.fail(e);
-			} finally {
-				if(nni!=null){
-					platform.undeployNeuralNetwork(nni);
-				}
-			}
-		}
-		
-		public Promise<Evaluation> getPromise(){
-			return deferred.getPromise();
-		}
-		
-	}
-	
-	private void parseRange(Map<String, String> config, String set){
-		String range = config.get(set);
-		if(range!=null){
-			try {
-				String[] split = range.split(":");
-				int startIndex = Integer.parseInt(split[0]);
-				int endIndex = Integer.parseInt(split[1]);
-				
-				config.put("startIndex", ""+startIndex);
-				config.put("endIndex", ""+endIndex);
-			} catch(Exception e){
-				System.out.println(set+" wrongly specified, should be startIndex:endIndex");
-			}
-		}
-	}
-	
 	@Activate
 	void activate(BundleContext context){
 		this.context = context;
@@ -322,14 +172,25 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		this.repository = repository;
 	}
 	
-	@Reference
-	void setLearner(Learner learner){
-		this.learner = learner;
+	@Reference(policy=ReferencePolicy.DYNAMIC,
+			cardinality=ReferenceCardinality.MULTIPLE)
+	void addLearner(Learner learner, Map<String, Object> properties){
+		this.learners.put(learner.getLearnerId(), learner);
 	}
 	
-	@Reference
-	void setEvaluator(Evaluator evaluator){
-		this.evaluator = evaluator;
+	void removeLearner(Learner learner, Map<String, Object> properties){
+		this.learners.entrySet().remove(learner);
 	}
+
+	@Reference(policy=ReferencePolicy.DYNAMIC,
+			cardinality=ReferenceCardinality.MULTIPLE)
+	void addEvaluator(Evaluator evaluator, Map<String, Object> properties){
+		this.evaluators.put(evaluator.getEvaluatorId(), evaluator);
+	}
+	
+	void removeEvaluator(Evaluator evaluator, Map<String, Object> properties){
+		this.evaluators.entrySet().remove(evaluator);
+	}
+	
 	
 }

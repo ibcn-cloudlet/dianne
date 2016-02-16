@@ -22,27 +22,18 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.coordinator;
 
-import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
-import org.osgi.util.promise.Promise;
+import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 
-import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
+/**
+ * Summarizes the multiple evaluation results
+ * @author tverbele
+ *
+ */
+public class EvaluationResult {
 
-public interface DianneCoordinator {
-
-	Promise<LearnResult> learn(String nnName, String dataset, Map<String, String> config);
-	
-	Promise<LearnResult> learn(NeuralNetworkDTO nn, String dataset, Map<String, String> config);
-
-	Promise<EvaluationResult> eval(String nnName, String dataset, Map<String, String> config);
-	
-	Promise<EvaluationResult> eval(NeuralNetworkDTO nn, String dataset, Map<String, String> config);
-
-	List<Job> queuedJobs();
-	
-	List<Job> runningJobs();
-	
-	List<Job> allJobs();
+	public Map<UUID, Evaluation> evaluations;
 	
 }

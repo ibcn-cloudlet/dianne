@@ -14,6 +14,7 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
 import be.iminds.iot.dianne.api.coordinator.DianneCoordinator;
+import be.iminds.iot.dianne.api.coordinator.EvaluationResult;
 import be.iminds.iot.dianne.api.coordinator.LearnResult;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
@@ -64,8 +65,9 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 		String method = request.get("method").getAsString();
 		
 		// TODO use a more generic approach here?
-		if(method.equals("learn")
-				|| method.equals("eval") ){
+		switch(method){
+		case "learn":
+		case "eval":
 			String nnName = null;
 			NeuralNetworkDTO nn = null;
 			String dataset;
@@ -104,7 +106,7 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 				});
 			} else {
 				// eval
-				Promise<Evaluation> result = null;
+				Promise<EvaluationResult> result = null;
 				if(nnName!=null){
 					result= coordinator.eval(nnName, dataset, config);
 				} else {
@@ -117,11 +119,9 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 					writeError(writer, id, -32603, "Error during learning: "+p.getFailure().getMessage());
 				});
 			}
-			
-		
-		} else {
+			break;
+		default:
 			writeError(writer, id, -32601, "Method "+method+" not found");
-			return;
 		}
 	}
 	
@@ -165,7 +165,7 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 		writer.flush();			
 	}
 	
-	private void writeEvalResult(JsonWriter writer, String id, Evaluation result) throws Exception{
+	private void writeEvalResult(JsonWriter writer, String id, EvaluationResult result) throws Exception{
 		writer.beginObject();
 		writer.name("jsonrpc");
 		writer.value("2.0");
@@ -174,22 +174,24 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 		writer.name("result");
 		writer.beginArray();
 		// write result object
-		writer.beginObject();
-		writer.name("accuracy");
-		writer.value(result.accuracy());
-		writer.name("forwardTime");
-		writer.value(result.forwardTime());
-		writer.name("outputs");
-		writer.beginArray();
-		for(Tensor t : result.getOutputs()){
+		for(Evaluation eval : result.evaluations.values()){
+			writer.beginObject();
+			writer.name("accuracy");
+			writer.value(eval.accuracy());
+			writer.name("forwardTime");
+			writer.value(eval.forwardTime());
+			writer.name("outputs");
 			writer.beginArray();
-			for(float f : t.get()){
-				writer.value(f);
+			for(Tensor t : eval.getOutputs()){
+				writer.beginArray();
+				for(float f : t.get()){
+					writer.value(f);
+				}
+				writer.endArray();
 			}
 			writer.endArray();
+			writer.endObject();
 		}
-		writer.endArray();
-		writer.endObject();
 		// end result object
 		writer.endArray();
 		writer.endObject();
@@ -200,4 +202,5 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 	void setDianneCoordinator(DianneCoordinator c){
 		this.coordinator = c;
 	}
+	
 }
