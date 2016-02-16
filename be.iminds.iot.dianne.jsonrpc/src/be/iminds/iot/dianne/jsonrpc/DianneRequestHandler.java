@@ -1,5 +1,6 @@
 package be.iminds.iot.dianne.jsonrpc;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -18,6 +19,7 @@ import be.iminds.iot.dianne.api.coordinator.EvaluationResult;
 import be.iminds.iot.dianne.api.coordinator.LearnResult;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
+import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.nn.util.DianneJSONConverter;
 import be.iminds.iot.dianne.tensor.Tensor;
 
@@ -25,6 +27,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 public class DianneRequestHandler implements JSONRPCRequestHandler {
 
 	private DianneCoordinator coordinator;
+	private DiannePlatform platform;
 	
 	@Override
 	public void handleRequest(JsonReader reader, JsonWriter writer) throws Exception {
@@ -99,7 +102,7 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 					result = coordinator.learn(nn, dataset, config);
 				}
 				result.then(p -> {
-					writeLearnResult(writer, id, p.getValue());
+					writeResult(writer, id, p.getValue());
 					return null;
 				}, p -> {
 					writeError(writer, id, -32603, "Error during learning: "+p.getFailure().getMessage());
@@ -113,12 +116,18 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 					result = coordinator.eval(nn, dataset, config);
 				}
 				result.then(p -> {
-					writeEvalResult(writer, id, p.getValue());
+					writeResult(writer, id, p.getValue());
 					return null;
 				}, p -> {
 					writeError(writer, id, -32603, "Error during learning: "+p.getFailure().getMessage());
 				});
 			}
+			break;
+		case "availableNeuralNetworks": 
+			writeResult(writer, id, platform.getAvailableNeuralNetworks());
+			break;
+		case "availableDatasets":
+			writeResult(writer, id, platform.getAvailableDatasets());
 			break;
 		default:
 			writeError(writer, id, -32601, "Method "+method+" not found");
@@ -144,7 +153,7 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 		writer.flush();					
 	}
 	
-	private void writeLearnResult(JsonWriter writer, String id, LearnResult result) throws Exception{
+	private void writeResult(JsonWriter writer, String id, Object result) throws Exception{
 		writer.beginObject();
 		writer.name("jsonrpc");
 		writer.value("2.0");
@@ -153,44 +162,38 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 		writer.name("result");
 		writer.beginArray();
 		// write result object
-		writer.beginObject();
-		writer.name("error");
-		writer.value(result.error);
-		writer.name("iterations");
-		writer.value(result.iterations);
-		writer.endObject();
-		// end result object
-		writer.endArray();
-		writer.endObject();
-		writer.flush();			
-	}
-	
-	private void writeEvalResult(JsonWriter writer, String id, EvaluationResult result) throws Exception{
-		writer.beginObject();
-		writer.name("jsonrpc");
-		writer.value("2.0");
-		writer.name("id");
-		writer.value(id);
-		writer.name("result");
-		writer.beginArray();
-		// write result object
-		for(Evaluation eval : result.evaluations.values()){
+		if(result instanceof LearnResult){
+			LearnResult learnResult = (LearnResult) result;
 			writer.beginObject();
-			writer.name("accuracy");
-			writer.value(eval.accuracy());
-			writer.name("forwardTime");
-			writer.value(eval.forwardTime());
-			writer.name("outputs");
-			writer.beginArray();
-			for(Tensor t : eval.getOutputs()){
+			writer.name("error");
+			writer.value(learnResult.error);
+			writer.name("iterations");
+			writer.value(learnResult.iterations);
+			writer.endObject();
+		} else if(result instanceof EvaluationResult){
+			EvaluationResult evalResult = (EvaluationResult) result;
+			for(Evaluation eval : evalResult.evaluations.values()){
+				writer.beginObject();
+				writer.name("accuracy");
+				writer.value(eval.accuracy());
+				writer.name("forwardTime");
+				writer.value(eval.forwardTime());
+				writer.name("outputs");
 				writer.beginArray();
-				for(float f : t.get()){
-					writer.value(f);
+				for(Tensor t : eval.getOutputs()){
+					writer.beginArray();
+					for(float f : t.get()){
+						writer.value(f);
+					}
+					writer.endArray();
 				}
 				writer.endArray();
+				writer.endObject();
 			}
-			writer.endArray();
-			writer.endObject();
+		} else if(result instanceof List){
+			for(Object o : (List) result){
+				writer.value(o.toString());
+			}
 		}
 		// end result object
 		writer.endArray();
@@ -201,6 +204,11 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 	@Reference
 	void setDianneCoordinator(DianneCoordinator c){
 		this.coordinator = c;
+	}
+
+	@Reference
+	void setDiannePlatform(DiannePlatform p){
+		this.platform = p;
 	}
 	
 }

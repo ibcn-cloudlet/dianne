@@ -22,7 +22,25 @@
  *******************************************************************************/
 
 function submitJob(){
-	window.alert("Submit a job!");
+	var array =  $("#submit-form").serializeArray();
+	
+	var job = {};
+    $.each(array, function() {
+    	if(this.name === 'config'){
+    		// parse out config to json object
+    		var configArray = this.value.split(' ');
+    		var configJson = {};
+    		$.each(configArray, function(){
+    			var split = this.split("=");
+    			configJson[split[0]] = split[1];
+    		});
+    		job[this.name] = configJson;
+    	} else {
+    		job[this.name] = this.value || '';
+    	}
+    });
+	
+	DIANNE.learn(job.nn, job.dataset, job.config);
 }
 
 function setModus(mode){
@@ -337,8 +355,21 @@ $(function () {
      	setModus('dashboard');
 
      	
-     	DIANNE.learn().then(function(data){
-     		console.log("LEARNED! "+JSON.stringify(data));
+     	
+     	DIANNE.nns().then(function(data){
+     		var options = $("#nn");
+     	    $.each(data, function(i) {
+     	        options.append($("<option />").val(data[i]).text(data[i]));
+     	    });
+     	}, function(err){
+     		console.log("Error! "+err);
+     	});
+     	
+     	DIANNE.datasets().then(function(data){
+     		var options = $("#dataset");
+     	    $.each(data, function(i) {
+     	        options.append($("<option />").val(data[i]).text(data[i]));
+     	    });
      	}, function(err){
      		console.log("Error! "+err);
      	});

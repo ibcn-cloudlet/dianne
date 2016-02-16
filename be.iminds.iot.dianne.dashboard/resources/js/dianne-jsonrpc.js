@@ -28,6 +28,12 @@ var DIANNE = {
 		eval: function (nnName, dataset, properties){
 			return this.call("eval", [nnName, dataset, properties]);
 		},
+		nns : function(){
+			return this.call("availableNeuralNetworks");
+		},
+		datasets : function(){
+			return this.call("availableDatasets");
+		},
 		call: function(method, params){
 			var d = $.Deferred();
 			jsonrpc(method, params, function(data){
