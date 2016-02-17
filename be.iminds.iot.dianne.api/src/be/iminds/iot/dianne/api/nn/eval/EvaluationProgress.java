@@ -22,44 +22,22 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.nn.eval;
 
-import java.util.Map;
-import java.util.UUID;
-
-import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
-import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
-
 /**
- * The Evaluator evaluates a neural network instance on a (portion of a) dataset.
- * 
- *  It collects metrics such as the accuracy and the forward time.
+ * Represents the progress made by an Evaluator
  * 
  * @author tverbele
  *
  */
-public interface Evaluator {
+public class EvaluationProgress {
 
-	/**
-	 * @return uuid of this evaluator - same as the frameworkId this evaluator is deployed on
-	 */
-	UUID getEvaluatorId();
+	/** The number of samples processed */
+	public final long sample;
 	
-	/**
-	 * Evaluate a neural network instance on a (portion of a) dataset
-	 * @param nni neural network instance to evaluate
-	 * @param dataset dataset to evaluate the nni on
-	 * @param config configuration
-	 * @return Evaluation 
-	 * @throws Exception
-	 */
-	Evaluation eval(NeuralNetworkInstanceDTO nni, String dataset, Map<String, String> config) throws Exception;
-
-	/**
-	 * @return the current progress of the Evaluator
-	 */
-	EvaluationProgress getProgress();
+	/** Total number of samples to be processed */
+	public final long total;
 	
-	/**
-	 * @return whether or not this learner is busy
-	 */
-	boolean isBusy();
+	public EvaluationProgress(long sample, long total){
+		this.sample = sample;
+		this.total = total;
+	}
 }

@@ -96,7 +96,9 @@ public abstract class AbstractLearner implements Learner {
 	}
 	
 	@Override
-	public LearnProgress getProgress(){
+	public LearnProgress getProgress() {
+		if(!learning)
+			return null;
 		return new LearnProgress(i, error);
 	}
 	

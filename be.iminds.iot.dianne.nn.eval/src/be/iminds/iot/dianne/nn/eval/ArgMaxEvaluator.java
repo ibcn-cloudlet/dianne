@@ -23,7 +23,6 @@
 package be.iminds.iot.dianne.nn.eval;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -43,7 +42,9 @@ import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
+import be.iminds.iot.dianne.api.nn.eval.EvaluationProgress;
 import be.iminds.iot.dianne.api.nn.eval.Evaluator;
+import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -62,6 +63,11 @@ public class ArgMaxEvaluator implements Evaluator {
 	
 	protected String tag = null;
 	
+	protected volatile boolean evaluating = false;
+	
+	protected int sample = 0;
+	protected int total = 0;
+	
 	@Override
 	public UUID getEvaluatorId(){
 		return evaluatorId;
@@ -70,101 +76,119 @@ public class ArgMaxEvaluator implements Evaluator {
 	@Override
 	public synchronized Evaluation eval(NeuralNetworkInstanceDTO nni, String dataset,
 			Map<String, String> config) throws Exception {
-		
-		// Fetch the dataset
-		Dataset d = datasets.get(dataset);
-		if(d==null){
-			throw new Exception("Dataset "+dataset+" not available");
+		if(evaluating){
+			throw new Exception("Already running an evaluation session here");
 		}
-		
-		
-		if(config.containsKey("tag")){
-			tag = config.get("tag"); 
-		}
-		
-		System.out.println("Evaluator Configuration");
-		System.out.println("=======================");
-		System.out.println("* dataset = "+dataset);
-		System.out.println("* tag = "+tag);
-		
-		
-		int[] indices = null;
-		String range = config.get("range");
-		if(range!=null){
-			indices = parseRange(range);
-			
-			System.out.println("Dataset range");
-			System.out.println("* range = "+range);
-			System.out.println("---");
-		} else {
-			int startIndex = 0;
-			int endIndex = d.size();
-			
-			String start = config.get("startIndex");
-			if(start!=null){
-				startIndex = Integer.parseInt(start);
-			}
-			
-			String end = config.get("endIndex");
-			if(end!=null){
-				endIndex = Integer.parseInt(end);
-			}
-			
-			int index = startIndex;
-			indices = new int[endIndex-startIndex];
-			for(int i=0;i<indices.length;i++){
-				indices[i] = index++;
-			}
-			
-			System.out.println("Dataset range");
-			System.out.println("* startIndex = "+startIndex);
-			System.out.println("* endIndex = "+endIndex);
-			System.out.println("---");
-		}
-		
-		
-		
-		NeuralNetwork nn = null;
-		try {
-			nn = dianne.getNeuralNetwork(nni).getValue();
-		} catch (Exception e) {
-		}
-		nn.getModules().values().stream().forEach(m -> m.setMode(EnumSet.of(Mode.BLOCKING)));
+		evaluating = true;
 		
 		try {
-			if(tag==null){
-				nn.loadParameters();
-			} else {
-				nn.loadParameters(tag);
-			}
-		} catch(Exception e){
-			// ignore if no parameters found
-			System.out.println("No parameters loaded for this evaluation - network is not yet trained?");
-		}
-	
-		Tensor confusion = null;
-		List<Tensor> outputs = new ArrayList<Tensor>();
-		long t1 = System.currentTimeMillis();
-		for(int i=0;i<indices.length;i++){
-			Tensor in = d.getInputSample(indices[i]);
-			Tensor out = nn.forward(in);
-			outputs.add(out);
-			
-			if(confusion==null){
-				int outputSize = out.size();
-				confusion = factory.createTensor(outputSize, outputSize);
-				confusion.fill(0.0f);
+			// Fetch the dataset
+			Dataset d = datasets.get(dataset);
+			if(d==null){
+				throw new Exception("Dataset "+dataset+" not available");
 			}
 			
-			int predicted = factory.getTensorMath().argmax(out);
-			int real = factory.getTensorMath().argmax(d.getOutputSample(indices[i]));
+			if(config.containsKey("tag")){
+				tag = config.get("tag"); 
+			}
+			
+			System.out.println("Evaluator Configuration");
+			System.out.println("=======================");
+			System.out.println("* dataset = "+dataset);
+			System.out.println("* tag = "+tag);
+			
+			
+			int[] indices = null;
+			String range = config.get("range");
+			if(range!=null){
+				indices = parseRange(range);
 				
-			confusion.set(confusion.get(real, predicted)+1, real, predicted);
-		}
-		long t2 = System.currentTimeMillis();
+				System.out.println("Dataset range");
+				System.out.println("* range = "+range);
+				System.out.println("---");
+			} else {
+				int startIndex = 0;
+				int endIndex = d.size();
+				
+				String start = config.get("startIndex");
+				if(start!=null){
+					startIndex = Integer.parseInt(start);
+				}
+				
+				String end = config.get("endIndex");
+				if(end!=null){
+					endIndex = Integer.parseInt(end);
+				}
+				
+				int index = startIndex;
+				indices = new int[endIndex-startIndex];
+				for(int i=0;i<indices.length;i++){
+					indices[i] = index++;
+				}
+				
+				System.out.println("Dataset range");
+				System.out.println("* startIndex = "+startIndex);
+				System.out.println("* endIndex = "+endIndex);
+				System.out.println("---");
+			}
+			
+			total = indices.length;
+			
+			
+			NeuralNetwork nn = null;
+			try {
+				nn = dianne.getNeuralNetwork(nni).getValue();
+			} catch (Exception e) {
+			}
+			nn.getModules().values().stream().forEach(m -> m.setMode(EnumSet.of(Mode.BLOCKING)));
+			
+			try {
+				if(tag==null){
+					nn.loadParameters();
+				} else {
+					nn.loadParameters(tag);
+				}
+			} catch(Exception e){
+				// ignore if no parameters found
+				System.out.println("No parameters loaded for this evaluation - network is not yet trained?");
+			}
 		
-		Evaluation e = new Evaluation(factory, confusion, outputs, t2-t1);
-		return e;
+			Tensor confusion = null;
+			List<Tensor> outputs = new ArrayList<Tensor>();
+			long t1 = System.currentTimeMillis();
+			for(sample=0;sample<indices.length;sample++){
+				Tensor in = d.getInputSample(indices[sample]);
+				Tensor out = nn.forward(in);
+				outputs.add(out);
+				
+				if(confusion==null){
+					int outputSize = out.size();
+					confusion = factory.createTensor(outputSize, outputSize);
+					confusion.fill(0.0f);
+				}
+				
+				int predicted = factory.getTensorMath().argmax(out);
+				int real = factory.getTensorMath().argmax(d.getOutputSample(indices[sample]));
+					
+				confusion.set(confusion.get(real, predicted)+1, real, predicted);
+			}
+			long t2 = System.currentTimeMillis();
+			
+			Evaluation e = new Evaluation(factory, confusion, outputs, t2-t1);
+			return e;
+		} finally {
+			evaluating = false;
+		}
+	}
+	
+	public EvaluationProgress getProgress(){
+		if(!evaluating)
+			return null;
+		return new EvaluationProgress(sample, total);	
+	}
+	
+	public boolean isBusy(){
+		return evaluating;
 	}
 
 	@Activate
