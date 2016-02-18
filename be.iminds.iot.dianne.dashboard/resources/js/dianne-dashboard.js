@@ -55,8 +55,8 @@ function submitJob(){
 
 function refreshJobs(){
  	// queued jobs
-	$("#jobs-queue").empty();
  	DIANNE.queuedJobs().then(function(data){
+ 		$("#jobs-queue").empty();
  	    $.each(data, function(i) {
  	        var job = data[i];
  	        var template = $('#jobs-item').html();
@@ -67,8 +67,8 @@ function refreshJobs(){
  	});
  	
  	// running jobs
- 	$("#jobs-running").empty();
  	DIANNE.runningJobs().then(function(data){
+ 	 	$("#jobs-running").empty();
  	    $.each(data, function(i) {
  	        var job = data[i];
  	        var template = $('#jobs-item').html();
@@ -77,6 +77,25 @@ function refreshJobs(){
      	  	$(rendered).appendTo($("#jobs-running"));
  	    });
  	});
+ 	
+ 	// finished jobs
+ 	DIANNE.finishedJobs().then(function(data){
+ 	 	$("#jobs-finished").empty();
+ 	    $.each(data, function(i) {
+ 	        var job = data[i];
+ 	        var template = $('#jobs-item').html();
+     	  	Mustache.parse(template);
+     	  	var rendered = Mustache.render(template, job);
+     	  	$(rendered).appendTo($("#jobs-finished"));
+ 	    });
+ 	});
+}
+
+function addNotification(notification){
+	var template = $('#notification').html();
+	Mustache.parse(template);
+	var rendered = Mustache.render(template, notification);
+	$(rendered).prependTo($("#alerts"));
 }
 
 function setModus(mode){
@@ -136,53 +155,7 @@ function setModus(mode){
                 }]
             }]
         });
-        
-       
-        
-        $('#cpu-chart').highcharts(Highcharts.merge(gaugeOptions, {
-            yAxis: {
-                min: 0,
-                max: 100,
-                title: {
-                    text: 'Average CPU usage'
-                }
-            },
-            series: [{
-                name: 'CPU',
-                data: [68],
-                dataLabels: {
-                    format: '<div style="text-align:center"><span style="font-size:25px;color:' +
-                        ((Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black') + '">{y:.1f}%</span></div>'
-                },
-                tooltip: {
-                    valueSuffix: ' %'
-                }
-            }]
 
-        }));
-
-        $('#memory-chart').highcharts(Highcharts.merge(gaugeOptions, {
-            yAxis: {
-                min: 0,
-                max: 100,
-                title: {
-                    text: 'Average Memory Usage'
-                }
-            },
-            series: [{
-                name: 'Memory',
-                data: [54],
-                dataLabels: {
-                    format: '<div style="text-align:center"><span style="font-size:25px;color:' +
-                        ((Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black') + '">{y:.1f}%</span></div>'
-                },
-                tooltip: {
-                    valueSuffix: ' %'
-                }
-            }]
-        }));
-        
-		
 	} else if(mode === "jobs"){
 		$(".block").hide();
 		$(".block").filter( ".jobs" ).show();
@@ -367,7 +340,7 @@ var gaugeOptions = {
     };
 
 
-// placeholder charts
+// initialize
 $(function () {
 
     $(document).ready(function () {
@@ -407,6 +380,36 @@ $(function () {
      	    });
      	});
 
+     	DIANNE.notifications().then(function(data){
+     	    $.each(data, function(i) {
+     	        addNotification(data[i]);
+     	    });
+     	});
+     	
      	refreshJobs();
+     	
     });
 });
+
+
+/*
+ * SSE for server feedback
+ */
+var eventsource;
+
+if(typeof(EventSource) === "undefined") {
+	// load polyfill eventsource library
+	$.getScript( "js/lib/eventsource.min.js").done(function( script, textStatus ) {
+		console("Fallback to eventsource.js for SSE...");
+	}).fail(function( jqxhr, settings, exception ) {
+		console.log("Sorry, your browser does not support server-sent events...");
+	});
+} 
+
+eventsource = new EventSource("/dianne/sse");
+eventsource.onmessage = function(event){
+	var notification = JSON.parse(event.data);
+	addNotification(notification);
+	refreshJobs();
+}
+

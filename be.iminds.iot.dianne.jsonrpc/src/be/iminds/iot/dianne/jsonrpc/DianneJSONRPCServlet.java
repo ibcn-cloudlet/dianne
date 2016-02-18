@@ -15,8 +15,8 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
 @Component(service={javax.servlet.Servlet.class},
-property={"alias:String=/jsonrpc",
-	 	  "osgi.http.whiteboard.servlet.pattern=/jsonrpc",
+property={"alias:String=/dianne/jsonrpc",
+	 	  "osgi.http.whiteboard.servlet.pattern=/dianne/jsonrpc",
 		  "aiolos.proxy=false"},
 immediate=true)
 public class DianneJSONRPCServlet extends HttpServlet {

@@ -43,6 +43,8 @@ public interface DianneCoordinator {
 	
 	List<Job> runningJobs();
 	
-	List<Job> allJobs();
+	List<Job> finishedJobs();
+	
+	List<Notification> getNotifications();
 	
 }

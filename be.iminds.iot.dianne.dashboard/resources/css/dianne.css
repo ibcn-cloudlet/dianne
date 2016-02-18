@@ -73,6 +73,11 @@ html, body {
 	overflow-y: scroll;
 }
 
+.finished {
+	height: 400px;
+	overflow-y: scroll;
+}
+
 .resources {
 	height: 400px;
 }

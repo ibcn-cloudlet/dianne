@@ -1,5 +1,7 @@
 package be.iminds.iot.dianne.jsonrpc;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -11,6 +13,7 @@ import org.osgi.util.promise.Promise;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
@@ -18,6 +21,7 @@ import be.iminds.iot.dianne.api.coordinator.DianneCoordinator;
 import be.iminds.iot.dianne.api.coordinator.EvaluationResult;
 import be.iminds.iot.dianne.api.coordinator.Job;
 import be.iminds.iot.dianne.api.coordinator.LearnResult;
+import be.iminds.iot.dianne.api.coordinator.Notification;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
@@ -136,6 +140,12 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 		case "runningJobs":
 			writeResult(writer, id, coordinator.runningJobs());
 			break;
+		case "finishedJobs":
+			writeResult(writer, id, coordinator.finishedJobs());
+			break;
+		case "notifications":
+			writeResult(writer, id, coordinator.getNotifications());
+			break;	
 		default:
 			writeError(writer, id, -32601, "Method "+method+" not found");
 		}
@@ -212,6 +222,18 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 					writer.value(job.nn);
 					writer.name("dataset");
 					writer.value(job.dataset);
+					writer.endObject();
+				} else if(o instanceof Notification) {
+					Notification n = (Notification) o;
+					writer.beginObject();
+					writer.name("message");
+					writer.value(n.message);
+					writer.name("level");
+					writer.value(n.level.toString().toLowerCase());
+					writer.name("time");
+					Date date = new Date(n.timestamp);
+					SimpleDateFormat sdfDate = new SimpleDateFormat("HH:mm:ss dd-MM-yyyy");
+					writer.value(sdfDate.format(date));
 					writer.endObject();
 				} else {
 					writer.value(o.toString());

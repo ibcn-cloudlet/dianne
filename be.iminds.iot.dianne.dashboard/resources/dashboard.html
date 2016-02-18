@@ -81,35 +81,7 @@
 				<div class="block dashboard col-lg-8 col-md-6">
 					<div class="panel panel-default notifications">
 					  	<div class="panel-heading">Notifications</div>
-					  	<div id="alerts">
-						  	<div class="alert alert-info fade in">
-								<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-					  			Job "MNIST cascade training 17" started.
-							</div>						  	
-						  	<div class="alert alert-info fade in">
-								<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-					  			Job "MNIST cascade training 16" started.
-							</div>	
-						  	<div class="alert alert-success fade in">
-								<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-					  			Job "MNIST cascade training 15" successfully finished.
-							</div>
-							<div class="alert alert-danger fade in">
-								<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-					  			<strong>Error: </strong>Job "ALE Breakout" failed unexpectedly.
-							</div>
-							<div class="alert alert-warning fade in">
-								<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-					  			Node "Wall-GPU1" has not responded for the last hour.
-							</div>		
-							<div class="alert alert-info fade in">
-								<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-					  			Job "MNIST cascade training 15" started.
-							</div>
-							<div class="alert alert-success fade in">
-								<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-					  			Job "MNIST cascade training 14" successfully finished.
-							</div>					  	
+					  	<div id="alerts">	  	
 					  	</div>
 					 </div>
 				</div>
@@ -135,16 +107,10 @@
 				</div>
 				
 				<div class="block dashboard col-lg-4 col-md-6">
-					<div class="panel panel-default resources">
-					  	<div class="panel-heading">Resources</div>
+					<div class="panel panel-default finished">
+					  	<div class="panel-heading">Jobs finished</div>
 					  	<div class="panel-body">
-					  		<b>17 machines online</b> <br/><br/>
-					  		Average resource usage:							
-							<div class="row">
-								<div id="memory-chart" class="col-sm-6">
-								</div>
-								<div id="cpu-chart" class="col-sm-6">
-								</div>
+							<div id="jobs-finished" class="list-group">
 							</div>
 					  	</div>
 					 </div>
@@ -298,6 +264,13 @@
 			NN: {{nn}} | Dataset: {{dataset}}
 		</p>
 	</a>
+	</script>
+	
+	<script type="x-tmpl-mustache" id="notification">
+	<div class="alert alert-{{level}} fade in">
+		<span style="float:right">{{time}}</span>
+		{{message}}
+	</div>	
 	</script>
 	
 	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->

@@ -23,6 +23,7 @@
 package be.iminds.iot.dianne.coordinator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -43,12 +44,16 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.osgi.service.event.Event;
+import org.osgi.service.event.EventAdmin;
 import org.osgi.util.promise.Promise;
 
 import be.iminds.iot.dianne.api.coordinator.DianneCoordinator;
 import be.iminds.iot.dianne.api.coordinator.EvaluationResult;
 import be.iminds.iot.dianne.api.coordinator.Job;
 import be.iminds.iot.dianne.api.coordinator.LearnResult;
+import be.iminds.iot.dianne.api.coordinator.Notification;
+import be.iminds.iot.dianne.api.coordinator.Notification.Level;
 import be.iminds.iot.dianne.api.nn.eval.Evaluator;
 import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
@@ -59,12 +64,14 @@ import be.iminds.iot.dianne.api.repository.DianneRepository;
 public class DianneCoordinatorImpl implements DianneCoordinator {
 
 	BundleContext context;
+	EventAdmin ea;
 
 	DiannePlatform platform;
 	DianneRepository repository;
 
 	Queue<AbstractJob> queue = new LinkedBlockingQueue<>();
 	Set<AbstractJob> running = new HashSet<>();
+	Queue<AbstractJob> finished = new LinkedBlockingQueue<>(10);
 	
 	Map<UUID, Learner> learners = new ConcurrentHashMap<>();
 	Map<UUID, Evaluator> evaluators = new ConcurrentHashMap<>();
@@ -73,12 +80,17 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	
 	Map<UUID, Boolean> machines = new ConcurrentHashMap<>(); 
 	
+	Queue<Notification> notifications = new LinkedBlockingQueue<>(20);
+	
 	@Override
 	public Promise<LearnResult> learn(NeuralNetworkDTO nn, String dataset, Map<String, String> config) {
 		repository.storeNeuralNetwork(nn);
 		
 		LearnJob job = new LearnJob(this, nn, dataset, config);
 		queue.add(job);
+		
+		sendNotification(job.jobId, Level.INFO, "Job \""+job.name+"\" submitted.");
+		
 		schedule();
 		
 		return job.getPromise();
@@ -96,6 +108,9 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		
 		EvaluationJob job = new EvaluationJob(this, nn, dataset, config);
 		queue.add(job);
+		
+		sendNotification(job.jobId, Level.INFO, "Job \""+job.name+"\" submitted.");
+		
 		schedule();
 		
 		return job.getPromise();
@@ -117,26 +132,35 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	}
 
 	@Override
-	public List<Job> allJobs() {
-		List<Job> all = new ArrayList<>();
-		all.addAll(queuedJobs());
-		all.addAll(runningJobs());
-		return all;
+	public List<Job> finishedJobs() {
+		return finished.stream().map(j -> j.get()).collect(Collectors.toList());
 	}
 	
 	
-	// try to do next job
+	@Override
+	public List<Notification> getNotifications(){
+		return new ArrayList<>(notifications);
+	}
+	
+	// called when a job is done
 	void done(AbstractJob job){
 		// remove from running list
 		running.remove(job);
 		job.targets.stream().forEach(uuid -> machines.put((UUID) uuid, false));
 		
+		
 		// TODO safe results to disc/archive?
 		
+		finished.add(job);
+		
+		
+		sendNotification(job.jobId, Level.SUCCESS, "Job \""+job.name+"\" finished successfully.");
+
 		// schedule new one
 		schedule();
 	}
 	
+	// try to schedule the job on top of the queue
 	synchronized void schedule(){
 		// TODO what if not enough learners/evaluators or no matching learners/evaluators?
 		
@@ -158,6 +182,9 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 			job = queue.poll();
 			job.start(targets, pool);
 			running.add(job);
+			
+			sendNotification(job.jobId, Level.INFO, "Job \""+job.name+"\" started.");
+
 		} if(job instanceof EvaluationJob){
 			// search free evaluator
 			// TODO collect multiple in case multiple evaluators required
@@ -173,13 +200,35 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 			job = queue.poll();
 			job.start(targets, pool);
 			running.add(job);
+			
+			sendNotification(job.jobId, Level.INFO, "Job \""+job.name+"\" started.");
+
 		}
 	}
 
+	void sendNotification(UUID jobId, Level level, String message){
+		Notification n = new Notification(jobId, level, message);
+		
+		Map<String, Object> properties = new HashMap<>();
+		properties.put("id", n.jobId);
+		properties.put("level", n.level);
+		properties.put("message", n.message);
+		properties.put("timestamp", n.timestamp);
+		String topic = "dianne/jobs/"+jobId.toString();
+		Event e = new Event(topic, properties);
+		ea.postEvent(e);
+		
+		notifications.add(n);
+	}
 
 	@Activate
 	void activate(BundleContext context){
 		this.context = context;
+	}
+	
+	@Reference
+	void setEventAdmin(EventAdmin ea){
+		this.ea = ea;
 	}
 	
 	@Reference

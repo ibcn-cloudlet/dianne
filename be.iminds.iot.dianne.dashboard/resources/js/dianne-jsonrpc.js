@@ -40,6 +40,12 @@ var DIANNE = {
 		runningJobs : function(){
 			return this.call("runningJobs");
 		},
+		finishedJobs : function(){
+			return this.call("finishedJobs");
+		},
+		notifications : function(){
+			return this.call("notifications");
+		},
 		call: function(method, params){
 			var d = $.Deferred();
 			jsonrpc(method, params, function(data){
@@ -62,7 +68,7 @@ function jsonrpc(method, params, callbackSuccess, callbackError){
 	request.params = params;
 	
 	$.ajax({
-	    url: '/jsonrpc',
+	    url: '/dianne/jsonrpc',
 	    type: 'POST',
 	    dataType: 'json',
 	    contentType: 'application/json-rpc',

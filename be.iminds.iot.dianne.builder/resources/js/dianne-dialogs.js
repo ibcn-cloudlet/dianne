@@ -874,7 +874,7 @@ var cameraEventsource
 
 if(typeof(EventSource) === "undefined") {
 	// load polyfill eventsource library
-	$.getScript( "js/eventsource.min.js").done(function( script, textStatus ) {
+	$.getScript( "js/lib/eventsource.min.js").done(function( script, textStatus ) {
 		console("Fallback to eventsource.js for SSE...");
 	}).fail(function( jqxhr, settings, exception ) {
 		console.log("Sorry, your browser does not support server-sent events...");
