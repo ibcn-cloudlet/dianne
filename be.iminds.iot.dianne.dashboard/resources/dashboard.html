@@ -26,11 +26,6 @@
     <![endif]-->
 </head>
 <body>
-	<!-- Spinner -->
-	<div id="spinnerwrap">
-		<div class="spinner"></div>
-	</div>
-	
 	<div class="site-wrapper">
 
 		<header class="navbar-fixed-top custom-navbar">
@@ -123,35 +118,7 @@
 					<div class="panel panel-default queue">
 					  	<div class="panel-heading">Job queue</div>
 					  	<div class="panel-body">
-							<div class="list-group">
-							  <a href="#" class="list-group-item">
-							  	<span class="badge">RL</span>
-							    <h4 class="list-group-item-heading">Pong continuous action space</h4>
-							    <p class="list-group-item-text">
-							    	NN: DeepQNetwork | Dataset: Pong
-							    </p>
-							  </a>
-							  <a href="#" class="list-group-item">
-							  	<span class="badge">RL</span>
-							    <h4 class="list-group-item-heading">ALE Breakout</h4>
-							    <p class="list-group-item-text">
-							    	NN: DeepQBreakout | Dataset: Breakout
-							    </p>
-							  </a>
-							  <a href="#" class="list-group-item">
-							  	<span class="badge">RNN</span>
-							    <h4 class="list-group-item-heading">Shakespeare text generation</h4>
-							    <p class="list-group-item-text">
-							    	NN: LSTMShakespeare | Dataset: Shakespeare
-							    </p>
-							  </a>
-							  <a href="#" class="list-group-item">
-							  	<span class="badge">FF</span>
-							    <h4 class="list-group-item-heading">ImageNet cascading</h4>
-							    <p class="list-group-item-text">
-							    	NN: Cascade1 | Dataset: ImageNet
-							    </p>
-							  </a>
+							<div id="jobs-queue" class="list-group">
 							</div>
 					  	</div>
 					 </div>
@@ -161,63 +128,7 @@
 					<div class="panel panel-default running">
 					  	<div class="panel-heading">Jobs running</div>
 					  	<div class="panel-body">
-							<div class="list-group">
-							  <a href="#" class="list-group-item">
-							  	<span class="badge">FF</span>
-							    <h4 class="list-group-item-heading">MNIST cascade training 16</h4>
-							    <p class="list-group-item-text">
-							    	NN: MNISTCascade | Dataset: MNIST
-							    </p>
-							  </a>
-							  <a href="#" class="list-group-item">
-							  	<span class="badge">FF</span>
-							    <h4 class="list-group-item-heading">MNIST cascade training 17</h4>
-							    <p class="list-group-item-text">
-							    	NN: MNISTCascade | Dataset: MNIST
-							    </p>
-							  </a>							  
-							  <a href="#" class="list-group-item">
-							  	<span class="badge">RL</span>
-							    <h4 class="list-group-item-heading">ALE Pong</h4>
-							    <p class="list-group-item-text">
-							    	NN: DeepQPong | Dataset: Pong
-							    </p>
-							  </a>
-							  <a href="#" class="list-group-item">
-							  	<span class="badge">RNN</span>
-							    <h4 class="list-group-item-heading">LSTM test</h4>
-							    <p class="list-group-item-text">
-							    	NN: LSTMTest | Dataset: Shakespeare
-							    </p>
-							  </a>
-							  <a href="#" class="list-group-item">
-							  	<span class="badge">FF</span>
-							    <h4 class="list-group-item-heading">CIFAR cascading</h4>
-							    <p class="list-group-item-text">
-							    	NN: CIFARCascade | Dataset: CIFAR
-							    </p>
-							  </a>
-							  <a href="#" class="list-group-item">
-							  	<span class="badge">FF</span>
-							    <h4 class="list-group-item-heading">CIFAR minification 1</h4>
-							    <p class="list-group-item-text">
-							    	NN: CIFARmini1 | Dataset: CIFAR
-							    </p>
-							  </a>
-							  <a href="#" class="list-group-item">
-							  	<span class="badge">FF</span>
-							    <h4 class="list-group-item-heading">CIFAR minification 2</h4>
-							    <p class="list-group-item-text">
-							    	NN: CIFARmini2 | Dataset: CIFAR
-							    </p>
-							  </a>
-							  <a href="#" class="list-group-item">
-							  	<span class="badge">FF</span>
-							    <h4 class="list-group-item-heading">CIFAR minification 3</h4>
-							    <p class="list-group-item-text">
-							    	NN: CIFARmini3 | Dataset: CIFAR
-							    </p>
-							  </a>
+							<div id="jobs-running" class="list-group">
 							</div>
 					  	</div>
 					 </div>
@@ -327,6 +238,12 @@
 		      <div class="modal-body">
 		         <form id="submit-form" class="form-horizontal" role="form">
 				   <div class="form-group">
+				    <label class="control-label col-sm-2" for="nn">Name:</label>
+				    <div class="col-sm-10">
+				      <input name="name" type="text" class="form-control" placeholder="Insert a human readable job name..."/>
+				    </div>
+				   </div>
+				   <div class="form-group">
 				    <label class="control-label col-sm-2" for="type">Type:</label>
 				    <div class="col-sm-10">
 				      <select name="type" class="form-control">
@@ -373,7 +290,15 @@
 	</div>
 
 	<!-- Templates -->
-
+	<script type="x-tmpl-mustache" id="jobs-item">
+	<a href="#" class="list-group-item">
+		<span class="badge">{{type}}</span>
+		<h4 class="list-group-item-heading">{{name}}</h4>
+		<p class="list-group-item-text">
+			NN: {{nn}} | Dataset: {{dataset}}
+		</p>
+	</a>
+	</script>
 	
 	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 	<script src="js/lib/jquery.min.js"></script>

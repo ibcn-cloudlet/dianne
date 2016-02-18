@@ -13,7 +13,7 @@ public class EvaluationJob extends AbstractJob<EvaluationResult> {
 
 	private EvaluationResult result = new EvaluationResult();
 	
-	public EvaluationJob(DianneCoordinatorImpl coord, 
+	public EvaluationJob(DianneCoordinatorImpl coord,
 			NeuralNetworkDTO nn,
 			String d,
 			Map<String, String> c){

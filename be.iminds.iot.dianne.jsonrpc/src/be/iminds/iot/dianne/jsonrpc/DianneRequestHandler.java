@@ -16,6 +16,7 @@ import com.google.gson.stream.JsonWriter;
 
 import be.iminds.iot.dianne.api.coordinator.DianneCoordinator;
 import be.iminds.iot.dianne.api.coordinator.EvaluationResult;
+import be.iminds.iot.dianne.api.coordinator.Job;
 import be.iminds.iot.dianne.api.coordinator.LearnResult;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
@@ -129,6 +130,12 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 		case "availableDatasets":
 			writeResult(writer, id, platform.getAvailableDatasets());
 			break;
+		case "queuedJobs":
+			writeResult(writer, id, coordinator.queuedJobs());
+			break;
+		case "runningJobs":
+			writeResult(writer, id, coordinator.runningJobs());
+			break;
 		default:
 			writeError(writer, id, -32601, "Method "+method+" not found");
 		}
@@ -192,7 +199,23 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 			}
 		} else if(result instanceof List){
 			for(Object o : (List) result){
-				writer.value(o.toString());
+				if(o instanceof Job){
+					Job job = (Job) o;
+					writer.beginObject();
+					writer.name("id");
+					writer.value(job.id.toString());
+					writer.name("name");
+					writer.value(job.name);
+					writer.name("type");
+					writer.value(job.type);
+					writer.name("nn");
+					writer.value(job.nn);
+					writer.name("dataset");
+					writer.value(job.dataset);
+					writer.endObject();
+				} else {
+					writer.value(o.toString());
+				}
 			}
 		}
 		// end result object

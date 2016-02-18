@@ -16,6 +16,8 @@ import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 public abstract class AbstractJob<T> implements Runnable {
 
 	protected final UUID jobId;
+	protected final String name;
+	protected final String type;
 	
 	protected final DianneCoordinatorImpl coordinator;
 	
@@ -37,6 +39,21 @@ public abstract class AbstractJob<T> implements Runnable {
 			String d,
 			Map<String, String> c){
 		this.jobId = UUID.randomUUID();
+		
+		if(c.containsKey("name")){
+			this.name = c.get("name");
+		} else {
+			this.name = jobId.toString();
+		}
+	
+		if(c.containsKey("environment")){
+			type = "RL";
+		} else if(coord.isRecurrent(nn)){
+			type = "RNN";
+		} else {
+			type = "FF";
+		}
+		
 		
 		this.coordinator = coord;
 		
@@ -84,12 +101,13 @@ public abstract class AbstractJob<T> implements Runnable {
 	private void done(){
 		stopped = System.currentTimeMillis();
 		
+		cleanup();
+		
 		// undeploy neural networks on target instances here?
 		for(NeuralNetworkInstanceDTO nni : nnis.values()){
 			coordinator.platform.undeployNeuralNetwork(nni);
 		}
 		
-		cleanup();
 		// this one is free again for the coordinator
 		coordinator.done(this);
 	}
@@ -110,11 +128,13 @@ public abstract class AbstractJob<T> implements Runnable {
 	}
 	
 	public Job get(){
-		Job job = new Job(jobId, nn.name, dataset, config);
+		Job job = new Job(jobId, name, type, nn.name, dataset, config);
 		job.submitted = submitted;
 		job.started = started;
 		job.stopped = stopped;
 		job.targets = targets;
 		return job;
 	}
+	
+
 }

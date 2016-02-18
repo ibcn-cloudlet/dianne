@@ -34,6 +34,12 @@ var DIANNE = {
 		datasets : function(){
 			return this.call("availableDatasets");
 		},
+		queuedJobs : function(){
+			return this.call("queuedJobs");
+		}, 
+		runningJobs : function(){
+			return this.call("runningJobs");
+		},
 		call: function(method, params){
 			var d = $.Deferred();
 			jsonrpc(method, params, function(data){

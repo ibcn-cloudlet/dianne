@@ -24,8 +24,10 @@ package be.iminds.iot.dianne.coordinator;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
@@ -68,6 +70,8 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	Map<UUID, Evaluator> evaluators = new ConcurrentHashMap<>();
 	
 	ExecutorService pool = Executors.newCachedThreadPool();
+	
+	Map<UUID, Boolean> machines = new ConcurrentHashMap<>(); 
 	
 	@Override
 	public Promise<LearnResult> learn(NeuralNetworkDTO nn, String dataset, Map<String, String> config) {
@@ -125,6 +129,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	void done(AbstractJob job){
 		// remove from running list
 		running.remove(job);
+		job.targets.stream().forEach(uuid -> machines.put((UUID) uuid, false));
 		
 		// TODO safe results to disc/archive?
 		
@@ -132,7 +137,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		schedule();
 	}
 	
-	void schedule(){
+	synchronized void schedule(){
 		// TODO what if not enough learners/evaluators or no matching learners/evaluators?
 		
 		// try to schedule the next job on the queue
@@ -140,19 +145,34 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		// TODO check the config whether this one can execute
 		if(job instanceof LearnJob){
 			// search free learner
-			// TODO keep the free/occupied learners
-			Learner l = learners.values().stream().filter(learner -> learner.isBusy() == false).findFirst().get();
-			ArrayList<UUID> targets = new ArrayList<>();
-			targets.add(l.getLearnerId());
-			queue.poll().start(targets, pool);
+			// TODO collect multiple in case multiple learners required
+			int required = 1;
+			// TODO filter learners on job properties
+			List<UUID> targets = learners.keySet().stream().filter(uuid -> !machines.get(uuid)).limit(required).collect(Collectors.toList());
+			if(targets.size()!=required)
+				return;
+			
+			for(UUID target : targets){
+				machines.put(target, true);
+			}
+			job = queue.poll();
+			job.start(targets, pool);
+			running.add(job);
 		} if(job instanceof EvaluationJob){
 			// search free evaluator
-			// TODO keep the free/occupied learners
-			// TODO isBusy for evaluators?
-			Evaluator e = evaluators.values().stream().findFirst().get();
-			ArrayList<UUID> targets = new ArrayList<>();
-			targets.add(e.getEvaluatorId());
-			queue.poll().start(targets, pool);
+			// TODO collect multiple in case multiple evaluators required
+			int required = 1;
+			// TODO filter evaluators on job properties
+			List<UUID> targets = evaluators.keySet().stream().filter(uuid -> !machines.get(uuid)).limit(required).collect(Collectors.toList());
+			if(targets.size()!=required)
+				return;
+
+			for(UUID target : targets){
+				machines.put(target, true);
+			}
+			job = queue.poll();
+			job.start(targets, pool);
+			running.add(job);
 		}
 	}
 
@@ -175,22 +195,77 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	@Reference(policy=ReferencePolicy.DYNAMIC,
 			cardinality=ReferenceCardinality.MULTIPLE)
 	void addLearner(Learner learner, Map<String, Object> properties){
-		this.learners.put(learner.getLearnerId(), learner);
+		UUID id = learner.getLearnerId();
+		this.learners.put(id, learner);
+		
+		if(!machines.containsKey(id)){
+			machines.put(id, false);
+		}
+		
+		schedule();
 	}
 	
 	void removeLearner(Learner learner, Map<String, Object> properties){
-		this.learners.entrySet().remove(learner);
+		UUID id = null;
+		Iterator<Entry<UUID, Learner>> it =this.learners.entrySet().iterator();
+		while(it.hasNext()){
+			Entry<UUID, Learner> e = it.next();
+			if(e.getValue()==learner){
+				id = e.getKey();
+				it.remove();
+				break;
+			}
+		}
+		
+		if(id!=null){
+			if(!learners.containsKey(id) 
+				&& !evaluators.containsKey(id)){
+				machines.remove(id);
+			}
+		}
 	}
 
 	@Reference(policy=ReferencePolicy.DYNAMIC,
 			cardinality=ReferenceCardinality.MULTIPLE)
 	void addEvaluator(Evaluator evaluator, Map<String, Object> properties){
-		this.evaluators.put(evaluator.getEvaluatorId(), evaluator);
+		UUID id = evaluator.getEvaluatorId();
+		this.evaluators.put(id, evaluator);
+		
+		if(!machines.containsKey(id)){
+			machines.put(id, false);
+		}
+		
+		schedule();
 	}
 	
 	void removeEvaluator(Evaluator evaluator, Map<String, Object> properties){
-		this.evaluators.entrySet().remove(evaluator);
+		UUID id = null;
+		Iterator<Entry<UUID, Evaluator>> it =this.evaluators.entrySet().iterator();
+		while(it.hasNext()){
+			Entry<UUID, Evaluator> e = it.next();
+			if(e.getValue()==evaluator){
+				id = e.getKey();
+				it.remove();
+				break;
+			}
+		}
+		
+		if(id!=null){
+			if(!learners.containsKey(id) 
+				&& !evaluators.containsKey(id)){
+				machines.remove(id);
+			}
+		}
 	}
 	
 	
+	
+	boolean isRecurrent(NeuralNetworkDTO nn){
+		if(nn.modules.values().stream().filter(module -> module.type.equals("Memory")).findAny().isPresent())
+			return true;
+		
+		return nn.modules.values().stream().filter(module -> module.properties.get("category").equals("Composite"))
+			.mapToInt(module ->  
+				isRecurrent(repository.loadNeuralNetwork(module.properties.get("name"))) ? 1 : 0).sum() > 0;
+	}
 }

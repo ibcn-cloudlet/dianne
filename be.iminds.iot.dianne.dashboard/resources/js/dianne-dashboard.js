@@ -39,8 +39,44 @@ function submitJob(){
     		job[this.name] = this.value || '';
     	}
     });
+    
+    // insert name attribute to the config
+    if(job.name!==undefined && job.name!==""){
+    	job.config.name = job.name;
+	}
 	
-	DIANNE.learn(job.nn, job.dataset, job.config);
+    if(job.type==="LEARN"){
+    	DIANNE.learn(job.nn, job.dataset, job.config);
+    } else if(job.type==="EVALUATE"){
+    	DIANNE.eval(job.nn, job.dataset, job.config);
+    }
+
+}
+
+function refreshJobs(){
+ 	// queued jobs
+	$("#jobs-queue").empty();
+ 	DIANNE.queuedJobs().then(function(data){
+ 	    $.each(data, function(i) {
+ 	        var job = data[i];
+ 	        var template = $('#jobs-item').html();
+     	  	Mustache.parse(template);
+     	  	var rendered = Mustache.render(template, job);
+     	  	$(rendered).appendTo($("#jobs-queue"));
+ 	    });
+ 	});
+ 	
+ 	// running jobs
+ 	$("#jobs-running").empty();
+ 	DIANNE.runningJobs().then(function(data){
+ 	    $.each(data, function(i) {
+ 	        var job = data[i];
+ 	        var template = $('#jobs-item').html();
+     	  	Mustache.parse(template);
+     	  	var rendered = Mustache.render(template, job);
+     	  	$(rendered).appendTo($("#jobs-running"));
+ 	    });
+ 	});
 }
 
 function setModus(mode){
@@ -355,23 +391,22 @@ $(function () {
      	setModus('dashboard');
 
      	
-     	
+     	// TODO set each time the dialog is shown?
+     	// nn options in submission dialog
      	DIANNE.nns().then(function(data){
      		var options = $("#nn");
      	    $.each(data, function(i) {
      	        options.append($("<option />").val(data[i]).text(data[i]));
      	    });
-     	}, function(err){
-     		console.log("Error! "+err);
      	});
-     	
+     	// dataset options in submission dialog
      	DIANNE.datasets().then(function(data){
      		var options = $("#dataset");
      	    $.each(data, function(i) {
      	        options.append($("<option />").val(data[i]).text(data[i]));
      	    });
-     	}, function(err){
-     		console.log("Error! "+err);
      	});
+
+     	refreshJobs();
     });
 });
