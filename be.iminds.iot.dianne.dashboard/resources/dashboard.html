@@ -55,24 +55,6 @@
 					  	<div class="panel-heading">Status</div>
 					  	<div class="panel-body">							
 							<div id="status" class="row">
-								<div id="status-msg" class="col-sm-6 big">
-									<b>System</b>
-									<ul>
-										<li>8 jobs running on 12 machines</li>
-										<li>5 machines idle</li>
-									</ul>
-									<b>Repository</b>
-									<ul>
-										<li>Network I/O: 12Mbps/3Mbps</li>
-										<li>Storage: 120 of 150Gb used</li>
-									</ul>
-									<b>Uptime</b>
-									<ul>
-										<li>12 days, 4 hours and 12 minutes</li>
-									</ul>
-								</div>
-								<div id="status-chart" class="col-sm-6">
-								</div>
 							</div>
 					  	</div>
 					 </div>
@@ -273,6 +255,29 @@
 	</div>	
 	</script>
 	
+	<script type="x-tmpl-mustache" id="stat">
+	<div id="status-msg" class="col-sm-6 big">
+		<b>System</b>
+		<ul>
+			<li>{{queued}} jobs queued</li>
+			<li>{{running}} jobs running on {{machines}} machines</li>
+			<li>{{idle}} machines idle</li>
+		</ul>
+		<b>Repository</b>
+		<ul>
+			<!--<li>Network I/O: 12Mbps/3Mbps</li>-->
+			<li>Storage: {{spaceLeft}} GB free space</li>
+		</ul>
+		<b>Uptime</b>
+		<ul>
+			<li>{{uptime}}</li>
+		</ul>
+	</div>
+	<div id="status-chart" class="col-sm-6">
+	</div>
+</script>	
+
+
 	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 	<script src="js/lib/jquery.min.js"></script>
 	<!-- Include all compiled plugins (below), or include individual files as needed -->

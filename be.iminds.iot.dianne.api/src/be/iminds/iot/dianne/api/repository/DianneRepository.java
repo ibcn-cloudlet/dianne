@@ -134,10 +134,17 @@ public interface DianneRepository {
 	 */
 	void accParameters(UUID nnId, Map<UUID, Tensor> accParameters, String... tag);
 	
+	/**
+	 * Check how many space is left on this device to store things
+	 * @return
+	 */
+	long spaceLeft();
 
 	// these are some helper methods for saving the jsplumb layout of the UI builder
 	// of utterly no importance for the rest and can be ignored...
 	String loadLayout(String nnName) throws IOException;
 	
 	void storeLayout(String nnName, String layout);
+	
+
 }

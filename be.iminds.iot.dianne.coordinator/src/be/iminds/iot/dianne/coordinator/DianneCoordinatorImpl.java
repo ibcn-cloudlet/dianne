@@ -54,6 +54,7 @@ import be.iminds.iot.dianne.api.coordinator.Job;
 import be.iminds.iot.dianne.api.coordinator.LearnResult;
 import be.iminds.iot.dianne.api.coordinator.Notification;
 import be.iminds.iot.dianne.api.coordinator.Notification.Level;
+import be.iminds.iot.dianne.api.coordinator.Status;
 import be.iminds.iot.dianne.api.nn.eval.Evaluator;
 import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
@@ -63,6 +64,8 @@ import be.iminds.iot.dianne.api.repository.DianneRepository;
 @Component
 public class DianneCoordinatorImpl implements DianneCoordinator {
 
+	long boot = System.currentTimeMillis();
+	
 	BundleContext context;
 	EventAdmin ea;
 
@@ -78,9 +81,20 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	
 	ExecutorService pool = Executors.newCachedThreadPool();
 	
-	Map<UUID, Boolean> machines = new ConcurrentHashMap<>(); 
+	Map<UUID, Integer> machines = new ConcurrentHashMap<>(); 
 	
 	Queue<Notification> notifications = new LinkedBlockingQueue<>(20);
+	
+	@Override
+	public Status getStatus(){
+		int idle = machines.values().stream().mapToInt(i -> (i==0) ? 1 : 0).sum();
+		int learn = machines.values().stream().mapToInt(i -> (i==1) ? 1 : 0).sum();
+		int eval = machines.values().stream().mapToInt(i -> (i==2) ? 1 : 0).sum();
+
+		long spaceLeft = repository.spaceLeft();
+		Status currentStatus = new Status(queue.size(), running.size(), learn, eval, idle, spaceLeft, boot);
+		return currentStatus;
+	}
 	
 	@Override
 	public Promise<LearnResult> learn(NeuralNetworkDTO nn, String dataset, Map<String, String> config) {
@@ -146,7 +160,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	void done(AbstractJob job){
 		// remove from running list
 		running.remove(job);
-		job.targets.stream().forEach(uuid -> machines.put((UUID) uuid, false));
+		job.targets.stream().forEach(uuid -> machines.put((UUID) uuid, 0));
 		
 		
 		// TODO safe results to disc/archive?
@@ -172,12 +186,12 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 			// TODO collect multiple in case multiple learners required
 			int required = 1;
 			// TODO filter learners on job properties
-			List<UUID> targets = learners.keySet().stream().filter(uuid -> !machines.get(uuid)).limit(required).collect(Collectors.toList());
+			List<UUID> targets = learners.keySet().stream().filter(uuid -> machines.get(uuid)==0).limit(required).collect(Collectors.toList());
 			if(targets.size()!=required)
 				return;
 			
 			for(UUID target : targets){
-				machines.put(target, true);
+				machines.put(target, 1);
 			}
 			job = queue.poll();
 			job.start(targets, pool);
@@ -190,12 +204,12 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 			// TODO collect multiple in case multiple evaluators required
 			int required = 1;
 			// TODO filter evaluators on job properties
-			List<UUID> targets = evaluators.keySet().stream().filter(uuid -> !machines.get(uuid)).limit(required).collect(Collectors.toList());
+			List<UUID> targets = evaluators.keySet().stream().filter(uuid -> machines.get(uuid)==0).limit(required).collect(Collectors.toList());
 			if(targets.size()!=required)
 				return;
 
 			for(UUID target : targets){
-				machines.put(target, true);
+				machines.put(target, 2);
 			}
 			job = queue.poll();
 			job.start(targets, pool);
@@ -248,7 +262,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		this.learners.put(id, learner);
 		
 		if(!machines.containsKey(id)){
-			machines.put(id, false);
+			machines.put(id, 0);
 		}
 		
 		schedule();
@@ -281,7 +295,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		this.evaluators.put(id, evaluator);
 		
 		if(!machines.containsKey(id)){
-			machines.put(id, false);
+			machines.put(id, 0);
 		}
 		
 		schedule();

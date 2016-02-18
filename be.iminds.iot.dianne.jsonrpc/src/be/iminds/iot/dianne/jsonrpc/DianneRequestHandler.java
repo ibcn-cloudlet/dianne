@@ -13,7 +13,6 @@ import org.osgi.util.promise.Promise;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
@@ -22,6 +21,7 @@ import be.iminds.iot.dianne.api.coordinator.EvaluationResult;
 import be.iminds.iot.dianne.api.coordinator.Job;
 import be.iminds.iot.dianne.api.coordinator.LearnResult;
 import be.iminds.iot.dianne.api.coordinator.Notification;
+import be.iminds.iot.dianne.api.coordinator.Status;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
@@ -146,6 +146,9 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 		case "notifications":
 			writeResult(writer, id, coordinator.getNotifications());
 			break;	
+		case "status":
+			writeResult(writer, id, coordinator.getStatus());
+			break;	
 		default:
 			writeError(writer, id, -32601, "Method "+method+" not found");
 		}
@@ -179,16 +182,31 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 		writer.name("result");
 		writer.beginArray();
 		// write result object
-		if(result instanceof LearnResult){
-			LearnResult learnResult = (LearnResult) result;
+		if(result instanceof List){
+			for(Object o : (List) result){
+				writeObject(writer, o);
+			}
+		} else {
+			writeObject(writer, result);
+		}
+		// end result object
+		writer.endArray();
+		writer.endObject();
+		writer.flush();			
+	}
+	
+	public void writeObject(JsonWriter writer, Object o) throws Exception{
+		// TODO object conversion would be handy here...
+		if(o instanceof LearnResult){
+			LearnResult learnResult = (LearnResult) o;
 			writer.beginObject();
 			writer.name("error");
 			writer.value(learnResult.error);
 			writer.name("iterations");
 			writer.value(learnResult.iterations);
 			writer.endObject();
-		} else if(result instanceof EvaluationResult){
-			EvaluationResult evalResult = (EvaluationResult) result;
+		} else if(o instanceof EvaluationResult){
+			EvaluationResult evalResult = (EvaluationResult) o;
 			for(Evaluation eval : evalResult.evaluations.values()){
 				writer.beginObject();
 				writer.name("accuracy");
@@ -207,43 +225,56 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 				writer.endArray();
 				writer.endObject();
 			}
-		} else if(result instanceof List){
-			for(Object o : (List) result){
-				if(o instanceof Job){
-					Job job = (Job) o;
-					writer.beginObject();
-					writer.name("id");
-					writer.value(job.id.toString());
-					writer.name("name");
-					writer.value(job.name);
-					writer.name("type");
-					writer.value(job.type);
-					writer.name("nn");
-					writer.value(job.nn);
-					writer.name("dataset");
-					writer.value(job.dataset);
-					writer.endObject();
-				} else if(o instanceof Notification) {
-					Notification n = (Notification) o;
-					writer.beginObject();
-					writer.name("message");
-					writer.value(n.message);
-					writer.name("level");
-					writer.value(n.level.toString().toLowerCase());
-					writer.name("time");
-					Date date = new Date(n.timestamp);
-					SimpleDateFormat sdfDate = new SimpleDateFormat("HH:mm:ss dd-MM-yyyy");
-					writer.value(sdfDate.format(date));
-					writer.endObject();
-				} else {
-					writer.value(o.toString());
-				}
-			}
+		} else if(o instanceof Job){
+			Job job = (Job) o;
+			writer.beginObject();
+			writer.name("id");
+			writer.value(job.id.toString());
+			writer.name("name");
+			writer.value(job.name);
+			writer.name("type");
+			writer.value(job.type);
+			writer.name("nn");
+			writer.value(job.nn);
+			writer.name("dataset");
+			writer.value(job.dataset);
+			writer.endObject();
+		} else if(o instanceof Notification) {
+			Notification n = (Notification) o;
+			writer.beginObject();
+			writer.name("message");
+			writer.value(n.message);
+			writer.name("level");
+			writer.value(n.level.toString().toLowerCase());
+			writer.name("time");
+			Date date = new Date(n.timestamp);
+			SimpleDateFormat sdfDate = new SimpleDateFormat("HH:mm:ss dd-MM-yyyy");
+			writer.value(sdfDate.format(date));
+			writer.endObject();
+		} else if(o instanceof Status){
+			writer.beginObject();
+			Status s = (Status) o;
+			writer.name("queued");
+			writer.value(s.queued);
+			writer.name("running");
+			writer.value(s.running);
+			writer.name("learn");
+			writer.value(s.learn);
+			writer.name("eval");
+			writer.value(s.eval);
+			writer.name("idle");
+			writer.value(s.idle);
+			writer.name("machines");
+			writer.value(s.learn+s.eval+s.idle);
+			writer.name("spaceLeft");
+			float gb = s.spaceLeft/1000000000f;
+			writer.value(String.format("%.1f", gb));
+			writer.name("uptime");
+			writer.value(getElapsedTime(s.bootTime));
+			writer.endObject();
+		} else {
+			writer.value(o.toString());
 		}
-		// end result object
-		writer.endArray();
-		writer.endObject();
-		writer.flush();			
 	}
 	
 	@Reference
@@ -256,4 +287,27 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 		this.platform = p;
 	}
 	
+	private String getElapsedTime(long since){
+		long diff = System.currentTimeMillis()-since;
+		
+		long secondsInMilli = 1000;
+		long minutesInMilli = secondsInMilli * 60;
+		long hoursInMilli = minutesInMilli * 60;
+		long daysInMilli = hoursInMilli * 24;
+
+		long elapsedDays = diff / daysInMilli;
+		diff = diff % daysInMilli;
+		
+		long elapsedHours = diff / hoursInMilli;
+		diff = diff % hoursInMilli;
+		
+		long elapsedMinutes = diff / minutesInMilli;
+		diff = diff % minutesInMilli;
+		
+		StringBuilder builder = new StringBuilder();
+		builder.append(elapsedDays).append(" days, ")
+			.append(elapsedHours).append(" hours and ")
+			.append(elapsedMinutes).append(" minutes");
+		return builder.toString();
+	}
 }

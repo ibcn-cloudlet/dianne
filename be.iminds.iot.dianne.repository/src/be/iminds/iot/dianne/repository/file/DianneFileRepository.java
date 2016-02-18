@@ -316,6 +316,12 @@ public class DianneFileRepository implements DianneRepository {
 
 	}
 	
+	@Override
+	public long spaceLeft() {
+		File d = new File(dir);
+		return d.getUsableSpace();
+	}
+	
 	private void store(UUID moduleId, Tensor parameters, String... tag){
 		File f = new File(dir+"/weights/"+parametersId(moduleId, tag));
 		DataOutputStream os = null;

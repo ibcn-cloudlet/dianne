@@ -91,21 +91,15 @@ function refreshJobs(){
  	});
 }
 
-function addNotification(notification){
-	var template = $('#notification').html();
-	Mustache.parse(template);
-	var rendered = Mustache.render(template, notification);
-	$(rendered).prependTo($("#alerts"));
-}
-
-function setModus(mode){
-	$(".active").removeClass("active");
-	
-	if(mode === "dashboard"){
-		$(".block").hide();
-		$(".block").filter( ".dashboard" ).show();
-		$("#mode-dashboard").addClass("active");
-		
+function refreshStatus(){
+	DIANNE.status().then(function(data){
+		var status = data[0];
+ 	 	$("#status").empty();
+ 	    var template = $('#stat').html();
+ 	    Mustache.parse(template);
+     	var rendered = Mustache.render(template, status);
+     	$(rendered).appendTo($("#status"));
+ 	   
 		   // status chart
         $('#status-chart').highcharts({
             chart: {
@@ -145,16 +139,35 @@ function setModus(mode){
                 colorByPoint: true,
                 data: [{
                     name: 'Learning',
-                    y: 10
+                    y: status.learn
                 }, {
                     name: 'Idle',
-                    y: 5
+                    y: status.idle
                 }, {
                     name: 'Evaluating',
-                    y: 2
+                    y: status.eval
                 }]
             }]
         });
+ 	});
+}
+
+function addNotification(notification){
+	var template = $('#notification').html();
+	Mustache.parse(template);
+	var rendered = Mustache.render(template, notification);
+	$(rendered).prependTo($("#alerts"));
+}
+
+function setModus(mode){
+	$(".active").removeClass("active");
+	
+	if(mode === "dashboard"){
+		$(".block").hide();
+		$(".block").filter( ".dashboard" ).show();
+		$("#mode-dashboard").addClass("active");
+		
+		refreshStatus();
 
 	} else if(mode === "jobs"){
 		$(".block").hide();
@@ -411,5 +424,6 @@ eventsource.onmessage = function(event){
 	var notification = JSON.parse(event.data);
 	addNotification(notification);
 	refreshJobs();
+	refreshStatus();
 }
 
