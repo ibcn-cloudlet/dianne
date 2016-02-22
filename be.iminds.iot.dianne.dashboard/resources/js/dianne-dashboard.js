@@ -31,8 +31,8 @@ function submitJob(){
     		var configArray = this.value.split(' ');
     		var configJson = {};
     		$.each(configArray, function(){
-    			var split = this.split("=");
-    			configJson[split[0]] = split[1];
+    			var n = this.indexOf("=");
+    			configJson[this.substr(0, n)] = this.substr(n+1);
     		});
     		job[this.name] = configJson;
     	} else {

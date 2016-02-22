@@ -22,7 +22,9 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.coordinator;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -39,6 +41,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Filter;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -174,8 +177,6 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 			if(nmi!=null){
 				device.cpuUsage = nmi.getCpuUsage();
 				device.memUsage = nmi.getMemoryUsage();
-			} else {
-				System.out.println("WTF is null?!");
 			}
 		});
 		return new ArrayList<>(devices.values());
@@ -205,44 +206,100 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		
 		// try to schedule the next job on the queue
 		AbstractJob job = queue.peek();
-		// TODO check the config whether this one can execute
-		if(job instanceof LearnJob){
-			// search free learner
-			// TODO collect multiple in case multiple learners required
-			int required = 1;
-			// TODO filter learners on job properties
-			List<UUID> targets = learners.keySet().stream().filter(uuid -> deviceUsage.get(uuid)==0).limit(required).collect(Collectors.toList());
-			if(targets.size()!=required)
-				return;
-			
-			for(UUID target : targets){
-				deviceUsage.put(target, 1);
-			}
-			job = queue.poll();
-			job.start(targets, pool);
-			running.add(job);
-			
-			sendNotification(job.jobId, Level.INFO, "Job \""+job.name+"\" started.");
-
-		} if(job instanceof EvaluationJob){
-			// search free evaluator
-			// TODO collect multiple in case multiple evaluators required
-			int required = 1;
-			// TODO filter evaluators on job properties
-			List<UUID> targets = evaluators.keySet().stream().filter(uuid -> deviceUsage.get(uuid)==0).limit(required).collect(Collectors.toList());
-			if(targets.size()!=required)
-				return;
-
-			for(UUID target : targets){
-				deviceUsage.put(target, 2);
-			}
-			job = queue.poll();
-			job.start(targets, pool);
-			running.add(job);
-			
-			sendNotification(job.jobId, Level.INFO, "Job \""+job.name+"\" started.");
-
+		if(job==null){
+			// no more jobs...
+			return;
 		}
+		
+		// check if count/filter is specified
+		int count = 1;
+		if(job.config.containsKey("targetCount")){
+			count = Integer.parseInt((String)job.config.get("targetCount"));
+		}
+		String filter = (String)job.config.get("targetFilter");
+		
+		// check in case a target list is given as comma separated uuids
+		List<UUID> targets = null;
+		String t = (String)job.config.get("targets");
+		if(t!=null){
+			try {
+				targets = new ArrayList<>();
+				for(String tt : t.split(",")){
+					targets.add(UUID.fromString(tt));
+				}
+			} catch(Exception e){
+				e.printStackTrace();
+				targets = null;
+			}
+		}
+		
+		try {
+			if(targets!=null){
+				targets = findTargets(targets, filter, count);
+			} else if(job instanceof LearnJob){
+				targets = findTargets(learners.keySet(), filter, count);
+			} else if(job instanceof EvaluationJob){
+				targets = findTargets(evaluators.keySet(), filter, count);
+			}
+		} catch(Exception e){
+			job = queue.poll();
+			job.deferred.fail(e);
+			
+			sendNotification(job.jobId, Level.DANGER, "Job \""+job.name+"\" failed to start: "+e.getMessage());
+		}
+		
+		if(targets==null){
+			// what if no targets found? try next one or just keep on waiting?
+			return;
+		}
+			
+		int usage = (job instanceof LearnJob) ? 1 : 2;	
+		for(UUID target : targets){
+			deviceUsage.put(target, usage);
+		}
+		job = queue.poll();
+		job.start(targets, pool);
+		running.add(job);
+			
+		sendNotification(job.jobId, Level.INFO, "Job \""+job.name+"\" started.");
+
+	}
+	
+	List<UUID> findTargets(Collection<UUID> ids, String filter, int count) throws Exception {
+		List<UUID> targets = ids.stream()
+					.map(uuid -> devices.get(uuid))
+					.filter( device -> {	// match device filter
+						if(device==null)
+							return false;  // could be an invalid uuid if given from targets property
+						
+						if(filter==null)
+							return true;
+						
+						try {
+							Filter f = context.createFilter(filter);
+							return f.matches(toMap(device));
+						} catch(Exception e){
+							e.printStackTrace();
+							return false;
+						}
+					})
+					.map(device -> device.id)
+					.collect(Collectors.toList());
+		// check if this is possible
+		if(targets.size() < count)
+			throw new Exception("Insufficient infrastructure to meet the requirements of this Job");
+		
+		// check if the possible devices are currently available
+		targets = targets.stream()
+			.filter(uuid -> deviceUsage.get(uuid)==0) // only free nodes can be selected
+			.limit(count)
+			.collect(Collectors.toList());
+
+		if(targets.size() != count){
+			return null;
+		}
+		
+		return targets;
 	}
 
 	void sendNotification(UUID jobId, Level level, String message){
@@ -396,5 +453,17 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		return nn.modules.values().stream().filter(module -> module.properties.get("category").equals("Composite"))
 			.mapToInt(module ->  
 				isRecurrent(repository.loadNeuralNetwork(module.properties.get("name"))) ? 1 : 0).sum() > 0;
+	}
+	
+	// TODO use Object Conversion spec for this...
+	private Map<String, Object> toMap(Object o){
+		Map<String, Object> properties = new HashMap<>();
+		for(Field f : o.getClass().getFields()){
+			try {
+				properties.put(f.getName(), f.get(o));
+			} catch (Exception e) {
+			}
+		}
+		return properties;
 	}
 }
