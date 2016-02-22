@@ -1,0 +1,88 @@
+-runfw: org.eclipse.concierge
+
+aiolos.version='latest'
+
+-runbundles: \
+	osgi.promise;version='[6.0.0,6.0.1)',\
+	org.apache.felix.http.api;version='[2.3.2,2.4)',\
+	org.apache.felix.http.jetty;version='[2.3.2,2.4)',\
+	org.apache.felix.http.servlet-api;version='[1.0.1,1.1)',\
+	org.apache.felix.http.whiteboard;version='[2.3.2,2.4)',\
+	org.apache.felix.configadmin;version='[1.8.2,1.9)',\
+	org.apache.felix.gogo.command;version='[0.14.0,0.15)',\
+	org.apache.felix.gogo.runtime;version='[0.16.2,0.17)',\
+	org.apache.felix.gogo.shell;version='[0.10.0,0.11)',\
+	org.apache.felix.eventadmin;version='[1.4.2,1.5)',\
+	org.apache.felix.log;version='[1.0.1,1.0.2)',\
+	org.apache.felix.metatype;version='[1.0.10,1.1)',\
+	org.apache.felix.scr;version='[1.8.2,1.8.3)',\
+	kxml;version='[2.2.2,2.2.3)',\
+	com.google.gson;version='[2.2.4,2.3)',\
+	be.iminds.iot.dianne.tensor.th;version=latest,\
+	be.iminds.iot.dianne.tensor.util;version=latest,\
+	org.objenesis;version='[2.1.0,2.2.0)',\
+	com.esotericsoftware.kryo;version='[2.23,2.24)',\
+	de.javakaffee.kryo-serializers;version='[0.23,0.24)',\
+	be.iminds.aiolos.remoteserviceadmin;version=${aiolos.version},\
+	be.iminds.aiolos.nodemonitor;version=${aiolos.version},\
+	be.iminds.aiolos.topologymanager;version=${aiolos.version},\
+	be.iminds.aiolos.platformmanager;version=${aiolos.version},\
+	be.iminds.iot.dianne.nn.module;version=latest,\
+	be.iminds.iot.dianne.nn;version=latest,\
+	be.iminds.iot.dianne.nn.runtime;version=latest,\
+	be.iminds.iot.dianne.nn.platform;version=latest,\
+	be.iminds.iot.dianne.nn.learn;version=latest,\
+	be.iminds.iot.dianne.nn.eval;version=latest,\
+	be.iminds.iot.dianne.repository;version=latest,\
+	be.iminds.iot.dianne.dataset.imagenet;version=latest,\
+	be.iminds.iot.dianne.dataset.kaggle;version=latest,\
+	be.iminds.iot.dianne.dataset.mnist;version=latest,\
+	be.iminds.iot.dianne.builder;version=latest,\
+	be.iminds.iot.dianne.command;version=latest,\
+	be.iminds.iot.dianne.coordinator;version=latest,\
+	be.iminds.iot.dianne.jsonrpc;version=latest,\
+	be.iminds.iot.dianne.dashboard;version=latest
+	
+	
+#	be.iminds.iot.dianne.dataset.mnist;version=latest,\
+#	be.iminds.iot.dianne.dataset.cifar10;version=latest,\
+#	be.iminds.iot.dianne.dataset.cifar100;version=latest,\
+#	be.iminds.iot.dianne.dataset.stl10;version=latest,\
+#	be.iminds.iot.dianne.dataset.imagenet;version=latest,\
+#	be.iminds.iot.dianne.dataset.kaggle;version=latest,\
+
+	
+-runsystempackages: javax.naming,\
+	javax.net,\
+	javax.net.ssl,\
+	javax.sql,\
+	javax.xml.parsers,\
+	org.xml.sax,\
+	org.xml.sax.helpers,\
+	javax.xml.bind,\
+	javax.annotation,\
+	javax.management,\
+	javax.management.modelmbean,\
+	javax.management.remote,\
+	javax.security.auth,\
+	javax.security.cert,\
+	javax.imageio,\
+	javax.imageio.stream,\
+	javax.imageio.plugins.jpeg	
+	
+-runproperties:\
+	org.osgi.service.http.port=8080,\
+	org.apache.felix.http.jetty.maxFormSize=999999999,\
+	be.iminds.iot.dianne.storage="../tools/nn",\
+	be.iminds.iot.dianne.dataset.mnist.location="../tools/datasets/MNIST/",\
+	be.iminds.iot.dianne.dataset.imagenet.location="../tools/datasets/ImageNet/",\
+	be.iminds.iot.dianne.dataset.kaggle.location="../tools/datasets/Kaggle-CatvsDog/",\
+	be.iminds.iot.dianne.dataset.stl10.location="../tools/datasets/STL-10/",\
+	be.iminds.iot.dianne.dataset.cifar10.location="../tools/datasets/CIFAR-10/",\
+	be.iminds.iot.dianne.dataset.cifar100.location="../tools/datasets/CIFAR-100/",\
+	be.iminds.iot.dianne.dataset.cifar100.labels="coarse",\
+	be.iminds.iot.dianne.runtime.name="Local"
+	
+
+-runvm: -d64 -Xms512m -Xmx4g
+

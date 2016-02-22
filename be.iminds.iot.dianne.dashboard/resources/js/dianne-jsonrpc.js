@@ -49,6 +49,9 @@ var DIANNE = {
 		status : function(){
 			return this.call("status");
 		},
+		devices : function(){
+			return this.call("devices");
+		},
 		call: function(method, params){
 			var d = $.Deferred();
 			jsonrpc(method, params, function(data){

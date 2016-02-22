@@ -49,4 +49,5 @@ public interface DianneCoordinator {
 	
 	List<Notification> getNotifications();
 	
+	List<Device> getDevices();
 }

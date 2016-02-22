@@ -16,6 +16,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
+import be.iminds.iot.dianne.api.coordinator.Device;
 import be.iminds.iot.dianne.api.coordinator.DianneCoordinator;
 import be.iminds.iot.dianne.api.coordinator.EvaluationResult;
 import be.iminds.iot.dianne.api.coordinator.Job;
@@ -148,6 +149,9 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 			break;	
 		case "status":
 			writeResult(writer, id, coordinator.getStatus());
+			break;
+		case "devices":
+			writeResult(writer, id, coordinator.getDevices());
 			break;	
 		default:
 			writeError(writer, id, -32601, "Method "+method+" not found");
@@ -264,7 +268,7 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 			writer.value(s.eval);
 			writer.name("idle");
 			writer.value(s.idle);
-			writer.name("machines");
+			writer.name("devices");
 			writer.value(s.learn+s.eval+s.idle);
 			writer.name("spaceLeft");
 			float gb = s.spaceLeft/1000000000f;
@@ -272,7 +276,29 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 			writer.name("uptime");
 			writer.value(getElapsedTime(s.bootTime));
 			writer.endObject();
-		} else {
+		} else if(o instanceof Device){ 
+			Device d = (Device) o;
+			writer.beginObject();
+			writer.name("id");
+			writer.value(d.id.toString());
+			writer.name("name");
+			writer.value(d.name);
+			writer.name("arch");
+			writer.value(d.arch);
+			writer.name("os");
+			writer.value(d.os);
+			writer.name("ip");
+			writer.value(d.ip);
+			writer.name("learn");
+			writer.value(d.learn);
+			writer.name("eval");
+			writer.value(d.eval);
+			writer.name("cpuUsage");
+			writer.value(d.cpuUsage);
+			writer.name("memUsage");
+			writer.value(d.memUsage);
+			writer.endObject();
+		}else {
 			writer.value(o.toString());
 		}
 	}

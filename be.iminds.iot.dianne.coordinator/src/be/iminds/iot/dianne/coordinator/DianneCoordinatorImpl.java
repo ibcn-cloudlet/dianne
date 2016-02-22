@@ -48,6 +48,10 @@ import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.osgi.util.promise.Promise;
 
+import be.iminds.aiolos.info.NodeInfo;
+import be.iminds.aiolos.monitor.node.api.NodeMonitorInfo;
+import be.iminds.aiolos.platform.api.PlatformManager;
+import be.iminds.iot.dianne.api.coordinator.Device;
 import be.iminds.iot.dianne.api.coordinator.DianneCoordinator;
 import be.iminds.iot.dianne.api.coordinator.EvaluationResult;
 import be.iminds.iot.dianne.api.coordinator.Job;
@@ -71,6 +75,8 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 
 	DiannePlatform platform;
 	DianneRepository repository;
+	
+	PlatformManager aiolos;
 
 	Queue<AbstractJob> queue = new LinkedBlockingQueue<>();
 	Set<AbstractJob> running = new HashSet<>();
@@ -80,16 +86,21 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	Map<UUID, Evaluator> evaluators = new ConcurrentHashMap<>();
 	
 	ExecutorService pool = Executors.newCachedThreadPool();
-	
-	Map<UUID, Integer> machines = new ConcurrentHashMap<>(); 
+
+	Map<UUID, Device> devices = new ConcurrentHashMap<>();
+	// keeps which device is doing what
+	// 0 = idle
+	// 1 = learning
+	// 2 = evaluating
+	Map<UUID, Integer> deviceUsage = new ConcurrentHashMap<>(); 
 	
 	Queue<Notification> notifications = new LinkedBlockingQueue<>(20);
 	
 	@Override
 	public Status getStatus(){
-		int idle = machines.values().stream().mapToInt(i -> (i==0) ? 1 : 0).sum();
-		int learn = machines.values().stream().mapToInt(i -> (i==1) ? 1 : 0).sum();
-		int eval = machines.values().stream().mapToInt(i -> (i==2) ? 1 : 0).sum();
+		int idle = deviceUsage.values().stream().mapToInt(i -> (i==0) ? 1 : 0).sum();
+		int learn = deviceUsage.values().stream().mapToInt(i -> (i==1) ? 1 : 0).sum();
+		int eval = deviceUsage.values().stream().mapToInt(i -> (i==2) ? 1 : 0).sum();
 
 		long spaceLeft = repository.spaceLeft();
 		Status currentStatus = new Status(queue.size(), running.size(), learn, eval, idle, spaceLeft, boot);
@@ -155,12 +166,26 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	public List<Notification> getNotifications(){
 		return new ArrayList<>(notifications);
 	}
+
+	@Override
+	public List<Device> getDevices(){
+		devices.values().stream().forEach(device -> {
+			NodeMonitorInfo nmi = aiolos.getNodeMonitorInfo(device.id.toString());
+			if(nmi!=null){
+				device.cpuUsage = nmi.getCpuUsage();
+				device.memUsage = nmi.getMemoryUsage();
+			} else {
+				System.out.println("WTF is null?!");
+			}
+		});
+		return new ArrayList<>(devices.values());
+	}
 	
 	// called when a job is done
 	void done(AbstractJob job){
 		// remove from running list
 		running.remove(job);
-		job.targets.stream().forEach(uuid -> machines.put((UUID) uuid, 0));
+		job.targets.stream().forEach(uuid -> deviceUsage.put((UUID) uuid, 0));
 		
 		
 		// TODO safe results to disc/archive?
@@ -186,12 +211,12 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 			// TODO collect multiple in case multiple learners required
 			int required = 1;
 			// TODO filter learners on job properties
-			List<UUID> targets = learners.keySet().stream().filter(uuid -> machines.get(uuid)==0).limit(required).collect(Collectors.toList());
+			List<UUID> targets = learners.keySet().stream().filter(uuid -> deviceUsage.get(uuid)==0).limit(required).collect(Collectors.toList());
 			if(targets.size()!=required)
 				return;
 			
 			for(UUID target : targets){
-				machines.put(target, 1);
+				deviceUsage.put(target, 1);
 			}
 			job = queue.poll();
 			job.start(targets, pool);
@@ -204,12 +229,12 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 			// TODO collect multiple in case multiple evaluators required
 			int required = 1;
 			// TODO filter evaluators on job properties
-			List<UUID> targets = evaluators.keySet().stream().filter(uuid -> machines.get(uuid)==0).limit(required).collect(Collectors.toList());
+			List<UUID> targets = evaluators.keySet().stream().filter(uuid -> deviceUsage.get(uuid)==0).limit(required).collect(Collectors.toList());
 			if(targets.size()!=required)
 				return;
 
 			for(UUID target : targets){
-				machines.put(target, 2);
+				deviceUsage.put(target, 2);
 			}
 			job = queue.poll();
 			job.start(targets, pool);
@@ -240,6 +265,13 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		this.context = context;
 	}
 	
+	// TODO here we use a name (AIOLOS) that is alphabtically before the others
+	// so that the reference is set in addLearer/addEvaluator
+	@Reference(cardinality=ReferenceCardinality.OPTIONAL)
+	void setAIOLOS(PlatformManager p){  
+		this.aiolos = p;
+	}
+	
 	@Reference
 	void setEventAdmin(EventAdmin ea){
 		this.ea = ea;
@@ -261,9 +293,26 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		UUID id = learner.getLearnerId();
 		this.learners.put(id, learner);
 		
-		if(!machines.containsKey(id)){
-			machines.put(id, 0);
+		Device device = devices.get(id);
+		if(device == null){
+			deviceUsage.put(id, 0);
+
+			String name = id.toString();
+			String arch = "unknown";
+			String os = "unknown";
+			String ip = "unknown";
+			
+			if(aiolos!=null){
+				NodeInfo n = aiolos.getNode(id.toString());
+				name = n.getName();
+				arch = n.getArch();
+				os = n.getOS();
+				ip = n.getIP();
+			}
+			device = new Device(id, name, arch, os, ip);
+			devices.put(id, device);
 		}
+		device.learn = true;
 		
 		schedule();
 	}
@@ -283,7 +332,8 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		if(id!=null){
 			if(!learners.containsKey(id) 
 				&& !evaluators.containsKey(id)){
-				machines.remove(id);
+				deviceUsage.remove(id);
+				devices.remove(id);
 			}
 		}
 	}
@@ -294,9 +344,26 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		UUID id = evaluator.getEvaluatorId();
 		this.evaluators.put(id, evaluator);
 		
-		if(!machines.containsKey(id)){
-			machines.put(id, 0);
+		Device device = devices.get(id);
+		if(device == null){
+			deviceUsage.put(id, 0);
+
+			String name = id.toString();
+			String arch = "unknown";
+			String os = "unknown";
+			String ip = "unknown";
+			
+			if(aiolos!=null){
+				NodeInfo n = aiolos.getNode(id.toString());
+				name = n.getName();
+				arch = n.getArch();
+				os = n.getOS();
+				ip = n.getIP();
+			}
+			device = new Device(id, name, arch, os, ip);
+			devices.put(id, device);
 		}
+		device.eval = true;
 		
 		schedule();
 	}
@@ -316,12 +383,11 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		if(id!=null){
 			if(!learners.containsKey(id) 
 				&& !evaluators.containsKey(id)){
-				machines.remove(id);
+				deviceUsage.remove(id);
+				devices.remove(id);
 			}
 		}
 	}
-	
-	
 	
 	boolean isRecurrent(NeuralNetworkDTO nn){
 		if(nn.modules.values().stream().filter(module -> module.type.equals("Memory")).findAny().isPresent())

@@ -260,8 +260,8 @@
 		<b>System</b>
 		<ul>
 			<li>{{queued}} jobs queued</li>
-			<li>{{running}} jobs running on {{machines}} machines</li>
-			<li>{{idle}} machines idle</li>
+			<li>{{running}} jobs running on {{devices}} devices</li>
+			<li>{{idle}} devices idle</li>
 		</ul>
 		<b>Repository</b>
 		<ul>
@@ -275,7 +275,31 @@
 	</div>
 	<div id="status-chart" class="col-sm-6">
 	</div>
-</script>	
+	</script>	
+
+	<script type="x-tmpl-mustache" id="device">
+	<div class="block infrastructure col-lg-4 col-md-6">
+		<div class="panel panel-default resources">
+			<div class="panel-heading">{{name}}</div>
+			<div class="panel-body">
+				<b>{{id}}</b>
+				<ul>
+					<li>Arch: {{arch}}</li>
+					<li>OS: {{os}}</li>
+					<!--<li>CPU: Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz</li>-->
+					<!--<li>GPU: GeForce GTX 980 </li>-->
+					<li>IP: {{ip}}</li>
+				</ul>
+				<br/>
+				Resource usage:							
+				<div class="row">
+					<div id="{{id}}-mem" class="col-sm-6"></div>
+					<div id="{{id}}-cpu" class="col-sm-6"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	</script>	
 
 
 	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->

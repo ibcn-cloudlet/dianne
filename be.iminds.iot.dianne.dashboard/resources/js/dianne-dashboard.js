@@ -152,6 +152,62 @@ function refreshStatus(){
  	});
 }
 
+function refreshInfrastructure(){
+	DIANNE.devices().then(function(data){
+ 	 	$(".infrastructure").remove();
+ 	    $.each(data, function(i) {
+ 	        var device = data[i];
+ 	        var template = $('#device').html();
+     	  	Mustache.parse(template);
+     	  	var rendered = Mustache.render(template, device);
+     	  	$(rendered).appendTo($("#dashboard"));
+     	  	
+     	  	$('#'+device.id+'-cpu').highcharts(Highcharts.merge(gaugeOptions, {
+                yAxis: {
+                    min: 0,
+                    max: 100,
+                    title: {
+                        text: 'CPU usage'
+                    }
+                },
+                series: [{
+                    name: 'CPU',
+                    data: [device.cpuUsage],
+                    dataLabels: {
+                        format: '<div style="text-align:center"><span style="font-size:25px;color:' +
+                            ((Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black') + '">{y:.1f}%</span></div>'
+                    },
+                    tooltip: {
+                        valueSuffix: ' %'
+                    }
+                }]
+
+            }));
+
+            $('#'+device.id+'-mem').highcharts(Highcharts.merge(gaugeOptions, {
+                yAxis: {
+                    min: 0,
+                    max: 100,
+                    title: {
+                        text: 'Memory Usage'
+                    }
+                },
+                series: [{
+                    name: 'Memory',
+                    data: [device.memUsage],
+                    dataLabels: {
+                        format: '<div style="text-align:center"><span style="font-size:25px;color:' +
+                            ((Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black') + '">{y:.1f}%</span></div>'
+                    },
+                    tooltip: {
+                        valueSuffix: ' %'
+                    }
+                }]
+            }));
+ 	    });
+ 	});	
+}
+
 function addNotification(notification){
 	var template = $('#notification').html();
 	Mustache.parse(template);
@@ -244,52 +300,12 @@ function setModus(mode){
 		
 		
 	} else if(mode === "infrastructure"){
+     	refreshInfrastructure();
+     	
 		$(".block").hide();
 		$(".block").filter( ".infrastructure" ).show();
 		$("#mode-infrastructure").addClass("active");
-		
-        $('#gpu1-cpu').highcharts(Highcharts.merge(gaugeOptions, {
-            yAxis: {
-                min: 0,
-                max: 100,
-                title: {
-                    text: 'CPU usage'
-                }
-            },
-            series: [{
-                name: 'CPU',
-                data: [95],
-                dataLabels: {
-                    format: '<div style="text-align:center"><span style="font-size:25px;color:' +
-                        ((Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black') + '">{y:.1f}%</span></div>'
-                },
-                tooltip: {
-                    valueSuffix: ' %'
-                }
-            }]
 
-        }));
-
-        $('#gpu1-mem').highcharts(Highcharts.merge(gaugeOptions, {
-            yAxis: {
-                min: 0,
-                max: 100,
-                title: {
-                    text: 'Memory Usage'
-                }
-            },
-            series: [{
-                name: 'Memory',
-                data: [87],
-                dataLabels: {
-                    format: '<div style="text-align:center"><span style="font-size:25px;color:' +
-                        ((Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black') + '">{y:.1f}%</span></div>'
-                },
-                tooltip: {
-                    valueSuffix: ' %'
-                }
-            }]
-        }));
 	}
 
 }
@@ -400,7 +416,6 @@ $(function () {
      	});
      	
      	refreshJobs();
-     	
     });
 });
 
