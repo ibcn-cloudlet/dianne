@@ -320,7 +320,7 @@ public class DiannePlatformImpl implements DiannePlatform {
 		factory = f;
 	}
 
-	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
+	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
 	void addDianneRuntime(DianneRuntime r, Map<String, Object> properties){
 		runtimes.put(r.getRuntimeId(), r);
