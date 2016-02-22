@@ -25,6 +25,7 @@ package be.iminds.iot.dianne.coordinator;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -81,7 +82,11 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	
 	PlatformManager aiolos;
 
-	Queue<AbstractJob> queue = new LinkedBlockingQueue<>();
+	// separate queues for learn and eval jobs, 
+	// makes sure eval jobs are not blocked by big learn jobs
+	Queue<AbstractJob> queueLearn = new LinkedBlockingQueue<>();
+	Queue<AbstractJob> queueEval = new LinkedBlockingQueue<>();
+
 	Set<AbstractJob> running = new HashSet<>();
 	Queue<AbstractJob> finished = new LinkedBlockingQueue<>(10);
 	
@@ -106,7 +111,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		int eval = deviceUsage.values().stream().mapToInt(i -> (i==2) ? 1 : 0).sum();
 
 		long spaceLeft = repository.spaceLeft();
-		Status currentStatus = new Status(queue.size(), running.size(), learn, eval, idle, spaceLeft, boot);
+		Status currentStatus = new Status(queueLearn.size()+queueEval.size(), running.size(), learn, eval, idle, spaceLeft, boot);
 		return currentStatus;
 	}
 	
@@ -115,11 +120,11 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		repository.storeNeuralNetwork(nn);
 		
 		LearnJob job = new LearnJob(this, nn, dataset, config);
-		queue.add(job);
+		queueLearn.add(job);
 		
 		sendNotification(job.jobId, Level.INFO, "Job \""+job.name+"\" submitted.");
 		
-		schedule();
+		schedule(false);
 		
 		return job.getPromise();
 	}
@@ -135,11 +140,11 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		repository.storeNeuralNetwork(nn);
 		
 		EvaluationJob job = new EvaluationJob(this, nn, dataset, config);
-		queue.add(job);
+		queueEval.add(job);
 		
 		sendNotification(job.jobId, Level.INFO, "Job \""+job.name+"\" submitted.");
 		
-		schedule();
+		schedule(true);
 		
 		return job.getPromise();
 	}
@@ -151,7 +156,19 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	
 	@Override
 	public List<Job> queuedJobs() {
-		return queue.stream().map(j -> j.get()).collect(Collectors.toList());
+		List<Job> learnJobs = queueLearn.stream().map(j -> j.get()).collect(Collectors.toList());
+		List<Job> evalJobs = queueEval.stream().map(j -> j.get()).collect(Collectors.toList());
+
+		List<Job> allJobs = learnJobs;
+		allJobs.addAll(evalJobs);
+		allJobs.sort(new Comparator<Job>() {
+
+			@Override
+			public int compare(Job o1, Job o2) {
+				return (int)(o1.submitted - o2.submitted);
+			}
+		});
+		return allJobs;
 	}
 
 	@Override
@@ -193,17 +210,33 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		
 		finished.add(job);
 		
-		
 		sendNotification(job.jobId, Level.SUCCESS, "Job \""+job.name+"\" finished successfully.");
 
-		// schedule new one
-		schedule();
+		// schedule new one, check which queue has longest waiting queue item and schedule that one first
+		AbstractJob j1 = queueLearn.peek();
+		if(j1==null){
+			schedule(true);
+		} else {
+			AbstractJob j2 = queueEval.peek();
+			if(j2 ==null){
+				schedule(false);
+			} else {
+				if(j1.submitted < j2.submitted){
+					schedule(true);
+					schedule(false);
+				} else {
+					schedule(false);
+					schedule(true);
+				}
+			}
+		}
 	}
 	
 	// try to schedule the job on top of the queue
-	synchronized void schedule(){
+	synchronized void schedule(boolean eval){
 		// TODO what if not enough learners/evaluators or no matching learners/evaluators?
 		
+		Queue<AbstractJob> queue = eval ? queueEval : queueLearn;
 		// try to schedule the next job on the queue
 		AbstractJob job = queue.peek();
 		if(job==null){
@@ -236,10 +269,10 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		try {
 			if(targets!=null){
 				targets = findTargets(targets, filter, count);
-			} else if(job instanceof LearnJob){
-				targets = findTargets(learners.keySet(), filter, count);
-			} else if(job instanceof EvaluationJob){
+			} else if(eval){
 				targets = findTargets(evaluators.keySet(), filter, count);
+			} else {
+				targets = findTargets(learners.keySet(), filter, count);
 			}
 		} catch(Exception e){
 			job = queue.poll();
@@ -253,7 +286,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 			return;
 		}
 			
-		int usage = (job instanceof LearnJob) ? 1 : 2;	
+		int usage = eval ? 2 : 1;	
 		for(UUID target : targets){
 			deviceUsage.put(target, usage);
 		}
@@ -303,14 +336,14 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	}
 
 	void sendNotification(UUID jobId, Level level, String message){
-		Notification n = new Notification(jobId, level, message);
+		Notification n = new Notification(level, message);
 		
 		Map<String, Object> properties = new HashMap<>();
-		properties.put("id", n.jobId);
 		properties.put("level", n.level);
 		properties.put("message", n.message);
 		properties.put("timestamp", n.timestamp);
-		String topic = "dianne/jobs/"+jobId.toString();
+		
+		String topic = (jobId != null) ? "dianne/jobs/"+jobId.toString() : "dianne/jobs";
 		Event e = new Event(topic, properties);
 		ea.postEvent(e);
 		
@@ -330,7 +363,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	}
 	
 	@Reference
-	void setEventAdmin(EventAdmin ea){
+	void setEA(EventAdmin ea){
 		this.ea = ea;
 	}
 	
@@ -371,7 +404,9 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		}
 		device.learn = true;
 		
-		schedule();
+		sendNotification(null, Level.INFO, "New Learner "+id+" is added to the system.");
+		
+		schedule(false);
 	}
 	
 	void removeLearner(Learner learner, Map<String, Object> properties){
@@ -393,6 +428,9 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 				devices.remove(id);
 			}
 		}
+		
+		sendNotification(null, Level.WARNING, "Learner "+id+" is removed from the system.");
+
 	}
 
 	@Reference(policy=ReferencePolicy.DYNAMIC,
@@ -422,7 +460,9 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		}
 		device.eval = true;
 		
-		schedule();
+		sendNotification(null, Level.INFO, "New Evaluator "+id+" is added to the system.");
+		
+		schedule(true);
 	}
 	
 	void removeEvaluator(Evaluator evaluator, Map<String, Object> properties){
@@ -444,6 +484,9 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 				devices.remove(id);
 			}
 		}
+		
+		sendNotification(null, Level.WARNING, "Evaluator "+id+" is removed from the system.");
+
 	}
 	
 	boolean isRecurrent(NeuralNetworkDTO nn){

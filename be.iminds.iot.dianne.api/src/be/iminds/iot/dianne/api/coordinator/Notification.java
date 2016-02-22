@@ -11,13 +11,11 @@ public class Notification {
 		SUCCESS
 	}
 	
-	public final UUID jobId;
 	public final Level level;
 	public final String message;
 	public final long timestamp;
 	
-	public Notification(UUID jobId, Level level, String message){
-		this.jobId = jobId;
+	public Notification(Level level, String message){
 		this.level = level;
 		this.message = message;
 		this.timestamp = System.currentTimeMillis();
