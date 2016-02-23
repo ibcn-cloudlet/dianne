@@ -68,6 +68,8 @@ function refreshJobs(){
  	
  	// running jobs
  	DIANNE.runningJobs().then(function(data){
+ 	 	$(".jobs").remove();
+
  	 	$("#jobs-running").empty();
  	    $.each(data, function(i) {
  	        var job = data[i];
@@ -75,6 +77,12 @@ function refreshJobs(){
      	  	Mustache.parse(template);
      	  	var rendered = Mustache.render(template, job);
      	  	$(rendered).appendTo($("#jobs-running"));
+     	  	
+     	  	var template2 = $('#job').html();
+     	  	Mustache.parse(template2);
+     	  	var rendered2 = Mustache.render(template2, job);
+     	  	$(rendered2).appendTo($("#dashboard"));
+
  	    });
  	});
  	
@@ -94,6 +102,12 @@ function refreshJobs(){
 function refreshStatus(){
 	DIANNE.status().then(function(data){
 		var status = data[0];
+		// format
+		status.uptime = moment.duration(moment().diff(moment(status.bootTime))).humanize();
+		status.spaceLeft = status.spaceLeft/1000000000;
+		status.spaceLeft = status.spaceLeft.toFixed(1);
+		status.devices = status.learn+status.eval+status.idle;
+
  	 	$("#status").empty();
  	    var template = $('#stat').html();
  	    Mustache.parse(template);
@@ -209,6 +223,7 @@ function refreshInfrastructure(){
 }
 
 function addNotification(notification){
+	notification.time = moment(notification.time).format("HH:mm:ss DD-MM-YYYY");
 	var template = $('#notification').html();
 	Mustache.parse(template);
 	var rendered = Mustache.render(template, notification);

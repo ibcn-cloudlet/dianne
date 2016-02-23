@@ -1,9 +1,10 @@
 package be.iminds.iot.dianne.jsonrpc;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.osgi.service.component.annotations.Component;
@@ -16,18 +17,12 @@ import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
-import be.iminds.iot.dianne.api.coordinator.Device;
 import be.iminds.iot.dianne.api.coordinator.DianneCoordinator;
 import be.iminds.iot.dianne.api.coordinator.EvaluationResult;
-import be.iminds.iot.dianne.api.coordinator.Job;
 import be.iminds.iot.dianne.api.coordinator.LearnResult;
-import be.iminds.iot.dianne.api.coordinator.Notification;
-import be.iminds.iot.dianne.api.coordinator.Status;
-import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.nn.util.DianneJSONConverter;
-import be.iminds.iot.dianne.tensor.Tensor;
 
 @Component
 public class DianneRequestHandler implements JSONRPCRequestHandler {
@@ -199,107 +194,66 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 		writer.flush();			
 	}
 	
-	public void writeObject(JsonWriter writer, Object o) throws Exception{
-		// TODO object conversion would be handy here...
-		if(o instanceof LearnResult){
-			LearnResult learnResult = (LearnResult) o;
-			writer.beginObject();
-			writer.name("error");
-			writer.value(learnResult.error);
-			writer.name("iterations");
-			writer.value(learnResult.iterations);
-			writer.endObject();
-		} else if(o instanceof EvaluationResult){
-			EvaluationResult evalResult = (EvaluationResult) o;
-			for(Evaluation eval : evalResult.evaluations.values()){
-				writer.beginObject();
-				writer.name("accuracy");
-				writer.value(eval.accuracy());
-				writer.name("forwardTime");
-				writer.value(eval.forwardTime());
-				writer.name("outputs");
-				writer.beginArray();
-				for(Tensor t : eval.getOutputs()){
-					writer.beginArray();
-					for(float f : t.get()){
-						writer.value(f);
-					}
-					writer.endArray();
-				}
-				writer.endArray();
-				writer.endObject();
+	public void writeObject(JsonWriter writer, Object o) throws Exception {
+		if(o==null){
+			writer.value("null");
+		} else if(o instanceof List){
+			List l = (List)o;
+			writer.beginArray();
+			for(Object ll : l){
+				writeObject(writer, ll);
 			}
-		} else if(o instanceof Job){
-			Job job = (Job) o;
+			writer.endArray();
+		} else if(o instanceof Map){
+			Map m = (Map) o;
 			writer.beginObject();
-			writer.name("id");
-			writer.value(job.id.toString());
-			writer.name("name");
-			writer.value(job.name);
-			writer.name("type");
-			writer.value(job.type);
-			writer.name("nn");
-			writer.value(job.nn);
-			writer.name("dataset");
-			writer.value(job.dataset);
+			for(Object k : m.keySet()){
+				writer.name(k.toString());
+				writeObject(writer, m.get(k));
+			}
 			writer.endObject();
-		} else if(o instanceof Notification) {
-			Notification n = (Notification) o;
-			writer.beginObject();
-			writer.name("message");
-			writer.value(n.message);
-			writer.name("level");
-			writer.value(n.level.toString().toLowerCase());
-			writer.name("time");
-			Date date = new Date(n.timestamp);
-			SimpleDateFormat sdfDate = new SimpleDateFormat("HH:mm:ss dd-MM-yyyy");
-			writer.value(sdfDate.format(date));
-			writer.endObject();
-		} else if(o instanceof Status){
-			writer.beginObject();
-			Status s = (Status) o;
-			writer.name("queued");
-			writer.value(s.queued);
-			writer.name("running");
-			writer.value(s.running);
-			writer.name("learn");
-			writer.value(s.learn);
-			writer.name("eval");
-			writer.value(s.eval);
-			writer.name("idle");
-			writer.value(s.idle);
-			writer.name("devices");
-			writer.value(s.learn+s.eval+s.idle);
-			writer.name("spaceLeft");
-			float gb = s.spaceLeft/1000000000f;
-			writer.value(String.format("%.1f", gb));
-			writer.name("uptime");
-			writer.value(getElapsedTime(s.bootTime));
-			writer.endObject();
-		} else if(o instanceof Device){ 
-			Device d = (Device) o;
-			writer.beginObject();
-			writer.name("id");
-			writer.value(d.id.toString());
-			writer.name("name");
-			writer.value(d.name);
-			writer.name("arch");
-			writer.value(d.arch);
-			writer.name("os");
-			writer.value(d.os);
-			writer.name("ip");
-			writer.value(d.ip);
-			writer.name("learn");
-			writer.value(d.learn);
-			writer.name("eval");
-			writer.value(d.eval);
-			writer.name("cpuUsage");
-			writer.value(d.cpuUsage);
-			writer.name("memUsage");
-			writer.value(d.memUsage);
-			writer.endObject();
-		}else {
+		} else if(o.getClass().equals(String.class)){
 			writer.value(o.toString());
+		} else {
+			writer.beginObject();
+			for(Field f : o.getClass().getFields()){
+				if(Modifier.isPublic(f.getModifiers())){
+					writer.name(f.getName());
+					if(f.getType().isPrimitive()){ 
+						switch(f.getType().getName()){
+						case "long":
+							writer.value(f.getLong(o));
+							break;
+						case "int":
+							writer.value(f.getInt(o));
+							break;
+						case "float":
+							writer.value(f.getFloat(o));
+							break;
+						case "double":
+							writer.value(f.getDouble(o));
+							break;
+						case "boolean":
+							writer.value(f.getBoolean(o));
+							break;
+						case "short": 
+							writer.value(f.getShort(o));
+							break;
+						case "byte":
+							writer.value(f.getByte(o));
+							break;
+						}
+					} else if(f.getType().equals(String.class) 
+							|| f.getType().equals(UUID.class)){
+						writer.value(f.get(o).toString());
+					} else if(f.getType().isEnum()){
+						writer.value(f.get(o).toString().toLowerCase());
+					} else {
+						writeObject(writer, f.get(o));
+					}
+				}
+			}
+			writer.endObject();
 		}
 	}
 	
@@ -311,29 +265,5 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 	@Reference
 	void setDiannePlatform(DiannePlatform p){
 		this.platform = p;
-	}
-	
-	private String getElapsedTime(long since){
-		long diff = System.currentTimeMillis()-since;
-		
-		long secondsInMilli = 1000;
-		long minutesInMilli = secondsInMilli * 60;
-		long hoursInMilli = minutesInMilli * 60;
-		long daysInMilli = hoursInMilli * 24;
-
-		long elapsedDays = diff / daysInMilli;
-		diff = diff % daysInMilli;
-		
-		long elapsedHours = diff / hoursInMilli;
-		diff = diff % hoursInMilli;
-		
-		long elapsedMinutes = diff / minutesInMilli;
-		diff = diff % minutesInMilli;
-		
-		StringBuilder builder = new StringBuilder();
-		builder.append(elapsedDays).append(" days, ")
-			.append(elapsedHours).append(" hours and ")
-			.append(elapsedMinutes).append(" minutes");
-		return builder.toString();
 	}
 }

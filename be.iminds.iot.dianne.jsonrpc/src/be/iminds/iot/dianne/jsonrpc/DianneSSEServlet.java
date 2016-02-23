@@ -2,8 +2,6 @@ package be.iminds.iot.dianne.jsonrpc;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -54,9 +52,7 @@ public class DianneSSEServlet extends HttpServlet implements EventHandler {
 		data.add("message", new JsonPrimitive((String)event.getProperty("message")));
 		data.add("level", new JsonPrimitive(event.getProperty("level").toString().toLowerCase()));
 		long timestamp = (Long)event.getProperty("timestamp");
-		Date date = new Date(timestamp);
-		SimpleDateFormat sdfDate = new SimpleDateFormat("HH:mm:ss dd-MM-yyyy");
-		data.add("time", new JsonPrimitive(sdfDate.format(date)));
+		data.add("time", new JsonPrimitive(timestamp));
 		
 		StringBuilder builder = new StringBuilder();
 		builder.append("data: ").append(data.toString()).append("\n\n");
