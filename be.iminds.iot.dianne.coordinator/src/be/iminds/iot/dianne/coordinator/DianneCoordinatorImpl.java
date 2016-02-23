@@ -244,13 +244,6 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 			return;
 		}
 		
-		// check if count/filter is specified
-		int count = 1;
-		if(job.config.containsKey("targetCount")){
-			count = Integer.parseInt((String)job.config.get("targetCount"));
-		}
-		String filter = (String)job.config.get("targetFilter");
-		
 		// check in case a target list is given as comma separated uuids
 		List<UUID> targets = null;
 		String t = (String)job.config.get("targets");
@@ -265,6 +258,16 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 				targets = null;
 			}
 		}
+		
+		// check if count/filter is specified
+		int count = 1;
+		if(job.config.containsKey("targetCount")){
+			count = Integer.parseInt((String)job.config.get("targetCount"));
+		} else if(targets!=null){
+			// if no count given but targets is, use all of them?
+			count = targets.size();
+		}
+		String filter = (String)job.config.get("targetFilter");
 		
 		try {
 			if(targets!=null){
@@ -355,7 +358,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		this.context = context;
 	}
 	
-	// TODO here we use a name (AIOLOS) that is alphabtically before the others
+	// TODO here we use a name (AIOLOS) that is alphabetically before the others
 	// so that the reference is set in addLearer/addEvaluator
 	@Reference(cardinality=ReferenceCardinality.OPTIONAL)
 	void setAIOLOS(PlatformManager p){  
