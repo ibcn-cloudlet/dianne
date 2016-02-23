@@ -73,15 +73,22 @@ function refreshJobs(){
  	 	$("#jobs-running").empty();
  	    $.each(data, function(i) {
  	        var job = data[i];
+     	  	job.devices = job.targets.length;
+     	  	job.time = moment(job.started).from(moment());
+ 	        
+     	  	// for dashboard list
  	        var template = $('#jobs-item').html();
      	  	Mustache.parse(template);
      	  	var rendered = Mustache.render(template, job);
      	  	$(rendered).appendTo($("#jobs-running"));
      	  	
+     	  	// for jobs details
      	  	var template2 = $('#job').html();
      	  	Mustache.parse(template2);
      	  	var rendered2 = Mustache.render(template2, job);
      	  	$(rendered2).appendTo($("#dashboard"));
+     	  	
+            createErrorChart($('#'+job.id+"-progress"));
 
  	    });
  	});
@@ -101,7 +108,7 @@ function refreshJobs(){
 
 function refreshStatus(){
 	DIANNE.status().then(function(data){
-		var status = data[0];
+		var status = data;
 		// format
 		status.uptime = moment.duration(moment().diff(moment(status.bootTime))).humanize();
 		status.spaceLeft = status.spaceLeft/1000000000;
@@ -114,55 +121,8 @@ function refreshStatus(){
      	var rendered = Mustache.render(template, status);
      	$(rendered).appendTo($("#status"));
  	   
-		   // status chart
-        $('#status-chart').highcharts({
-            chart: {
-                plotBackgroundColor: null,
-                plotBorderWidth: null,
-                plotShadow: false,
-                height: 220,
-                type: 'pie'
-            },
-            legend: {
-                layout: 'horizontal',
-                floating: true,
-                x: -10,
-                y: 10
-            },
-            credits: {
-                enabled: false
-            },
-            title:{
-                text:''
-            },
-            tooltip: {
-                pointFormat: '{series.name}: <b>{point.y}</b>'
-            },
-            plotOptions: {
-                pie: {
-                    allowPointSelect: true,
-                    cursor: 'pointer',
-                    dataLabels: {
-                        enabled: false
-                    },
-                    showInLegend: true
-                }
-            },
-            series: [{
-                name: 'Utilization',
-                colorByPoint: true,
-                data: [{
-                    name: 'Learning',
-                    y: status.learn
-                }, {
-                    name: 'Idle',
-                    y: status.idle
-                }, {
-                    name: 'Evaluating',
-                    y: status.eval
-                }]
-            }]
-        });
+		// status chart
+        createStatusChart($('#status-chart'), status);
  	});
 }
 
@@ -176,48 +136,8 @@ function refreshInfrastructure(){
      	  	var rendered = Mustache.render(template, device);
      	  	$(rendered).appendTo($("#dashboard"));
      	  	
-     	  	$('#'+device.id+'-cpu').highcharts(Highcharts.merge(gaugeOptions, {
-                yAxis: {
-                    min: 0,
-                    max: 100,
-                    title: {
-                        text: 'CPU usage'
-                    }
-                },
-                series: [{
-                    name: 'CPU',
-                    data: [device.cpuUsage],
-                    dataLabels: {
-                        format: '<div style="text-align:center"><span style="font-size:25px;color:' +
-                            ((Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black') + '">{y:.1f}%</span></div>'
-                    },
-                    tooltip: {
-                        valueSuffix: ' %'
-                    }
-                }]
-
-            }));
-
-            $('#'+device.id+'-mem').highcharts(Highcharts.merge(gaugeOptions, {
-                yAxis: {
-                    min: 0,
-                    max: 100,
-                    title: {
-                        text: 'Memory Usage'
-                    }
-                },
-                series: [{
-                    name: 'Memory',
-                    data: [device.memUsage],
-                    dataLabels: {
-                        format: '<div style="text-align:center"><span style="font-size:25px;color:' +
-                            ((Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black') + '">{y:.1f}%</span></div>'
-                    },
-                    tooltip: {
-                        valueSuffix: ' %'
-                    }
-                }]
-            }));
+     	  	createGaugeChart($('#'+device.id+'-cpu'), 'CPU usage', device.cpuUsage);
+     	  	createGaugeChart($('#'+device.id+'-mem'), 'Memory usage', device.memUsage);
  	    });
  	});	
 }
@@ -239,80 +159,10 @@ function setModus(mode){
 		$("#mode-dashboard").addClass("active");
 		
 		refreshStatus();
-
 	} else if(mode === "jobs"){
 		$(".block").hide();
 		$(".block").filter( ".jobs" ).show();
 		$("#mode-jobs").addClass("active");
-		
-	       // learn job charts
-        $('#chart1').highcharts({
-            chart: {
-                height: 250,
-                type: 'line'
-            },
-            title: {
-                text: ''
-            },
-            xAxis: {
-                categories: ['100k', '200k', '300k', '400k', '500k', '600k', '700k', '800k', '900k', '1M']
-            },
-            yAxis: {
-            },
-            credits: {
-                enabled: false
-            },
-            legend: {
-            	enabled: false
-            },
-            tooltip: {
-                formatter: function () {
-                    return '<b>' + this.series.name + '</b><br/>' +
-                        this.x + ': ' + this.y;
-                }
-            },
-            plotOptions: {
-            },
-            series: [{
-            	name: 'Error',
-                data: [2.1, 1.2, 0.8, 0.65, 0.51, 0.43, 0.31, 0.28, 0.24, 0.22]
-            }]
-        });
-        
-        $('#chart2').highcharts({
-            chart: {
-                height: 250,
-                type: 'line'
-            },
-            title: {
-                text: ''
-            },
-            xAxis: {
-                categories: ['100k', '200k', '300k', '400k', '500k', '600k', '700k', '800k', '900k', '1M']
-            },
-            yAxis: {
-            },
-            credits: {
-                enabled: false
-            },
-            legend: {
-            	enabled: false
-            },
-            tooltip: {
-                formatter: function () {
-                    return '<b>' + this.series.name + '</b><br/>' +
-                        this.x + ': ' + this.y;
-                }
-            },
-            plotOptions: {
-            },
-            series: [{
-            	name: 'Target Q',
-                data: [-0.1, -0.5, -0.8, -0.7, -0.4, -0.2, 0.4]
-            }]
-        });
-        
-		
 		
 	} else if(mode === "infrastructure"){
      	refreshInfrastructure();
@@ -320,94 +170,15 @@ function setModus(mode){
 		$(".block").hide();
 		$(".block").filter( ".infrastructure" ).show();
 		$("#mode-infrastructure").addClass("active");
-
 	}
-
 }
-
-
-
-// gauge charts
-var gaugeOptions = {
-        chart: {
-            type: 'solidgauge',
-            height: 200
-        },
-        title: null,
-        pane: {
-            center: ['50%', '85%'],
-            size: '140%',
-            startAngle: -90,
-            endAngle: 90,
-            background: {
-                backgroundColor: (Highcharts.theme && Highcharts.theme.background2) || '#EEE',
-                innerRadius: '60%',
-                outerRadius: '100%',
-                shape: 'arc'
-            }
-        },
-        tooltip: {
-            enabled: false
-        },
-        credits: {
-            enabled: false
-        },
-        // the value axis
-        yAxis: {
-        	color: {
-        	    radialGradient: { cx: 0.5, cy: 0.5, r: 0.5 },
-        	    stops: [
-        	       [0, '#003399'],
-        	       [1, '#3366AA']
-        	    ]
-        	},
-            lineWidth: 0,
-            minorTickInterval: null,
-            tickPixelInterval: 400,
-            tickWidth: 0,
-            title: {
-                y: -70
-            },
-            labels: {
-                y: 16
-            }
-        },
-        plotOptions: {
-            solidgauge: {
-                dataLabels: {
-                    y: 5,
-                    borderWidth: 0,
-                    useHTML: true
-                }
-            }
-        }
-    };
 
 
 // initialize
 $(function () {
-
     $(document).ready(function () {
-    	
-    	// gradient fill for pie chart
-    	 Highcharts.getOptions().colors = Highcharts.map(Highcharts.getOptions().colors, function (color) {
-    	        return {
-    	            radialGradient: {
-    	                cx: 0.5,
-    	                cy: 0.3,
-    	                r: 0.7
-    	            },
-    	            stops: [
-    	                [0, color],
-    	                [1, Highcharts.Color(color).brighten(-0.3).get('rgb')] // darken
-    	            ]
-    	        };
-    	    });
-    	
-     
      	setModus('dashboard');
 
-     	
      	// TODO set each time the dialog is shown?
      	// nn options in submission dialog
      	DIANNE.nns().then(function(data){
@@ -443,7 +214,7 @@ var eventsource;
 if(typeof(EventSource) === "undefined") {
 	// load polyfill eventsource library
 	$.getScript( "js/lib/eventsource.min.js").done(function( script, textStatus ) {
-		console("Fallback to eventsource.js for SSE...");
+		console.log("Fallback to eventsource.js for SSE...");
 	}).fail(function( jqxhr, settings, exception ) {
 		console.log("Sorry, your browser does not support server-sent events...");
 	});
@@ -451,9 +222,17 @@ if(typeof(EventSource) === "undefined") {
 
 eventsource = new EventSource("/dianne/sse");
 eventsource.onmessage = function(event){
-	var notification = JSON.parse(event.data);
-	addNotification(notification);
-	refreshJobs();
-	refreshStatus();
+	var data = JSON.parse(event.data);
+	if(data.type === "notification"){
+		addNotification(data);
+		refreshJobs();
+		refreshStatus();
+	} else if(data.type === "progress"){
+		var index = Number($("#"+data.jobId+"-progress").attr("data-highcharts-chart"));
+		console.log("INDEX "+index);
+    	var x = Number(data.iteration);
+        var y = Number(data.error); 
+		Highcharts.charts[index].series[0].addPoint([x, y], true, true, false);
+	}
 }
 

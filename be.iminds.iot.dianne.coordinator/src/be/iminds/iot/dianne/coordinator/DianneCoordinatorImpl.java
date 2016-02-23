@@ -64,6 +64,7 @@ import be.iminds.iot.dianne.api.coordinator.Notification;
 import be.iminds.iot.dianne.api.coordinator.Notification.Level;
 import be.iminds.iot.dianne.api.coordinator.Status;
 import be.iminds.iot.dianne.api.nn.eval.Evaluator;
+import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
@@ -200,17 +201,27 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	}
 	
 	// called when a job is done
-	void done(AbstractJob job){
+	void done(AbstractJob job) {
 		// remove from running list
 		running.remove(job);
 		job.targets.stream().forEach(uuid -> deviceUsage.put((UUID) uuid, 0));
 		
-		
-		// TODO safe results to disc/archive?
+		try {
+			Throwable error = job.getPromise().getFailure();
+			if(error !=null){
+				sendNotification(job.jobId, Level.DANGER, "Job \""+job.name+"\" failed: "+error.getMessage());
+			} else {
+				// TODO safe results to disc/archive?
+				
+				
+				
+				
+				sendNotification(job.jobId, Level.SUCCESS, "Job \""+job.name+"\" finished successfully.");
+			}
+		} catch (InterruptedException e) {
+		}
 		
 		finished.add(job);
-		
-		sendNotification(job.jobId, Level.SUCCESS, "Job \""+job.name+"\" finished successfully.");
 
 		// schedule new one, check which queue has longest waiting queue item and schedule that one first
 		AbstractJob j1 = queueLearn.peek();
@@ -353,6 +364,17 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		notifications.add(n);
 	}
 
+	void sendProgress(UUID jobId, LearnProgress progress){
+		Map<String, Object> properties = new HashMap<>();
+		properties.put("jobId", jobId.toString());
+		properties.put("iteration", progress.iteration);
+		properties.put("error", progress.error);
+		
+		String topic = "dianne/jobs/"+jobId.toString()+"/progress";
+		Event e = new Event(topic, properties);
+		ea.postEvent(e);
+	}
+	
 	@Activate
 	void activate(BundleContext context){
 		this.context = context;

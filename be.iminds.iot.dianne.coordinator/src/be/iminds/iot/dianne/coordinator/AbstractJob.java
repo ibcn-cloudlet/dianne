@@ -29,6 +29,7 @@ public abstract class AbstractJob<T> implements Runnable {
 
 	protected List<UUID> targets = null;
 	protected Map<UUID, NeuralNetworkInstanceDTO> nnis = null;
+	protected Map<UUID, UUID> targetsByNNi = null;
 	
 	protected long submitted = 0;
 	protected long started = 0;
@@ -69,9 +70,11 @@ public abstract class AbstractJob<T> implements Runnable {
 		try {
 			// deploy neural network on each target instance
 			nnis = new HashMap<UUID, NeuralNetworkInstanceDTO>();
+			targetsByNNi = new HashMap<>();
 			for(UUID target : targets){
 				NeuralNetworkInstanceDTO nni = coordinator.platform.deployNeuralNetwork(nn.name, "Dianne Coordinator LearnJob "+jobId, target);
 				nnis.put(target, nni);
+				targetsByNNi.put(nni.id, target);
 			}
 			
 			// execute

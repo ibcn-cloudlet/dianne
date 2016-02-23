@@ -22,7 +22,7 @@ public class LearnJob extends AbstractJob<LearnResult> implements RepositoryList
 	
 	private long maxIterations = 10000;
 	
-	private LearnResult result;
+	private LearnResult result = new LearnResult();
 	
 	public LearnJob(DianneCoordinatorImpl coord, 
 			NeuralNetworkDTO nn,
@@ -71,11 +71,18 @@ public class LearnJob extends AbstractJob<LearnResult> implements RepositoryList
 		}
 		
 		// check stop conditition
-		// TODO aggregate over all learners?
-		// or make sure to check the learner this update comes from
-		LearnProgress progress = coordinator.learners.get(targets.get(0)).getProgress();
+		LearnProgress progress = coordinator.learners.get(targetsByNNi.get(nnId)).getProgress();
+		if(Float.isNaN(progress.error)){
+			// NaN throw error!
+			done(new Exception("Error became NaN"));
+		}
 		
-		// maxIterations stop condition 
+		result.progress.add(progress);
+		
+		coordinator.sendProgress(this.jobId, progress);
+		
+		// maxIterations stop condition
+		// what in case of multiple learners?!
 		boolean stop = progress.iteration >= maxIterations;
 		
 		// TODO other stop conditions
@@ -86,8 +93,6 @@ public class LearnJob extends AbstractJob<LearnResult> implements RepositoryList
 		
 		// if stop ... assemble result object and resolve
 		if(stop){
-			// TODO keep complete history in result
-			result = new LearnResult(progress.error, progress.iteration);
 			done(result);
 		}
 	}

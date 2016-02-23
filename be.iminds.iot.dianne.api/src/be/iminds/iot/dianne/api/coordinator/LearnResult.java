@@ -22,6 +22,11 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.coordinator;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
+
 /**
  * Summarizes the learn results
  * @author tverbele
@@ -29,14 +34,21 @@ package be.iminds.iot.dianne.api.coordinator;
  */
 public class LearnResult {
 
-	/** avg error as perceived by the learner **/
-	public float error;
-	/** iterations executed **/
-	public long iterations;
+	public List<LearnProgress> progress;
 	
+	public LearnResult(){
+		this.progress = new ArrayList<>();
+	}
 	
-	public LearnResult(float error, long iterations){
-		this.error = error;
-		this.iterations = iterations;
+	public LearnResult(ArrayList<LearnProgress> p){
+		this.progress = p;
+	}
+	
+	public long getIterations(){
+		return progress.get(progress.size()-1).iteration;
+	}
+	
+	public float getError(){
+		return progress.get(progress.size()-1).error;
 	}
 }

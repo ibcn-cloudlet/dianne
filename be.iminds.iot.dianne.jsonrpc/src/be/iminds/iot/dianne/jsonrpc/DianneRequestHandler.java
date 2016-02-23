@@ -20,9 +20,11 @@ import com.google.gson.stream.JsonWriter;
 import be.iminds.iot.dianne.api.coordinator.DianneCoordinator;
 import be.iminds.iot.dianne.api.coordinator.EvaluationResult;
 import be.iminds.iot.dianne.api.coordinator.LearnResult;
+import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.nn.util.DianneJSONConverter;
+import be.iminds.iot.dianne.tensor.Tensor;
 
 @Component
 public class DianneRequestHandler implements JSONRPCRequestHandler {
@@ -179,17 +181,9 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 		writer.name("id");
 		writer.value(id);
 		writer.name("result");
-		writer.beginArray();
 		// write result object
-		if(result instanceof List){
-			for(Object o : (List) result){
-				writeObject(writer, o);
-			}
-		} else {
-			writeObject(writer, result);
-		}
+		writeObject(writer, result);
 		// end result object
-		writer.endArray();
 		writer.endObject();
 		writer.flush();			
 	}
@@ -197,6 +191,10 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 	public void writeObject(JsonWriter writer, Object o) throws Exception {
 		if(o==null){
 			writer.value("null");
+		} else if(o instanceof LearnResult){
+			writeLearnResult(writer, (LearnResult) o);
+		} else if(o instanceof EvaluationResult){
+			writeEvaluationResult(writer, (EvaluationResult) o);
 		} else if(o instanceof List){
 			List l = (List)o;
 			writer.beginArray();
@@ -255,6 +253,41 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 			}
 			writer.endObject();
 		}
+	}
+	
+	// dedicated methods for writing LearnResult and EvaluationResult objects ... these are no simple dtos
+	private void writeLearnResult(JsonWriter writer, LearnResult result) throws Exception{
+		writer.beginArray();
+		writer.beginObject();
+		writer.name("error");
+		writer.value(new Float(result.getError()));
+		writer.name("iterations");
+		writer.value(result.getIterations());
+		writer.endObject();		
+		writer.endArray();
+	}
+	
+	private void writeEvaluationResult(JsonWriter writer, EvaluationResult result) throws Exception{
+		writer.beginArray();
+		for(Evaluation eval : result.evaluations.values()){
+			writer.beginObject();
+			writer.name("accuracy");
+			writer.value(new Float(eval.accuracy()));
+			writer.name("forwardTime");
+			writer.value(eval.forwardTime());
+			writer.name("outputs");
+			writer.beginArray();
+			for(Tensor t : eval.getOutputs()){
+				writer.beginArray();
+				for(float f : t.get()){
+					writer.value(new Float(f));
+				}
+				writer.endArray();
+			}
+			writer.endArray();
+			writer.endObject();	
+		}
+		writer.endArray();
 	}
 	
 	@Reference

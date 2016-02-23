@@ -40,7 +40,7 @@ public interface DianneCoordinator {
 	Promise<EvaluationResult> eval(String nnName, String dataset, Map<String, String> config);
 	
 	Promise<EvaluationResult> eval(NeuralNetworkDTO nn, String dataset, Map<String, String> config);
-
+	
 	List<Job> queuedJobs();
 	
 	List<Job> runningJobs();
@@ -50,4 +50,5 @@ public interface DianneCoordinator {
 	List<Notification> getNotifications();
 	
 	List<Device> getDevices();
+	
 }

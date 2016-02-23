@@ -49,10 +49,21 @@ public class DianneSSEServlet extends HttpServlet implements EventHandler {
 	public void handleEvent(Event event) {
 		// construct server sent event
 		JsonObject data = new JsonObject();
-		data.add("message", new JsonPrimitive((String)event.getProperty("message")));
-		data.add("level", new JsonPrimitive(event.getProperty("level").toString().toLowerCase()));
-		long timestamp = (Long)event.getProperty("timestamp");
-		data.add("time", new JsonPrimitive(timestamp));
+		
+		if(event.getTopic().contains("progress")){
+			// progress
+			data.add("type", new JsonPrimitive("progress"));
+			data.add("jobId", new JsonPrimitive(event.getProperty("jobId").toString()));
+			data.add("iteration", new JsonPrimitive((Long)event.getProperty("iteration")));
+			data.add("error", new JsonPrimitive((Float)event.getProperty("error")));
+		} else {
+			// notification
+			data.add("type", new JsonPrimitive("notification"));
+			data.add("message", new JsonPrimitive((String)event.getProperty("message")));
+			data.add("level", new JsonPrimitive(event.getProperty("level").toString().toLowerCase()));
+			long timestamp = (Long)event.getProperty("timestamp");
+			data.add("time", new JsonPrimitive(timestamp));
+		}
 		
 		StringBuilder builder = new StringBuilder();
 		builder.append("data: ").append(data.toString()).append("\n\n");

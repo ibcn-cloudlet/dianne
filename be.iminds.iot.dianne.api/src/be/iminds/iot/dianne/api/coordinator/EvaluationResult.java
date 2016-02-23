@@ -22,6 +22,7 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.coordinator;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -34,6 +35,6 @@ import be.iminds.iot.dianne.api.nn.eval.Evaluation;
  */
 public class EvaluationResult {
 
-	public Map<UUID, Evaluation> evaluations;
+	public Map<UUID, Evaluation> evaluations = new HashMap<>();
 	
 }

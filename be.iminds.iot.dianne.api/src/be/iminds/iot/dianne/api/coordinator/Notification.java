@@ -1,7 +1,5 @@
 package be.iminds.iot.dianne.api.coordinator;
 
-import java.util.UUID;
-
 public class Notification {
 
 	public enum Level {
