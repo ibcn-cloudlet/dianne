@@ -6,17 +6,30 @@ import java.util.UUID;
 
 public class Job {
 
+	public enum Type {
+		LEARN,
+		EVALUATION
+	}
+	
+	public enum Category {
+		FF,
+		RNN,
+		RL
+	}
+	
 	public final UUID id;
 	public final String name;
-	public final String type;
+	public final Type type;
+	public final Category category;
 	public final String nn;
 	public final String dataset;
 	public final Map<String, String> config;
 	
-	public Job(UUID id, String name, String type, String nn, String d, Map<String, String> c){
+	public Job(UUID id, String name, Type type, Category category, String nn, String d, Map<String, String> c){
 		this.id = id;
 		this.name = name;
 		this.type = type;
+		this.category = category;
 		this.nn = nn;
 		this.dataset = d;
 		this.config = c;

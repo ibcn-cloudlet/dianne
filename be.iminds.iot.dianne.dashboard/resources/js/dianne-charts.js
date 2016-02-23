@@ -83,7 +83,7 @@ function createErrorChart(container) {
             type: 'line',
             animation: false, // don't animate in old IE
             marginRight: 10,
-    		height: 200,
+    		height: 250,
     		width: 500
         },
         title : {

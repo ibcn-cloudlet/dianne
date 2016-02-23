@@ -10,6 +10,8 @@ import org.osgi.util.promise.Deferred;
 import org.osgi.util.promise.Promise;
 
 import be.iminds.iot.dianne.api.coordinator.Job;
+import be.iminds.iot.dianne.api.coordinator.Job.Category;
+import be.iminds.iot.dianne.api.coordinator.Job.Type;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 
@@ -17,7 +19,8 @@ public abstract class AbstractJob<T> implements Runnable {
 
 	protected final UUID jobId;
 	protected final String name;
-	protected final String type;
+	protected final Type type;
+	protected final Category category;
 	
 	protected final DianneCoordinatorImpl coordinator;
 	
@@ -35,7 +38,8 @@ public abstract class AbstractJob<T> implements Runnable {
 	protected long started = 0;
 	protected long stopped = 0;
 	
-	public AbstractJob(DianneCoordinatorImpl coord, 
+	public AbstractJob(DianneCoordinatorImpl coord,
+			Type type,
 			NeuralNetworkDTO nn,
 			String d,
 			Map<String, String> c){
@@ -47,12 +51,14 @@ public abstract class AbstractJob<T> implements Runnable {
 			this.name = jobId.toString();
 		}
 	
+		this.type = type;
+		
 		if(c.containsKey("environment")){
-			type = "RL";
+			category = Category.RL;
 		} else if(coord.isRecurrent(nn)){
-			type = "RNN";
+			category = Category.RNN;
 		} else {
-			type = "FF";
+			category = Category.FF;
 		}
 		
 		
@@ -131,7 +137,7 @@ public abstract class AbstractJob<T> implements Runnable {
 	}
 	
 	public Job get(){
-		Job job = new Job(jobId, name, type, nn.name, dataset, config);
+		Job job = new Job(jobId, name, type, category, nn.name, dataset, config);
 		job.submitted = submitted;
 		job.started = started;
 		job.stopped = stopped;

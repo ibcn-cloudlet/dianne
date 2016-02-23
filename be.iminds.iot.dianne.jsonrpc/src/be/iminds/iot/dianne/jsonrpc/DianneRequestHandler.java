@@ -242,10 +242,9 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 							break;
 						}
 					} else if(f.getType().equals(String.class) 
-							|| f.getType().equals(UUID.class)){
+							|| f.getType().equals(UUID.class)
+							|| f.getType().isEnum()){
 						writer.value(f.get(o).toString());
-					} else if(f.getType().isEnum()){
-						writer.value(f.get(o).toString().toLowerCase());
 					} else {
 						writeObject(writer, f.get(o));
 					}

@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import org.osgi.framework.ServiceRegistration;
 
 import be.iminds.iot.dianne.api.coordinator.LearnResult;
+import be.iminds.iot.dianne.api.coordinator.Job.Type;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
@@ -28,7 +29,7 @@ public class LearnJob extends AbstractJob<LearnResult> implements RepositoryList
 			NeuralNetworkDTO nn,
 			String d,
 			Map<String, String> c){
-		super(coord, nn, d, c);
+		super(coord, Type.LEARN, nn, d, c);
 	}
 		
 	@Override

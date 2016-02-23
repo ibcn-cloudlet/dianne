@@ -88,7 +88,9 @@ function refreshJobs(){
      	  	var rendered2 = Mustache.render(template2, job);
      	  	$(rendered2).appendTo($("#dashboard"));
      	  	
-            createErrorChart($('#'+job.id+"-progress"));
+     	  	if(job.type==="LEARN"){
+     	  		createErrorChart($('#'+job.id+"-progress"));
+     	  	}
 
  	    });
  	});
@@ -144,6 +146,7 @@ function refreshInfrastructure(){
 
 function addNotification(notification){
 	notification.time = moment(notification.time).format("HH:mm:ss DD-MM-YYYY");
+	notification.level = notification.level.toLowerCase();
 	var template = $('#notification').html();
 	Mustache.parse(template);
 	var rendered = Mustache.render(template, notification);
