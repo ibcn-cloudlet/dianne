@@ -38,15 +38,15 @@ public class Evaluation {
 	protected final TensorFactory factory;
 	
 	// the actual outputs 
-	private List<Tensor> outputs;
+	protected List<Tensor> outputs;
 	// resulting confusion matrix
-	private Tensor confusionMatrix;
+	protected Tensor confusionMatrix;
 	// time to run the evaluation
-	private long time;
+	protected long time;
 	
 	public Evaluation(TensorFactory factory, Tensor confusionMatrix, List<Tensor> outputs, long time){
-		assert confusionMatrix.dim() == 2;
-		assert confusionMatrix.dims()[0] == confusionMatrix.dims()[1];
+		//assert confusionMatrix.dim() == 2;
+		//assert confusionMatrix.dims()[0] == confusionMatrix.dims()[1];
 		this.confusionMatrix = confusionMatrix;
 		this.outputs = outputs;
 		this.factory = factory;

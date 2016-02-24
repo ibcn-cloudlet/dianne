@@ -8,7 +8,7 @@ public class Job {
 
 	public enum Type {
 		LEARN,
-		EVALUATION
+		EVALUATE
 	}
 	
 	public enum Category {

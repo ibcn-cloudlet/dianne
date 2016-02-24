@@ -93,6 +93,8 @@ public abstract class AbstractJob<T> implements Runnable {
 	// to be implemented by the actual Job
 	public abstract void execute() throws Exception;
 	
+	public abstract T getProgress();
+	
 	public void cleanup() {};
 	
 	// to be called when the execution is done
@@ -134,6 +136,14 @@ public abstract class AbstractJob<T> implements Runnable {
 	
 	public Promise<T> getPromise(){
 		return deferred.getPromise();
+	}
+	
+	public boolean isRunning(){
+		return started > 0 && stopped == 0;
+	}
+	
+	public boolean isDone(){
+		return stopped > 0;
 	}
 	
 	public Job get(){

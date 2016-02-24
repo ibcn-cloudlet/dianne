@@ -28,16 +28,29 @@ package be.iminds.iot.dianne.api.nn.eval;
  * @author tverbele
  *
  */
-public class EvaluationProgress {
+public class EvaluationProgress extends Evaluation {
 
-	/** The number of samples processed */
-	public final long sample;
-	
 	/** Total number of samples to be processed */
-	public final long total;
+	private final long total;
+	private final long processed;
 	
-	public EvaluationProgress(long sample, long total){
-		this.sample = sample;
+	public EvaluationProgress(long processed, long total, long time){
+		super(null, null, null, time); // TODO actually give intermediate confusion matrix/outputs here?
+		this.processed = processed;
 		this.total = total;
+	}
+	
+	/**
+	 * @return the number of samples processed
+	 */
+	public long getProcessed(){
+		return processed;
+	}
+	
+	/**
+	 * @return the total number of samples to be processed
+	 */
+	public long getTotal(){
+		return total;
 	}
 }

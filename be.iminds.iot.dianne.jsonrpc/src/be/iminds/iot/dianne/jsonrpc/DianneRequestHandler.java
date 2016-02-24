@@ -21,6 +21,8 @@ import be.iminds.iot.dianne.api.coordinator.DianneCoordinator;
 import be.iminds.iot.dianne.api.coordinator.EvaluationResult;
 import be.iminds.iot.dianne.api.coordinator.LearnResult;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
+import be.iminds.iot.dianne.api.nn.eval.EvaluationProgress;
+import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.nn.util.DianneJSONConverter;
@@ -126,6 +128,29 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 				});
 			}
 			break;
+		case "learnResult":
+		case "evaluationResult":
+		case "job":
+			UUID jobId = null;
+			try {
+				JsonArray params = request.get("params").getAsJsonArray();
+				if(params.get(0).isJsonPrimitive()){
+					String s = params.get(0).getAsString();
+					jobId = UUID.fromString(s);
+				} 
+			} catch(Exception e){
+				writeError(writer, id, -32602, "Incorrect parameters provided: "+e.getMessage());
+				return;
+			}
+			
+			if(method.equals("learnResult")){
+				writeResult(writer, id, coordinator.getLearnResult(jobId));
+			} else if(method.equals("evaluationResult")){
+				writeResult(writer, id, coordinator.getEvaluationResult(jobId));
+			} else {
+				writeResult(writer, id, coordinator.getJob(jobId));
+			}
+			break;	
 		case "availableNeuralNetworks": 
 			writeResult(writer, id, platform.getAvailableNeuralNetworks());
 			break;
@@ -149,7 +174,7 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 			break;
 		case "devices":
 			writeResult(writer, id, coordinator.getDevices());
-			break;	
+			break;
 		default:
 			writeError(writer, id, -32601, "Method "+method+" not found");
 		}
@@ -182,7 +207,11 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 		writer.value(id);
 		writer.name("result");
 		// write result object
+		try {
 		writeObject(writer, result);
+		} catch(Throwable t){
+			t.printStackTrace();
+		}
 		// end result object
 		writer.endObject();
 		writer.flush();			
@@ -210,7 +239,9 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 				writeObject(writer, m.get(k));
 			}
 			writer.endObject();
-		} else if(o.getClass().equals(String.class)){
+		} else if(o.getClass().equals(String.class)
+				|| o.getClass().isEnum()
+				|| o.getClass().equals(UUID.class)){
 			writer.value(o.toString());
 		} else {
 			writer.beginObject();
@@ -241,10 +272,6 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 							writer.value(f.getByte(o));
 							break;
 						}
-					} else if(f.getType().equals(String.class) 
-							|| f.getType().equals(UUID.class)
-							|| f.getType().isEnum()){
-						writer.value(f.get(o).toString());
 					} else {
 						writeObject(writer, f.get(o));
 					}
@@ -257,12 +284,14 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 	// dedicated methods for writing LearnResult and EvaluationResult objects ... these are no simple dtos
 	private void writeLearnResult(JsonWriter writer, LearnResult result) throws Exception{
 		writer.beginArray();
-		writer.beginObject();
-		writer.name("error");
-		writer.value(new Float(result.getError()));
-		writer.name("iterations");
-		writer.value(result.getIterations());
-		writer.endObject();		
+		for(LearnProgress p : result.progress){
+			writer.beginObject();
+			writer.name("error");
+			writer.value(new Float(p.error));
+			writer.name("iterations");
+			writer.value(p.iteration);
+			writer.endObject();		
+		}
 		writer.endArray();
 	}
 	
@@ -270,20 +299,44 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 		writer.beginArray();
 		for(Evaluation eval : result.evaluations.values()){
 			writer.beginObject();
-			writer.name("accuracy");
-			writer.value(new Float(eval.accuracy()));
-			writer.name("forwardTime");
-			writer.value(eval.forwardTime());
-			writer.name("outputs");
-			writer.beginArray();
-			for(Tensor t : eval.getOutputs()){
+			if(eval==null){
+				// write nothing?
+			} else if(eval instanceof EvaluationProgress){
+				writer.name("processed");
+				writer.value(((EvaluationProgress) eval).getProcessed());
+				writer.name("total");
+				writer.value(((EvaluationProgress) eval).getTotal());
+			} else {
+				writer.name("accuracy");
+				writer.value(new Float(eval.accuracy()));
+				writer.name("forwardTime");
+				writer.value(eval.forwardTime());
+				// write confusion matrix
+				writer.name("confusionMatrix");
 				writer.beginArray();
-				for(float f : t.get()){
-					writer.value(new Float(f));
+				Tensor confusionMatrix = eval.getConfusionMatix();
+				for(int i=0;i<confusionMatrix.size(0);i++){
+					for(int j=0;j<confusionMatrix.size(1);j++){
+						writer.beginArray();
+						writer.value(i);
+						writer.value(j);
+						writer.value(new Float(confusionMatrix.get(i, j)));
+						writer.endArray();
+					}
 				}
 				writer.endArray();
-			}
-			writer.endArray();
+				// write all outputs
+				writer.name("outputs");
+				writer.beginArray();
+				for(Tensor t : eval.getOutputs()){
+					writer.beginArray();
+					for(float f : t.get()){
+						writer.value(new Float(f));
+					}
+					writer.endArray();
+				}
+				writer.endArray();
+			} 
 			writer.endObject();	
 		}
 		writer.endArray();

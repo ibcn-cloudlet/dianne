@@ -44,7 +44,6 @@ import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.eval.EvaluationProgress;
 import be.iminds.iot.dianne.api.nn.eval.Evaluator;
-import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -67,6 +66,9 @@ public class ArgMaxEvaluator implements Evaluator {
 	
 	protected int sample = 0;
 	protected int total = 0;
+	protected Tensor confusion;
+	protected List<Tensor> outputs;
+	protected long tStart, tEnd;
 	
 	@Override
 	public UUID getEvaluatorId(){
@@ -153,14 +155,14 @@ public class ArgMaxEvaluator implements Evaluator {
 				System.out.println("No parameters loaded for this evaluation - network is not yet trained?");
 			}
 		
-			Tensor confusion = null;
-			List<Tensor> outputs = new ArrayList<Tensor>();
-			long t1 = System.currentTimeMillis();
+			confusion = null;
+			outputs = new ArrayList<Tensor>();
+			tStart = System.currentTimeMillis();
 			for(sample=0;sample<indices.length;sample++){
 				Tensor in = d.getInputSample(indices[sample]);
 				Tensor out = nn.forward(in);
-				outputs.add(out);
 				
+				outputs.add(out);
 				if(confusion==null){
 					int outputSize = out.size();
 					confusion = factory.createTensor(outputSize, outputSize);
@@ -169,12 +171,12 @@ public class ArgMaxEvaluator implements Evaluator {
 				
 				int predicted = factory.getTensorMath().argmax(out);
 				int real = factory.getTensorMath().argmax(d.getOutputSample(indices[sample]));
-					
+				
 				confusion.set(confusion.get(real, predicted)+1, real, predicted);
 			}
-			long t2 = System.currentTimeMillis();
+			tEnd = System.currentTimeMillis();
 			
-			Evaluation e = new Evaluation(factory, confusion, outputs, t2-t1);
+			Evaluation e = new Evaluation(factory, confusion, outputs, tEnd-tStart);
 			return e;
 		} finally {
 			evaluating = false;
@@ -184,7 +186,9 @@ public class ArgMaxEvaluator implements Evaluator {
 	public EvaluationProgress getProgress(){
 		if(!evaluating)
 			return null;
-		return new EvaluationProgress(sample, total);	
+		
+		EvaluationProgress progress = new EvaluationProgress(sample, total, System.currentTimeMillis()-tStart);
+		return progress;
 	}
 	
 	public boolean isBusy(){

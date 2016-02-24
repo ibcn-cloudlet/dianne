@@ -31,6 +31,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
@@ -153,6 +154,67 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	@Override
 	public Promise<EvaluationResult> eval(String nnName, String dataset, Map<String, String> config) {
 		return eval(repository.loadNeuralNetwork(nnName), dataset, config);
+	}
+	
+	@Override
+	public LearnResult getLearnResult(UUID jobId) {
+		// check if this job is running, if so return progress
+		AbstractJob running = getRunningJob(jobId);
+		if(running!=null && running instanceof LearnJob){
+			return ((LearnJob)running).getProgress();
+		}
+		
+		// dig into the done results
+		Object result = getResult(jobId);
+		if(result instanceof LearnResult){
+			return (LearnResult) result;
+		}
+		
+		// noting found
+		return null;
+	}
+
+	@Override
+	public EvaluationResult getEvaluationResult(UUID jobId) {
+		// check if this job is running, if so return progress
+		AbstractJob running = getRunningJob(jobId);
+		if(running!=null && running instanceof EvaluationJob){
+			return ((EvaluationJob)running).getProgress();
+		}
+		
+		// dig into the done results
+		Object result = getResult(jobId);
+		if(result instanceof EvaluationResult){
+			return (EvaluationResult) result;
+		}
+		
+		// nothing found
+		return null;
+	}
+	
+	@Override
+	public Job getJob(UUID jobId){
+		AbstractJob job = null;
+		try {
+			job = queueLearn.stream().filter(j -> j.jobId.equals(jobId)).findFirst().get();
+			return job.get();
+		} catch(NoSuchElementException e){}
+		try {
+			job = queueEval.stream().filter(j -> j.jobId.equals(jobId)).findFirst().get();
+			return job.get();
+		} catch(NoSuchElementException e){}
+		try {
+			job = running.stream().filter(j -> j.jobId.equals(jobId)).findFirst().get();
+			return job.get();
+		} catch(NoSuchElementException e){}
+		try {
+			job = finished.stream().filter(j -> j.jobId.equals(jobId)).findFirst().get();
+			return job.get();
+		} catch(NoSuchElementException e){}
+		
+		// TODO read from persistent storage?
+		
+		return null;
 	}
 	
 	@Override
@@ -350,9 +412,11 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	}
 
 	void sendNotification(UUID jobId, Level level, String message){
-		Notification n = new Notification(level, message);
+		Notification n = new Notification(jobId, level, message);
 		
 		Map<String, Object> properties = new HashMap<>();
+		if(jobId!=null)
+			properties.put("jobId", jobId);
 		properties.put("level", n.level);
 		properties.put("message", n.message);
 		properties.put("timestamp", n.timestamp);
@@ -364,7 +428,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		notifications.add(n);
 	}
 
-	void sendProgress(UUID jobId, LearnProgress progress){
+	void sendLearnProgress(UUID jobId, LearnProgress progress){
 		Map<String, Object> properties = new HashMap<>();
 		properties.put("jobId", jobId.toString());
 		properties.put("iteration", progress.iteration);
@@ -512,6 +576,23 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		
 		sendNotification(null, Level.WARNING, "Evaluator "+id+" is removed from the system.");
 
+	}
+	
+	private AbstractJob getRunningJob(UUID jobId){
+		try {
+			return running.stream().filter(job -> job.jobId.equals(jobId)).findFirst().get();
+		} catch(NoSuchElementException e){
+			return null;
+		}
+	}
+	
+	private Object getResult(UUID jobId){
+		// TODO read from persistent storage?
+		try {
+			return finished.stream().filter(job -> job.jobId.equals(jobId)).findFirst().get().getPromise().getValue();
+		} catch(Exception e){
+			return null;
+		}
 	}
 	
 	boolean isRecurrent(NeuralNetworkDTO nn){

@@ -24,6 +24,7 @@ package be.iminds.iot.dianne.api.coordinator;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.osgi.util.promise.Promise;
 
@@ -40,6 +41,12 @@ public interface DianneCoordinator {
 	Promise<EvaluationResult> eval(String nnName, String dataset, Map<String, String> config);
 	
 	Promise<EvaluationResult> eval(NeuralNetworkDTO nn, String dataset, Map<String, String> config);
+	
+	LearnResult getLearnResult(UUID jobId); // if still running, this contains partial progress results
+	
+	EvaluationResult getEvaluationResult(UUID jobId);  // if still running, this contains partial progress results
+	
+	Job getJob(UUID jobId);
 	
 	List<Job> queuedJobs();
 	

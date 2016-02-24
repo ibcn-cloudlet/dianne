@@ -77,20 +77,45 @@ function createGaugeChart(container, name, value) {
 }
 
 // error chart
-function createErrorChart(container) {
+function createErrorChart(container, data, scale) {
+	// if no data specified, initialize empty
+	var i;
+	if(data===undefined){
+		data = [];
+	    for (i = -29; i <= 0; i += 1) {
+	    	data.push({
+	         	x: 0,
+	        	y: null
+	         });
+	    }
+	} else if(data.length < 30){
+		// if not enough data, add some empty points
+		for(i = 0; i < 30-data.length; i+=1){
+	    	data.unshift({
+	         	x: 0,
+	        	y: null
+	         });
+		}
+	}
+	if(scale === undefined){
+		scale = 1;
+	}
     container.highcharts({
         chart: {
             type: 'line',
             animation: false, // don't animate in old IE
             marginRight: 10,
-    		height: 250,
-    		width: 500
+    		height: 250*scale,
+    		width: 500*scale
         },
         title : {
         	text: null
         },
         xAxis: {
-            tickPixelInterval: 150
+            tickPixelInterval: 150,
+            title: {
+                text: 'Iterations'
+            },
         },
         yAxis: {
             title: {
@@ -109,23 +134,85 @@ function createErrorChart(container) {
         exporting: {
             enabled: false
         },
+        credits: {
+            enabled: false
+        },
         series: [{
-            name: 'Data',
-            data: (function () {
-                // generate an array of empty data
-                var data = [],i;
-                for (i = -29; i <= 0; i += 1) {
-                    data.push({
-                        x: 0,
-                        y: null
-                    });
-                }
-                
-                return data;
-            }())
+            name: 'Error',
+            data: data
         }]
     });
 }
+
+
+function createConfusionChart(container, data, scale) {
+	if(scale === undefined){
+		scale = 1;
+	}
+    container.highcharts({
+    	chart: {
+            type: 'heatmap',
+    		height: 250*scale,
+    		width: 300*scale
+        },
+        title: {
+            text: ""
+        },
+        credits: {
+            enabled: false
+        },
+        colorAxis: {
+            stops: [
+                [0, '#3060cf'],
+                [0.5, '#fffbbc'],
+                [0.9, '#c4463a']
+            ],
+            min: 0
+//            min: 0,
+//            minColor: Highcharts.getOptions().colors[0],
+//            maxColor: '#FFFFFF'
+        },
+        yAxis: {
+            title: {
+                text: null
+            }
+        }, 
+        legend: {
+            align: 'right',
+            layout: 'vertical',
+            margin: 0,
+            verticalAlign: 'top'
+        },
+        series: [{
+            name: 'Confusion matrix',
+            borderWidth: 0,
+            dataLabels: {
+                enabled: false,
+                color: 'black',
+                style: {
+                    textShadow: 'none',
+                    HcTextStroke: null
+                }
+            }, 
+            data: data
+        }]
+    });
+}
+
+function createProgressBar(container, value, message){
+	var progress = {};
+	progress.value = value;
+	if(message===undefined){
+		progress.message = "";
+	} else {
+		progress.message = message;
+	}
+	var template = $('#progress').html();
+	Mustache.parse(template);
+	var rendered = Mustache.render(template, progress);
+	$(rendered).appendTo(container);
+}
+
 
 // init colors
 $(function () {

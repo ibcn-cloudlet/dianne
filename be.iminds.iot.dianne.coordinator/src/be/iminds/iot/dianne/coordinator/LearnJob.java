@@ -85,7 +85,7 @@ public class LearnJob extends AbstractJob<LearnResult> implements RepositoryList
 		
 		result.progress.add(progress);
 		
-		coordinator.sendProgress(this.jobId, progress);
+		coordinator.sendLearnProgress(this.jobId, progress);
 		
 		// maxIterations stop condition
 		// what in case of multiple learners?!
@@ -113,6 +113,11 @@ public class LearnJob extends AbstractJob<LearnResult> implements RepositoryList
 				learner.stop();
 			}
 		}
+	}
+
+	@Override
+	public LearnResult getProgress() {
+		return result;
 	}
 
 	

@@ -198,4 +198,12 @@ footer {
 	margin: 0px 10px 0px 10px;
 	height: 75px;
 }
- 
+
+/*
+ * Center charts
+ */
+.highcharts-container{
+	display: block;
+	margin-right: auto;
+	margin-left: auto;
+}  

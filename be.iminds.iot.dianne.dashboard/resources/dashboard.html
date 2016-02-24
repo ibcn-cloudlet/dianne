@@ -162,16 +162,6 @@
 	</div>
 
 	<!-- Templates -->
-	<script type="x-tmpl-mustache" id="jobs-item">
-	<a href="#" class="list-group-item">
-		<span class="badge">{{category}}</span>
-		<h4 class="list-group-item-heading">{{name}}</h4>
-		<p class="list-group-item-text">
-			NN: {{nn}} | Dataset: {{dataset}}
-		</p>
-	</a>
-	</script>
-	
 	<script type="x-tmpl-mustache" id="notification">
 	<div class="alert alert-{{level}} fade in">
 		<span class="timeAgo" timestamp="{{timestamp}}" style="float:right">{{time}}</span>
@@ -225,10 +215,25 @@
 	</div>
 	</script>	
 
+	<script type="x-tmpl-mustache" id="job-item">
+	<a href="#" onclick="showDetails('{{id}}')" class="list-group-item">
+		<span class="badge">{{category}}</span>
+		<span class="badge">{{type}}</span>
+		<h4 class="list-group-item-heading">{{name}}</h4>
+		<p class="list-group-item-text">
+			NN: {{nn}} | Dataset: {{dataset}}
+		</p>
+	</a>
+	</script>
+
 	<script type="x-tmpl-mustache" id="job">
 	<div id="{{id}}" class="block jobs col-lg-4 col-md-6">
 	<div class="panel panel-default job">
-	  <div class="panel-heading"><span class="badge pull-right">{{category}}</span>{{name}}</div>
+	  	<div class="panel-heading">
+			<span class="badge pull-right">{{category}}</span>
+			<span class="badge pull-right" style="margin-right:10px">{{type}}</span>
+			{{name}}
+		</div>
 	  	<div class="panel-body">
 	  		<div>
 	  			<p>NN: {{nn}} | Dataset: {{dataset}}</p>
@@ -240,6 +245,48 @@
 	  </div>
 	</div>
 	</script>
+	
+	<script type="x-tmpl-mustache" id="job-details">
+	<div class="modal fade" id="{{id}}-details" role="dialog">
+	  <div class="modal-dialog modal-lg">
+	    <div class="modal-content">
+	       <div class="modal-header">
+		     <button type="button" class="close" data-dismiss="modal">&times;</button>
+			 <span class="badge pull-right" style="margin-right:20px">{{category}}</span>
+			 <span class="badge pull-right" style="margin-right:20px">{{type}}</span>
+		     <h4 class="modal-title">{{name}}</h4>
+		   </div>
+		   <div class="modal-body">
+			 <div class="row">
+			 	<div class="col-md-6">
+	  				<p><b>NN</b>: {{nn}}</p> 
+					<p><b>Dataset</b>: {{dataset}}</p>
+	  				<br />
+				</div>
+				<div class="col-md-6">
+					<p><b>Submitted</b>: {{submitted}}</p>
+					<p><b>Started</b>: {{started}}</p>
+					<p><b>Done</b>: {{stopped}}</p>
+	  			</div>
+			</div>
+			<div id="{{id}}-result">
+			</div>
+		   </div>
+		   <div class="modal-footer">
+		   		<button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+		   </div>
+	    </div>
+	  </div>
+	</div>
+	</script>
+	
+	<script type="x-tmpl-mustache" id="progress">
+	<div class="progress">
+  		<div class="progress-bar" role="progressbar" aria-valuenow="{{value}}" aria-valuemin="0" aria-valuemax="100" style="width: {{value}}%;">
+    		{{message}}
+  	</div>
+	</script>
+</div>
 
 	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 	<script src="js/lib/jquery.min.js"></script>
@@ -252,6 +299,7 @@
 	<script src="js/lib/highcharts.js"></script>
 	<script src="js/lib/highcharts-more.js"></script>
 	<script src="js/lib/highcharts-solid-gauge.js"></script>
+	<script src="js/lib/heatmap.js"></script>
 	<!-- Moment.js for rendering timestamps -->
 	<script src="js/lib/moment.min.js"></script>
 	<!-- Our own scripts -->

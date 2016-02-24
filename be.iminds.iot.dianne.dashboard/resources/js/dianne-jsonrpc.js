@@ -28,6 +28,15 @@ var DIANNE = {
 		eval: function (nnName, dataset, properties){
 			return this.call("eval", [nnName, dataset, properties]);
 		},
+		learnResult : function(jobId){
+			return this.call("learnResult", [jobId]);
+		},
+		evaluationResult : function(jobId){
+			return this.call("evaluationResult", [jobId]);
+		},
+		job : function(jobId){
+			return this.call("job", [jobId]);
+		},
 		nns : function(){
 			return this.call("availableNeuralNetworks");
 		},

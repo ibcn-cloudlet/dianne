@@ -61,7 +61,7 @@ function refreshJobs(){
  		$("#jobs-queue").empty();
  	    $.each(data, function(i) {
  	        var job = data[i];
- 	        var template = $('#jobs-item').html();
+ 	        var template = $('#job-item').html();
      	  	Mustache.parse(template);
      	  	var rendered = Mustache.render(template, job);
      	  	$(rendered).appendTo($("#jobs-queue"));
@@ -77,10 +77,12 @@ function refreshJobs(){
      	  	job.time = moment(job.started).from(moment());
  	        
      	  	// for dashboard list
- 	        var template = $('#jobs-item').html();
+ 	        var template = $('#job-item').html();
      	  	Mustache.parse(template);
      	  	var rendered = Mustache.render(template, job);
      	  	$(rendered).appendTo($("#jobs-running"));
+     	  	
+
      	  	
      	  	// if new running job, add jobs details (hidden)
      	  	if(!$("#"+job.id).length){
@@ -93,9 +95,35 @@ function refreshJobs(){
 	     	  	}
 	     	  	
 	     	  	if(job.type==="LEARN"){
-	     	  		createErrorChart($('#'+job.id+"-progress"));
-	     	  	}
+	     	  		//createErrorChart($('#'+job.id+"-progress"));
+	     	  		DIANNE.learnResult(job.id).then(function(learnprogress){
+						 data = [];
+						 $.each(learnprogress, function(i) {
+							 var progress = learnprogress[i];
+							 data.push({
+								 x: progress.iteration,
+			                     y: progress.error
+			                 });
+						 });
+						 createErrorChart($('#'+job.id+"-progress"), data);
+					});
+	     	  	} 
      	  	}
+     	  	
+     	  	if(job.type==="EVALUATE"){
+	     	  	// update progress bars
+     	  		$('#'+job.id+"-progress").empty();
+	     	  	DIANNE.evaluationResult(job.id).then(function(evaluations){
+					$.each(evaluations, function(i) {
+						var eval = evaluations[i];
+						if(eval.processed===undefined){
+							createConfusionChart($('#'+job.id+"-progress"), eval.confusionMatrix);
+						} else {
+							createProgressBar($('#'+job.id+"-progress"), 100*eval.processed/eval.total, eval.processed+"/"+eval.total+" samples processed");
+						}
+					});
+				});
+	     	 }
  	    });
  	});
  	
@@ -104,7 +132,7 @@ function refreshJobs(){
  	 	$("#jobs-finished").empty();
  	    $.each(data, function(i) {
  	        var job = data[i];
- 	        var template = $('#jobs-item').html();
+ 	        var template = $('#job-item').html();
      	  	Mustache.parse(template);
      	  	var rendered = Mustache.render(template, job);
      	  	$(rendered).appendTo($("#jobs-finished"));
@@ -157,6 +185,62 @@ function addNotification(notification){
 	$(rendered).prependTo($("#alerts"));
 }
 
+
+
+function showDetails(jobId){
+	DIANNE.job(jobId).then(function(job){
+		job.submitted = moment(job.submitted).format("hh:mm:ss YYYY:MM:DD");
+		if(job.started === 0){
+			job.started = "N/A"
+		} else {
+			job.started = moment(job.started).format("hh:mm:ss YYYY:MM:DD");
+			
+			if(job.type==="LEARN"){
+				DIANNE.learnResult(jobId).then(function(learnprogress){
+					 data = [];
+					 $.each(learnprogress, function(i) {
+						 var progress = learnprogress[i];
+						 data.push({
+							 x: progress.iteration,
+		                     y: progress.error
+		                 });
+					 });
+					 createErrorChart($('#'+job.id+"-result"), data, 1.5);
+				});
+			} else {
+				DIANNE.evaluationResult(jobId).then(function(evaluations){
+					$.each(evaluations, function(i) {
+						var eval = evaluations[i];
+						if(job.stopped === "N/A"){
+							createProgressBar($('#'+job.id+"-result"), 100*eval.processed/eval.total, eval.processed+"/"+eval.total+" samples processed");
+						} else {						 
+							// TODO what with multiple evaluations?
+							createConfusionChart($('#'+job.id+"-result"), eval.confusionMatrix, 2.2);
+						}
+					});
+				});
+			}
+		}
+		if(job.stopped === 0){
+			job.stopped = "N/A"
+		} else {
+			job.stopped = moment(job.stopped).format("hh:mm:ss YYYY:MM:DD");
+		}
+		
+		var template = $('#job-details').html();
+		Mustache.parse(template);
+		var rendered = Mustache.render(template, job);
+		var dialog = $(rendered).appendTo($("#dashboard"));
+		dialog.on('hidden.bs.modal', function () {
+			$(this).remove();
+		});
+		dialog.modal({
+			'show' : true
+		});
+ 	});	
+}
+
+
 function setModus(mode){
 	currentMode = mode;
 	
@@ -170,9 +254,10 @@ function setModus(mode){
 		refreshStatus();
 	} else if(mode === "jobs"){
 		$(".block").hide();
+		refreshJobs();
+		
 		$(".block").filter( ".jobs" ).show();
 		$("#mode-jobs").addClass("active");
-		
 	} else if(mode === "infrastructure"){
      	refreshInfrastructure();
      	
@@ -253,11 +338,39 @@ eventsource.onmessage = function(event){
 		addNotification(data);
 		refreshJobs();
 		refreshStatus();
+		
+ 	    // update final graphs in running job overview
+		console.log(JSON.stringify(data));
+		if(data.jobId!==undefined && data.level==="success"){
+			DIANNE.job(data.jobId).then(function(job){
+	 	        if(job.type==="LEARN"){
+		 	  		DIANNE.learnResult(job.id).then(function(learnprogress){
+						 data = [];
+						 $.each(learnprogress, function(i) {
+							 var progress = learnprogress[i];
+							 data.push({
+								 x: progress.iteration,
+			                     y: progress.error
+			                 });
+						 });
+						 createErrorChart($('#'+job.id+"-progress"), data);
+					});
+	 	        } else if(job.type==="EVALUATE"){
+	     	  		$('#'+job.id+"-progress").empty();
+		     	  	DIANNE.evaluationResult(job.id).then(function(evaluations){
+						$.each(evaluations, function(i) {
+							// TODO what with multiple evaluations?
+							var eval = evaluations[i];
+							createConfusionChart($('#'+job.id+"-progress"), eval.confusionMatrix);
+						});
+					});
+		     	 }
+	 	    });
+		}
 	} else if(data.type === "progress"){
 		var index = Number($("#"+data.jobId+"-progress").attr("data-highcharts-chart"));
     	var x = Number(data.iteration);
         var y = Number(data.error);
-		console.log("Job progress "+data.jobId+" index: "+index+" x: "+x+" y: "+y);
 		Highcharts.charts[index].series[0].addPoint([x, y], true, true, false);
 	}
 }

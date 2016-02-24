@@ -162,6 +162,7 @@ public abstract class AbstractLearner implements Learner {
 				} catch(Throwable t){
 					System.err.println("Error during learning");
 					t.printStackTrace();
+					// TODO how should the coordinator be notified of this error?!
 					learning = false;
 				}
 				System.out.println("Stopped learning");
@@ -172,6 +173,7 @@ public abstract class AbstractLearner implements Learner {
 			System.err.println("Failed starting learner");
 			e.printStackTrace();
 			learning = false;
+			throw e;
 		}	
 	}
 	
