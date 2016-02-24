@@ -21,6 +21,8 @@
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
 
+var currentMode;
+
 function submitJob(){
 	var array =  $("#submit-form").serializeArray();
 	
@@ -68,8 +70,6 @@ function refreshJobs(){
  	
  	// running jobs
  	DIANNE.runningJobs().then(function(data){
- 	 	$(".jobs").remove();
-
  	 	$("#jobs-running").empty();
  	    $.each(data, function(i) {
  	        var job = data[i];
@@ -82,16 +82,20 @@ function refreshJobs(){
      	  	var rendered = Mustache.render(template, job);
      	  	$(rendered).appendTo($("#jobs-running"));
      	  	
-     	  	// for jobs details
-     	  	var template2 = $('#job').html();
-     	  	Mustache.parse(template2);
-     	  	var rendered2 = Mustache.render(template2, job);
-     	  	$(rendered2).appendTo($("#dashboard"));
-     	  	
-     	  	if(job.type==="LEARN"){
-     	  		createErrorChart($('#'+job.id+"-progress"));
+     	  	// if new running job, add jobs details (hidden)
+     	  	if(!$("#"+job.id).length){
+	     	  	var template2 = $('#job').html();
+	     	  	Mustache.parse(template2);
+	     	  	var rendered2 = Mustache.render(template2, job);
+	     	  	var panel = $(rendered2).prependTo($("#dashboard"))
+	     	  	if(currentMode!=="jobs"){
+	     	  		panel.hide();
+	     	  	}
+	     	  	
+	     	  	if(job.type==="LEARN"){
+	     	  		createErrorChart($('#'+job.id+"-progress"));
+	     	  	}
      	  	}
-
  	    });
  	});
  	
@@ -154,6 +158,8 @@ function addNotification(notification){
 }
 
 function setModus(mode){
+	currentMode = mode;
+	
 	$(".active").removeClass("active");
 	
 	if(mode === "dashboard"){
@@ -249,9 +255,9 @@ eventsource.onmessage = function(event){
 		refreshStatus();
 	} else if(data.type === "progress"){
 		var index = Number($("#"+data.jobId+"-progress").attr("data-highcharts-chart"));
-		console.log("INDEX "+index);
     	var x = Number(data.iteration);
-        var y = Number(data.error); 
+        var y = Number(data.error);
+		console.log("Job progress "+data.jobId+" index: "+index+" x: "+x+" y: "+y);
 		Highcharts.charts[index].series[0].addPoint([x, y], true, true, false);
 	}
 }

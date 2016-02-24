@@ -73,6 +73,11 @@ public class LearnJob extends AbstractJob<LearnResult> implements RepositoryList
 		
 		// check stop conditition
 		LearnProgress progress = coordinator.learners.get(targetsByNNi.get(nnId)).getProgress();
+		if(progress==null){
+			// not yet started...
+			return;
+		}
+		
 		if(Float.isNaN(progress.error)){
 			// NaN throw error!
 			done(new Exception("Error became NaN"));
