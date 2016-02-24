@@ -62,7 +62,7 @@ public class DianneSSEServlet extends HttpServlet implements EventHandler {
 			data.add("message", new JsonPrimitive((String)event.getProperty("message")));
 			data.add("level", new JsonPrimitive(event.getProperty("level").toString()));
 			long timestamp = (Long)event.getProperty("timestamp");
-			data.add("time", new JsonPrimitive(timestamp));
+			data.add("timestamp", new JsonPrimitive(timestamp));
 		}
 		
 		StringBuilder builder = new StringBuilder();

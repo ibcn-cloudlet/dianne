@@ -145,7 +145,7 @@ function refreshInfrastructure(){
 }
 
 function addNotification(notification){
-	notification.time = moment(notification.time).format("HH:mm:ss DD-MM-YYYY");
+	notification.time = moment(notification.timestamp).fromNow();
 	notification.level = notification.level.toLowerCase();
 	var template = $('#notification').html();
 	Mustache.parse(template);
@@ -205,9 +205,26 @@ $(function () {
      	});
      	
      	refreshJobs();
+     	
+     	setInterval(tick, 60000);
     });
 });
 
+// here we can do any pull based stuff...
+function tick(){
+	// update the timestamps
+	$(".timeAgo").each(function() {
+		 var timestamp = Number($(this).attr("timestamp"));
+		 var newTime = moment(timestamp).from(moment());
+		 $(this).text(newTime);
+	});
+	
+	$(".time").each(function() {
+		 var timestamp = Number($(this).attr("timestamp"));
+		 var newTime = moment.duration(moment().diff(moment(timestamp))).humanize();
+		 $(this).text(newTime);
+	});
+}
 
 /*
  * SSE for server feedback

@@ -97,82 +97,6 @@
 					  	</div>
 					 </div>
 				</div>
-				
-				<div class="block jobs col-lg-4 col-md-6">
-					<div class="panel panel-default job">
-					  	<div class="panel-heading"><span class="badge pull-right">FF</span>CIFAR-10 training</div>
-					  	<div class="panel-body">
-					  		<div>
-					  			<p>NN: CIFARCascade | Dataset: CIFAR-10</p>
-					  			<p>Running on 1 node | Uptime: 4 hours and 10 minutes</p>
-					  		</div>
-					  		<div id="chart1">
-					  		</div>
-					  	
-					  	</div>
-					 </div>
-				</div>
-				
-				<div class="block jobs col-lg-4 col-md-6">
-					<div class="panel panel-default job">
-					  	<div class="panel-heading"><span class="badge pull-right">RL</span>Atari Pong</div>
-					  	<div class="panel-body">
-					  		<div>
-					  			<p>NN: DeepQNetwork | Dataset: ALEPong</p>
-					  			<p>Running on 4 nodes | Uptime: 1 day, 3 hours and 4 minutes</p>
-					  		</div>
-					  		<div id="chart2">
-					  		</div>
-					  	</div>
-					 </div>
-				</div>
-				
-				<div class="block jobs col-lg-4 col-md-6">
-					<div class="panel panel-default job">
-					  	<div class="panel-heading">Learn Job 3</div>
-					  	<div class="panel-body">A Basic Panel</div>
-					  	
-					 </div>
-				</div>
-				
-				<div class="block jobs col-lg-4 col-md-6">
-					<div class="panel panel-default job">
-					  	<div class="panel-heading">Learn Job 4</div>
-					  	<div class="panel-body">A Basic Panel</div>
-					  	
-					 </div>
-				</div>
-				
-				<div class="block jobs col-lg-4 col-md-6">
-					<div class="panel panel-default job">
-					  	<div class="panel-heading">Learn Job 5</div>
-					  	<div class="panel-body">A Basic Panel</div>
-					  	
-					 </div>
-				</div>
-				
-				
-				<div class="block infrastructure col-lg-4 col-md-6">
-					<div class="panel panel-default resources">
-					  	<div class="panel-heading">Wall2-GPU1</div>
-					  	<div class="panel-body">
-					  		<b>n104-06.wall2.ilabt.iminds.be</b>
-					  		<ul>
-								<li>CPU: Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz</li>
-								<li>GPU: GeForce GTX 980 </li>
-								<li>IP: 10.2.33.169</li>
-							</ul>
-					  		<br/>
-					  		Resource usage:							
-							<div class="row">
-								<div id="gpu1-mem" class="col-sm-6">
-								</div>
-								<div id="gpu1-cpu" class="col-sm-6">
-								</div>
-							</div>
-					  	</div>
-					 </div>
-				</div>
 			</div>
 		</div>
 		
@@ -250,7 +174,7 @@
 	
 	<script type="x-tmpl-mustache" id="notification">
 	<div class="alert alert-{{level}} fade in">
-		<span style="float:right">{{time}}</span>
+		<span class="timeAgo" timestamp="{{timestamp}}" style="float:right">{{time}}</span>
 		{{message}}
 	</div>	
 	</script>
@@ -270,7 +194,7 @@
 		</ul>
 		<b>Uptime</b>
 		<ul>
-			<li>{{uptime}}</li>
+			<li><span class="time" timestamp="{{bootTime}}">{{uptime}}</span></li>
 		</ul>
 	</div>
 	<div id="status-chart" class="col-sm-6">
@@ -308,7 +232,7 @@
 	  	<div class="panel-body">
 	  		<div>
 	  			<p>NN: {{nn}} | Dataset: {{dataset}}</p>
-	  			<p>Running on {{devices}} nodes | Started: {{time}}</p>
+	  			<p>Running on {{devices}} nodes | Started: <span class="timeAgo" timestamp="{{started}}">{{time}}</span></p>
 	  		</div>
 	  		<div id="{{id}}-progress">
 	  		</div>
