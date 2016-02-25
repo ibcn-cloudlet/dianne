@@ -288,7 +288,7 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 			writer.beginObject();
 			writer.name("error");
 			writer.value(new Float(p.error));
-			writer.name("iterations");
+			writer.name("iteration");
 			writer.value(p.iteration);
 			writer.endObject();		
 		}

@@ -22,6 +22,8 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.jsonrpc;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -64,9 +66,11 @@ public class DianneJSONRPCServer {
 		public void run(){
 			try {
 				while(true){
-					JsonWriter writer = new JsonWriter(new PrintWriter((socket.getOutputStream())));
+					JsonWriter writer = new JsonWriter(
+							new BufferedWriter(new PrintWriter((socket.getOutputStream()))));
 					writer.flush();
-					JsonReader reader = new JsonReader(new InputStreamReader(socket.getInputStream()));
+					JsonReader reader = new JsonReader(
+							new BufferedReader(new InputStreamReader(socket.getInputStream())));
 
 					handler.handleRequest(reader, writer);
 				}

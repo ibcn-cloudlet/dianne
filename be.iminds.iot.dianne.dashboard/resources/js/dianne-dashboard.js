@@ -116,10 +116,14 @@ function refreshJobs(){
 	     	  	DIANNE.evaluationResult(job.id).then(function(evaluations){
 					$.each(evaluations, function(i) {
 						var eval = evaluations[i];
-						if(eval.processed===undefined){
+						if(eval.confusionMatrix!==undefined){
 							createConfusionChart($('#'+job.id+"-progress"), eval.confusionMatrix);
 						} else {
-							createProgressBar($('#'+job.id+"-progress"), 100*eval.processed/eval.total, eval.processed+"/"+eval.total+" samples processed");
+							if(eval.progress===undefined){
+								createProgressBar($('#'+job.id+"-progress"), 0, "no samples processed");
+							} else {
+								createProgressBar($('#'+job.id+"-progress"), 100*eval.processed/eval.total, eval.processed+"/"+eval.total+" samples processed");
+							}
 						}
 					});
 				});
@@ -211,11 +215,15 @@ function showDetails(jobId){
 				DIANNE.evaluationResult(jobId).then(function(evaluations){
 					$.each(evaluations, function(i) {
 						var eval = evaluations[i];
-						if(job.stopped === "N/A"){
-							createProgressBar($('#'+job.id+"-result"), 100*eval.processed/eval.total, eval.processed+"/"+eval.total+" samples processed");
-						} else {						 
+						if(eval.confusionMatrix!==undefined){
 							// TODO what with multiple evaluations?
 							createConfusionChart($('#'+job.id+"-result"), eval.confusionMatrix, 2.2);
+						} else {				
+							if(eval.progress===undefined){
+								createProgressBar($('#'+job.id+"-result"), 0, "no samples processed");
+							} else {
+								createProgressBar($('#'+job.id+"-result"), 100*eval.processed/eval.total, eval.processed+"/"+eval.total+" samples processed");
+							}
 						}
 					});
 				});
@@ -340,7 +348,6 @@ eventsource.onmessage = function(event){
 		refreshStatus();
 		
  	    // update final graphs in running job overview
-		console.log(JSON.stringify(data));
 		if(data.jobId!==undefined && data.level==="success"){
 			DIANNE.job(data.jobId).then(function(job){
 	 	        if(job.type==="LEARN"){
