@@ -119,7 +119,7 @@ function refreshJobs(){
 						if(eval.confusionMatrix!==undefined){
 							createConfusionChart($('#'+job.id+"-progress"), eval.confusionMatrix);
 						} else {
-							if(eval.progress===undefined){
+							if(eval.processed===undefined){
 								createProgressBar($('#'+job.id+"-progress"), 0, "no samples processed");
 							} else {
 								createProgressBar($('#'+job.id+"-progress"), 100*eval.processed/eval.total, eval.processed+"/"+eval.total+" samples processed");
@@ -219,7 +219,7 @@ function showDetails(jobId){
 							// TODO what with multiple evaluations?
 							createConfusionChart($('#'+job.id+"-result"), eval.confusionMatrix, 2.2);
 						} else {				
-							if(eval.progress===undefined){
+							if(eval.processed===undefined){
 								createProgressBar($('#'+job.id+"-result"), 0, "no samples processed");
 							} else {
 								createProgressBar($('#'+job.id+"-result"), 100*eval.processed/eval.total, eval.processed+"/"+eval.total+" samples processed");

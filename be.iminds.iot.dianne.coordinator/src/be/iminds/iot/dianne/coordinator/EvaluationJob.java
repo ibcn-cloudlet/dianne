@@ -14,7 +14,8 @@ import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 public class EvaluationJob extends AbstractJob<EvaluationResult> {
 
 	private EvaluationResult result = null;
-	
+	private Map<UUID, Evaluation> results = new HashMap<>();
+
 	public EvaluationJob(DianneCoordinatorImpl coord,
 			NeuralNetworkDTO nn,
 			String d,
@@ -30,7 +31,6 @@ public class EvaluationJob extends AbstractJob<EvaluationResult> {
 			evalConfig.put("range", config.get("testSet"));
 		}
 
-		final Map<UUID, Evaluation> results = new HashMap<>();
 		Thread[] threads = new Thread[targets.size()];
 		for(int i=0;i<targets.size();i++){
 			final UUID target = targets.get(i);
@@ -63,13 +63,19 @@ public class EvaluationJob extends AbstractJob<EvaluationResult> {
 		if(result!=null)
 			return result;
 		
-		Map<UUID, Evaluation> results = new HashMap<>();
+		Map<UUID, Evaluation> progresses = new HashMap<>();
 		for(UUID target : targets){
-			Evaluator evaluator = coordinator.evaluators.get(target);
-			EvaluationProgress e = evaluator.getProgress();
-			results.put(target, e);
+			EvaluationProgress p = null; 
+			if(results.containsKey(target)){
+				Evaluation eval = results.get(target);
+				p = new EvaluationProgress(eval.getTotal(), eval.getTotal(), eval.evaluationTime());
+			} else {
+				Evaluator evaluator = coordinator.evaluators.get(target);
+				p = evaluator.getProgress();
+			}
+			progresses.put(target, p);
 		}
-		return new EvaluationResult(results);
+		return new EvaluationResult(progresses);
 	}
 
 }
