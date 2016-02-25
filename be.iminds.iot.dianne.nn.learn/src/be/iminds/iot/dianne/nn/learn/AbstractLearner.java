@@ -120,9 +120,6 @@ public abstract class AbstractLearner implements Learner {
 			// Load neural network instance(s)
 			loadNNs(nni);
 			
-			// initialize nn parameters
-			initializeParameters();
-			
 			// read config
 			System.out.println("Learner Configuration");
 			System.out.println("=====================");
@@ -132,6 +129,10 @@ public abstract class AbstractLearner implements Learner {
 
 			System.out.println("---");
 			
+			// initialize nn parameters
+			initializeParameters();
+			
+			// setup criterion, sampling strategy and gradient processor
 			criterion = LearnerUtil.createCriterion(factory, config);
 			sampling = LearnerUtil.createSamplingStrategy(dataset, config);
 			gradientProcessor = LearnerUtil.createGradientProcessor(factory, nn, dataset, config, logger);
@@ -207,7 +208,6 @@ public abstract class AbstractLearner implements Learner {
 		}
 		System.out.println("* clean = " +clean);
 
-		
 		if (config.containsKey("trace")){
 			trace = Boolean.parseBoolean(config.get("trace"));
 		}
