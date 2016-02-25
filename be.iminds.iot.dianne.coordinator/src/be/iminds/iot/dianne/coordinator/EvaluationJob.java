@@ -30,16 +30,30 @@ public class EvaluationJob extends AbstractJob<EvaluationResult> {
 			evalConfig.put("range", config.get("testSet"));
 		}
 
-		Map<UUID, Evaluation> results = new HashMap<>();
-		for(UUID target : targets){
-			// TODO in parallel?
-			Evaluator evaluator = coordinator.evaluators.get(target);
-			Evaluation e = evaluator.eval(nnis.get(target), dataset, evalConfig);
-			results.put(target, e);
+		final Map<UUID, Evaluation> results = new HashMap<>();
+		Thread[] threads = new Thread[targets.size()];
+		for(int i=0;i<targets.size();i++){
+			final UUID target = targets.get(i);
+			threads[i] = new Thread(new Runnable(){
+				public void run(){
+					try {
+						Evaluator evaluator = coordinator.evaluators.get(target);
+						Evaluation e = evaluator.eval(nnis.get(target), dataset, evalConfig);
+						results.put(target, e);
+					} catch(Exception e){
+						// TODO should this fail the entire job?
+						results.put(target, null);
+					}
+				}
+			});
+			threads[i].start();
+		}
+		
+		for(Thread t : threads){
+			t.join();
 		}
 		
 		result = new EvaluationResult(results);
-		
 		
 		done(result);
 	}
