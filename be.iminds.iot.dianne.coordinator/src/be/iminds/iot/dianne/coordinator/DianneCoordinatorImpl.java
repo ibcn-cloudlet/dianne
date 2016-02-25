@@ -90,7 +90,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	Queue<AbstractJob> queueEval = new LinkedBlockingQueue<>();
 
 	Set<AbstractJob> running = new HashSet<>();
-	Queue<AbstractJob> finished = new LinkedBlockingQueue<>(10);
+	Queue<AbstractJob> finished = new CircularBlockingQueue<>(10);
 	
 	Map<UUID, Learner> learners = new ConcurrentHashMap<>();
 	Map<UUID, Evaluator> evaluators = new ConcurrentHashMap<>();
@@ -104,7 +104,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	// 2 = evaluating
 	Map<UUID, Integer> deviceUsage = new ConcurrentHashMap<>(); 
 	
-	Queue<Notification> notifications = new LinkedBlockingQueue<>(20);
+	Queue<Notification> notifications = new CircularBlockingQueue<>(20);
 	
 	@Override
 	public Status getStatus(){
