@@ -32,7 +32,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 @Component(service=Learner.class, 
 	property={"aiolos.unique=true",
-			  "dianne.learner.type=feedforward"})
+			  "dianne.learner.category=FF"})
 public class FeedForwardLearner extends AbstractLearner {
 	
 	protected int batchSize = 10;

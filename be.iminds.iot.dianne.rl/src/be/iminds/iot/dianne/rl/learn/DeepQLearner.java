@@ -39,7 +39,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 @Component(service=Learner.class, 
 property={"aiolos.unique=true",
-		  "dianne.learner.type=deepq"})
+		  "dianne.learner.category=RL"})
 public class DeepQLearner extends AbstractLearner {
 
 	private final String[] logLabels = new String[]{"Q", "Target Q", "Error"};

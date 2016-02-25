@@ -36,7 +36,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 @Component(service=Learner.class, 
 	property={"aiolos.unique=true",
-			  "dianne.learner.type=recurrent"})
+			  "dianne.learner.category=RNN"})
 public class RecurrentLearner extends AbstractLearner {
 	
 	protected int sequenceLength = 10;

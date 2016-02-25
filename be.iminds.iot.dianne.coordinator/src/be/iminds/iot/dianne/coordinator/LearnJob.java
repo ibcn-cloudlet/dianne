@@ -25,6 +25,8 @@ public class LearnJob extends AbstractJob<LearnResult> implements RepositoryList
 	
 	private LearnResult result = new LearnResult();
 	
+	private Map<UUID, Learner> learners = new HashMap<>();
+	
 	public LearnJob(DianneCoordinatorImpl coord, 
 			NeuralNetworkDTO nn,
 			String d,
@@ -47,7 +49,7 @@ public class LearnJob extends AbstractJob<LearnResult> implements RepositoryList
 		
 		// TODO deploy dataset?
 		
-		// set trainging set
+		// set training set
 		final Map<String, String> learnConfig = new HashMap<>(config);
 		learnConfig.put("range", config.get("trainingSet"));
 
@@ -60,7 +62,8 @@ public class LearnJob extends AbstractJob<LearnResult> implements RepositoryList
 		
 		// start learning on each learner
 		for(UUID target : targets){
-			Learner learner = coordinator.learners.get(target);
+			Learner learner = coordinator.learners.get(category.toString()).get(target);
+			learners.put(target, learner);
 			learner.learn(dataset, learnConfig, nnis.get(target));
 		}
 	}
@@ -71,8 +74,8 @@ public class LearnJob extends AbstractJob<LearnResult> implements RepositoryList
 			return;
 		}
 		
-		// check stop conditition
-		LearnProgress progress = coordinator.learners.get(targetsByNNi.get(nnId)).getProgress();
+		// check stop condition
+		LearnProgress progress = learners.get(targetsByNNi.get(nnId)).getProgress();
 		if(progress==null){
 			// not yet started...
 			return;
@@ -108,7 +111,7 @@ public class LearnJob extends AbstractJob<LearnResult> implements RepositoryList
 		reg.unregister();
 		
 		for(UUID target : targets){
-			Learner learner = coordinator.learners.get(target);
+			Learner learner = learners.get(target);
 			if(learner!=null){
 				learner.stop();
 			}

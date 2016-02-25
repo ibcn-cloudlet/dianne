@@ -60,6 +60,7 @@ import be.iminds.iot.dianne.api.coordinator.Device;
 import be.iminds.iot.dianne.api.coordinator.DianneCoordinator;
 import be.iminds.iot.dianne.api.coordinator.EvaluationResult;
 import be.iminds.iot.dianne.api.coordinator.Job;
+import be.iminds.iot.dianne.api.coordinator.Job.Category;
 import be.iminds.iot.dianne.api.coordinator.LearnResult;
 import be.iminds.iot.dianne.api.coordinator.Notification;
 import be.iminds.iot.dianne.api.coordinator.Notification.Level;
@@ -92,7 +93,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	Set<AbstractJob> running = new HashSet<>();
 	Queue<AbstractJob> finished = new CircularBlockingQueue<>(10);
 	
-	Map<UUID, Learner> learners = new ConcurrentHashMap<>();
+	Map<String, Map<UUID, Learner>> learners = new ConcurrentHashMap<>();
 	Map<UUID, Evaluator> evaluators = new ConcurrentHashMap<>();
 	
 	ExecutorService pool = Executors.newCachedThreadPool();
@@ -348,9 +349,13 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 			} else if(eval){
 				targets = findTargets(evaluators.keySet(), filter, count);
 			} else {
-				targets = findTargets(learners.keySet(), filter, count);
+				if(!learners.containsKey(job.category.toString())){
+					throw new Exception("No learner available for category "+job.category.toString());
+				}
+				targets = findTargets(learners.get(job.category.toString()).keySet(), filter, count);
 			}
 		} catch(Exception e){
+			
 			job = queue.poll();
 			job.deferred.fail(e);
 			
@@ -469,8 +474,16 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	@Reference(policy=ReferencePolicy.DYNAMIC,
 			cardinality=ReferenceCardinality.MULTIPLE)
 	void addLearner(Learner learner, Map<String, Object> properties){
+		String type = (String)properties.get("dianne.learner.category");
+		
+		Map<UUID, Learner> ll = learners.get(type);
+		if(ll==null){
+			ll = new ConcurrentHashMap<>();
+			learners.put(type, ll);
+		}
+		
 		UUID id = learner.getLearnerId();
-		this.learners.put(id, learner);
+		ll.put(id, learner);
 		
 		Device device = devices.get(id);
 		if(device == null){
@@ -499,8 +512,12 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	}
 	
 	void removeLearner(Learner learner, Map<String, Object> properties){
+		String type = (String)properties.get("dianne.learner.category");
+
+		Map<UUID, Learner> ll = learners.get(type);
+		
 		UUID id = null;
-		Iterator<Entry<UUID, Learner>> it =this.learners.entrySet().iterator();
+		Iterator<Entry<UUID, Learner>> it = ll.entrySet().iterator();
 		while(it.hasNext()){
 			Entry<UUID, Learner> e = it.next();
 			if(e.getValue()==learner){
