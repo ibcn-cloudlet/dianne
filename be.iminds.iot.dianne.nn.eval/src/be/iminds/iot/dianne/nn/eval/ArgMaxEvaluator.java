@@ -65,6 +65,7 @@ public class ArgMaxEvaluator implements Evaluator {
 	protected volatile boolean evaluating = false;
 	
 	protected int sample = 0;
+	protected int faulty = 0;
 	protected int total = 0;
 	protected Tensor confusion;
 	protected List<Tensor> outputs;
@@ -135,12 +136,13 @@ public class ArgMaxEvaluator implements Evaluator {
 			}
 			
 			total = indices.length;
-			
+			faulty = 0;
 			
 			NeuralNetwork nn = null;
 			try {
 				nn = dianne.getNeuralNetwork(nni).getValue();
 			} catch (Exception e) {
+				throw new Exception("Neural Network "+nni.id+" not available!");
 			}
 			nn.getModules().values().stream().forEach(m -> m.setMode(EnumSet.of(Mode.BLOCKING)));
 			
@@ -171,12 +173,15 @@ public class ArgMaxEvaluator implements Evaluator {
 				
 				int predicted = factory.getTensorMath().argmax(out);
 				int real = factory.getTensorMath().argmax(d.getOutputSample(indices[sample]));
+				if(real!=predicted)
+					faulty++;
 				
 				confusion.set(confusion.get(real, predicted)+1, real, predicted);
 			}
 			tEnd = System.currentTimeMillis();
 			
-			Evaluation e = new Evaluation(factory, confusion, outputs, tEnd-tStart);
+			
+			Evaluation e = new Evaluation(total, faulty/(float)total, confusion, outputs, tEnd-tStart);
 			return e;
 		} finally {
 			evaluating = false;

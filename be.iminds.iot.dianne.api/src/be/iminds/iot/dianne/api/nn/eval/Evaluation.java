@@ -35,7 +35,8 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
  */
 public class Evaluation {
 
-	protected final TensorFactory factory;
+	protected long total;
+	protected float error;
 	
 	// the actual outputs 
 	protected List<Tensor> outputs;
@@ -44,12 +45,12 @@ public class Evaluation {
 	// time to run the evaluation
 	protected long time;
 	
-	public Evaluation(TensorFactory factory, Tensor confusionMatrix, List<Tensor> outputs, long time){
-		//assert confusionMatrix.dim() == 2;
-		//assert confusionMatrix.dims()[0] == confusionMatrix.dims()[1];
+	public Evaluation(long total, float error, Tensor confusionMatrix, List<Tensor> outputs, long time){
+		this.total = total;
+		this.error = error;
+		
 		this.confusionMatrix = confusionMatrix;
 		this.outputs = outputs;
-		this.factory = factory;
 		this.time = time;
 	}
 	
@@ -69,8 +70,7 @@ public class Evaluation {
 	 * @return average time for processing one sample
 	 */
 	public float forwardTime(){
-		float total = factory.getTensorMath().sum(confusionMatrix);
-		float sampleTime = time/total;
+		float sampleTime = time/(float)total;
 		return sampleTime;
 	}
 	
@@ -80,6 +80,13 @@ public class Evaluation {
 	
 	public Tensor getOutput(int index){
 		return outputs.get(index);
+	}
+	
+	/**
+	 * @return the total number of samples in the evaluation set
+	 */
+	public long getTotal(){
+		return total;
 	}
 	
 	/**
@@ -93,16 +100,14 @@ public class Evaluation {
 	 * @return accuracy on global dataset
 	 */
 	public float accuracy(){
-		float tp = factory.getTensorMath().sum(confusionMatrix.diag(null));
-		float total = factory.getTensorMath().sum(confusionMatrix);
-		return tp/total;
+		return 1-error;
 	}
 	
 	/**
 	 * @return error on global dataset
 	 */
 	public float error() {
-		return 1-accuracy();
+		return error;
 	}
 
 	/**
@@ -116,21 +121,31 @@ public class Evaluation {
 	 * @return false positives of i-th class
 	 */
 	public float fp(int i) {
-		return factory.getTensorMath().sum(confusionMatrix.select(1, i))-confusionMatrix.get(i,i);
+		float fp = 0;
+		for(int k=0;k<confusionMatrix.dims()[0];k++){
+			if(k!=i)
+				fp+=confusionMatrix.get(k, i);
+		}
+		return fp;
 	}
 
 	/**
 	 * @return false negatives of i-th class
 	 */
 	public float fn(int i) {
-		return factory.getTensorMath().sum(confusionMatrix.select(0, i))-confusionMatrix.get(i,i);
+		float fn = 0;
+		for(int k=0;k<confusionMatrix.dims()[1];k++){
+			if(k!=i)
+				fn+=confusionMatrix.get(i, k);
+		}
+		return fn;
 	}
 
 	/**
 	 * @return true negatives of i-th class
 	 */
 	public float tn(int i) {
-		return factory.getTensorMath().sum(confusionMatrix)-fn(i)-fp(i)-tp(i);
+		return total-fn(i)-fp(i)-tp(i);
 	}
 
 	/**
@@ -186,14 +201,14 @@ public class Evaluation {
 	 * @return accuracy of i-th class
 	 */
 	public float accuracy(int i) {
-		return (tp(i)+tn(i))/factory.getTensorMath().sum(confusionMatrix);
+		return (tp(i)+tn(i))/(float)total;
 	}
 
 	/**
 	 * @return error of i-th class
 	 */
 	public float error(int i) {
-		return (fp(i)+fn(i))/factory.getTensorMath().sum(confusionMatrix);
+		return (fp(i)+fn(i))/(float)total;
 	}
 
 	/**
