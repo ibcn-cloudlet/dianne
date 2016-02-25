@@ -51,7 +51,7 @@ public class DianneEvalCommands {
 			Map<String, String> config = createEvalConfig(properties);
 			
 			NeuralNetworkInstanceDTO nni = platform.deployNeuralNetwork(nnName);
-			Evaluation e = evaluator.eval(nni, dataset, config);
+			Evaluation e = evaluator.eval(dataset, config, nni);
 			System.out.println("Accuracy "+e.accuracy());
 			System.out.println("Sample time "+e.forwardTime()+" ms");
 		} catch(Exception e){

@@ -31,10 +31,12 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -60,7 +62,7 @@ import be.iminds.iot.dianne.api.coordinator.Device;
 import be.iminds.iot.dianne.api.coordinator.DianneCoordinator;
 import be.iminds.iot.dianne.api.coordinator.EvaluationResult;
 import be.iminds.iot.dianne.api.coordinator.Job;
-import be.iminds.iot.dianne.api.coordinator.Job.Category;
+import be.iminds.iot.dianne.api.coordinator.Job.Type;
 import be.iminds.iot.dianne.api.coordinator.LearnResult;
 import be.iminds.iot.dianne.api.coordinator.Notification;
 import be.iminds.iot.dianne.api.coordinator.Notification.Level;
@@ -71,6 +73,7 @@ import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
+import be.iminds.iot.dianne.api.rl.agent.Agent;
 
 @Component
 public class DianneCoordinatorImpl implements DianneCoordinator {
@@ -89,32 +92,35 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	// makes sure eval jobs are not blocked by big learn jobs
 	Queue<AbstractJob> queueLearn = new LinkedBlockingQueue<>();
 	Queue<AbstractJob> queueEval = new LinkedBlockingQueue<>();
+	Queue<AbstractJob> queueAct = new LinkedBlockingQueue<>();
+
 
 	Set<AbstractJob> running = new HashSet<>();
 	Queue<AbstractJob> finished = new CircularBlockingQueue<>(10);
 	
 	Map<String, Map<UUID, Learner>> learners = new ConcurrentHashMap<>();
 	Map<UUID, Evaluator> evaluators = new ConcurrentHashMap<>();
+	Map<UUID, Agent> agents = new ConcurrentHashMap<>();
+
 	
 	ExecutorService pool = Executors.newCachedThreadPool();
 
 	Map<UUID, Device> devices = new ConcurrentHashMap<>();
-	// keeps which device is doing what
-	// 0 = idle
-	// 1 = learning
-	// 2 = evaluating
+	// keeps which device is doing what (-1 is idle)
 	Map<UUID, Integer> deviceUsage = new ConcurrentHashMap<>(); 
 	
 	Queue<Notification> notifications = new CircularBlockingQueue<>(20);
 	
 	@Override
 	public Status getStatus(){
-		int idle = deviceUsage.values().stream().mapToInt(i -> (i==0) ? 1 : 0).sum();
-		int learn = deviceUsage.values().stream().mapToInt(i -> (i==1) ? 1 : 0).sum();
-		int eval = deviceUsage.values().stream().mapToInt(i -> (i==2) ? 1 : 0).sum();
+		int idle = deviceUsage.values().stream().mapToInt(t -> (t==-1) ? 1 : 0).sum();
+		int learn = deviceUsage.values().stream().mapToInt(t -> (t==Type.LEARN.ordinal()) ? 1 : 0).sum();
+		int eval = deviceUsage.values().stream().mapToInt(t -> (t==Type.EVALUATE.ordinal()) ? 1 : 0).sum();
+		int act = deviceUsage.values().stream().mapToInt(t -> (t==Type.ACT.ordinal()) ? 1 : 0).sum();
 
+		
 		long spaceLeft = repository.spaceLeft();
-		Status currentStatus = new Status(queueLearn.size()+queueEval.size(), running.size(), learn, eval, idle, spaceLeft, boot);
+		Status currentStatus = new Status(queueLearn.size()+queueEval.size(), running.size(), learn, eval, act, idle, spaceLeft, boot);
 		return currentStatus;
 	}
 	
@@ -125,9 +131,9 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		LearnJob job = new LearnJob(this, nn, dataset, config);
 		queueLearn.add(job);
 		
-		sendNotification(job.jobId, Level.INFO, "Job \""+job.name+"\" submitted.");
+		sendNotification(job.jobId, Level.INFO, "Learn job \""+job.name+"\" submitted.");
 		
-		schedule(false);
+		schedule(Type.LEARN);
 		
 		return job.getPromise();
 	}
@@ -139,15 +145,33 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	
 	@Override
 	public Promise<EvaluationResult> eval(NeuralNetworkDTO nn, String dataset, Map<String, String> config) {
-		// TODO evaluate time on other/multiple platforms?
 		repository.storeNeuralNetwork(nn);
 		
 		EvaluationJob job = new EvaluationJob(this, nn, dataset, config);
 		queueEval.add(job);
 		
-		sendNotification(job.jobId, Level.INFO, "Job \""+job.name+"\" submitted.");
+		sendNotification(job.jobId, Level.INFO, "Evaluation job \""+job.name+"\" submitted.");
 		
-		schedule(true);
+		schedule(Type.EVALUATE);
+		
+		return job.getPromise();
+	}
+
+	@Override
+	public Promise<Void> act(String nnName, String dataset, Map<String, String> config) {
+		return act(repository.loadNeuralNetwork(nnName), dataset, config);
+	}
+	
+	@Override
+	public Promise<Void> act(NeuralNetworkDTO nn, String dataset, Map<String, String> config) {
+		repository.storeNeuralNetwork(nn);
+		
+		ActJob job = new ActJob(this, nn, dataset, config);
+		queueAct.add(job);
+		
+		sendNotification(job.jobId, Level.INFO, "Act job \""+job.name+"\" submitted.");
+		
+		schedule(Type.ACT);
 		
 		return job.getPromise();
 	}
@@ -267,7 +291,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	void done(AbstractJob job) {
 		// remove from running list
 		running.remove(job);
-		job.targets.stream().forEach(uuid -> deviceUsage.put((UUID) uuid, 0));
+		job.targets.stream().forEach(uuid -> deviceUsage.put((UUID) uuid, -1));
 		
 		try {
 			Throwable error = job.getPromise().getFailure();
@@ -287,30 +311,49 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		finished.add(job);
 
 		// schedule new one, check which queue has longest waiting queue item and schedule that one first
-		AbstractJob j1 = queueLearn.peek();
-		if(j1==null){
-			schedule(true);
-		} else {
-			AbstractJob j2 = queueEval.peek();
-			if(j2 ==null){
-				schedule(false);
-			} else {
-				if(j1.submitted < j2.submitted){
-					schedule(true);
-					schedule(false);
+		SortedSet<Queue<AbstractJob>> queues = new TreeSet<>(new Comparator<Queue<AbstractJob>>() {
+			@Override
+			public int compare(Queue<AbstractJob> o1, Queue<AbstractJob> o2) {
+				AbstractJob j1 = o1.peek();
+				AbstractJob j2 = o2.peek();
+				if(j1 == null){
+					if(j2 ==null){
+						return 0;
+					} else {
+						return 1;
+					}
+				} else if(j2 ==null){
+					return -1;
 				} else {
-					schedule(false);
-					schedule(true);
+					return (int)(j1.submitted - j2.submitted);
 				}
 			}
+		});
+		queues.add(queueLearn);
+		queues.add(queueEval);
+		queues.add(queueAct);
+		for(Queue q : queues){
+			schedule( (q==queueLearn) ? Type.LEARN : (q==queueEval) ? Type.EVALUATE : Type.ACT  );
 		}
+		
 	}
 	
 	// try to schedule the job on top of the queue
-	synchronized void schedule(boolean eval){
-		// TODO what if not enough learners/evaluators or no matching learners/evaluators?
+	synchronized void schedule(Type type){
+
+		Queue<AbstractJob> queue = null;
+		switch(type){
+		case LEARN:
+			queue = queueLearn;
+			break;
+		case EVALUATE:
+			queue = queueEval;
+			break;
+		case ACT:
+			queue = queueAct;
+			break;
+		}
 		
-		Queue<AbstractJob> queue = eval ? queueEval : queueLearn;
 		// try to schedule the next job on the queue
 		AbstractJob job = queue.peek();
 		if(job==null){
@@ -346,13 +389,15 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		try {
 			if(targets!=null){
 				targets = findTargets(targets, filter, count);
-			} else if(eval){
+			} else if(type==Type.EVALUATE){
 				targets = findTargets(evaluators.keySet(), filter, count);
-			} else {
+			} else if(type==Type.LEARN){
 				if(!learners.containsKey(job.category.toString())){
 					throw new Exception("No learner available for category "+job.category.toString());
 				}
 				targets = findTargets(learners.get(job.category.toString()).keySet(), filter, count);
+			} else if(type==Type.ACT){
+				targets = findTargets(agents.keySet(), filter, count);
 			}
 		} catch(Exception e){
 			
@@ -367,9 +412,8 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 			return;
 		}
 			
-		int usage = eval ? 2 : 1;	
 		for(UUID target : targets){
-			deviceUsage.put(target, usage);
+			deviceUsage.put(target, job.type.ordinal());
 		}
 		job = queue.poll();
 		job.start(targets, pool);
@@ -405,7 +449,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		
 		// check if the possible devices are currently available
 		targets = targets.stream()
-			.filter(uuid -> deviceUsage.get(uuid)==0) // only free nodes can be selected
+			.filter(uuid -> deviceUsage.get(uuid)==-1) // only free nodes can be selected
 			.limit(count)
 			.collect(Collectors.toList());
 
@@ -471,23 +515,10 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		this.repository = repository;
 	}
 	
-	@Reference(policy=ReferencePolicy.DYNAMIC,
-			cardinality=ReferenceCardinality.MULTIPLE)
-	void addLearner(Learner learner, Map<String, Object> properties){
-		String type = (String)properties.get("dianne.learner.category");
-		
-		Map<UUID, Learner> ll = learners.get(type);
-		if(ll==null){
-			ll = new ConcurrentHashMap<>();
-			learners.put(type, ll);
-		}
-		
-		UUID id = learner.getLearnerId();
-		ll.put(id, learner);
-		
+	Device addDevice(UUID id){
 		Device device = devices.get(id);
 		if(device == null){
-			deviceUsage.put(id, 0);
+			deviceUsage.put(id, -1);
 
 			String name = id.toString();
 			String arch = "unknown";
@@ -504,11 +535,40 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 			device = new Device(id, name, arch, os, ip);
 			devices.put(id, device);
 		}
+		return device;
+	}
+	
+	void removeDevice(UUID id){
+		if(id!=null){
+			if(!learners.containsKey(id) 
+			&& !evaluators.containsKey(id)
+			&& !agents.containsKey(id)){
+				deviceUsage.remove(id);
+				devices.remove(id);
+			}
+		}
+	}
+	
+	@Reference(policy=ReferencePolicy.DYNAMIC,
+			cardinality=ReferenceCardinality.MULTIPLE)
+	void addLearner(Learner learner, Map<String, Object> properties){
+		String type = (String)properties.get("dianne.learner.category");
+		
+		Map<UUID, Learner> ll = learners.get(type);
+		if(ll==null){
+			ll = new ConcurrentHashMap<>();
+			learners.put(type, ll);
+		}
+		
+		UUID id = learner.getLearnerId();
+		ll.put(id, learner);
+		
+		Device device = addDevice(id);
 		device.learn = true;
 		
 		sendNotification(null, Level.INFO, "New Learner "+id+" is added to the system.");
 		
-		schedule(false);
+		schedule(Type.LEARN);
 	}
 	
 	void removeLearner(Learner learner, Map<String, Object> properties){
@@ -527,16 +587,9 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 			}
 		}
 		
-		if(id!=null){
-			if(!learners.containsKey(id) 
-				&& !evaluators.containsKey(id)){
-				deviceUsage.remove(id);
-				devices.remove(id);
-			}
-		}
+		removeDevice(id);
 		
 		sendNotification(null, Level.WARNING, "Learner "+id+" is removed from the system.");
-
 	}
 
 	@Reference(policy=ReferencePolicy.DYNAMIC,
@@ -545,30 +598,12 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		UUID id = evaluator.getEvaluatorId();
 		this.evaluators.put(id, evaluator);
 		
-		Device device = devices.get(id);
-		if(device == null){
-			deviceUsage.put(id, 0);
-
-			String name = id.toString();
-			String arch = "unknown";
-			String os = "unknown";
-			String ip = "unknown";
-			
-			if(aiolos!=null){
-				NodeInfo n = aiolos.getNode(id.toString());
-				name = n.getName();
-				arch = n.getArch();
-				os = n.getOS();
-				ip = n.getIP();
-			}
-			device = new Device(id, name, arch, os, ip);
-			devices.put(id, device);
-		}
+		Device device = addDevice(id);
 		device.eval = true;
 		
 		sendNotification(null, Level.INFO, "New Evaluator "+id+" is added to the system.");
 		
-		schedule(true);
+		schedule(Type.EVALUATE);
 	}
 	
 	void removeEvaluator(Evaluator evaluator, Map<String, Object> properties){
@@ -583,16 +618,40 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 			}
 		}
 		
-		if(id!=null){
-			if(!learners.containsKey(id) 
-				&& !evaluators.containsKey(id)){
-				deviceUsage.remove(id);
-				devices.remove(id);
+		removeDevice(id);
+		
+		sendNotification(null, Level.WARNING, "Evaluator "+id+" is removed from the system.");
+	}
+	
+	@Reference(policy=ReferencePolicy.DYNAMIC,
+			cardinality=ReferenceCardinality.MULTIPLE)
+	void addAgent(Agent agent, Map<String, Object> properties){
+		UUID id = agent.getAgentId();
+		this.agents.put(id, agent);
+		
+		Device device = addDevice(id);
+		device.act = true;
+		
+		sendNotification(null, Level.INFO, "New Agent "+id+" is added to the system.");
+		
+		schedule(Type.ACT);
+	}
+	
+	void removeAgent(Agent evaluator, Map<String, Object> properties){
+		UUID id = null;
+		Iterator<Entry<UUID, Evaluator>> it =this.evaluators.entrySet().iterator();
+		while(it.hasNext()){
+			Entry<UUID, Evaluator> e = it.next();
+			if(e.getValue()==evaluator){
+				id = e.getKey();
+				it.remove();
+				break;
 			}
 		}
 		
-		sendNotification(null, Level.WARNING, "Evaluator "+id+" is removed from the system.");
-
+		removeDevice(id);
+		
+		sendNotification(null, Level.WARNING, "Agent "+id+" is removed from the system.");
 	}
 	
 	private AbstractJob getRunningJob(UUID jobId){

@@ -79,8 +79,8 @@ public class ArgMaxEvaluator implements Evaluator {
 	}
 
 	@Override
-	public synchronized Evaluation eval(NeuralNetworkInstanceDTO nni, String dataset,
-			Map<String, String> config) throws Exception {
+	public synchronized Evaluation eval(String dataset,
+			Map<String, String> config, NeuralNetworkInstanceDTO nni) throws Exception {
 		if(evaluating){
 			throw new Exception("Already running an evaluation session here");
 		}

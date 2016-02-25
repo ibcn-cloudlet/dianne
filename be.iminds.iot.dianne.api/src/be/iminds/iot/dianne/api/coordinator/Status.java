@@ -7,6 +7,7 @@ public class Status {
 	
 	public final int learn;
 	public final int eval;
+	public final int act;
 	public final int idle;
 
 	public final long spaceLeft;
@@ -14,12 +15,13 @@ public class Status {
 	public final long bootTime;
 	
 	public Status(int queued, int running,
-			int learn, int eval, int idle,
+			int learn, int eval, int act, int idle,
 			long spaceLeft, long bootTime){
 		this.queued = queued;
 		this.running = running;
 		this.learn = learn;
 		this.eval = eval;
+		this.act = act;
 		this.idle = idle;
 		this.spaceLeft = spaceLeft;
 		this.bootTime = bootTime;

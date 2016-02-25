@@ -51,7 +51,7 @@ public interface Evaluator {
 	 * @return Evaluation 
 	 * @throws Exception
 	 */
-	Evaluation eval(NeuralNetworkInstanceDTO nni, String dataset, Map<String, String> config) throws Exception;
+	Evaluation eval(String dataset, Map<String, String> config, NeuralNetworkInstanceDTO nni) throws Exception;
 
 	/**
 	 * @return the current progress of the Evaluator

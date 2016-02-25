@@ -42,6 +42,10 @@ public interface DianneCoordinator {
 	
 	Promise<EvaluationResult> eval(NeuralNetworkDTO nn, String dataset, Map<String, String> config);
 	
+	Promise<Void> act(String nnName, String dataset, Map<String, String> config);
+	
+	Promise<Void> act(NeuralNetworkDTO nn, String dataset, Map<String, String> config);
+	
 	LearnResult getLearnResult(UUID jobId); // if still running, this contains partial progress results
 	
 	EvaluationResult getEvaluationResult(UUID jobId);  // if still running, this contains partial progress results

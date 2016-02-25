@@ -29,7 +29,8 @@ import org.osgi.service.component.annotations.Component;
 import be.iminds.iot.dianne.rl.agent.api.ManualActionController;
 import be.iminds.iot.dianne.tensor.Tensor;
 
-@Component(property={"strategy=manual"})
+@Component(property={"strategy=manual",
+		"aiolos.proxy=false"})
 public class ManualActionStrategy implements ActionStrategy, ManualActionController {
 
 	private Tensor action;

@@ -80,7 +80,7 @@ public class RLWorker {
 			
 			try {
 				NeuralNetworkInstanceDTO nni = platform.deployNeuralNetwork(nnName);
-				agent.act(nni, env, pool, config);
+				agent.act(pool, config, nni, env);
 			} catch(Exception e){
 				System.err.println("Failed to start agent");
 				e.printStackTrace();

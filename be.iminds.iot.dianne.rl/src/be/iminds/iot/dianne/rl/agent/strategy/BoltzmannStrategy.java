@@ -32,7 +32,8 @@ import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
-@Component(property={"strategy=boltzmann"})
+@Component(property={"strategy=boltzmann",
+			"aiolos.proxy=false"})
 public class BoltzmannStrategy implements ActionStrategy {
 	
 	private TensorFactory factory;

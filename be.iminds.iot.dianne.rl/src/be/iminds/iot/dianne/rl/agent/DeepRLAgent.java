@@ -27,7 +27,11 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
@@ -48,6 +52,8 @@ import be.iminds.iot.dianne.tensor.Tensor;
 @Component
 public class DeepRLAgent implements Agent {
 
+	private UUID agentId;
+	
 	private Map<String, ExperiencePool> pools = new HashMap<String, ExperiencePool>();
 	private Map<String, Environment> envs = new HashMap<String, Environment>();
 	private Map<String, ActionStrategy> strategies = new HashMap<String, ActionStrategy>();
@@ -111,6 +117,11 @@ public class DeepRLAgent implements Agent {
 		this.strategies.remove(strategy);
 	}
 	
+	@Activate
+	public void activate(BundleContext context){
+		this.agentId = UUID.fromString(context.getProperty(Constants.FRAMEWORK_UUID));
+	}
+	
 	@Deactivate
 	void deactivate() {
 		if(acting)
@@ -118,7 +129,17 @@ public class DeepRLAgent implements Agent {
 	}
 
 	@Override
-	public synchronized void act(NeuralNetworkInstanceDTO nni, String environment, String experiencePool, Map<String, String> config)
+	public UUID getAgentId(){
+		return agentId;
+	}
+	
+	@Override
+	public boolean isBusy(){
+		return acting;
+	}
+	
+	@Override
+	public synchronized void act(String experiencePool, Map<String, String> config, NeuralNetworkInstanceDTO nni, String environment)
 			throws Exception {
 		if (acting)
 			throw new Exception("Already running an Agent here");

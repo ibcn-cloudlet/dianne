@@ -13,6 +13,7 @@ public class Device {
 	
 	public boolean learn = false;
 	public boolean eval = false;
+	public boolean act = false;
 	
 	public double cpuUsage;
 	public double memUsage;

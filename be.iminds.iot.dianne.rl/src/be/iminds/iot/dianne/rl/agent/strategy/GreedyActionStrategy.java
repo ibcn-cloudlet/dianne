@@ -33,7 +33,8 @@ import be.iminds.iot.dianne.rl.agent.api.ExplorationController;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
-@Component(property={"strategy=greedy"})
+@Component(property={"strategy=greedy",
+		"aiolos.proxy=false"})
 public class GreedyActionStrategy implements ActionStrategy, ExplorationController {
 	
 	private TensorFactory factory;

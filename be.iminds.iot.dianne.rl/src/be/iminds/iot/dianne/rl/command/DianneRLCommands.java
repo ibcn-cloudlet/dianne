@@ -71,7 +71,7 @@ public class DianneRLCommands {
 		NeuralNetworkInstanceDTO nni = platform.deployNeuralNetwork(nnName);
 		NeuralNetworkInstanceDTO targeti = platform.deployNeuralNetwork(nnName);
 		
-		agent.act(agentnni, environment, experiencePool, agentConfig);
+		agent.act(experiencePool, agentConfig, agentnni, environment);
 		
 		learner.learn(experiencePool, learnConfig, nni, targeti);
 	}

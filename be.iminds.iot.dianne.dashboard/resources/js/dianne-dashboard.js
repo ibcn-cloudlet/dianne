@@ -51,6 +51,8 @@ function submitJob(){
     	DIANNE.learn(job.nn, job.dataset, job.config);
     } else if(job.type==="EVALUATE"){
     	DIANNE.eval(job.nn, job.dataset, job.config);
+    } else if(job.type==="ACT"){
+    	DIANNE.act(job.nn, job.dataset, job.config);
     }
 
 }

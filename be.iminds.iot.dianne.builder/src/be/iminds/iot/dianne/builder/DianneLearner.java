@@ -244,7 +244,7 @@ public class DianneLearner extends HttpServlet {
 					config.put("endIndex", ""+end);
 					
 					try {
-						Evaluation result = evaluator.eval(nni, dataset, config);
+						Evaluation result = evaluator.eval(dataset, config, nni);
 						
 						JsonObject eval = new JsonObject();
 						eval.add("accuracy", new JsonPrimitive(result.accuracy()*100));

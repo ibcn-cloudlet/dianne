@@ -38,7 +38,7 @@ public class EvaluationJob extends AbstractJob<EvaluationResult> {
 				public void run(){
 					try {
 						Evaluator evaluator = coordinator.evaluators.get(target);
-						Evaluation e = evaluator.eval(nnis.get(target), dataset, evalConfig);
+						Evaluation e = evaluator.eval(dataset, evalConfig, nnis.get(target));
 						results.put(target, e);
 					} catch(Exception e){
 						// TODO should this fail the entire job?

@@ -76,6 +76,7 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 		switch(method){
 		case "learn":
 		case "eval":
+		case "act":
 			String nnName = null;
 			NeuralNetworkDTO nn = null;
 			String dataset;
@@ -112,7 +113,7 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 				}, p -> {
 					writeError(writer, id, -32603, "Error during learning: "+p.getFailure().getMessage());
 				});
-			} else {
+			} else if(method.equals("eval")){
 				// eval
 				Promise<EvaluationResult> result = null;
 				if(nnName!=null){
@@ -122,6 +123,19 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 				}
 				result.then(p -> {
 					writeResult(writer, id, p.getValue());
+					return null;
+				}, p -> {
+					writeError(writer, id, -32603, "Error during learning: "+p.getFailure().getMessage());
+				});
+			} else if(method.equals("act")){
+				Promise<Void> result = null;
+				if(nnName!=null){
+					result= coordinator.act(nnName, dataset, config);
+				} else {
+					result = coordinator.act(nn, dataset, config);
+				}
+				result.then(p -> {
+					writeResult(writer, id, null);
 					return null;
 				}, p -> {
 					writeError(writer, id, -32603, "Error during learning: "+p.getFailure().getMessage());

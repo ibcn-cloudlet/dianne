@@ -228,7 +228,7 @@ public class PongServlet extends HttpServlet implements EnvironmentListener {
 		config.put("strategy", strategy);
 		try {
 			NeuralNetworkInstanceDTO nni = platform.deployNeuralNetwork("DeepQPong");
-			this.agent.act(nni, env, pool, config);
+			this.agent.act(pool, config, nni, env);
 		} catch (Exception e) {
 			this.agent.stop();
 		}

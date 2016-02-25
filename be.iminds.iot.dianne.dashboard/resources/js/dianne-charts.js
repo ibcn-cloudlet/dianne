@@ -14,7 +14,7 @@ function createStatusChart(container, status){
             layout: 'horizontal',
             floating: true,
             x: -10,
-            y: 10
+            y: 20
         },
         credits: {
             enabled: false
@@ -47,6 +47,9 @@ function createStatusChart(container, status){
             }, {
                 name: 'Evaluating',
                 y: status.eval
+            }, {
+                name: 'Acting',
+                y: status.act
             }]
         }]
     });	

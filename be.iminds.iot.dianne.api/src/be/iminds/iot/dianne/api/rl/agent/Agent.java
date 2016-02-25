@@ -23,6 +23,7 @@
 package be.iminds.iot.dianne.api.rl.agent;
 
 import java.util.Map;
+import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 
@@ -36,6 +37,11 @@ import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 public interface Agent {
 
 	/**
+	 * @return uuid of this agent - same as the frameworkId this agent is deployed on
+	 */
+	UUID getAgentId();
+	
+	/**
 	 * Starts an acting session with the given environment using the given
 	 * neural network name to instantiate a network to be used by the agent to
 	 * select action (e.g. Q-network). Optionally, a pool can be provided to
@@ -47,11 +53,15 @@ public interface Agent {
 	 * @param config the agent configuration to use
 	 * @throws Exception if the environment of pool are unknown or the agent is busy
 	 */
-	void act(NeuralNetworkInstanceDTO nni, String environment, String experiencePool, Map<String, String> config) throws Exception;
+	void act(String experiencePool, Map<String, String> config, NeuralNetworkInstanceDTO nni, String environment) throws Exception;
 
 	/**
 	 * Will stop the current acting session, if any are running.
 	 */
 	void stop();
 
+	/**
+	 * @return whether or not this learner is busy
+	 */
+	boolean isBusy();
 }

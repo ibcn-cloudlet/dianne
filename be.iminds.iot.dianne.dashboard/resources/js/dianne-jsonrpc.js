@@ -28,6 +28,9 @@ var DIANNE = {
 		eval: function (nnName, dataset, properties){
 			return this.call("eval", [nnName, dataset, properties]);
 		},
+		act: function (nnName, dataset, properties){
+			return this.call("act", [nnName, dataset, properties]);
+		},
 		learnResult : function(jobId){
 			return this.call("learnResult", [jobId]);
 		},
