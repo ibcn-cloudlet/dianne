@@ -61,6 +61,8 @@ public class ArgMaxEvaluator implements Evaluator {
 	protected Map<String, Dataset> datasets = new HashMap<String, Dataset>();
 	
 	protected String tag = null;
+	protected boolean trace = false;
+	protected boolean includeOutputs = false;
 	
 	protected volatile boolean evaluating = false;
 	
@@ -95,10 +97,20 @@ public class ArgMaxEvaluator implements Evaluator {
 				tag = config.get("tag"); 
 			}
 			
+			if(config.containsKey("trace")){
+				trace = Boolean.parseBoolean(config.get("trace"));
+			}
+			
+			if(config.containsKey("includeOutputs")){
+				includeOutputs = Boolean.parseBoolean(config.get("includeOutputs"));
+			}
+			
 			System.out.println("Evaluator Configuration");
 			System.out.println("=======================");
 			System.out.println("* dataset = "+dataset);
 			System.out.println("* tag = "+tag);
+			System.out.println("* trace = "+trace);
+			System.out.println("* includeOutputs = "+includeOutputs);
 			
 			
 			int[] indices = null;
@@ -158,13 +170,15 @@ public class ArgMaxEvaluator implements Evaluator {
 			}
 		
 			confusion = null;
-			outputs = new ArrayList<Tensor>();
+			outputs = includeOutputs ? new ArrayList<Tensor>() : null;
 			tStart = System.currentTimeMillis();
 			for(sample=0;sample<indices.length;sample++){
 				Tensor in = d.getInputSample(indices[sample]);
 				Tensor out = nn.forward(in);
 				
-				outputs.add(out);
+				if(outputs!=null)
+					outputs.add(out);
+				
 				if(confusion==null){
 					int outputSize = out.size();
 					confusion = factory.createTensor(outputSize, outputSize);
@@ -175,6 +189,10 @@ public class ArgMaxEvaluator implements Evaluator {
 				int real = factory.getTensorMath().argmax(d.getOutputSample(indices[sample]));
 				if(real!=predicted)
 					faulty++;
+				
+				if(trace){
+					System.out.println("Sample "+indices[sample]+" was "+predicted+", should be "+real);
+				}
 				
 				confusion.set(confusion.get(real, predicted)+1, real, predicted);
 			}

@@ -326,16 +326,18 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 				}
 				writer.endArray();
 				// write all outputs
-				writer.name("outputs");
-				writer.beginArray();
-				for(Tensor t : eval.getOutputs()){
+				if(eval.getOutputs()!=null){
+					writer.name("outputs");
 					writer.beginArray();
-					for(float f : t.get()){
-						writer.value(new Float(f));
+					for(Tensor t : eval.getOutputs()){
+						writer.beginArray();
+						for(float f : t.get()){
+							writer.value(new Float(f));
+						}
+						writer.endArray();
 					}
 					writer.endArray();
 				}
-				writer.endArray();
 			} 
 			writer.endObject();	
 		}
