@@ -313,6 +313,7 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		Dictionary<String, Object> properties = new Hashtable<String, Object>();
 		properties.put("nn.id", nn.id.toString());
 		properties.put("aiolos.export", false);
+		properties.put("aiolos.unique", true);
 		nnReg = context.registerService(NeuralNetwork.class, this, properties);
 		
 		valid = true;
