@@ -608,6 +608,11 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		removeDevice(id);
 		
 		sendNotification(null, Level.WARNING, "Learner "+id+" is removed from the system.");
+		
+		final UUID target = id;
+		running.stream()
+			.filter(job -> job.type == Type.LEARN)
+			.filter(job -> job.targets.contains(target)).forEach(job -> job.done(new Exception("Job failed because executing node was killed")));
 	}
 
 	@Reference(policy=ReferencePolicy.DYNAMIC,
@@ -639,6 +644,11 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		removeDevice(id);
 		
 		sendNotification(null, Level.WARNING, "Evaluator "+id+" is removed from the system.");
+		
+		final UUID target = id;
+		running.stream()
+			.filter(job -> job.type == Type.EVALUATE)
+			.filter(job -> job.targets.contains(target)).forEach(job -> job.done(new Exception("Job failed because executing node was killed")));
 	}
 	
 	@Reference(policy=ReferencePolicy.DYNAMIC,
@@ -655,12 +665,12 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		schedule(Type.ACT);
 	}
 	
-	void removeAgent(Agent evaluator, Map<String, Object> properties){
+	void removeAgent(Agent agent, Map<String, Object> properties){
 		UUID id = null;
-		Iterator<Entry<UUID, Evaluator>> it =this.evaluators.entrySet().iterator();
+		Iterator<Entry<UUID, Agent>> it =this.agents.entrySet().iterator();
 		while(it.hasNext()){
-			Entry<UUID, Evaluator> e = it.next();
-			if(e.getValue()==evaluator){
+			Entry<UUID, Agent> e = it.next();
+			if(e.getValue()==agent){
 				id = e.getKey();
 				it.remove();
 				break;
@@ -670,6 +680,11 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		removeDevice(id);
 		
 		sendNotification(null, Level.WARNING, "Agent "+id+" is removed from the system.");
+		
+		final UUID target = id;
+		running.stream()
+			.filter(job -> job.type == Type.ACT)
+			.filter(job -> job.targets.contains(target)).forEach(job -> job.done(new Exception("Job failed because executing node was killed")));
 	}
 	
 	private AbstractJob getRunningJob(UUID jobId){
