@@ -44,6 +44,7 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 			request = parser.parse(reader).getAsJsonObject();
 			handleRequest(request, writer);
 		} catch(Exception e){
+			e.printStackTrace();
 			writeError(writer, null, -32700, "Parse error");
 			return;
 		}
