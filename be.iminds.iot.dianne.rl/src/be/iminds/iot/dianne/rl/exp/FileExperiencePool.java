@@ -50,7 +50,8 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 @Component(immediate=true,
 	configurationPolicy=ConfigurationPolicy.REQUIRE,
 	service={ExperiencePool.class, Dataset.class},
-	property={"aiolos.unique=true, aiolos.combine=*"})
+	property={"aiolos.unique=true",
+			  "aiolos.combine=*"})
 public class FileExperiencePool implements ExperiencePool {
 
 	private TensorFactory factory;
@@ -152,39 +153,46 @@ public class FileExperiencePool implements ExperiencePool {
 	public int size() {
 		return size;
 	}
-	
+
 	@Override
 	public Tensor getInputSample(int index) {
-		return samples.get(getIndex(index)).state;
+		return getSample(index).state;
 	}
 
 	@Override
 	public Tensor getState(int index) {
-		return samples.get(getIndex(index)).state;
+		return getSample(index).state;
 	}
 
 	@Override
 	public Tensor getOutputSample(int index) {
-		return samples.get(getIndex(index)).action;
+		return getSample(index).action;
 	}
 
 	@Override
 	public Tensor getAction(int index) {
-		return samples.get(getIndex(index)).action;
+		return getSample(index).action;
 	}
 
 	@Override
 	public float getReward(int index) {
-		return samples.get(getIndex(index)).reward;
+		return getSample(index).reward;
 	}
 
 	@Override
 	public Tensor getNextState(int index) {
-		return samples.get(getIndex(index)).nextState;
+		return getSample(index).nextState;
 	}
 	
 	public ExperiencePoolSample getSample(int index) {
-		return samples.get(getIndex(index));
+		ExperiencePoolSample sample = null;
+		try {
+			rwLock.readLock().lock();
+			sample = samples.get(getIndex(index));
+		} finally {
+			rwLock.readLock().unlock();
+		}
+		return sample;
 	}
 	
 	private int getIndex(int index){
@@ -285,16 +293,6 @@ public class FileExperiencePool implements ExperiencePool {
 	@Reference
 	void setTensorFactory(TensorFactory f){
 		this.factory = f;
-	}
-
-	@Override
-	public void lock() {
-		rwLock.readLock().lock();
-	}
-
-	@Override
-	public void unlock() {
-		rwLock.readLock().unlock();
 	}
 
 	@Override

@@ -22,6 +22,7 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.rl.dataset;
 
+import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
@@ -30,7 +31,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
  * @author tverbele
  *
  */
-public class ExperiencePoolSample {
+public class ExperiencePoolSample extends Sample {
 
 	public final Tensor state;
 	public final Tensor action;
@@ -42,6 +43,7 @@ public class ExperiencePoolSample {
 			final Tensor action,
 			final float reward,
 			final Tensor nextState){
+		super(state, action);
 		this.state = state;
 		this.action = action;
 		this.reward = reward;

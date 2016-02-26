@@ -34,6 +34,7 @@ import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
+import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
 import be.iminds.iot.dianne.nn.learn.AbstractLearner;
 import be.iminds.iot.dianne.tensor.Tensor;
 
@@ -129,59 +130,56 @@ public class DeepQLearner extends AbstractLearner {
 		nn.getTrainables().values().stream().forEach(Trainable::zeroDeltaParameters);
 
 		float err = 0;
-		// TODO don't keep pool locked here!
-		pool.lock();
-		try {
-			for(int k=0;k<batchSize;k++){
-				// new sample
-				int index = sampling.next();
-				Tensor in = pool.getInputSample(index);
+			
+		for(int k=0;k<batchSize;k++){
+			// new sample
+			int index = sampling.next();
+			
+			ExperiencePoolSample sample = pool.getSample(index);
+			
+			Tensor in = sample.input;
 
-				// forward
-				Tensor out = nn.forward(in, ""+index);
-				
-				// evaluate criterion
-				Tensor action = pool.getAction(index);
-				float reward = pool.getReward(index);
-				Tensor nextState = pool.getNextState(index);
-				
-				float targetQ = 0;
-				
-				if(nextState==null){
-					// terminal state
-					targetQ = reward;
-				} else {
-					Tensor nextQ = target.forward(nextState, ""+index);
-					targetQ = reward + discount * factory.getTensorMath().max(nextQ);
-				}
-				
-				Tensor targetOut = out.copyInto(null);
-				targetOut.set(targetQ, factory.getTensorMath().argmax(action));
-				
-				Tensor e = criterion.error(out, targetOut);
-				err += e.get(0);
-				
-				if(logger!=null){
-					logger.log("LEARN", logLabels, factory.getTensorMath().max(out), targetQ, e.get(0));
-				}
-				
-				Tensor gradOut = criterion.grad(out, targetOut);
-				
-				// backward
-				Tensor gradIn = nn.backward(gradOut, ""+index);
-				
-				// acc gradParameters
-				nn.getTrainables().values().stream().forEach(m -> m.accGradParameters());
+			// forward
+			Tensor out = nn.forward(in, ""+index);
+			
+			// evaluate criterion
+			Tensor action = sample.action;
+			float reward = sample.reward;
+			Tensor nextState = sample.nextState;
+			
+			float targetQ = 0;
+			
+			if(nextState==null){
+				// terminal state
+				targetQ = reward;
+			} else {
+				Tensor nextQ = target.forward(nextState, ""+index);
+				targetQ = reward + discount * factory.getTensorMath().max(nextQ);
 			}
 			
-			if(Double.isInfinite(err) || Double.isNaN(err)){
-				System.out.println(i+" ERROR IS "+err);
+			Tensor targetOut = out.copyInto(null);
+			targetOut.set(targetQ, factory.getTensorMath().argmax(action));
+			
+			Tensor e = criterion.error(out, targetOut);
+			err += e.get(0);
+			
+			if(logger!=null){
+				logger.log("LEARN", logLabels, factory.getTensorMath().max(out), targetQ, e.get(0));
 			}
 			
-		} finally {
-			pool.unlock();
+			Tensor gradOut = criterion.grad(out, targetOut);
+			
+			// backward
+			Tensor gradIn = nn.backward(gradOut, ""+index);
+			
+			// acc gradParameters
+			nn.getTrainables().values().stream().forEach(m -> m.accGradParameters());
 		}
 		
+		if(Double.isInfinite(err) || Double.isNaN(err)){
+			System.out.println(i+" ERROR IS "+err);
+		}
+			
 		gradientProcessor.calculateDelta(i);
 
 		nn.getTrainables().values().stream().forEach(Trainable::updateParameters);

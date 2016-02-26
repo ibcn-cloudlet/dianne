@@ -83,7 +83,7 @@ public class DatasetLabelAdapter implements Dataset {
 	public int size() {
 		return data.size();
 	}
-
+	
 	@Override
 	public Tensor getInputSample(int index) {
 		return data.getInputSample(index);

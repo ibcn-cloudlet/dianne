@@ -50,6 +50,15 @@ public interface Dataset {
 	int size();
 
 	/**
+	 * Returns a sample from the dataset
+	 * @param index the index to fetch, should be smaller than size()
+	 * @return the sample at position index
+	 */
+	default Sample getSample(final int index){
+		return new Sample(getInputSample(index), getOutputSample(index));
+	}
+	
+	/**
 	 * Get an input sample from the dataset
 	 * 
 	 * @param index the index to fetch, should be smaller than size()

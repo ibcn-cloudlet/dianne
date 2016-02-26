@@ -40,4 +40,12 @@ public class Sample {
 		this.input = i;
 		this.output = o;
 	}
+	
+	public Tensor getInput(){
+		return input;
+	}
+	
+	public Tensor getOutput(){
+		return output;
+	}
 }

@@ -48,6 +48,14 @@ public interface ExperiencePool extends Dataset {
 	int size();
 
 	/**
+	 * Get a sample from the experience pool. 
+	 * 
+	 * @param index the index to fetch, should be smaller then size()
+	 * @return the sample at position index
+	 */
+	ExperiencePoolSample getSample(final int index);
+
+	/**
 	 * Get an input sample from the experience pool. This vector represents an Environment state
 	 * 
 	 * @param index the index to fetch, should be smaller then size()
@@ -126,18 +134,6 @@ public interface ExperiencePool extends Dataset {
 	 * @param samples
 	 */
 	void addSamples(Collection<ExperiencePoolSample> samples);
-	
-	/**
-	 * Lock the Experience pool - makes sure no samples can be written to the experience 
-	 * pool until release is called. Used by a Learner that wants to make sure the indices
-	 * do not change or samples are removed while reading.
-	 */
-	void lock();
-	
-	/**
-	 * Unlock the Experience pool - allows writes again.
-	 */
-	void unlock();
 	
 	/**
 	 * Remove all samples from the experience pool
