@@ -43,6 +43,7 @@ import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.rl.agent.Agent;
+import be.iminds.iot.dianne.api.rl.agent.AgentProgress;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
 import be.iminds.iot.dianne.api.rl.environment.Environment;
@@ -64,6 +65,7 @@ public class DeepRLAgent implements Agent {
 	private Environment env;
 	
 	private Thread actingThread;
+	private long i = 0;
 	private volatile boolean acting;
 	private int syncInterval = 10000;
 	private int gcInterval = 1000;
@@ -207,6 +209,11 @@ public class DeepRLAgent implements Agent {
 	}
 
 	@Override
+	public AgentProgress getProgress() {
+		return new AgentProgress(i);
+	}
+	
+	@Override
 	public synchronized void stop() {
 		try {
 			if (actingThread != null && actingThread.isAlive()) {
@@ -234,7 +241,7 @@ public class DeepRLAgent implements Agent {
 			env.reset();
 			Tensor observation = env.getObservation();
 
-			for(long i = 0; acting; i++) {
+			for(i = 0; acting; i++) {
 				if(syncInterval > 0 && i % syncInterval == 0){
 					// sync parameters
 					try {
@@ -304,4 +311,5 @@ public class DeepRLAgent implements Agent {
 		}
 		
 	}
+
 }

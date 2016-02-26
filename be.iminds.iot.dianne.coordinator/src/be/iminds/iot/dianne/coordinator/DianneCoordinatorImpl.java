@@ -58,6 +58,7 @@ import org.osgi.util.promise.Promise;
 import be.iminds.aiolos.info.NodeInfo;
 import be.iminds.aiolos.monitor.node.api.NodeMonitorInfo;
 import be.iminds.aiolos.platform.api.PlatformManager;
+import be.iminds.iot.dianne.api.coordinator.AgentResult;
 import be.iminds.iot.dianne.api.coordinator.Device;
 import be.iminds.iot.dianne.api.coordinator.DianneCoordinator;
 import be.iminds.iot.dianne.api.coordinator.EvaluationResult;
@@ -158,12 +159,12 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	}
 
 	@Override
-	public Promise<Void> act(String nnName, String dataset, Map<String, String> config) {
+	public Promise<AgentResult> act(String nnName, String dataset, Map<String, String> config) {
 		return act(repository.loadNeuralNetwork(nnName), dataset, config);
 	}
 	
 	@Override
-	public Promise<Void> act(NeuralNetworkDTO nn, String dataset, Map<String, String> config) {
+	public Promise<AgentResult> act(NeuralNetworkDTO nn, String dataset, Map<String, String> config) {
 		repository.storeNeuralNetwork(nn);
 		
 		ActJob job = new ActJob(this, nn, dataset, config);
@@ -216,7 +217,24 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		// nothing found
 		return null;
 	}
-	
+
+	@Override
+	public AgentResult getAgentResult(UUID jobId) {
+		// check if this job is running, if so return progress
+		AbstractJob running = getRunningJob(jobId);
+		if(running!=null && running instanceof ActJob){
+			return ((ActJob)running).getProgress();
+		}
+		
+		// dig into the done results
+		Object result = getResult(jobId);
+		if(result instanceof AgentResult){
+			return (AgentResult) result;
+		}
+		
+		// nothing found
+		return null;
+	}
 	@Override
 	public Job getJob(UUID jobId){
 		AbstractJob job = null;

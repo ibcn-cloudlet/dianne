@@ -25,6 +25,7 @@ package be.iminds.iot.dianne.api.rl.agent;
 import java.util.Map;
 import java.util.UUID;
 
+import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 
 /**
@@ -55,6 +56,11 @@ public interface Agent {
 	 */
 	void act(String experiencePool, Map<String, String> config, NeuralNetworkInstanceDTO nni, String environment) throws Exception;
 
+	/**
+	 * @return the current progress of the Learner
+	 */
+	AgentProgress getProgress();
+	
 	/**
 	 * Will stop the current acting session, if any are running.
 	 */

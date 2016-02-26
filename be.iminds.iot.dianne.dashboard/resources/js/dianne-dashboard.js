@@ -129,6 +129,15 @@ function refreshJobs(){
 						}
 					});
 				});
+	     	 } else if(job.type==="ACT"){
+	     	  	// update progress bars
+     	  		$('#'+job.id+"-progress").empty();
+	     	  	DIANNE.agentResult(job.id).then(function(results){
+					$.each(results, function(i) {
+						var result = results[i];
+						createProgressBar($('#'+job.id+"-progress"), 100, result.samples+" samples generated", true);
+					});
+				});
 	     	 }
  	    });
  	});
@@ -213,7 +222,7 @@ function showDetails(jobId){
 					 });
 					 createErrorChart($('#'+job.id+"-result"), data, 1.5);
 				});
-			} else {
+			} else if(job.type==="EVALUATE"){
 				DIANNE.evaluationResult(jobId).then(function(evaluations){
 					$.each(evaluations, function(i) {
 						var eval = evaluations[i];
@@ -227,6 +236,13 @@ function showDetails(jobId){
 								createProgressBar($('#'+job.id+"-result"), 100*eval.processed/eval.total, eval.processed+"/"+eval.total+" samples processed");
 							}
 						}
+					});
+				});
+			} else if(job.type==="ACT"){
+	     	  	DIANNE.agentResult(job.id).then(function(results){
+					$.each(results, function(i) {
+						var result = results[i];
+						createProgressBar($('#'+job.id+"-result"), 100, result.samples+" samples generated", job.stopped==="N/A");
 					});
 				});
 			}
@@ -371,6 +387,13 @@ eventsource.onmessage = function(event){
 							// TODO what with multiple evaluations?
 							var eval = evaluations[i];
 							createConfusionChart($('#'+job.id+"-progress"), eval.confusionMatrix);
+						});
+					});
+		     	 } else if(job.type==="ACT"){
+		     	  	DIANNE.agentResult(job.id).then(function(results){
+						$.each(results, function(i) {
+							var result = results[i];
+							createProgressBar($('#'+job.id+"-progress"), 100, result.samples+" samples generated");
 						});
 					});
 		     	 }

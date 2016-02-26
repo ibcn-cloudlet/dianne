@@ -202,13 +202,18 @@ function createConfusionChart(container, data, scale) {
     });
 }
 
-function createProgressBar(container, value, message){
+function createProgressBar(container, value, message, active){
 	var progress = {};
 	progress.value = value;
 	if(message===undefined){
 		progress.message = "";
 	} else {
 		progress.message = message;
+	}
+	if(active){
+		progress.active = "progress-bar-striped active";
+	} else {
+		progress.active = "";
 	}
 	var template = $('#progress').html();
 	Mustache.parse(template);

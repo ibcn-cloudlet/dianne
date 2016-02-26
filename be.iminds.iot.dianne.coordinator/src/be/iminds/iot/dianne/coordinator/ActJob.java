@@ -4,11 +4,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import be.iminds.iot.dianne.api.coordinator.AgentResult;
 import be.iminds.iot.dianne.api.coordinator.Job.Type;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.rl.agent.Agent;
+import be.iminds.iot.dianne.api.rl.agent.AgentProgress;
 
-public class ActJob extends AbstractJob<Void> {
+public class ActJob extends AbstractJob<AgentResult> {
 
 	private Map<UUID, Agent> agents = new HashMap<>();
 	
@@ -45,8 +47,12 @@ public class ActJob extends AbstractJob<Void> {
 	}
 
 	@Override
-	public Void getProgress() {
-		return null;
+	public AgentResult getProgress() {
+		Map<UUID, AgentProgress> results = new HashMap<>();
+		for(Agent a : agents.values()){
+			results.put(a.getAgentId(), a.getProgress());
+		}
+		return new AgentResult(results);
 	}
 
 }

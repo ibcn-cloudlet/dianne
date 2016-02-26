@@ -17,6 +17,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
+import be.iminds.iot.dianne.api.coordinator.AgentResult;
 import be.iminds.iot.dianne.api.coordinator.DianneCoordinator;
 import be.iminds.iot.dianne.api.coordinator.EvaluationResult;
 import be.iminds.iot.dianne.api.coordinator.LearnResult;
@@ -25,6 +26,7 @@ import be.iminds.iot.dianne.api.nn.eval.EvaluationProgress;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
+import be.iminds.iot.dianne.api.rl.agent.AgentProgress;
 import be.iminds.iot.dianne.nn.util.DianneJSONConverter;
 import be.iminds.iot.dianne.tensor.Tensor;
 
@@ -128,7 +130,7 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 					writeError(writer, id, -32603, "Error during learning: "+p.getFailure().getMessage());
 				});
 			} else if(method.equals("act")){
-				Promise<Void> result = null;
+				Promise<AgentResult> result = null;
 				if(nnName!=null){
 					result= coordinator.act(nnName, dataset, config);
 				} else {
@@ -144,6 +146,7 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 			break;
 		case "learnResult":
 		case "evaluationResult":
+		case "agentResult":
 		case "job":
 			UUID jobId = null;
 			try {
@@ -161,6 +164,8 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 				writeResult(writer, id, coordinator.getLearnResult(jobId));
 			} else if(method.equals("evaluationResult")){
 				writeResult(writer, id, coordinator.getEvaluationResult(jobId));
+			} else if(method.equals("agentResult")){
+				writeResult(writer, id, coordinator.getAgentResult(jobId));
 			} else {
 				writeResult(writer, id, coordinator.getJob(jobId));
 			}
@@ -238,6 +243,8 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 			writeLearnResult(writer, (LearnResult) o);
 		} else if(o instanceof EvaluationResult){
 			writeEvaluationResult(writer, (EvaluationResult) o);
+		} else if(o instanceof AgentResult){
+			writeAgentResult(writer, (AgentResult) o);
 		} else if(o instanceof List){
 			List l = (List)o;
 			writer.beginArray();
@@ -354,6 +361,17 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 				}
 			} 
 			writer.endObject();	
+		}
+		writer.endArray();
+	}
+	
+	private void writeAgentResult(JsonWriter writer, AgentResult result) throws Exception{
+		writer.beginArray();
+		for(AgentProgress p : result.results.values()){
+			writer.beginObject();
+			writer.name("samples");
+			writer.value(p.samples);
+			writer.endObject();		
 		}
 		writer.endArray();
 	}

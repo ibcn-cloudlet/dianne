@@ -37,6 +37,9 @@ var DIANNE = {
 		evaluationResult : function(jobId){
 			return this.call("evaluationResult", [jobId]);
 		},
+		agentResult : function(jobId){
+			return this.call("agentResult", [jobId]);
+		},
 		job : function(jobId){
 			return this.call("job", [jobId]);
 		},
