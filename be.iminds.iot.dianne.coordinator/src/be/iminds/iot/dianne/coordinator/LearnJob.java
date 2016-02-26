@@ -15,6 +15,7 @@ import be.iminds.iot.dianne.api.coordinator.Job.Type;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
+import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.repository.RepositoryListener;
 
 public class LearnJob extends AbstractJob<LearnResult> implements RepositoryListener {
@@ -27,6 +28,8 @@ public class LearnJob extends AbstractJob<LearnResult> implements RepositoryList
 	
 	private Map<UUID, Learner> learners = new HashMap<>();
 	
+	private Map<UUID, NeuralNetworkInstanceDTO> nnis2 = new HashMap<>();
+	
 	public LearnJob(DianneCoordinatorImpl coord, 
 			NeuralNetworkDTO nn,
 			String d,
@@ -36,6 +39,14 @@ public class LearnJob extends AbstractJob<LearnResult> implements RepositoryList
 		
 	@Override
 	public void execute() throws Exception {
+		
+		if(config.containsKey("environment")){
+			// DeepQ learner also requires target nni
+			for(UUID target : targets){
+				NeuralNetworkInstanceDTO nni = coordinator.platform.deployNeuralNetwork(nn.name, "Dianne Coordinator LearnJob "+jobId, target);
+				nnis2.put(target, nni);
+			}
+		}
 		
 		if(config.containsKey("maxIterations")){
 			maxIterations = Long.parseLong(config.get("maxIterations"));
@@ -64,7 +75,8 @@ public class LearnJob extends AbstractJob<LearnResult> implements RepositoryList
 		for(UUID target : targets){
 			Learner learner = coordinator.learners.get(category.toString()).get(target);
 			learners.put(target, learner);
-			learner.learn(dataset, learnConfig, nnis.get(target));
+			// if nnis2 is unused, this will give null, but doesnt matter?
+			learner.learn(dataset, learnConfig, nnis.get(target), nnis2.get(target));
 		}
 	}
 
@@ -115,6 +127,11 @@ public class LearnJob extends AbstractJob<LearnResult> implements RepositoryList
 			if(learner!=null){
 				learner.stop();
 			}
+		}
+		
+		// these are used in case of deep q learning
+		for(NeuralNetworkInstanceDTO nni : nnis2.values()){
+			coordinator.platform.undeployNeuralNetwork(nni);
 		}
 	}
 
