@@ -693,7 +693,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		if(nn.modules.values().stream().filter(module -> module.type.equals("Memory")).findAny().isPresent())
 			return true;
 		
-		return nn.modules.values().stream().filter(module -> module.properties.get("category").equals("Composite"))
+		return nn.modules.values().stream().filter(module -> module.properties.get("category")!= null && module.properties.get("category").equals("Composite"))
 			.mapToInt(module ->  
 				isRecurrent(repository.loadNeuralNetwork(module.properties.get("name"))) ? 1 : 0).sum() > 0;
 	}
