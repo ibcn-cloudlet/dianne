@@ -584,7 +584,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		Device device = addDevice(id);
 		device.learn = true;
 		
-		sendNotification(null, Level.INFO, "New Learner "+id+" is added to the system.");
+		sendNotification(null, Level.INFO, "New "+type+" Learner "+id+" is added to the system.");
 		
 		schedule(Type.LEARN);
 	}
