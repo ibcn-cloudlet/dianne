@@ -228,7 +228,7 @@ public abstract class AbstractLearner implements Learner {
 	/**
 	 * Load NeuralNetwork objects from provided instance dtos
 	 */
-	protected void loadNNs(NeuralNetworkInstanceDTO...nni) throws Exception{
+	protected void loadNNs(NeuralNetworkInstanceDTO...nni) throws Exception {
 		nn = dianne.getNeuralNetwork(nni[0]).getValue();
 		nn.getModules().values().stream().forEach(m -> m.setMode(EnumSet.of(Mode.BLOCKING)));
 		// store the labels

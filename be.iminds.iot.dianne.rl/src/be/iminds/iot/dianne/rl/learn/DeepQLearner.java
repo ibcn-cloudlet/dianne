@@ -88,7 +88,10 @@ public class DeepQLearner extends AbstractLearner {
 	}
 
 	
-	protected void loadNNs(NeuralNetworkInstanceDTO...nni) throws Exception{
+	protected void loadNNs(NeuralNetworkInstanceDTO...nni) throws Exception {
+		if(nni.length<2){
+			throw new Exception("Deep Q Learner requires 2 neural network instances");
+		}
 		super.loadNNs(nni);
 		
 		target = dianne.getNeuralNetwork(nni[1]).getValue();
