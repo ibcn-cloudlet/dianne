@@ -50,8 +50,17 @@ public class ExperiencePoolLoader {
 			dir = expDir;
 		}
 		
-		String factoryPid = FileExperiencePool.class.getName();
+		Thread t = new Thread(()->checkDir());
+		t.start();
 		
+	}
+	
+	@Reference
+	void setConfigurationAdmin(ConfigurationAdmin ca){
+		this.configAdmin = ca;
+	}
+	
+	private void checkDir(){
 		File d = new File(dir);
 		if(d.isDirectory()){
 			for(String s : d.list()){
@@ -85,6 +94,7 @@ public class ExperiencePoolLoader {
 					
 					properties.put("dir", poolDir);
 
+					String factoryPid = FileExperiencePool.class.getName();
 					String instancePid = configAdmin.createFactoryConfiguration(factoryPid, null).getPid();
 					configAdmin.getConfiguration(instancePid).update(properties);
 				
@@ -92,14 +102,11 @@ public class ExperiencePoolLoader {
 					System.out.println("Error initializing experience pool "+s);
 					e.printStackTrace();
 				} finally {
-					input.close();
+					try {
+						input.close();
+					} catch (IOException e) {}
 				}
 			}
 		}
-	}
-	
-	@Reference
-	void setConfigurationAdmin(ConfigurationAdmin ca){
-		this.configAdmin = ca;
 	}
 }
