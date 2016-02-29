@@ -43,6 +43,9 @@ var DIANNE = {
 		job : function(jobId){
 			return this.call("job", [jobId]);
 		},
+		stop : function(jobId){
+			return this.call("stop", [jobId]);
+		},
 		nns : function(){
 			return this.call("availableNeuralNetworks");
 		},

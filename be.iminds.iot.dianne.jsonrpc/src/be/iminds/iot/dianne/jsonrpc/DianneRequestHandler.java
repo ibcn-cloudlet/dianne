@@ -149,6 +149,7 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 		case "evaluationResult":
 		case "agentResult":
 		case "job":
+		case "stop":
 			UUID jobId = null;
 			try {
 				JsonArray params = request.get("params").getAsJsonArray();
@@ -167,6 +168,12 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 				writeResult(writer, id, coordinator.getEvaluationResult(jobId));
 			} else if(method.equals("agentResult")){
 				writeResult(writer, id, coordinator.getAgentResult(jobId));
+			} else if(method.equals("stop")) {
+				try {
+					coordinator.stop(jobId);
+				} catch(Exception e){
+					writeError(writer, id, -32603, "Error stopping job: "+e.getMessage());
+				}
 			} else {
 				writeResult(writer, id, coordinator.getJob(jobId));
 			}

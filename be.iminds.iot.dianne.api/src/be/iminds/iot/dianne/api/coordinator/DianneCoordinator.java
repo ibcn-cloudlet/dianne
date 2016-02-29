@@ -52,6 +52,8 @@ public interface DianneCoordinator {
 	
 	AgentResult getAgentResult(UUID jobId);  // if still running, this contains partial progress results
 	
+	void stop(UUID jobId) throws Exception; // stop running job or cancel submitted job
+	
 	Job getJob(UUID jobId);
 	
 	List<Job> queuedJobs();

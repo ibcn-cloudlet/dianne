@@ -40,10 +40,6 @@ public class ActJob extends AbstractJob<AgentResult> {
 			agents.put(target, agent);
 			agent.act(dataset, config, nnis.get(target), environment);
 		}
-		
-		
-		// TODO call when stopped?
-		// done((Void)null);
 	}
 
 	@Override
@@ -54,5 +50,20 @@ public class ActJob extends AbstractJob<AgentResult> {
 		}
 		return new AgentResult(results);
 	}
+	
+	@Override
+	public void cleanup() {
+		for(Agent a : agents.values()){
+			a.stop();
+		}
+	}
 
+	@Override
+	public void stop() throws Exception{
+		if(started > 0){
+			done(getProgress());
+		} else {
+			done(new Exception("Job "+this.jobId+" cancelled."));
+		}
+	}
 }

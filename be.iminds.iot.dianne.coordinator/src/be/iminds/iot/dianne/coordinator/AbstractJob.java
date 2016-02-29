@@ -1,5 +1,6 @@
 package be.iminds.iot.dianne.coordinator;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,9 +31,9 @@ public abstract class AbstractJob<T> implements Runnable {
 
 	protected final Deferred<T> deferred = new Deferred<>();
 
-	protected List<UUID> targets = null;
-	protected Map<UUID, NeuralNetworkInstanceDTO> nnis = null;
-	protected Map<UUID, UUID> targetsByNNi = null;
+	protected List<UUID> targets = new ArrayList<>();
+	protected Map<UUID, NeuralNetworkInstanceDTO> nnis = new HashMap<>();;
+	protected Map<UUID, UUID> targetsByNNi = new HashMap<>();
 	
 	protected long submitted = 0;
 	protected long started = 0;
@@ -75,7 +76,7 @@ public abstract class AbstractJob<T> implements Runnable {
 		started = System.currentTimeMillis();
 		try {
 			// deploy neural network on each target instance
-			nnis = new HashMap<UUID, NeuralNetworkInstanceDTO>();
+			nnis = new HashMap<>();
 			targetsByNNi = new HashMap<>();
 			for(UUID target : targets){
 				NeuralNetworkInstanceDTO nni = coordinator.platform.deployNeuralNetwork(nn.name, "Dianne Coordinator LearnJob "+jobId, target);
@@ -96,6 +97,14 @@ public abstract class AbstractJob<T> implements Runnable {
 	public abstract T getProgress();
 	
 	public void cleanup() {};
+	
+	public void stop() throws Exception {
+		if(started > 0){
+			throw new Exception("This job cannot be stopped");
+		} else {
+			done(new Exception("Job "+this.jobId+" cancelled."));
+		}
+	}
 	
 	// to be called when the execution is done
 	public void done(T result){
@@ -154,6 +163,5 @@ public abstract class AbstractJob<T> implements Runnable {
 		job.targets = targets;
 		return job;
 	}
-	
 
 }

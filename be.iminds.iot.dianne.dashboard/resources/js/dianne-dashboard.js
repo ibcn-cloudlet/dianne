@@ -57,6 +57,10 @@ function submitJob(){
 
 }
 
+function stopJob(jobId){
+	DIANNE.stop(jobId);
+}
+
 function refreshJobs(){
  	// queued jobs
  	DIANNE.queuedJobs().then(function(data){
@@ -247,16 +251,21 @@ function showDetails(jobId){
 				});
 			}
 		}
+		var cancelable = true;
 		if(job.stopped === 0){
 			job.stopped = "N/A"
 		} else {
 			job.stopped = moment(job.stopped).format("hh:mm:ss YYYY:MM:DD");
+			cancelable = false;
 		}
 		
 		var template = $('#job-details').html();
 		Mustache.parse(template);
 		var rendered = Mustache.render(template, job);
 		var dialog = $(rendered).appendTo($("#dashboard"));
+		if(!cancelable) {
+			dialog.find('.cancel').hide();
+		}
 		dialog.on('hidden.bs.modal', function () {
 			$(this).remove();
 		});

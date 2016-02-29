@@ -42,6 +42,7 @@ public class LearnJob extends AbstractJob<LearnResult> implements RepositoryList
 		
 		if(config.containsKey("environment")){
 			// DeepQ learner also requires target nni
+			nnis2 = new HashMap<>();
 			for(UUID target : targets){
 				NeuralNetworkInstanceDTO nni = coordinator.platform.deployNeuralNetwork(nn.name, "Dianne Coordinator LearnJob "+jobId, target);
 				nnis2.put(target, nni);
@@ -120,13 +121,12 @@ public class LearnJob extends AbstractJob<LearnResult> implements RepositoryList
 
 	@Override
 	public void cleanup() {
-		reg.unregister();
+		if(reg!=null)
+			reg.unregister();
 		
-		for(UUID target : targets){
-			Learner learner = learners.get(target);
-			if(learner!=null){
-				learner.stop();
-			}
+
+		for(Learner learner : learners.values()){
+			learner.stop();
 		}
 		
 		// these are used in case of deep q learning
@@ -140,5 +140,13 @@ public class LearnJob extends AbstractJob<LearnResult> implements RepositoryList
 		return result;
 	}
 
-	
+
+	@Override
+	public void stop() throws Exception{
+		if(started > 0){
+			done(new Exception("Job "+this.jobId+" was manually stopped."));
+		} else {
+			done(new Exception("Job "+this.jobId+" cancelled."));
+		}
+	}
 }

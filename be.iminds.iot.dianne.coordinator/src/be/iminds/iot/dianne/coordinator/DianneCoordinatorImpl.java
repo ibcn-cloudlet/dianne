@@ -235,25 +235,38 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		// nothing found
 		return null;
 	}
+	
 	@Override
-	public Job getJob(UUID jobId){
+	public void stop(UUID jobId) throws Exception {
+		AbstractJob job = getAbstractJob(jobId);
+		if(job!=null){
+			job.stop();
+		}
+	}
+	
+	private AbstractJob getAbstractJob(UUID jobId){
 		AbstractJob job = null;
 		try {
 			job = queueLearn.stream().filter(j -> j.jobId.equals(jobId)).findFirst().get();
-			return job.get();
 		} catch(NoSuchElementException e){}
 		try {
 			job = queueEval.stream().filter(j -> j.jobId.equals(jobId)).findFirst().get();
-			return job.get();
 		} catch(NoSuchElementException e){}
 		try {
 			job = running.stream().filter(j -> j.jobId.equals(jobId)).findFirst().get();
-			return job.get();
 		} catch(NoSuchElementException e){}
 		try {
 			job = finished.stream().filter(j -> j.jobId.equals(jobId)).findFirst().get();
-			return job.get();
 		} catch(NoSuchElementException e){}
+		
+		return job;
+	}
+	
+	@Override
+	public Job getJob(UUID jobId){
+		AbstractJob job = getAbstractJob(jobId);
+		if(job!=null)
+			return job.get();
 		
 		// TODO read from persistent storage?
 		
@@ -308,22 +321,29 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	// called when a job is done
 	void done(AbstractJob job) {
 		// remove from running list
-		running.remove(job);
-		job.targets.stream().forEach(uuid -> deviceUsage.put((UUID) uuid, -1));
-		
-		try {
-			Throwable error = job.getPromise().getFailure();
-			if(error !=null){
-				sendNotification(job.jobId, Level.DANGER, "Job \""+job.name+"\" failed: "+error.getMessage());
-			} else {
-				// TODO safe results to disc/archive?
-				
-				
-				
-				
-				sendNotification(job.jobId, Level.SUCCESS, "Job \""+job.name+"\" finished successfully.");
+		if(running.remove(job)){
+			job.targets.stream().forEach(uuid -> deviceUsage.put((UUID) uuid, -1));
+			
+			try {
+				Throwable error = job.getPromise().getFailure();
+				if(error !=null){
+					sendNotification(job.jobId, Level.DANGER, "Job \""+job.name+"\" failed: "+error.getMessage());
+				} else {
+					// TODO safe results to disc/archive?
+					
+					
+					
+					
+					sendNotification(job.jobId, Level.SUCCESS, "Job \""+job.name+"\" finished successfully.");
+				}
+			} catch (InterruptedException e) {
 			}
-		} catch (InterruptedException e) {
+		} else {
+			// if not running, remove from any queue
+			queueLearn.remove(job);
+			queueEval.remove(job);
+			queueAct.remove(job);
+			sendNotification(job.jobId, Level.WARNING, "Job \""+job.name+"\" canceled.");
 		}
 		
 		finished.add(job);
@@ -353,7 +373,6 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		for(Queue q : queues){
 			schedule( (q==queueLearn) ? Type.LEARN : (q==queueEval) ? Type.EVALUATE : Type.ACT  );
 		}
-		
 	}
 	
 	// try to schedule the job on top of the queue
