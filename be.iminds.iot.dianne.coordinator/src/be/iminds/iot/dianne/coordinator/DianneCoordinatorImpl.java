@@ -22,6 +22,8 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.coordinator;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -55,6 +57,8 @@ import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.osgi.util.promise.Promise;
 
+import com.google.gson.stream.JsonWriter;
+
 import be.iminds.aiolos.info.NodeInfo;
 import be.iminds.aiolos.monitor.node.api.NodeMonitorInfo;
 import be.iminds.aiolos.platform.api.PlatformManager;
@@ -75,6 +79,7 @@ import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.api.rl.agent.Agent;
+import be.iminds.iot.dianne.nn.util.DianneCoordinatorWriter;
 
 @Component
 public class DianneCoordinatorImpl implements DianneCoordinator {
@@ -111,6 +116,8 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	Map<UUID, Integer> deviceUsage = new ConcurrentHashMap<>(); 
 	
 	Queue<Notification> notifications = new CircularBlockingQueue<>(20);
+	
+	String storageDir = "jobs";
 	
 	@Override
 	public Status getStatus(){
@@ -329,10 +336,30 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 				if(error !=null){
 					sendNotification(job.jobId, Level.DANGER, "Job \""+job.name+"\" failed: "+error.getMessage());
 				} else {
-					// TODO safe results to disc/archive?
+					// safe results to disc
+					File dir = new File(storageDir+File.separator+job.jobId.toString());
+					dir.mkdirs();
 					
+					File jobFile = new File(dir.getAbsolutePath()+File.separator+"job.json");
 					
+					try(JsonWriter writer = new JsonWriter(new FileWriter(jobFile))){
+						writer.setLenient(true);
+						writer.setIndent("  ");
+						DianneCoordinatorWriter.writeJob(writer, job.get());
+						writer.flush();
+					} catch(Exception e){
+						System.err.println("Failed to write job.json for Job "+job.jobId);
+					}
 					
+					File resultFile = new File(dir.getAbsolutePath()+File.separator+"result.json");
+					try(JsonWriter writer = new JsonWriter(new FileWriter(resultFile))){
+						writer.setLenient(true);
+						writer.setIndent("  ");
+						DianneCoordinatorWriter.writeObject(writer, job.getPromise().getValue());
+						writer.flush();
+					} catch(Exception e){
+						System.err.println("Failed to write job.json for Job "+job.jobId);
+					}
 					
 					sendNotification(job.jobId, Level.SUCCESS, "Job \""+job.name+"\" finished successfully.");
 				}
@@ -528,6 +555,14 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	@Activate
 	void activate(BundleContext context){
 		this.context = context;
+		
+		String dir = context.getProperty("be.iminds.iot.dianne.job.storage");
+		if(dir!=null){
+			storageDir = dir;
+		}
+
+		File d = new File(storageDir);
+		d.mkdirs();
 	}
 	
 	// TODO here we use a name (AIOLOS) that is alphabetically before the others

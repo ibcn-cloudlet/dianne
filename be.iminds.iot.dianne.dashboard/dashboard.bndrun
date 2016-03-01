@@ -78,6 +78,7 @@ aiolos.version='latest'
 	org.apache.felix.http.jetty.maxFormSize=999999999,\
 	rsa.timeout=10000000,\
 	be.iminds.iot.dianne.storage="../tools/nn",\
+	be.iminds.iot.dianne.job.storage="../tools/jobs",\
 	be.iminds.iot.dianne.dataset.mnist.location="../tools/datasets/MNIST/",\
 	be.iminds.iot.dianne.dataset.imagenet.location="../tools/datasets/ImageNet/",\
 	be.iminds.iot.dianne.dataset.kaggle.location="../tools/datasets/Kaggle-CatvsDog/",\
