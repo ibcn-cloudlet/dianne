@@ -54,7 +54,22 @@ function submitJob(){
     } else if(job.type==="ACT"){
     	DIANNE.act(job.nn, job.dataset, job.config);
     }
+}
 
+function resubmitJob(jobId){
+	DIANNE.job(jobId).then(function(job){
+		if(clean!==undefined){
+			job.config['clean'] = $('#clean').is(':checked');
+		}
+		
+	    if(job.type==="LEARN"){
+	    	DIANNE.learn(job.nn, job.dataset, job.config);
+	    } else if(job.type==="EVALUATE"){
+	    	DIANNE.eval(job.nn, job.dataset, job.config);
+	    } else if(job.type==="ACT"){
+	    	DIANNE.act(job.nn, job.dataset, job.config);
+	    }
+	});
 }
 
 function stopJob(jobId){
@@ -265,6 +280,10 @@ function showDetails(jobId){
 		var dialog = $(rendered).appendTo($("#dashboard"));
 		if(!cancelable) {
 			dialog.find('.cancel').hide();
+			dialog.find('.resubmit').show();
+		} else {
+			dialog.find('.cancel').show();
+			dialog.find('.resubmit').hide();
 		}
 		dialog.on('hidden.bs.modal', function () {
 			$(this).remove();

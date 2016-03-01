@@ -275,6 +275,12 @@
 		   </div>
 		   <div class="modal-footer">
 		      	<button class="cancel btn btn-danger pull-left" data-dismiss="modal" onclick="stopJob('{{id}}')">Cancel Job</button>
+		      	<button class="resubmit btn btn-default pull-left" data-dismiss="modal" onclick="resubmitJob('{{id}}')">Resubmit Job</button>
+  				<div class="resubmit checkbox pull-left">
+    				<label>
+      					<input id="clean" type="checkbox" checked>clean
+    				</label>
+  				</div>
 		   		<button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
 		   </div>
 	    </div>

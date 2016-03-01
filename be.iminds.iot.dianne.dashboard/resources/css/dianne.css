@@ -207,3 +207,10 @@ footer {
 	margin-right: auto;
 	margin-left: auto;
 }  
+
+/*
+ * Other fixes
+ */ 
+ .resubmit {
+ 	margin-left: 10px;
+ }
