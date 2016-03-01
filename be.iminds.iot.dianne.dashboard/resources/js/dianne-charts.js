@@ -148,10 +148,19 @@ function createErrorChart(container, data, scale) {
 }
 
 
-function createConfusionChart(container, data, scale) {
+function createConfusionChart(container, matrix, scale) {
 	if(scale === undefined){
 		scale = 1;
 	}
+	// convert confusion matrix from array[x][y] to array[[x, y, val],...] 
+	var data = [];
+	var i,j;
+	for (i = 0; i < matrix.length; i++) { 
+		for (j = 0; j < matrix[i].length; j++) { 
+			data.push([i, j, matrix[i][j]]);
+		}
+	}
+	
     container.highcharts({
     	chart: {
             type: 'heatmap',

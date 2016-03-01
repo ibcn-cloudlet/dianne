@@ -345,13 +345,11 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 				writer.beginArray();
 				Tensor confusionMatrix = eval.getConfusionMatix();
 				for(int i=0;i<confusionMatrix.size(0);i++){
+					writer.beginArray();
 					for(int j=0;j<confusionMatrix.size(1);j++){
-						writer.beginArray();
-						writer.value(i);
-						writer.value(j);
 						writer.value(new Float(confusionMatrix.get(i, j)));
-						writer.endArray();
 					}
+					writer.endArray();
 				}
 				writer.endArray();
 				// write all outputs
