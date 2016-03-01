@@ -275,7 +275,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		if(job!=null)
 			return job.get();
 		
-		// TODO read from persistent storage?
+		// TODO read from persistent storage if not in memory?
 		
 		return null;
 	}
@@ -765,6 +765,10 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		return nn.modules.values().stream().filter(module -> module.properties.get("category")!= null && module.properties.get("category").equals("Composite"))
 			.mapToInt(module ->  
 				isRecurrent(repository.loadNeuralNetwork(module.properties.get("name"))) ? 1 : 0).sum() > 0;
+	}
+	
+	boolean isExperiencePool(String dataset){
+		return platform.getAvailableExperiencePools().contains(dataset);
 	}
 	
 	// TODO use Object Conversion spec for this...

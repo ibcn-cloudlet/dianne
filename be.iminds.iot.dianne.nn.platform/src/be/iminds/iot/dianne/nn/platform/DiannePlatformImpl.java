@@ -50,6 +50,7 @@ import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.api.nn.runtime.DianneRuntime;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
+import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component
@@ -299,6 +300,12 @@ public class DiannePlatformImpl implements DiannePlatform {
 	@Override
 	public List<String> getAvailableDatasets(){
 		return new ArrayList<>(datasets.keySet());
+	}
+	
+	@Override
+	public List<String> getAvailableExperiencePools(){
+		return datasets.entrySet().stream().filter(e -> e.getValue() instanceof ExperiencePool)
+			.map(e -> e.getKey()).collect(Collectors.toList());
 	}
 	
 	@Override

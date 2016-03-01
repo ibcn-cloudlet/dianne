@@ -144,6 +144,7 @@ public interface DiannePlatform {
 	 * A list of available Datasets
 	 */
 	List<String> getAvailableDatasets();
+	List<String> getAvailableExperiencePools();
 	
 	/**
 	 * A map of available Dianne runtimes to which modules can be deployed to

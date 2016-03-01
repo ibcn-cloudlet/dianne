@@ -40,7 +40,7 @@ public class LearnJob extends AbstractJob<LearnResult> implements RepositoryList
 	@Override
 	public void execute() throws Exception {
 		
-		if(config.containsKey("environment")){
+		if(coordinator.isExperiencePool(dataset)){
 			// DeepQ learner also requires target nni
 			nnis2 = new HashMap<>();
 			for(UUID target : targets){

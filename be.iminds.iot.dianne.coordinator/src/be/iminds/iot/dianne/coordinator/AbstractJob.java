@@ -54,7 +54,7 @@ public abstract class AbstractJob<T> implements Runnable {
 	
 		this.type = type;
 		
-		if(c.containsKey("environment")){
+		if(c.containsKey("environment") || coord.isExperiencePool(d)){
 			category = Category.RL;
 		} else if(coord.isRecurrent(nn)){
 			category = Category.RNN;

@@ -169,7 +169,7 @@ function refreshJobs(){
  	        var template = $('#job-item').html();
      	  	Mustache.parse(template);
      	  	var rendered = Mustache.render(template, job);
-     	  	$(rendered).appendTo($("#jobs-finished"));
+     	  	$(rendered).prependTo($("#jobs-finished"));
  	    });
  	});
 }
