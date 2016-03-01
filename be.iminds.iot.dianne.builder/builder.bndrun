@@ -18,6 +18,7 @@
 	com.google.gson;version='[2.2.4,2.3)',\
 	be.iminds.iot.dianne.tensor.th;version=latest,\
 	be.iminds.iot.dianne.tensor.util;version=latest,\
+	be.iminds.iot.dianne.nn.util;version=latest,\
 	be.iminds.iot.dianne.nn.module;version=latest,\
 	be.iminds.iot.dianne.nn;version=latest,\
 	be.iminds.iot.dianne.nn.runtime;version=latest,\
@@ -29,10 +30,7 @@
 	be.iminds.iot.dianne.dataset.kaggle;version=latest,\
 	be.iminds.iot.dianne.dataset.mnist;version=latest,\
 	be.iminds.iot.dianne.builder;version=latest,\
-	be.iminds.iot.dianne.command;version=latest,\
-	be.iminds.iot.dianne.coordinator;version=latest,\
-	be.iminds.iot.dianne.jsonrpc;version=latest,\
-	be.iminds.iot.dianne.dashboard;version=latest
+	be.iminds.iot.dianne.command;version=latest
 	
 	
 #	be.iminds.iot.dianne.dataset.mnist;version=latest,\

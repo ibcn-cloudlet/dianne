@@ -9,9 +9,7 @@ Bundle-Version: 0.3.0.${tstamp}
 	be.iminds.iot.dianne.nn.util;version=latest,\
 	be.iminds.iot.dianne.tensor.api;version=latest
 -dsannotations: *
-Private-Package: \
-	be.iminds.iot.dianne.repository.file,\
-	be.iminds.iot.dianne.nn.util
+Private-Package: be.iminds.iot.dianne.repository.file
 Export-Package: \
 	be.iminds.iot.dianne.api.repository,\
 	be.iminds.iot.dianne.api.nn.module.dto

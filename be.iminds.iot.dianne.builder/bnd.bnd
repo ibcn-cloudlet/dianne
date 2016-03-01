@@ -16,9 +16,7 @@ Bundle-Version: 0.3.0.${tstamp}
 	osgi.promise
 	
 -dsannotations: *
-Private-Package: \
-	be.iminds.iot.dianne.builder,\
-	be.iminds.iot.dianne.nn.util
+Private-Package: be.iminds.iot.dianne.builder
 Import-Package: \
 	be.iminds.iot.dianne.api.io;resolution:=optional,\
 	*
