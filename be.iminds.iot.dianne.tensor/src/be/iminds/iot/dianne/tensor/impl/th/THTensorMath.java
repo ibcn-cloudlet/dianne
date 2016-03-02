@@ -250,27 +250,27 @@ public class THTensorMath implements TensorMath<THTensor> {
 	}
 	
 	@Override
-	public THTensor spatialconvolve(THTensor res, THTensor add, THTensor mat,
-			THTensor k, int sx, int sy, int px, int py) {
-		long l = spatialconvolve(res==null ? 0 : res.address, add.address, mat.address,
-				k.address, sx, sy, px, py);
-		return res==null ? new THTensor(l) : res;
-	}
-	
-	@Override
-	public THTensor spatialdinconvolve(THTensor res, THTensor g, THTensor k,
+	public THTensor spatialconvolve(THTensor out, THTensor add, THTensor in, THTensor ker,
 			int sx, int sy, int px, int py) {
-		long l = spatialdinconvolve(res==null ? 0 : res.address, g.address, k.address,
-				sx, sy, px, py);
-		return res == null ? new THTensor(l) : res;
+		long l = spatialconvolve(out==null ? 0 : out.address, add.address, in.address,
+				ker.address, sx, sy, px, py);
+		return out==null ? new THTensor(l) : out;
 	}
 	
 	@Override
-	public THTensor spatialdkerconvolve(THTensor res, THTensor add, THTensor g,
-			THTensor k, int sx, int sy, int px, int py) {
-		long l = spatialdkerconvolve(res == null ? 0 : res.address, add.address, g.address,
-				k.address, sx, sy, px, py);
-		return res == null ? new THTensor(l) : res;
+	public THTensor spatialdinconvolve(THTensor gin, THTensor gout, THTensor ker,
+			int sx, int sy, int px, int py) {
+		long l = spatialdinconvolve(gin==null ? 0 : gin.address, gout.address, ker.address,
+				sx, sy, px, py);
+		return gin == null ? new THTensor(l) : gin;
+	}
+	
+	@Override
+	public THTensor spatialdkerconvolve(THTensor gker, THTensor add, THTensor gout, THTensor in,
+			int sx, int sy, int px, int py) {
+		long l = spatialdkerconvolve(gker == null ? 0 : gker.address, add.address, gout.address,
+				in.address, sx, sy, px, py);
+		return gker == null ? new THTensor(l) : gker;
 	}
 
 	@Override

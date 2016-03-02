@@ -310,6 +310,45 @@ __global__ void im2col_kernel(const int n, const float* data_im,
   }
 }
 
+__global__ void col2im_kernel(const int n, const float* data_col,
+	const int height, const int width, const int channels, const int patch_h, const int patch_w,
+	const int pad_h, const int pad_w, const int stride_h, const int stride_w, const int height_col, const int width_col,
+	float* data_im) {
+	for (int index = blockIdx.x * blockDim.x + threadIdx.x; index < n; index += blockDim.x * gridDim.x){
+		float val = 0;
+		int w = index % width + pad_w;
+		int h = (index / width) % height + pad_h;
+		int c = index / (width * height);
+	    
+	    // compute the start and end of the output
+		int w_col_start = (w < patch_w) ? 0 : (w - patch_w) / stride_w + 1;
+		int w_col_end = min(w / stride_w + 1, width_col);
+		int h_col_start = (h < patch_h) ? 0 : (h - patch_h) / stride_h + 1;
+		int h_col_end = min(h / stride_h + 1, height_col);
+		
+	    /*
+		for (int h_col = h_col_start; h_col < h_col_end; ++h_col) {
+			for (int w_col = w_col_start; w_col < w_col_end; ++w_col) {
+				// the col location: [c * width * height + h_out, w_out]
+				int c_col = c * patch_h * patch_w + (h - h_col * stride_h) * ksize + (w - w_col * stride_w);
+				val += data_col[(c_col * height_col + h_col) * width_col + w_col];
+			}
+		}
+		*/
+		
+		// equivalent implementation
+		int offset = (c * patch_h * patch_w + h * patch_w + w) * height_col * width_col;
+		int coeff_h_col = (1 - stride_h * patch_w * height_col) * width_col;
+		int coeff_w_col = (1 - stride_w * height_col * width_col);
+		for (int h_col = h_col_start; h_col < h_col_end; ++h_col) {
+			for (int w_col = w_col_start; w_col < w_col_end; ++w_col) {
+				val += data_col[offset + h_col * coeff_h_col + w_col * coeff_w_col];
+			}
+		}
+		data_im[index] = val;
+	}
+}
+
 
 __global__ void scale2d(float *input, float *output,
                         int input_c, int input_h, int input_w,
@@ -471,8 +510,8 @@ extern "C" {
 		long nInputCols = input->size[2];
     	long nInputRows = input->size[1];
     	long nInputPlane = input->size[0];
-    	long nOutputCols = (nInputCols - kW) / dW + 1;
-    	long nOutputRows = (nInputRows - kH) / dH + 1;
+    	//long nOutputCols = (nInputCols - kW) / dW + 1;
+    	//long nOutputRows = (nInputRows - kH) / dH + 1;
 
     	input = THCudaTensor_newContiguous(state, input);
     	float* input_data = THCudaTensor_data(state, input);
@@ -514,7 +553,7 @@ extern "C" {
 	}
 	
 	
-	// helper function for unfolding matrix for convolution
+	// helper functions for unfolding matrix for convolution
 	void im2col(THCState *state, const float* data_im, const int channels,
 	    const int height, const int width, const int ksize_h, const int ksize_w, const int pad_h,
 	    const int pad_w, const int stride_h, const int stride_w, float* data_col) {
@@ -532,23 +571,41 @@ extern "C" {
 	  );
 	}
 	
+	void col2im(THCState *state, const float* data_col, const int channels,
+		const int height, const int width, const int patch_h, const int patch_w, const int pad_h,
+		const int pad_w, const int stride_h, const int stride_w, float* data_im) {
+		int height_col = (height + 2 * pad_h - patch_h) / stride_h + 1;
+		int width_col = (width + 2 * pad_w - patch_w) / stride_w + 1;
+		int num_kernels = channels * height * width;
+		
+		// To avoid involving atomic operations, we will launch one kernel per
+		// bottom dimension, and then in the kernel add up the top dimensions.
+		col2im_kernel <<<GET_BLOCKS(num_kernels), UNFOLD_THREADS, 0, THCState_getCurrentStream(state)>>> (
+			num_kernels, data_col, height, width, channels,
+			patch_h, patch_w, pad_h, pad_w, stride_h, stride_w,
+			height_col, width_col, data_im
+		);
+	}
+	
 	void THCudaTensor_spatialconvolve(THCState *state, THCudaTensor *output, THCudaTensor *input,
 		THCudaTensor* weight, THCudaTensor* bias, int dW, int dH, int pW, int pH)
 	{
-		long nOutputPlane = weight->size[0];
-		long kW = weight->size[3];
-		long kH = weight->size[2];
-		long inputWidth   = input->size[2];
-  		long inputHeight  = input->size[1];
-  		long nInputPlane = input->size[0];
+		// Get required dimensions (possibly needs some consistency checks across tensors)
+		int kW = weight->size[3];
+		int kH = weight->size[2];
+		
+	  	int nInputPlane  = input->size[0];
+		long inputWidth  = input->size[2];
+  		long inputHeight = input->size[1];
+		
+  		int nOutputPlane  = weight->size[0];
   		long outputWidth  = (inputWidth + 2*pW - kW) / dW + 1;
   		long outputHeight = (inputHeight + 2*pH - kH) / dH + 1;
 		
-		// create temp tensors for unfolding
+		// Create temporary tensors for unfolding
 		THCudaTensor* columns = THCudaTensor_newWithSize2d(state, nInputPlane*kW*kH, outputHeight*outputWidth);
 		THCudaTensor* ones = THCudaTensor_newWithSize2d(state, outputHeight, outputWidth);
 		THCudaTensor_fill(state, ones, 1);
-		
 		
 		// Do Bias first:
 	    // M,N,K are dims of matrix A and B
@@ -571,17 +628,18 @@ extern "C" {
 	
 	    // Extract columns:
 	    im2col(
-	      state,
-	      THCudaTensor_data(state, input),
-	      nInputPlane, inputHeight, inputWidth, kH, kW, pH, pW, dH, dW,
-	      THCudaTensor_data(state, columns)
+	    	state,
+	    	THCudaTensor_data(state, input),
+	    	nInputPlane, inputHeight, inputWidth, kH, kW, pH, pW, dH, dW,
+	    	THCudaTensor_data(state, columns)
 	    );
 	
+		// Then matrix multiplications:
 	    // M,N,K are dims of matrix A and B
 	    // (see http://docs.nvidia.com/cuda/cublas/#cublas-lt-t-gt-gemm)
-	    long m = weight->size[0];
+	    long m = nOutputPlane;
 	    long n = columns->size[1];
-	    long k = columns->size[0];
+	    long k = nInputPlane*kH*kW;
 	
 	    // Do GEMM (note: this is a bit confusing because gemm assumes column-major matrices)
 	    THCudaBlas_gemm(
@@ -594,24 +652,111 @@ extern "C" {
 	        1,
 	        THCudaTensor_data(state, output), n
 	    );
-	  
-
-		// free temp tensors
+	    
+		// Free temporary tensors
 		THCudaTensor_free(state, columns);
 		THCudaTensor_free(state, ones);
-		
 	}
 	
 	void THCudaTensor_spatialdinconvolve(THCState *state, THCudaTensor *gradInput, THCudaTensor *gradOutput,
 		THCudaTensor* weight, int dW, int dH, int pW, int pH)
 	{
-		// TODO
+		// Get required dimensions
+		int kW = weight->size[3];
+		int kH = weight->size[2];
+		
+		int nOutputPlane  = gradOutput->size[0];
+		long outputWidth  = gradOutput->size[2];
+		long outputHeight = gradOutput->size[1];
+		
+		int nInputPlane  = weight->size[1];
+		long inputWidth  = (outputWidth - 1) * dW + kW - 2*pW;
+		long inputHeight = (outputHeight - 1) * dH + kH - 2*pH;
+
+		// Create temporary tensors for unfolding
+		THCudaTensor* gradColumns = THCudaTensor_newWithSize2d(state, nInputPlane*kW*kH, outputHeight*outputWidth);
+
+		// M,N,K are dims of matrix A and B
+		// (see http://docs.nvidia.com/cuda/cublas/#cublas-lt-t-gt-gemm)
+		long m = nInputPlane*kW*kH;
+		long n = gradColumns->size[1];
+		long k = nOutputPlane;
+
+		// Do GEMM (note: this is a bit confusing because gemm assumes column-major matrices)
+		THCudaBlas_gemm(
+			state,
+			'n', 't',
+			n, m, k,
+			1,
+			THCudaTensor_data(state, gradOutput), n,
+			THCudaTensor_data(state, weight), m,
+			0,
+			THCudaTensor_data(state, gradColumns), n
+		);
+
+		// Unpack columns back into input:
+		col2im(
+			state,
+			THCudaTensor_data(state, gradColumns),
+			nInputPlane, inputHeight, inputWidth, kH, kW, pH, pW, dH, dW,
+			THCudaTensor_data(state, gradInput)
+		);
+		
+		// Free temporary tensors
+		THCudaTensor_free(state, gradColumns);
 	}
 	
 	void THCudaTensor_spatialdkerconvolve(THCState *state, THCudaTensor *gradKer, THCudaTensor *add,
 		THCudaTensor* gradOutput, THCudaTensor* input, int dW, int dH, int pW, int pH)
 	{
-		// TODO
+		// Get required dimensions (possibly needs some consistency checks across tensors)	
+		int nInputPlane  = input->size[0];
+		long inputWidth  = input->size[2];
+  		long inputHeight = input->size[1];
+  		
+		int nOutputPlane  = gradOutput->size[0];
+		long outputWidth  = gradOutput->size[2];
+		long outputHeight = gradOutput->size[1];
+		
+		int kW = inputWidth - (outputWidth - 1) * dW + 2*pW;
+		int kH = inputHeight - (outputHeight - 1) * dH + 2*pH;
+		
+		// Create temporary tensors for unfolding
+		THCudaTensor* columns = THCudaTensor_newWithSize2d(state, nInputPlane*kW*kH, outputHeight*outputWidth);
+		
+		// Extract columns:
+	    im2col(
+	    	state,
+	    	THCudaTensor_data(state, input),
+	    	nInputPlane, inputHeight, inputWidth, kH, kW, pH, pW, dH, dW,
+	    	THCudaTensor_data(state, columns)
+	    );
+	    
+	    // Add if necessary
+		if(gradKer != add) {
+			THCudaTensor_copy(
+			state,
+			gradKer, add);
+		}
+	    
+	    long m = nOutputPlane;
+		long n = nInputPlane*kW*kH;
+		long k = columns->size[1];
+		
+		// Do GEMM (note: this is a bit confusing because gemm assumes column-major matrices)
+		THCudaBlas_gemm(
+			state,
+			't', 'n',
+			n, m, k,
+			1,
+			THCudaTensor_data(state, columns), k,
+			THCudaTensor_data(state, gradOutput), k,
+			1,
+			THCudaTensor_data(state, gradKer), n
+		);
+		
+		// Free temporary tensors
+		THCudaTensor_free(state, columns);
 	}
 	
 	void THCudaTensor_scale2d(THCState *state, THCudaTensor *output, THCudaTensor *input)

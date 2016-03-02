@@ -243,17 +243,17 @@ public interface TensorMath<T extends Tensor<T>> {
 	 * 
 	 * For each input plane j it convolves with k[i][j] to get the output plane i and add add[i], with strides sx,sy and padding px,py
 	 */
-	T spatialconvolve(T res, final T add, final T t, final T k, final int sx, final int sy, final int px, final int py);
+	T spatialconvolve(T out, final T add, final T in, final T ker, final int sx, final int sy, final int px, final int py);
 	
 	/**
 	 * Spatial convolution gradient to input
 	 */
-	T spatialdinconvolve(T res, final T g, final T k, final int sx, final int sy, final int px, final int py);
+	T spatialdinconvolve(T gin, final T gout, final T ker, final int sx, final int sy, final int px, final int py);
 	
 	/**
 	 * Spatial convolution gradient to kernel
 	 */
-	T spatialdkerconvolve(T res, final T add, final T g, final T t, final int sx, final int sy, final int px, final int py);
+	T spatialdkerconvolve(T gker, final T add, final T gout, final T in, final int sx, final int sy, final int px, final int py);
 	
 	/**
 	 * Add paddings to tensor t, set padding size for each dimension
