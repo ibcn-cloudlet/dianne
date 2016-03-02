@@ -111,7 +111,7 @@ public class DianneRLCommands {
 		this.agent = agent;
 	}
 	
-	@Reference(target="(dianne.learner.type=deepq)")
+	@Reference(target="(dianne.learner.category=RL)")
 	void setLearner(Learner l){
 		this.learner = l;
 	}
