@@ -26,6 +26,7 @@ import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
 
+import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -58,15 +59,16 @@ public class FeedForwardLearner extends AbstractLearner {
 		for(int k=0;k<batchSize;k++){
 			// new sample
 			int index = sampling.next();
-			Tensor in = dataset.getInputSample(index);
+			Sample sample = dataset.getSample(index);
+			Tensor in = sample.input;
 
 			// forward
 			Tensor out = nn.forward(in, ""+index);
 			
 			// evaluate criterion
-			Tensor e = criterion.error(out, dataset.getOutputSample(index));
+			Tensor e = criterion.error(out, sample.output);
 			err += e.get(0);
-			Tensor gradOut = criterion.grad(out, dataset.getOutputSample(index));
+			Tensor gradOut = criterion.grad(out, sample.output);
 			
 			// backward
 			Tensor gradIn = nn.backward(gradOut, ""+index);
