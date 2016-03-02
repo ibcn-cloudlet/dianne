@@ -144,7 +144,7 @@ public class LearnJob extends AbstractJob<LearnResult> implements RepositoryList
 	@Override
 	public void stop() throws Exception{
 		if(started > 0){
-			done(new Exception("Job "+this.jobId+" was manually stopped."));
+			done(result);
 		} else {
 			done(new Exception("Job "+this.jobId+" cancelled."));
 		}

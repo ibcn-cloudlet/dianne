@@ -79,7 +79,7 @@ public abstract class AbstractLearner implements Learner {
 	// initial parameters
 	protected Map<UUID, Tensor> previousParameters = null;
 	
-	private static final float alpha = 1e-2f;
+	protected static final float alpha = 1e-2f;
 	protected float error = 0;
 	protected long i = 0;
 	

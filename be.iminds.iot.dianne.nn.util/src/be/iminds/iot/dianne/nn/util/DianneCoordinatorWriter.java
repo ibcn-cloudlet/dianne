@@ -100,12 +100,7 @@ public class DianneCoordinatorWriter {
 	public static void writeLearnResult(JsonWriter writer, LearnResult result) throws Exception {
 		writer.beginArray();
 		for(LearnProgress p : result.progress){
-			writer.beginObject();
-			writer.name("error");
-			writer.value(new Float(p.error));
-			writer.name("iteration");
-			writer.value(p.iteration);
-			writer.endObject();		
+			writeObject(writer, p);
 		}
 		writer.endArray();
 	}

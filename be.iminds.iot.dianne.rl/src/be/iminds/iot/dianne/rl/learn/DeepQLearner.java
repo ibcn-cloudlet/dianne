@@ -35,6 +35,7 @@ import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
+import be.iminds.iot.dianne.api.rl.learn.QLearnProgress;
 import be.iminds.iot.dianne.nn.learn.AbstractLearner;
 import be.iminds.iot.dianne.tensor.Tensor;
 
@@ -57,6 +58,7 @@ public class DeepQLearner extends AbstractLearner {
 	private int batchSize = 10;
 	private float discount = 0.99f;
 	
+	private float q;
 
 	protected void loadConfig(Map<String, String> config){
 		super.loadConfig(config);
@@ -126,6 +128,12 @@ public class DeepQLearner extends AbstractLearner {
 		System.out.println("Start learning...");
 	}
 	
+	public QLearnProgress getProgress() {
+		if(!learning || i==0)
+			return null;
+		return new QLearnProgress(i, error, q);
+	}
+	
 	protected float process(long i){
 		nn.getTrainables().values().stream().forEach(Trainable::zeroDeltaParameters);
 
@@ -160,11 +168,18 @@ public class DeepQLearner extends AbstractLearner {
 			Tensor targetOut = out.copyInto(null);
 			targetOut.set(targetQ, factory.getTensorMath().argmax(action));
 			
+			float Q_sa = out.get(factory.getTensorMath().argmax(action));
+			if(i==0){
+				q = Q_sa;
+			} else {
+				q = (1 - alpha) * q + alpha * Q_sa;
+			}
+		
 			Tensor e = criterion.error(out, targetOut);
 			err += e.get(0);
 			
 			if(logger!=null){
-				logger.log("LEARN", logLabels, factory.getTensorMath().max(out), targetQ, e.get(0));
+				logger.log("LEARN", logLabels, Q_sa, targetQ, e.get(0));
 			}
 			
 			Tensor gradOut = criterion.grad(out, targetOut);

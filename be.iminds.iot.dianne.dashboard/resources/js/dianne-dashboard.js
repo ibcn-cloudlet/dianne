@@ -115,48 +115,13 @@ function refreshJobs(){
 	     	  		panel.hide();
 	     	  	}
 	     	  	
-	     	  	if(job.type==="LEARN"){
-	     	  		//createErrorChart($('#'+job.id+"-progress"));
-	     	  		DIANNE.learnResult(job.id).then(function(learnprogress){
-						 data = [];
-						 $.each(learnprogress, function(i) {
-							 var progress = learnprogress[i];
-							 data.push({
-								 x: progress.iteration,
-			                     y: progress.error
-			                 });
-						 });
-						 createErrorChart($('#'+job.id+"-progress"), data);
-					});
-	     	  	} 
+	     	  	// initialize error/q chart
+	     	  	createResultChart($('#'+job.id+"-progress"), job);
      	  	}
      	  	
-     	  	if(job.type==="EVALUATE"){
+     	  	if(job.type==="EVALUATE" || job.type==="ACT"){
 	     	  	// update progress bars
-     	  		$('#'+job.id+"-progress").empty();
-	     	  	DIANNE.evaluationResult(job.id).then(function(evaluations){
-					$.each(evaluations, function(i) {
-						var eval = evaluations[i];
-						if(eval.confusionMatrix!==undefined){
-							createConfusionChart($('#'+job.id+"-progress"), eval.confusionMatrix);
-						} else {
-							if(eval.processed===undefined){
-								createProgressBar($('#'+job.id+"-progress"), 0, "no samples processed");
-							} else {
-								createProgressBar($('#'+job.id+"-progress"), 100*eval.processed/eval.total, eval.processed+"/"+eval.total+" samples processed");
-							}
-						}
-					});
-				});
-	     	 } else if(job.type==="ACT"){
-	     	  	// update progress bars
-     	  		$('#'+job.id+"-progress").empty();
-	     	  	DIANNE.agentResult(job.id).then(function(results){
-					$.each(results, function(i) {
-						var result = results[i];
-						createProgressBar($('#'+job.id+"-progress"), 100, result.samples+" samples generated", true);
-					});
-				});
+	     	  	createResultChart($('#'+job.id+"-progress"), job);
 	     	 }
  	    });
  	});
@@ -223,67 +188,31 @@ function addNotification(notification){
 
 function showDetails(jobId){
 	DIANNE.job(jobId).then(function(job){
-		job.submitted = moment(job.submitted).format("hh:mm:ss YYYY:MM:DD");
+		job.submitTime = moment(job.submitted).format("hh:mm:ss YYYY:MM:DD");
 		if(job.started === 0){
-			job.started = "N/A"
+			job.startTime = "N/A"
 		} else {
-			job.started = moment(job.started).format("hh:mm:ss YYYY:MM:DD");
-			
-			if(job.type==="LEARN"){
-				DIANNE.learnResult(jobId).then(function(learnprogress){
-					 data = [];
-					 $.each(learnprogress, function(i) {
-						 var progress = learnprogress[i];
-						 data.push({
-							 x: progress.iteration,
-		                     y: progress.error
-		                 });
-					 });
-					 createErrorChart($('#'+job.id+"-result"), data, 1.5);
-				});
-			} else if(job.type==="EVALUATE"){
-				DIANNE.evaluationResult(jobId).then(function(evaluations){
-					$.each(evaluations, function(i) {
-						var eval = evaluations[i];
-						if(eval.confusionMatrix!==undefined){
-							// TODO what with multiple evaluations?
-							createConfusionChart($('#'+job.id+"-result"), eval.confusionMatrix, 2.2);
-						} else {				
-							if(eval.processed===undefined){
-								createProgressBar($('#'+job.id+"-result"), 0, "no samples processed");
-							} else {
-								createProgressBar($('#'+job.id+"-result"), 100*eval.processed/eval.total, eval.processed+"/"+eval.total+" samples processed");
-							}
-						}
-					});
-				});
-			} else if(job.type==="ACT"){
-	     	  	DIANNE.agentResult(job.id).then(function(results){
-					$.each(results, function(i) {
-						var result = results[i];
-						createProgressBar($('#'+job.id+"-result"), 100, result.samples+" samples generated", job.stopped==="N/A");
-					});
-				});
-			}
+			job.startTime = moment(job.started).format("hh:mm:ss YYYY:MM:DD");
 		}
-		var cancelable = true;
 		if(job.stopped === 0){
-			job.stopped = "N/A"
+			job.stopTime = "N/A"
 		} else {
-			job.stopped = moment(job.stopped).format("hh:mm:ss YYYY:MM:DD");
-			cancelable = false;
+			job.stopTime = moment(job.stopped).format("hh:mm:ss YYYY:MM:DD");
 		}
 		
 		var template = $('#job-details').html();
 		Mustache.parse(template);
 		var rendered = Mustache.render(template, job);
 		var dialog = $(rendered).appendTo($("#dashboard"));
-		if(!cancelable) {
+		if(job.stopped !== 0) {
 			dialog.find('.cancel').hide();
 			dialog.find('.resubmit').show();
 		} else {
 			dialog.find('.cancel').show();
 			dialog.find('.resubmit').hide();
+		}
+		if(job.started !== 0){
+			createResultChart($('#'+job.id+"-result"), job, 1.5);
 		}
 		dialog.on('hidden.bs.modal', function () {
 			$(this).remove();
@@ -387,6 +316,7 @@ if(typeof(EventSource) === "undefined") {
 
 eventsource = new EventSource("/dianne/sse");
 eventsource.onmessage = function(event){
+	console.log("EVENT: "+event.data);
 	var data = JSON.parse(event.data);
 	if(data.type === "notification"){
 		addNotification(data);
@@ -396,41 +326,18 @@ eventsource.onmessage = function(event){
  	    // update final graphs in running job overview
 		if(data.jobId!==undefined && data.level==="success"){
 			DIANNE.job(data.jobId).then(function(job){
-	 	        if(job.type==="LEARN"){
-		 	  		DIANNE.learnResult(job.id).then(function(learnprogress){
-						 data = [];
-						 $.each(learnprogress, function(i) {
-							 var progress = learnprogress[i];
-							 data.push({
-								 x: progress.iteration,
-			                     y: progress.error
-			                 });
-						 });
-						 createErrorChart($('#'+job.id+"-progress"), data);
-					});
-	 	        } else if(job.type==="EVALUATE"){
-	     	  		$('#'+job.id+"-progress").empty();
-		     	  	DIANNE.evaluationResult(job.id).then(function(evaluations){
-						$.each(evaluations, function(i) {
-							// TODO what with multiple evaluations?
-							var eval = evaluations[i];
-							createConfusionChart($('#'+job.id+"-progress"), eval.confusionMatrix);
-						});
-					});
-		     	 } else if(job.type==="ACT"){
-		     	  	DIANNE.agentResult(job.id).then(function(results){
-						$.each(results, function(i) {
-							var result = results[i];
-							createProgressBar($('#'+job.id+"-progress"), 100, result.samples+" samples generated");
-						});
-					});
-		     	 }
+	     	  	createResultChart($('#'+job.id+"-progress"), job);
 	 	    });
 		}
 	} else if(data.type === "progress"){
 		var index = Number($("#"+data.jobId+"-progress").attr("data-highcharts-chart"));
     	var x = Number(data.iteration);
-        var y = Number(data.error);
+    	var y;
+    	if(data.q!==undefined){
+    		y = Number(data.q);
+    	} else {
+    		y = Number(data.error);
+    	}
 		Highcharts.charts[index].series[0].addPoint([x, y], true, true, false);
 	}
 }

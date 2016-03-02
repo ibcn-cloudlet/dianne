@@ -20,6 +20,8 @@ import org.osgi.service.event.EventHandler;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
+import be.iminds.iot.dianne.api.rl.learn.QLearnProgress;
+
 @Component(service={javax.servlet.Servlet.class, EventHandler.class},
 property={"alias:String=/dianne/sse",
 	 	  "osgi.http.whiteboard.servlet.pattern=/dianne/sse",
@@ -56,6 +58,9 @@ public class DianneSSEServlet extends HttpServlet implements EventHandler {
 			data.add("jobId", new JsonPrimitive(event.getProperty("jobId").toString()));
 			data.add("iteration", new JsonPrimitive((Long)event.getProperty("iteration")));
 			data.add("error", new JsonPrimitive((Float)event.getProperty("error")));
+			if(event.containsProperty("q")){
+				data.add("q", new JsonPrimitive((Float)event.getProperty("q")));
+			}
 		} else {
 			// notification
 			if(event.containsProperty("jobId"))

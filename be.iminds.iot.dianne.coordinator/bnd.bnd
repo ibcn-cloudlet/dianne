@@ -16,6 +16,4 @@ Bundle-Name: Dianne Coordinator
 Private-Package: \
 	be.iminds.iot.dianne.coordinator,\
 	be.iminds.iot.dianne.coordinator.command
-Export-Package: \
-	be.iminds.iot.dianne.api.coordinator,\
-	be.iminds.aiolos.platform.api
+Export-Package: be.iminds.iot.dianne.api.coordinator

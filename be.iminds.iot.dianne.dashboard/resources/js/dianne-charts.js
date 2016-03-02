@@ -79,8 +79,77 @@ function createGaugeChart(container, name, value) {
     }));
 }
 
-// error chart
-function createErrorChart(container, data, scale) {
+// create job results chart
+function createResultChart(container, job, scale){
+	// in case of learn chart, plot learn progress curve
+	if(job.type==="LEARN"){
+     	if(job.category==="RL"){
+     		// in case of RL jobs, plot Q value (TODO plot 2 series error + Q?)
+ 	  		DIANNE.learnResult(job.id).then(function(learnprogress){
+				 data = [];
+				 $.each(learnprogress, function(i) {
+					 var progress = learnprogress[i];
+					 data.push({
+						 x: progress.iteration,
+	                     y: progress.q
+	                 });
+				 });
+				 createQChart(container, data, scale);
+			});
+     	} else { 
+     		// else plot error value
+			DIANNE.learnResult(job.id).then(function(learnprogress){
+				 data = [];
+				 $.each(learnprogress, function(i) {
+					 var progress = learnprogress[i];
+					 data.push({
+						 x: progress.iteration,
+	                     y: progress.error
+	                 });
+				 });
+				 createErrorChart(container, data, scale);
+			});
+     	}
+	} else if(job.type==="EVALUATE"){
+		// in case of evaluate jobs, plot a progress bar if still busy, confusion matrix heatmap otherwise
+		container.empty();
+		DIANNE.evaluationResult(job.id).then(function(evaluations){
+			$.each(evaluations, function(i) {
+				var eval = evaluations[i];
+				if(eval.confusionMatrix!==undefined){
+					// TODO what with multiple evaluations?
+					createConfusionChart(container, eval.confusionMatrix, scale);
+				} else {				
+					if(eval.processed===undefined){
+						createProgressBar(container, 0, "no samples processed");
+					} else {
+						createProgressBar(container, 100*eval.processed/eval.total, eval.processed+"/"+eval.total+" samples processed");
+					}
+				}
+			});
+		});
+	} else if(job.type==="ACT"){
+		// visualize act jobs as a running progress bar
+		container.empty();
+ 	  	DIANNE.agentResult(job.id).then(function(results){
+			$.each(results, function(i) {
+				var result = results[i];
+				createProgressBar($('#'+job.id+"-result"), 100, result.samples+" samples generated", job.stopped===0);
+			});
+		});
+	}
+}
+
+function createErrorChart(container, error, scale){
+	createLineChart(container, 'Iterations', 'Error', error, scale);
+}
+
+function createQChart(container, q, scale){
+	createLineChart(container, 'Iterations', 'Q', q, scale);
+}
+
+// generic line chart
+function createLineChart(container, xAxis, yAxis, data, scale) {
 	// if no data specified, initialize empty
 	var i;
 	if(data===undefined){
@@ -117,12 +186,12 @@ function createErrorChart(container, data, scale) {
         xAxis: {
             tickPixelInterval: 150,
             title: {
-                text: 'Iterations'
+                text: xAxis
             },
         },
         yAxis: {
             title: {
-                text: 'Error'
+                text: yAxis
             },
             min: 0,
             plotLines: [{
@@ -141,13 +210,14 @@ function createErrorChart(container, data, scale) {
             enabled: false
         },
         series: [{
-            name: 'Error',
+            name: yAxis,
             data: data
         }]
     });
 }
 
 
+// confusion matrix heatmap chart
 function createConfusionChart(container, matrix, scale) {
 	if(scale === undefined){
 		scale = 1;
@@ -211,6 +281,8 @@ function createConfusionChart(container, matrix, scale) {
     });
 }
 
+
+// progress bar
 function createProgressBar(container, value, message, active){
 	var progress = {};
 	progress.value = value;

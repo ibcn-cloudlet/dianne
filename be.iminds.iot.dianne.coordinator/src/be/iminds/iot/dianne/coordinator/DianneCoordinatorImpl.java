@@ -79,6 +79,7 @@ import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.api.rl.agent.Agent;
+import be.iminds.iot.dianne.api.rl.learn.QLearnProgress;
 import be.iminds.iot.dianne.nn.util.DianneCoordinatorWriter;
 
 @Component
@@ -513,7 +514,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		
 		// check if the possible devices are currently available
 		targets = targets.stream()
-			.filter(uuid -> deviceUsage.get(uuid)==-1) // only free nodes can be selected
+			.filter(uuid -> deviceUsage.get(uuid)==-1) // search for free nodes only
 			.limit(count)
 			.collect(Collectors.toList());
 
@@ -546,6 +547,9 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		properties.put("jobId", jobId.toString());
 		properties.put("iteration", progress.iteration);
 		properties.put("error", progress.error);
+		if(progress instanceof QLearnProgress){
+			properties.put("q", ((QLearnProgress)progress).q);
+		}
 		
 		String topic = "dianne/jobs/"+jobId.toString()+"/progress";
 		Event e = new Event(topic, properties);
