@@ -24,7 +24,6 @@ package be.iminds.iot.dianne.repository.file;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -32,7 +31,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -43,7 +41,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -56,8 +53,6 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-
-import com.google.gson.JsonParser;
 
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModulePropertyDTO;
@@ -73,8 +68,6 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 public class DianneFileRepository implements DianneRepository {
 
 	private String dir = "nn";
-	
-	private final JsonParser parser = new JsonParser();
 	
 	private TensorFactory factory;
 	
@@ -175,16 +168,10 @@ public class DianneFileRepository implements DianneRepository {
 		
 		String output = DianneJSONConverter.toJsonString(nn, true);
 		
-		PrintWriter p = null;
-		try {
-			p = new PrintWriter(n);
+		try(PrintWriter p = new PrintWriter(n)) {
 			p.write(output);
 		} catch(Exception e){
 			e.printStackTrace();
-		} finally{
-			if(p!=null){
-				p.close();
-			}
 		}
 	}
 
@@ -197,16 +184,11 @@ public class DianneFileRepository implements DianneRepository {
 	@Override
 	public void storeLayout(String nnName, String layout){
 		File l = new File(dir+"/"+nnName+"/layout.txt");
-		PrintWriter p = null;
-		try {
-			p = new PrintWriter(l);
+
+		try(PrintWriter p = new PrintWriter(l)) {
 			p.write(layout);
 		} catch(Exception e){
 			e.printStackTrace();
-		} finally{
-			if(p!=null){
-				p.close();
-			}
 		}		
 	}
 	
@@ -324,9 +306,8 @@ public class DianneFileRepository implements DianneRepository {
 	
 	private void store(UUID moduleId, Tensor parameters, String... tag){
 		File f = new File(dir+"/weights/"+parametersId(moduleId, tag));
-		DataOutputStream os = null;
-		try {
-			os = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(f)));
+
+		try(DataOutputStream os = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(f)))) {
 			float[] data = parameters.get();
 			os.writeInt(data.length);
 			for(int i=0;i<data.length;i++){
@@ -336,12 +317,6 @@ public class DianneFileRepository implements DianneRepository {
 			os.close();
 		} catch(IOException e){
 			e.printStackTrace();
-		} finally {
-			if(os!=null){
-				try {
-					os.close();
-				} catch (IOException e) {}
-			}
 		}
 	}
 	
@@ -362,7 +337,8 @@ public class DianneFileRepository implements DianneRepository {
 		String pid = id.toString();
 		if(tag!=null && tag.length>0){
 			for(String t : tag){
-				pid+="-"+t;
+				if(t!=null)
+					pid+="-"+t;
 			}
 		}
 		return pid;

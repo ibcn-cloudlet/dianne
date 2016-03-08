@@ -57,7 +57,7 @@ public abstract class AbstractLearner implements Learner {
 	
 	protected TensorFactory factory;
 	protected Dianne dianne;
-	protected Map<String, Dataset> datasets = new HashMap<String, Dataset>();
+	protected Map<String, Dataset> datasets = new HashMap<>();
 	
 	protected Thread learnerThread = null;
 	protected volatile boolean learning = false;

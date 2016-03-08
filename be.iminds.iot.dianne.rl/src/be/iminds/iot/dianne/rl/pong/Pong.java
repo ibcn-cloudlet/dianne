@@ -131,10 +131,10 @@ public class Pong implements PongEnvironment, Environment {
 
 	@Override
 	public float performAction(Tensor action) {
-		agentAction = ((action.get(0) > 0) ? 1 : (action.get(1) > 0) ? 0 : -1);
-		if(ai){
+		agentAction = factory.getTensorMath().argmax(action) - 1;
+		
+		if(ai)
 			updateAI();
-		}
 		
 		float totalReward = 0;
 
@@ -160,7 +160,7 @@ public class Pong implements PongEnvironment, Environment {
 	
 			x += vx;
 			y += vy;
-	
+
 			if (y - rad < -1 * b) {
 				y = -b + rad;
 				vy = -vy;

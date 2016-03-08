@@ -528,11 +528,8 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		if(!valid){
 			throw new RuntimeException("This neural network object is no longer valid");
 		}
-		
-		if(tag == null)
-			repository.storeParameters(nn.id, getParameters()); 
-		else 
-			repository.storeParameters(nn.id, getParameters(), tag);
+		 
+		repository.storeParameters(nn.id, getParameters(), tag);
 	}
 
 	@Override

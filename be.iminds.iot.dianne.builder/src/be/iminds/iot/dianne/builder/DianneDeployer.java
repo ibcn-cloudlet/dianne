@@ -41,7 +41,6 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.nn.Dianne;
-import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
@@ -191,7 +190,7 @@ public class DianneDeployer extends HttpServlet {
 			} else {
 				NeuralNetworkInstanceDTO nni = platform.getNeuralNetworkInstance(UUID.fromString(id));
 				if(nni==null){
-					System.out.println("Failed to recover "+nni.id+" , instance not found");
+					System.out.println("Failed to recover "+id+" , instance not found");
 					return;
 				}
 				

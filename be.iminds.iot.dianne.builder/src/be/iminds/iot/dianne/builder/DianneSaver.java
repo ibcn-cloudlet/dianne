@@ -36,10 +36,6 @@ import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.nn.util.DianneJSONConverter;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonParser;
-
 @Component(service = { javax.servlet.Servlet.class }, 
 	property = { "alias:String=/dianne/save",
 		 		 "osgi.http.whiteboard.servlet.pattern=/dianne/save",

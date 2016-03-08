@@ -22,9 +22,6 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.test;
 
-import java.io.File;
-import java.io.PrintWriter;
-import java.util.Arrays;
 import java.util.UUID;
 
 import junit.framework.Assert;
@@ -33,7 +30,6 @@ import org.osgi.framework.ServiceReference;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
-import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.tensor.Tensor;
 
