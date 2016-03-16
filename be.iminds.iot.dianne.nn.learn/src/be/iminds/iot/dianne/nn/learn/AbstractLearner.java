@@ -145,6 +145,12 @@ public abstract class AbstractLearner implements Learner {
 						// process training sample(s) for this iteration
 						float err = process(i);
 						
+						// if error is NaN, trigger something to repo to catch notification
+						if(Float.isNaN(err)){
+							nn.storeParameters(tag, "NaN");
+							// TODO reset parameters?
+						}
+						
 						// keep track of error
 						if(i==0){
 							error = err;
