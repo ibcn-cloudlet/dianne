@@ -68,7 +68,7 @@ public class EvaluationJob extends AbstractJob<EvaluationResult> {
 			EvaluationProgress p = null; 
 			if(results.containsKey(target)){
 				Evaluation eval = results.get(target);
-				p = new EvaluationProgress(eval.getTotal(), eval.getTotal(), eval.evaluationTime());
+				p = new EvaluationProgress(eval.getTotal(), eval.getTotal(), eval.evaluationTime(), eval.forwardTime());
 			} else {
 				Evaluator evaluator = coordinator.evaluators.get(target);
 				p = evaluator.getProgress();

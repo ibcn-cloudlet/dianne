@@ -25,7 +25,6 @@ package be.iminds.iot.dianne.api.nn.eval;
 import java.util.List;
 
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 
 /**
  * Result of the evaluation of a Dataset, provides access to the confusion matrix.
@@ -42,16 +41,19 @@ public class Evaluation {
 	protected List<Tensor> outputs;
 	// resulting confusion matrix
 	protected Tensor confusionMatrix;
-	// time to run the evaluation
-	protected long time;
+	// time to run the full evaluation
+	protected long evaluationTime;
+	// average forward time
+	protected float forwardTime;
 	
-	public Evaluation(long total, float error, Tensor confusionMatrix, List<Tensor> outputs, long time){
+	public Evaluation(long total, float error, Tensor confusionMatrix, List<Tensor> outputs, long evaluationTime, float forwardTime){
 		this.total = total;
 		this.error = error;
 		
 		this.confusionMatrix = confusionMatrix;
 		this.outputs = outputs;
-		this.time = time;
+		this.evaluationTime = evaluationTime;
+		this.forwardTime = forwardTime;
 	}
 	
 	@Override
@@ -63,15 +65,14 @@ public class Evaluation {
 	 * @return the total evaluation time
 	 */
 	public long evaluationTime(){
-		return time;
+		return evaluationTime;
 	}
 	
 	/**
 	 * @return average time for processing one sample
 	 */
 	public float forwardTime(){
-		float sampleTime = time/(float)total;
-		return sampleTime;
+		return forwardTime;
 	}
 	
 	public List<Tensor> getOutputs(){

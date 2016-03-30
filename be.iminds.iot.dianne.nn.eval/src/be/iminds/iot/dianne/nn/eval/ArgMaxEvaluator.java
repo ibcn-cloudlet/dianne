@@ -71,7 +71,7 @@ public class ArgMaxEvaluator implements Evaluator {
 	protected int total = 0;
 	protected Tensor confusion;
 	protected List<Tensor> outputs;
-	protected long tStart, tEnd;
+	protected long tStart, tEnd, tForward;
 	
 	@Override
 	public UUID getEvaluatorId(){
@@ -171,10 +171,13 @@ public class ArgMaxEvaluator implements Evaluator {
 		
 			confusion = null;
 			outputs = includeOutputs ? new ArrayList<Tensor>() : null;
-			tStart = System.currentTimeMillis();
+			tStart = System.currentTimeMillis(); tForward = 0;
 			for(sample=0;sample<indices.length;sample++){
 				Tensor in = d.getInputSample(indices[sample]);
+				
+				long t = System.nanoTime();
 				Tensor out = nn.forward(in);
+				tForward += System.nanoTime() - t;
 				
 				if(outputs!=null)
 					outputs.add(out);
@@ -198,8 +201,7 @@ public class ArgMaxEvaluator implements Evaluator {
 			}
 			tEnd = System.currentTimeMillis();
 			
-			
-			Evaluation e = new Evaluation(total, faulty/(float)total, confusion, outputs, tEnd-tStart);
+			Evaluation e = new Evaluation(total, faulty/(float)total, confusion, outputs, tEnd-tStart, (tForward/1000000f)/total);
 			return e;
 		} finally {
 			evaluating = false;
@@ -210,7 +212,7 @@ public class ArgMaxEvaluator implements Evaluator {
 		if(!evaluating)
 			return null;
 		
-		EvaluationProgress progress = new EvaluationProgress(sample, total, System.currentTimeMillis()-tStart);
+		EvaluationProgress progress = new EvaluationProgress(sample, total, System.currentTimeMillis()-tStart, (tForward/1000000f)/total);
 		return progress;
 	}
 	

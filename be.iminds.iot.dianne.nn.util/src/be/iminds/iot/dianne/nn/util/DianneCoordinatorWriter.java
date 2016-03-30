@@ -119,8 +119,10 @@ public class DianneCoordinatorWriter {
 			} else {
 				writer.name("accuracy");
 				writer.value(new Float(eval.accuracy()));
+				writer.name("evaluationTime");
+				writer.value(eval.evaluationTime());
 				writer.name("forwardTime");
-				writer.value(eval.forwardTime());
+				writer.value(new Float(eval.forwardTime()));
 				// write confusion matrix
 				writer.name("confusionMatrix");
 				writer.beginArray();

@@ -33,8 +33,8 @@ public class EvaluationProgress extends Evaluation {
 	/** Total number of samples to be processed */
 	private final long processed;
 	
-	public EvaluationProgress(long processed, long total, long time){
-		super(total, 0f, null, null, time);
+	public EvaluationProgress(long processed, long total, long evaluationTime, float forwardTime){
+		super(total, 0f, null, null, evaluationTime, forwardTime);
 		this.processed = processed;
 		this.total = total;
 	}
