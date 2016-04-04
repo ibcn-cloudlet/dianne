@@ -9,7 +9,8 @@
 -include: run-embedded.bndrun
 
 -runbundles.pi: \
-	be.iminds.iot.dianne.tensor.java;version=latest
+	be.iminds.iot.dianne.tensor.th;version=latest,\
+	be.iminds.iot.dianne.tensor.th.native.generic.linux.armv7l;version=latest
 
 -runproperties.pi: \
 	be.iminds.iot.dianne.runtime.name="Raspberry Pi"

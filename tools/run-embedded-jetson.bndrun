@@ -9,8 +9,9 @@
 -include: run-embedded.bndrun
 
 -runbundles.jetson: \
-	be.iminds.iot.dianne.tensor.cuda;version=latest	
+	be.iminds.iot.dianne.tensor.th;version=latest,\
+	be.iminds.iot.dianne.tensor.th.native.cuda.linux.armv7l;version=latest
 
 -runproperties.jetson: \
-	be.iminds.iot.dianne.runtime.name="nVidia Jetson"
+	be.iminds.iot.dianne.runtime.name="Nvidia Jetson"
 	
