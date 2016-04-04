@@ -1,16 +1,8 @@
 
-Export-Package: be.iminds.iot.dianne.tensor
--dsannotations: *
-Private-Package: be.iminds.iot.dianne.tensor.impl.th
-Import-Package: com.esotericsoftware.kryo.*;resolution:=optional
 Bundle-Name: Dianne TH Tensor Library
-Bundle-Description: Dianne Tensor implementation based on Torch's TH C lib
-
-Bundle-NativeCode: \
-	Linux/x86_64/libTHTensor.so;osname=Linux;processor=x86_64,\
-	Linux/i686/libTHTensor.so;osname=Linux;processor=i686,\
-	Linux/armv7l/libTHTensor.so;osname=Linux;processor=arm,\
-	Darwin/x86_64/libTHTensor.dylib;osname=macosx;processor=x86_64
-	
--includeresource: \
-	native
+Bundle-Description: Dianne Tensor implementation based on Torch's TH lib
+Import-Package: com.esotericsoftware.kryo.*;resolution:=optional
+Export-Package: be.iminds.iot.dianne.tensor
+Private-Package: be.iminds.iot.dianne.tensor.impl.th
+Require-Capability: th.native
+-dsannotations: *
