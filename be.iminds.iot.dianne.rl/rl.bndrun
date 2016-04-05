@@ -22,6 +22,10 @@
 	com.google.gson;version='[2.2.4,2.3)',\
 	org.websocket;version='[1.0,1.1)',\
 	be.iminds.iot.dianne.tensor.th;version=latest,\
+	be.iminds.iot.dianne.tensor.th.native.generic.darwin.x86_64;version=latest,\
+	be.iminds.iot.dianne.tensor.th.native.generic.linux.armv7l;version=latest,\
+	be.iminds.iot.dianne.tensor.th.native.generic.linux.i686;version=latest,\
+	be.iminds.iot.dianne.tensor.th.native.generic.linux.x86_64;version=latest,\
 	be.iminds.iot.dianne.tensor.util;version=latest,\
 	be.iminds.iot.dianne.api;version=latest,\
 	be.iminds.iot.dianne.nn.util;version=latest,\

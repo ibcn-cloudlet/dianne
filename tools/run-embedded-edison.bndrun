@@ -9,7 +9,8 @@
 -include: run-embedded.bndrun
 
 -runbundles.edison: \
-	be.iminds.iot.dianne.tensor.th;version=latest
+	be.iminds.iot.dianne.tensor.th;version=latest,\
+	be.iminds.iot.dianne.tensor.th.native.generic.linux.i686;version=latest
 
 -runproperties.edison: \
 	rsa.timeout=600000,\

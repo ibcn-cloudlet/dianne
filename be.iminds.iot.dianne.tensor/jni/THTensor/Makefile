@@ -20,7 +20,7 @@ INCLUDES := -I$(JAVA_INCLUDE) -I$(JAVA_PLATFORMINCLUDE) -ITH
 OBJECT := THTensorFactoryJNI.o THTensorJNI.o THTensorMathJNI.o 
 CCFLAGS := -O3 -w 
 LINKS := libTH.a libopenblas.a -lm -lgomp -pthread -lgfortran
-DEPLOY_DIR := ../../native/$(OS)/$(ARCH)
+DEPLOY_DIR := ../../generic/$(OS)/$(ARCH)
 
 # cuda specific build parameters
 CUDA_INCLUDES := -ITHC -I$(CUDA_HOME)/include/
