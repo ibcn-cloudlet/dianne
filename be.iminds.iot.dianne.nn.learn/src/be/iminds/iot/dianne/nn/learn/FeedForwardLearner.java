@@ -37,15 +37,19 @@ import be.iminds.iot.dianne.tensor.Tensor;
 public class FeedForwardLearner extends AbstractLearner {
 	
 	protected int batchSize = 10;
+	protected boolean batchAverage = true;
 
 	protected void loadConfig(Map<String, String> config){
 		super.loadConfig(config);
 		
-		if(config.get("batchSize")!=null){
+		if(config.containsKey("batchSize"))
 			batchSize = Integer.parseInt(config.get("batchSize"));
-		}
+		
+		if(config.containsKey("batchAverage"))
+			batchAverage = Boolean.parseBoolean(config.get("batchAverage"));
+		
 		System.out.println("* batchSize = " +batchSize);
-
+		System.out.println("* batchAverage = " + batchAverage);
 	}
 	
 	protected float process(long i){
@@ -77,13 +81,26 @@ public class FeedForwardLearner extends AbstractLearner {
 			nn.getTrainables().values().stream().forEach(m -> m.accGradParameters());
 		}
 		
+		if(batchAverage) {
+			nn.getTrainables().values().stream().forEach(m -> {
+				Tensor deltaParams = m.getDeltaParameters();
+	
+				factory.getTensorMath().div(deltaParams, deltaParams, batchSize);
+						
+				// set DeltaParameters to be sure in case of remote module instance
+				m.setDeltaParameters(deltaParams);
+			});
+			
+			err /= batchSize;
+		}
+		
 		// run gradient processors
 		gradientProcessor.calculateDelta(i);
 		
 		// update parameters
 		nn.getTrainables().values().stream().forEach(Trainable::updateParameters);
 		
-		return err/batchSize;
+		return err;
 	}
 	
 }
