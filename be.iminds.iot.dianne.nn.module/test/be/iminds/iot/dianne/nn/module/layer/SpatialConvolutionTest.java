@@ -38,7 +38,6 @@ import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;
 import be.iminds.iot.dianne.tensor.impl.th.THTensorFactory;
-import be.iminds.iot.dianne.tensor.util.ImageConverter;
 
 @RunWith(Parameterized.class)
 public class SpatialConvolutionTest {

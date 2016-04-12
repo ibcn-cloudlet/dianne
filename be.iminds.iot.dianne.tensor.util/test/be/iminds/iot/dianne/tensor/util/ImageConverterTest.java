@@ -37,7 +37,7 @@ public class ImageConverterTest {
 		ImageConverter conv = new ImageConverter(factory);
 		long t1 = System.currentTimeMillis();
 		int start = 0;
-		int n = 50000;
+		int n = 100;
 		for(int i=start;i<start+n;i++){
 			String dir = "../tools/datasets/ImageNet/";
 			String file = dir + "images/" + "ILSVRC2012_val_"

@@ -22,7 +22,7 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.tensor.impl.java;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.junit.Test;
 
@@ -47,7 +47,7 @@ public class JavaTensorTest {
 		Assert.assertEquals(4, tensor.data.length);
 		
 		for(int i=0;i<data.length;i++){
-			Assert.assertEquals(data[i], tensor.data[i]);
+			Assert.assertEquals(data[i], tensor.data[i],0.001);
 		}
 	}
 	
@@ -55,7 +55,7 @@ public class JavaTensorTest {
 	public void testJavaTensorStride() {
 		JavaTensor tensor = new JavaTensor(3,4);
 		tensor.set(1.0f, 1,2);
-		Assert.assertEquals(1.0f, tensor.data[6]);
+		Assert.assertEquals(1.0f, tensor.data[6],0.001);
 	}
 	
 	@Test

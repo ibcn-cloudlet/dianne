@@ -18,11 +18,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Contributors:
- *     Tim Verbelen, Steven Bohez
+ *     Tim Verbelen, Steven Bohez, Elias De Coninck
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.module.layer;
 
-import java.util.Arrays;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractTrainableModule;
