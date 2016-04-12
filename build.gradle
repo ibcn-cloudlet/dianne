@@ -1,0 +1,48 @@
+/*
+ * Master Gradle build script
+ *
+ * Depends on bndPlugin property set by settings.gradle.
+ * and bnd_* values from gradle.properties.
+ */
+
+import aQute.bnd.build.Workspace
+import aQute.bnd.osgi.Constants
+
+/* Add bnd gradle plugin as a script dependency */
+buildscript {
+  dependencies {
+    classpath bndPlugin
+  }
+}
+
+def runCommand(String[] args) {
+ new ByteArrayOutputStream().withStream { os ->
+  def result = exec {
+   commandLine = args
+   standardOutput = os
+  }
+  return os.toString().trim()
+ }
+}
+
+/* Initialize the bnd workspace */
+Workspace.setDriver(Constants.BNDDRIVER_GRADLE)
+Workspace.addGestalt(Constants.GESTALT_BATCH, null)
+ext.bndWorkspace = new Workspace(rootDir, bnd_cnf)
+if (bndWorkspace == null) {
+  throw new GradleException("Unable to load workspace ${rootDir}/${bnd_cnf}")
+}
+ext.cnf = rootProject.project(bnd_cnf)
+ext.os = runCommand('uname', '-s')
+ext.arch = runCommand('uname', '-m')
+
+/* Configure the subprojects */
+subprojects {
+  def bndProject = bndWorkspace.getProject(name)
+  if (bndProject != null) {
+    plugins.apply 'biz.aQute.bnd'
+  }
+  tasks.withType(Test) {
+    systemProperty "java.library.path", "${bnd.workspace}/be.iminds.iot.dianne.tensor/generic/${os}/${arch}/"
+  }
+}
