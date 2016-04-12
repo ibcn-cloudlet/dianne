@@ -7,6 +7,9 @@ Bundle-Version: 0.3.0.${tstamp}
 	be.iminds.iot.dianne.tensor.util;version=latest,\
 	be.iminds.iot.dianne.api;version=latest,\
 	osgi.promise
+-testpath: \
+	be.iminds.iot.dianne.tensor.th;version=latest,\
+	be.iminds.iot.dianne.tensor.java;version=latest
 Export-Package: \
 	be.iminds.iot.dianne.api.nn.module,\
 	be.iminds.iot.dianne.api.nn.module.factory,\
