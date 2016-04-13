@@ -716,17 +716,13 @@ public class TensorMathTest<T extends Tensor<T>> {
 		float[] kernel = new float[]{-0.32415437698364f, -0.31857073307037f, 0.18188442289829f, -0.13951431214809f, 0.25509414076805f, -0.1690703779459f, -0.090076014399529f, 0.15885785222054f, 0.076930783689022f,};
 		T k = factory.createTensor(kernel, 1, 1, 3, 3);
 		T b = factory.createTensor(1); // 0 bias
-		b.fill(0.0f);
 		float[] output = new float[]{0.15499959886074f, 0.16358412802219f, 0.21280115842819f, 0.18517228960991f, -0.0097887143492699f, 0.2304742783308f, 0.25303274393082f, 0.27846127748489f, 0.34164065122604f, 0.21174050867558f, 0.033477135002613f, -0.040496986359358f, 0.016157247126102f, 0.1608159840107f, 0.10138539969921f, 0.31606841087341f, 0.21850445866585f, 0.22664746642113f, 0.12060117721558f, -0.035617150366306f, -0.019975544884801f, 0.14983840286732f, 0.22274658083916f, 0.21933452785015f, 0.22867679595947f,};
 		T exp = factory.createTensor(output, 1, 5, 5);
-		
 		T padded = math.zeropad(null, t, 0, 1, 1);
 		T res = math.spatialconvolve(null, b, padded, k, 1, 1, 0, 0);
+		
 		Assert.assertEquals(true, res.sameDim(exp));
-		float[] d = res.get();
-		for(int i=0;i<output.length;i++){
-			Assert.assertEquals(output[i], d[i], 0.001f);
-		}
+		Assert.assertArrayEquals(output, res.get(), 0.001f);
 	}
 	
 	@Test
@@ -737,16 +733,12 @@ public class TensorMathTest<T extends Tensor<T>> {
 		float[] kernel = new float[]{-0.32415437698364f, -0.31857073307037f, 0.18188442289829f, -0.13951431214809f, 0.25509414076805f, -0.1690703779459f, -0.090076014399529f, 0.15885785222054f, 0.076930783689022f,};
 		T k = factory.createTensor(kernel, 1, 1, 3, 3);
 		T b = factory.createTensor(1); // 0 bias
-		b.fill(0.0f);
 		float[] output = new float[]{0.15499959886074f, 0.16358412802219f, 0.21280115842819f, 0.18517228960991f, -0.0097887143492699f, 0.2304742783308f, 0.25303274393082f, 0.27846127748489f, 0.34164065122604f, 0.21174050867558f, 0.033477135002613f, -0.040496986359358f, 0.016157247126102f, 0.1608159840107f, 0.10138539969921f, 0.31606841087341f, 0.21850445866585f, 0.22664746642113f, 0.12060117721558f, -0.035617150366306f, -0.019975544884801f, 0.14983840286732f, 0.22274658083916f, 0.21933452785015f, 0.22867679595947f,};
 		T exp = factory.createTensor(output, 1, 5, 5);
 		
 		T res = math.spatialconvolve(null, b, t, k, 1, 1, 1, 1);
 		Assert.assertEquals(true, res.sameDim(exp));
-		float[] d = res.get();
-		for(int i=0;i<output.length;i++){
-			Assert.assertEquals(output[i], d[i], 0.001f);
-		}
+		Assert.assertArrayEquals(output, res.get(), 0.001f);
 	}
 	
 	@Test
@@ -757,7 +749,6 @@ public class TensorMathTest<T extends Tensor<T>> {
 		float[] kernel = new float[]{-0.32415437698364f, -0.31857073307037f, 0.18188442289829f, -0.13951431214809f, 0.25509414076805f, -0.1690703779459f, -0.090076014399529f, 0.15885785222054f, 0.076930783689022f,};
 		T k = factory.createTensor(kernel, 1, 1, 3, 3);
 		T b = factory.createTensor(1); // 0 bias
-		b.fill(0.0f);
 		float[] output = new float[]{0.15499959886074f, 0.16358412802219f, 0.21280115842819f, 0.18517228960991f, -0.0097887143492699f, 0.2304742783308f, 0.25303274393082f, 0.27846127748489f, 0.34164065122604f, 0.21174050867558f, 0.033477135002613f, -0.040496986359358f, 0.016157247126102f, 0.1608159840107f, 0.10138539969921f, 0.31606841087341f, 0.21850445866585f, 0.22664746642113f, 0.12060117721558f, -0.035617150366306f, -0.019975544884801f, 0.14983840286732f, 0.22274658083916f, 0.21933452785015f, 0.22867679595947f,};
 		T exp = factory.createTensor(output, 1, 5, 5);
 		// add zero padding for same convolution
@@ -893,16 +884,21 @@ public class TensorMathTest<T extends Tensor<T>> {
 	
 	@Test
 	public void testSpatialDMaxpool(){
-		float[] data = new float[]{1.0f, 0.0f, 0.0f, 1.0f,
-									0.0f, 1.0f, 0.0f, 0.0f};
+		float[] data = new float[]{1.0f, 0.0f,
+									0.2f, 1.0f,
+									
+									0.5f, 1.0f,
+									0.1f, 0.0f};
+		float[] expData = new float[]{2.0f, 0.0f,
+									0.0f, 0.0f,
+									
+									0.0f, 2.0f,
+									0.0f, 0.0f};
 		T t1 = factory.createTensor(data, 2, 2, 2);
-		
-		T t2 = factory.createTensor(1, 1, 2);
+		T t2 = factory.createTensor(2, 1, 1);
 		t2.fill(2.0f);
-		
-		T exp = factory.getTensorMath().mul(null, t1, 2.0f);
-		
-		Assert.assertEquals(exp, math.spatialdmaxpool(null, t2, t1, 2, 2, 2, 2));
+		T res = math.spatialdmaxpool(null, t2, t1, 2, 2, 2, 2);
+		Assert.assertArrayEquals(expData, res.get(), 0.001f);
 	}
 	
 	@Test

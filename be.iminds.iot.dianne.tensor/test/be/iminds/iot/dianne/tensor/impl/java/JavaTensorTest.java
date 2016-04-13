@@ -91,7 +91,7 @@ public class JavaTensorTest {
 	@Test
 	public void testJavaTensorToString5() {
 		JavaTensor tensor = new JavaTensor(2,2,2);
-		String expected = "[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]";
+		String expected = "[0.0, 0.0, \n0.0, 0.0, \n\n0.0, 0.0, \n0.0, 0.0]";
 		Assert.assertEquals(expected, tensor.toString());
 	}
 	

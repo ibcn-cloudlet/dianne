@@ -53,11 +53,12 @@ public class PReLU extends AbstractTrainableModule{
 	}
 	
 	private void init() {
-		parameters.fill(0.0f);
+		parameters.fill(init);
 	}
 
 	@Override
 	public void randomize(){
+		// TODO: write test + check if this is correct
 		parameters.set(init, 0);
 	}
 	
