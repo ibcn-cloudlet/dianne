@@ -27,6 +27,8 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.Writer;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -40,84 +42,81 @@ import org.osgi.service.component.annotations.Reference;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
-@Component(immediate=true)
+@Component(immediate = true)
 public class DianneJSONRPCServer {
 
 	private JSONRPCRequestHandler handler;
-	
+
 	private int port = 9090;
 	private ServerSocket serverSocket;
-	
+
 	private Thread serverThread;
-	
-	
-	private class JSONRPCHandler implements Runnable {
-		
-		private Socket socket;
-		
-		public JSONRPCHandler(Socket s){
-			this.socket = s;
-			try {
-				this.socket.setKeepAlive(true);
-			} catch (SocketException e) {
-			}
-		}
-		
-		public void run(){
-			try {
-				while(true){
-					JsonWriter writer = new JsonWriter(
-							new BufferedWriter(new PrintWriter((socket.getOutputStream()))));
-					writer.flush();
-					JsonReader reader = new JsonReader(
-							new BufferedReader(new InputStreamReader(socket.getInputStream())));
 
-					handler.handleRequest(reader, writer);
-				}
-			} catch(Exception e){
-				try {
-					socket.close();
-				} catch (IOException e1) {
-				}
-			}
-		}
-		
-		public void start(){
-			Thread t = new Thread(this);
-			t.start();
-		}
-		
-
+	@Reference
+	void setRequestHandler(JSONRPCRequestHandler h) {
+		this.handler = h;
 	}
 
-	
 	@Activate
 	void activate(BundleContext context) throws Exception {
-		serverSocket = new ServerSocket(port);
+		String port = context.getProperty("be.iminds.iot.dianne.dataset.jsonrpc.port");
+		if(port != null)
+			this.port = Integer.parseInt(port);
 		
-		serverThread = new Thread(()->{
-			while(!serverThread.isInterrupted()){
+		serverSocket = new ServerSocket(this.port);
+
+		serverThread = new Thread(() -> {
+			while (!serverThread.isInterrupted()) {
 				try {
 					Socket socket = serverSocket.accept();
-					JSONRPCHandler handler = new JSONRPCHandler(socket);
+					
+					JSONRPCSocketHandler handler = new JSONRPCSocketHandler(socket);
 					handler.start();
-				} catch(Exception e){
-					// e.printStackTrace();
-				}
+				} catch (Exception e) {}
 			}
 		});
 		serverThread.start();
 	}
-	
+
 	@Deactivate
 	void deactivate() throws Exception {
 		serverThread.interrupt();
 		serverSocket.close();
 	}
-	
-	@Reference
-	void setRequestHandler(JSONRPCRequestHandler h){
-		this.handler = h;
+
+	private class JSONRPCSocketHandler extends Thread {
+
+		private Socket socket;
+
+		public JSONRPCSocketHandler(Socket s) {
+			super();
+			
+			this.socket = s;
+			
+			try {
+				this.socket.setKeepAlive(true);
+			} catch (SocketException e) {}
+		}
+
+		public void run() {
+			try(Writer writer = new BufferedWriter(new PrintWriter((socket.getOutputStream())));
+					Reader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));) {
+				while (true) {
+					try {
+						handler.handleRequest(new JsonReader(reader), new JsonWriter(writer));
+					} catch (IOException e) {
+						throw(e);
+					} catch (Exception e1) {
+						continue;
+					}
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				try {
+					socket.close();
+				} catch (IOException e1) {}
+			}
+		}
 	}
-	
 }

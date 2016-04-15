@@ -1,8 +1,7 @@
 package be.iminds.iot.dianne.jsonrpc;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.List;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -13,6 +12,7 @@ import org.osgi.util.promise.Promise;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
@@ -33,21 +33,19 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 	private DiannePlatform platform;
 	
 	@Override
-	public void handleRequest(JsonReader reader, JsonWriter writer) throws Exception {
-		JsonParser parser = new JsonParser();
-		JsonObject request = null; 
+	public void handleRequest(JsonReader reader, JsonWriter writer) throws IOException {
 		try {
-			request = parser.parse(reader).getAsJsonObject();
+			JsonParser parser = new JsonParser();
+			JsonObject request = parser.parse(reader).getAsJsonObject();
 			handleRequest(request, writer);
-		} catch(Exception e){
+		} catch(JsonParseException e){
 			e.printStackTrace();
 			writeError(writer, null, -32700, "Parse error");
-			return;
 		}
 	}
 	
 	@Override
-	public void handleRequest(JsonObject request, JsonWriter writer) throws Exception {
+	public void handleRequest(JsonObject request, JsonWriter writer) throws IOException {
 		String i = "null";
 		if(request.has("id")){
 			i = request.get("id").getAsString();
@@ -106,12 +104,16 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 				} else {
 					result = coordinator.learn(nn, dataset, config);
 				}
-				result.then(p -> {
-					writeResult(writer, id, p.getValue());
-					return null;
-				}, p -> {
-					writeError(writer, id, -32603, "Error during learning: "+p.getFailure().getMessage());
-				});
+				try {
+					result.then(p -> {
+						writeResult(writer, id, p.getValue());
+						return null;
+					}, p -> {
+						writeError(writer, id, -32603, "Error during learning: "+p.getFailure().getMessage());
+					}).getValue();
+				} catch (InvocationTargetException | InterruptedException e) {
+					e.printStackTrace();
+				}
 			} else if(method.equals("eval")){
 				// eval
 				Promise<EvaluationResult> result = null;
@@ -120,12 +122,16 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 				} else {
 					result = coordinator.eval(nn, dataset, config);
 				}
-				result.then(p -> {
-					writeResult(writer, id, p.getValue());
-					return null;
-				}, p -> {
-					writeError(writer, id, -32603, "Error during learning: "+p.getFailure().getMessage());
-				});
+				try {
+					result.then(p -> {
+						writeResult(writer, id, p.getValue());
+						return null;
+					}, p -> {
+						writeError(writer, id, -32603, "Error during learning: "+p.getFailure().getMessage());
+					}).getValue();
+				} catch (InvocationTargetException | InterruptedException e) {
+					e.printStackTrace();
+				}
 			} else if(method.equals("act")){
 				Promise<AgentResult> result = null;
 				if(nnName!=null){
@@ -133,12 +139,16 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 				} else {
 					result = coordinator.act(nn, dataset, config);
 				}
-				result.then(p -> {
-					writeResult(writer, id, null);
-					return null;
-				}, p -> {
-					writeError(writer, id, -32603, "Error during learning: "+p.getFailure().getMessage());
-				});
+				try {
+					result.then(p -> {
+						writeResult(writer, id, null);
+						return null;
+					}, p -> {
+						writeError(writer, id, -32603, "Error during learning: "+p.getFailure().getMessage());
+					}).getValue();
+				} catch (InvocationTargetException | InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
 			break;
 		case "learnResult":
@@ -203,7 +213,7 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 		}
 	}
 	
-	private void writeError(JsonWriter writer, String id, int code, String message) throws Exception {
+	private void writeError(JsonWriter writer, String id, int code, String message) throws IOException {
 		writer.beginObject();
 		writer.name("jsonrpc");
 		writer.value("2.0");
@@ -222,7 +232,7 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 		writer.flush();					
 	}
 	
-	private void writeResult(JsonWriter writer, String id, Object result) throws Exception{
+	private void writeResult(JsonWriter writer, String id, Object result) throws IOException {
 		writer.beginObject();
 		writer.name("jsonrpc");
 		writer.value("2.0");
