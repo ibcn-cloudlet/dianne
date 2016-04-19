@@ -4,7 +4,7 @@
 CC=gcc
 CXX=g++
 NVCC=nvcc
-CCFLAGS += -DLINUX
+FLAGS += -DLINUX
 LIB := libTHTensor.so
 SHARED := -shared
 

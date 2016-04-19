@@ -15,18 +15,18 @@ JAVA_INCLUDE := $(JAVA_HOME)/include
 JAVA_PLATFORMINCLUDE := $(JAVA_INCLUDE)/$(JDKPLATFORMINCLUDESUBDIR)
 
 JAVAH := be.iminds.iot.dianne.tensor.impl.th.THTensor be.iminds.iot.dianne.tensor.impl.th.THTensorMath be.iminds.iot.dianne.tensor.impl.th.THTensorFactory
-SRC := THTensorFactoryJNI.c THTensorJNI.c THTensorMathJNI.c 
+SRC := THTensorFactoryJNI.c THTensorJNI.c THTensorMathJNI.c
 INCLUDES := -I$(JAVA_INCLUDE) -I$(JAVA_PLATFORMINCLUDE) -ITH
-OBJECT := THTensorFactoryJNI.o THTensorJNI.o THTensorMathJNI.o 
-CCFLAGS := -O3 -w 
+OBJECT := THTensorFactoryJNI.o THTensorJNI.o THTensorMathJNI.o
+CCFLAGS := -O3 -w
 LINKS := libTH.a libopenblas.a -lm -lgomp -pthread -lgfortran
 DEPLOY_DIR := ../../generic/$(OS)/$(ARCH)
 
 # cuda specific build parameters
 CUDA_INCLUDES := -ITHC -I$(CUDA_HOME)/include/
 CUDA_LINKS := libTHC.a libTH.a -lgomp -L$(CUDA_HOME)/lib -L$(CUDA_HOME)/lib64 -lcudart -lcublas
-CUDA_FLAGS := -DCUDA 
-NVCC_FLAGS := -Xcompiler -fPIC 
+CUDA_FLAGS := -DCUDA
+NVCC_FLAGS := -Xcompiler -fPIC
 CUDA_SRC := THCudaTensorOps.cu
 CUDA_OBJECT := THCudaTensorOps.o
 

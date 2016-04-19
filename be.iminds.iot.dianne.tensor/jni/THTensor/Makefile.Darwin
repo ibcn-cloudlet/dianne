@@ -4,7 +4,7 @@
 CC=gcc-5
 CXX=g++-5
 NVCC=nvcc
-CCFLAGS += -DOSX -framework accelerate
+FLAGS += -DOSX
 LIB := libTHTensor.dylib
 SHARED := -dynamiclib
 
