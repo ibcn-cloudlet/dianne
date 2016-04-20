@@ -24,7 +24,9 @@ package be.iminds.iot.dianne.dataset.kaggle;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
@@ -67,9 +69,8 @@ public class CatvsDogDataset implements Dataset {
 		}
 	
 		File images = new File(dir + "train/");
-		files = images.list();
+		files = Arrays.stream(images.listFiles()).filter(f -> !f.isHidden()).map(f -> f.getName()).collect(Collectors.toList()).toArray(files);
 		noSamples = files.length;
-		
 	}
 	
 	@Override

@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.osgi.framework.BundleContext;
@@ -82,7 +83,7 @@ public class ImageNetDataset implements Dataset {
 		outputSize = 1000;
 
 		File images = new File(dir + "images/");
-		noSamples = images.list().length;
+		noSamples = (int) Arrays.stream(images.listFiles()).filter(f -> !f.isHidden()).count();
 		
 		readLabels("classes.txt");
 		readOutputs("outputs.txt");
