@@ -22,6 +22,7 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.tensor.util;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -32,8 +33,13 @@ public class ImageConverterTest {
 	
 	private TensorFactory factory = new JavaTensorFactory();
 
+	/**
+	 * @throws Exception
+	 * // TODO bad tests should not have a predefined list of images
+	 */
+	@Ignore
 	@Test
-	public void testImageNetImages() {
+	public void testImageNetImages() throws Exception {
 		ImageConverter conv = new ImageConverter(factory);
 		long t1 = System.currentTimeMillis();
 		int start = 0;
@@ -42,17 +48,17 @@ public class ImageConverterTest {
 			String dir = "../tools/datasets/ImageNet/";
 			String file = dir + "images/" + "ILSVRC2012_val_"
 					+ String.format("%08d", i+1) + ".JPEG";
-			try {
-				conv.readFromFile(file);
-			} catch(Exception e){
-				System.out.println("Error with image "+file);
-				e.printStackTrace();
-			}
+			conv.readFromFile(file);
 		}
 		long t2 = System.currentTimeMillis();
 		System.out.println("Avg read time: "+(t2-t1)/n+" ms");
 	}
 	
+	/**
+	 * @throws Exception
+	 * // TODO bad tests should not have a predefined list of images
+	 */
+	@Ignore
 	@Test
 	public void testReadWriteImage() throws Exception {
 		ImageConverter conv = new ImageConverter(factory);
