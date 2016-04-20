@@ -47,36 +47,27 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 public class LearnerUtil {
 
 	public static GradientProcessor createGradientProcessor(TensorFactory factory, 
-			NeuralNetwork nn, 
-			Dataset d, 
-			Map<String, String> config,
-			DataLogger logger){
-		GradientProcessor p = createSGDProcessor(factory, nn, d, config, logger);
-		p = addRegularization(p, config);
-		p = addMomentum(p, config);
-		return p;
+			NeuralNetwork nn, Dataset d, Map<String, String> config,DataLogger logger){
+		return addMomentum(addRegularization(createSGDProcessor(factory, nn, d, config, logger), config), config);
 	}
 	
 	public static GradientProcessor createSGDProcessor(TensorFactory factory, 
 			NeuralNetwork nn, Dataset d, Map<String, String> config, DataLogger logger){
-		
 		String method = "SGD";
-		if(config.get("method")!=null){
+		if(config.containsKey("method"))
 			method = config.get("method");
-		}
 		
 		float learningRate = 0.01f;
-		if(config.get("learningRate")!=null){
+		if(config.containsKey("learningRate"))
 			learningRate = Float.parseFloat(config.get("learningRate"));
-		}
 		
 		float decayRate = 0.9f;
-		if(config.get("decayRate")!=null){
+		if(config.containsKey("decayRate"))
 			decayRate = Float.parseFloat(config.get("decayRate"));
-		}
 		
 		GradientProcessor p = null;
-		switch(method){
+		
+		switch(method) {
 		case "Adadelta":
 			p = new AdadeltaProcessor(factory, nn, logger, decayRate);
 			
@@ -100,9 +91,8 @@ public class LearnerUtil {
 			System.out.println("---");
 			break;	
 		default:
-			if(!method.equals("SGD")){
+			if(!method.equals("SGD"))
 				System.out.println("Method "+method+" unknown, fall back to SGD");
-			}
 			
 			p = new StochasticGradientDescentProcessor(factory, nn, logger, learningRate);
 			
@@ -116,12 +106,11 @@ public class LearnerUtil {
 	}
 	
 	public static GradientProcessor addRegularization(GradientProcessor p, Map<String, String> config){
-		if(config.get("regularization")!=null){
+		if(config.containsKey("regularization")) {
 			float regularization = Float.parseFloat(config.get("regularization"));
 			
-			if(regularization==0.0f){
+			if(regularization==0.0f)
 				return p;
-			}
 			
 			RegularizationProcessor r = new RegularizationProcessor(p, regularization);
 			
@@ -136,12 +125,11 @@ public class LearnerUtil {
 	}
 	
 	public static GradientProcessor addMomentum(GradientProcessor p, Map<String, String> config){
-		if(config.get("momentum")!=null){
+		if(config.containsKey("momentum")) {
 			float momentum = Float.parseFloat(config.get("momentum"));
 			
-			if(momentum==0.0f){
+			if(momentum==0.0f)
 				return p;
-			}
 			
 			GradientProcessor m = new MomentumProcessor(p, momentum);
 			
@@ -150,12 +138,11 @@ public class LearnerUtil {
 			System.out.println("---");
 			
 			return m;
-		} else if(config.get("nesterov")!=null){
+		} else if(config.containsKey("nesterov")) {
 			float momentum = Float.parseFloat(config.get("nesterov"));
 			
-			if(momentum==0.0f){
+			if(momentum==0.0f)
 				return p;
-			}
 			
 			GradientProcessor m = new NesterovMomentumProcessor(p, momentum);
 			
@@ -167,19 +154,27 @@ public class LearnerUtil {
 		} else {
 			return p;
 		}
-		
 	}
 	
 	public static Criterion createCriterion(TensorFactory factory, Map<String, String> config){
-		Criterion criterion = new MSECriterion(factory);
-		String c = config.get("criterion");
-		if(c!=null){
-			if(c.equals("NLL")){
-				criterion = new NLLCriterion(factory);
-			} else if(c.equals("MSE")){
-				criterion = new MSECriterion(factory);
-			}
+		String c = "MSE";
+		if(config.containsKey("criterion"))
+			c = config.get("criterion");
+		
+		Criterion criterion = null;
+		
+		switch(c) {
+		case "NLL" :
+			criterion = new NLLCriterion(factory);
+			break;
+		default:
+			if(!c.equals("MSE"))
+				System.out.println("Criterion "+c+" unknown, fall back to MSE");
+			
+			criterion = new MSECriterion(factory);
+			break;
 		}
+		
 		return criterion;
 	}
 	
@@ -222,19 +217,20 @@ public class LearnerUtil {
 			}
 		}
 
+		String s = "random";
+		if(config.containsKey("samplingStrategy"))
+			s = config.get("samplingStrategy");
+		
 		SamplingStrategy sampling = null;
-		String s = config.get("samplingStrategy");
-		if(s != null){
-			if(s.equals("random")){
-				sampling = new RandomSamplingStrategy(d, indices);
-			} else if(s.equals("sequential")){
-				sampling = new SequentialSamplingStrategy(d, indices);
-			} else {
-				// random is default
-				sampling = new RandomSamplingStrategy(d, indices);
-			}
-		} else {
-			// random is default
+
+		switch(s) {
+		case "sequential":
+			sampling = new SequentialSamplingStrategy(d, indices);
+			break;
+		default:
+			if(!s.equals("random"))
+				System.out.println("Sampling strategy "+s+" unknown, fall back to random");
+				
 			sampling = new RandomSamplingStrategy(d, indices);
 		}
 		

@@ -25,29 +25,27 @@ package be.iminds.iot.dianne.nn.learn.processors;
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.tensor.Tensor;
 
-/**
- * Additional learning techniques like Momentum can be implemented as a Processor decorator
- */
 public class RegularizationProcessor extends GradientProcessor {
 
-	private float regularization = 0.001f;
+	private final float rate;
 	
-	public RegularizationProcessor( GradientProcessor p, float regularization) {
+	public RegularizationProcessor(GradientProcessor p, float rate) {
 		super(p);
-		this.regularization = regularization;
+		this.rate = rate;
 	}
 	
 	@Override
 	public void updateDelta(long i) {
-		// subtract previous parameters
-		nn.getTrainables().entrySet().stream().forEach(e -> {
-			Tensor params = e.getValue().getParameters();
-			Tensor deltaParams = e.getValue().getDeltaParameters();
-			factory.getTensorMath().sub(deltaParams, deltaParams, regularization, params);
+		nn.getTrainables().values().stream().forEach(m -> {
+			// Get the gradients and parameters
+			Tensor deltaParams = m.getDeltaParameters();
+			Tensor params = m.getParameters();
 			
-			// set DeltaParameters to be sure in case of remote module instance
-			e.getValue().setDeltaParameters(deltaParams);
+			// Subtract previous parameters
+			factory.getTensorMath().sub(deltaParams, deltaParams, rate, params);
+			
+			// Set DeltaParameters to be sure in case of remote module instance
+			m.setDeltaParameters(deltaParams);
 		});
 	}
-
 }

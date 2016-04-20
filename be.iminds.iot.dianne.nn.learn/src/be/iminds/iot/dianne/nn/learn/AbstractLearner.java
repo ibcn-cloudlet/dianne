@@ -51,39 +51,43 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public abstract class AbstractLearner implements Learner {
 	
+	// Identification
 	protected UUID learnerId;
 	
+	// References
 	protected DataLogger logger;
-	
 	protected TensorFactory factory;
 	protected Dianne dianne;
 	protected Map<String, Dataset> datasets = new HashMap<>();
 	
-	protected Thread learnerThread = null;
+	// Threading
+	protected Thread learnerThread;
 	protected volatile boolean learning = false;
-
+	
+	// Learning procedure
 	protected GradientProcessor gradientProcessor;
 	protected Criterion criterion;
 	protected SamplingStrategy sampling;
 	
-	protected int syncInterval = 1000;
-	protected boolean clean = false;
-	
-	// the network we are currently training
+	// Network and data
 	protected NeuralNetwork nn;
-	
 	protected Dataset dataset;
 	
+	// Miscellaneous properties
 	protected String tag = null;
-	
-	// initial parameters
-	protected Map<UUID, Tensor> previousParameters = null;
-	
-	protected static final float alpha = 1e-2f;
-	protected float error = 0;
-	protected long i = 0;
-	
+	protected int syncInterval = 1000;
+	protected boolean clean = false;
 	protected boolean trace = false;
+	
+	// Initial  parameters
+	protected Map<UUID, Tensor> previousParameters;
+	
+	// Training progress
+	protected volatile float error = 0;
+	protected volatile long i = 0;
+	
+	// Fixed properties
+	protected static final float alpha = 1e-2f;
 	
 	@Override
 	public UUID getLearnerId(){
@@ -104,13 +108,13 @@ public abstract class AbstractLearner implements Learner {
 	
 	@Override
 	public void learn(String d, Map<String, String> config, NeuralNetworkInstanceDTO... nni) throws Exception {
-		if(learning){
+		if(learning)
 			throw new Exception("Already running a learning session here");
-		}
 		
 		learning = true;
+		
 		try {
-			// reset
+			// Reset
 			previousParameters = null;
 			i = 0;
 			
@@ -120,7 +124,10 @@ public abstract class AbstractLearner implements Learner {
 			// Load neural network instance(s)
 			loadNNs(nni);
 			
-			// read config
+			// Initialize NN parameters
+			initializeParameters();
+			
+			// Read config
 			System.out.println("Learner Configuration");
 			System.out.println("=====================");
 			System.out.println("* dataset = "+d);
@@ -128,9 +135,6 @@ public abstract class AbstractLearner implements Learner {
 			loadConfig(config);
 
 			System.out.println("---");
-			
-			// initialize nn parameters
-			initializeParameters();
 			
 			// setup criterion, sampling strategy and gradient processor
 			criterion = LearnerUtil.createCriterion(factory, config);
@@ -141,37 +145,34 @@ public abstract class AbstractLearner implements Learner {
 				try {
 					preprocess();
 					
-					do {
-						// process training sample(s) for this iteration
+					for(i = 0; learning; i++) {
+						// Process training sample(s) for this iteration
 						float err = process(i);
 						
-						// if error is NaN, trigger something to repo to catch notification
-						if(Float.isNaN(err)){
+						// If error is NaN, trigger something to repo to catch notification
+						// TODO reset parameters?
+						if(Float.isNaN(err))
 							nn.storeParameters(tag, "NaN");
-							// TODO reset parameters?
-						}
 						
-						// keep track of error
-						if(i==0){
+						// Keep track of error
+						if(i==0)
 							error = err;
-						} else {
+						else
 							error = (1 - alpha) * error + alpha * err;
-						}
 	
 						if(trace)
 							System.out.println(error);
 						
-						// publish parameters to repository
+						// Publish parameters to repository
 						publishParameters(i);
-						
-						i++;
-					} while(learning);
+					}
 				} catch(Throwable t){
 					System.err.println("Error during learning");
 					t.printStackTrace();
 					// TODO how should the coordinator be notified of this error?!
 					learning = false;
 				}
+				
 				System.out.println("Stopped learning");
 			});
 			learnerThread.start();
@@ -188,10 +189,10 @@ public abstract class AbstractLearner implements Learner {
 	public void stop() {
 		if(learning){
 			learning = false;
+			
 			try {
 				learnerThread.join();
-			} catch (InterruptedException e) {
-			}
+			} catch (InterruptedException e) {}
 		}
 	}
 	
@@ -199,26 +200,21 @@ public abstract class AbstractLearner implements Learner {
 	 * Fetch configuration parameters for this learner from the configuration map
 	 */
 	protected void loadConfig(Map<String, String> config){
-		if(config.containsKey("tag")){
+		if(config.containsKey("tag"))
 			tag = config.get("tag"); 
-		}
 		System.out.println("* tag = "+tag);
 		
-		if(config.containsKey("syncInterval")){
+		if(config.containsKey("syncInterval"))
 			syncInterval = Integer.parseInt(config.get("syncInterval")); 
-		}
 		System.out.println("* syncInterval = "+syncInterval);
 
-		if (config.containsKey("clean")){
+		if (config.containsKey("clean"))
 			clean = Boolean.parseBoolean(config.get("clean"));
-		}
 		System.out.println("* clean = " +clean);
 
-		if (config.containsKey("trace")){
+		if (config.containsKey("trace"))
 			trace = Boolean.parseBoolean(config.get("trace"));
-		}
 		System.out.println("* trace = " +trace);
-		
 	}
 	
 	/**
@@ -226,18 +222,22 @@ public abstract class AbstractLearner implements Learner {
 	 */
 	protected void loadDataset(String d){
 		dataset = datasets.get(d);
-		if(dataset==null){
+		
+		if(dataset==null)
 			throw new RuntimeException("Dataset "+d+" not available");
-		}
 	}
 
 	/**
 	 * Load NeuralNetwork objects from provided instance dtos
 	 */
 	protected void loadNNs(NeuralNetworkInstanceDTO...nni) throws Exception {
+		// Get the reference
 		nn = dianne.getNeuralNetwork(nni[0]).getValue();
+		
+		// Set module mode to blocking
 		nn.getModules().values().stream().forEach(m -> m.setMode(EnumSet.of(Mode.BLOCKING)));
-		// store the labels
+		
+		// Store the labels
 		nn.setOutputLabels(dataset.getLabels());
 	}
 	
@@ -245,30 +245,35 @@ public abstract class AbstractLearner implements Learner {
 	 * Initialize the parameters for all neural network instances before learning starts
 	 */
 	protected void initializeParameters(){
-		if(clean){
+		if(clean)
 			resetParameters();
-		} else {
+		else
 			loadParameters();
-		}
 	}
 
 	/**
 	 * Publish parameters (or deltas ) to the repository
 	 */
 	protected void publishParameters(long i){
-		if(syncInterval>0 && i!=0 && i % syncInterval == 0){
-			// publish delta
+		if(syncInterval>0 && i%syncInterval==0 && i!=0){
+			// Publish delta
 			nn.storeDeltaParameters(previousParameters, tag);
 				
-			// fetch update again from repo (could be merged from other learners)
+			// Fetch update again from repo (could be merged from other learners)
 			loadParameters();
 		}
 	}
 	
 	private void resetParameters(){
+		// Randomize parameters
 		nn.randomizeParameters();
+		
+		// Store new parameters
 		nn.storeParameters(tag);
-		previousParameters =  nn.getParameters().entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().copyInto(null)));
+		
+		// Update previous parameters
+		previousParameters = nn.getParameters().entrySet().stream().collect(
+				Collectors.toMap(e -> e.getKey(), e -> e.getValue().copyInto(null)));
 	}
 	
 	private void loadParameters(){
@@ -284,12 +289,10 @@ public abstract class AbstractLearner implements Learner {
 	 * Run any preprocessing procedures before the actual learning starts
 	 */
 	protected void preprocess(){
-		// first get parameters for preprocessing?
-		nn.getPreprocessors().values().stream().forEach(p -> {
-			if(!p.isPreprocessed())
-				p.preprocess(dataset);
-			}
-		);
+		// TODO first get parameters for preprocessing?
+		nn.getPreprocessors().values().stream()
+			.filter(p -> !p.isPreprocessed())
+			.forEach(p -> p.preprocess(dataset));
 	}
 	
 	/**
@@ -318,12 +321,12 @@ public abstract class AbstractLearner implements Learner {
 			policy=ReferencePolicy.DYNAMIC)
 	protected void addDataset(Dataset dataset, Map<String, Object> properties){
 		String name = (String) properties.get("name");
-		this.datasets.put(name, dataset);
+		this.datasets.putIfAbsent(name, dataset);
 	}
 	
 	protected void removeDataset(Dataset dataset, Map<String, Object> properties){
 		String name = (String) properties.get("name");
-		this.datasets.remove(name);
+		this.datasets.remove(name, dataset);
 	}
 	
 	@Reference(cardinality = ReferenceCardinality.OPTIONAL)

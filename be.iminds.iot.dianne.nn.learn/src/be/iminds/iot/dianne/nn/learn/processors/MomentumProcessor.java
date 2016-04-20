@@ -34,30 +34,32 @@ import be.iminds.iot.dianne.tensor.Tensor;
  */
 public class MomentumProcessor extends GradientProcessor {
 
-	private final float momentum;
+	private final float rate;
 	
-	private Map<UUID, Tensor> velocity = new HashMap<UUID, Tensor>();
+	private final Map<UUID, Tensor> momentum = new HashMap<>();
 	
-	public MomentumProcessor( GradientProcessor p, float momentum ) {
+	public MomentumProcessor(GradientProcessor p, float rate) {
 		super(p);
-		this.momentum = momentum;
+		this.rate = rate;
 	}
 	
 	@Override
 	public void updateDelta(long i) {
-		// add momentum
-		nn.getTrainables().entrySet().stream().forEach(e -> {
-			Tensor v = velocity.get(e.getKey());
-			Tensor deltaParams = e.getValue().getDeltaParameters();
-			if(v!=null){
-				factory.getTensorMath().add(deltaParams, deltaParams , momentum, v);
-			}
-			// keep velocity
-			velocity.put(e.getKey(), deltaParams.copyInto(v));
+		nn.getTrainables().values().stream().forEach(m -> {
+			// Get the gradients and momentum
+			Tensor deltaParams = m.getDeltaParameters();
+			Tensor momentum = this.momentum.computeIfAbsent(m.getId(), k -> {
+				Tensor t = factory.createTensor(deltaParams.dims());
+				t.fill(0.0f);
+				return t;
+			});
 			
-			// set DeltaParameters to be sure in case of remote module instance
-			e.getValue().setDeltaParameters(deltaParams);
+			// Update momentum
+			factory.getTensorMath().add(deltaParams, deltaParams, rate, momentum);
+			deltaParams.copyInto(momentum);
+			
+			// Set DeltaParameters to be sure in case of remote module instance
+			m.setDeltaParameters(deltaParams);
 		});
 	}
-
 }

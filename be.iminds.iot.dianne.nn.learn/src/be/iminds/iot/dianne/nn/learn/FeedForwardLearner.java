@@ -53,32 +53,34 @@ public class FeedForwardLearner extends AbstractLearner {
 	}
 	
 	protected float process(long i){
-		// clear delta params
-		nn.getTrainables().entrySet().stream().forEach(e -> {
-			e.getValue().zeroDeltaParameters();
-		});
+		// Clear delta params
+		nn.getTrainables().values().stream().forEach(Trainable::zeroDeltaParameters);
 		
-		// calculate grad
+		// Process batch
 		float err = 0;
-		for(int k=0;k<batchSize;k++){
-			// new sample
+		for(int k=0; k<batchSize; k++){
+			// Select new sample
 			int index = sampling.next();
+			
+			//Fetch sample
 			Sample sample = dataset.getSample(index);
-			Tensor in = sample.input;
+			Tensor input = sample.getInput();
+			Tensor target = sample.getOutput();
 
-			// forward
-			Tensor out = nn.forward(in, ""+index);
+			// Forward
+			Tensor output = nn.forward(input, String.valueOf(index));
 			
-			// evaluate criterion
-			Tensor e = criterion.error(out, sample.output);
-			err += e.get(0);
-			Tensor gradOut = criterion.grad(out, sample.output);
+			// Error
+			err += criterion.error(output, target).get(0);
 			
-			// backward
-			Tensor gradIn = nn.backward(gradOut, ""+index);
+			// Error gradient
+			Tensor gradOut = criterion.grad(output, target);
 			
-			// acc gradParameters
-			nn.getTrainables().values().stream().forEach(m -> m.accGradParameters());
+			// Backward
+			Tensor gradIn = nn.backward(gradOut, String.valueOf(index));
+			
+			// Accumulate gradient weights
+			nn.getTrainables().values().stream().forEach(Trainable::accGradParameters);
 		}
 		
 		if(batchAverage) {
@@ -87,17 +89,17 @@ public class FeedForwardLearner extends AbstractLearner {
 	
 				factory.getTensorMath().div(deltaParams, deltaParams, batchSize);
 						
-				// set DeltaParameters to be sure in case of remote module instance
+				// Set DeltaParameters to be sure in case of remote module instance
 				m.setDeltaParameters(deltaParams);
 			});
 			
 			err /= batchSize;
 		}
 		
-		// run gradient processors
+		// Run gradient processors
 		gradientProcessor.calculateDelta(i);
 		
-		// update parameters
+		// Update parameters
 		nn.getTrainables().values().stream().forEach(Trainable::updateParameters);
 		
 		return err;
