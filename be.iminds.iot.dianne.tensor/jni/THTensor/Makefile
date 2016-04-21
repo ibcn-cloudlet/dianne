@@ -1,7 +1,11 @@
 # This file builds the native TH Tensor library and the JNI interface
 OS := $(shell uname -s)
 ARCH := $(shell uname -m)
-GPU := $(shell lspci -v | grep NVIDIA)
+GPU := $(shell lspci -v 2>/dev/null | grep NVIDIA)
+
+#Genrate Makefile.conf
+DUMMY := $(shell make -C . -f Makefile.prebuild)
+include Makefile.conf
 
 ifeq ($(OS),Linux)
     include Makefile.Linux
@@ -17,18 +21,21 @@ JAVA_PLATFORMINCLUDE := $(JAVA_INCLUDE)/$(JDKPLATFORMINCLUDESUBDIR)
 JAVAH := be.iminds.iot.dianne.tensor.impl.th.THTensor be.iminds.iot.dianne.tensor.impl.th.THTensorMath be.iminds.iot.dianne.tensor.impl.th.THTensorFactory
 SRC := THTensorFactoryJNI.c THTensorJNI.c THTensorMathJNI.c
 INCLUDES := -I$(JAVA_INCLUDE) -I$(JAVA_PLATFORMINCLUDE) -ITH
-OBJECT := THTensorFactoryJNI.o THTensorJNI.o THTensorMathJNI.o
-CCFLAGS := -O3 -w
-LINKS := libTH.a libopenblas.a -lm -lgomp -pthread -lgfortran
+OBJECTS=$(SRC:.c=.o)
+CCFLAGS := -O3 -w -fPIC
+LINKS := -Llib -lTH -lopenblas $(SHARED) -lm -lgomp -pthread
+ifndef NOFORTRAN
+LINKS += -lgfortran
+endif
 DEPLOY_DIR := ../../generic/$(OS)/$(ARCH)
 
 # cuda specific build parameters
 CUDA_INCLUDES := -ITHC -I$(CUDA_HOME)/include/
-CUDA_LINKS := libTHC.a libTH.a -lgomp -L$(CUDA_HOME)/lib -L$(CUDA_HOME)/lib64 -lcudart -lcublas
+CUDA_LINKS := -Llib -lTHC -lTH $(SHARED) -lgomp -L$(CUDA_HOME)/lib -L$(CUDA_HOME)/lib64 -lcudart -lcublas
 CUDA_FLAGS := -DCUDA
 NVCC_FLAGS := -Xcompiler -fPIC
 CUDA_SRC := THCudaTensorOps.cu
-CUDA_OBJECT := THCudaTensorOps.o
+CUDA_OBJECTS := $(SRC:.cu=.o)
 
 # check if it is the Jetson TK board
 ifneq (,$(findstring 0e13,$(GPU)))
@@ -43,38 +50,43 @@ cuda: LINKS = $(CUDA_LINKS)
 cuda: FLAGS += $(CUDA_FLAGS)
 cuda: OBJECT += $(CUDA_OBJECT)
 cuda: DEPLOY_DIR := ../../cuda/$(OS)/$(ARCH)
-cuda: cudaops libTHC.a install	
+cuda: cudaops lib/libTHC.a install	
 
-javah:
+javah: 
 	for file in $(JAVAH); do \
-    	javah -jni -classpath ../../bin $$file; \
+    	  javah -jni -classpath ../../bin $$file; \
 	done
 	
-compile: javah
-	$(CC) $(FLAGS) $(CCFLAGS) -fPIC $(INCLUDES) -c $(SRC)
+compile: javah $(SRC)
+	$(CC) $(FLAGS) $(CCFLAGS) $(INCLUDES) -c $(SRC)
 
-cudaops:
+cudaops: $(CUDA_SRC)
 	$(NVCC) $(FLAGS) $(NVCC_FLAGS) $(INCLUDES) -c $(CUDA_SRC)
 
 link: compile 
-	$(CC) $(FLAGS) $(CCFLAGS) $(SHARED) $(OBJECT) $(LINKS) -o $(LIB) 
+	$(CC) $(FLAGS) $(CCFLAGS) $(OBJECTS) $(LINKS) -o $(LIB)
 	
-install: libopenblas.a libTH.a link 
-	mkdir -p $(DEPLOY_DIR)
+install: lib/libopenblas.a lib/libTH.a link 
+	mkdir -p $(DEPLOY_DIR); \
 	cp $(LIB) $(DEPLOY_DIR)/$(LIB)
 
-libTH.a:
-	cd TH; mkdir -p build; cd build; rm -f libTH.a; cmake ..; make; cp libTH.a ../..; cp THGeneral.h ..
+lib/libTH.a:
+	cmake -HTH -BTH/build -DCMAKE_INSTALL_PREFIX=. ; \
+	make -C TH/build ; \
+	make -C TH/build install
 
-libTHC.a:
-	cd cutorch/lib/THC; mkdir -p build; cd build; rm -f libTHC.a; cmake ..; make; cp libTHC.a ../../../..
+lib/libTHC.a:
+	cmake -Hcutorch/lib/THC -Bcutorch/lib/THC/build -DCMAKE_INSTALL_PREFIX=. ; \
+	make -C cutorch/lib/THC/build ; \
+	make -C cutorch/lib/THC/build install
 
-libopenblas.a:
-	cd OpenBLAS; make; cp libopenblas.a ..
+lib/libopenblas.a:
+	make -C OpenBLAS ; \
+	make -C OpenBLAS NO_SHARED=1 PREFIX=.. install
 	
 clean:
 	rm -rf *.o $(LIB) be_*.h test
 	
 cleanAll: clean
-	rm -rf THGeneral.h TH/build libTH.a; rm -rf THC/build libTHC.a; rm libopenblas.a; cd OpenBLAS; make clean
-
+	rm -rf TH/build cutorch/lib/THC/build lib include share bin; \
+	make -C OpenBLAS clean
