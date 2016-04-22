@@ -20,7 +20,7 @@ JAVA_PLATFORMINCLUDE := $(JAVA_INCLUDE)/$(JDKPLATFORMINCLUDESUBDIR)
 
 JAVAH := be.iminds.iot.dianne.tensor.impl.th.THTensor be.iminds.iot.dianne.tensor.impl.th.THTensorMath be.iminds.iot.dianne.tensor.impl.th.THTensorFactory
 SRC := THTensorFactoryJNI.c THTensorJNI.c THTensorMathJNI.c
-INCLUDES := -I$(JAVA_INCLUDE) -I$(JAVA_PLATFORMINCLUDE) -ITH
+INCLUDES := -Iinclude/TH -I$(JAVA_INCLUDE) -I$(JAVA_PLATFORMINCLUDE) -ITH
 OBJECTS=$(SRC:.c=.o)
 CCFLAGS := -O3 -w -fPIC
 LINKS := -Llib -lTH -lopenblas $(SHARED) -lm -lgomp -pthread
