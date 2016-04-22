@@ -20,8 +20,6 @@ import org.osgi.service.event.EventHandler;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
-import be.iminds.iot.dianne.api.rl.learn.QLearnProgress;
-
 @Component(service={javax.servlet.Servlet.class, EventHandler.class},
 property={"alias:String=/dianne/sse",
 	 	  "osgi.http.whiteboard.servlet.pattern=/dianne/sse",

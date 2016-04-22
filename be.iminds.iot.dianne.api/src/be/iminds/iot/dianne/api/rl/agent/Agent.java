@@ -25,7 +25,6 @@ package be.iminds.iot.dianne.api.rl.agent;
 import java.util.Map;
 import java.util.UUID;
 
-import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 
 /**
