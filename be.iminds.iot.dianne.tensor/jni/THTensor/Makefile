@@ -14,13 +14,17 @@ ifeq ($(OS),Darwin)
     include Makefile.Darwin
 endif
 
+export CC
+export CXX
+export NVCC
+
 CUDA_HOME := /usr/local/cuda
 JAVA_INCLUDE := $(JAVA_HOME)/include
 JAVA_PLATFORMINCLUDE := $(JAVA_INCLUDE)/$(JDKPLATFORMINCLUDESUBDIR)
 
 JAVAH := be.iminds.iot.dianne.tensor.impl.th.THTensor be.iminds.iot.dianne.tensor.impl.th.THTensorMath be.iminds.iot.dianne.tensor.impl.th.THTensorFactory
 SRC := THTensorFactoryJNI.c THTensorJNI.c THTensorMathJNI.c
-INCLUDES := -Iinclude/TH -I$(JAVA_INCLUDE) -I$(JAVA_PLATFORMINCLUDE) -ITH
+INCLUDES := -Iinclude/TH -I$(JAVA_INCLUDE) -I$(JAVA_PLATFORMINCLUDE)
 OBJECTS=$(SRC:.c=.o)
 CCFLAGS := -O3 -w -fPIC
 LINKS := -Llib -lTH -lopenblas $(SHARED) -lm -lgomp -pthread
@@ -71,7 +75,7 @@ install: lib/libopenblas.a lib/libTH.a link
 	cp $(LIB) $(DEPLOY_DIR)/$(LIB)
 
 lib/libTH.a:
-	cmake -HTH -BTH/build -DCMAKE_INSTALL_PREFIX=. ; \
+	cmake -HTH -BTH/build -DCMAKE_INSTALL_PREFIX=. -DCMAKE_DISABLE_FIND_PACKAGE_MKL=TRUE
 	make -C TH/build ; \
 	make -C TH/build install
 
