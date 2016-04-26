@@ -146,7 +146,7 @@ public class DianneRuntimeImpl implements DianneRuntime {
 	@Reference(
 			cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
-	synchronized void addModule(Module module, Map<String, Object> properties){
+	void addModule(Module module, Map<String, Object> properties){
 		UUID moduleId = UUID.fromString((String)properties.get("module.id"));
 		UUID nnId = UUID.fromString((String)properties.get("nn.id"));
 
@@ -261,7 +261,7 @@ public class DianneRuntimeImpl implements DianneRuntime {
 		}
 	}
 	
-	synchronized void removeModule(Module module, Map<String, Object> properties){
+	void removeModule(Module module, Map<String, Object> properties){
 		UUID moduleId = UUID.fromString((String)properties.get("module.id"));
 		UUID nnId = UUID.fromString((String)properties.get("nn.id"));
 		
@@ -279,7 +279,7 @@ public class DianneRuntimeImpl implements DianneRuntime {
 	@Reference(
 			cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
-	synchronized void addForwardListener(ForwardListener l, Map<String, Object> properties){
+	void addForwardListener(ForwardListener l, Map<String, Object> properties){
 		String[] targets = (String[])properties.get("targets");
 		if(targets!=null){
 			for(String target : targets){
@@ -297,7 +297,7 @@ public class DianneRuntimeImpl implements DianneRuntime {
 		}
 	}
 	
-	synchronized void removeForwardListener(ForwardListener l){
+	void removeForwardListener(ForwardListener l){
 		List<String> targets = forwardListeners.remove(l);
 		// TODO filter out the modules that actually have this listener registered?
 		synchronized(instances){
@@ -314,7 +314,7 @@ public class DianneRuntimeImpl implements DianneRuntime {
 	@Reference(
 			cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
-	synchronized void addBackwardListener(BackwardListener l, Map<String, Object> properties){
+	void addBackwardListener(BackwardListener l, Map<String, Object> properties){
 		String[] targets = (String[])properties.get("targets");
 		if(targets!=null){
 			for(String target : targets){
@@ -332,7 +332,7 @@ public class DianneRuntimeImpl implements DianneRuntime {
 		}
 	}
 	
-	synchronized void removeBackwardListener(BackwardListener l){
+	void removeBackwardListener(BackwardListener l){
 		List<String> targets = backwardListeners.remove(l);
 		// TODO filter out the modules that actually have this listener registered?
 		synchronized(instances){
@@ -346,7 +346,7 @@ public class DianneRuntimeImpl implements DianneRuntime {
 	}
 	
 	@Override
-	public synchronized ModuleInstanceDTO deployModule(ModuleDTO dto, UUID nnId, Tensor parameters){
+	public ModuleInstanceDTO deployModule(ModuleDTO dto, UUID nnId, Tensor parameters){
 		if(blacklist.contains(dto.id)){
 			throw new RuntimeException("Module "+dto.id+" cannot be deployed on runtime "+name);
 		}
@@ -468,13 +468,16 @@ public class DianneRuntimeImpl implements DianneRuntime {
 
 	
 	@Override
-	public synchronized void undeployModule(ModuleInstanceDTO dto) {
+	public void undeployModule(ModuleInstanceDTO dto) {
 		if(!dto.runtimeId.equals(runtimeId)){
 			System.out.println("Can only undeploy module instances that are deployed here...");
 			return;
 		}
 		
-		instances.remove(dto.moduleId, dto.nnId);
+		if(instances.remove(dto.moduleId, dto.nnId) == null){
+			System.out.println("Invalid ModuleInstanceDTO?! "+dto.nnId+":"+dto.moduleId);
+			return;
+		}
 		
 		ServiceRegistration reg = registrations.remove(dto.moduleId, dto.nnId);
 		if(reg!=null){
@@ -502,7 +505,7 @@ public class DianneRuntimeImpl implements DianneRuntime {
 	}
 	
 	@Override
-	public synchronized void undeployModules(UUID nnId) {
+	public void undeployModules(UUID nnId) {
 		List<ModuleInstanceDTO> toRemove = new ArrayList<ModuleInstanceDTO>();
 		synchronized(instances){
 			Iterator<ModuleMap<ModuleInstanceDTO>.Entry<ModuleInstanceDTO>> it = instances.iterator();
