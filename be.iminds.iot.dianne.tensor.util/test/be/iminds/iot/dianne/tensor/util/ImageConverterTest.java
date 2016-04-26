@@ -22,7 +22,6 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.tensor.util;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -35,19 +34,14 @@ public class ImageConverterTest {
 
 	/**
 	 * @throws Exception
-	 * // TODO bad tests should not have a predefined list of images
 	 */
-	@Ignore
 	@Test
 	public void testImageNetImages() throws Exception {
 		ImageConverter conv = new ImageConverter(factory);
 		long t1 = System.currentTimeMillis();
-		int start = 0;
 		int n = 100;
-		for(int i=start;i<start+n;i++){
-			String dir = "../tools/datasets/ImageNet/";
-			String file = dir + "images/" + "ILSVRC2012_val_"
-					+ String.format("%08d", i+1) + ".JPEG";
+		for(int i=0;i<n;i++){
+			String file = String.format("../tools/datasets/ImageNet/images/ILSVRC2012_val_%08d.JPEG", 1);
 			conv.readFromFile(file);
 		}
 		long t2 = System.currentTimeMillis();
@@ -56,19 +50,11 @@ public class ImageConverterTest {
 	
 	/**
 	 * @throws Exception
-	 * // TODO bad tests should not have a predefined list of images
 	 */
-	@Ignore
 	@Test
 	public void testReadWriteImage() throws Exception {
 		ImageConverter conv = new ImageConverter(factory);
-
-		int i = 0;
-		String dir = "../tools/datasets/ImageNet/";
-		String file = dir + "images/" + "ILSVRC2012_val_"
-				+ String.format("%08d", i+1) + ".JPEG";
-	
-		Tensor t = conv.readFromFile(file);
-		conv.writeToFile("test.jpg", t);
+		Tensor t = conv.readFromFile(String.format("../tools/datasets/ImageNet/images/ILSVRC2012_val_%08d.JPEG", 1));
+		conv.writeToFile("generated/test.jpg", t);
 	}
 }
