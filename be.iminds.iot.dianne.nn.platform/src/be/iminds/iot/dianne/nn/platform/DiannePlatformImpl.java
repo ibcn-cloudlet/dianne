@@ -232,12 +232,14 @@ public class DiannePlatformImpl implements DiannePlatform {
 			
 			// migrate - undeploy old
 			if(old!=null){
-				synchronized(toWait){
-					if(toWait.contains(nnId+":"+old.moduleId)){
-						try {
-							// TODO which timeout
-							toWait.wait(10000);
-						} catch (InterruptedException e) {
+				while(toWait.contains(nnId+":"+old.moduleId)){
+					synchronized(toWait){
+						if(toWait.contains(nnId+":"+old.moduleId)){
+							try {
+								// TODO add timeout and throw exception?!
+								toWait.wait();
+							} catch (InterruptedException e) {
+							}
 						}
 					}
 				}
