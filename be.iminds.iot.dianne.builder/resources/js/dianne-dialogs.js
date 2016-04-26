@@ -742,6 +742,7 @@ function render(tensor, canvasCtx){
 function deployAll(){
 	$("#spinnerwrap").show();
 	$.post("/dianne/deployer", {"action":"deploy",
+			"id":nn.id,
 			"name":nn.name,
 			"modules":JSON.stringify(nn.modules),
 			"target":selectedTarget}, 
