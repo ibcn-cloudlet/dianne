@@ -22,6 +22,7 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.tensor.util;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -36,6 +37,7 @@ public class ImageConverterTest {
 	 * @throws Exception
 	 */
 	@Test
+	@Ignore
 	public void testImageNetImages() throws Exception {
 		ImageConverter conv = new ImageConverter(factory);
 		long t1 = System.currentTimeMillis();
@@ -52,6 +54,7 @@ public class ImageConverterTest {
 	 * @throws Exception
 	 */
 	@Test
+	@Ignore
 	public void testReadWriteImage() throws Exception {
 		ImageConverter conv = new ImageConverter(factory);
 		Tensor t = conv.readFromFile(String.format("../tools/datasets/ImageNet/images/ILSVRC2012_val_%08d.JPEG", 1));
