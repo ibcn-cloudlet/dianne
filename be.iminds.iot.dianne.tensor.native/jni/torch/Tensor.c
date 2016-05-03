@@ -22,3 +22,88 @@
  *******************************************************************************/
 #include "be_iminds_iot_dianne_tensor_Tensor.h"
 
+
+JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_init
+  (JNIEnv * env, jobject t, jfloatArray data, jintArray dims){
+
+}
+
+JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_free
+  (JNIEnv * env, jobject t){
+
+}
+
+JNIEXPORT jboolean JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_equalsData
+  (JNIEnv * env, jobject t, jobject o, jfloat threshold){
+}
+
+
+JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_reshape
+  (JNIEnv * env, jobject t, jintArray dims){
+
+}
+
+JNIEXPORT jfloat JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_get___3I
+  (JNIEnv * env, jobject t, jintArray indices){
+
+}
+
+JNIEXPORT jfloatArray JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_get__
+  (JNIEnv * env, jobject t){
+
+}
+
+JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_set__F_3I
+  (JNIEnv * env, jobject t, jfloat value, jintArray indices){
+
+}
+
+JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_set___3F
+  (JNIEnv * env, jobject t, jfloatArray data){
+
+}
+
+JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_fill
+  (JNIEnv * env, jobject t, jfloat value){
+
+}
+
+JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_rand
+  (JNIEnv * env, jobject t){
+
+}
+
+JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_randn
+  (JNIEnv * env, jobject t){
+
+}
+
+JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_bernoulli
+  (JNIEnv * env, jobject t, jfloat p){
+
+}
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_copyInto
+  (JNIEnv * env, jobject t, jobject target){
+
+}
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_narrow
+  (JNIEnv * env, jobject t, jint dim, jint index, jint size){
+
+}
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_select
+  (JNIEnv * env, jobject t, jint dim, jint index){
+
+}
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_transpose
+  (JNIEnv * env, jobject t, jobject target, jint d1, jint d2){
+
+}
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_diag
+  (JNIEnv * env, jobject t, jobject target){
+
+}
