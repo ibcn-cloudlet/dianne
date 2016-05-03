@@ -41,8 +41,41 @@ subprojects {
   def bndProject = bndWorkspace.getProject(name)
   if (bndProject != null) {
     plugins.apply 'biz.aQute.bnd'
-  }
-  tasks.withType(Test) {
-    systemProperty "java.library.path", "${bnd.workspace}/be.iminds.iot.dianne.tensor/generic/${os}/${arch}/"
+  
+    tasks.withType(Test) {
+      systemProperty "java.library.path", "${bnd.workspace}/be.iminds.iot.dianne.tensor/generic/${os}/${arch}/"
+    }
+  
+    tasks.addRule('Pattern: run.<name>: Run the exported <name>.jar file.') { taskName ->
+	  if (taskName.startsWith('run.')) {
+	  	def bndrun = taskName - 'run.'
+		def runFile = new File(distsDir, "executable/${bndrun}.jar")
+		if (runFile.isFile()) {
+	  		task(taskName) {
+	  			description "Run the exported ${bndrun}.jar file."
+	  			dependsOn "export.${bndrun}"
+	  			group 'run'
+				inputs.file runFile
+	  			doLast {
+	  				logger.info "Running {} from directory {}", runFile.absolutePath, projectDir.absolutePath
+					javaexec {
+						main '-jar'
+						args runFile
+						standardInput System.in
+						ignoreExitValue true
+						workingDir projectDir
+					}
+	  			}
+	  		}
+		}
+	  }
+    }
+	
+	/* run at configuration time. --> lists all possible run tasks when executing 'gradle tasks' */
+    fileTree(projectDir) {
+    	include "*.bndrun"
+    }.each {
+    	tasks.getByPath("run.${it.name - '.bndrun'}")
+    }
   }
 }
