@@ -1,11 +1,19 @@
-[submodule "be.iminds.iot.dianne.tensor/jni/THTensor/TH"]
-	path = be.iminds.iot.dianne.tensor/jni/THTensor/TH
-	url = https://github.com/ibcn-cloudlet/TH.git
-
 [submodule "be.iminds.iot.dianne.rl/jni/ALE/Arcade-Learning-Environment"]
 	path = be.iminds.iot.dianne.rl/jni/ALE/Arcade-Learning-Environment
 	url = https://github.com/ibcn-cloudlet/Arcade-Learning-Environment.git
 
-[submodule "be.iminds.iot.dianne.tensor/jni/THTensor/OpenBLAS"]
-	path = be.iminds.iot.dianne.tensor/jni/THTensor/OpenBLAS
+[submodule "be.iminds.iot.dianne.tensor.native/jni/torch/OpenBLAS"]
+	path = be.iminds.iot.dianne.tensor.native/jni/torch/OpenBLAS
 	url = https://github.com/xianyi/OpenBLAS.git
+[submodule "be.iminds.iot.dianne.tensor.native/jni/torch/torch7"]
+	path = be.iminds.iot.dianne.tensor.native/jni/torch/torch7
+	url = git@github.com:ibcn-cloudlet/torch7.git
+[submodule "be.iminds.iot.dianne.tensor.native/jni/torch/cutorch"]
+	path = be.iminds.iot.dianne.tensor.native/jni/torch/cutorch
+	url = git@github.com:ibcn-cloudlet/cutorch.git
+[submodule "be.iminds.iot.dianne.nn.module.native/jni/torch/nn"]
+	path = be.iminds.iot.dianne.nn.module.native/jni/torch/nn
+	url = git@github.com:ibcn-cloudlet/nn.git
+[submodule "be.iminds.iot.dianne.nn.module.native/jni/torch/cunn"]
+	path = be.iminds.iot.dianne.nn.module.native/jni/torch/cunn
+	url = git@github.com:ibcn-cloudlet/cunn.git
