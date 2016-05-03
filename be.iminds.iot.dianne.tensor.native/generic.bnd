@@ -1,0 +1,11 @@
+#
+# This is a generic bnd for building a native fragment... use this for easy development
+#
+# Should become a parameterized template that the build system can use to cross compile for various 
+# architectures and systems
+#
+
+Fragment-Host: be.iminds.iot.dianne.tensor;bundle-version=${Bundle-Version}
+Provide-Capability: tensor.native;library=be.iminds.iot.dianne.tensor
+Bundle-NativeCode: libTensor.so;osname=Linux;processor=x86_64
+-includeresource: native/Linux/x86_64
