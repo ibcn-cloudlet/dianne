@@ -80,7 +80,7 @@ import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.api.rl.agent.Agent;
 import be.iminds.iot.dianne.api.rl.learn.QLearnProgress;
-import be.iminds.iot.dianne.nn.util.DianneCoordinatorWriter;
+import be.iminds.iot.dianne.coordinator.util.DianneCoordinatorWriter;
 
 @Component
 public class DianneCoordinatorImpl implements DianneCoordinator {

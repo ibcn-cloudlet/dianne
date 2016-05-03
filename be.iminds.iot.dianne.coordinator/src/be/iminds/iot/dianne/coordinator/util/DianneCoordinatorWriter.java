@@ -1,4 +1,4 @@
-package be.iminds.iot.dianne.nn.util;
+package be.iminds.iot.dianne.coordinator.util;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;

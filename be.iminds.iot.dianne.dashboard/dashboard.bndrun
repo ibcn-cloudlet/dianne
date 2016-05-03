@@ -43,13 +43,13 @@ aiolos.version='latest'
 	be.iminds.iot.dianne.repository;version=latest,\
 	be.iminds.iot.dianne.dataset.cifar10;version=latest,\
 	be.iminds.iot.dianne.dataset.cifar100;version=latest,\
+	be.iminds.iot.dianne.dataset.imagenet;version=latest,\
 	be.iminds.iot.dianne.dataset.mnist;version=latest,\
 	be.iminds.iot.dianne.builder;version=latest,\
 	be.iminds.iot.dianne.command;version=latest,\
 	be.iminds.iot.dianne.coordinator;version=latest,\
 	be.iminds.iot.dianne.jsonrpc;version=latest,\
-	be.iminds.iot.dianne.dashboard;version=latest
-	
+	be.iminds.iot.dianne.dashboard;version=latest	
 	
 #	be.iminds.iot.dianne.dataset.mnist;version=latest,\
 #	be.iminds.iot.dianne.dataset.cifar10;version=latest,\
@@ -93,4 +93,3 @@ aiolos.version='latest'
 	
 
 -runvm: -d64 -Xms512m -Xmx4g
-

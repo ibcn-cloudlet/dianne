@@ -23,7 +23,7 @@ import be.iminds.iot.dianne.api.coordinator.EvaluationResult;
 import be.iminds.iot.dianne.api.coordinator.LearnResult;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
-import be.iminds.iot.dianne.nn.util.DianneCoordinatorWriter;
+import be.iminds.iot.dianne.coordinator.util.DianneCoordinatorWriter;
 import be.iminds.iot.dianne.nn.util.DianneJSONConverter;
 
 @Component
