@@ -57,12 +57,13 @@ subprojects {
 	  			group 'run'
 				inputs.file runFile
 	  			doLast {
-	  				logger.info "Running {}", runFile.absolutePath
+	  				logger.info "Running {} from directory {}", runFile.absolutePath, projectDir.absolutePath
 					javaexec {
 						main '-jar'
 						args runFile
 						standardInput System.in
 						ignoreExitValue true
+						workingDir projectDir
 					}
 	  			}
 	  		}
