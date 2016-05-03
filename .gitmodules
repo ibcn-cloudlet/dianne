@@ -2,10 +2,6 @@
 	path = be.iminds.iot.dianne.tensor/jni/THTensor/TH
 	url = https://github.com/ibcn-cloudlet/TH.git
 
-[submodule "be.iminds.iot.dianne.tensor/jni/THTensor/cutorch"]
-	path = be.iminds.iot.dianne.tensor/jni/THTensor/cutorch
-	url = https://github.com/ibcn-cloudlet/cutorch.git
-
 [submodule "be.iminds.iot.dianne.rl/jni/ALE/Arcade-Learning-Environment"]
 	path = be.iminds.iot.dianne.rl/jni/ALE/Arcade-Learning-Environment
 	url = https://github.com/ibcn-cloudlet/Arcade-Learning-Environment.git

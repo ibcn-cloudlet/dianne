@@ -20,30 +20,22 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.tensor.impl.th;
+package be.iminds.iot.dianne.tensor.serializer;
 
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
-
-import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
-@Component(service=Serializer.class, property={"aiolos.export=false",
-	"kryo.serializer.class=be.iminds.iot.dianne.tensor.impl.th.THTensor",
-	"kryo.serializer.id=100"})
-public class THTensorSerializer extends Serializer<Tensor> {
+import be.iminds.iot.dianne.tensor.Tensor;
 
-	private TensorFactory factory;
-	
-	@Reference
-	void setTensorFactory(TensorFactory factory){
-		this.factory = factory;
-	}
+@Component(service = Serializer.class, property = { 
+		"aiolos.export=false",
+		"kryo.serializer.class=be.iminds.iot.dianne.tensor.Tensor", 
+		"kryo.serializer.id=100" })
+public class TensorSerializer extends Serializer<Tensor> {
 
 	@Override
 	public Tensor read(Kryo kryo, Input input, Class<Tensor> tensor) {
@@ -51,7 +43,7 @@ public class THTensorSerializer extends Serializer<Tensor> {
 		int[] dims = input.readInts(noDims);
 		int length = input.readInt();
 		float[] data = input.readFloats(length);
-		return factory.createTensor(data, dims);
+		return new Tensor(data, dims);
 	}
 
 	@Override

@@ -1,5 +1,0 @@
-
-Fragment-Host: be.iminds.iot.dianne.tensor.th;bundle-version=${Bundle-Version}
-Provide-Capability: th.native;library=be.iminds.iot.dianne.tensor.th.native.generic
-Bundle-NativeCode: libTHTensor.so;osname=Linux;processor=x86_64
--includeresource: generic/Linux/x86_64

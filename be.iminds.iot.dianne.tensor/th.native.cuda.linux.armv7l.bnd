@@ -1,5 +1,0 @@
-
-Fragment-Host: be.iminds.iot.dianne.tensor.th;bundle-version=${Bundle-Version}
-Provide-Capability: th.native;library=be.iminds.iot.dianne.tensor.th.native.cuda
-Bundle-NativeCode: libTHTensor.so;osname=Linux;processor=arm
--includeresource: cuda/Linux/armv7l

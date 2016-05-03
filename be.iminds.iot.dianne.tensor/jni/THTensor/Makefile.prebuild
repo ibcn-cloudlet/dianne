@@ -1,3 +1,0 @@
-#check for fortran compiler
-all:
-	perl f_check Makefile.conf

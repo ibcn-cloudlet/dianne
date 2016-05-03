@@ -1,8 +1,0 @@
-
-Bundle-Name: Dianne TH Tensor Library
-Bundle-Description: Dianne Tensor implementation based on Torch's TH lib
-Import-Package: com.esotericsoftware.kryo.*;resolution:=optional
-Export-Package: be.iminds.iot.dianne.tensor
-Private-Package: be.iminds.iot.dianne.tensor.impl.th
-Require-Capability: th.native
--dsannotations: *
