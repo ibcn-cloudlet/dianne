@@ -47,11 +47,6 @@ public class Tensor {
 		this.address = init(data, dims);
 	}
 	
-	private Tensor(long address) {
-		this.address = address;
-		this.dims = dims(address);
-	}
-	
 	/**
 	 * @return the number of dimensions of this tensor
 	 */
@@ -89,72 +84,53 @@ public class Tensor {
 	/**
 	 * reshape the dimensions of this tensor, the underlying data remains the same
 	 */
-	public void reshape(final int... d){
-		this.dims = d;
-		reshape(address, d);
-	}
+	public native void reshape(final int... d);
 	
 	/** 
 	 * get a value of the tensor
 	 * @param d indices of the element
 	 * @return the element specified by the index
 	 */
-	public float get(final int... d){
-		return get(address, d);
-	}
+	public native float get(final int... d);
 	
 	/**
 	 * get (a copy of) the raw data for this tensor, this way that the tensor 
 	 * can be reconstructed with the createTensor(data, dims) factory method
 	 */
-	public float[] get(){
-		return get(address);
-	}
+	public native float[] get();
 	
 	/**
 	 * set a value of the tensor
 	 * @param v the new value
 	 * @param d the indices of the element to set
 	 */
-	public void set(final float v, final int... d){
-		set(address, v, d);
-	}
+	public native void set(final float v, final int... d);
 	
 	/**
 	 *  copy a complete array of raw data into this tensor
 	 */
-	public void set(final float[] data){
-		set(address, data);
-	}
+	public native void set(final float[] data);
 	
 	/**
 	 * fill with fixed value
 	 * @param v the new value
 	 */
-	public void fill(final float v){
-		fill(address, v);
-	}
+	public native void fill(final float v);
 
 	/**
 	 * fill with random values uniformely distributed between 0 and 1
 	 */
-	public void rand(){
-		rand(address);
-	}
+	public native void rand();
 
 	/**
 	 * fill with random values Gaussian ("normally") distributed with mean 0.0 and standard deviation 1.0
 	 */
-	public void randn(){
-		randn(address);
-	}
+	public native void randn();
 	
 	/**
 	 * fill with 0 or 1 sampled using Bernoulli distribution with 0 <= p <= 1
 	 */
-	public void bernoulli(float p){
-		bernoulli(address, p);
-	}
+	public native void bernoulli(float p);
 	
 	/**
 	 * check if other tensor has same dimensions
@@ -191,25 +167,12 @@ public class Tensor {
 	 * @param other the tensor to clone into
 	 * @return the cloned tensor
 	 */
-	public Tensor copyInto(final Tensor other){
-		Tensor copy = other;
-		if(copy==null){
-			copy = new Tensor(dims);
-		} else if(copy.address==this.address){
-			return this;
-		}
-		
-		copyInto(address, copy.address);
-		return copy;
-	}
+	public native Tensor copyInto(final Tensor other);
 	
 	/**
 	 * Return a subtensor narrowing dimension dim from index to index+size-1
 	 */
-	public Tensor narrow(final int dim, final int index, final int size){
-		final long n = narrow(address, dim, index, size);
-		return new Tensor(n);
-	}
+	public native Tensor narrow(final int dim, final int index, final int size);
 	
 	/**
 	 * Return a subtensor narrowing according to the ranges array. This is interpreted
@@ -227,33 +190,17 @@ public class Tensor {
 	/**
 	 * Return a slice at the given index in dimension dim, dimension dim will be removed
 	 */
-	public Tensor select(final int dim, final int index){
-		final long s = select(address, dim, index);
-		return new Tensor(s);
-	}
+	public native Tensor select(final int dim, final int index);
 	
 	/**
 	 * calculate the transpose of the tensor
 	 */
-	public Tensor transpose(Tensor res, final int d1, final int d2){
-		final long l = transpose(address, d1, d2);
-		// TH does not do transpose to res vector, just copy here
-		Tensor t = new Tensor(l);
-		if(res!=null){
-			t.copyInto(res);
-			return res;
-		} else {
-			return t;
-		}
-	}
+	public native Tensor transpose(Tensor res, final int d1, final int d2);
 	
 	/**
 	 * return the diag vec of the tensor
 	 */
-	public Tensor diag(Tensor res){
-		final long l = diag(address, res == null ?  0 : res.address);
-		return res==null ? new Tensor(l) : res;
-	}
+	public native Tensor diag(Tensor res);
 	
 	public boolean equals(Object other){
 		if(!(other instanceof Tensor)){
@@ -284,7 +231,7 @@ public class Tensor {
 		if(!this.sameDim(other)){
 			return false;
 		}
-		return equals(address, other.address, threshold);
+		return equalsData(other, threshold);
 	}
 	
 	@Override
@@ -302,42 +249,13 @@ public class Tensor {
 	}
 	
 	public void finalize(){
-		free(address);
+		free();
 	}
 	
 	private native long init(float[] data, int[] dims);
 	
-	private native void free(long address);
+	private native void free();
 	
-	private native int[] dims(long src);
+	private native boolean equalsData(Tensor other, float threshold);
 	
-	private native void reshape(long src, int... d);
-
-	private native float get(long src, int... d);
-
-	private native float[] get(long src);
-	
-	private native void set(long src, float v, int... d);
-
-	private native void set(long src, float[] data);
-	
-	private native void fill(long src, float v);
-
-	private native void rand(long src);
-
-	private native void randn(long src);
-	
-	private native void bernoulli(long src, float p);
-
-	private native long copyInto(long src, long other);
-
-	private native long narrow(long src, int dim, int index, int size);
-
-	private native long select(long src, int dim, int index);
-
-	private native long transpose(long src, int d1, int d2);
-
-	private native long diag(long src, long dst);
-	
-	private native boolean equals(long src, long other, float threshold);
 }
