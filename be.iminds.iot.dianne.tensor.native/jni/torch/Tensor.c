@@ -21,7 +21,7 @@
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
 #include "be_iminds_iot_dianne_tensor_Tensor.h"
-
+#include "TensorLoader.h"
 
 JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_init
   (JNIEnv * env, jobject t, jfloatArray data, jintArray dims){

@@ -1,6 +1,6 @@
 include ../Makefile
 
-SRC := Tensor.c TensorOps.c
+SRC := TensorLoader.c Tensor.c TensorOps.c 
 LINKS := -lTH
 
 

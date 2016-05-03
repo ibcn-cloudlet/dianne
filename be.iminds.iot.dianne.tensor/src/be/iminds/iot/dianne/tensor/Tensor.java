@@ -47,6 +47,11 @@ public class Tensor {
 		this.address = init(data, dims);
 	}
 	
+	private Tensor(long address, int[] dims){
+		this.dims = dims;
+		this.address = address;
+	}
+	
 	/**
 	 * @return the number of dimensions of this tensor
 	 */
