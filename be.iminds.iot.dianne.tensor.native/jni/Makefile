@@ -24,23 +24,10 @@ OBJECTS=$(SRC:.c=.o)
 DEPLOY_DIR := ../../native/$(OS)/$(ARCH)
 
 
-all: install  
+all: install
 
 javah: 
 	for file in $(JAVAH); do \
     	  javah -jni -classpath ../../../be.iminds.iot.dianne.tensor/bin $$file; \
 	done
-	
-compile: javah $(SRC)
-	$(CC) $(FLAGS) $(CCFLAGS) $(INCLUDES) -c $(SRC)
-
-link: compile 
-	$(CC) -shared $(FLAGS) $(CCFLAGS) $(OBJECTS) $(LINKS) -o $(LIB)
-	
-install: link 
-	mkdir -p $(DEPLOY_DIR); \
-	cp $(LIB) $(DEPLOY_DIR)/$(LIB)
-
-clean:
-	rm -rf *.o $(LIB) be_*.h test
 	
