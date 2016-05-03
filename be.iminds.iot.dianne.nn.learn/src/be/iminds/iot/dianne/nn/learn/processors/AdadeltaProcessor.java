@@ -30,7 +30,7 @@ import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class AdadeltaProcessor extends GradientProcessor {
 
@@ -40,8 +40,8 @@ public class AdadeltaProcessor extends GradientProcessor {
 	private final Map<UUID, Tensor> meanSquaredDelta = new HashMap<>();
 
 	
-	public AdadeltaProcessor(TensorFactory factory, NeuralNetwork nn, DataLogger logger, float decayRate) {
-		super(factory, nn, logger);
+	public AdadeltaProcessor(NeuralNetwork nn, DataLogger logger, float decayRate) {
+		super(nn, logger);
 		
 		this.decayRate = decayRate;
 	}
@@ -53,40 +53,40 @@ public class AdadeltaProcessor extends GradientProcessor {
 			
 			// calculate mean squared gradient
 			Tensor s = deltaParams.copyInto(null);
-			s = factory.getTensorMath().cmul(s, s, s);
+			s = TensorOps.cmul(s, s, s);
 			
 			Tensor mSq = meanSquaredGradient.get(e.getKey());
 			if(mSq == null){
-				mSq = factory.getTensorMath().mul(mSq, s, (1-decayRate));
+				mSq = TensorOps.mul(mSq, s, (1-decayRate));
 			} else {
-				mSq = factory.getTensorMath().mul(mSq, mSq, decayRate);
-				mSq = factory.getTensorMath().add(mSq, mSq, (1-decayRate), s);
+				mSq = TensorOps.mul(mSq, mSq, decayRate);
+				mSq = TensorOps.add(mSq, mSq, (1-decayRate), s);
 			}
 			meanSquaredGradient.put(e.getKey(), mSq);
 			
 			// calculate delta update
 			Tensor deltaSq = meanSquaredDelta.get(e.getKey());
 			if(deltaSq==null){
-				deltaSq = factory.createTensor(deltaParams.dims());
+				deltaSq = new Tensor(deltaParams.dims());
 				deltaSq.fill((float)1e-8);
 				meanSquaredDelta.put(e.getKey(), deltaSq);
 			} 
 			
 			// divide mean squared delta by mean squared gradient + 1e-8
 			// update = - RMS(delta)/RMS(grad) * grad
-			factory.getTensorMath().add(s, mSq, (float)1e-8);
-			factory.getTensorMath().cdiv(s, deltaSq, s);
+			TensorOps.add(s, mSq, (float)1e-8);
+			TensorOps.cdiv(s, deltaSq, s);
 			
-			factory.getTensorMath().sqrt(s, s);
-			factory.getTensorMath().cmul(deltaParams, deltaParams, s);
-			factory.getTensorMath().mul(deltaParams, deltaParams, -1);
+			TensorOps.sqrt(s, s);
+			TensorOps.cmul(deltaParams, deltaParams, s);
+			TensorOps.mul(deltaParams, deltaParams, -1);
 			
 			
 			// calculate new mean delta squared
-			deltaSq = factory.getTensorMath().mul(deltaSq, deltaSq, decayRate);
+			deltaSq = TensorOps.mul(deltaSq, deltaSq, decayRate);
 			deltaParams.copyInto(s);
-			s = factory.getTensorMath().cmul(s, s, s);
-			deltaSq = factory.getTensorMath().add(deltaSq, deltaSq, (1-decayRate), s);
+			s = TensorOps.cmul(s, s, s);
+			deltaSq = TensorOps.add(deltaSq, deltaSq, (1-decayRate), s);
 			
 			// set DeltaParameters to be sure in case of remote module instance
 			e.getValue().setDeltaParameters(deltaParams);

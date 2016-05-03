@@ -28,8 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import junit.framework.TestCase;
-
 import org.junit.Assert;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
@@ -45,7 +43,7 @@ import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.runtime.DianneRuntime;
 import be.iminds.iot.dianne.nn.util.DianneJSONConverter;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import junit.framework.TestCase;
 
 public class AbstractDianneTest extends TestCase {
 
@@ -53,15 +51,11 @@ public class AbstractDianneTest extends TestCase {
 	
     protected final BundleContext context = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
     
-    protected TensorFactory factory;
     protected DianneRuntime mm;
 
     protected List<ModuleInstanceDTO> modules = null;
 	
     public void setUp() throws Exception {
-       	ServiceReference rf = context.getServiceReference(TensorFactory.class.getName());
-    	factory = (TensorFactory) context.getService(rf);
-    	
     	ServiceReference rmm =  context.getServiceReference(DianneRuntime.class.getName());
     	mm = (DianneRuntime) context.getService(rmm);
     }

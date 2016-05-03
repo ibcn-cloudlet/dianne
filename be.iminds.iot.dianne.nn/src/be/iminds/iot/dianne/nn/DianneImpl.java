@@ -41,14 +41,12 @@ import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component(property={"aiolos.export=false"})
 public class DianneImpl implements Dianne {
 
 	private BundleContext context;
 	
-	private TensorFactory factory;
 	private DianneRepository repository;
 	
 	private Map<UUID, Map<UUID, Module>> modules = Collections.synchronizedMap(new HashMap<>());
@@ -94,7 +92,7 @@ public class DianneImpl implements Dianne {
 		Map<UUID, Module> m = modules.get(nnId);
 		if(m.size() == nni.modules.size()){
 			// all modules available
-			NeuralNetworkWrapper wrapper = new NeuralNetworkWrapper(nni, m.values(), repository, factory, context);
+			NeuralNetworkWrapper wrapper = new NeuralNetworkWrapper(nni, m.values(), repository, context);
 			wrapper.register();
 			nns.put(nni.id, wrapper);
 		} else {
@@ -110,11 +108,6 @@ public class DianneImpl implements Dianne {
 	@Reference
 	void setDianneRepository(DianneRepository r){
 		repository = r;
-	}
-	
-	@Reference
-	void setTensorFactory(TensorFactory f){
-		factory = f;
 	}
 	
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 

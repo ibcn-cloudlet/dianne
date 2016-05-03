@@ -24,14 +24,14 @@ package be.iminds.iot.dianne.nn.test;
 
 import java.util.UUID;
 
-import junit.framework.Assert;
-
 import org.osgi.framework.ServiceReference;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorOps;
+import junit.framework.Assert;
 
 
 public class WrongSizeTest extends AbstractDianneTest {
@@ -53,8 +53,8 @@ public class WrongSizeTest extends AbstractDianneTest {
 	public void testWrongInputSize() throws Exception {
 		deployNN("../tools/nn/mnist-20/modules.txt");
 		
-		final Tensor sample = factory.createTensor(100);
-		final Tensor result = factory.createTensor(10);
+		final Tensor sample = new Tensor(100);
+		final Tensor result = new Tensor(10);
 		result.fill(0.0f);
 	
 		
@@ -107,13 +107,13 @@ public class WrongSizeTest extends AbstractDianneTest {
 			lock.wait(1000);
 		}
 		
-		Assert.assertTrue(factory.getTensorMath().max(result)==0.0f);
+		Assert.assertTrue(TensorOps.max(result)==0.0f);
 		
 		synchronized(lock){
 			getInput().input(mnist.getInputSample(0));
 			lock.wait(1000);
 		}
 		
-		Assert.assertFalse(factory.getTensorMath().max(result)==0.0f);
+		Assert.assertFalse(TensorOps.max(result)==0.0f);
 	}
 }

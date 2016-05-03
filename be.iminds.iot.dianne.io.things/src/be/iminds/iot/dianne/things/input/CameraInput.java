@@ -26,14 +26,12 @@ import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.dianne.tensor.util.ImageConverter;
 import be.iminds.iot.things.api.camera.Camera.Format;
 import be.iminds.iot.things.api.camera.CameraListener;
 
 public class CameraInput implements CameraListener {
 
-	private final TensorFactory factory;
 	private final ImageConverter converter;
 	
 	private final Input input;
@@ -45,10 +43,9 @@ public class CameraInput implements CameraListener {
 	private int height;
 	private int channels;
 	
-	public CameraInput(TensorFactory factory, Input input,
+	public CameraInput(Input input,
 			int width, int height, int channels){
-		this.factory = factory;
-		this.converter = new ImageConverter(factory);
+		this.converter = new ImageConverter();
 		
 		this.input = input;
 		
@@ -79,7 +76,7 @@ public class CameraInput implements CameraListener {
 					}
 				}
 			}
-			Tensor in = factory.createTensor(buffer, channels, height, width);
+			Tensor in = new Tensor(buffer, channels, height, width);
 			input.input(in);
 		} 
 

@@ -29,26 +29,20 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 
 import be.iminds.iot.dianne.api.log.DataLogger;
+import be.iminds.iot.dianne.nn.module.ModuleOps;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 @Component(property={"strategy=boltzmann",
 			"aiolos.proxy=false"})
 public class BoltzmannStrategy implements ActionStrategy {
 	
-	private TensorFactory factory;
-
 	private double temperatureMax = 1e0;
 	private double temperatureMin = 1e0;
 	private double temperatureDecay = 1e-6;
 	
 	private DataLogger logger = null;
 	private String[] loglabels = new String[]{"Q0", "Q1", "Q2", "temperature"};
-	
-	@Reference
-	void setTensorFactory(TensorFactory f){
-		this.factory =f;
-	}
 	
 	@Reference(cardinality = ReferenceCardinality.OPTIONAL)
 	void setDataLogger(DataLogger l){
@@ -62,7 +56,7 @@ public class BoltzmannStrategy implements ActionStrategy {
 	@Override
 	public Tensor selectActionFromOutput(Tensor output, long i) {
 		
-		Tensor action = factory.createTensor(output.size());
+		Tensor action = new Tensor(output.size());
 		action.fill(-1);
 		
 		double temperature = temperatureMin + (temperatureMax - temperatureMin) * Math.exp(-i * temperatureDecay);
@@ -71,8 +65,8 @@ public class BoltzmannStrategy implements ActionStrategy {
 			logger.log("AGENT", loglabels, output.get(0), output.get(1), output.get(2), (float) temperature);
 		}
 		
-		factory.getTensorMath().div(output, output, (float) temperature);
-		factory.getTensorMath().softmax(output, output);
+		TensorOps.div(output, output, (float) temperature);
+		ModuleOps.softmax(output, output);
 		
 		double s = 0, r = Math.random();
 		int a = 0;

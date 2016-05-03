@@ -25,34 +25,35 @@ package be.iminds.iot.dianne.nn.module.activation;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.nn.module.ModuleOps;
 
 public class Threshold extends AbstractModule {
 	
 	private final float thresh;
 	private final float val;
 	
-	public Threshold(TensorFactory factory, float thresh, float val) {
-		super(factory);
+	public Threshold(float thresh, float val) {
+		super();
 		this.thresh = thresh;
 		this.val = val;
 	}
 	
-	public Threshold(TensorFactory factory, UUID id, float thresh, float val) {
-		super(factory, id);
+	public Threshold(UUID id, float thresh, float val) {
+		super(id);
 		this.thresh = thresh;
 		this.val = val;
 	}
 
 	@Override
 	protected void forward() {
-		output = factory.getTensorMath().thresh(output, input, thresh, 0, val);
+		output = ModuleOps.threshold(output, input, thresh, 0, val);
 	}
 
 	@Override
 	protected void backward() {
-		gradInput = factory.getTensorMath().cmul(gradInput, gradOutput, 
-				factory.getTensorMath().dthresh(gradInput, input, thresh, 0));
+		//gradInput = TensorOps.cmul(gradInput, gradOutput, 
+		//		TensorOps.dthresh(gradInput, input, thresh, 0));
+		gradInput = ModuleOps.thresholdDin(gradInput, gradOutput, input, thresh, 0);
 	}
 
 }

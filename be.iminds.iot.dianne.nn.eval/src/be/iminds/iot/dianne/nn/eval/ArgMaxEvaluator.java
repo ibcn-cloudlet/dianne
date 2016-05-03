@@ -47,7 +47,7 @@ import be.iminds.iot.dianne.api.nn.eval.Evaluator;
 import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 @Component(property={"aiolos.unique=true"})
 public class ArgMaxEvaluator implements Evaluator {
@@ -56,7 +56,6 @@ public class ArgMaxEvaluator implements Evaluator {
 	
 	protected DataLogger logger;
 	
-	protected TensorFactory factory;
 	protected Dianne dianne;
 	protected Map<String, Dataset> datasets = new HashMap<String, Dataset>();
 	
@@ -184,12 +183,12 @@ public class ArgMaxEvaluator implements Evaluator {
 				
 				if(confusion==null){
 					int outputSize = out.size();
-					confusion = factory.createTensor(outputSize, outputSize);
+					confusion = new Tensor(outputSize, outputSize);
 					confusion.fill(0.0f);
 				}
 				
-				int predicted = factory.getTensorMath().argmax(out);
-				int real = factory.getTensorMath().argmax(d.getOutputSample(indices[sample]));
+				int predicted = TensorOps.argmax(out);
+				int real = TensorOps.argmax(d.getOutputSample(indices[sample]));
 				if(real!=predicted)
 					faulty++;
 				
@@ -223,11 +222,6 @@ public class ArgMaxEvaluator implements Evaluator {
 	@Activate
 	public void activate(BundleContext context){
 		this.evaluatorId = UUID.fromString(context.getProperty(Constants.FRAMEWORK_UUID));
-	}
-	
-	@Reference
-	void setTensorFactory(TensorFactory f){
-		this.factory = f;
 	}
 	
 	@Reference

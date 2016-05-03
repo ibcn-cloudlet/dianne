@@ -3,17 +3,16 @@ Bundle-Version: 0.4.0.${tstamp}
 -buildpath: \
 	biz.aQute.junit;version=1.3,\
 	osgi.enterprise;version=5.0,\
-	be.iminds.iot.dianne.tensor.api;version=latest,\
+	be.iminds.iot.dianne.tensor;version=latest,\
 	be.iminds.iot.dianne.tensor.util;version=latest,\
 	be.iminds.iot.dianne.api;version=latest,\
 	osgi.promise
--testpath: \
-	be.iminds.iot.dianne.tensor.th;version=latest,\
-	be.iminds.iot.dianne.tensor.java;version=latest
+
 Export-Package: \
 	be.iminds.iot.dianne.api.nn.module,\
 	be.iminds.iot.dianne.api.nn.module.factory,\
-	be.iminds.iot.dianne.api.nn.module.dto
+	be.iminds.iot.dianne.api.nn.module.dto,\
+	be.iminds.iot.dianne.nn.module
 -dsannotations: *
 Private-Package: \
 	be.iminds.iot.dianne.nn.module.activation,\
@@ -26,3 +25,4 @@ Private-Package: \
 	be.iminds.iot.dianne.nn.module.layer
 Bundle-Name: Dianne NN modules
 Bundle-Description: Dianne Neural Network module implementations
+Require-Capability: module.native

@@ -39,13 +39,11 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
-import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component(immediate=true,
 	configurationPolicy=ConfigurationPolicy.REQUIRE,
@@ -53,8 +51,6 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 	property={"aiolos.unique=true",
 			  "aiolos.combine=*"})
 public class FileExperiencePool implements ExperiencePool {
-
-	private TensorFactory factory;
 
 	private String name; // name of the repo
 	private String dir; // directory where to store the samples
@@ -131,9 +127,9 @@ public class FileExperiencePool implements ExperiencePool {
 						}
 					}
 					
-					Tensor state = factory.createTensor(stateData, stateSize);
-					Tensor action = factory.createTensor(actionData, actionSize);
-					Tensor nextState = terminate ? null : factory.createTensor(nextStateData, stateSize);
+					Tensor state = new Tensor(stateData, stateSize);
+					Tensor action = new Tensor(actionData, actionSize);
+					Tensor nextState = terminate ? null : new Tensor(nextStateData, stateSize);
 					
 					ExperiencePoolSample s = new ExperiencePoolSample(state, action, reward, nextState);
 					add(s);
@@ -290,11 +286,6 @@ public class FileExperiencePool implements ExperiencePool {
 		}
 	}
 	
-	@Reference
-	void setTensorFactory(TensorFactory f){
-		this.factory = f;
-	}
-
 	@Override
 	public void reset() {
 		rwLock.writeLock().lock();

@@ -26,7 +26,7 @@ import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class Frame extends AbstractModule {
 
@@ -35,13 +35,13 @@ public class Frame extends AbstractModule {
 	
 	private Tensor narrowed;
 	
-	public Frame(TensorFactory factory, final int... dims){
-		super(factory);
+	public Frame(final int... dims){
+		super();
 		this.targetDims = dims;
 	}
 	
-	public Frame(TensorFactory factory, UUID id, final int... dims){
-		super(factory, id);
+	public Frame(UUID id, final int... dims){
+		super(id);
 		this.targetDims = dims;
 	}
 
@@ -92,7 +92,7 @@ public class Frame extends AbstractModule {
 		}
 		
 		narrowed = in.narrow(ranges);
-		output = factory.getTensorMath().scale2D(output, narrowed, targetDims);
+		output = TensorOps.scale2D(output, narrowed, targetDims);
 	}
 
 	@Override

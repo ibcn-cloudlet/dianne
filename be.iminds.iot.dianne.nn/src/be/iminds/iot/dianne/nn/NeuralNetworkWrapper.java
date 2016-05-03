@@ -52,15 +52,14 @@ import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class NeuralNetworkWrapper implements NeuralNetwork {
 
 	private int count = 0;
 
 	private final DianneRepository repository;
-	private final TensorFactory factory;
-	
+
 	private final NeuralNetworkInstanceDTO nn;
 	private Map<UUID, Module> modules;
 	private Map<UUID, Input> inputs;
@@ -80,11 +79,10 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	
 	private boolean valid = true;
 	
-	public NeuralNetworkWrapper(NeuralNetworkInstanceDTO nn, Collection<Module> modules, DianneRepository repo, TensorFactory factory, BundleContext context) {
+	public NeuralNetworkWrapper(NeuralNetworkInstanceDTO nn, Collection<Module> modules, DianneRepository repo, BundleContext context) {
 		this.nn = nn;
 		this.context = context;
 		
-		this.factory = factory;
 		this.repository = repo;
 		
 		this.modules = modules.stream().collect(Collectors.toMap(m -> m.getId(), m -> m));
@@ -539,7 +537,7 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		}
 		
 		Map<UUID, Tensor> deltaParameters = trainables.entrySet().stream()
-				.collect(Collectors.toMap(e -> e.getKey(), e -> factory.getTensorMath().sub(null,
+				.collect(Collectors.toMap(e -> e.getKey(), e -> TensorOps.sub(null,
 						e.getValue().getParameters(), previous.get(e.getKey()))));
 		if(tag == null)
 			repository.accParameters(nn.id, deltaParameters);

@@ -35,7 +35,6 @@ import be.iminds.iot.dianne.api.nn.module.Composite;
 import be.iminds.iot.dianne.api.nn.module.Memory;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public class CompositeModule extends AbstractTrainableModule implements Composite, Memory {
 
@@ -46,8 +45,8 @@ public class CompositeModule extends AbstractTrainableModule implements Composit
 	
 	private Map<UUID, Tensor> deltas;
 	
-	public CompositeModule(TensorFactory factory, UUID id, Tensor parameters, Tensor memory, NeuralNetwork nn, LinkedHashMap<UUID, Integer> parameterMapping){
-		super(factory, id, parameters);
+	public CompositeModule(UUID id, Tensor parameters, Tensor memory, NeuralNetwork nn, LinkedHashMap<UUID, Integer> parameterMapping){
+		super(id, parameters);
 		this.nn = nn;
 		this.memory = memory;
 		this.parameterMapping = parameterMapping;
@@ -55,7 +54,7 @@ public class CompositeModule extends AbstractTrainableModule implements Composit
 	
 	public void initDeltaParameters(Tensor t){
 		if(t==null){
-			deltaParameters = factory.createTensor(parameters.dims());
+			deltaParameters = new Tensor(parameters.dims());
 		} else {
 			// TODO check size?
 			deltaParameters = t;

@@ -48,7 +48,6 @@ import org.osgi.service.http.HttpService;
 import be.iminds.iot.dianne.api.rl.environment.EnvironmentListener;
 import be.iminds.iot.dianne.rl.ale.ArcadeLearningEnvironment;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.dianne.tensor.util.ImageConverter;
 
 @Component(service = { javax.servlet.Servlet.class, EnvironmentListener.class }, property = {
@@ -60,13 +59,12 @@ public class ALEServlet extends HttpServlet implements EnvironmentListener {
 	private long timestamp = System.currentTimeMillis();
 	
 	private Map<String, CameraStream> streams = new HashMap<>();
-	private TensorFactory factory;
 	private ImageConverter converter;
 	private boolean grayscale = true;
 
 	@Activate
 	void activate(BundleContext context){
-		converter = new ImageConverter(factory);
+		converter = new ImageConverter();
 		
     	String gray = context.getProperty("be.iminds.iot.dianne.rl.ale.grayscale");
     	if(gray!=null){
@@ -197,8 +195,4 @@ public class ALEServlet extends HttpServlet implements EnvironmentListener {
 		}
 	}
 	
-	@Reference
-	void setTensorFactory(TensorFactory factory) {
-		this.factory = factory;
-	}
 }

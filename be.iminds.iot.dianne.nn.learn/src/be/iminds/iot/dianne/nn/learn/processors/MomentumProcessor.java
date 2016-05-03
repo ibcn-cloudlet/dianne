@@ -28,6 +28,7 @@ import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 /**
  * Additional learning techniques like Momentum can be implemented as a Processor decorator
@@ -49,13 +50,12 @@ public class MomentumProcessor extends GradientProcessor {
 			// Get the gradients and momentum
 			Tensor deltaParams = m.getDeltaParameters();
 			Tensor momentum = this.momentum.computeIfAbsent(m.getId(), k -> {
-				Tensor t = factory.createTensor(deltaParams.dims());
+				Tensor t = new Tensor(deltaParams.dims());
 				t.fill(0.0f);
 				return t;
 			});
 			
-			// Update momentum
-			factory.getTensorMath().add(deltaParams, deltaParams, rate, momentum);
+			TensorOps.add(deltaParams, deltaParams, rate, momentum);
 			deltaParams.copyInto(momentum);
 			
 			// Set DeltaParameters to be sure in case of remote module instance

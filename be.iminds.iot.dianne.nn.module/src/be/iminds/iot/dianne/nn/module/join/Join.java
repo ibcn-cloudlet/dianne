@@ -32,7 +32,6 @@ import be.iminds.iot.dianne.api.nn.module.AbstractModule;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public abstract class Join extends AbstractModule {
 
@@ -46,12 +45,12 @@ public abstract class Join extends AbstractModule {
 	// might need the order of id
 	protected UUID[] prevIds;
 	
-	public Join(TensorFactory factory) {
-		super(factory);
+	public Join() {
+		super();
 	}
 	
-	public Join(TensorFactory factory, UUID id) {
-		super(factory, id);
+	public Join(UUID id) {
+		super(id);
 	}
 	
 	protected void callPrevious(){

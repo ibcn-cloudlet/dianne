@@ -39,7 +39,6 @@ import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.api.rl.environment.EnvironmentListener;
 import be.iminds.iot.dianne.rl.pong.api.PongEnvironment;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 
 /**
  * Simple Pong environment in which an agents plays against an AI trying to
@@ -54,8 +53,6 @@ public class Pong implements PongEnvironment, Environment {
 	
 	public static final String NAME = "Pong";
 	
-	private TensorFactory factory;
-
 	private Set<EnvironmentListener> listeners = Collections.synchronizedSet(new HashSet<>());
 	
 	// paddle length and width
@@ -121,7 +118,7 @@ public class Pong implements PongEnvironment, Environment {
 		
 		reset();
 		
-		observation = factory.createTensor(new float[] { x, y, vx, vy, p, o }, 6);
+		observation = new Tensor(new float[] { x, y, vx, vy, p, o }, 6);
 	}
 
 	@Deactivate
@@ -207,7 +204,7 @@ public class Pong implements PongEnvironment, Environment {
 			totalReward += reward;
 	
 			final float r = reward;
-			observation = factory.createTensor(new float[] { x, y, vx, vy, p, o }, 6);
+			observation = new Tensor(new float[] { x, y, vx, vy, p, o }, 6);
 
 			synchronized(listeners){
 				listeners.stream().forEach(l -> l.onAction(r, observation));
@@ -262,15 +259,10 @@ public class Pong implements PongEnvironment, Environment {
 		
 		terminal = false;
 		
-		observation = factory.createTensor(new float[] { x, y, vx, vy, p, o }, 6);
+		observation = new Tensor(new float[] { x, y, vx, vy, p, o }, 6);
 		listeners.stream().forEach(l -> l.onAction(0, observation));
 	}
 
-	@Reference
-	void setTensorFactory(TensorFactory factory) {
-		this.factory = factory;
-	}
-	
 	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
 	void addEnvironmentListener(EnvironmentListener l, Map<String, Object> properties){
 		String target = (String) properties.get("target");

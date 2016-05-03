@@ -5,14 +5,14 @@ Bundle-Version: 0.4.0.${tstamp}
 	osgi.cmpn,\
 	biz.aQute.junit,\
 	com.google.gson;version=2.2,\
-	be.iminds.iot.dianne.tensor.api;version=latest,\
+	be.iminds.iot.dianne.tensor;version=latest,\
 	be.iminds.iot.dianne.api;version=latest,\
 	be.iminds.iot.dianne.nn.module;version=latest,\
 	be.iminds.iot.dianne.nn.runtime;version=latest,\
 	be.iminds.iot.dianne.nn.util;version=latest
 	
 -runbundles: \
-biz.aQute.junit,\
+	biz.aQute.junit,\
 	osgi.promise;version='[6.0.0,6.0.1)',\
 	org.apache.felix.scr;version='[1.8.2,1.8.3)',\
 	org.apache.felix.configadmin;version='[1.6.0,1.7.0)',\

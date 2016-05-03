@@ -24,6 +24,7 @@ package be.iminds.iot.dianne.nn.learn.processors;
 
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class RegularizationProcessor extends GradientProcessor {
 
@@ -42,7 +43,7 @@ public class RegularizationProcessor extends GradientProcessor {
 			Tensor params = m.getParameters();
 			
 			// Subtract previous parameters
-			factory.getTensorMath().sub(deltaParams, deltaParams, rate, params);
+			TensorOps.sub(deltaParams, deltaParams, rate, params);
 			
 			// Set DeltaParameters to be sure in case of remote module instance
 			m.setDeltaParameters(deltaParams);

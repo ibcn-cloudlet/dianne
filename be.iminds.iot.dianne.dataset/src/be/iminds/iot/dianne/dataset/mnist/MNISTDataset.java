@@ -33,12 +33,10 @@ import java.util.concurrent.Executors;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 
 /**
  * The MNIST dataset, uses the images form LeCun's website:
@@ -50,8 +48,6 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 @Component(immediate=true, property={"name=MNIST","aiolos.unique=true"})
 public class MNISTDataset implements Dataset{
 
-	private TensorFactory factory;
-	
 	private List<Sample> data = new ArrayList<Sample>();
 	private String[] labels = new String[]{"0","1","2","3","4","5","6","7","8","9"};
 	
@@ -64,11 +60,6 @@ public class MNISTDataset implements Dataset{
 	private String dir = "";
 	// thread to start loading data when constructed
 	private ExecutorService loader = Executors.newSingleThreadExecutor();
-	
-	@Reference
-	void setTensorFactory(TensorFactory f){
-		this.factory = f;
-	}
 	
 	@Activate
 	public void activate(BundleContext context){
@@ -181,15 +172,14 @@ public class MNISTDataset implements Dataset{
 	private void parse(InputStream imageInput, InputStream labelInput, int count) {
 		try {
 			for(int read = 0;read<count;read++){
-				//Tensor input = factory.createTensor(inputSize);
-				Tensor output = factory.createTensor(outputSize);
+				Tensor output = new Tensor(outputSize);
 				output.fill(0.0f);
 				
 				float inputData[] = new float[inputSize];
 				for(int j=0;j<inputSize;j++){
 					inputData[j] = (float)readUByte(imageInput)/255f;
 				}
-				Tensor input = factory.createTensor(inputData, noRows, noColumns);
+				Tensor input = new Tensor(inputData, noRows, noColumns);
 				
 				int i = readUByte(labelInput);
 				output.set(1.0f, i);

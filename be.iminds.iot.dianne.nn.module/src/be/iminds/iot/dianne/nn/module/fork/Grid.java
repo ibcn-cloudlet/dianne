@@ -29,7 +29,7 @@ import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class Grid extends AbstractModule {
 
@@ -43,16 +43,16 @@ public class Grid extends AbstractModule {
 	
 	private Map<String, Tensor> crops = new HashMap<String, Tensor>();
 	
-	public Grid(TensorFactory factory, int x, int y, int sx, int sy) {
-		super(factory);
+	public Grid(int x, int y, int sx, int sy) {
+		super();
 		this.x = x;
 		this.y = y;
 		this.stride_x = sx;
 		this.stride_y = sy;
 	}
 	
-	public Grid(TensorFactory factory, UUID id, int x, int y, int sx, int sy) {
-		super(factory, id);
+	public Grid(UUID id, int x, int y, int sx, int sy) {
+		super(id);
 		this.x = x;
 		this.y = y;
 		this.stride_x = sx;
@@ -99,7 +99,7 @@ public class Grid extends AbstractModule {
 			int[] scaledDims = Arrays.copyOf(input.dims(), input.dim());
 			scaledDims[x_dim] = (int)(size_x*s);
 			scaledDims[y_dim] = (int)(size_y*s);
-			scaled = factory.getTensorMath().scale2D(null, scaled, scaledDims);
+			scaled = TensorOps.scale2D(null, scaled, scaledDims);
 		} else {
 			scaled = input;
 		}

@@ -29,12 +29,11 @@ import java.nio.file.Paths;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.rnn.dataset.SequenceDataset;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 /**
  * A Character SequenceDataset ... read a text file and treats each character as input/output sample
@@ -46,18 +45,11 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 	property={"name=CharSequence","aiolos.unique=true","aiolos.combine=*"})
 public class CharSequenceDataset implements SequenceDataset{
 
-	private TensorFactory factory;
-	
 	private String file = "input.txt";
 	
 	private String data;
 	private String chars = "";
 	private String[] labels;
-	
-	@Reference
-	void setTensorFactory(TensorFactory f){
-		this.factory = f;
-	}
 	
 	@Activate
 	public void activate(BundleContext context) throws Exception {
@@ -123,14 +115,14 @@ public class CharSequenceDataset implements SequenceDataset{
 	
 	private Tensor asTensor(char c){
 		int index = chars.indexOf(c);
-		Tensor t = factory.createTensor(chars.length());
+		Tensor t = new Tensor(chars.length());
 		t.fill(0.0f);
 		t.set(1.0f, index);
 		return t;
 	}
 	
 	private char asChar(Tensor t){
-		int index = factory.getTensorMath().argmax(t);
+		int index = TensorOps.argmax(t);
 		return chars.charAt(index);
 	}
 }

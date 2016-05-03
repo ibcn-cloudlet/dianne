@@ -25,7 +25,7 @@ package be.iminds.iot.dianne.api.nn.module;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 /**
  * Provides base functionality for trainable neural network Modules. Extend this class
@@ -40,13 +40,12 @@ public abstract class AbstractTrainableModule extends AbstractModule implements 
 	protected Tensor deltaParameters;
 	protected boolean fixed = false;
 	
-	public AbstractTrainableModule(TensorFactory factory, Tensor parameters) {
-		super(factory);
+	public AbstractTrainableModule(Tensor parameters) {
 		this.parameters = parameters;
 	}
 	
-	public AbstractTrainableModule(TensorFactory factory, UUID id, Tensor parameters) {
-		super(factory, id);
+	public AbstractTrainableModule(UUID id, Tensor parameters) {
+		super(id);
 		this.parameters = parameters;
 	}
 	
@@ -63,14 +62,14 @@ public abstract class AbstractTrainableModule extends AbstractModule implements 
 	@Override
 	public void updateParameters() {
 		if(!fixed){
-			factory.getTensorMath().add(parameters, parameters, deltaParameters);
+			TensorOps.add(parameters, parameters, deltaParameters);
 		}
 	}
 	
 	@Override
 	public void updateParameters(float scale) {
 		if(!fixed){
-			factory.getTensorMath().add(parameters, parameters, scale, deltaParameters);
+			TensorOps.add(parameters, parameters, scale, deltaParameters);
 		}
 	}
 

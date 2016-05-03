@@ -49,6 +49,12 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
+
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.eval.Evaluator;
@@ -59,13 +65,6 @@ import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.api.repository.RepositoryListener;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
 
 @Component(service = { javax.servlet.Servlet.class }, 
 	property = { "alias:String=/dianne/learner",
@@ -76,7 +75,6 @@ import com.google.gson.JsonPrimitive;
 public class DianneLearner extends HttpServlet {
 
 	private BundleContext context;
-	private TensorFactory factory;
 	private DianneRepository repository;
 	
 	private static final JsonParser parser = new JsonParser();
@@ -92,11 +90,6 @@ public class DianneLearner extends HttpServlet {
 	@Activate
 	void activate(BundleContext context){
 		this.context = context;
-	}
-	
-	@Reference
-	void setTensorFactory(TensorFactory factory){
-		this.factory = factory;
 	}
 	
 	@Reference

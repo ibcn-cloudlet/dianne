@@ -38,6 +38,7 @@ import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
 import be.iminds.iot.dianne.api.rl.learn.QLearnProgress;
 import be.iminds.iot.dianne.nn.learn.AbstractLearner;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 @Component(service=Learner.class, 
 property={"aiolos.unique=true",
@@ -162,13 +163,13 @@ public class DeepQLearner extends AbstractLearner {
 				targetQ = reward;
 			} else {
 				Tensor nextQ = target.forward(nextState, ""+index);
-				targetQ = reward + discount * factory.getTensorMath().max(nextQ);
+				targetQ = reward + discount * TensorOps.max(nextQ);
 			}
 			
 			Tensor targetOut = out.copyInto(null);
-			targetOut.set(targetQ, factory.getTensorMath().argmax(action));
+			targetOut.set(targetQ, TensorOps.argmax(action));
 			
-			float Q_sa = out.get(factory.getTensorMath().argmax(action));
+			float Q_sa = out.get(TensorOps.argmax(action));
 			if(i==0){
 				q = Q_sa;
 			} else {

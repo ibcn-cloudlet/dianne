@@ -1,11 +1,9 @@
 Bundle-Version: 0.4.0.${tstamp}
 
 -buildpath: \
-	be.iminds.iot.dianne.tensor.api;version=latest,\
+	be.iminds.iot.dianne.tensor;version=latest,\
 	biz.aQute.junit;version=1.3,\
 	com.idrsolutions.jdeli
--testpath: \
-	be.iminds.iot.dianne.tensor.java;version=latest
 
 Bundle-Name: Dianne Tensor utils
 Bundle-Description: Utility classes for working with Tensors

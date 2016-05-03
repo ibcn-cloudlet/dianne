@@ -26,14 +26,14 @@ import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class StochasticGradientDescentProcessor extends GradientProcessor {
 
 	private final float rate;
 	
-	public StochasticGradientDescentProcessor(TensorFactory factory, NeuralNetwork nn, DataLogger logger, float rate) {
-		super(factory, nn, logger);
+	public StochasticGradientDescentProcessor(NeuralNetwork nn, DataLogger logger, float rate) {
+		super(nn, logger);
 		this.rate = rate;
 	}
 	
@@ -44,7 +44,7 @@ public class StochasticGradientDescentProcessor extends GradientProcessor {
 			Tensor deltaParams = m.getDeltaParameters();
 
 			// Apply learning rate
-			factory.getTensorMath().mul(deltaParams, deltaParams, -rate);
+			TensorOps.mul(deltaParams, deltaParams, -rate);
 					
 			// Set DeltaParameters to be sure in case of remote module instance
 			m.setDeltaParameters(deltaParams);

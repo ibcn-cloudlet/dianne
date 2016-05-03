@@ -3,7 +3,7 @@ Bundle-Version: 0.4.0.${tstamp}
 -buildpath: \
 	osgi.core,\
 	osgi.enterprise;version=5.0,\
-	be.iminds.iot.dianne.tensor.api;version=latest,\
+	be.iminds.iot.dianne.tensor;version=latest,\
 	be.iminds.iot.dianne.api;version=latest,\
 	be.iminds.iot.things.api,\
 	be.iminds.iot.dianne.tensor.util;version=latest

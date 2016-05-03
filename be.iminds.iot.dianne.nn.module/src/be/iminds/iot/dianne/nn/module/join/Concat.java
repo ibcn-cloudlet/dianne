@@ -25,16 +25,15 @@ package be.iminds.iot.dianne.nn.module.join;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public class Concat extends Join {
 
-	public Concat(TensorFactory factory) {
-		super(factory);
+	public Concat() {
+		super();
 	}
 	
-	public Concat(TensorFactory factory, UUID id) {
-		super(factory, id);
+	public Concat(UUID id) {
+		super(id);
 	}
 	
 	@Override
@@ -55,7 +54,7 @@ public class Concat extends Join {
 			}
 	
 			if(output==null || !output.hasDim(dims)){
-				output = factory.createTensor(dims);
+				output = new Tensor(dims);
 			}
 		
 			int offset = 0;

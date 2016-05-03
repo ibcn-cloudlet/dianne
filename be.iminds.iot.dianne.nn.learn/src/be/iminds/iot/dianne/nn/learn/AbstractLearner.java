@@ -47,7 +47,6 @@ import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public abstract class AbstractLearner implements Learner {
 	
@@ -56,7 +55,6 @@ public abstract class AbstractLearner implements Learner {
 	
 	// References
 	protected DataLogger logger;
-	protected TensorFactory factory;
 	protected Dianne dianne;
 	protected Map<String, Dataset> datasets = new HashMap<>();
 	
@@ -137,9 +135,9 @@ public abstract class AbstractLearner implements Learner {
 			System.out.println("---");
 			
 			// setup criterion, sampling strategy and gradient processor
-			criterion = LearnerUtil.createCriterion(factory, config);
+			criterion = LearnerUtil.createCriterion(config);
 			sampling = LearnerUtil.createSamplingStrategy(dataset, config);
-			gradientProcessor = LearnerUtil.createGradientProcessor(factory, nn, dataset, config, logger);
+			gradientProcessor = LearnerUtil.createGradientProcessor(nn, dataset, config, logger);
 			
 			learnerThread = new Thread(() -> {
 				try {
@@ -305,11 +303,6 @@ public abstract class AbstractLearner implements Learner {
 	@Activate
 	public void activate(BundleContext context){
 		this.learnerId = UUID.fromString(context.getProperty(Constants.FRAMEWORK_UUID));
-	}
-	
-	@Reference
-	protected void setTensorFactory(TensorFactory f){
-		this.factory = f;
 	}
 	
 	@Reference

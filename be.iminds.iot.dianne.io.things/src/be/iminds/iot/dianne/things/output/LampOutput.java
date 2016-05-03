@@ -28,23 +28,21 @@ import java.util.UUID;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.TensorOps;
 import be.iminds.iot.things.api.lamp.Lamp;
 
 public class LampOutput implements ForwardListener {
 
 	private final Lamp lamp;
-	private final TensorFactory factory;
 	
 	private int index = -1;
 	
-	public LampOutput(TensorFactory factory, Lamp l){
+	public LampOutput(Lamp l){
 		this.lamp = l;
-		this.factory = factory;
 	}
 	
-	public LampOutput(TensorFactory factory, Lamp l, int index){
-		this(factory, l);
+	public LampOutput(Lamp l, int index){
+		this(l);
 		this.index = index;
 	}
 	
@@ -61,7 +59,7 @@ public class LampOutput implements ForwardListener {
 			}
 		} else if(output.size(0)==2){
 			// if argmax == 0 : n, if argmax == 1 : off
-			int i = factory.getTensorMath().argmax(output);
+			int i = TensorOps.argmax(output);
 			if(i==0){
 				lamp.on();
 			} else {
@@ -80,7 +78,7 @@ public class LampOutput implements ForwardListener {
 		} else {
 			// generate color hues based on size and argmax
 			float stride = 1.0f/output.size(0);
-			int i = factory.getTensorMath().argmax(output);
+			int i = TensorOps.argmax(output);
 			Color c = getColor(i*stride);
 			lamp.setColor(c);
 			lamp.on();

@@ -30,7 +30,7 @@ import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class RMSpropProcessor extends GradientProcessor {
 
@@ -39,8 +39,8 @@ public class RMSpropProcessor extends GradientProcessor {
 	
 	private final Map<UUID, Tensor> meanSquared = new HashMap<>();
 	
-	public RMSpropProcessor( TensorFactory factory, NeuralNetwork nn, DataLogger logger, float learningRate, float decayRate) {
-		super(factory, nn, logger);
+	public RMSpropProcessor( NeuralNetwork nn, DataLogger logger, float learningRate, float decayRate) {
+		super(nn, logger);
 		
 		this.learningRate = learningRate;
 		this.decayRate = decayRate;
@@ -53,26 +53,26 @@ public class RMSpropProcessor extends GradientProcessor {
 			
 			// calculate mean squared
 			Tensor squared = deltaParams.copyInto(null);
-			squared = factory.getTensorMath().cmul(squared, squared, squared);
+			squared = TensorOps.cmul(squared, squared, squared);
 			
 			Tensor mSq = meanSquared.get(e.getKey());
 			if(mSq == null){
-				mSq = factory.getTensorMath().mul(mSq, squared, (1-decayRate));
+				mSq = TensorOps.mul(mSq, squared, (1-decayRate));
 			} else {
-				mSq = factory.getTensorMath().mul(mSq, mSq, decayRate);
-				mSq = factory.getTensorMath().add(mSq, mSq, (1-decayRate), squared);
+				mSq = TensorOps.mul(mSq, mSq, decayRate);
+				mSq = TensorOps.add(mSq, mSq, (1-decayRate), squared);
 			}
 			meanSquared.put(e.getKey(), mSq);
 
 			// delta params = - learning_rate * dx / np.sqrt(meanSquared + 1e-8)
-			factory.getTensorMath().mul(deltaParams, deltaParams, -learningRate);
+			TensorOps.mul(deltaParams, deltaParams, -learningRate);
 			
 			// add 1e-8 to avoid div by zero, reuse squared tensor for this
-			factory.getTensorMath().add(squared, mSq, (float) 1e-8);
-			factory.getTensorMath().sqrt(squared, squared);
+			TensorOps.add(squared, mSq, (float) 1e-8);
+			TensorOps.sqrt(squared, squared);
 			
 			// now div by cached tensor
-			factory.getTensorMath().cdiv(deltaParams, deltaParams, squared);
+			TensorOps.cdiv(deltaParams, deltaParams, squared);
 			
 			// set DeltaParameters to be sure in case of remote module instance
 			e.getValue().setDeltaParameters(deltaParams);

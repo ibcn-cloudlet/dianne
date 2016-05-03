@@ -28,7 +28,7 @@ import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
 import be.iminds.iot.dianne.api.nn.module.Preprocessor;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class Normalization extends AbstractModule implements Preprocessor {
 
@@ -38,16 +38,16 @@ public class Normalization extends AbstractModule implements Preprocessor {
 	
 	private boolean preprocessed = false;
 	
-	public Normalization(TensorFactory factory){
-		super(factory);
+	public Normalization(){
+		super();
 	}
 	
-	public Normalization(TensorFactory factory, UUID id){
-		super(factory, id);
+	public Normalization(UUID id){
+		super(id);
 	}
 	
-	public Normalization(TensorFactory factory, UUID id, float mean, float std){
-		super(factory, id);
+	public Normalization(UUID id, float mean, float std){
+		super(id);
 		this.mean = mean;
 		this.std = std;
 		preprocessed = true;
@@ -55,8 +55,8 @@ public class Normalization extends AbstractModule implements Preprocessor {
 
 	@Override
 	protected void forward() {
-		output = factory.getTensorMath().sub(output, input, mean);
-		output = factory.getTensorMath().div(output, output, std);
+		output = TensorOps.sub(output, input, mean);
+		output = TensorOps.div(output, output, std);
 
 	}
 
@@ -96,7 +96,7 @@ public class Normalization extends AbstractModule implements Preprocessor {
 
 	@Override
 	public Tensor getParameters() {
-		Tensor params = factory.createTensor(2);
+		Tensor params = new Tensor(2);
 		params.set(mean, 0);
 		params.set(std, 1);
 		return params;

@@ -37,11 +37,10 @@ import javax.imageio.plugins.jpeg.JPEGImageReadParam;
 import javax.imageio.plugins.jpeg.JPEGQTable;
 import javax.imageio.stream.ImageInputStream;
 
-import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
-
 import com.idrsolutions.image.jpeg.JpegDecoder;
 import com.idrsolutions.image.jpeg.JpegEncoder;
+
+import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
  * Converts Tensors from and to BufferedImage / JPEG data
@@ -98,14 +97,10 @@ public class ImageConverter {
 			   0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa};
 	
 	
-	private final TensorFactory factory;
-	
 	private ImageReader ioDecoder;
 	private JPEGImageReadParam param;
 	
-	public ImageConverter(TensorFactory f){
-		this.factory = f;
-		
+	public ImageConverter(){
 		this.ioDecoder = ImageIO.getImageReadersByFormatName("JPEG").next();
 		this.param = new JPEGImageReadParam();
 		this.param.setDecodeTables(new JPEGQTable[]{}, createDCHuffmanTables(), createACHuffmanTables());
@@ -144,7 +139,7 @@ public class ImageConverter {
 			}
 		}
 		
-		return factory.createTensor(imageData, 3, height, width);
+		return new Tensor(imageData, 3, height, width);
 	}
 	
 	public Tensor readFromFile(String fileName) throws Exception{

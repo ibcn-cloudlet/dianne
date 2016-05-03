@@ -25,17 +25,17 @@ package be.iminds.iot.dianne.nn.module.fork;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 
 public class Duplicate extends Fork {
 
-	public Duplicate(TensorFactory factory) {
-		super(factory);
+	public Duplicate() {
+		super();
 	}
 	
-	public Duplicate(TensorFactory factory, UUID id) {
-		super(factory, id);
+	public Duplicate(UUID id) {
+		super(id);
 	}
 
 	@Override
@@ -51,12 +51,12 @@ public class Duplicate extends Fork {
 	protected void backward() {
 		// accumulate gradOutputs in gradInput
 		if(gradInput==null){
-			gradInput = factory.createTensor(input.dims());
+			gradInput = new Tensor(input.dims());
 		}
 		gradInput.fill(0.0f);
 		for(Tensor t : gradOutputs.values()){
 			if(t!=null)
-				gradInput = factory.getTensorMath().add(gradInput, gradInput, t);
+				gradInput = TensorOps.add(gradInput, gradInput, t);
 		}
 	}
 	

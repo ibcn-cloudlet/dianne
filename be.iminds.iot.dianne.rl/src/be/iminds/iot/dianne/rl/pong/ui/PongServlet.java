@@ -53,7 +53,6 @@ import be.iminds.iot.dianne.rl.agent.api.ManualActionController;
 import be.iminds.iot.dianne.rl.pong.Pong;
 import be.iminds.iot.dianne.rl.pong.api.PongEnvironment;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component(service = { javax.servlet.Servlet.class, EnvironmentListener.class }, property = {
 		"alias:String=/pong", "aiolos.proxy=false","target="+Pong.NAME }, immediate = true)
@@ -69,7 +68,6 @@ public class PongServlet extends HttpServlet implements EnvironmentListener {
 
 	private Agent agent;
 	private ManualActionController agentAction;
-	private TensorFactory factory;
 
 	// for now hard coded
 	private String nn = "DeepQPong";
@@ -157,7 +155,7 @@ public class PongServlet extends HttpServlet implements EnvironmentListener {
 				float[] t = new float[] { a == 1 ? 1 : 0, a == 0 ? 1 : 0,
 						a == -1 ? 1 : 0 };
 				if (agentAction != null) {
-					agentAction.setAction(factory.createTensor(t, 3));
+					agentAction.setAction(new Tensor(t, 3));
 				}
 			} else if (msg.startsWith("ai=")) {
 				if (msg.contains("human")) {
@@ -234,22 +232,11 @@ public class PongServlet extends HttpServlet implements EnvironmentListener {
 		}
 	}
 
-	@Reference
-	void setTensorFactory(TensorFactory f) {
-		this.factory = f;
-		if (agentAction != null) {
-			this.agentAction.setAction(factory.createTensor(new float[] { 0, 1,
-					0 }, 3));
-		}
-	}
-
 	@Reference(cardinality = ReferenceCardinality.OPTIONAL, policy = ReferencePolicy.DYNAMIC)
 	void setAgentAction(ManualActionController a) {
 		this.agentAction = a;
-		if (factory != null) {
-			this.agentAction.setAction(factory.createTensor(new float[] { 0, 1,
+		this.agentAction.setAction(new Tensor(new float[] { 0, 1,
 					0 }, 3));
-		}
 	}
 
 	public void unsetAgentAction(ManualActionController a) {

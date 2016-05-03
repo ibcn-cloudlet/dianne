@@ -26,7 +26,7 @@ import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class Dropout extends AbstractModule {
 
@@ -34,31 +34,31 @@ public class Dropout extends AbstractModule {
 	
 	private Tensor mask = null;
 	
-	public Dropout(TensorFactory factory, float p){
-		super(factory);
+	public Dropout(float p){
+		super();
 		this.p = 1-p; // p = rate to drop, so 1-p is bernoulli parameter
 	}
 	
-	public Dropout(TensorFactory factory, UUID id, float p){
-		super(factory, id);
+	public Dropout(UUID id, float p){
+		super(id);
 		this.p = 1-p;
 	}
 	
 	@Override
 	protected void forward() {
 		if(mask == null || !mask.hasDim(input.dims())){
-			mask = factory.createTensor(input.dims());
+			mask = new Tensor(input.dims());
 		}
 		
 		mask.bernoulli(p);
-		factory.getTensorMath().div(mask, mask, p);
+		TensorOps.div(mask, mask, p);
 		
-		output = factory.getTensorMath().cmul(output, input, mask);
+		output = TensorOps.cmul(output, input, mask);
 	}
 
 	@Override
 	protected void backward() {
-		gradInput = factory.getTensorMath().cmul(gradInput, gradOutput, mask);
+		gradInput = TensorOps.cmul(gradInput, gradOutput, mask);
 	}
 
 }

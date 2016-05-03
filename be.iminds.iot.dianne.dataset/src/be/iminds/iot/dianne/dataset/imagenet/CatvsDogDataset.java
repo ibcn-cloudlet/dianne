@@ -37,7 +37,7 @@ import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 /**
  * Exposes the ImageNet dataset as Cats and Dogs
@@ -49,7 +49,6 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 public class CatvsDogDataset implements Dataset {
 
 	private Dataset imagenet;
-	private TensorFactory factory;
 	
 	// binary array of the ImageNet labels that map to cat/dog
 	private boolean[] cats;
@@ -62,11 +61,6 @@ public class CatvsDogDataset implements Dataset {
 		this.imagenet = d;
 	}
 
-	@Reference
-	void setTensorFactory(TensorFactory f) {
-		this.factory = f;
-	}
-	
 	@Activate
 	public void activate(BundleContext context) {
 		String d = context
@@ -135,11 +129,11 @@ public class CatvsDogDataset implements Dataset {
 
 	@Override
 	public Tensor getOutputSample(int index) {
-		Tensor output = factory.createTensor(3);
+		Tensor output = new Tensor(3);
 		output.fill(0.0f);
 		
 		Tensor imagenetOutput = imagenet.getOutputSample(index);
-		int max = factory.getTensorMath().argmax(imagenetOutput);
+		int max = TensorOps.argmax(imagenetOutput);
 		
 		if(cats[max]){
 			output.set(1.0f, 0);

@@ -8,8 +8,9 @@ Bundle-Version: 0.4.0.${tstamp}
 	org.apache.felix.http.api,\
 	org.websocket;version=1.0,\
 	be.iminds.iot.dianne.api;version=latest,\
-	be.iminds.iot.dianne.tensor.api;version=latest,\
+	be.iminds.iot.dianne.tensor;version=latest,\
 	be.iminds.iot.dianne.nn.learn;version=latest,\
+	be.iminds.iot.dianne.nn.module;version=latest,\
 	be.iminds.iot.dianne.tensor.util;version=latest,\
 	osgi.promise
 -sub: *.bnd

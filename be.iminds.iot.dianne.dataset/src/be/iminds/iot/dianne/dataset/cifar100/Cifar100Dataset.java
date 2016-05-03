@@ -35,12 +35,10 @@ import java.util.concurrent.Executors;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 
 /**
  * The CIFAR-100 dataset, uses the binary images from:
@@ -52,8 +50,6 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 @Component(immediate=true, property={"name=CIFAR-100","aiolos.unique=true"})
 public class Cifar100Dataset implements Dataset {
 
-	private TensorFactory factory;
-	
 	private List<Sample> data = new ArrayList<Sample>();
 	private String[] labels;
 	
@@ -66,11 +62,6 @@ public class Cifar100Dataset implements Dataset {
 	private String dir = "";
 	// thread to start loading data when constructed
 	private ExecutorService loader = Executors.newSingleThreadExecutor();
-	
-	@Reference
-	void setTensorFactory(TensorFactory f){
-		this.factory = f;
-	}
 	
 	@Activate
 	public void activate(BundleContext context){
@@ -209,7 +200,7 @@ public class Cifar100Dataset implements Dataset {
 	private void parse(InputStream input) {
 		try {
 			while(input.available()>0){
-				Tensor out = factory.createTensor(outputSize);
+				Tensor out = new Tensor(outputSize);
 				out.fill(0.0f);
 				
 				int i1 = readUByte(input);
@@ -224,7 +215,7 @@ public class Cifar100Dataset implements Dataset {
 				for(int j=0;j<inputSize;j++){
 					inputData[j] = (float)readUByte(input)/255f;
 				}
-				Tensor in = factory.createTensor(inputData, 3, noRows, noColumns);
+				Tensor in = new Tensor(inputData, 3, noRows, noColumns);
 				
 				Sample s = new Sample(in, out);
 				synchronized(data){

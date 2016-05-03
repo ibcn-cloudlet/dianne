@@ -26,7 +26,7 @@ import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractTrainableModule;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class Linear extends AbstractTrainableModule {
 
@@ -39,20 +39,20 @@ public class Linear extends AbstractTrainableModule {
 	private Tensor deltaWeights;
 	private Tensor deltaBias;
 	
-	public Linear(TensorFactory factory, int inSize, int outSize){
-		super(factory, factory.createTensor(outSize*(inSize+1)));
+	public Linear(int inSize, int outSize){
+		super(new Tensor(outSize*(inSize+1)));
 		init(inSize, outSize);
 		parameters.fill(0.0f);
 	}
 	
-	public Linear(TensorFactory factory, UUID id, int inSize, int outSize){
-		super(factory, id, factory.createTensor(outSize*(inSize+1)));
+	public Linear(UUID id, int inSize, int outSize){
+		super(id, new Tensor(outSize*(inSize+1)));
 		init(inSize, outSize);
 		parameters.fill(0.0f);
 	}
 	
-	public Linear(TensorFactory factory, UUID id, Tensor parameters, int inSize, int outSize){
-		super(factory, id, parameters);
+	public Linear(UUID id, Tensor parameters, int inSize, int outSize){
+		super(id, parameters);
 		init(inSize, outSize);
 	}
 	
@@ -72,7 +72,7 @@ public class Linear extends AbstractTrainableModule {
 	
 	public void initDeltaParameters(Tensor deltas){
 		if(deltas==null){
-			deltaParameters = factory.createTensor(outSize*(inSize+1));
+			deltaParameters = new Tensor(outSize*(inSize+1));
 		} else {
 			// TODO check size?
 			deltaParameters = deltas;
@@ -91,8 +91,8 @@ public class Linear extends AbstractTrainableModule {
 		// randomize weights uniform [-std, std] with std = 1/sqrt(noInputs)  [from torch]
 		parameters.rand();
 		float std = (float) (1f/Math.sqrt(inSize));
-		factory.getTensorMath().mul(parameters, parameters, 2*std);
-		factory.getTensorMath().sub(parameters, parameters, std);		
+		TensorOps.mul(parameters, parameters, 2*std);
+		TensorOps.sub(parameters, parameters, std);		
 	}
 	
 	@Override
@@ -100,13 +100,13 @@ public class Linear extends AbstractTrainableModule {
 		// if size smaller than inSize, add zeros
 		Tensor in = input;
 		if(in.size() < inSize){
-			in = factory.createTensor(inSize);
+			in = new Tensor(inSize);
 			in.fill(0.0f);
 			Tensor narrow = in.narrow(0, input.size());
 			input.copyInto(narrow);
 			input = in;
 		}
-		output = factory.getTensorMath().addmv(output, bias, weights, in);
+		output = TensorOps.addmv(output, bias, weights, in);
 	}
 
 	@Override
@@ -114,13 +114,13 @@ public class Linear extends AbstractTrainableModule {
 		if(deltaParameters==null){
 			initDeltaParameters(null);
 		}
-		gradInput = factory.getTensorMath().tmv(gradInput, weights, gradOutput);
+		gradInput = TensorOps.tmv(gradInput, weights, gradOutput);
 	}
 
 	@Override
 	public void accGradParameters() {
-		deltaWeights = factory.getTensorMath().addvv(deltaWeights, deltaWeights, gradOutput, input);
-		deltaBias = factory.getTensorMath().add(deltaBias, deltaBias, gradOutput);
+		deltaWeights = TensorOps.addvv(deltaWeights, deltaWeights, gradOutput, input);
+		deltaBias = TensorOps.add(deltaBias, deltaBias, gradOutput);
 	}
 
 }

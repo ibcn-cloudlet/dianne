@@ -25,26 +25,26 @@ package be.iminds.iot.dianne.nn.module.preprocessing;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class Scale extends AbstractModule {
 
 	// dims of the scaled tensor
 	private final int[] targetDims;
 	
-	public Scale(TensorFactory factory, final int... dims){
-		super(factory);
+	public Scale(final int... dims){
+		super();
 		this.targetDims = dims;
 	}
 	
-	public Scale(TensorFactory factory, UUID id, final int... dims){
-		super(factory, id);
+	public Scale(UUID id, final int... dims){
+		super(id);
 		this.targetDims = dims;
 	}
 
 	@Override
 	protected void forward() {
-		output = factory.getTensorMath().scale2D(output, input, targetDims);
+		output = TensorOps.scale2D(output, input, targetDims);
 	}
 
 	@Override

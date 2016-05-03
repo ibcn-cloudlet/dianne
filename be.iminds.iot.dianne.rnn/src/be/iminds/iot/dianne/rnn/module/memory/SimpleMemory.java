@@ -25,24 +25,23 @@ package be.iminds.iot.dianne.rnn.module.memory;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public class SimpleMemory extends AbstractMemory {
 
-	public SimpleMemory(TensorFactory factory, int size) {
-		super(factory, size);
+	public SimpleMemory(int size) {
+		super(size);
 	}
 
-	public SimpleMemory(TensorFactory factory, UUID id, int size) {
-		super(factory, id, size);
+	public SimpleMemory(UUID id, int size) {
+		super(id, size);
 	}
 	
-	public SimpleMemory(TensorFactory factory, Tensor t) {
-		super(factory, t);
+	public SimpleMemory(Tensor t) {
+		super(t);
 	}
 
-	public SimpleMemory(TensorFactory factory, UUID id, Tensor t) {
-		super(factory, id, t);
+	public SimpleMemory(UUID id, Tensor t) {
+		super(id, t);
 	}
 
 	@Override

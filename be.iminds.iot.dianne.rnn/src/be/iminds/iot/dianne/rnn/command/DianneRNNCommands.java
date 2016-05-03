@@ -34,7 +34,7 @@ import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 /**
  * Separate component for learn commands ... should be moved to the command bundle later on
@@ -52,8 +52,6 @@ public class DianneRNNCommands {
 	private DiannePlatform platform;
 	private Learner learner;
 
-	private TensorFactory factory;
-	
 	protected NeuralNetworkInstanceDTO nni;
 	
 	public void generate(String nnName, String start, int n){
@@ -127,7 +125,7 @@ public class DianneRNNCommands {
 		if(labels==null){
 			throw new RuntimeException("Neural network "+nn.getNeuralNetworkInstance().name+" is not trained and has no labels");
 		}
-		Tensor in = factory.createTensor(labels.length);
+		Tensor in = new Tensor(labels.length);
 		in.fill(0.0f);
 		int index = 0;
 		for(int i=0;i<labels.length;i++){
@@ -142,14 +140,9 @@ public class DianneRNNCommands {
 		Tensor out = nn.forward(in);
 		
 		// select next, for now arg max, better sample here?
-		int o = factory.getTensorMath().argmax(out);
+		int o = TensorOps.argmax(out);
 		
 		return labels[o].charAt(0);
-	}
-	
-	@Reference
-	void setTensorFactory(TensorFactory tf){
-		this.factory = tf;
 	}
 	
 	@Reference

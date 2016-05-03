@@ -35,7 +35,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 
 /**
  * Provides base functionality for basic neural network Modules. Extend this class
@@ -47,9 +46,6 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 public abstract class AbstractModule implements Module {
 
 	protected final static boolean TRACE = false;
-	
-	// the factory for this module
-	protected final TensorFactory factory;
 	
 	// the UUID of this module
 	protected final UUID id;
@@ -97,14 +93,12 @@ public abstract class AbstractModule implements Module {
 	// Mode
 	protected EnumSet<Mode> mode = EnumSet.of(Mode.BLOCKING, Mode.WAIT_FOR_ALL);
 	
-	public AbstractModule(TensorFactory factory) {
+	public AbstractModule() {
 		this.id = UUID.randomUUID();
-		this.factory = factory;
 	}
 	
-	public AbstractModule(TensorFactory factory, UUID id) {
+	public AbstractModule(UUID id) {
 		this.id = id;
-		this.factory = factory;
 	}
 	
 	@Override

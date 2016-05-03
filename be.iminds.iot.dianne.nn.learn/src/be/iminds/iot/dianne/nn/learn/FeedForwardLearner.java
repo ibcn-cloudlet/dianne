@@ -30,6 +30,7 @@ import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 @Component(service=Learner.class, 
 	property={"aiolos.unique=true",
@@ -87,7 +88,7 @@ public class FeedForwardLearner extends AbstractLearner {
 			nn.getTrainables().values().stream().forEach(m -> {
 				Tensor deltaParams = m.getDeltaParameters();
 	
-				factory.getTensorMath().div(deltaParams, deltaParams, batchSize);
+				TensorOps.div(deltaParams, deltaParams, batchSize);
 						
 				// Set DeltaParameters to be sure in case of remote module instance
 				m.setDeltaParameters(deltaParams);

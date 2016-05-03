@@ -49,13 +49,10 @@ import be.iminds.iot.dianne.api.nn.module.factory.ModuleFactory;
 import be.iminds.iot.dianne.api.nn.runtime.DianneRuntime;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component(property={"aiolos.export=false"})
 public class CompositeModuleFactory implements ModuleFactory {
 
-	private TensorFactory factory;
-	
 	private DianneRepository repository;
 
 	private DianneRuntime runtime;
@@ -173,7 +170,7 @@ public class CompositeModuleFactory implements ModuleFactory {
 		// narrow for each trainable and memory module
 		boolean hasParameters = true;
 		if(parameters == null){
-			parameters = factory.createTensor(total);
+			parameters = new Tensor(total);
 			parameters.fill(0.0f);
 			hasParameters = false;
 		} else {
@@ -245,7 +242,7 @@ public class CompositeModuleFactory implements ModuleFactory {
 			NeuralNetwork nn = dianne.getNeuralNetwork(nnDTO).getValue();
 			
 			// create CompositeModule with parameters and NeuralNetwork
-			module = new CompositeModule(factory, compositeId, parameters.narrow(0, total-memory), parameters.narrow(total-memory, memory), nn, parameterMapping);
+			module = new CompositeModule(compositeId, parameters.narrow(0, total-memory), parameters.narrow(total-memory, memory), nn, parameterMapping);
 			
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to deploy composite module "+compositeId+": "+e.getMessage());
@@ -320,11 +317,6 @@ public class CompositeModuleFactory implements ModuleFactory {
 		} else {
 			return ""+result;
 		}
-	}
-	
-	@Reference
-	void setTensorFactory(TensorFactory f){
-		this.factory = f;
 	}
 	
 	@Reference

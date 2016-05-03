@@ -27,14 +27,14 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.UUID;
 
-import junit.framework.Assert;
-
 import org.osgi.framework.ServiceReference;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorOps;
+import junit.framework.Assert;
 
 
 public class MNISTTest extends AbstractDianneTest {
@@ -57,7 +57,7 @@ public class MNISTTest extends AbstractDianneTest {
 		deployNN("../tools/nn/mnist-20/modules.txt");
 		
 		final Tensor sample = mnist.getInputSample(0);		
-		final Tensor result = factory.createTensor(10);
+		final Tensor result = new Tensor(10);
 	
 		
 		// wait for output
@@ -101,11 +101,11 @@ public class MNISTTest extends AbstractDianneTest {
 			lock.wait();
 		}
 		
-		int index = factory.getTensorMath().argmax(result);
+		int index = TensorOps.argmax(result);
 		float prob = result.get(index);
 		System.out.println(getOutput().getOutputLabels()[index]+" "+prob);
 		
-		int expected = factory.getTensorMath().argmax(mnist.getOutputSample(0));
+		int expected = TensorOps.argmax(mnist.getOutputSample(0));
 		System.out.println("Expected: "+getOutput().getOutputLabels()[expected]);
 		Assert.assertEquals(expected, index);
 		
@@ -115,7 +115,7 @@ public class MNISTTest extends AbstractDianneTest {
 		}
 		
 		// should yield the same result
-		index = factory.getTensorMath().argmax(result);
+		index = TensorOps.argmax(result);
 		System.out.println(getOutput().getOutputLabels()[index]+" "+result.get(index));
 		Assert.assertEquals(prob, result.get(index));
 	}

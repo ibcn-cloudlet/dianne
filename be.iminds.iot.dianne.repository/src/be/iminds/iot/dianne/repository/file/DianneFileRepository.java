@@ -62,14 +62,12 @@ import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.api.repository.RepositoryListener;
 import be.iminds.iot.dianne.nn.util.DianneJSONConverter;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 @Component(immediate=true)
 public class DianneFileRepository implements DianneRepository {
 
 	private String dir = "nn";
-	
-	private TensorFactory factory;
 	
 	private Map<RepositoryListener, List<String>> listeners = Collections.synchronizedMap(new HashMap<RepositoryListener, List<String>>());
 	protected ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -240,7 +238,7 @@ public class DianneFileRepository implements DianneRepository {
 				float[] data = new float[bufferSize];
 				DataInputStream is = new DataInputStream(new BufferedInputStream(new FileInputStream(f)));
 				int length = is.readInt();
-				Tensor t = factory.createTensor(length);
+				Tensor t = new Tensor(length);
 				int index = 0;
 				while(length > 0){
 					if(length<bufferSize){
@@ -325,7 +323,7 @@ public class DianneFileRepository implements DianneRepository {
 		try {
 			parameters = load(moduleId, tag);
 			
-			factory.getTensorMath().add(parameters, parameters, accParameters);
+			TensorOps.add(parameters, parameters, accParameters);
 		} catch(Exception e){
 			System.out.println("Failed to load parameters for "+moduleId+" "+Arrays.toString(tag)+", store as new");
 		}
@@ -407,11 +405,6 @@ public class DianneFileRepository implements DianneRepository {
 			return true;
 		}
 		return false;
-	}
-	
-	@Reference
-	void setTensorFactory(TensorFactory factory){
-		this.factory = factory;
 	}
 	
 	@Reference(

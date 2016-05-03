@@ -25,7 +25,8 @@ package be.iminds.iot.dianne.nn.module.layer;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.nn.module.ModuleOps;
+import be.iminds.iot.dianne.tensor.Tensor;
 
 public class SpatialMaxPooling extends AbstractModule {
 	
@@ -34,18 +35,17 @@ public class SpatialMaxPooling extends AbstractModule {
 	private int sx;
 	private int sy;
 	
-	public SpatialMaxPooling(TensorFactory factory, 
-			int width, int height, int sx, int sy){
-		super(factory);
+	public SpatialMaxPooling(int width, int height, int sx, int sy){
+		super();
 		this.w = width;
 		this.h = height;
 		this.sx = sx;
 		this.sy = sy;
 	}
 	
-	public SpatialMaxPooling(TensorFactory factory, UUID id,
+	public SpatialMaxPooling(UUID id,
 			 int width, int height, int sx, int sy){
-		super(factory, id);
+		super(id);
 		this.w = width;
 		this.h = height;
 		this.sx = sx;
@@ -58,19 +58,19 @@ public class SpatialMaxPooling extends AbstractModule {
 		int y = input.size(1)/h;
 		int x = input.size(2)/w;
 		if(output==null || !output.hasDim(noPlanes, y, x)){
-			output = factory.createTensor(noPlanes, y, x);
+			output = new Tensor(noPlanes, y, x);
 		}
 		
-		output = factory.getTensorMath().spatialmaxpool(output, input, w, h, sx, sy);
+		output = ModuleOps.spatialmaxpool(output, input, w, h, sx, sy, 0, 0);
 	}
 
 	@Override
 	protected void backward() {	
 		if(gradInput == null || !gradInput.sameDim(input)){
-			gradInput = factory.createTensor(input.dims());
+			gradInput = new Tensor(input.dims());
 		}
 
-		factory.getTensorMath().spatialdmaxpool(gradInput, gradOutput, input, w, h, sx, sy);
+		ModuleOps.spatialmaxpoolDin(gradInput, gradOutput, input, w, h, sx, sy, 0, 0);
 	}
 	
 }

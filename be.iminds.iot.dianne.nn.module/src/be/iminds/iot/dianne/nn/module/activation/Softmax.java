@@ -25,35 +25,39 @@ package be.iminds.iot.dianne.nn.module.activation;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.nn.module.ModuleOps;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class Softmax extends AbstractModule {
 
 	private float alpha = 0.0001f;
 	
-	public Softmax(TensorFactory factory) {
-		super(factory);
+	public Softmax() {
+		super();
 	}
 	
-	public Softmax(TensorFactory factory, UUID id) {
-		super(factory, id);
+	public Softmax(UUID id) {
+		super(id);
 	}
 	
 	@Override
 	protected void forward() {
-		output = factory.getTensorMath().softmax(output, input);
+		output = ModuleOps.softmax(output, input);
 		
 		// this makes sure that you don't end up with zeros and a one, which 
 		// gives -Inf in the NLL ... this does add a (small) error though...
-		output = factory.getTensorMath().add(output, output, alpha);
-		output = factory.getTensorMath().div(output, output, 1f + alpha*output.size());
+		output = TensorOps.add(output, output, alpha);
+		output = TensorOps.div(output, output, 1f + alpha*output.size());
 	}
 
 	@Override
 	protected void backward() {
-		float sum = factory.getTensorMath().sum(factory.getTensorMath().cmul(null, gradOutput, output));
+		// TODO use single op
+		//float sum = TensorOps.sum(TensorOps.cmul(null, gradOutput, output));
+		//
+		//gradInput = TensorOps.sub(gradInput, gradOutput, sum);
+		//gradInput = TensorOps.cmul(gradInput, output, gradInput);
 		
-		gradInput = factory.getTensorMath().sub(gradInput, gradOutput, sum);
-		gradInput = factory.getTensorMath().cmul(gradInput, output, gradInput);
+		gradInput = ModuleOps.softmaxDin(gradInput, gradOutput, output);
 	}
 }

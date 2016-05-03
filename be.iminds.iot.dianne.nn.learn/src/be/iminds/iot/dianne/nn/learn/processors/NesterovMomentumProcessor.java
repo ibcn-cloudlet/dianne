@@ -28,6 +28,7 @@ import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 /**
  * Additional learning techniques like Momentum can be implemented as a Processor decorator
@@ -60,7 +61,7 @@ public class NesterovMomentumProcessor extends GradientProcessor {
 			Tensor deltaParams = e.getValue().getDeltaParameters();
 			Tensor v = velocity.get(e.getKey());
 			if(v!=null){
-				v = factory.getTensorMath().add(v, deltaParams, momentum , v);
+				v = TensorOps.add(v, deltaParams, momentum , v);
 			} else {
 				// if no velocity yet, just copy deltaParams
 				v = deltaParams.copyInto(v);
@@ -76,13 +77,13 @@ public class NesterovMomentumProcessor extends GradientProcessor {
 	
 			Tensor prev = previousVelocity.get(e.getKey());
 			if(prev!=null){
-				factory.getTensorMath().mul(deltaParams, prev, -momentum);
+				TensorOps.mul(deltaParams, prev, -momentum);
 			} else {
 				deltaParams.fill(0.0f);
 			}
 			
 			Tensor v = velocity.get(e.getKey());
-			factory.getTensorMath().add(deltaParams, deltaParams , (1+momentum), v);
+			TensorOps.add(deltaParams, deltaParams , (1+momentum), v);
 			
 			// set DeltaParameters to be sure in case of remote module instance
 			e.getValue().setDeltaParameters(deltaParams);

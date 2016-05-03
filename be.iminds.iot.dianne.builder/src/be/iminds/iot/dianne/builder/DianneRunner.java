@@ -55,6 +55,11 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
+
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
@@ -65,13 +70,7 @@ import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.dianne.tensor.util.ImageConverter;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
 
 @Component(service = { javax.servlet.Servlet.class }, 
 	property = { "alias:String=/dianne/run",
@@ -83,7 +82,6 @@ public class DianneRunner extends HttpServlet {
 	
 	private BundleContext context;
 	
-	private TensorFactory factory;
 	private ImageConverter converter;
 	
 	private JsonParser parser = new JsonParser();
@@ -101,12 +99,7 @@ public class DianneRunner extends HttpServlet {
 	@Activate
 	public void activate(BundleContext c){
 		this.context = c;
-	}
-	
-	@Reference
-	void setTensorFactory(TensorFactory factory){
-		this.factory = factory;
-		this.converter = new ImageConverter(factory);
+		this.converter = new ImageConverter();
 	}
 	
 	@Reference
@@ -201,7 +194,7 @@ public class DianneRunner extends HttpServlet {
 			int height = sample.get("height").getAsInt();
 
 			float[] data = parseInput(sample.get("data").getAsJsonArray().toString());
-			Tensor t = factory.createTensor(data, channels, height, width);
+			Tensor t = new Tensor(data, channels, height, width);
 			
 			start = System.currentTimeMillis();
 			nn.forward(UUID.fromString(inputId), null, t, "ui");

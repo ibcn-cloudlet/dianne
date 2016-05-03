@@ -26,20 +26,14 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
-import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;
 
 public class ImageConverterTest {
 	
-	private TensorFactory factory = new JavaTensorFactory();
 
-	/**
-	 * @throws Exception
-	 */
 	@Test
 	@Ignore
 	public void testImageNetImages() throws Exception {
-		ImageConverter conv = new ImageConverter(factory);
+		ImageConverter conv = new ImageConverter();
 		long t1 = System.currentTimeMillis();
 		int n = 100;
 		for(int i=0;i<n;i++){
@@ -56,7 +50,7 @@ public class ImageConverterTest {
 	@Test
 	@Ignore
 	public void testReadWriteImage() throws Exception {
-		ImageConverter conv = new ImageConverter(factory);
+		ImageConverter conv = new ImageConverter();
 		Tensor t = conv.readFromFile(String.format("../tools/datasets/ImageNet/images/ILSVRC2012_val_%08d.JPEG", 1));
 		conv.writeToFile("generated/test.jpg", t);
 	}

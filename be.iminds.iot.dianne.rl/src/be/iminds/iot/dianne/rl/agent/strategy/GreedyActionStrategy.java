@@ -31,13 +31,11 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.rl.agent.api.ExplorationController;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 @Component(property={"strategy=greedy",
 		"aiolos.proxy=false"})
 public class GreedyActionStrategy implements ActionStrategy, ExplorationController {
-	
-	private TensorFactory factory;
 	
 	private double epsilonMax = 1e0;
 	private double epsilonMin = 0;
@@ -48,7 +46,7 @@ public class GreedyActionStrategy implements ActionStrategy, ExplorationControll
 	
 	public Tensor selectActionFromOutput(Tensor output, long i) {
 		
-		Tensor action = factory.createTensor(output.size());
+		Tensor action = new Tensor(output.size());
 		action.fill(-1);
 		
 		double epsilon = epsilonMin + (epsilonMax - epsilonMin) * Math.exp(-i * epsilonDecay);
@@ -60,7 +58,7 @@ public class GreedyActionStrategy implements ActionStrategy, ExplorationControll
 		if (Math.random() < epsilon) {
 			action.set(1, (int) (Math.random() * action.size()));
 		} else {
-			action.set(1, factory.getTensorMath().argmax(output));
+			action.set(1, TensorOps.argmax(output));
 		}
 		
 		return action;
@@ -84,11 +82,6 @@ public class GreedyActionStrategy implements ActionStrategy, ExplorationControll
 		System.out.println("---");
 	}
 
-	@Reference
-	void setTensorFactory(TensorFactory f){
-		this.factory =f;
-	}
-	
 	@Reference(cardinality = ReferenceCardinality.OPTIONAL)
 	void setDataLogger(DataLogger l){
 		this.logger = l;

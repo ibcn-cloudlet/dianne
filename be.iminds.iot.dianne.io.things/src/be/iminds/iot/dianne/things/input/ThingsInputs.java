@@ -39,10 +39,9 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
-import be.iminds.iot.dianne.api.io.InputDescription;
 import be.iminds.iot.dianne.api.io.DianneInputs;
+import be.iminds.iot.dianne.api.io.InputDescription;
 import be.iminds.iot.dianne.api.nn.module.Input;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.things.api.Thing;
 import be.iminds.iot.things.api.camera.Camera;
 import be.iminds.iot.things.api.camera.CameraListener;
@@ -51,8 +50,6 @@ import be.iminds.iot.things.api.camera.CameraListener;
 public class ThingsInputs implements DianneInputs {
 
 	private BundleContext context;
-	
-	private TensorFactory factory;
 	
 	private Map<String, UUID> cameraIds = Collections.synchronizedMap(new HashMap<String, UUID>());
 	private Map<UUID, Camera> cameras = Collections.synchronizedMap(new HashMap<UUID, Camera>());
@@ -65,11 +62,6 @@ public class ThingsInputs implements DianneInputs {
 	@Activate
 	void activate(BundleContext context){
 		this.context = context;
-	}
-	
-	@Reference
-	void setTensorFactory(TensorFactory factory){
-		this.factory = factory;
 	}
 	
 	@Reference(
@@ -142,7 +134,7 @@ public class ThingsInputs implements DianneInputs {
 				}
 			}
 			
-			CameraInput i = new CameraInput(factory, inputs.get(id), 320, 240, 3);
+			CameraInput i = new CameraInput(inputs.get(id), 320, 240, 3);
 			Dictionary<String, Object> properties = new Hashtable<String, Object>();
 			properties.put(CameraListener.CAMERA_ID, cameraId.toString());
 			properties.put("aiolos.unique", true);

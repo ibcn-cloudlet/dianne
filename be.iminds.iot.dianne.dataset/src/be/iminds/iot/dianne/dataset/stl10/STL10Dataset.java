@@ -35,12 +35,10 @@ import java.util.concurrent.Executors;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 
 /**
  * The CIFAR-10 dataset, uses the binary images from:
@@ -52,8 +50,6 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
 @Component(immediate=true, property={"name=STL-10","aiolos.unique=true"})
 public class STL10Dataset implements Dataset {
 
-	private TensorFactory factory;
-	
 	private List<Sample> data = new ArrayList<Sample>();
 	private String[] labels;
 	
@@ -66,11 +62,6 @@ public class STL10Dataset implements Dataset {
 	private String dir = "";
 	// thread to start loading data when constructed
 	private ExecutorService loader = Executors.newSingleThreadExecutor();
-	
-	@Reference
-	void setTensorFactory(TensorFactory f){
-		this.factory = f;
-	}
 	
 	@Activate
 	public void activate(BundleContext context){
@@ -190,7 +181,7 @@ public class STL10Dataset implements Dataset {
 		try {
 			while(imageInput.available()>0
 					&& labelInput.available()>0){
-				Tensor out = factory.createTensor(10);
+				Tensor out = new Tensor(10);
 				out.fill(0.0f);
 				
 				int i = readUByte(labelInput);
@@ -206,7 +197,7 @@ public class STL10Dataset implements Dataset {
 						}
 					}
 				}
-				Tensor in = factory.createTensor(inputData, 3, noRows, noColumns);
+				Tensor in = new Tensor(inputData, 3, noRows, noColumns);
 				
 				Sample s = new Sample(in, out);
 				synchronized(data){

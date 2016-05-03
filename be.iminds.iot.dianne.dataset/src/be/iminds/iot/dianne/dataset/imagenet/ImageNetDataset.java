@@ -35,12 +35,10 @@ import java.util.List;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.dianne.tensor.util.ImageConverter;
 
 /**
@@ -54,7 +52,6 @@ import be.iminds.iot.dianne.tensor.util.ImageConverter;
 @Component(immediate = true, property = {"name=ImageNet","aiolos.unique=true" })
 public class ImageNetDataset implements Dataset {
 
-	private TensorFactory factory;
 	private ImageConverter converter;
 
 	private List<Sample> data = new ArrayList<Sample>();
@@ -65,12 +62,6 @@ public class ImageNetDataset implements Dataset {
 	private int noSamples;
 
 	private String dir = "";
-
-	@Reference
-	void setTensorFactory(TensorFactory f) {
-		this.factory = f;
-		this.converter = new ImageConverter(f);
-	}
 
 	@Activate
 	public void activate(BundleContext context) {
@@ -168,7 +159,7 @@ public class ImageNetDataset implements Dataset {
 
 	@Override
 	public Tensor getOutputSample(int index) {
-		Tensor output = factory.createTensor(outputSize);
+		Tensor output = new Tensor(outputSize);
 		output.fill(0.0f);
 		output.set(1.0f, outputs[index]);
 		return output;

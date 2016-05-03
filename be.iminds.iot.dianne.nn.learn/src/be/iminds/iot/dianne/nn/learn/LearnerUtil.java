@@ -42,17 +42,16 @@ import be.iminds.iot.dianne.nn.learn.processors.RegularizationProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.StochasticGradientDescentProcessor;
 import be.iminds.iot.dianne.nn.learn.sampling.RandomSamplingStrategy;
 import be.iminds.iot.dianne.nn.learn.sampling.SequentialSamplingStrategy;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public class LearnerUtil {
 
-	public static GradientProcessor createGradientProcessor(TensorFactory factory, 
-			NeuralNetwork nn, Dataset d, Map<String, String> config,DataLogger logger){
-		return addMomentum(addRegularization(createSGDProcessor(factory, nn, d, config, logger), config), config);
+	public static GradientProcessor createGradientProcessor(NeuralNetwork nn, Dataset d,
+			Map<String, String> config,DataLogger logger){
+		return addMomentum(addRegularization(createSGDProcessor(nn, d, config, logger), config), config);
 	}
 	
-	public static GradientProcessor createSGDProcessor(TensorFactory factory, 
-			NeuralNetwork nn, Dataset d, Map<String, String> config, DataLogger logger){
+	public static GradientProcessor createSGDProcessor(NeuralNetwork nn, Dataset d,
+			Map<String, String> config, DataLogger logger){
 		String method = "SGD";
 		if(config.containsKey("method"))
 			method = config.get("method");
@@ -69,21 +68,21 @@ public class LearnerUtil {
 		
 		switch(method) {
 		case "Adadelta":
-			p = new AdadeltaProcessor(factory, nn, logger, decayRate);
+			p = new AdadeltaProcessor(nn, logger, decayRate);
 			
 			System.out.println("Adadelta");
 			System.out.println("* decayRate = "+decayRate);
 			System.out.println("---");
 			break;
 		case "Adagrad":
-			p = new AdagradProcessor(factory, nn, logger, learningRate);
+			p = new AdagradProcessor(nn, logger, learningRate);
 			
 			System.out.println("Adagrad");
 			System.out.println("* learningRate = "+learningRate);
 			System.out.println("---");
 			break;
 		case "RMSprop":
-			p = new RMSpropProcessor(factory, nn, logger, learningRate, decayRate);
+			p = new RMSpropProcessor(nn, logger, learningRate, decayRate);
 			
 			System.out.println("RMSprop");
 			System.out.println("* learningRate = "+learningRate);
@@ -94,7 +93,7 @@ public class LearnerUtil {
 			if(!method.equals("SGD"))
 				System.out.println("Method "+method+" unknown, fall back to SGD");
 			
-			p = new StochasticGradientDescentProcessor(factory, nn, logger, learningRate);
+			p = new StochasticGradientDescentProcessor(nn, logger, learningRate);
 			
 			System.out.println("StochasticGradientDescent");
 			System.out.println("* learningRate = "+learningRate);
@@ -156,7 +155,7 @@ public class LearnerUtil {
 		}
 	}
 	
-	public static Criterion createCriterion(TensorFactory factory, Map<String, String> config){
+	public static Criterion createCriterion(Map<String, String> config){
 		String c = "MSE";
 		if(config.containsKey("criterion"))
 			c = config.get("criterion");
@@ -165,13 +164,13 @@ public class LearnerUtil {
 		
 		switch(c) {
 		case "NLL" :
-			criterion = new NLLCriterion(factory);
+			criterion = new NLLCriterion();
 			break;
 		default:
 			if(!c.equals("MSE"))
 				System.out.println("Criterion "+c+" unknown, fall back to MSE");
 			
-			criterion = new MSECriterion(factory);
+			criterion = new MSECriterion();
 			break;
 		}
 		

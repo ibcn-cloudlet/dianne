@@ -27,9 +27,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
 import be.iminds.iot.dianne.api.nn.module.Module;
@@ -50,8 +50,8 @@ import be.iminds.iot.dianne.nn.module.io.InputImpl;
 import be.iminds.iot.dianne.nn.module.io.OutputImpl;
 import be.iminds.iot.dianne.nn.module.join.Accumulate;
 import be.iminds.iot.dianne.nn.module.join.Concat;
-import be.iminds.iot.dianne.nn.module.layer.Dropout;
 import be.iminds.iot.dianne.nn.module.join.Multiply;
+import be.iminds.iot.dianne.nn.module.layer.Dropout;
 import be.iminds.iot.dianne.nn.module.layer.Linear;
 import be.iminds.iot.dianne.nn.module.layer.MaskedMaxPooling;
 import be.iminds.iot.dianne.nn.module.layer.SpatialConvolution;
@@ -61,13 +61,10 @@ import be.iminds.iot.dianne.nn.module.preprocessing.Narrow;
 import be.iminds.iot.dianne.nn.module.preprocessing.Normalization;
 import be.iminds.iot.dianne.nn.module.preprocessing.Scale;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component(property={"aiolos.export=false"})
 public class DianneModuleFactory implements ModuleFactory {
 
-	private TensorFactory factory;
-	
 	private final Map<String, ModuleTypeDTO> supportedModules = new HashMap<String, ModuleTypeDTO>();
 	
 	@Activate
@@ -182,41 +179,41 @@ public class DianneModuleFactory implements ModuleFactory {
 			int output = Integer.parseInt(dto.properties.get("output"));
 			
 			if(parameters!=null){
-				module = new Linear(factory, id, parameters, input, output);
+				module = new Linear(id, parameters, input, output);
 			} else {
-				module = new Linear(factory, id, input, output);
+				module = new Linear(id, input, output);
 			}
 			break;
 		}
 		case "Dropout":
 		{
 			float dropout = Float.parseFloat(dto.properties.get("dropout"));
-			module = new Dropout(factory, id, dropout);
+			module = new Dropout(id, dropout);
 			break;
 		}
 		case "Tanh":
 		{
-			module = new Tanh(factory, id);
+			module = new Tanh(id);
 			break;
 		}
 		case "Sigmoid":
 		{
-			module = new Sigmoid(factory, id);
+			module = new Sigmoid(id);
 			break;
 		}
 		case "Softmax":
 		{
-			module = new Softmax(factory, id);
+			module = new Softmax(id);
 			break;
 		}
 		case "ReLU":
 		{
-			module = new ReLU(factory, id);
+			module = new ReLU(id);
 			break;
 		}
 		case "PReLU":
 		{
-			module = new PReLU(factory, id);
+			module = new PReLU(id);
 			if(parameters!=null){
 				((PReLU)module).setParameters(parameters);
 			}
@@ -227,42 +224,42 @@ public class DianneModuleFactory implements ModuleFactory {
 			float thresh = Float.parseFloat(dto.properties.get("thresh"));
 			float val = Float.parseFloat(dto.properties.get("val"));
 			
-			module = new Threshold(factory, id, thresh, val);
+			module = new Threshold(id, thresh, val);
 			break;
 		}
 		case "Input":
 		{
-			module = new InputImpl(factory, id);
+			module = new InputImpl(id);
 			break;
 		}
 		case "Output":
 		{
-			module = new OutputImpl(factory, id);
+			module = new OutputImpl(id);
 			break;
 		}
 		case "Duplicate":
 		{
-			module = new Duplicate(factory, id);
+			module = new Duplicate(id);
 			break;
 		}
 		case "Accumulate":
 		{
-			module = new Accumulate(factory, id);
+			module = new Accumulate(id);
 			break;
 		}
 		case "Multiply":
 		{
-			module = new Multiply(factory, id);
+			module = new Multiply(id);
 			break;
 		}
 		case "Split":
 		{
-			module = new Split(factory, id);
+			module = new Split(id);
 			break;
 		}
 		case "Concat":
 		{
-			module = new Concat(factory, id);
+			module = new Concat(id);
 			break;
 		}
 		case "Grid":
@@ -273,7 +270,7 @@ public class DianneModuleFactory implements ModuleFactory {
 			int strideX = hasProperty(dto.properties,"strideX") ? Integer.parseInt(dto.properties.get("strideX")) : 1;
 			int strideY = hasProperty(dto.properties,"strideY") ? Integer.parseInt(dto.properties.get("strideY")) : 1;
 
-			module = new Grid(factory, id, x, y, strideX, strideY);
+			module = new Grid(id, x, y, strideX, strideY);
 			break;
 		}
 		case "Convolution":
@@ -289,9 +286,9 @@ public class DianneModuleFactory implements ModuleFactory {
 			boolean pad = hasProperty(dto.properties,"pad") ? Boolean.parseBoolean(dto.properties.get("pad")) : false;
 
 			if(parameters!=null){
-				module = new SpatialConvolution(factory, id, parameters, noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY, pad);
+				module = new SpatialConvolution(id, parameters, noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY, pad);
 			} else {
-				module = new SpatialConvolution(factory, id, noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY, pad);
+				module = new SpatialConvolution(id, noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY, pad);
 			}
 			break;
 		}
@@ -303,12 +300,12 @@ public class DianneModuleFactory implements ModuleFactory {
 			int sx = hasProperty(dto.properties, "strideX") ? Integer.parseInt(dto.properties.get("strideX")) : width;
 			int sy = hasProperty(dto.properties,"strideY") ? Integer.parseInt(dto.properties.get("strideY")) : height;
 			
-			module = new SpatialMaxPooling(factory, id, width, height, sx, sy);
+			module = new SpatialMaxPooling(id, width, height, sx, sy);
 			break;
 		}
 		case "Normalization":
 		{
-			module = new Normalization(factory, id);
+			module = new Normalization(id);
 			if(parameters!=null){
 				((Normalization)module).setParameters(parameters);
 			}
@@ -333,7 +330,7 @@ public class DianneModuleFactory implements ModuleFactory {
 				ranges = new int[]{index0, size0, index1, size1};
 			}
 			
-			module = new Narrow(factory, id, ranges);
+			module = new Narrow(id, ranges);
 			break;
 		}
 		case "Scale":
@@ -351,7 +348,7 @@ public class DianneModuleFactory implements ModuleFactory {
 				dims = new int[]{dim0, dim1};
 			}
 			
-			module = new Scale(factory, id, dims);
+			module = new Scale(id, dims);
 			break;
 		}
 		case "Frame":
@@ -369,7 +366,7 @@ public class DianneModuleFactory implements ModuleFactory {
 				dims = new int[]{dim0, dim1};
 			}
 			
-			module = new Frame(factory, id, dims);
+			module = new Frame(id, dims);
 			break;
 		}
 		case "Masked MaxPooling":
@@ -377,7 +374,7 @@ public class DianneModuleFactory implements ModuleFactory {
 			int noInputs = Integer.parseInt(dto.properties.get("noInputs"));
 			String masks = dto.properties.get("masks");
 			
-			module = new MaskedMaxPooling(factory, id, noInputs, masks);
+			module = new MaskedMaxPooling(id, noInputs, masks);
 			break;
 		}
 		default:
@@ -411,8 +408,4 @@ public class DianneModuleFactory implements ModuleFactory {
 		supportedModules.put(t.type, t);
 	}
 	
-	@Reference
-	void setTensorFactory(TensorFactory f){
-		this.factory = f;
-	}
 }

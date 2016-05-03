@@ -1,7 +1,7 @@
 Bundle-Version: 0.4.0.${tstamp}
 
 -buildpath: \
-	be.iminds.iot.dianne.tensor.api;version=latest,\
+	be.iminds.iot.dianne.tensor;version=latest,\
 	be.iminds.iot.dianne.tensor.util;version=latest,\
 	biz.aQute.junit,\
 	osgi.enterprise;version=5.0,\

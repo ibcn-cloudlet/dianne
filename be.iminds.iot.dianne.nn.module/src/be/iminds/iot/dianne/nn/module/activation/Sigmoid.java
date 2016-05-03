@@ -25,27 +25,29 @@ package be.iminds.iot.dianne.nn.module.activation;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.nn.module.ModuleOps;
 
 public class Sigmoid extends AbstractModule {
 
-	public Sigmoid(TensorFactory factory) {
-		super(factory);
+	public Sigmoid() {
+		super();
 	}
 	
-	public Sigmoid(TensorFactory factory, UUID id) {
-		super(factory, id);
+	public Sigmoid(UUID id) {
+		super(id);
 	}
 	
 	@Override
 	protected void forward() {
-		output = factory.getTensorMath().sigmoid(output, input);
+		output = ModuleOps.sigmoid(output, input);
 	}
 
 	@Override
 	protected void backward() {
-		gradInput = factory.getTensorMath().cmul(gradInput, gradOutput, 
-				factory.getTensorMath().dsigmoid(gradInput, output));
+		// TODO do this in one operation?
+		//gradInput = TensorOps.cmul(gradInput, gradOutput, 
+		//		TensorOps.dsigmoid(gradInput, output));
+		gradInput = ModuleOps.sigmoidDin(gradInput, gradOutput, output);
 	}
 
 }

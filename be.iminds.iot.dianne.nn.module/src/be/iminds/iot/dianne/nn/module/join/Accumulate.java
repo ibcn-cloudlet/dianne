@@ -25,29 +25,29 @@ package be.iminds.iot.dianne.nn.module.join;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 
 public class Accumulate extends Join {
 
-	public Accumulate(TensorFactory factory) {
-		super(factory);
+	public Accumulate() {
+		super();
 	}
 	
-	public Accumulate(TensorFactory factory, UUID id) {
-		super(factory, id);
+	public Accumulate(UUID id) {
+		super(id);
 	}
 	
 	@Override
 	protected void forward() {
 		// accumulate inputs
 		if(output==null){
-			output = factory.createTensor(inputs.values().stream().filter(t -> t !=null).findFirst().get().dims());
+			output = new Tensor(inputs.values().stream().filter(t -> t !=null).findFirst().get().dims());
 		}
 		output.fill(0.0f);
 		for(Tensor t : inputs.values()){
 			if(t!=null)
-				output = factory.getTensorMath().add(output, output, t);
+				output = TensorOps.add(output, output, t);
 		}
 	}
 

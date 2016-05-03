@@ -38,7 +38,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.api.rl.environment.EnvironmentListener;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 /**
  * Arcade Learning Environment for learning agents to play Atari games
@@ -61,7 +61,6 @@ public class ArcadeLearningEnvironment implements Environment {
 		}
     }
 
-    private TensorFactory factory;
 	private Set<EnvironmentListener> listeners = Collections.synchronizedSet(new HashSet<>());
 
 	private String rom = "roms/pong.bin"; 
@@ -102,12 +101,12 @@ public class ArcadeLearningEnvironment implements Environment {
     	}
     	
     	// init screen tensor
-    	screen = factory.createTensor(3, 210, 160);
+    	screen = new Tensor(3, 210, 160);
     	if(grayscale){
-    		gray = factory.createTensor(210, 160);
+    		gray = new Tensor(210, 160);
     	}
 		int channels = grayscale ? 1 : 3;
-		observation = factory.createTensor(observationLength*channels, 210, 160);
+		observation = new Tensor(observationLength*channels, 210, 160);
 
     	
     	loadROM(rom);
@@ -123,15 +122,15 @@ public class ArcadeLearningEnvironment implements Environment {
 		int r = 0;
 		
 		for(int i=0;i<observationLength;i++){
-			r += performAction(factory.getTensorMath().argmax(action));
+			r += performAction(TensorOps.argmax(action));
 			
 			screen.set(getScreen());
 			
 			if(grayscale){
 				screen.select(0, 0).copyInto(gray);
-				factory.getTensorMath().add(gray, gray, screen.select(0, 1));
-				factory.getTensorMath().add(gray, gray, screen.select(0, 2));
-				factory.getTensorMath().div(gray, gray, 3);
+				TensorOps.add(gray, gray, screen.select(0, 1));
+				TensorOps.add(gray, gray, screen.select(0, 2));
+				TensorOps.div(gray, gray, 3);
 				
 				gray.copyInto(observation.select(0, i));
 			} else {
@@ -165,9 +164,9 @@ public class ArcadeLearningEnvironment implements Environment {
 		screen.set(getScreen());
 		if(grayscale){
 			screen.select(0, 0).copyInto(gray);
-			factory.getTensorMath().add(gray, gray, screen.select(0, 1));
-			factory.getTensorMath().add(gray, gray, screen.select(0, 2));
-			factory.getTensorMath().div(gray, gray, 3);
+			TensorOps.add(gray, gray, screen.select(0, 1));
+			TensorOps.add(gray, gray, screen.select(0, 2));
+			TensorOps.div(gray, gray, 3);
 				
 			for(int i=0;i<observationLength;i++){
 				gray.copyInto(observation.select(0, i));
@@ -194,11 +193,6 @@ public class ArcadeLearningEnvironment implements Environment {
 	private native float[] getScreen();
 	
 	private native void setFrameskip(int skip);
-	
-	@Reference
-	void setTensorFactory(TensorFactory factory) {
-		this.factory = factory;
-	}
 	
 	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
 	void addEnvironmentListener(EnvironmentListener l, Map<String, Object> properties){

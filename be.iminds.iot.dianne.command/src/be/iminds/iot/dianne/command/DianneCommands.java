@@ -31,9 +31,9 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.UUID;
-import java.util.Map.Entry;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -51,7 +51,7 @@ import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.api.repository.RepositoryListener;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 @Component(
 		service=Object.class,
@@ -71,8 +71,6 @@ public class DianneCommands {
 	BundleContext context;
 	
 	// Dianne components
-	TensorFactory factory; 
-	
 	Map<String, Dataset> datasets = Collections.synchronizedMap(new HashMap<String, Dataset>());
 	Dianne dianne;
 	DiannePlatform platform;
@@ -281,8 +279,8 @@ public class DianneCommands {
 						long t2 = System.currentTimeMillis();
 
 						Tensor out = p.getValue().tensor;
-						int clazz = factory.getTensorMath().argmax(out);
-						float max = factory.getTensorMath().max(out);
+						int clazz = TensorOps.argmax(out);
+						float max = TensorOps.max(out);
 						String label = labels[clazz];
 					
 						System.out.println("Sample "+index+" (with tags "+Arrays.toString(tags)+") classified as: "+label+" (probability: "+max+")");
@@ -374,8 +372,4 @@ public class DianneCommands {
 		dianne = d;
 	}
 
-	@Reference
-	void setTensorFactory(TensorFactory f){
-		this.factory = f;
-	}
 }

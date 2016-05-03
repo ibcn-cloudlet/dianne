@@ -30,7 +30,6 @@ import java.util.UUID;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
 import be.iminds.iot.dianne.api.nn.module.Module;
@@ -40,13 +39,10 @@ import be.iminds.iot.dianne.api.nn.module.dto.ModuleTypeDTO;
 import be.iminds.iot.dianne.api.nn.module.factory.ModuleFactory;
 import be.iminds.iot.dianne.rnn.module.memory.SimpleMemory;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component(property={"aiolos.export=false"})
 public class MemoryFactory implements ModuleFactory {
 
-	private TensorFactory factory;
-	
 	private final Map<String, ModuleTypeDTO> supportedModules = new HashMap<String, ModuleTypeDTO>();
 	
 	@Activate
@@ -82,9 +78,9 @@ public class MemoryFactory implements ModuleFactory {
 			int size = Integer.parseInt(dto.properties.get("size"));
 			
 			if(parameters!=null){
-				module = new SimpleMemory(factory, id, parameters);
+				module = new SimpleMemory(id, parameters);
 			} else {
-				module = new SimpleMemory(factory, id, size);
+				module = new SimpleMemory(id, size);
 			}
 			break;
 		}
@@ -119,8 +115,4 @@ public class MemoryFactory implements ModuleFactory {
 		supportedModules.put(t.type, t);
 	}
 	
-	@Reference
-	void setTensorFactory(TensorFactory f){
-		this.factory = f;
-	}
 }

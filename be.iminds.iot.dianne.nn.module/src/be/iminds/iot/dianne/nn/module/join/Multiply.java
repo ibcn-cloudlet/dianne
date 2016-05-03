@@ -25,29 +25,29 @@ package be.iminds.iot.dianne.nn.module.join;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 
 public class Multiply extends Join {
 
-	public Multiply(TensorFactory factory) {
-		super(factory);
+	public Multiply() {
+		super();
 	}
 	
-	public Multiply(TensorFactory factory, UUID id) {
-		super(factory, id);
+	public Multiply(UUID id) {
+		super(id);
 	}
 	
 	@Override
 	protected void forward() {
 		// elementwise multiply inputs
 		if(output==null){
-			output = factory.createTensor(inputs.values().stream().filter(t -> t !=null).findFirst().get().dims());
+			output = new Tensor(inputs.values().stream().filter(t -> t !=null).findFirst().get().dims());
 		}
 		output.fill(1.0f);
 		for(Tensor t : inputs.values()){
 			if(t!=null)
-				output = factory.getTensorMath().cmul(output, output, t);
+				output = TensorOps.cmul(output, output, t);
 		}
 	}
 
@@ -56,13 +56,13 @@ public class Multiply extends Join {
 		for(final UUID id : gradInputs.keySet()){
 			Tensor gradInput = gradInputs.get(id);
 			if(gradInput==null){
-				gradInput = factory.createTensor(gradOutput.dims());
+				gradInput = new Tensor(gradOutput.dims());
 				gradInputs.put(id, gradInput);
 			}
 			gradOutput.copyInto(gradInput);
 			
 			final Tensor g = gradInput;
-			inputs.entrySet().stream().filter(e -> !e.getKey().equals(id)).map(e -> e.getValue()).forEach(t -> factory.getTensorMath().cmul(g, g, t));
+			inputs.entrySet().stream().filter(e -> !e.getKey().equals(id)).map(e -> e.getValue()).forEach(t -> TensorOps.cmul(g, g, t));
 		}
 	}
 

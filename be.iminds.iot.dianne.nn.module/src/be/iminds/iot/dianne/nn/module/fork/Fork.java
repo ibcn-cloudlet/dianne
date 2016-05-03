@@ -32,7 +32,6 @@ import be.iminds.iot.dianne.api.nn.module.AbstractModule;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public abstract class Fork extends AbstractModule {
 
@@ -47,12 +46,12 @@ public abstract class Fork extends AbstractModule {
 	
 	protected UUID[] nextIds;
 	
-	public Fork(TensorFactory factory) {
-		super(factory);
+	public Fork() {
+		super();
 	}
 	
-	public Fork(TensorFactory factory, UUID id) {
-		super(factory, id);
+	public Fork(UUID id) {
+		super(id);
 	}
 
 	@Override

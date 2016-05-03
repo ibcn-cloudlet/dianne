@@ -39,10 +39,9 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
-import be.iminds.iot.dianne.api.io.OutputDescription;
 import be.iminds.iot.dianne.api.io.DianneOutputs;
+import be.iminds.iot.dianne.api.io.OutputDescription;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.things.api.Thing;
 import be.iminds.iot.things.api.lamp.Lamp;
 
@@ -51,8 +50,6 @@ import be.iminds.iot.things.api.lamp.Lamp;
 public class ThingsOutputs implements DianneOutputs {
 
 	private BundleContext context;
-	
-	private TensorFactory factory;
 	
 	private Map<String, Lamp> lamps = Collections.synchronizedMap(new HashMap<String, Lamp>());
 	
@@ -67,11 +64,6 @@ public class ThingsOutputs implements DianneOutputs {
 		if(number!=null){
 			magicNumber = Integer.parseInt(number);
 		}
-	}
-	
-	@Reference
-	void setTensorFactory(TensorFactory factory){
-		this.factory = factory;
 	}
 	
 	@Reference(
@@ -114,7 +106,7 @@ public class ThingsOutputs implements DianneOutputs {
 
 		Lamp l = lamps.get(output);
 		if(l!=null){
-			LampOutput o = new LampOutput(factory, l, magicNumber);
+			LampOutput o = new LampOutput(l, magicNumber);
 			Dictionary<String, Object> properties = new Hashtable<String, Object>();
 			properties.put("targets", new String[]{id});
 			properties.put("aiolos.unique", true);

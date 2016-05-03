@@ -24,16 +24,16 @@ package be.iminds.iot.dianne.nn.module.fork;
 
 import java.util.UUID;
 
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.Tensor;
 
 public class Split extends Fork {
 
-	public Split(TensorFactory factory) {
-		super(factory);
+	public Split() {
+		super();
 	}
 	
-	public Split(TensorFactory factory, UUID id) {
-		super(factory, id);
+	public Split(UUID id) {
+		super(id);
 	}
 	
 	@Override
@@ -55,7 +55,7 @@ public class Split extends Fork {
 			int size = dims[0];
 			if(output==null){
 				dims[0] = dims[0]*gradOutputs.size();
-				gradInput = factory.createTensor(dims);
+				gradInput = new Tensor(dims);
 			}
 
 			for(int i=0;i<next.length;i++){

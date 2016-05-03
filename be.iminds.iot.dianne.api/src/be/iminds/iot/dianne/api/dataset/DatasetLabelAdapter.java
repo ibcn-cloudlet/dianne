@@ -26,7 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 /**
  * This Dataset adapter allows you to wrap a Dataset in a new Dataset with only
@@ -37,9 +37,6 @@ import be.iminds.iot.dianne.tensor.TensorFactory;
  *
  */
 public class DatasetLabelAdapter implements Dataset {
-	
-	// required to create new output tensor
-	private final TensorFactory factory;
 	
 	private Dataset data;
 	
@@ -58,8 +55,7 @@ public class DatasetLabelAdapter implements Dataset {
 	 * @param other whether or not the other labels should be aggregated into an "other" class
 	 * 
 	 */
-	public DatasetLabelAdapter(TensorFactory f, Dataset data, String[] labels, boolean other) {
-		this.factory = f;
+	public DatasetLabelAdapter(Dataset data, String[] labels, boolean other) {
 		this.data = data;
 		this.other = other;
 		this.labels = new String[labels.length+ (other ? 1 : 0)];
@@ -93,12 +89,12 @@ public class DatasetLabelAdapter implements Dataset {
 	public Tensor getOutputSample(int index) {
 		// TODO adapt outputsample
 		Tensor t = data.getOutputSample(index);
-		Tensor t2 = factory.createTensor(labels.length);
+		Tensor t2 = new Tensor(labels.length);
 		for(int i=0;i<labelIndices.length;i++){
 			t2.set(t.get(labelIndices[i]), i);
 		}
 		if(other){
-			if(factory.getTensorMath().sum(t2)==0){
+			if(TensorOps.sum(t2)==0){
 				t2.set(1.0f, labels.length-1);
 			}
 		}

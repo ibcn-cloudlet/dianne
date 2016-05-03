@@ -25,20 +25,19 @@ package be.iminds.iot.dianne.nn.module.preprocessing;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public class Narrow extends AbstractModule {
 
 	// narrow ranges - should match the dimensions though
 	private final int[] ranges;
 	
-	public Narrow(TensorFactory factory, final int... ranges){
-		super(factory);
+	public Narrow(final int... ranges){
+		super();
 		this.ranges = ranges;
 	}
 	
-	public Narrow(TensorFactory factory, UUID id, final int... ranges){
-		super(factory, id);
+	public Narrow(UUID id, final int... ranges){
+		super(id);
 		this.ranges = ranges;
 	}
 

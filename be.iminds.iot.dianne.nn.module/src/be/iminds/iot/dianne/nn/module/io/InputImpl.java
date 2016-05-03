@@ -28,16 +28,15 @@ import be.iminds.iot.dianne.api.nn.module.AbstractModule;
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public class InputImpl extends AbstractModule implements Input {
 
-	public InputImpl(TensorFactory factory) {
-		super(factory);
+	public InputImpl() {
+		super();
 	}
 
-	public InputImpl(TensorFactory factory, UUID id) {
-		super(factory, id);
+	public InputImpl(UUID id) {
+		super(id);
 	}
 	
 	@Override

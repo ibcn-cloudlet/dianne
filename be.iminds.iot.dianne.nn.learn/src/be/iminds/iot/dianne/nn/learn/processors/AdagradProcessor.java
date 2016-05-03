@@ -30,7 +30,7 @@ import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class AdagradProcessor extends GradientProcessor {
 
@@ -38,8 +38,8 @@ public class AdagradProcessor extends GradientProcessor {
 	
 	private final Map<UUID, Tensor> accumulatedSquared = new HashMap<>();
 	
-	public AdagradProcessor(TensorFactory factory, NeuralNetwork nn, DataLogger logger, float learningRate ) {
-		super(factory, nn, logger);
+	public AdagradProcessor(NeuralNetwork nn, DataLogger logger, float learningRate ) {
+		super(nn, logger);
 		
 		this.learningRate = learningRate;
 	}
@@ -51,24 +51,24 @@ public class AdagradProcessor extends GradientProcessor {
 			
 			// accumulated squared gradients
 			Tensor squared = deltaParams.copyInto(null);
-			squared = factory.getTensorMath().cmul(squared, squared, squared);
+			squared = TensorOps.cmul(squared, squared, squared);
 			
 			Tensor accSq = accumulatedSquared.get(e.getKey());
 			if(accSq == null){
 				accSq = squared.copyInto(accSq);
 			} else {
-				accSq = factory.getTensorMath().add(accSq, accSq, squared);
+				accSq = TensorOps.add(accSq, accSq, squared);
 			}
 			accumulatedSquared.put(e.getKey(), accSq);
 
 			// deltaparams = - learning_rate * dx / np.sqrt(accSq + 1e-8)
-			factory.getTensorMath().mul(deltaParams, deltaParams, -learningRate);
+			TensorOps.mul(deltaParams, deltaParams, -learningRate);
 			
 			// add 1e-8 to avoid div by zero, reuse squared tensor for this
-			factory.getTensorMath().add(squared, accSq, (float) 1e-8);
+			TensorOps.add(squared, accSq, (float) 1e-8);
 			
 			// now div by cached tensor
-			factory.getTensorMath().cdiv(deltaParams, deltaParams, squared);
+			TensorOps.cdiv(deltaParams, deltaParams, squared);
 			
 			// set DeltaParameters to be sure in case of remote module instance
 			e.getValue().setDeltaParameters(deltaParams);

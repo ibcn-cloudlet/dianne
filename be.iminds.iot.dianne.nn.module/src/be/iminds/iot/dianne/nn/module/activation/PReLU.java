@@ -25,29 +25,30 @@ package be.iminds.iot.dianne.nn.module.activation;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractTrainableModule;
+import be.iminds.iot.dianne.nn.module.ModuleOps;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class PReLU extends AbstractTrainableModule{
 	
 	private float init = 0.25f;
 	
-	public PReLU(TensorFactory factory) {
-		this(factory, 0.25f);
+	public PReLU() {
+		this(0.25f);
 	}
 	
-	public PReLU(TensorFactory factory, float init) {
-		super(factory, factory.createTensor(1));
+	public PReLU(float init) {
+		super(new Tensor(1));
 		this.init = init;
 		init();
 	}
 	
-	public PReLU(TensorFactory factory, UUID id) {
-		this(factory, id, 0.25f);
+	public PReLU(UUID id) {
+		this(id, 0.25f);
 	}
 
-	public PReLU(TensorFactory factory, UUID id, float init) {
-		super(factory, id, factory.createTensor(1));
+	public PReLU(UUID id, float init) {
+		super(id, new Tensor(1));
 		this.init = init;
 		init();
 	}
@@ -64,7 +65,7 @@ public class PReLU extends AbstractTrainableModule{
 	
 	@Override
 	protected void forward() {
-		output = factory.getTensorMath().thresh(output, input, 0f, parameters.get(0), 0f);
+		output = ModuleOps.threshold(output, input, 0f, parameters.get(0), 0f);
 	}
 
 	@Override
@@ -72,26 +73,25 @@ public class PReLU extends AbstractTrainableModule{
 		if(deltaParameters==null){
 			initDeltaParameters(null);
 		}
-		gradInput = factory.getTensorMath().cmul(gradInput, gradOutput,
-				factory.getTensorMath().dthresh(gradInput, input, 0f, parameters.get(0)));
+		gradInput = ModuleOps.thresholdDin(gradInput, gradOutput, input, 0f, parameters.get(0));
 	}
 
 	private Tensor temp;
 	
 	@Override
 	public void accGradParameters() {
-		temp = factory.getTensorMath().mul(temp, input, -1f);
-		temp = factory.getTensorMath().thresh(temp, temp, 0f, 0f, 0f);
-		temp = factory.getTensorMath().mul(temp, temp, -1f);
+		temp = TensorOps.mul(temp, input, -1f);
+		temp = ModuleOps.threshold(temp, temp, 0f, 0f, 0f);
+		temp = TensorOps.mul(temp, temp, -1f);
 		
-		deltaParameters = factory.getTensorMath().add(deltaParameters, deltaParameters,
-				factory.getTensorMath().dot(temp, gradOutput));
+		deltaParameters = TensorOps.add(deltaParameters, deltaParameters,
+				TensorOps.dot(temp, gradOutput));
 	}
 
 	@Override
 	public void initDeltaParameters(Tensor deltas) {
 		if(deltas==null){
-			deltaParameters = factory.createTensor(1);
+			deltaParameters = new Tensor(1);
 		} else {
 			deltaParameters = deltas;
 		}

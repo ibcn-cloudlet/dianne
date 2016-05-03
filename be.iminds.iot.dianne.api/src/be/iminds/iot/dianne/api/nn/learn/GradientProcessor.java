@@ -24,7 +24,6 @@ package be.iminds.iot.dianne.api.nn.learn;
 
 import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 
 /**
  * The GradientProcessor processes the accumulated gradients of a neural network 
@@ -39,14 +38,11 @@ public abstract class GradientProcessor {
 
 	private final GradientProcessor decorated;
 	
-	protected final TensorFactory factory;
 	protected final NeuralNetwork nn;
 	protected final DataLogger logger;
 	
-	public GradientProcessor(TensorFactory factory, 
-			NeuralNetwork nn,
+	public GradientProcessor( NeuralNetwork nn,
 			DataLogger logger){
-		this.factory = factory;
 		this.nn = nn;
 		this.logger = logger;
 		
@@ -54,7 +50,6 @@ public abstract class GradientProcessor {
 	}
 	
 	public GradientProcessor(GradientProcessor decorated){
-		this.factory = decorated.factory;
 		this.nn = decorated.nn;
 		this.logger = decorated.logger;
 		

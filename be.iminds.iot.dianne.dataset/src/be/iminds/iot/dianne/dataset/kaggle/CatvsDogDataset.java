@@ -31,18 +31,15 @@ import java.util.stream.Collectors;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 import be.iminds.iot.dianne.tensor.util.ImageConverter;
 
 @Component(immediate = true, property = {"name=Kaggle (CatvsDog)","aiolos.unique=true" })
 public class CatvsDogDataset implements Dataset {
 
-	private TensorFactory factory;
 	private ImageConverter converter;
 	
 	private List<Sample> data = new ArrayList<Sample>();
@@ -53,12 +50,6 @@ public class CatvsDogDataset implements Dataset {
 	
 	private String dir = "";
 	private String[] files;
-	
-	@Reference
-	void setTensorFactory(TensorFactory f) {
-		this.factory = f;
-		this.converter = new ImageConverter(f);
-	}
 	
 	@Activate
 	public void activate(BundleContext context) {
@@ -93,7 +84,7 @@ public class CatvsDogDataset implements Dataset {
 
 	@Override
 	public Tensor getOutputSample(int index) {
-		Tensor output = factory.createTensor(3);
+		Tensor output = new Tensor(3);
 		output.fill(0.0f);
 		String file = files[index];
 		if(file.startsWith("cat")){

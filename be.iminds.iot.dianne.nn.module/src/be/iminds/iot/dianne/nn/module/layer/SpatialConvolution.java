@@ -25,8 +25,9 @@ package be.iminds.iot.dianne.nn.module.layer;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractTrainableModule;
+import be.iminds.iot.dianne.nn.module.ModuleOps;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class SpatialConvolution extends AbstractTrainableModule {
 
@@ -45,29 +46,29 @@ public class SpatialConvolution extends AbstractTrainableModule {
 	Tensor bias;
 	Tensor deltaBias;
 	
-	public SpatialConvolution(TensorFactory factory,
+	public SpatialConvolution(
 			int noInputPlanes, int noOutputPlanes, 
 			int kernelWidth, int kernelHeight,
 			int strideX, int strideY, boolean pad){
-		super(factory, factory.createTensor(noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight+noOutputPlanes));
+		super(new Tensor(noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight+noOutputPlanes));
 		init(noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY, pad);
 		parameters.fill(0.0f);
 	}
 	
-	public SpatialConvolution(TensorFactory factory, UUID id,
+	public SpatialConvolution(UUID id,
 			int noInputPlanes, int noOutputPlanes, 
 			int kernelWidth, int kernelHeight,
 			int strideX, int strideY, boolean pad){
-		super(factory, id, factory.createTensor(noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight+noOutputPlanes));
+		super(id, new Tensor(noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight+noOutputPlanes));
 		init(noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY, pad);
 		parameters.fill(0.0f);
 	}
 	
-	public SpatialConvolution(TensorFactory factory, UUID id, Tensor parameters,
+	public SpatialConvolution(UUID id, Tensor parameters,
 			int noInputPlanes, int noOutputPlanes, 
 			int kernelWidth, int kernelHeight,
 			int strideX, int strideY, boolean pad){
-		super(factory, id, parameters);
+		super(id, parameters);
 		init(noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY, pad);
 	}
 	
@@ -95,7 +96,7 @@ public class SpatialConvolution extends AbstractTrainableModule {
 	
 	public void initDeltaParameters(Tensor deltas){
 		if(deltas==null){
-			deltaParameters = factory.createTensor(noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight+noOutputPlanes);
+			deltaParameters = new Tensor(noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight+noOutputPlanes);
 		} else {
 			// TODO check size?
 			deltaParameters = deltas;
@@ -112,8 +113,8 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		// randomize weights uniform [-std, std] with std = 1/sqrt(kW*kH*noInputPlanes)  [from torch]
 		parameters.rand();
 		float std = (float) (1f/Math.sqrt(kernelWidth*kernelHeight*noInputPlanes));
-		factory.getTensorMath().mul(parameters, parameters, 2*std);
-		factory.getTensorMath().sub(parameters, parameters, std);
+		TensorOps.mul(parameters, parameters, 2*std);
+		TensorOps.sub(parameters, parameters, std);
 	}
 	
 	@Override
@@ -124,7 +125,7 @@ public class SpatialConvolution extends AbstractTrainableModule {
 			input.reshape(1, input.size(0), input.size(1));
 		}
 		
-		output = factory.getTensorMath().spatialconvolve(output, bias, input, weights, strideX, strideY, padX, padY);
+		output = ModuleOps.spatialconvolve(output, input, weights, bias, strideX, strideY, padX, padY);
 	}
 
 	@Override
@@ -135,14 +136,16 @@ public class SpatialConvolution extends AbstractTrainableModule {
 			
 		gradOutput.reshape(output.dims());
 
-		gradInput = factory.getTensorMath().spatialdinconvolve(gradInput, gradOutput, weights, strideX, strideY, padX, padY);
+		gradInput = ModuleOps.spatialconvolveDin(gradInput, gradOutput, weights, strideX, strideY, padX, padY);
 	}
 
 	@Override
 	public void accGradParameters() {
-		deltaWeights = factory.getTensorMath().spatialdkerconvolve(deltaWeights, deltaWeights, gradOutput, input, strideX, strideY, padX, padY);
+		deltaWeights = ModuleOps.spatialconvolveDker(deltaWeights, deltaWeights, gradOutput, input, strideX, strideY, padX, padY);
 		
-		for(int i = 0; i < noOutputPlanes; i++)
-			deltaBias.set(factory.getTensorMath().sum(gradOutput.select(0, i)), i);
+		deltaBias = ModuleOps.spatialconvolveDbias(deltaBias, gradOutput);
+		// move this to spatialconvolveDbias?
+		//for(int i = 0; i < noOutputPlanes; i++)
+		//	deltaBias.set(TensorOps.sum(gradOutput.select(0, i)), i);
 	}
 }

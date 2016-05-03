@@ -51,12 +51,10 @@ import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.api.nn.runtime.DianneRuntime;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 
 @Component
 public class DiannePlatformImpl implements DiannePlatform {
 
-	private TensorFactory factory;
 	private DianneRepository repository;
 	private Map<UUID, DianneRuntime> runtimes = new ConcurrentHashMap<UUID, DianneRuntime>();
 	
@@ -324,11 +322,6 @@ public class DiannePlatformImpl implements DiannePlatform {
 		repository = r;
 	}
 	
-	@Reference
-	void setTensorFactory(TensorFactory f){
-		factory = f;
-	}
-
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
 	void addDianneRuntime(DianneRuntime r, Map<String, Object> properties){

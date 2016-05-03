@@ -28,18 +28,17 @@ import be.iminds.iot.dianne.api.nn.module.AbstractModule;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.Output;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public class OutputImpl extends AbstractModule implements Output {
 
 	protected String[] labels;
 	
-	public OutputImpl(TensorFactory factory) {
-		super(factory);
+	public OutputImpl() {
+		super();
 	}
 
-	public OutputImpl(TensorFactory factory, UUID id) {
-		super(factory, id);
+	public OutputImpl(UUID id) {
+		super(id);
 	}
 	
 	@Override

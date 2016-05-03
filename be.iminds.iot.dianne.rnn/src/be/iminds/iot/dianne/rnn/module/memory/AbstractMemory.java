@@ -29,31 +29,30 @@ import be.iminds.iot.dianne.api.nn.module.AbstractModule;
 import be.iminds.iot.dianne.api.nn.module.Memory;
 import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
 
 public abstract class AbstractMemory extends AbstractModule implements Memory {
 
 	protected final Tensor memory;
 	
-	public AbstractMemory(TensorFactory factory, int size) {
-		super(factory);
-		this.memory = factory.createTensor(size);
+	public AbstractMemory(int size) {
+		super();
+		this.memory = new Tensor(size);
 		this.memory.fill(0.0f);
 	}
 
-	public AbstractMemory(TensorFactory factory, UUID id, int size) {
-		super(factory, id);
-		this.memory = factory.createTensor(size);
+	public AbstractMemory(UUID id, int size) {
+		super(id);
+		this.memory = new Tensor(size);
 		this.memory.fill(0.0f);
 	}
 	
-	public AbstractMemory(TensorFactory factory, Tensor memory) {
-		super(factory);
+	public AbstractMemory(Tensor memory) {
+		super();
 		this.memory = memory;
 	}
 
-	public AbstractMemory(TensorFactory factory, UUID id, Tensor memory) {
-		super(factory, id);
+	public AbstractMemory(UUID id, Tensor memory) {
+		super(id);
 		this.memory = memory;
 	}
 

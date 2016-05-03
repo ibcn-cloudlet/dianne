@@ -28,21 +28,20 @@ import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorFactory;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class MaskedMaxPooling extends AbstractModule {
 	
 	private List<Tensor> masks;
 	
-	public MaskedMaxPooling(TensorFactory factory,
-			int noInputs, String maskIndices){
-		super(factory);
+	public MaskedMaxPooling(int noInputs, String maskIndices){
+		super();
 		initMasks(noInputs, maskIndices);
 	}
 	
-	public MaskedMaxPooling(TensorFactory factory, UUID id, 
+	public MaskedMaxPooling(UUID id, 
 			int noInputs, String maskIndices){
-		super(factory, id);
+		super(id);
 		initMasks(noInputs, maskIndices);
 	}
 	
@@ -51,10 +50,10 @@ public class MaskedMaxPooling extends AbstractModule {
 		int noOutputs = m.length+1;
 		masks = new ArrayList<>(noOutputs);
 		
-		Tensor other = factory.createTensor(noInputs);
+		Tensor other = new Tensor(noInputs);
 		other.fill(1.0f);
 		for(int i=0;i<m.length;i++){
-			Tensor mask = factory.createTensor(noInputs);
+			Tensor mask = new Tensor(noInputs);
 			mask.fill(0.0f);
 			
 			String[] indices = m[i].split(",");
@@ -72,13 +71,13 @@ public class MaskedMaxPooling extends AbstractModule {
 	@Override
 	protected void forward() {
 		if(output==null || !output.hasDim(masks.size())){
-			output = factory.createTensor(masks.size());
+			output = new Tensor(masks.size());
 		}
 		
 		Tensor temp = null;
 		for(int i=0;i<masks.size();i++){
-			temp = factory.getTensorMath().cmul(temp, input, masks.get(i));
-			float max = factory.getTensorMath().max(temp);
+			temp = TensorOps.cmul(temp, input, masks.get(i));
+			float max = TensorOps.max(temp);
 			output.set(max, i);
 		}
 	}
