@@ -27,6 +27,7 @@ import java.util.Collection;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -37,17 +38,18 @@ import be.iminds.iot.dianne.tensor.impl.java.JavaTensorFactory;
 import be.iminds.iot.dianne.tensor.impl.th.THTensorFactory;
 
 @RunWith(Parameterized.class)
+@Ignore
 public class TensorPerformanceTest<T extends Tensor<T>> {
 
-	private TensorFactory<T> factory;
+	private final TensorFactory<T> factory;
 	private TensorMath<T> math;
-	private int count = 10;
+	private static final int COUNT = 10;
 	
-	private int outSize = 1000;
-	private int inSize = 231;
-	private int kernelSize = 3;
-	private int noInputPlanes = 3;
-	private int noOutputPlanes = 100;
+	private static final int outSize = 1000;
+	private static final int inSize = 231;
+	private static final int kernelSize = 3;
+	private static final int noInputPlanes = 3;
+	private static final int noOutputPlanes = 100;
 	
 	private T parameters;
 	private T gradParameters;
@@ -116,11 +118,11 @@ public class TensorPerformanceTest<T extends Tensor<T>> {
     @Test
     public void testMv(){
     	long t1 = System.currentTimeMillis();
-		for(int i=0;i<count;i++)
+		for(int i=0;i<COUNT;i++)
 			output = math.mv(output, weights, input);
 		long t2 = System.currentTimeMillis();
 		
-		float time = (float)(t2-t1)/count;
+		float time = (float)(t2-t1)/COUNT;
 		System.out.println("mv: "+time+" ms");
 		Assert.assertTrue((time)<5);
     }
@@ -128,11 +130,11 @@ public class TensorPerformanceTest<T extends Tensor<T>> {
 	@Test
 	public void testAddmv() {
 		long t1 = System.currentTimeMillis();
-		for(int i=0;i<count;i++)
+		for(int i=0;i<COUNT;i++)
 			output = math.addmv(output, bias, weights, input);
 		long t2 = System.currentTimeMillis();
 		
-		float time = (float)(t2-t1)/count;
+		float time = (float)(t2-t1)/COUNT;
 		System.out.println("addmv: "+time+" ms");
 		Assert.assertTrue((time)<5);
 	}
@@ -140,11 +142,11 @@ public class TensorPerformanceTest<T extends Tensor<T>> {
 	@Test
 	public void testTmv(){
 		long t1 = System.currentTimeMillis();
-		for(int i=0;i<count;i++)
+		for(int i=0;i<COUNT;i++)
 			gradInput = math.tmv(gradInput, weights, gradOutput);
 		long t2 = System.currentTimeMillis();
 		
-		float time = (float)(t2-t1)/count;
+		float time = (float)(t2-t1)/COUNT;
 		System.out.println("tmv: "+time+" ms");
 		Assert.assertTrue((time)<5);
 	}
@@ -152,35 +154,23 @@ public class TensorPerformanceTest<T extends Tensor<T>> {
 	@Test
 	public void testAddvv(){
 		long t1 = System.currentTimeMillis();
-		for(int i=0;i<count;i++)
+		for(int i=0;i<COUNT;i++)
 			gradWeights = factory.getTensorMath().addvv(gradWeights, gradWeights, gradOutput, input);
 		long t2 = System.currentTimeMillis();
 		
-		float time = (float)(t2-t1)/count;
+		float time = (float)(t2-t1)/COUNT;
 		System.out.println("addvv: "+time+" ms");
 		Assert.assertTrue((time)<5);
 	}
-
-//	@Test
-//	public void testConv(){
-//		long t1 = System.currentTimeMillis();
-//		for(int i=0;i<count;i++)
-//			factory.getTensorMath().convolution2D(null, input, kernel, 1, 1, 2, false);
-//		long t2 = System.currentTimeMillis();
-//		
-//		float time = (float)(t2-t1)/count;
-//		System.out.println("conv: "+time+" ms");
-//		Assert.assertTrue((time)<5);
-//	}
 	
 	@Test
 	public void testSpatialConv(){
 		long t1 = System.currentTimeMillis();
-		for(int i=0;i<count;i++)
+		for(int i=0;i<COUNT;i++)
 			factory.getTensorMath().spatialconvolve(null, biases, inputnd, kernels, 5, 5, 0, 0);
 		long t2 = System.currentTimeMillis();
 		
-		float time = (float)(t2-t1)/count;
+		float time = (float)(t2-t1)/COUNT;
 		System.out.println("spatial conv: "+time+" ms");
 		Assert.assertTrue((time)<5);
 	}
@@ -188,11 +178,11 @@ public class TensorPerformanceTest<T extends Tensor<T>> {
 	@Test
 	public void testSpatialPooling(){
 		long t1 = System.currentTimeMillis();
-		for(int i=0;i<count;i++)
+		for(int i=0;i<COUNT;i++)
 			factory.getTensorMath().spatialmaxpool(null, inputnd, 2, 2, 2, 2);
 		long t2 = System.currentTimeMillis();
 		
-		float time = (float)(t2-t1)/count;
+		float time = (float)(t2-t1)/COUNT;
 		System.out.println("spatial pool: "+time+" ms");
 		Assert.assertTrue((time)<5);
 	}

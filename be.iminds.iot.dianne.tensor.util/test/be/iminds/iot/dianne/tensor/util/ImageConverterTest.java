@@ -32,37 +32,29 @@ public class ImageConverterTest {
 	
 	private TensorFactory factory = new JavaTensorFactory();
 
+	/**
+	 * @throws Exception
+	 */
 	@Test
-	public void testImageNetImages() {
+	public void testImageNetImages() throws Exception {
 		ImageConverter conv = new ImageConverter(factory);
 		long t1 = System.currentTimeMillis();
-		int start = 0;
-		int n = 50000;
-		for(int i=start;i<start+n;i++){
-			String dir = "../tools/datasets/ImageNet/";
-			String file = dir + "images/" + "ILSVRC2012_val_"
-					+ String.format("%08d", i+1) + ".JPEG";
-			try {
-				conv.readFromFile(file);
-			} catch(Exception e){
-				System.out.println("Error with image "+file);
-				e.printStackTrace();
-			}
+		int n = 100;
+		for(int i=0;i<n;i++){
+			String file = String.format("../tools/datasets/ImageNet/images/ILSVRC2012_val_%08d.JPEG", 1);
+			conv.readFromFile(file);
 		}
 		long t2 = System.currentTimeMillis();
 		System.out.println("Avg read time: "+(t2-t1)/n+" ms");
 	}
 	
+	/**
+	 * @throws Exception
+	 */
 	@Test
 	public void testReadWriteImage() throws Exception {
 		ImageConverter conv = new ImageConverter(factory);
-
-		int i = 0;
-		String dir = "../tools/datasets/ImageNet/";
-		String file = dir + "images/" + "ILSVRC2012_val_"
-				+ String.format("%08d", i+1) + ".JPEG";
-	
-		Tensor t = conv.readFromFile(file);
-		conv.writeToFile("test.jpg", t);
+		Tensor t = conv.readFromFile(String.format("../tools/datasets/ImageNet/images/ILSVRC2012_val_%08d.JPEG", 1));
+		conv.writeToFile("generated/test.jpg", t);
 	}
 }

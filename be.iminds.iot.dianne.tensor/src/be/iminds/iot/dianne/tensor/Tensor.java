@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Contributors:
- *     Tim Verbelen, Steven Bohez
+ *     Tim Verbelen, Steven Bohez, Elias De Coninck
  *******************************************************************************/
 package be.iminds.iot.dianne.tensor;
 
@@ -57,7 +57,7 @@ public interface Tensor<T extends Tensor<T>> {
 	int size(final int d);
 	
 	/**
-	 * reshape the dimensions of this tensor, the underlying data remains te same
+	 * reshape the dimensions of this tensor, the underlying data remains the same
 	 */
 	void reshape(final int... d);
 	

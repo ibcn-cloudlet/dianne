@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Contributors:
- *     Tim Verbelen, Steven Bohez
+ *     Tim Verbelen, Steven Bohez, Elias De Coninck
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.module.activation;
 
@@ -53,11 +53,12 @@ public class PReLU extends AbstractTrainableModule{
 	}
 	
 	private void init() {
-		parameters.fill(0.0f);
+		parameters.fill(init);
 	}
 
 	@Override
 	public void randomize(){
+		// TODO: write test + check if this is correct
 		parameters.set(init, 0);
 	}
 	
