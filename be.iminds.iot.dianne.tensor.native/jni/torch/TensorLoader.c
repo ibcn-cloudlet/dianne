@@ -91,6 +91,54 @@ THTensor* getTensor(JNIEnv* env, jobject o){
 	return (THTensor*) address;
 }
 
+THTensor* getTensor1d(JNIEnv* env, jobject o, int d0){
+	THTensor* t = getTensor(env, o);
+
+	THTensor_(resize1d)(
+#ifdef CUDA
+			state,
+#endif
+			t, d0);
+
+	return t;
+}
+
+THTensor* getTensor2d(JNIEnv* env, jobject o, int d0, int d1){
+	THTensor* t = getTensor(env, o);
+
+	THTensor_(resize2d)(
+#ifdef CUDA
+			state,
+#endif
+			t, d0, d1);
+
+	return t;
+}
+
+THTensor* getTensor3d(JNIEnv* env, jobject o, int d0, int d1, int d2){
+	THTensor* t = getTensor(env, o);
+
+	THTensor_(resize3d)(
+#ifdef CUDA
+			state,
+#endif
+			t, d0, d1, d2);
+
+	return t;
+}
+
+THTensor* getTensor4d(JNIEnv* env, jobject o, int d0, int d1, int d2, int d3){
+	THTensor* t = getTensor(env, o);
+
+	THTensor_(resize4d)(
+#ifdef CUDA
+			state,
+#endif
+			t, d0, d1, d2, d3);
+
+	return t;
+}
+
 jobject createTensorObject(JNIEnv* env, THTensor* t){
 	return (*env)->NewObject(env, TENSOR_CLASS, TENSOR_INIT, (jlong)t);
 }

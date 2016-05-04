@@ -29,7 +29,14 @@ jfieldID TENSOR_ADDRESS_FIELD;
 jmethodID TENSOR_INIT;
 jclass TENSOR_CLASS;
 
+// convert object to a Tensor - create new one if NULL
 THTensor* getTensor(JNIEnv* env, jobject o);
+// convert object to a Tensor - resize to given dims
+THTensor* getTensor1d(JNIEnv* env, jobject o, int d0);
+THTensor* getTensor2d(JNIEnv* env, jobject o, int d0, int d1);
+THTensor* getTensor3d(JNIEnv* env, jobject o, int d0, int d1, int d2);
+THTensor* getTensor4d(JNIEnv* env, jobject o, int d0, int d1, int d2, int d3);
+
 jobject createTensorObject(JNIEnv* env, THTensor* t);
 
 #endif
