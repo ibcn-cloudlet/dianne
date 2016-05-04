@@ -17,12 +17,12 @@ public class NativeTensorLoader {
 	}
 	
 	@Activate
-	void activate(){
+	public void activate(){
 		init();
 	}
 	
 	@Deactivate()
-	void deactivate(){
+	public void deactivate(){
 		cleanup();
 	}
 	

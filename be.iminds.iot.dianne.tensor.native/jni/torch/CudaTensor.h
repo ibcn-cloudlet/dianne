@@ -20,16 +20,37 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-#ifndef TENSOR_LOADER_H
-#define TENSOR_LOADER_H
+#ifndef CUDATENSOR_H
+#define CUDATENSOR_H
 
-#include "Tensor.h"
+#include "torch7/lib/TH/TH.h"
+#include "cutorch/lib/THC/THC.h"
 
-jfieldID TENSOR_ADDRESS_FIELD;
-jmethodID TENSOR_INIT;
-jclass TENSOR_CLASS;
+#ifdef THTensor_
+#undef THTensor_
+#endif
+#ifdef THStorage_
+#undef THStorage_
+#endif
+#ifdef real
+#undef real
+#endif
+#ifdef accreal
+#undef accreal
+#endif
+#ifdef THTensor
+#undef THTensor
+#endif
+#ifdef THStorage
+#undef THStorage
+#endif
+typedef float real;
+typedef double accreal;
+typedef THCudaTensor THTensor;
+typedef THCudaStorage THStorage;
+#define THTensor_(x) THCudaTensor_##x
+#define THStorage_(x) THCudaStorage_##x
 
-THTensor* getTensor(JNIEnv* env, jobject o);
-jobject createTensorObject(JNIEnv* env, THTensor* t);
+THCState* state;
 
 #endif

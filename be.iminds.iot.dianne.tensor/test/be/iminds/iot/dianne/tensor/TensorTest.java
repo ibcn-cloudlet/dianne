@@ -23,10 +23,17 @@
 package be.iminds.iot.dianne.tensor;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 public class TensorTest {
 
+	@Before
+	public void setup() {
+		NativeTensorLoader loader = new NativeTensorLoader();
+		loader.activate();
+	}
+	
 	@Test
 	public void test1DTensor() {
 		Tensor t = new Tensor(4);
@@ -35,6 +42,8 @@ public class TensorTest {
 		Assert.assertEquals(4, t.size());
 		Assert.assertEquals(4, t.size(0));
 
+		Assert.assertTrue(t.hasDim(new int[]{4}));
+		
 		Assert.assertEquals(0.0f, t.get(1), 0.01);
 		t.set(1.0f, 1);
 		Assert.assertEquals(1.0f, t.get(1), 0.01);
@@ -49,6 +58,8 @@ public class TensorTest {
 		Assert.assertEquals(3, t.size(0));
 		Assert.assertEquals(4, t.size(1));
 
+		Assert.assertTrue(t.hasDim(new int[]{3, 4}));
+		
 		Assert.assertEquals(0.0f, t.get(1, 2), 0.01);
 		t.set(1.0f, 1, 2);
 		Assert.assertEquals(1.0f, t.get(1, 2), 0.01);
@@ -63,6 +74,8 @@ public class TensorTest {
 		Assert.assertEquals(4, t.size());
 		Assert.assertEquals(2, t.size(0));
 		Assert.assertEquals(2, t.size(1));
+		
+		Assert.assertTrue(t.hasDim(new int[]{2, 2}));
 
 		Assert.assertEquals(1.0f, t.get(0, 0), 0.01);
 		
@@ -111,6 +124,7 @@ public class TensorTest {
 
 		t.reshape(4);
 		Assert.assertEquals(t2, t);
+		Assert.assertTrue(t.sameDim(t2));
 	}
 
 	@Test

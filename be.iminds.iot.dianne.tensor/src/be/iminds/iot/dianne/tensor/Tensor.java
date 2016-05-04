@@ -36,55 +36,40 @@ import java.util.Arrays;
 public class Tensor {
 
 	private long address;
-	private int[] dims;
 	
 	public Tensor(int... dims) {
 		this(null, dims);
 	}
 	
 	public Tensor(float[] data, int... dims) {
-		this.dims = dims;
 		this.address = init(data, dims);
 	}
 	
-	private Tensor(long address, int[] dims){
-		this.dims = dims;
+	private Tensor(long address){
 		this.address = address;
 	}
 	
 	/**
 	 * @return the number of dimensions of this tensor
 	 */
-	public int dim(){
-		return dims.length;
-	}
+	public native int dim();
 
 	/**
 	 * @return the dimensions of this tensor
 	 */
-	public int[] dims(){
-		return Arrays.copyOf(dims, dims.length);
-	}
+	public native int[] dims();
 	
 	/**
 	 * @return the total size of the tensor
 	 */
-	public int size(){
-		int size = 1;
-		for(int i=0;i<dims.length;i++){
-			size *= dims[i];
-		}
-		return size;
-	}
-	
+	public native int size();
+
 	/**
 	 * the size of the d'th dimension
 	 * @param d the dimension to query the size
 	 * @return the size of the dimension
 	 */
-	public int size(final int d){
-		return dims[d];
-	}
+	public native int size(final int d);
 	
 	/**
 	 * reshape the dimensions of this tensor, the underlying data remains the same
@@ -140,32 +125,12 @@ public class Tensor {
 	/**
 	 * check if other tensor has same dimensions
 	 */
-	public boolean sameDim(final Tensor other){
-		if(dims.length!=other.dims.length){
-			return false;
-		}
-		for(int i=0;i<dims.length;i++){
-			if(other.dims[i] != dims[i]){
-				return false;
-			}
-		}
-		return true;
-	}
+	public native boolean sameDim(final Tensor other);
 	
 	/**
 	 * check if other tensor has these dimensions
 	 */
-	public boolean hasDim(final int... dims){
-		if(this.dims.length!=dims.length){
-			return false;
-		}
-		for(int i=0;i<dims.length;i++){
-			if(this.dims[i] != dims[i]){
-				return false;
-			}
-		}
-		return true;
-	}
+	public native boolean hasDim(final int... dims);
 	
 	/**
 	 * clone this tensor into other tensor, create new one if null or different number of elements
@@ -247,7 +212,7 @@ public class Tensor {
 	@Override
 	public String toString(){
 		StringBuilder b = new StringBuilder();
-		b.append(Arrays.toString(dims));
+		b.append(Arrays.toString(dims()));
 		b.append("\n");
 		b.append(Arrays.toString(get()));
 		return b.toString();

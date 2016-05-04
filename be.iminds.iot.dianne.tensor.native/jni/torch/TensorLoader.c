@@ -23,19 +23,74 @@
 #include "be_iminds_iot_dianne_tensor_NativeTensorLoader.h"
 #include "TensorLoader.h"
 
+/** Exception handling from torch **/
+
+JavaVM* jvm;
+
+static void throwException(const char * msg){
+	JNIEnv* env;
+	(*jvm)->AttachCurrentThread(jvm, (void**)&env, NULL);
+
+	jclass exClass;
+	char *className = "java/lang/Exception";
+
+	exClass = (*env)->FindClass( env, className);
+
+	(*env)->ThrowNew( env, exClass, msg );
+}
+
+static void torchErrorHandlerFunction(const char *msg, void *data){
+	throwException(msg);
+}
+
+static void torchArgErrorHandlerFunction(int argNumber, const char *msg, void *data){
+	throwException(msg);
+}
+
+/** Initialize and cleanup **/
 
 JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_NativeTensorLoader_init
   (JNIEnv * env, jobject loader){
-	// cache field and method IDs for interacting with Tensor java object
+	// cache class, field and method IDs for interacting with Tensor java object
 	jclass tensorClass;
 	char *className = "be/iminds/iot/dianne/tensor/Tensor";
 	tensorClass = (*env)->FindClass(env, className);
 
-	TENSOR_ADDRESS_FIELD = (*env)->GetFieldID(env, tensorClass, "address", "J");
-	TENSOR_INIT = (*env)->GetMethodID(env, tensorClass, "<init>", "(J[I)V");
+	// jclass must be global reference
+    TENSOR_CLASS = (*env)->NewGlobalRef(env, tensorClass);
+	TENSOR_ADDRESS_FIELD = (*env)->GetFieldID(env, TENSOR_CLASS, "address", "J");
+	TENSOR_INIT = (*env)->GetMethodID(env, TENSOR_CLASS, "<init>", "(J)V");
+
+
+	// Set Torch error handler functions to throw Exceptions in Java
+	(*env)->GetJavaVM(env, &jvm);
+	THSetErrorHandler(torchErrorHandlerFunction, NULL);
+	THSetArgErrorHandler(torchArgErrorHandlerFunction, NULL);
 }
 
 
 JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_NativeTensorLoader_cleanup
   (JNIEnv * env, jobject loader){
+	// release global reference to tensor class
+	(*env)->DeleteGlobalRef(env, TENSOR_CLASS);
+}
+
+
+/** Tensor creation **/
+
+THTensor* getTensor(JNIEnv* env, jobject o){
+	if(o == NULL){
+		// return new empty THTensor if jobject is null
+		return THTensor_(new)(
+#ifdef CUDA
+				state
+#endif
+				);
+	}
+	jlong address = (*env)->GetLongField(env, o, TENSOR_ADDRESS_FIELD);
+	return (THTensor*) address;
+}
+
+jobject createTensorObject(JNIEnv* env, THTensor* t){
+	return (*env)->NewObject(env, TENSOR_CLASS, TENSOR_INIT, (jlong)t);
 }

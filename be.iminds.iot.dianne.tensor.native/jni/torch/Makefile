@@ -2,6 +2,7 @@ include ../Makefile
 
 SRC := TensorLoader.c Tensor.c TensorOps.c 
 LINKS := -lTH
+INCLUDES += -Itorch7/lib/TH/build
 
 
 compile: javah $(SRC)
