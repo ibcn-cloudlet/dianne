@@ -27,7 +27,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-public class TensorMathTest {
+public class TensorOpsTest {
 
 	
 	@Test
