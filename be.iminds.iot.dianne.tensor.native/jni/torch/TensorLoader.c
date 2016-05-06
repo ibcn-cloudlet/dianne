@@ -81,11 +81,12 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_NativeTensorLoader_clean
 THTensor* getTensor(JNIEnv* env, jobject o){
 	if(o == NULL){
 		// return new empty THTensor if jobject is null
-		return THTensor_(new)(
+		THTensor* t = THTensor_(new)(
 #ifdef CUDA
 				state
 #endif
 				);
+		return t;
 	}
 	jlong address = (*env)->GetLongField(env, o, TENSOR_ADDRESS_FIELD);
 	return (THTensor*) address;

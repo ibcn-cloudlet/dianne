@@ -10,7 +10,7 @@ JAVA_HOME ?= /usr/lib/jvm/default-java
 JDKPLATFORMINCLUDESUBDIR := linux
 JAVA_INCLUDE := $(JAVA_HOME)/include
 JAVA_PLATFORMINCLUDE := $(JAVA_INCLUDE)/$(JDKPLATFORMINCLUDESUBDIR)
-JAVAH := be.iminds.iot.dianne.tensor.Tensor be.iminds.iot.dianne.tensor.TensorOps be.iminds.iot.dianne.tensor.NativeTensorLoader
+JAVAH := be.iminds.iot.dianne.tensor.Tensor be.iminds.iot.dianne.tensor.TensorOps be.iminds.iot.dianne.tensor.ModuleOps be.iminds.iot.dianne.tensor.NativeTensorLoader
 
 # Compiler config
 CC=gcc

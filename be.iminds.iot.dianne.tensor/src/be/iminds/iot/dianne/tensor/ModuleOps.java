@@ -1,9 +1,7 @@
-package be.iminds.iot.dianne.nn.module;
-
-import be.iminds.iot.dianne.tensor.Tensor;
+package be.iminds.iot.dianne.tensor;
 
 public class ModuleOps {
-
+	
 	public static native Tensor tanh(Tensor output, final Tensor input);
 
 	public static native Tensor tanhDin(Tensor gradInput, final Tensor gradOutput, final Tensor output);

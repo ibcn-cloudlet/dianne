@@ -49,5 +49,6 @@ typedef THFloatTensor THTensor;
 typedef THFloatStorage THStorage;
 #define THTensor_(x) THFloatTensor_##x
 #define THStorage_(x) THFloatStorage_##x
+#define Real Float
 
 #endif

@@ -1,8 +1,0 @@
-/bin/
-/generated/
-/native/
-/jni/torch/*.o
-/jni/torch/*.so
-/jni/torch/*.a
-/jni/torch/*_*.h
-/jni/torch/*.dylib

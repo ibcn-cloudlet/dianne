@@ -35,7 +35,7 @@ import java.util.Arrays;
  */
 public class Tensor {
 
-	private long address;
+	public long address;
 	
 	public Tensor(int... dims) {
 		this(null, dims);

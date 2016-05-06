@@ -1,14 +1,16 @@
 include ../Makefile
 
-SRC := TensorLoader.c Tensor.c TensorOps.c 
-LINKS := -lTH
-INCLUDES += -Itorch7/lib/TH/build
+SRC := TensorLoader.c Tensor.c TensorOps.c ModuleOps.c
+LINKS := -L. -lTHNN -lTH -lopenblas -lgomp 
+INCLUDES += -Itorch7/lib/TH -Itorch7/lib/TH/build
+INCLUDES += -Inn/lib/THNN 
+
 
 
 compile: javah $(SRC)
 	$(CC) $(FLAGS) $(CCFLAGS) $(INCLUDES) -c $(SRC)
 
-link: libTH.a compile 
+link: libTH.a libTHNN.a compile 
 	$(CC) -shared $(FLAGS) $(CCFLAGS) $(OBJECTS) $(LINKS) -o $(LIB)
 	
 install: link 
@@ -20,11 +22,16 @@ libTH.a:
 	make -C torch7/lib/TH/build ; \
 	cp torch7/lib/TH/build/libTH_static.a libTH.a
 
+libTHNN.a:
+	cmake -Hnn/lib/THNN -Bnn/lib/THNN/build -DBUILD_STATIC=TRUE
+	make -C nn/lib/THNN/build ; \
+	cp nn/lib/THNN/build/libTHNN_static.a libTHNN.a
+
 clean:
 	rm -rf *.o $(LIB) be_*.h test
 	
 cleanAll: clean
 	rm -rf *.a 
 	rm -rf torch7/lib/TH/build	
-	
+	rm -rf nn/lib/THNN/build	
 	

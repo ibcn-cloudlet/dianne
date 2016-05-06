@@ -23,7 +23,11 @@
 #ifndef TENSOR_LOADER_H
 #define TENSOR_LOADER_H
 
+#ifdef CUDA
+#include "CudaTensor.h"
+#else
 #include "Tensor.h"
+#endif
 
 jfieldID TENSOR_ADDRESS_FIELD;
 jmethodID TENSOR_INIT;

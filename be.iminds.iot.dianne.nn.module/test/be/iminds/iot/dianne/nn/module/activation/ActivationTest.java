@@ -31,6 +31,7 @@ import org.junit.Test;
 import be.iminds.iot.dianne.api.nn.module.BackwardListener;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Module;
+import be.iminds.iot.dianne.tensor.NativeTensorLoader;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 // These tests are based on input/output of corresponding Torch7 modules
@@ -80,6 +81,9 @@ public class ActivationTest {
 
 	@Before
 	public void setup() {
+		NativeTensorLoader loader = new NativeTensorLoader();
+		loader.activate();
+		
 		input = new Tensor(11);
 		int v = -5;
 		for (int i = 0; i < 11; i++) {
@@ -114,7 +118,6 @@ public class ActivationTest {
 
 		float[] eg = new float[] { 0.0002f, 0.0013f, 0.0099f, 0.0707f, 0.4200f,
 				1.0000f, 0.4200f, 0.0707f, 0.0099f, 0.0013f, 0.0002f };
-
 		Tensor expGradInput = new Tensor(eg, 11);
 
 		Module m = new Tanh();

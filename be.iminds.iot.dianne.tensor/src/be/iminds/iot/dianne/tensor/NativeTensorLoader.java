@@ -9,7 +9,7 @@ public class NativeTensorLoader {
 
 	static {
 		try {
-		    System.loadLibrary("Tensor");
+			System.loadLibrary("Tensor");
 		} catch (final UnsatisfiedLinkError e) {
 		    System.err.println("Native code library Tensor failed to load. \n"+ e);
 		    throw e;

@@ -25,7 +25,7 @@ package be.iminds.iot.dianne.nn.module.layer;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
-import be.iminds.iot.dianne.nn.module.ModuleOps;
+import be.iminds.iot.dianne.tensor.ModuleOps;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 public class SpatialMaxPooling extends AbstractModule {

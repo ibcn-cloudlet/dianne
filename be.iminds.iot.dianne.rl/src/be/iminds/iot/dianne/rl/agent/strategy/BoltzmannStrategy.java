@@ -29,7 +29,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 
 import be.iminds.iot.dianne.api.log.DataLogger;
-import be.iminds.iot.dianne.nn.module.ModuleOps;
+import be.iminds.iot.dianne.tensor.ModuleOps;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 

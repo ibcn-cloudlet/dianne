@@ -25,7 +25,7 @@ package be.iminds.iot.dianne.nn.module.activation;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractTrainableModule;
-import be.iminds.iot.dianne.nn.module.ModuleOps;
+import be.iminds.iot.dianne.tensor.ModuleOps;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
