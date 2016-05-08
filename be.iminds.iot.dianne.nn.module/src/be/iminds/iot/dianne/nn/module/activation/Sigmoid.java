@@ -44,10 +44,7 @@ public class Sigmoid extends AbstractModule {
 
 	@Override
 	protected void backward() {
-		// TODO do this in one operation?
-		//gradInput = TensorOps.cmul(gradInput, gradOutput, 
-		//		TensorOps.dsigmoid(gradInput, output));
-		gradInput = ModuleOps.sigmoidDin(gradInput, gradOutput, output);
+		gradInput = ModuleOps.sigmoidGradIn(gradInput, gradOutput, output);
 	}
 
 }

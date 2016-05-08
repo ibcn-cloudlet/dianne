@@ -46,6 +46,10 @@ public class SpatialConvolution extends AbstractTrainableModule {
 	Tensor bias;
 	Tensor deltaBias;
 	
+	// tensors for unfolded data
+	private Tensor finput = new Tensor();
+	private Tensor fgradInput = new Tensor();
+	
 	public SpatialConvolution(
 			int noInputPlanes, int noOutputPlanes, 
 			int kernelWidth, int kernelHeight,
@@ -90,7 +94,7 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		}
 		
 		weights = parameters.narrow(0, 0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight);
-		weights.reshape(noOutputPlanes, noInputPlanes, kernelWidth, kernelHeight);
+		weights.reshape(noOutputPlanes, noInputPlanes*kernelWidth*kernelHeight);
 		bias = parameters.narrow(0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight, noOutputPlanes);
 	}
 	
@@ -102,7 +106,7 @@ public class SpatialConvolution extends AbstractTrainableModule {
 			deltaParameters = deltas;
 		}
 		deltaWeights = deltaParameters.narrow(0, 0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight);
-		deltaWeights.reshape(noOutputPlanes, noInputPlanes, kernelWidth, kernelHeight);
+		deltaWeights.reshape(noOutputPlanes, noInputPlanes*kernelWidth*kernelHeight);
 		deltaBias = deltaParameters.narrow(0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight, noOutputPlanes);
 		
 		deltaParameters.fill(0.0f);
@@ -125,7 +129,7 @@ public class SpatialConvolution extends AbstractTrainableModule {
 			input.reshape(1, input.size(0), input.size(1));
 		}
 		
-		output = ModuleOps.spatialconvolve(output, input, weights, bias, strideX, strideY, padX, padY);
+		output = ModuleOps.spatialconvolve(output, input, weights, bias, finput, kernelWidth, kernelHeight, strideX, strideY, padX, padY);
 	}
 
 	@Override
@@ -135,17 +139,11 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		}
 			
 		gradOutput.reshape(output.dims());
-
-		gradInput = ModuleOps.spatialconvolveDin(gradInput, gradOutput, weights, strideX, strideY, padX, padY);
+		gradInput = ModuleOps.spatialconvolveGradIn(gradInput, gradOutput, weights, input, finput, fgradInput, kernelWidth, kernelHeight, strideX, strideY, padX, padY);
 	}
 
 	@Override
 	public void accGradParameters() {
-		deltaWeights = ModuleOps.spatialconvolveDker(deltaWeights, deltaWeights, gradOutput, input, strideX, strideY, padX, padY);
-		
-		deltaBias = ModuleOps.spatialconvolveDbias(deltaBias, gradOutput);
-		// move this to spatialconvolveDbias?
-		//for(int i = 0; i < noOutputPlanes; i++)
-		//	deltaBias.set(TensorOps.sum(gradOutput.select(0, i)), i);
+		ModuleOps.spatialconvolveAccGrad(deltaWeights, deltaBias, gradOutput, input, finput, kernelWidth, kernelHeight, strideX, strideY, padX, padY);
 	}
 }

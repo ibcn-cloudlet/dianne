@@ -35,6 +35,9 @@ public class SpatialMaxPooling extends AbstractModule {
 	private int sx;
 	private int sy;
 	
+	// temp tensor with max indices to speed up backward
+	private Tensor indices = new Tensor();
+	
 	public SpatialMaxPooling(int width, int height, int sx, int sy){
 		super();
 		this.w = width;
@@ -61,7 +64,7 @@ public class SpatialMaxPooling extends AbstractModule {
 			output = new Tensor(noPlanes, y, x);
 		}
 		
-		output = ModuleOps.spatialmaxpool(output, input, w, h, sx, sy, 0, 0);
+		output = ModuleOps.spatialmaxpool(output, input, indices, w, h, sx, sy, 0, 0);
 	}
 
 	@Override
@@ -70,7 +73,7 @@ public class SpatialMaxPooling extends AbstractModule {
 			gradInput = new Tensor(input.dims());
 		}
 
-		ModuleOps.spatialmaxpoolDin(gradInput, gradOutput, input, w, h, sx, sy, 0, 0);
+		ModuleOps.spatialmaxpoolGradIn(gradInput, gradOutput, input, indices, w, h, sx, sy, 0, 0);
 	}
 	
 }

@@ -37,6 +37,10 @@ public class Tensor {
 
 	public long address;
 	
+	public Tensor(){
+		this(null, null);
+	}
+	
 	public Tensor(int... dims) {
 		this(null, dims);
 	}

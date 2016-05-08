@@ -36,6 +36,15 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_init
   (JNIEnv * env, jobject t, jfloatArray data, jintArray dims){
 	THTensor * tensor;
 
+	if(dims == NULL){
+		tensor = THTensor_(new)(
+#ifdef CUDA
+				state
+#endif
+		);
+		return (long) tensor;
+	}
+
 	jsize noDims = (*env)->GetArrayLength(env, dims);
 
 	jint *d = (*env)->GetIntArrayElements(env, dims, 0);

@@ -24,4 +24,3 @@ Private-Package: \
 	be.iminds.iot.dianne.nn.module.layer
 Bundle-Name: Dianne NN modules
 Bundle-Description: Dianne Neural Network module implementations
-Require-Capability: module.native

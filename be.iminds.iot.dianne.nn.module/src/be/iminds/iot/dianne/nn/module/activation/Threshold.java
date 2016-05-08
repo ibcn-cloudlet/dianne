@@ -29,31 +29,31 @@ import be.iminds.iot.dianne.tensor.ModuleOps;
 
 public class Threshold extends AbstractModule {
 	
-	private final float thresh;
+	private final float threshold;
 	private final float val;
 	
-	public Threshold(float thresh, float val) {
+	public Threshold(float threshold, float val) {
 		super();
-		this.thresh = thresh;
+		this.threshold = threshold;
 		this.val = val;
 	}
 	
-	public Threshold(UUID id, float thresh, float val) {
+	public Threshold(UUID id, float threshold, float val) {
 		super(id);
-		this.thresh = thresh;
+		this.threshold = threshold;
 		this.val = val;
 	}
 
 	@Override
 	protected void forward() {
-		output = ModuleOps.threshold(output, input, thresh, 0, val);
+		output = ModuleOps.threshold(output, input, threshold, val);
 	}
 
 	@Override
 	protected void backward() {
 		//gradInput = TensorOps.cmul(gradInput, gradOutput, 
 		//		TensorOps.dthresh(gradInput, input, thresh, 0));
-		gradInput = ModuleOps.thresholdDin(gradInput, gradOutput, input, thresh, 0);
+		gradInput = ModuleOps.thresholdGradIn(gradInput, gradOutput, input, threshold);
 	}
 
 }

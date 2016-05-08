@@ -44,18 +44,7 @@ public class Tanh extends AbstractModule {
 
 	@Override
 	protected void backward() {
-		// derivative of tanh:
-		// dtanh/dx = 1-tanh^2 
-		//
-		// thus:
-		// gradInput = gradOutput * ( dtan/dx(input) )
-		//           = gradOutput * (1 - tanh^2(input))
-		//           = gradOutput * (1 - output^2)
-		
-		// TODO do this in one operation
-		//gradInput = TensorOps.cmul(gradInput, gradOutput, 
-		//		TensorOps.dtanh(gradInput, output));
-		gradInput = ModuleOps.tanhDin(gradInput, gradOutput, output);
+		gradInput = ModuleOps.tanhGradIn(gradInput, gradOutput, output);
 	}
 
 }

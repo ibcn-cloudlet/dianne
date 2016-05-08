@@ -52,12 +52,6 @@ public class Softmax extends AbstractModule {
 
 	@Override
 	protected void backward() {
-		// TODO use single op
-		//float sum = TensorOps.sum(TensorOps.cmul(null, gradOutput, output));
-		//
-		//gradInput = TensorOps.sub(gradInput, gradOutput, sum);
-		//gradInput = TensorOps.cmul(gradInput, output, gradInput);
-		
-		gradInput = ModuleOps.softmaxDin(gradInput, gradOutput, output);
+		gradInput = ModuleOps.softmaxGradIn(gradInput, gradOutput, output);
 	}
 }

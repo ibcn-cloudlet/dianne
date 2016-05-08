@@ -26,11 +26,13 @@ import java.util.UUID;
 
 import org.junit.Assert;
 import org.junit.Assume;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import be.iminds.iot.dianne.api.nn.module.BackwardListener;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
+import be.iminds.iot.dianne.tensor.NativeTensorLoader;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.util.ImageConverter;
 
@@ -38,27 +40,10 @@ public class SpatialConvolutionTest {
 
 	private ImageConverter converter = new ImageConverter();
 
-	@Test
-	public void testSpatialConvolutionConstructor1() {
-		int noInputPlanes = 3;
-		int noOutputPlanes = 2;
-		int kernelWidth = 3;
-		int kernelHeight = 3;
-		
-		SpatialConvolution conv = new SpatialConvolution(noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, 1 ,1, false);
-	
-		for(int i=0;i<noOutputPlanes;i++){
-			Tensor sub1 = conv.weights.select(0, i);
-			for(int j=0;j<noInputPlanes;j++){
-				Tensor sub2 = sub1.select(0, j);
-				System.out.println("Kernel:");
-				sub2.fill(j);
-				System.out.println(sub2);
-				System.out.println("===");
-			}
-		}
-		
-		System.out.println(conv.getParameters());
+	@Before
+	public void setup() {
+		NativeTensorLoader loader = new NativeTensorLoader();
+		loader.activate();
 	}
 	
 	/**
@@ -460,86 +445,4 @@ public class SpatialConvolutionTest {
 			Assert.assertEquals(expGradInput[i], gi[i], 0.001f);
 		}
 	}
-	
-//	@Test
-//	public void testSpatialConvolutionLena() throws Exception {
-//		
-//		Tensor input = converter.readFromFile("test/lena.png");
-//		
-//		//converter.writeToFile("test/r.png", input.select(0, 0));
-//		//converter.writeToFile("test/g.png", input.select(0, 1));
-//		//converter.writeToFile("test/b.png", input.select(0, 2));
-//
-//		int noInputPlanes = 3;
-//		int noOutputPlanes = 5;
-//		int kernelWidth = 3;
-//		int kernelHeight = 3;
-//		SpatialConvolution conv = new SpatialConvolution(factory, 
-//				noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, 1, 1, false);
-//		
-//		for(int i=0;i<noOutputPlanes;i++){
-//			Tensor sub = conv.weights.select(0, i);
-//			for(int j=0;j<noInputPlanes;j++){
-//				Tensor kernel = sub.select(0, j);
-//				// TODO kernel for each outputplane
-//				switch(i){
-//				case 0:
-//					kernel.fill(0.0f);
-//					kernel.set(-1.0f/3.0f, 1, 0);
-//					kernel.set(2.0f/3.0f, 1, 1);
-//					kernel.set(-1.0f/3.0f, 1, 2);
-//					break;
-//				case 1:
-//					kernel.fill(0.0f);
-//					kernel.set(-1.0f/3.0f, 0, 1);
-//					kernel.set(2.0f/3.0f, 1, 1);
-//					kernel.set(-1.0f/3.0f, 2, 1);
-//					break;
-//				case 2:
-//					kernel.fill(-1.0f/3.0f);
-//					kernel.set(3.0f, 1, 1);		
-//					break;
-//				case 3:
-//					kernel.fill(0.0f);
-//					kernel.set(-1.0f/3.0f, 0, 1);
-//					kernel.set(-1.0f/3.0f, 1, 0);
-//					kernel.set(-1.0f/3.0f, 0, 0);
-//					kernel.set(1.0f/3.0f, 2, 2);
-//					kernel.set(1.0f/3.0f, 2, 1);
-//					kernel.set(1.0f/3.0f, 1, 2);
-//					break;					
-//				case 4:
-//					kernel.fill(1.0f/3.0f);
-//					break;
-//				}
-//			}
-//		}
-//		
-////		System.out.println(conv.getParameters());
-//	
-//		Object lock = new Object();
-//		conv.addForwardListener(new ForwardListener() {
-//			
-//			@Override
-//			public void onForward(Tensor output, String... tags) {
-//				for(int i=0;i<noOutputPlanes;i++){
-//					try {
-//						//converter.writeToFile("test/output-"+i+".png", output.select(0, i));
-//					} catch (Exception e) {
-//						e.printStackTrace();
-//					}
-//				}
-//				synchronized(lock){
-//					lock.notifyAll();
-//				}
-//			}
-//		});
-//		long t1 = System.currentTimeMillis();
-//		conv.forward(UUID.randomUUID(), input);
-//		synchronized(lock){
-//			lock.wait();
-//		}
-//		long t2 = System.currentTimeMillis();
-//		System.out.println("Time "+(t2-t1)+" ms");
-//	}
 }
