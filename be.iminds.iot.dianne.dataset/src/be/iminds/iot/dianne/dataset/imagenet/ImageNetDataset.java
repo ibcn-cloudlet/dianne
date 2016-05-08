@@ -52,7 +52,7 @@ import be.iminds.iot.dianne.tensor.util.ImageConverter;
 @Component(immediate = true, property = {"name=ImageNet","aiolos.unique=true" })
 public class ImageNetDataset implements Dataset {
 
-	private ImageConverter converter;
+	private ImageConverter converter = new ImageConverter();
 
 	private List<Sample> data = new ArrayList<Sample>();
 	private String[] labels;
