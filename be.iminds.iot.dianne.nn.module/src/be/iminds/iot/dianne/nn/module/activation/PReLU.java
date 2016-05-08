@@ -65,8 +65,7 @@ public class PReLU extends AbstractTrainableModule{
 	
 	@Override
 	protected void forward() {
-// TODO separate prelu ModuleOps function		
-//		output = ModuleOps.threshold(output, input, 0f, parameters.get(0), 0f);
+		output = ModuleOps.prelu(output, input, parameters, 0); 
 	}
 
 	@Override
@@ -74,21 +73,15 @@ public class PReLU extends AbstractTrainableModule{
 		if(deltaParameters==null){
 			initDeltaParameters(null);
 		}
-// TODO separate prelu ModuleOps function		
-//		gradInput = ModuleOps.thresholdGradIn(gradInput, gradOutput, input, 0f, parameters.get(0));
+		
+		gradInput = ModuleOps.preluGradIn(gradInput, gradOutput, input, parameters, 0);
 	}
 
 	private Tensor temp;
 	
 	@Override
 	public void accGradParameters() {
-// TODO separate prelu ModuleOps function		
-//		temp = TensorOps.mul(temp, input, -1f);
-//		temp = ModuleOps.threshold(temp, temp, 0f, 0f, 0f);
-//		temp = TensorOps.mul(temp, temp, -1f);
-//		
-//		deltaParameters = TensorOps.add(deltaParameters, deltaParameters,
-//				TensorOps.dot(temp, gradOutput));
+		ModuleOps.preluAccGrad(deltaParameters, gradOutput, input, parameters, 0);
 	}
 
 	@Override

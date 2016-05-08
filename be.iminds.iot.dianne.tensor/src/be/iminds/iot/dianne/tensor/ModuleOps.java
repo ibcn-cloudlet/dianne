@@ -17,6 +17,14 @@ public class ModuleOps {
 
 	public static native Tensor thresholdGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor input, final float threshold);
 	
+	
+	public static native Tensor prelu(Tensor output, final Tensor input, 
+			final Tensor weight, final int noOutputPlanes);
+
+	public static native Tensor preluGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor input, final Tensor weight, final int noOutputPlanes);
+	
+	public static native void preluAccGrad(final Tensor gradWeight, final Tensor gradOutput, final Tensor input, final Tensor weight, final int noOutputPlanes);
+	
 
 	public static native Tensor softmax(Tensor output, final Tensor input);
 
