@@ -5,12 +5,10 @@ LINKS := -L. -lTHNN -lTH -lopenblas -lgomp
 INCLUDES += -Itorch7/lib/TH -Itorch7/lib/TH/build
 INCLUDES += -Inn/lib/THNN 
 
-
-
 compile: javah $(SRC)
 	$(CC) $(FLAGS) $(CCFLAGS) $(INCLUDES) -c $(SRC)
 
-link: libTH.a libTHNN.a compile 
+link: libopenblas.a libTH.a libTHNN.a compile 
 	$(CC) -shared $(FLAGS) $(CCFLAGS) $(OBJECTS) $(LINKS) -o $(LIB)
 	
 install: link 
@@ -18,14 +16,17 @@ install: link
 	cp $(LIB) $(DEPLOY_DIR)/$(LIB)
 
 libTH.a:
-	cmake -Htorch7/lib/TH -Btorch7/lib/TH/build -DBUILD_STATIC=TRUE -DCMAKE_INSTALL_PREFIX=. -DCMAKE_DISABLE_FIND_PACKAGE_MKL=TRUE
+	cmake -Htorch7/lib/TH -Btorch7/lib/TH/build
 	make -C torch7/lib/TH/build ; \
-	cp torch7/lib/TH/build/libTH_static.a libTH.a
+	cp torch7/lib/TH/build/libTH.a libTH.a
 
 libTHNN.a:
-	cmake -Hnn/lib/THNN -Bnn/lib/THNN/build -DBUILD_STATIC=TRUE
+	cmake -Hnn/lib/THNN -Bnn/lib/THNN/build
 	make -C nn/lib/THNN/build ; \
-	cp nn/lib/THNN/build/libTHNN_static.a libTHNN.a
+	cp nn/lib/THNN/build/libTHNN.a libTHNN.a
+
+libopenblas.a:
+	cd OpenBLAS; make; cp libopenblas.a ..
 
 clean:
 	rm -rf *.o $(LIB) be_*.h test

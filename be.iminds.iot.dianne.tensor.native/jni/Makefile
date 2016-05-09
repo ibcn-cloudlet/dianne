@@ -4,7 +4,7 @@ ARCH := $(shell uname -m)
 GPU := $(shell lspci -v 2>/dev/null | grep NVIDIA)
 
 # Java config
-JAVA_HOME ?= /usr/lib/jvm/default-java
+JAVA_HOME := /usr/lib/jvm/default-java
 # this is the subdirectory name in JAVA_HOME/include/ that contains platform-specific files
 # it seems that some versions of Java 1.1 on linux need this to be "genunix"
 JDKPLATFORMINCLUDESUBDIR := linux
