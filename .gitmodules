@@ -6,4 +6,13 @@
 	url = https://github.com/xianyi/OpenBLAS.git
 [submodule "be.iminds.iot.dianne.tensor.native/jni/torch/torch7"]
 	path = be.iminds.iot.dianne.tensor.native/jni/torch/torch7
-	url = git@github.com:ibcn-cloudlet/torch7.git
+	url = https://github.com/ibcn-cloudlet/torch7.git
+[submodule "be.iminds.iot.dianne.tensor.native/jni/cutorch/cutorch"]
+	path = be.iminds.iot.dianne.tensor.native/jni/cutorch/cutorch
+	url = https://github.com/ibcn-cloudlet/cutorch.git
+[submodule "be.iminds.iot.dianne.tensor.native/jni/torch/nn"]
+	path = be.iminds.iot.dianne.tensor.native/jni/torch/nn
+	url = https://github.com/ibcn-cloudlet/nn.git
+[submodule "be.iminds.iot.dianne.tensor.native/jni/cutorch/cunn"]
+	path = be.iminds.iot.dianne.tensor.native/jni/cutorch/cunn
+	url = https://github.com/ibcn-cloudlet/cunn.git
