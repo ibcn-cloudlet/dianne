@@ -23,12 +23,6 @@
 #include "be_iminds_iot_dianne_tensor_Tensor.h"
 #include "TensorLoader.h"
 
-#ifdef CUDA
-#include "CudaTensor.h"
-#else
-#include "Tensor.h"
-#endif
-
 THGenerator* generator = 0;
 
 

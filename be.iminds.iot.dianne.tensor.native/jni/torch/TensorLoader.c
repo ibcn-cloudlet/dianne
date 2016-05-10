@@ -66,6 +66,12 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_NativeTensorLoader_init
 	(*env)->GetJavaVM(env, &jvm);
 	THSetErrorHandler(torchErrorHandlerFunction, NULL);
 	THSetArgErrorHandler(torchArgErrorHandlerFunction, NULL);
+
+	// initialize CUDA
+#ifdef CUDA
+	state = (THCState*)malloc(sizeof(THCState));
+	THCudaInit(state);
+#endif
 }
 
 
@@ -73,6 +79,12 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_NativeTensorLoader_clean
   (JNIEnv * env, jobject loader){
 	// release global reference to tensor class
 	(*env)->DeleteGlobalRef(env, TENSOR_CLASS);
+
+	// cleanup CUDA
+#ifdef CUDA
+	THCudaBlas_shutdown(state);
+	free(state);
+#endif
 }
 
 
