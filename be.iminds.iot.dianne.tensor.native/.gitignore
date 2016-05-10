@@ -7,3 +7,8 @@
 /jni/torch/*.a
 /jni/torch/*_*.h
 /jni/torch/*.dylib
+/jni/cutorch/*.o
+/jni/cutorch/*.so
+/jni/cutorch/*.a
+/jni/cutorch/*_*.h
+/jni/cutorch/*.dylib
