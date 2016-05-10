@@ -24,11 +24,15 @@ package be.iminds.iot.dianne.tensor;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class TensorOpsTest {
 
+	@Before
+	public void setup() {
+		NativeTensorLoader loader = new NativeTensorLoader();
+		loader.activate();
+	}
 	
 	@Test
 	public void testAdd1() {
