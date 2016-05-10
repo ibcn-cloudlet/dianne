@@ -22,11 +22,10 @@
  *******************************************************************************/
 #include "be_iminds_iot_dianne_tensor_ModuleOps.h"
 #include "THNN.h"
-#include "Tensor.h"
 #include "TensorLoader.h"
 
-// THNNState is void pointer for now?!
-THNNState* state;
+// THNNthnn is void pointer for now?!
+THNNState* thnn;
 
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_tanh
   (JNIEnv * env, jclass c, jobject out, jobject in){
@@ -34,7 +33,7 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_tanh
 	THTensor* output = getTensor(env, out);
 
 	THNN_(Tanh_updateOutput)(
-	          state,
+	          thnn,
 	          input,
 	          output);
 
@@ -48,7 +47,7 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_tanhGradIn
 	THTensor* output = getTensor(env, out);
 
 	THNN_(Tanh_updateGradInput)(
-	          state,
+	          thnn,
 	          0,
 	          gradOutput,
 	          gradInput,
@@ -65,7 +64,7 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_sigmoid
 	THTensor* output = getTensor(env, out);
 
 	THNN_(Sigmoid_updateOutput)(
-	          state,
+	          thnn,
 	          input,
 	          output);
 
@@ -79,7 +78,7 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_sigmoidGrad
 	THTensor* output = getTensor(env, out);
 
 	THNN_(Sigmoid_updateGradInput)(
-	          state,
+	          thnn,
 	          0,
 	          gradOutput,
 	          gradInput,
@@ -96,7 +95,7 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_threshold
 	THTensor* output = getTensor(env, out);
 
 	THNN_(Threshold_updateOutput)(
-	          state,
+	          thnn,
 	          input,
 	          output,
 			  threshold,
@@ -113,7 +112,7 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_thresholdGr
 	THTensor* input = getTensor(env, in);
 
 	THNN_(Threshold_updateGradInput)(
-	          state,
+	          thnn,
 	          input,
 	          gradOutput,
 	          gradInput,
@@ -132,7 +131,7 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_prelu
 	THTensor* weight = getTensor(env, w);
 
 	THNN_(PReLU_updateOutput)(
-			  state,
+			  thnn,
 	          input,
 	          output,
 	          weight,
@@ -149,7 +148,7 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_preluGradIn
 	THTensor* weight = getTensor(env, w);
 
 	THNN_(PReLU_updateGradInput)(
-	          state,
+	          thnn,
 	          input,
 	          gradOutput,
 	          gradInput,
@@ -167,7 +166,7 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_preluAccGrad
 	THTensor* weight = getTensor(env, w);
 
 	THNN_(PReLU_accGradParameters)(
-	          state,
+	          thnn,
 	          input,
 	          gradOutput,
 	          0, // not used?!
@@ -187,7 +186,7 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_softmax
 	THTensor* output = getTensor(env, out);
 
 	THNN_(SoftMax_updateOutput)(
-	          state,
+	          thnn,
 	          input,
 	          output);
 
@@ -201,7 +200,7 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_softmaxGrad
 	THTensor* output = getTensor(env, out);
 
 	THNN_(SoftMax_updateGradInput)(
-	          state,
+	          thnn,
 	          0,
 	          gradOutput,
 	          gradInput,
@@ -219,7 +218,7 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialmaxp
 	THTensor* indices = getTensor(env, ind);
 
 	THNN_(SpatialMaxPooling_updateOutput)(
-	          state,
+	          thnn,
 	          input,
 	          output,
 	          indices,
@@ -239,7 +238,7 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialmaxp
 	THTensor* indices = getTensor(env, ind);
 
 	THNN_(SpatialMaxPooling_updateGradInput)(
-	          state,
+	          thnn,
 	          input,
 	          gradOutput,
 	          gradInput,
@@ -262,7 +261,7 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialconv
 	THTensor* finput = getTensor(env, fin);
 
 	THNN_(SpatialConvolutionMM_updateOutput)(
-	          state,
+	          thnn,
 	          input,
 	          output,
 	          weight,
@@ -286,7 +285,7 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialconv
 	THTensor* fgradInput = getTensor(env, fgradIn);
 
 	THNN_(SpatialConvolutionMM_updateGradInput)(
-	          state,
+	          thnn,
 	          input,
 	          gradOutput,
 	          gradInput,
@@ -309,7 +308,7 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialconvolv
 	THTensor* finput = getTensor(env, fin);
 
 	THNN_(SpatialConvolutionMM_accGradParameters)(
-	          state,
+	          thnn,
 	          input,
 	          gradOutput,
 	          gradWeight,
