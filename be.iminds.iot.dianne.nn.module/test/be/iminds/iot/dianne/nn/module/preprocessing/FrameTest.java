@@ -25,9 +25,11 @@ package be.iminds.iot.dianne.nn.module.preprocessing;
 import java.util.Arrays;
 import java.util.UUID;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
+import be.iminds.iot.dianne.tensor.NativeTensorLoader;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.util.ImageConverter;
 
@@ -35,6 +37,12 @@ public class FrameTest {
 
 	private ImageConverter converter = new ImageConverter();
 
+	@BeforeClass
+	public static void load() {
+		NativeTensorLoader loader = new NativeTensorLoader();
+		loader.activate();
+	}
+	
 	@Test
 	public void testFrame() throws Exception {
 	

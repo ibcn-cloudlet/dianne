@@ -26,6 +26,7 @@ import java.util.UUID;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import be.iminds.iot.dianne.api.nn.module.BackwardListener;
@@ -79,11 +80,14 @@ public class ActivationTest {
 	private Tensor input;
 	private Tensor gradOutput;
 
-	@Before
-	public void setup() {
+	@BeforeClass
+	public static void load() {
 		NativeTensorLoader loader = new NativeTensorLoader();
 		loader.activate();
-		
+	}
+	
+	@Before
+	public void setup() {
 		input = new Tensor(11);
 		int v = -5;
 		for (int i = 0; i < 11; i++) {
