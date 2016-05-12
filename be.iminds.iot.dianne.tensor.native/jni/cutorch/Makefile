@@ -11,7 +11,7 @@ INCLUDES += -I.
 INCLUDES += -I$(CUDA_HOME)/include/
 INCLUDES += -I../torch/torch7/lib/TH -I../torch/torch7/lib/TH/build
 INCLUDES += -I../torch/nn/lib/THNN 
-INCLUDES += -Icutorch/lib/THC -Icutorch/lib/THC/build
+INCLUDES += -Icutorch/lib -Icutorch/lib/THC -Icutorch/lib/THC/build
 INCLUDES += -Icunn/lib/THNN  
 
 FLAGS += -DCUDA 
@@ -27,7 +27,7 @@ compile: javah $(SRC)
 THCudaTensorOps.o: $(CUDA_SRC)
 	$(NVCC) $(FLAGS) $(NVCC_FLAGS) $(INCLUDES) -c $(CUDA_SRC)
 
-link: THCudaTensorOps.o libTHC.a libTHCUNN.a compile 
+link: libTHC.a libTHCUNN.a THCudaTensorOps.o compile 
 	$(CC) -shared $(FLAGS) $(CCFLAGS) $(OBJECTS) $(LINKS) -o $(LIB)
 	
 install: link 

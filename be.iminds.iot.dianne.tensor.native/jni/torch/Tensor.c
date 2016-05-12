@@ -75,6 +75,7 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_init
 
 #ifdef CUDA
 		cudaMemcpy(THTensor_(data)(state, tensor), floats, len*sizeof(real), cudaMemcpyHostToDevice);
+	    THCudaCheck(cudaGetLastError());
 #else
 		jfloat* src_ptr = floats;
 		real* dst_ptr = THTensor_(data)(tensor);
@@ -306,6 +307,7 @@ JNIEXPORT jfloat JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_get___3I
 
 JNIEXPORT jfloatArray JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_get__
   (JNIEnv * env, jobject t){
+
 	THTensor* tensor = getTensor(env, t);
 
 	real* ptr = THTensor_(data)(
@@ -316,9 +318,10 @@ JNIEXPORT jfloatArray JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_get__
 	real* data = ptr;
 
 #ifdef CUDA
-	long bufferSize = tensor->storage->size*sizeof(real);
+	long bufferSize = (tensor->storage->size-tensor->storageOffset)*sizeof(real);
 	real* buffer = malloc(bufferSize);
 	cudaMemcpy(buffer, ptr, bufferSize, cudaMemcpyDeviceToHost);
+    THCudaCheck(cudaGetLastError());
 	data = buffer;
 # endif
 
@@ -438,6 +441,7 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_set___3F
 
 #ifdef CUDA
 	cudaMemcpy(THTensor_(data)(state, tensor), floats, len*sizeof(real), cudaMemcpyHostToDevice);
+    THCudaCheck(cudaGetLastError());
 #else
 	jfloat* src_ptr = floats;
 	real* dst_ptr = THTensor_(data)(tensor);

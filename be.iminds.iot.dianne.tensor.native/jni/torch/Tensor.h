@@ -24,6 +24,8 @@
 #define TENSOR_H
 
 #include "torch7/lib/TH/TH.h"
+#include "nn/lib/THNN/THNN.h"
+
 
 #ifdef THTensor_
 #undef THTensor_
@@ -50,5 +52,7 @@ typedef THFloatStorage THStorage;
 #define THTensor_(x) THFloatTensor_##x
 #define THStorage_(x) THFloatStorage_##x
 #define Real Float
+
+THNNState* state;
 
 #endif

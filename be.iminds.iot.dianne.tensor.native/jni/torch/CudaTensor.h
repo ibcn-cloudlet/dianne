@@ -24,7 +24,7 @@
 #define CUDATENSOR_H
 
 #include "torch7/lib/TH/TH.h"
-#include "cutorch/lib/THC/THC.h"
+#include "../cutorch/cutorch/lib/THC/THC.h"
 
 #ifdef THTensor_
 #undef THTensor_
@@ -50,6 +50,8 @@ typedef THCudaTensor THTensor;
 typedef THCudaStorage THStorage;
 #define THTensor_(x) THCudaTensor_##x
 #define THStorage_(x) THCudaStorage_##x
+
+#define THNN_(x) THNN_Cuda##x
 
 THCState* state;
 

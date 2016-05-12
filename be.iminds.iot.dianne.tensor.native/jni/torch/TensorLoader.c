@@ -69,8 +69,11 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_NativeTensorLoader_init
 
 	// initialize CUDA
 #ifdef CUDA
-	state = (THCState*)malloc(sizeof(THCState));
-	THCudaInit(state);
+	if(state == 0){
+		state = (THCState*)malloc(sizeof(THCState));
+		THCudaInit(state);
+	}
+	THCudaCheck(cudaGetLastError());
 #endif
 }
 

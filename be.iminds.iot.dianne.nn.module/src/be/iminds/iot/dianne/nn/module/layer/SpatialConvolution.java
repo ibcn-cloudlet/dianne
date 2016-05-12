@@ -47,8 +47,8 @@ public class SpatialConvolution extends AbstractTrainableModule {
 	Tensor deltaBias;
 	
 	// tensors for unfolded data
-	private Tensor finput = new Tensor();
-	private Tensor fgradInput = new Tensor();
+	private Tensor temp1 = new Tensor();
+	private Tensor temp2 = new Tensor();
 	
 	public SpatialConvolution(
 			int noInputPlanes, int noOutputPlanes, 
@@ -129,7 +129,7 @@ public class SpatialConvolution extends AbstractTrainableModule {
 			input.reshape(1, input.size(0), input.size(1));
 		}
 		
-		output = ModuleOps.spatialconvolve(output, input, weights, bias, finput, kernelWidth, kernelHeight, strideX, strideY, padX, padY);
+		output = ModuleOps.spatialconvolve(output, input, weights, bias, temp1, temp2, kernelWidth, kernelHeight, strideX, strideY, padX, padY);
 	}
 
 	@Override
@@ -139,11 +139,11 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		}
 			
 		gradOutput.reshape(output.dims());
-		gradInput = ModuleOps.spatialconvolveGradIn(gradInput, gradOutput, weights, input, finput, fgradInput, kernelWidth, kernelHeight, strideX, strideY, padX, padY);
+		gradInput = ModuleOps.spatialconvolveGradIn(gradInput, gradOutput, weights, input, temp1, temp2, kernelWidth, kernelHeight, strideX, strideY, padX, padY);
 	}
 
 	@Override
 	public void accGradParameters() {
-		ModuleOps.spatialconvolveAccGrad(deltaWeights, deltaBias, gradOutput, input, finput, kernelWidth, kernelHeight, strideX, strideY, padX, padY);
+		ModuleOps.spatialconvolveAccGrad(deltaWeights, deltaBias, gradOutput, input, temp1, temp2, kernelWidth, kernelHeight, strideX, strideY, padX, padY);
 	}
 }
