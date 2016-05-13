@@ -34,10 +34,16 @@ public class Linear extends AbstractTrainableModule {
 	private int outSize;
 	
 	private Tensor weights;
+	private Tensor weightsT;
 	private Tensor bias;
+	
+	private Tensor batchedBias = new Tensor();
 	
 	private Tensor deltaWeights;
 	private Tensor deltaBias;
+
+	// keep latest input dimensions
+	private int[] inputDims;
 	
 	public Linear(int inSize, int outSize){
 		super(new Tensor(outSize*(inSize+1)));
@@ -66,6 +72,7 @@ public class Linear extends AbstractTrainableModule {
 		
 		weights = parameters.narrow(0, 0, outSize*inSize);
 		weights.reshape(outSize, inSize);
+		weightsT = weights.transpose(null, 0, 1);
 		bias = parameters.narrow(0, outSize*inSize, outSize);
 		bias.reshape(outSize);
 	}
@@ -97,16 +104,26 @@ public class Linear extends AbstractTrainableModule {
 	
 	@Override
 	protected void forward() {
-		// if size smaller than inSize, add zeros
-		Tensor in = input;
-		if(in.size() < inSize){
-			in = new Tensor(inSize);
-			in.fill(0.0f);
-			Tensor narrow = in.narrow(0, input.size());
-			input.copyInto(narrow);
-			input = in;
+		inputDims = input.dims();
+		if(inputDims.length % 2 == 1){
+			// 1 or 3 treat as vector
+			if(inputDims.length == 3){
+				input.reshape(inputDims[0]*inputDims[1]*inputDims[2]);
+			}
+			output = TensorOps.addmv(output, bias, weights, input);
+
+		} else {
+			// 2 or 4 , treat as batched input
+			if(inputDims.length == 4) { 
+				input.reshape(inputDims[0], inputDims[1]*inputDims[2]*inputDims[3]);
+			}
+			int batchSize = input.size(0);
+			batchedBias.reshape(batchSize, outSize);
+			for(int i=0;i<batchSize;i++){
+				bias.copyInto(batchedBias.select(0, i));
+			}
+			output = TensorOps.addmm(output, batchedBias, input, weightsT);
 		}
-		output = TensorOps.addmv(output, bias, weights, in);
 	}
 
 	@Override
@@ -114,13 +131,26 @@ public class Linear extends AbstractTrainableModule {
 		if(deltaParameters==null){
 			initDeltaParameters(null);
 		}
-		gradInput = TensorOps.tmv(gradInput, weights, gradOutput);
+		if(inputDims.length % 2 == 1){
+			gradInput = TensorOps.mv(gradInput, weightsT, gradOutput);
+		} else {
+			gradInput = TensorOps.mm(gradInput, gradOutput, weights);
+		}
+		gradInput.reshape(inputDims);
 	}
 
 	@Override
 	public void accGradParameters() {
-		deltaWeights = TensorOps.addvv(deltaWeights, deltaWeights, gradOutput, input);
-		deltaBias = TensorOps.add(deltaBias, deltaBias, gradOutput);
+		if(inputDims.length  % 2 == 1){
+			deltaWeights = TensorOps.addvv(deltaWeights, deltaWeights, gradOutput, input);
+			deltaBias = TensorOps.add(deltaBias, deltaBias, gradOutput);
+		} else {
+			int batchSize = input.size(0);
+			for(int i = 0; i< batchSize; i++){
+				deltaWeights = TensorOps.addvv(deltaWeights, deltaWeights, gradOutput.select(0, i), input.select(0, i));
+				deltaBias = TensorOps.add(deltaBias, deltaBias, gradOutput.select(0, i));
+			}
+		}
 	}
 
 }
