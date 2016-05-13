@@ -54,6 +54,7 @@ import be.iminds.iot.dianne.nn.module.join.Multiply;
 import be.iminds.iot.dianne.nn.module.layer.Dropout;
 import be.iminds.iot.dianne.nn.module.layer.Linear;
 import be.iminds.iot.dianne.nn.module.layer.MaskedMaxPooling;
+import be.iminds.iot.dianne.nn.module.layer.Reshape;
 import be.iminds.iot.dianne.nn.module.layer.SpatialConvolution;
 import be.iminds.iot.dianne.nn.module.layer.SpatialMaxPooling;
 import be.iminds.iot.dianne.nn.module.preprocessing.Frame;
@@ -146,7 +147,12 @@ public class DianneModuleFactory implements ModuleFactory {
 		addSupportedType(new ModuleTypeDTO("Frame", "Preprocessing", false, 
 				new ModulePropertyDTO("Dim 0", "dim0", Integer.class.getName()),
 				new ModulePropertyDTO("Dim 1", "dim1", Integer.class.getName()),
-				new ModulePropertyDTO("Dim 2", "dim2", Integer.class.getName())));				
+				new ModulePropertyDTO("Dim 2", "dim2", Integer.class.getName())));	
+		
+		addSupportedType(new ModuleTypeDTO("Reshape", "Layer", false, 
+				new ModulePropertyDTO("Dim 0", "dim0", Integer.class.getName()),
+				new ModulePropertyDTO("Dim 1", "dim1", Integer.class.getName()),
+				new ModulePropertyDTO("Dim 2", "dim2", Integer.class.getName())));
 		
 		addSupportedType(new ModuleTypeDTO("Masked Maxpooling", "Layer", true, 
 				new ModulePropertyDTO("Inputs", "noInputs", Integer.class.getName()),
@@ -367,6 +373,24 @@ public class DianneModuleFactory implements ModuleFactory {
 			}
 			
 			module = new Frame(id, dims);
+			break;
+		}
+		case "Reshape":
+		{
+			int[] dims;
+			
+			int dim0 = Integer.parseInt(dto.properties.get("dim0"));
+			int dim1 = Integer.parseInt(dto.properties.get("dim1"));
+			
+			if(hasProperty(dto.properties, "dim2")){
+				int dim2 = Integer.parseInt(dto.properties.get("dim2"));
+				
+				dims = new int[]{dim0, dim1, dim2};
+			} else {
+				dims = new int[]{dim0, dim1};
+			}
+			
+			module = new Reshape(id, dims);
 			break;
 		}
 		case "Masked MaxPooling":
