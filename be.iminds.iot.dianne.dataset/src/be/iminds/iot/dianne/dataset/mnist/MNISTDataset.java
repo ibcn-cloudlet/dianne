@@ -179,7 +179,7 @@ public class MNISTDataset implements Dataset{
 				for(int j=0;j<inputSize;j++){
 					inputData[j] = (float)readUByte(imageInput)/255f;
 				}
-				Tensor input = new Tensor(inputData, noRows, noColumns);
+				Tensor input = new Tensor(inputData, 1, noRows, noColumns);
 				
 				int i = readUByte(labelInput);
 				output.set(1.0f, i);
