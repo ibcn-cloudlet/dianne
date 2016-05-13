@@ -22,9 +22,11 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.learn;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.util.promise.Promise;
 
 import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.api.nn.learn.Learner;
@@ -39,7 +41,15 @@ public class FeedForwardLearner extends AbstractLearner {
 	
 	protected int batchSize = 10;
 	protected boolean batchAverage = true;
+	
+	// Current batch
+	private Tensor batch = null;
+	private Tensor target = null;
 
+	// For loading next batch while processing current batch
+	private Tensor nextBatch = null;
+	private Tensor nextTarget = null;
+	
 	protected void loadConfig(Map<String, String> config){
 		super.loadConfig(config);
 		
@@ -51,15 +61,16 @@ public class FeedForwardLearner extends AbstractLearner {
 		
 		System.out.println("* batchSize = " +batchSize);
 		System.out.println("* batchAverage = " + batchAverage);
+		
+		// Reset next batch
+		batch = null;
+		target = null;
+		nextBatch = null;
+		nextTarget = null;
 	}
 	
-	protected float process(long i){
-		// Clear delta params
-		nn.getTrainables().values().stream().forEach(Trainable::zeroDeltaParameters);
-		
-		// Process batch
-		float err = 0;
-		for(int k=0; k<batchSize; k++){
+	private void loadBatch(){
+		for(int k=0;k<batchSize;k++){
 			// Select new sample
 			int index = sampling.next();
 			
@@ -67,43 +78,103 @@ public class FeedForwardLearner extends AbstractLearner {
 			Sample sample = dataset.getSample(index);
 			Tensor input = sample.getInput();
 			Tensor target = sample.getOutput();
-
-			// Forward
-			Tensor output = nn.forward(input, String.valueOf(index));
 			
-			// Error
-			err += criterion.error(output, target).get(0);
+			if(nextBatch == null){
+				int[] inputDims = input.dims();
+				int[] batchInputDims = new int[inputDims.length+1];
+				batchInputDims[0] = batchSize;
+				for(int i=0;i<inputDims.length;i++){
+					batchInputDims[i+1] = inputDims[i];
+				}
+				nextBatch = new Tensor(batchInputDims);
+				
+				int[] targetDims = target.dims();
+				int[] batchTargetDims = new int[targetDims.length+1];
+				batchTargetDims[0] = batchSize;
+				for(int i=0;i<targetDims.length;i++){
+					batchTargetDims[i+1] = targetDims[i];
+				}
+				nextTarget = new Tensor(batchTargetDims);
+			}
 			
-			// Error gradient
-			Tensor gradOut = criterion.grad(output, target);
+			// TODO check sizes?!
 			
-			// Backward
-			Tensor gradIn = nn.backward(gradOut, String.valueOf(index));
-			
-			// Accumulate gradient weights
-			nn.getTrainables().values().stream().forEach(Trainable::accGradParameters);
+			input.copyInto(nextBatch.select(0, k));
+			target.copyInto(nextTarget.select(0, k));
 		}
-		
-		if(batchAverage) {
-			nn.getTrainables().values().stream().forEach(m -> {
-				Tensor deltaParams = m.getDeltaParameters();
+	}
 	
-				TensorOps.div(deltaParams, deltaParams, batchSize);
+	protected float process(long i){
+		// Clear delta params
+		nn.getTrainables().values().stream().forEach(Trainable::zeroDeltaParameters);
+		
+		// Use a placeholder for error
+		final float[] error = new float[1];
+		
+		// Load batch if necessary
+		if(nextBatch==null)
+			loadBatch();
+		
+		// Flip current/next
+		Tensor temp = batch;
+		batch = nextBatch;
+		nextBatch = temp;
+		
+		temp = target;
+		target = nextTarget;
+		nextTarget = temp;
+		
+		// Forward/backward pass - executed asynchronously
+		Promise result = nn.forward(null, null, batch).then(
+				p -> {
+					// Forward
+					Tensor output = p.getValue().tensor;
+					
+					// Error
+					error[0] += criterion.error(output, target).get(0);
+
+					// Error gradient
+					Tensor gradOut = criterion.grad(output, target);
+					
+					// Backward
+					return nn.backward(null, null, gradOut);
+				}).then(		
+				p -> {	
+					// Accumulate gradient weights
+					nn.getTrainables().values().stream().forEach(Trainable::accGradParameters);
+					
+					if(batchAverage) {
+						nn.getTrainables().values().stream().forEach(m -> {
+							Tensor deltaParams = m.getDeltaParameters();
+				
+							TensorOps.div(deltaParams, deltaParams, batchSize);
+									
+							// Set DeltaParameters to be sure in case of remote module instance
+							m.setDeltaParameters(deltaParams);
+						});
 						
-				// Set DeltaParameters to be sure in case of remote module instance
-				m.setDeltaParameters(deltaParams);
-			});
-			
-			err /= batchSize;
+						error[0] /= batchSize;
+					}
+					
+					// Run gradient processors
+					gradientProcessor.calculateDelta(i);
+					
+					// Update parameters
+					nn.getTrainables().values().stream().forEach(Trainable::updateParameters);
+					
+					return p;
+				});
+		
+		// Load next batch while processing previous one
+		loadBatch();
+		
+		try {
+			result.getValue();
+		} catch (InvocationTargetException | InterruptedException e) {
+			e.printStackTrace();
 		}
 		
-		// Run gradient processors
-		gradientProcessor.calculateDelta(i);
-		
-		// Update parameters
-		nn.getTrainables().values().stream().forEach(Trainable::updateParameters);
-		
-		return err;
+		return error[0];
 	}
 	
 }
