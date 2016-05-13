@@ -22,57 +22,51 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.module.preprocessing;
 
-import java.util.Arrays;
-import java.util.UUID;
-
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-import be.iminds.iot.dianne.api.nn.module.ForwardListener;
-import be.iminds.iot.dianne.tensor.NativeTensorLoader;
+import be.iminds.iot.dianne.nn.module.ModuleTest;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.util.ImageConverter;
 
-public class FrameTest {
+public class FrameTest extends ModuleTest {
 
-	private ImageConverter converter = new ImageConverter();
-
-	@BeforeClass
-	public static void load() {
-		NativeTensorLoader loader = new NativeTensorLoader();
-		loader.activate();
-	}
-	
 	@Test
 	public void testFrame() throws Exception {
 	
-		Frame frame = new Frame(3, 231, 231);
+		Frame frame = new Frame(2, 2);
 		
-		Tensor input = converter.readFromFile("test/snake.jpg");
-		converter.writeToFile("test/out.png", input);
+		float[] inputData = new float[]{1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f, 14.0f, 15.0f};
+		Tensor input = new Tensor(inputData, 3, 5);
+		
+		float[] expOutputData = new float[]{2.0f, 4.0f, 12.0f, 14.0f};
+		Tensor expOutput = new Tensor(expOutputData, 2, 2);
+		
+		float[] gradOutputData = new float[]{1.0f, 1.0f, 1.0f, 1.0f};
+		Tensor gradOutput = new Tensor(gradOutputData, 2, 2);
 
-		Object lock = new Object();
-		frame.addForwardListener(new ForwardListener() {
-			
-			@Override
-			public void onForward(UUID moduleId, Tensor output, String... tags) {
-				System.out.println(Arrays.toString(output.dims()));
-				try {
-					converter.writeToFile("test/framed.png", output);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				synchronized(lock){
-					lock.notifyAll();
-				}
-			}
-		});
-		long t1 = System.currentTimeMillis();
-		frame.forward(UUID.randomUUID(), input);
-		synchronized(lock){
-			lock.wait();
-		}
-		long t2 = System.currentTimeMillis();
-		System.out.println("Time "+(t2-t1)+" ms");
+		// TODO also implement a backward for frame?
+		Tensor expGradInput = null;
+		
+		testModule(frame, input, expOutput, gradOutput, expGradInput);
+	}
+	
+	@Test
+	public void testFrameBatch() throws Exception {
+	
+		Frame frame = new Frame(2, 2);
+		
+		float[] inputData = new float[]{1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f, 14.0f, 15.0f,
+				1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f, 14.0f, 15.0f};
+		Tensor input = new Tensor(inputData, 2, 3, 5);
+		
+		float[] expOutputData = new float[]{2.0f, 4.0f, 12.0f, 14.0f, 2.0f, 4.0f, 12.0f, 14.0f};
+		Tensor expOutput = new Tensor(expOutputData, 2, 2, 2);
+		
+		float[] gradOutputData = new float[]{1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+		Tensor gradOutput = new Tensor(gradOutputData, 2, 2, 2);
+
+		// TODO also implement a backward for frame?
+		Tensor expGradInput = null;
+		
+		testModule(frame, input, expOutput, gradOutput, expGradInput);
 	}
 }
