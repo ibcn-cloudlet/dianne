@@ -125,6 +125,12 @@ public class TensorOps {
 	public static native Tensor mm(Tensor res, final Tensor mat1, final Tensor mat2);
 	
 	/**
+	 * Matrix matrix product of transposed matensor1 and matensor2. If matensor1 is a m x n matrix, matensor2 a m x p matrix, 
+	 * res must be a n x p matrix.
+	 */
+	public static native Tensor tmm(Tensor res, final Tensor mat1, final Tensor mat2);
+	
+	/**
 	 * Performs the matrix product between vec1 and vec2 and adds this to mat
 	 * @param res placeholder
 	 * @param mat mxn matrix to add to result

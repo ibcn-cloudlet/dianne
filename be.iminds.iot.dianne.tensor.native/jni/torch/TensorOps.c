@@ -310,6 +310,36 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_mm
 	return res == NULL ? createTensorObject(env, r) : res;
 }
 
+
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_tmm
+  (JNIEnv * env, jclass c, jobject res, jobject m1, jobject m2){
+	THTensor* mat1 = getTensor(env, m1);
+	THTensor* mat2 = getTensor(env, m2);
+	THTensor* r = getTensor2d(env, res, mat1->size[1], mat2->size[1]);
+
+	THTensor* transpose = THTensor_(newTranspose)(
+#ifdef CUDA
+			state,
+#endif
+			mat1, 0, 1);
+
+	THTensor_(addmm)(
+#ifdef CUDA
+			state,
+#endif
+			r, 0.0f, r, 1.0f, transpose, mat2);
+
+	THTensor_(free)(
+#ifdef CUDA
+			state,
+#endif
+			transpose);
+
+	return res == NULL ? createTensorObject(env, r) : res;
+}
+
+
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_addvv
   (JNIEnv * env, jclass c, jobject res, jobject m, jobject v1, jobject v2){
 	THTensor* mat = getTensor(env, m);
