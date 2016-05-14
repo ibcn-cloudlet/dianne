@@ -47,6 +47,9 @@ public class BatchNormalization extends AbstractTrainableModule{
 	private int batchSize;
 	private int[] inputDims;
 	
+	// TODO keep train flag for all modules?!
+	private boolean train = false;
+	
 	public BatchNormalization(int size) {
 		super(new Tensor(4*size));
 		this.size = size;
@@ -75,9 +78,6 @@ public class BatchNormalization extends AbstractTrainableModule{
 		rMean = parameters.narrow(0, 2*size, size);
 		rVar = parameters.narrow(0, 3*size, size);
 		
-		rMean.fill(0.0f);
-		rVar.fill(1.0f);
-		
 		sMean = new Tensor(size);
 		sVar = new Tensor(size);
 		
@@ -104,24 +104,29 @@ public class BatchNormalization extends AbstractTrainableModule{
 		batchSize = input.size()/size;
 		
 		input.reshape(batchSize, size);
-		output = ModuleOps.batchnorm(output, input, weights, bias, rMean, rVar, sMean, sVar, true);
+		output = ModuleOps.batchnorm(output, input, weights, bias, rMean, rVar, sMean, sVar, train);
 		output.reshape(inputDims);
+		
+		// set train to false if only forward is called!
+		train = false;
 	}
 
 	@Override
 	protected void backward() {
+		train = true;
+		
 		if(deltaParameters==null){
 			initDeltaParameters(null);
 		}
 		
 		gradOutput.reshape(batchSize, size);
-		gradInput = ModuleOps.batchnormGradIn(gradInput, gradOutput, input, weights, rMean, rVar, sMean, sVar, true);
+		gradInput = ModuleOps.batchnormGradIn(gradInput, gradOutput, input, weights, rMean, rVar, sMean, sVar, train);
 		gradInput.reshape(inputDims);
 	}
 
 	@Override
 	public void accGradParameters() {
-		ModuleOps.batchnormAccGrad(gradWeights, gradBias, gradOutput, input, rMean, rVar, sMean, sVar, true);
+		ModuleOps.batchnormAccGrad(gradWeights, gradBias, gradOutput, input, rMean, rVar, sMean, sVar, train);
 	}
 
 	@Override
