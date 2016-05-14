@@ -364,3 +364,94 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialconvolv
 				temp2);
 	}
 }
+
+
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_batchnorm
+  (JNIEnv * env, jclass c, jobject out, jobject in, jobject w, jobject b, jobject rm, jobject rv, jobject sm, jobject sv, jboolean train){
+	THTensor* input = getTensor(env, in);
+	THTensor* output = getTensor2d(env, out, input->size[0], input->size[1]);
+	THTensor* weight = getTensor(env, w);
+	THTensor* bias = getTensor(env, b);
+	THTensor* running_mean = getTensor(env, rm);
+	THTensor* running_var = getTensor(env, rv);
+	THTensor* save_mean = getTensor(env, sm);
+	THTensor* save_std = getTensor(env, sv);
+
+	THNN_(BatchNormalization_updateOutput)(
+	          state,
+	          input,
+	          output,
+	          weight,
+	          bias,
+	          running_mean,
+	          running_var,
+	          save_mean,
+	          save_std,
+	          train,
+	          0.1,
+	          1e-5);
+
+	return out == NULL ? createTensorObject(env, output) : out;
+}
+
+
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_batchnormGradIn
+  (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject w, jobject rm, jobject rv, jobject sm, jobject sv, jboolean train){
+	THTensor* gradOutput = getTensor(env, gradOut);
+	THTensor* gradInput = getTensor2d(env, gradIn, gradOutput->size[0], gradOutput->size[1]);
+	THTensor* input = getTensor(env, in);
+	THTensor* weight = getTensor(env, w);
+	THTensor* running_mean = getTensor(env, rm);
+	THTensor* running_var = getTensor(env, rv);
+	THTensor* save_mean = getTensor(env, sm);
+	THTensor* save_std = getTensor(env, sv);
+
+	THNN_(BatchNormalization_backward)(
+	          state,
+	          input,
+	          gradOutput,
+	          gradInput,
+	          0,
+	          0,
+	          weight,
+	          running_mean,
+	          running_var,
+	          save_mean,
+	          save_std,
+	          train,
+	          0.1,
+			  1e-5);
+
+	return gradIn == NULL ? createTensorObject(env, gradInput) : gradIn;
+}
+
+JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_batchnormAccGrad
+  (JNIEnv * env, jclass c, jobject gradW, jobject gradB, jobject gradOut, jobject in, jobject rm, jobject rv, jobject sm, jobject sv, jboolean train){
+	THTensor* gradOutput = getTensor(env, gradOut);
+	THTensor* input = getTensor(env, in);
+	THTensor* gradWeight = getTensor(env, gradW);
+	THTensor* gradBias = getTensor(env, gradB);
+	THTensor* running_mean = getTensor(env, rm);
+	THTensor* running_var = getTensor(env, rv);
+	THTensor* save_mean = getTensor(env, sm);
+	THTensor* save_std = getTensor(env, sv);
+
+	THNN_(BatchNormalization_backward)(
+	          state,
+	          input,
+	          gradOutput,
+	          0,
+	          gradWeight,
+	          gradBias,
+	          0,
+	          running_mean,
+	          running_var,
+	          save_mean,
+	          save_std,
+	          train,
+	          0.1,
+			  1e-5);
+}
+

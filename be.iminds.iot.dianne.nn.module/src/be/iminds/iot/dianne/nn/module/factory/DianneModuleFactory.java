@@ -51,6 +51,7 @@ import be.iminds.iot.dianne.nn.module.io.OutputImpl;
 import be.iminds.iot.dianne.nn.module.join.Accumulate;
 import be.iminds.iot.dianne.nn.module.join.Concat;
 import be.iminds.iot.dianne.nn.module.join.Multiply;
+import be.iminds.iot.dianne.nn.module.layer.BatchNormalization;
 import be.iminds.iot.dianne.nn.module.layer.Dropout;
 import be.iminds.iot.dianne.nn.module.layer.Linear;
 import be.iminds.iot.dianne.nn.module.layer.MaskedMaxPooling;
@@ -77,6 +78,9 @@ public class DianneModuleFactory implements ModuleFactory {
 					new ModulePropertyDTO("Input size", "input", Integer.class.getName()),
 					new ModulePropertyDTO("Output size", "output", Integer.class.getName())));
 
+		addSupportedType( new ModuleTypeDTO("BatchNormalization", "Layer", true, 
+				new ModulePropertyDTO("Size", "size", Integer.class.getName())));
+		
 		addSupportedType( new ModuleTypeDTO("Dropout", "Layer", true, 
 				new ModulePropertyDTO("Dropout rate", "dropout", Float.class.getName())));
 		
@@ -188,6 +192,17 @@ public class DianneModuleFactory implements ModuleFactory {
 				module = new Linear(id, parameters, input, output);
 			} else {
 				module = new Linear(id, input, output);
+			}
+			break;
+		}
+		case "BatchNormalization":
+		{
+			int size = Integer.parseInt(dto.properties.get("size"));
+			
+			if(parameters!=null){
+				module = new BatchNormalization(id, parameters, size);
+			} else {
+				module = new BatchNormalization(id, size);
 			}
 			break;
 		}

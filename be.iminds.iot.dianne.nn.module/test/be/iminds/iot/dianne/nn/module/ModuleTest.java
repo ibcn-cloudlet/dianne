@@ -15,6 +15,8 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 public class ModuleTest {
 	
+	public static final boolean TRACE = false;
+	
 	@BeforeClass
 	public static void setup() {
 		NativeTensorLoader loader = new NativeTensorLoader();
@@ -30,7 +32,13 @@ public class ModuleTest {
 			m.addForwardListener(new ForwardListener() {
 				@Override
 				public void onForward(UUID moduleId, Tensor o, String... tags) {
+					if(TRACE)
+						System.out.println("OUTPUT "+o);
 					o.copyInto(output);
+					
+					if(TRACE)
+						System.out.println("GRAD OUT "+gradOutput);
+					
 					m.backward(UUID.randomUUID(), gradOutput);
 				}
 			});
@@ -38,8 +46,12 @@ public class ModuleTest {
 				@Override
 				public void onBackward(UUID moduleId, Tensor gi, String... tags) {
 					synchronized(m) {
-						if(expGradInput!=null)
+						if(expGradInput!=null){
+							if(TRACE)
+								System.out.println("GRAD IN "+gi);
+							
 							gi.copyInto(gradInput);
+						}
 						m.notify();
 					}
 				}
@@ -66,29 +78,46 @@ public class ModuleTest {
 			Tensor gradInput = new Tensor();
 			
 			m.zeroDeltaParameters();
-			m.setParameters(params);		
+			if(params !=null)
+				m.setParameters(params);		
 			
 			m.addForwardListener(new ForwardListener() {
 				@Override
 				public void onForward(UUID moduleId, Tensor o, String... tags) {
+					if(TRACE)
+						System.out.println("OUTPUT "+o);
 					o.copyInto(output);
+					
+					if(TRACE)
+						System.out.println("GRAD OUT "+gradOutput);
+					
 					m.backward(UUID.randomUUID(), gradOutput);
 				}
 			});
 			m.addBackwardListener(new BackwardListener() {
 				@Override
 				public void onBackward(UUID moduleId, Tensor gi, String... tags) {
+					if(TRACE)
+						System.out.println("GRAD IN "+gi);
+
 					synchronized(m) {
 						gi.copyInto(gradInput);
 						m.notify();
 					}
 				}
 			});
+
+			if(TRACE)
+				System.out.println("INPUT "+input);
+
 			synchronized(m) {
 				m.forward(UUID.randomUUID(), input);
 				m.wait(1000);
 				m.accGradParameters();
 			}
+			
+			if(TRACE)
+				System.out.println("DELTA PARAMS "+m.getDeltaParameters());
 
 			Assert.assertTrue(expOutput.equals(output, 0.001f));
 			Assert.assertTrue(expGradInput.equals(gradInput, 0.001f));

@@ -46,4 +46,12 @@ public class ModuleOps {
 
 	public static native void spatialconvolveAccGrad(final Tensor gradKernels, final Tensor gradBias, final Tensor gradOutput, final Tensor input, final Tensor temp1, final Tensor temp2,
 			final int kW, final int kH, final int dW, final int dH, final int padW, final int padH);
+	
+	
+	public static native Tensor batchnorm(Tensor output, final Tensor input, final Tensor weights, final Tensor bias, final Tensor rMean, final Tensor rVar, final Tensor sMean, final Tensor sVar, boolean train);
+
+	public static native Tensor batchnormGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor input, final Tensor weights, final Tensor rMean, final Tensor rVar, final Tensor sMean, final Tensor sVar, boolean train);
+
+	public static native void batchnormAccGrad(final Tensor gradWeights, final Tensor gradBias, final Tensor gradOutput, final Tensor input, final Tensor rMean, final Tensor rVar, final Tensor sMean, final Tensor sVar, boolean train);
+
 }
