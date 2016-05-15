@@ -59,18 +59,28 @@ public class DatasetRangeAdapter implements Dataset {
 	}
 	
 	@Override
+	public int[] inputDims(){
+		return data.inputDims();
+	}
+	
+	@Override
+	public int[] outputDims(){
+		return data.outputDims();
+	}
+	
+	@Override
 	public int size() {
 		return end-start;
 	}
 
 	@Override
-	public Tensor getInputSample(int index) {
-		return data.getInputSample(start+index);
+	public Tensor getInputSample(int index, Tensor t) {
+		return data.getInputSample(start+index, t);
 	}
 
 	@Override
-	public Tensor getOutputSample(int index) {
-		return data.getOutputSample(start+index);
+	public Tensor getOutputSample(int index, Tensor t) {
+		return data.getOutputSample(start+index, t);
 	}
 	
 	@Override

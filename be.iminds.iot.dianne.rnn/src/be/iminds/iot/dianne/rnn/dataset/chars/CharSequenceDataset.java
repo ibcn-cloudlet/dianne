@@ -83,22 +83,24 @@ public class CharSequenceDataset implements SequenceDataset{
 	public int size() {
 		return data.length();
 	}
-
+	
 	@Override
-	public Tensor getInputSample(int index) {
-		return asTensor(data.charAt(index));
+	public Tensor getInputSample(int index , Tensor t) {
+		t = asTensor(data.charAt(index), t);
+		return t;
 	}
 
 	@Override
-	public Tensor getOutputSample(int index) {
-		return asTensor(data.charAt(index+1));
+	public Tensor getOutputSample(int index, Tensor t) {
+		t = asTensor(data.charAt(index+1), t);
+		return t;
 	}
 
 	@Override
 	public Tensor[] getSequence(int index, int length) {
 		Tensor[] sequence = new Tensor[length+1];
 		for(int i=index;i<index+length+1;i++){
-			sequence[i-index] = asTensor(data.charAt(i));
+			sequence[i-index] = asTensor(data.charAt(i), null);
 		}
 		return sequence;
 	}
@@ -113,9 +115,10 @@ public class CharSequenceDataset implements SequenceDataset{
 		return labels;
 	}
 	
-	private Tensor asTensor(char c){
+	private Tensor asTensor(char c, Tensor t){
 		int index = chars.indexOf(c);
-		Tensor t = new Tensor(chars.length());
+		if(t == null)
+			t = new Tensor(chars.length());
 		t.fill(0.0f);
 		t.set(1.0f, index);
 		return t;
@@ -124,5 +127,15 @@ public class CharSequenceDataset implements SequenceDataset{
 	private char asChar(Tensor t){
 		int index = TensorOps.argmax(t);
 		return chars.charAt(index);
+	}
+
+	@Override
+	public int[] inputDims() {
+		return new int[]{chars.length()};
+	}
+
+	@Override
+	public int[] outputDims() {
+		return new int[]{chars.length()};
 	}
 }

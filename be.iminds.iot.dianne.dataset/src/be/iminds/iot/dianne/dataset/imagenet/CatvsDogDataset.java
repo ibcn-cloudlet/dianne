@@ -90,6 +90,16 @@ public class CatvsDogDataset implements Dataset {
 		}
 	}
 	
+	@Override
+	public int[] inputDims(){
+		return null;
+	}
+	
+	@Override
+	public int[] outputDims(){
+		return new int[]{3};
+	}
+	
 	private List<String> readStrings(String file){
 		List<String> result = new ArrayList<>();
 		try {
@@ -123,26 +133,28 @@ public class CatvsDogDataset implements Dataset {
 	}
 
 	@Override
-	public Tensor getInputSample(int index) {
-		return imagenet.getInputSample(index);
+	public Tensor getInputSample(int index, Tensor t) {
+		return imagenet.getInputSample(index, t);
 	}
 
 	@Override
-	public Tensor getOutputSample(int index) {
-		Tensor output = new Tensor(3);
-		output.fill(0.0f);
+	public Tensor getOutputSample(int index, Tensor t) {
+		if(t == null)
+			t = new Tensor(3);
+		
+		t.fill(0.0f);
 		
 		Tensor imagenetOutput = imagenet.getOutputSample(index);
 		int max = TensorOps.argmax(imagenetOutput);
 		
 		if(cats[max]){
-			output.set(1.0f, 0);
+			t.set(1.0f, 0);
 		} else if(dogs[max]){
-			output.set(1.0f, 1);
+			t.set(1.0f, 1);
 		} else {
-			output.set(1.0f, 2);
+			t.set(1.0f, 2);
 		}
-		return output;
+		return t;
 	}
 
 	@Override

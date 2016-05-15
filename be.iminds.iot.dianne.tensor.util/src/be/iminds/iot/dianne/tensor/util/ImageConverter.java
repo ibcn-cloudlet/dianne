@@ -119,8 +119,12 @@ public class ImageConverter {
 		JPEGHuffmanTable[] result = { dcLum, dcChm };
 		return result;
 	}
-
+	
 	public Tensor readFromImage(BufferedImage img){
+		return readFromImage(img, null);
+	}
+
+	public Tensor readFromImage(BufferedImage img, Tensor t){
 		int width = img.getWidth();
 		int height = img.getHeight();
 		
@@ -139,19 +143,27 @@ public class ImageConverter {
 			}
 		}
 		
-		return new Tensor(imageData, 3, height, width);
+		if(t == null)
+			return new Tensor(imageData, 3, height, width);
+		
+		t.reshape(3, height, width);
+		t.set(imageData);
+		return t;
 	}
 	
-	public Tensor readFromFile(String fileName) throws Exception{
+	public Tensor readFromFile(String fileName, Tensor t) throws Exception{
 		// jDeli should be faster
 		//BufferedImage img = ImageIO.read(new File(fileName));
 
 		byte[] data = Files.readAllBytes(Paths.get(fileName));
 		JpegDecoder decoder = new JpegDecoder();
 		BufferedImage img = decoder.read(data);
-		return readFromImage(img);
+		return readFromImage(img, t);
 	}
 	
+	public Tensor readFromFile(String fileName) throws Exception {
+		return readFromFile(fileName, null);
+	}
 	
 	public Tensor readFromBytes(byte[] data) throws Exception {
         ImageInputStream stream = ImageIO.createImageInputStream(new ByteArrayInputStream(data));

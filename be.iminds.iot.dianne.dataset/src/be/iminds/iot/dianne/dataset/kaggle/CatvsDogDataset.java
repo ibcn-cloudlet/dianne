@@ -65,16 +65,25 @@ public class CatvsDogDataset implements Dataset {
 	}
 	
 	@Override
+	public int[] inputDims(){
+		return null;
+	}
+	
+	@Override
+	public int[] outputDims(){
+		return new int[]{3};
+	}
+	
+	@Override
 	public int size() {
 		return noSamples;
 	}
 
 	@Override
-	public Tensor getInputSample(int index) {
+	public Tensor getInputSample(int index, Tensor t) {
 		String file = files[index];
-		Tensor t = null;
 		try {
-			t = converter.readFromFile(file);
+			t = converter.readFromFile(file, t);
 		} catch(Exception e){
 			e.printStackTrace();
 			System.out.println("Failed to load input sample "+file);
@@ -83,18 +92,19 @@ public class CatvsDogDataset implements Dataset {
 	}
 
 	@Override
-	public Tensor getOutputSample(int index) {
-		Tensor output = new Tensor(3);
-		output.fill(0.0f);
+	public Tensor getOutputSample(int index, Tensor t) {
+		if(t == null)
+			t = new Tensor(3);
+		t.fill(0.0f);
 		String file = files[index];
 		if(file.startsWith("cat")){
-			output.set(1.0f, 0);
+			t.set(1.0f, 0);
 		} else if(file.startsWith("dog")){
-			output.set(1.0f, 1);
+			t.set(1.0f, 1);
 		} else {
-			output.set(1.0f, 2);
+			t.set(1.0f, 2);
 		}
-		return output;
+		return t;
 	}
 
 	@Override

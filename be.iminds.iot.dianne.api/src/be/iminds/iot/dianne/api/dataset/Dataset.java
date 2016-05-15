@@ -49,6 +49,10 @@ public interface Dataset {
 	 */
 	int size();
 
+	int[] inputDims();
+	
+	int[] outputDims();
+	
 	/**
 	 * Returns a sample from the dataset
 	 * @param index the index to fetch, should be smaller than size()
@@ -58,21 +62,38 @@ public interface Dataset {
 		return new Sample(getInputSample(index), getOutputSample(index));
 	}
 	
+	default Sample getSample(final int index, Sample s){
+		if(s == null)
+			return getSample(index);
+		
+		getInputSample(index, s.input);
+		getOutputSample(index, s.output);
+		return s;
+	}
+	
 	/**
 	 * Get an input sample from the dataset
 	 * 
 	 * @param index the index to fetch, should be smaller than size()
 	 * @return the input sample at position index
 	 */
-	Tensor getInputSample(final int index);
+	default Tensor getInputSample(final int index){
+		return getInputSample(index, null);
+	}
 		
+	Tensor getInputSample(final int index, Tensor t);
+	
 	/**
 	 * Get an output vector from the dataset
 	 * 
 	 * @param index the index to fetch, should be smaller than size()
 	 * @return the output vector corresponding with input sample index
 	 */
-	Tensor getOutputSample(final int index);
+	default Tensor getOutputSample(final int index){
+		return getOutputSample(index, null);
+	}
+	
+	Tensor getOutputSample(final int index, Tensor t);
 	
 	/**
 	 * A human-readable name for this dataset

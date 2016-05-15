@@ -74,13 +74,9 @@ public class FeedForwardLearner extends AbstractLearner {
 			// Select new sample
 			int index = sampling.next();
 			
-			//Fetch sample
-			Sample sample = dataset.getSample(index);
-			Tensor input = sample.getInput();
-			Tensor target = sample.getOutput();
-			
+			// Preallocate batch if necessary
 			if(nextBatch == null){
-				int[] inputDims = input.dims();
+				int[] inputDims = dataset.inputDims();
 				int[] batchInputDims = new int[inputDims.length+1];
 				batchInputDims[0] = batchSize;
 				for(int i=0;i<inputDims.length;i++){
@@ -88,7 +84,7 @@ public class FeedForwardLearner extends AbstractLearner {
 				}
 				nextBatch = new Tensor(batchInputDims);
 				
-				int[] targetDims = target.dims();
+				int[] targetDims = dataset.outputDims();
 				int[] batchTargetDims = new int[targetDims.length+1];
 				batchTargetDims[0] = batchSize;
 				for(int i=0;i<targetDims.length;i++){
@@ -99,8 +95,9 @@ public class FeedForwardLearner extends AbstractLearner {
 			
 			// TODO check sizes?!
 			
-			input.copyInto(nextBatch.select(0, k));
-			target.copyInto(nextTarget.select(0, k));
+			//Fetch sample
+			dataset.getInputSample(index, nextBatch.select(0, k));
+			dataset.getOutputSample(index, nextTarget.select(0, k));
 		}
 	}
 	

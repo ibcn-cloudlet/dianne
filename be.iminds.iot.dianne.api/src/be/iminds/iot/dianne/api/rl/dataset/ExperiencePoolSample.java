@@ -33,10 +33,10 @@ import be.iminds.iot.dianne.tensor.Tensor;
  */
 public class ExperiencePoolSample extends Sample {
 
-	public final Tensor state;
-	public final Tensor action;
-	public final float reward;
-	public final Tensor nextState;
+	public Tensor state;
+	public Tensor action;
+	public float reward;
+	public Tensor nextState;
 	
 	public ExperiencePoolSample(
 			final Tensor state, 

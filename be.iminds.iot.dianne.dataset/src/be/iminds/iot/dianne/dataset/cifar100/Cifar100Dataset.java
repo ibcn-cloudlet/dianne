@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -37,7 +36,6 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
-import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
@@ -50,14 +48,18 @@ import be.iminds.iot.dianne.tensor.Tensor;
 @Component(immediate=true, property={"name=CIFAR-100","aiolos.unique=true"})
 public class Cifar100Dataset implements Dataset {
 
-	private List<Sample> data = new ArrayList<Sample>();
+	private float[][] inputs;
+	private float[][] outputs;
+	private int loaded = 0;
+	
 	private String[] labels;
 	
-	private int noRows;
-	private int noColumns;
-	private int inputSize;
-	private int outputSize;
-	private int noSamples;
+	private int[] inputDims = new int[]{3, 32, 32};
+	private int inputSize = 3*32*32;
+	private int[] outputDims = new int[]{100};
+	private int outputSize = 100;
+	private int noSamples = 60000;
+	
 	
 	private String dir = "";
 	// thread to start loading data when constructed
@@ -73,18 +75,13 @@ public class Cifar100Dataset implements Dataset {
 		String l = context.getProperty("be.iminds.iot.dianne.dataset.cifar100.labels");
 		if(l!=null){
 			if(l.equals("coarse")){
+				outputDims = new int[]{20};
 				outputSize = 20;
-			} else if(l.equals("fine")){
-				outputSize = 100;
-			}
-		} else {
-			outputSize = 100;
+			} 
 		}
 		
-		noRows = 32;
-		noColumns = 32;
-		inputSize = noRows*noColumns*3;
-		noSamples = 60000;
+		inputs = new float[noSamples][inputSize];
+		outputs = new float[noSamples][outputSize];
 		
 		if(outputSize==100){
 			readLabels("fine_label_names.txt");
@@ -95,6 +92,16 @@ public class Cifar100Dataset implements Dataset {
 		// merge all samples into one dataset
 		read("test.bin");
 		read("train.bin");
+	}
+	
+	@Override
+	public int[] inputDims(){
+		return inputDims;
+	}
+	
+	@Override
+	public int[] outputDims(){
+		return outputDims;
 	}
 	
 	private void readLabels(String file){
@@ -144,37 +151,37 @@ public class Cifar100Dataset implements Dataset {
 	}
 
 	@Override
-	public Tensor getInputSample(int index) {
+	public Tensor getInputSample(int index, Tensor t) {
 		// some hack to allow prefecting on construction
 		// TODO better solution?
-		while(data.size()<=index && index < noSamples){
-			synchronized(data){
-				if(data.size()<=index ){
-					try {
-						data.wait();
-					} catch (InterruptedException e) {
-					}
-				}
-			}
+		while(loaded<index && index < noSamples){
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {}
 		}
-		return data.get(index).input;
+
+		if(t == null)
+			t = new Tensor(inputs[index], inputDims);
+		else 
+			t.set(inputs[index]);
+		return t;
 	}
 
 	@Override
-	public Tensor getOutputSample(int index) {
+	public Tensor getOutputSample(int index, Tensor t) {
 		// some hack to allow prefecting on construction
 		// TODO better solution?
-		while(data.size()<=index && index < noSamples){
-			synchronized(data){
-				if(data.size()<=index && index < noSamples){
-					try {
-						data.wait();
-					} catch (InterruptedException e) {
-					}
-				}
-			}
+		while(loaded<index && index < noSamples){
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {}
 		}
-		return data.get(index).output;
+
+		if(t == null)
+			t = new Tensor(outputs[index], outputDims);
+		else 
+			t.set(outputs[index]);
+		return t;
 	}
 	
 	@Override
@@ -200,34 +207,22 @@ public class Cifar100Dataset implements Dataset {
 	private void parse(InputStream input) {
 		try {
 			while(input.available()>0){
-				Tensor out = new Tensor(outputSize);
-				out.fill(0.0f);
 				
 				int i1 = readUByte(input);
 				int i2 = readUByte(input);
-				if(outputSize==100){
-					out.set(1.0f, i2);
-				} else {
-					out.set(1.0f, i1);
-				}
 				
-				float inputData[] = new float[inputSize];
+				int i = outputSize == 100 ? i2 : i1;
+				outputs[loaded][i] = 1;
+				
 				for(int j=0;j<inputSize;j++){
-					inputData[j] = (float)readUByte(input)/255f;
+					inputs[loaded][j] = (float)readUByte(input)/255f;
 				}
-				Tensor in = new Tensor(inputData, 3, noRows, noColumns);
 				
-				Sample s = new Sample(in, out);
-				synchronized(data){
-					data.add(s);
-					data.notifyAll();
-				}
+				loaded++;
 			}
-			
 		} catch(Exception e){
 			e.printStackTrace();
 		}
-		
 	}
 	
 }

@@ -79,6 +79,16 @@ public class ImageNetDataset implements Dataset {
 		readLabels("classes.txt");
 		readOutputs("outputs.txt");
 	}
+	
+	@Override
+	public int[] inputDims(){
+		return null;
+	}
+	
+	@Override
+	public int[] outputDims(){
+		return new int[]{1000};
+	}
 
 	private void readLabels(String file) {
 		try {
@@ -143,13 +153,12 @@ public class ImageNetDataset implements Dataset {
 	}
 	
 	@Override
-	public Tensor getInputSample(int index) {
+	public Tensor getInputSample(int index, Tensor t) {
 		// Open JPEG file and convert to size
 		String file = dir + "images/" + "ILSVRC2012_val_"
 				+ String.format("%08d", index+1) + ".JPEG";
-		Tensor t = null;
 		try {
-			t = converter.readFromFile(file);
+			t = converter.readFromFile(file, t);
 		} catch(Exception e){
 			e.printStackTrace();
 			System.out.println("Failed to load input sample "+file);
@@ -158,11 +167,12 @@ public class ImageNetDataset implements Dataset {
 	}
 
 	@Override
-	public Tensor getOutputSample(int index) {
-		Tensor output = new Tensor(outputSize);
-		output.fill(0.0f);
-		output.set(1.0f, outputs[index]);
-		return output;
+	public Tensor getOutputSample(int index, Tensor t) {
+		if(t == null)
+			t = new Tensor(outputSize);
+		t.fill(0.0f);
+		t.set(1.0f, outputs[index]);
+		return t;
 	}
 
 	@Override

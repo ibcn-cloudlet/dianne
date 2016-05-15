@@ -151,23 +151,27 @@ public class FileExperiencePool implements ExperiencePool {
 	}
 
 	@Override
-	public Tensor getInputSample(int index) {
-		return getSample(index).state;
+	public Tensor getInputSample(int index, Tensor t) {
+		t = getSample(index).state.copyInto(t);
+		return t;
 	}
 
 	@Override
-	public Tensor getState(int index) {
-		return getSample(index).state;
+	public Tensor getState(int index, Tensor t) {
+		t =  getSample(index).state.copyInto(t);
+		return t;
 	}
 
 	@Override
-	public Tensor getOutputSample(int index) {
-		return getSample(index).action;
+	public Tensor getOutputSample(int index, Tensor t) {
+		t =  getSample(index).action.copyInto(t);
+		return t;
 	}
 
 	@Override
-	public Tensor getAction(int index) {
-		return getSample(index).action;
+	public Tensor getAction(int index, Tensor t) {
+		t =  getSample(index).action.copyInto(t);
+		return t;
 	}
 
 	@Override
@@ -176,8 +180,9 @@ public class FileExperiencePool implements ExperiencePool {
 	}
 
 	@Override
-	public Tensor getNextState(int index) {
-		return getSample(index).nextState;
+	public Tensor getNextState(int index, Tensor t) {
+		t =  getSample(index).state.copyInto(t);
+		return t;
 	}
 	
 	public ExperiencePoolSample getSample(int index) {
@@ -189,6 +194,15 @@ public class FileExperiencePool implements ExperiencePool {
 			rwLock.readLock().unlock();
 		}
 		return sample;
+	}
+	
+	public ExperiencePoolSample getSample(int index, ExperiencePoolSample s){
+		ExperiencePoolSample ss = getSample(index);
+		ss.action.copyInto(s.action);
+		ss.state.copyInto(s.state);
+		ss.nextState.copyInto(s.nextState);
+		s.reward = ss.reward;
+		return s;
 	}
 	
 	private int getIndex(int index){
@@ -324,6 +338,16 @@ public class FileExperiencePool implements ExperiencePool {
 		maxSize = max;
 		
 		rwLock.writeLock().unlock();
+	}
+
+	@Override
+	public int[] inputDims() {
+		return samples.get(0).input.dims();
+	}
+
+	@Override
+	public int[] outputDims() {
+		return samples.get(0).action.dims();
 	}
 
 }

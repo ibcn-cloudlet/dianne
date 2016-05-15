@@ -25,8 +25,6 @@ package be.iminds.iot.dianne.dataset.mnist;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -35,7 +33,6 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
-import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
@@ -48,14 +45,18 @@ import be.iminds.iot.dianne.tensor.Tensor;
 @Component(immediate=true, property={"name=MNIST","aiolos.unique=true"})
 public class MNISTDataset implements Dataset{
 
-	private List<Sample> data = new ArrayList<Sample>();
+	private float[][] inputs;
+	private float[][] outputs;
+	private int loaded = 0;
+	
 	private String[] labels = new String[]{"0","1","2","3","4","5","6","7","8","9"};
 	
-	private int noRows;
-	private int noColumns;
-	private int inputSize;
-	private int outputSize;
-	private int noSamples;
+	private int[] inputDims = new int[]{1, 28, 28};
+	private int inputSize = 28*28;
+	private int[] outputDims = new int[]{10};
+	private int outputSize = 10;
+	private int noSamples = 70000;
+	
 	
 	private String dir = "";
 	// thread to start loading data when constructed
@@ -67,10 +68,23 @@ public class MNISTDataset implements Dataset{
 		if(d!=null){
 			this.dir = d;
 		}
+		
+		inputs = new float[noSamples][inputSize];
+		outputs = new float[noSamples][outputSize];
 
 		// merge train and test samples into one dataset
 		read("train-images.idx3-ubyte", "train-labels.idx1-ubyte");
 		read("t10k-images.idx3-ubyte", "t10k-labels.idx1-ubyte");
+	}
+	
+	@Override
+	public int[] inputDims(){
+		return inputDims;
+	}
+	
+	@Override
+	public int[] outputDims(){
+		return outputDims;
 	}
 	
 	private void read(String images, String labels){
@@ -80,8 +94,8 @@ public class MNISTDataset implements Dataset{
 			int magic = readInt(imageInput);
 			assert magic == 2051;
 			int noImages = readInt(imageInput);
-			noRows = readInt(imageInput);
-			noColumns = readInt(imageInput);
+			int noRows = readInt(imageInput);
+			int noColumns = readInt(imageInput);
 			
 			InputStream labelInput = new FileInputStream(dir+labels);
 			magic = readInt(labelInput);
@@ -89,10 +103,6 @@ public class MNISTDataset implements Dataset{
 			int noLabels = readInt(labelInput);
 
 			assert noLabels == noImages;
-			
-			noSamples += noImages;
-			inputSize = noRows*noColumns;
-			outputSize = 10;
 			
 			loader.execute(new Runnable() {
 				@Override
@@ -116,37 +126,37 @@ public class MNISTDataset implements Dataset{
 	}
 
 	@Override
-	public Tensor getInputSample(int index) {
+	public Tensor getInputSample(int index, Tensor t) {
 		// some hack to allow prefecting on construction
 		// TODO better solution?
-		while(data.size()<=index && index < noSamples){
-			synchronized(data){
-				if(data.size()<=index ){
-					try {
-						data.wait();
-					} catch (InterruptedException e) {
-					}
-				}
-			}
+		while(loaded<index && index < noSamples){
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {}
 		}
-		return data.get(index).input;
+
+		if(t == null)
+			t = new Tensor(inputs[index], inputDims);
+		else 
+			t.set(inputs[index]);
+		return t;
 	}
 
 	@Override
-	public Tensor getOutputSample(int index) {
+	public Tensor getOutputSample(int index, Tensor t) {
 		// some hack to allow prefecting on construction
 		// TODO better solution?
-		while(data.size()<=index && index < noSamples){
-			synchronized(data){
-				if(data.size()<=index && index < noSamples){
-					try {
-						data.wait();
-					} catch (InterruptedException e) {
-					}
-				}
-			}
+		while(loaded<index && index < noSamples){
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {}
 		}
-		return data.get(index).output;
+
+		if(t == null)
+			t = new Tensor(outputs[index], outputDims);
+		else 
+			t.set(outputs[index]);
+		return t;
 	}
 
 	@Override
@@ -172,23 +182,15 @@ public class MNISTDataset implements Dataset{
 	private void parse(InputStream imageInput, InputStream labelInput, int count) {
 		try {
 			for(int read = 0;read<count;read++){
-				Tensor output = new Tensor(outputSize);
-				output.fill(0.0f);
 				
-				float inputData[] = new float[inputSize];
 				for(int j=0;j<inputSize;j++){
-					inputData[j] = (float)readUByte(imageInput)/255f;
+					inputs[loaded][j] = (float)readUByte(imageInput)/255f;
 				}
-				Tensor input = new Tensor(inputData, 1, noRows, noColumns);
 				
 				int i = readUByte(labelInput);
-				output.set(1.0f, i);
+				outputs[loaded][i] = 1;
 				
-				Sample s = new Sample(input, output);
-				synchronized(data){
-					data.add(s);
-					data.notifyAll();
-				}
+				loaded++;
 			}
 			
 		} catch(Exception e){

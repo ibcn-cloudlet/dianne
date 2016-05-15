@@ -44,22 +44,6 @@ public interface SequenceDataset extends Dataset {
 	int size();
 
 	/**
-	 * Get a sample from the dataset
-	 * 
-	 * @param index the index to fetch, should be smaller than size()
-	 * @return the input sample at position index
-	 */
-	Tensor getInputSample(final int index);
-		
-	/**
-	 * Get the next sample from the dataset
-	 * 
-	 * @param index the index which next output is wanted, should be smaller than size()-1
-	 * @return the next sample, i.e. the sample at index+1
-	 */
-	Tensor getOutputSample(final int index);
-	
-	/**
 	 * Return a subset of the sequence, i.e. when training on sequences with limited length
 	 * @param index start index of the first input
 	 * @param length number of inputs requested

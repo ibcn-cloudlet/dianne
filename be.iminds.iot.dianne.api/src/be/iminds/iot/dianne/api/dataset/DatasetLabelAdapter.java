@@ -76,29 +76,40 @@ public class DatasetLabelAdapter implements Dataset {
 	}
 	
 	@Override
+	public int[] inputDims(){
+		return data.inputDims();
+	}
+	
+	@Override
+	public int[] outputDims(){
+		return data.outputDims();
+	}
+	
+	@Override
 	public int size() {
 		return data.size();
 	}
 	
 	@Override
-	public Tensor getInputSample(int index) {
-		return data.getInputSample(index);
+	public Tensor getInputSample(int index, Tensor t) {
+		return data.getInputSample(index, t);
 	}
 
 	@Override
-	public Tensor getOutputSample(int index) {
+	public Tensor getOutputSample(int index, Tensor t) {
 		// TODO adapt outputsample
-		Tensor t = data.getOutputSample(index);
-		Tensor t2 = new Tensor(labels.length);
+		Tensor out = data.getOutputSample(index);
+		if(t == null)
+			t = new Tensor(labels.length);
 		for(int i=0;i<labelIndices.length;i++){
-			t2.set(t.get(labelIndices[i]), i);
+			t.set(out.get(labelIndices[i]), i);
 		}
 		if(other){
-			if(TensorOps.sum(t2)==0){
-				t2.set(1.0f, labels.length-1);
+			if(TensorOps.sum(t)==0){
+				t.set(1.0f, labels.length-1);
 			}
 		}
-		return t2;
+		return t;
 	}
 	
 	@Override
