@@ -60,8 +60,12 @@ public class SpatialMaxPooling extends AbstractModule {
 		int noPlanes = input.size(0);
 		int y = input.size(1)/h;
 		int x = input.size(2)/w;
-		if(output==null || !output.hasDim(noPlanes, y, x)){
+		if(output==null){
 			output = new Tensor(noPlanes, y, x);
+		} else {
+			// reshape if output was input for linear...
+			// TODO check size
+			output.reshape(noPlanes, y, x);
 		}
 		
 		output = ModuleOps.spatialmaxpool(output, input, indices, w, h, sx, sy, 0, 0);
@@ -69,9 +73,9 @@ public class SpatialMaxPooling extends AbstractModule {
 
 	@Override
 	protected void backward() {	
-		if(gradInput == null || !gradInput.sameDim(input)){
+		if(gradInput == null){
 			gradInput = new Tensor(input.dims());
-		}
+		} 
 
 		ModuleOps.spatialmaxpoolGradIn(gradInput, gradOutput, input, indices, w, h, sx, sy, 0, 0);
 	}
