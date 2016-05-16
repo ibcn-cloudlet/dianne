@@ -22,9 +22,11 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.module.layer;
 
+import java.util.Arrays;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractTrainableModule;
+import be.iminds.iot.dianne.tensor.ModuleOps;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
@@ -105,25 +107,7 @@ public class Linear extends AbstractTrainableModule {
 	@Override
 	protected void forward() {
 		inputDims = input.dims();
-		if(inputDims.length % 2 == 1){
-			// 1 or 3 treat as vector
-			if(inputDims.length == 3){
-				input.reshape(inputDims[0]*inputDims[1]*inputDims[2]);
-			}
-			output = TensorOps.addmv(output, bias, weights, input);
-
-		} else {
-			// 2 or 4 , treat as batched input
-			if(inputDims.length == 4) { 
-				input.reshape(inputDims[0], inputDims[1]*inputDims[2]*inputDims[3]);
-			}
-			int batchSize = input.size(0);
-			batchedBias.reshape(batchSize, outSize);
-			for(int i=0;i<batchSize;i++){
-				bias.copyInto(batchedBias.select(0, i));
-			}
-			output = TensorOps.addmm(output, batchedBias, input, weightsT);
-		}
+		output = ModuleOps.linear(output, input, weights, bias);
 	}
 
 	@Override
@@ -131,26 +115,13 @@ public class Linear extends AbstractTrainableModule {
 		if(deltaParameters==null){
 			initDeltaParameters(null);
 		}
-		if(inputDims.length % 2 == 1){
-			gradInput = TensorOps.mv(gradInput, weightsT, gradOutput);
-		} else {
-			gradInput = TensorOps.mm(gradInput, gradOutput, weights);
-		}
+		gradInput = ModuleOps.linearGradIn(gradInput, gradOutput, weights, input);
 		gradInput.reshape(inputDims);
 	}
 
 	@Override
 	public void accGradParameters() {
-		if(inputDims.length  % 2 == 1){
-			deltaWeights = TensorOps.addvv(deltaWeights, deltaWeights, gradOutput, input);
-			deltaBias = TensorOps.add(deltaBias, deltaBias, gradOutput);
-		} else {
-			int batchSize = input.size(0);
-			for(int i = 0; i< batchSize; i++){
-				deltaWeights = TensorOps.addvv(deltaWeights, deltaWeights, gradOutput.select(0, i), input.select(0, i));
-				deltaBias = TensorOps.add(deltaBias, deltaBias, gradOutput.select(0, i));
-			}
-		}
+		ModuleOps.linearAccGrad(deltaWeights, deltaBias, gradOutput, input);
 	}
 
 }

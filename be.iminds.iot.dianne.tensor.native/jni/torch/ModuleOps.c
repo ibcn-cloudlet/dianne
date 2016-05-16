@@ -455,3 +455,204 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_batchnormAccGr
 			  1e-5);
 }
 
+
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_linear
+  (JNIEnv * env, jclass c, jobject out, jobject in, jobject w, jobject b){
+	THTensor* input = getTensor(env, in);
+	THTensor* output = getTensor(env, out);
+	THTensor* weight = getTensor(env, w);
+	THTensor* bias = getTensor(env, b);
+
+	if(input->nDimension % 2 == 1){
+		// 1d or 3d tensor, treat as one input by default
+		if(input->nDimension == 3){
+			THTensor_(resize1d)(
+#ifdef CUDA
+				state,
+#endif
+				input, input->size[0]*input->size[1]*input->size[2]);
+		}
+
+		THTensor_(addmv)(
+#ifdef CUDA
+				state,
+#endif
+				output, 1.0f, bias, 1.0f, weight, input);
+	} else {
+		// 2d or 4d tensor, treat as batch by default
+		if(input->nDimension == 4){
+			THTensor_(resize2d)(
+#ifdef CUDA
+			state,
+#endif
+			input, input->size[0],input->size[1]*input->size[2]*input->size[3]);
+		}
+
+		THTensor_(resize2d)(
+#ifdef CUDA
+			state,
+#endif)
+			output,
+			input->size[0], weight->size[0]);
+
+
+		THTensor* addBuffer = THTensor_(newWithSize1d)(
+#ifdef CUDA
+			state,
+#endif
+			input->size[0]);
+
+		THTensor_(fill)(
+#ifdef CUDA
+			state,
+#endif
+			addBuffer, 1.0f);
+
+		THTensor* transpose = THTensor_(newTranspose)(
+#ifdef CUDA
+			state,
+#endif
+			weight, 0, 1);
+
+		THTensor_(addmm)(
+#ifdef CUDA
+			state,
+#endif
+			output, 0.0f, output, 1.0f, input, transpose);
+
+		THTensor_(addr)(
+#ifdef CUDA
+			state,
+#endif
+			output, 1.0f, output, 1.0f, addBuffer, bias);
+
+		THTensor_(free)(
+#ifdef CUDA
+			state,
+#endif
+			addBuffer);
+
+		THTensor_(free)(
+#ifdef CUDA
+			state,
+#endif
+			transpose);
+	}
+	return out == NULL ? createTensorObject(env, output) : out;
+}
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_linearGradIn
+  (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject w, jobject in){
+	THTensor* gradInput = getTensor(env, gradIn);
+	THTensor* gradOutput = getTensor(env, gradOut);
+	THTensor* weight = getTensor(env, w);
+	THTensor* input = getTensor(env, in);
+
+	THTensor_(resizeAs)(
+#ifdef CUDA
+		state,
+#endif
+		gradInput, input);
+
+	if(input->nDimension % 2 == 1){
+		// treat as vector input
+		THTensor* transpose = THTensor_(newTranspose)(
+#ifdef CUDA
+			state,
+#endif
+			weight, 0, 1);
+
+		THTensor_(addmv)(
+#ifdef CUDA
+			state,
+#endif
+			gradInput, 0.0f, gradInput, 1.0f, transpose, gradOutput);
+
+		THTensor_(free)(
+#ifdef CUDA
+			state,
+#endif
+			transpose);
+	} else{
+		// treat as batch input
+
+		THTensor_(addmm)(
+#ifdef CUDA
+			state,
+#endif
+			gradInput, 0.0f, gradInput, 1.0f, gradOutput, weight);
+	}
+
+	return gradIn == NULL ? createTensorObject(env, gradInput) : gradIn;
+}
+
+JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_linearAccGrad
+  (JNIEnv * env, jclass c, jobject gradW, jobject gradB, jobject gradOut, jobject in){
+	THTensor* gradWeight = getTensor(env, gradW);
+	THTensor* gradBias = getTensor(env, gradB);
+	THTensor* gradOutput = getTensor(env, gradOut);
+	THTensor* input = getTensor(env, in);
+
+	if(input->nDimension % 2 == 1){
+		THTensor_(addr)(
+#ifdef CUDA
+			state,
+#endif
+			gradWeight, 1.0f, gradWeight, 1.0f, gradOutput, input);
+
+		THTensor_(cadd)(
+#ifdef CUDA
+			state,
+#endif
+			gradBias, gradBias, 1, gradOutput);
+	} else {
+		// batched input
+		// gradWeight
+		THTensor* transpose = THTensor_(newTranspose)(
+#ifdef CUDA
+			state,
+#endif
+			gradOutput, 0, 1);
+
+		THTensor_(addmm)(
+#ifdef CUDA
+			state,
+#endif
+			gradWeight, 1.0f, gradWeight, 1.0f, transpose, input);
+
+
+		// gradBias
+		THTensor* addBuffer = THTensor_(newWithSize1d)(
+#ifdef CUDA
+			state,
+#endif
+			input->size[0]);
+
+		THTensor_(fill)(
+#ifdef CUDA
+			state,
+#endif
+			addBuffer, 1.0f);
+
+		THTensor_(addmv)(
+#ifdef CUDA
+			state,
+#endif
+			gradBias, 1.0f, gradBias, 1.0f, transpose, addBuffer);
+
+		THTensor_(free)(
+#ifdef CUDA
+			state,
+#endif
+			addBuffer);
+
+		THTensor_(free)(
+#ifdef CUDA
+			state,
+#endif
+			transpose);
+
+	}
+
+}
