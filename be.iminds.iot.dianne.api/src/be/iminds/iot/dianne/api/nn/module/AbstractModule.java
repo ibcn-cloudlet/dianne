@@ -89,7 +89,12 @@ public abstract class AbstractModule implements Module {
 	// Listeners
 	protected Set<ForwardListener> fwdListeners = Collections.synchronizedSet(new HashSet<ForwardListener>());
 	protected Set<BackwardListener> bwListeners = Collections.synchronizedSet(new HashSet<BackwardListener>());
-
+	// Avoid overload of Tensor creations for the listeners, keep one copy only
+	private Tensor outputListenersCopy;
+	private Tensor gradInputListenersCopy;
+	private volatile boolean forwardListenersBusy = false;
+	private volatile boolean backwardListenersBusy = false;
+	
 	// Mode
 	protected EnumSet<Mode> mode = EnumSet.of(Mode.BLOCKING, Mode.WAIT_FOR_ALL);
 	
@@ -253,23 +258,44 @@ public abstract class AbstractModule implements Module {
 	protected void notifyForwardListeners(){
 		final List<ForwardListener> fwdListenersCopy = new ArrayList<ForwardListener>();
 		synchronized(fwdListeners){
+			if(forwardListenersBusy){
+				if(mode.contains(Mode.SKIP)){
+					return;
+				} else {
+					try {
+						fwdListeners.wait();
+					} catch (InterruptedException e) {}
+				}
+			}
+			
 			fwdListenersCopy.addAll(fwdListeners);
 		}
 		
 		if(!fwdListenersCopy.isEmpty()){
+			
 			final String[] tagsCopy = (tags == null) ? null : Arrays.copyOf(tags, tags.length);
 
 			if(exception!=null){
 				listenerExecutor.execute(()->{
 					fwdListenersCopy.stream().forEach(
 							f -> f.onError(id, exception, tagsCopy));
+					
+					synchronized(fwdListeners){
+						forwardListenersBusy = false;
+						fwdListeners.notifyAll();
+					}
 				});
 			} else {
-				final Tensor outputCopy = output.copyInto(null);
+				outputListenersCopy = output.copyInto(outputListenersCopy);
 				
 				listenerExecutor.execute(()->{
 					fwdListenersCopy.stream().forEach(
-							f -> f.onForward(id, outputCopy, tagsCopy));
+							f -> f.onForward(id, outputListenersCopy, tagsCopy));
+					
+					synchronized(fwdListeners){
+						forwardListenersBusy = false;
+						fwdListeners.notifyAll();
+					}
 				});
 			}
 		}
@@ -286,6 +312,15 @@ public abstract class AbstractModule implements Module {
 	protected void notifyBackwardListeners(){
 		final List<BackwardListener> bwListenersCopy = new ArrayList<BackwardListener>();
 		synchronized(bwListeners){
+			if(backwardListenersBusy){
+				if(mode.contains(Mode.SKIP)){
+					return;
+				} else {
+					try {
+						bwListeners.wait();
+					} catch (InterruptedException e) {}
+				}
+			}
 			bwListenersCopy.addAll(bwListeners);
 		}
 		
@@ -296,13 +331,23 @@ public abstract class AbstractModule implements Module {
 				listenerExecutor.execute(()->{
 					bwListenersCopy.stream().forEach(
 							b->b.onError(id, exception, tagsCopy));
+					
+					synchronized(bwListeners){
+						backwardListenersBusy = false;
+						bwListeners.notifyAll();
+					}
 				});
 			} else {
-				final Tensor gradInputCopy = (gradInput==null ? null : gradInput.copyInto(null));
+				gradInputListenersCopy = (gradInput==null ? null : gradInput.copyInto(gradInputListenersCopy));
 				
 				listenerExecutor.execute(()->{
 					bwListenersCopy.stream().forEach(
-							b->b.onBackward(id, gradInputCopy, tagsCopy));
+							b->b.onBackward(id, gradInputListenersCopy, tagsCopy));
+					
+					synchronized(bwListeners){
+						backwardListenersBusy = false;
+						bwListeners.notifyAll();
+					}
 				});
 			}
 		}
