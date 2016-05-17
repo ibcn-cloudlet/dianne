@@ -1,0 +1,18 @@
+##
+#
+# DIANNE learner worker bndrun 
+#
+# launches a node with FF/RL learners
+#
+#
+
+-include: worker.bndrun
+
+-runbundles.worker.learner: \
+	be.iminds.iot.dianne.nn.learn;version=latest,\
+	be.iminds.iot.dianne.rl.learn;version=latest
+	
+-runproperties.worker.learner:\
+	be.iminds.iot.dianne.runtime.name="Learner"
+	
+

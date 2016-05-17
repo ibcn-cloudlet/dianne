@@ -45,7 +45,7 @@ Next, simply use the gradle `build` task to build, use `-x` to exclude tasks, e.
 		
 To run DIANNE, type
 
-		./gradlew run.mnist
+		./gradlew run.builder
 
 This will launch AIOLOS with DIANNE, and also install the MNIST dataset and an example neural network.
 

@@ -1,0 +1,16 @@
+##
+#
+# DIANNE evaluator worker bndrun 
+#
+# launches a node with evaluator
+#
+#
+
+-include: worker.bndrun
+
+-runbundles.worker.evaluator: \
+	be.iminds.iot.dianne.nn.eval;version=latest
+	
+-runproperties.worker.evaluator:\
+	be.iminds.iot.dianne.runtime.name="Evaluator"
+	

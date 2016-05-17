@@ -1,0 +1,25 @@
+##
+#
+# DIANNE worker bndrun 
+#
+# launches a node with DIANNE runtime
+#
+#
+
+-include: common.bndrun
+
+-runbundles.worker: \
+	be.iminds.iot.dianne.tensor;version=latest,\
+	be.iminds.iot.dianne.tensor.native.generic;version=latest,\
+	be.iminds.iot.dianne.tensor.util;version=latest,\
+	be.iminds.iot.dianne.api;version=latest,\
+	be.iminds.iot.dianne.nn.module;version=latest,\
+	be.iminds.iot.dianne.nn;version=latest,\
+	be.iminds.iot.dianne.nn.runtime;version=latest
+	
+	
+-runproperties.worker:\
+	be.iminds.iot.dianne.runtime.name="Worker",\
+	org.osgi.service.http.port=8081,\
+	aiolos.connect=localhost
+	
