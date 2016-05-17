@@ -69,7 +69,7 @@ subprojects {
 
 	/* fix native tests */
     tasks.withType(Test) {
-      systemProperty "java.library.path", "${bnd.workspace}/be.iminds.iot.dianne.tensor/generic/${os}/${arch}/"
+      systemProperty "java.library.path", "${bnd.workspace}/be.iminds.iot.dianne.tensor.native/native/"
     }
   }
 }

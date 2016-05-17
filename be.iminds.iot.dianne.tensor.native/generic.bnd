@@ -10,9 +10,9 @@ os=Linux
 # arch = x86_64 / i386 / armvX / arm / ... 
 arch=x86_64
 # lib = torch / cutorch
-lib=torch
+lib=generic
 
 Fragment-Host: be.iminds.iot.dianne.tensor;bundle-version=${Bundle-Version}
 Provide-Capability: tensor.native;library=be.iminds.iot.dianne.tensor.${lib}
 Bundle-NativeCode: libTensor.so;osname=${os};processor=${arch}
--includeresource: native/${os}/${arch}
+-includeresource: native

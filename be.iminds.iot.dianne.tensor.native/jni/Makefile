@@ -21,7 +21,7 @@ LIB := libTensor.so
 
 INCLUDES := -I$(JAVA_INCLUDE) -I$(JAVA_PLATFORMINCLUDE)
 OBJECTS=$(SRC:.c=.o)
-DEPLOY_DIR := ../../native/$(OS)/$(ARCH)
+DEPLOY_DIR := ../../native
 
 
 all: install
