@@ -26,7 +26,7 @@ libTHNN.a:
 	cp nn/lib/THNN/build/libTHNN.a libTHNN.a
 
 libopenblas.a:
-	cd OpenBLAS; make; cp libopenblas.a ..
+	cd OpenBLAS; make USE_OPENMP=1; cp libopenblas.a ..
 
 clean:
 	rm -rf *.o $(LIB) be_*.h test
@@ -35,4 +35,5 @@ cleanAll: clean
 	rm -rf *.a 
 	rm -rf torch7/lib/TH/build	
 	rm -rf nn/lib/THNN/build	
+	cd OpenBLAS; make clean
 	
