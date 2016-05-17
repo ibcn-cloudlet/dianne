@@ -62,7 +62,8 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 				  "osgi.command.function=nnAvailable",
 				  "osgi.command.function=nnDeploy",
 				  "osgi.command.function=nnUndeploy",
-				  "osgi.command.function=sample"},
+				  "osgi.command.function=sample",
+				  "osgi.command.function=gc"},
 		immediate=true)
 public class DianneCommands {
 
@@ -81,6 +82,10 @@ public class DianneCommands {
 	@Activate
 	public void activate(BundleContext context){
 		this.context = context;
+	}
+	
+	public void gc(){
+		System.gc();
 	}
 	
 	public void datasets(){
