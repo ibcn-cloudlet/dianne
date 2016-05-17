@@ -48,6 +48,9 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 		} catch(JsonParseException e){
 			e.printStackTrace();
 			writeError(writer, null, -32700, "Parse error");
+		} catch(IllegalStateException e){
+			// this happens when the client closes the socket and reader returns null
+			throw new IOException();
 		}
 	}
 	

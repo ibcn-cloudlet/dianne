@@ -111,7 +111,6 @@ public class DianneJSONRPCServer {
 					}
 				}
 			} catch (IOException e) {
-				e.printStackTrace();
 			} finally {
 				try {
 					socket.close();

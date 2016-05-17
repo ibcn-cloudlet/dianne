@@ -40,6 +40,7 @@ import be.iminds.iot.dianne.nn.util.DianneNeuralNetworkBuilder.Activation;
 
 public class JSONRPCTester {
 
+	// TODO convert this into a proper junit test?!
 	public static void main(String[] args) throws Exception {
 		
 		try (Socket s = new Socket("127.0.0.1", 9090)) {
