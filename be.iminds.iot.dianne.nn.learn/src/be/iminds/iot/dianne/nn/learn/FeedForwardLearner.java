@@ -23,12 +23,13 @@
 package be.iminds.iot.dianne.nn.learn;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.util.promise.Promise;
 
-import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -43,12 +44,14 @@ public class FeedForwardLearner extends AbstractLearner {
 	protected boolean batchAverage = true;
 	
 	// Current batch
-	private Tensor batch = null;
-	private Tensor target = null;
+	// Each lists consists of noBatches + 1 tensors: 0 = batch tensor, 1..noBatch+1 = selects per index
+	private List<Tensor> batch = null;
+	private List<Tensor> target = null;
 
+	
 	// For loading next batch while processing current batch
-	private Tensor nextBatch = null;
-	private Tensor nextTarget = null;
+	private List<Tensor> nextBatch = null;
+	private List<Tensor> nextTarget = null;
 	
 	protected void loadConfig(Map<String, String> config){
 		super.loadConfig(config);
@@ -82,7 +85,12 @@ public class FeedForwardLearner extends AbstractLearner {
 				for(int i=0;i<inputDims.length;i++){
 					batchInputDims[i+1] = inputDims[i];
 				}
-				nextBatch = new Tensor(batchInputDims);
+				nextBatch = new ArrayList<>(batchSize+1);
+				Tensor b = new Tensor(batchInputDims);
+				nextBatch.add(b);
+				for(int i=0;i<batchSize;i++){
+					nextBatch.add(b.select(0, i));
+				}
 				
 				int[] targetDims = dataset.outputDims();
 				int[] batchTargetDims = new int[targetDims.length+1];
@@ -90,14 +98,17 @@ public class FeedForwardLearner extends AbstractLearner {
 				for(int i=0;i<targetDims.length;i++){
 					batchTargetDims[i+1] = targetDims[i];
 				}
-				nextTarget = new Tensor(batchTargetDims);
+				nextTarget = new ArrayList<>(batchSize+1);
+				Tensor o = new Tensor(batchTargetDims);
+				nextTarget.add(o);
+				for(int i=0;i<batchSize;i++){
+					nextTarget.add(o.select(0, i));
+				}
 			}
 			
-			// TODO check sizes?!
-			
 			//Fetch sample
-			dataset.getInputSample(index, nextBatch.select(0, k));
-			dataset.getOutputSample(index, nextTarget.select(0, k));
+			dataset.getInputSample(index, nextBatch.get(k+1));
+			dataset.getOutputSample(index, nextTarget.get(k+1));
 		}
 	}
 	
@@ -113,7 +124,7 @@ public class FeedForwardLearner extends AbstractLearner {
 			loadBatch();
 		
 		// Flip current/next
-		Tensor temp = batch;
+		List<Tensor> temp = batch;
 		batch = nextBatch;
 		nextBatch = temp;
 		
@@ -122,16 +133,16 @@ public class FeedForwardLearner extends AbstractLearner {
 		nextTarget = temp;
 		
 		// Forward/backward pass - executed asynchronously
-		Promise result = nn.forward(null, null, batch).then(
+		Promise result = nn.forward(null, null, batch.get(0)).then(
 				p -> {
 					// Forward
 					Tensor output = p.getValue().tensor;
 					
 					// Error
-					error[0] += criterion.error(output, target).get(0);
+					error[0] += criterion.error(output, target.get(0)).get(0);
 
 					// Error gradient
-					Tensor gradOut = criterion.grad(output, target);
+					Tensor gradOut = criterion.grad(output, target.get(0));
 					
 					// Backward
 					return nn.backward(null, null, gradOut);
