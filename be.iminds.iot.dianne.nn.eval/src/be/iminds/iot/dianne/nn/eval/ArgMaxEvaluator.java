@@ -171,8 +171,10 @@ public class ArgMaxEvaluator implements Evaluator {
 			confusion = null;
 			outputs = includeOutputs ? new ArrayList<Tensor>() : null;
 			tStart = System.currentTimeMillis(); tForward = 0;
+			
+			Tensor in = null;
 			for(sample=0;sample<indices.length;sample++){
-				Tensor in = d.getInputSample(indices[sample]);
+				in = d.getInputSample(indices[sample], in);
 				
 				long t = System.nanoTime();
 				Tensor out = nn.forward(in);
