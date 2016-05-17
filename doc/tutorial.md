@@ -11,9 +11,9 @@ In order to build and run DIANNE the following is required:
 - Java JDK (minimal version **1.8**) i.e. [Oracle JDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html) 
 or [OpenJDK](http://openjdk.java.net/)
 
-- [Apache Ant](http://ant.apache.org/) version 1.9 or higher 
+- [Gradle](http://gradle.org/) - will be downloaded automatically using `gradlew`
 
-**Note**: At the moment we only have native code builds for Linux and Mac. To run the native code you might need to install **libgfortan3** on your machine. Windows is currently not supported. Windows users can run DIANNE but have to use the Java tensor implementations (i.e. replacing `be.iminds.iot.dianne.tensor.th` by `be.iminds.iot.dianne.tensor.java` in each .bndrun file). The web UI is tested with the latest Firefox and Chrome browsers. 
+**Note**: At the moment we only have native code builds for Linux and Mac. To run the native code you might need to install **libgfortan3** on your machine. Windows is currently not supported. The web UI is tested with the latest Firefox and Chrome browsers. 
 
 To develop and build OSGi bundles, the [BND](http://www.aqute.biz/Bnd/Bnd) tool is used. 
 This is included in the git repository, so no additional download is required. Although
@@ -38,14 +38,14 @@ To build and run DIANNE, first clone the git repository.
 
 		git clone git@github.com:ibcn-cloudlet/dianne.git
 
-Next, simply use the ant `build` target to build
+Next, simply use the gradle `build` task to build, use `-x` to exclude tasks, e.g. to skip tests. If you have `gradle` installed you can use `gradle` instead of `./gradlew`
 
 		cd dianne
-		ant clean build
+		./gradlew clean build -x test -x check
 		
 To run DIANNE, type
 
-		ant mnist
+		./gradlew run.mnist
 
 This will launch AIOLOS with DIANNE, and also install the MNIST dataset and an example neural network.
 
