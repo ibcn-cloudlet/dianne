@@ -30,6 +30,7 @@ public class NLLCriterion implements Criterion {
 
 	protected Tensor gradInput;
 	protected Tensor nll;
+	protected Tensor log;
 	
 	public NLLCriterion() {
 		this.nll = new Tensor(1);
@@ -37,7 +38,8 @@ public class NLLCriterion implements Criterion {
 	
 	@Override
 	public Tensor error(final Tensor output, final Tensor target) {
-		float ll = TensorOps.dot(TensorOps.log(null, output), target);
+		log = TensorOps.log(log, output);
+		float ll = TensorOps.dot(log, target);
 		nll.set(-ll, 0);
 		return nll;
 	}

@@ -38,6 +38,8 @@ public class RMSpropProcessor extends GradientProcessor {
 	private final float decayRate;
 	
 	private final Map<UUID, Tensor> meanSquared = new HashMap<>();
+
+	private Tensor squared = null;
 	
 	public RMSpropProcessor( NeuralNetwork nn, DataLogger logger, float learningRate, float decayRate) {
 		super(nn, logger);
@@ -52,7 +54,7 @@ public class RMSpropProcessor extends GradientProcessor {
 			Tensor deltaParams = e.getValue().getDeltaParameters();
 			
 			// calculate mean squared
-			Tensor squared = deltaParams.copyInto(null);
+			squared = deltaParams.copyInto(squared);
 			squared = TensorOps.cmul(squared, squared, squared);
 			
 			Tensor mSq = meanSquared.get(e.getKey());

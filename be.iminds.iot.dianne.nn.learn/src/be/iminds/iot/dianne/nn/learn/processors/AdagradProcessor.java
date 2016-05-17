@@ -38,6 +38,8 @@ public class AdagradProcessor extends GradientProcessor {
 	
 	private final Map<UUID, Tensor> accumulatedSquared = new HashMap<>();
 	
+	private Tensor squared = null;
+	
 	public AdagradProcessor(NeuralNetwork nn, DataLogger logger, float learningRate ) {
 		super(nn, logger);
 		
@@ -50,7 +52,7 @@ public class AdagradProcessor extends GradientProcessor {
 			Tensor deltaParams = e.getValue().getDeltaParameters();
 			
 			// accumulated squared gradients
-			Tensor squared = deltaParams.copyInto(null);
+			squared = deltaParams.copyInto(squared);
 			squared = TensorOps.cmul(squared, squared, squared);
 			
 			Tensor accSq = accumulatedSquared.get(e.getKey());

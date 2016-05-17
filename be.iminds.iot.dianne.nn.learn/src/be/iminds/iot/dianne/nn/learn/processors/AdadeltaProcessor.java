@@ -39,6 +39,7 @@ public class AdadeltaProcessor extends GradientProcessor {
 	private final Map<UUID, Tensor> meanSquaredGradient = new HashMap<>();
 	private final Map<UUID, Tensor> meanSquaredDelta = new HashMap<>();
 
+	private Tensor squared = null;
 	
 	public AdadeltaProcessor(NeuralNetwork nn, DataLogger logger, float decayRate) {
 		super(nn, logger);
@@ -52,15 +53,15 @@ public class AdadeltaProcessor extends GradientProcessor {
 			Tensor deltaParams = e.getValue().getDeltaParameters();
 			
 			// calculate mean squared gradient
-			Tensor s = deltaParams.copyInto(null);
-			s = TensorOps.cmul(s, s, s);
+			squared = deltaParams.copyInto(squared);
+			squared = TensorOps.cmul(squared, squared, squared);
 			
 			Tensor mSq = meanSquaredGradient.get(e.getKey());
 			if(mSq == null){
-				mSq = TensorOps.mul(mSq, s, (1-decayRate));
+				mSq = TensorOps.mul(mSq, squared, (1-decayRate));
 			} else {
 				mSq = TensorOps.mul(mSq, mSq, decayRate);
-				mSq = TensorOps.add(mSq, mSq, (1-decayRate), s);
+				mSq = TensorOps.add(mSq, mSq, (1-decayRate), squared);
 			}
 			meanSquaredGradient.put(e.getKey(), mSq);
 			
@@ -74,19 +75,19 @@ public class AdadeltaProcessor extends GradientProcessor {
 			
 			// divide mean squared delta by mean squared gradient + 1e-8
 			// update = - RMS(delta)/RMS(grad) * grad
-			TensorOps.add(s, mSq, (float)1e-8);
-			TensorOps.cdiv(s, deltaSq, s);
+			TensorOps.add(squared, mSq, (float)1e-8);
+			TensorOps.cdiv(squared, deltaSq, squared);
 			
-			TensorOps.sqrt(s, s);
-			TensorOps.cmul(deltaParams, deltaParams, s);
+			TensorOps.sqrt(squared, squared);
+			TensorOps.cmul(deltaParams, deltaParams, squared);
 			TensorOps.mul(deltaParams, deltaParams, -1);
 			
 			
 			// calculate new mean delta squared
 			deltaSq = TensorOps.mul(deltaSq, deltaSq, decayRate);
-			deltaParams.copyInto(s);
-			s = TensorOps.cmul(s, s, s);
-			deltaSq = TensorOps.add(deltaSq, deltaSq, (1-decayRate), s);
+			deltaParams.copyInto(squared);
+			squared = TensorOps.cmul(squared, squared, squared);
+			deltaSq = TensorOps.add(deltaSq, deltaSq, (1-decayRate), squared);
 			
 			// set DeltaParameters to be sure in case of remote module instance
 			e.getValue().setDeltaParameters(deltaParams);
