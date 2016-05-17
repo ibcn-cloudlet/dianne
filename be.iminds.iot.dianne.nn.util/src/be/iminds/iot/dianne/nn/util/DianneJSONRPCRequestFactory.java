@@ -22,6 +22,8 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.util;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -62,6 +64,72 @@ public class DianneJSONRPCRequestFactory {
 		
 		return request;
 		
+	}
+	
+	public static JsonObject createDeployRequest(int id, String nnName){
+		JsonObject request = new JsonObject();
+		request.add("jsonrpc", new JsonPrimitive("2.0"));
+		request.add("method", new JsonPrimitive("deploy"));
+		request.add("id", new JsonPrimitive(id));
+		
+		JsonArray params = new JsonArray();
+		params.add(new JsonPrimitive(nnName));
+		request.add("params", params);
+		
+		return request;
+	}
+	
+	public static JsonObject createUndeployRequest(int id, String nnId){
+		JsonObject request = new JsonObject();
+		request.add("jsonrpc", new JsonPrimitive("2.0"));
+		request.add("method", new JsonPrimitive("undeploy"));
+		request.add("id", new JsonPrimitive(id));
+		
+		JsonArray params = new JsonArray();
+		params.add(new JsonPrimitive(nnId));
+		request.add("params", params);
+		
+		return request;
+	}
+	
+	public static JsonObject createForwardRequest(int id, String nnId, int[] dims){
+		JsonObject request = new JsonObject();
+		request.add("jsonrpc", new JsonPrimitive("2.0"));
+		request.add("method", new JsonPrimitive("forward"));
+		request.add("id", new JsonPrimitive(id));
+		
+		JsonArray params = new JsonArray();
+		params.add(new JsonPrimitive(nnId));
+		
+		// create input
+		JsonArray input = new JsonArray();
+		List<JsonArray> toAdd = new ArrayList<>();
+		toAdd.add(input);
+		for(int i=0;i<dims.length;i++){
+			List<JsonArray> nextAdd = new ArrayList<>();
+			int d = dims[i];
+			for(int k=0;k<d;k++){
+				if(i == dims.length-1){
+					// add floats
+					for(JsonArray a : toAdd){
+						a.add(new JsonPrimitive(0.0f));
+					}
+				} else {
+					// add jsonarrays
+					for(JsonArray a : toAdd){
+						JsonArray newArray = new JsonArray();
+						a.add(newArray);
+						nextAdd.add(newArray);
+					}
+				}
+			}
+			toAdd = nextAdd;
+		}
+		params.add(input);
+		
+		request.add("params", params);
+		
+		return request;
 	}
 	
 	private static JsonObject createJsonFromMap(Map<String, String> map){

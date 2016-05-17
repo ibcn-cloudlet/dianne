@@ -92,6 +92,27 @@ public class JSONRPCTester {
 				result = result.substring(0, 1000) + "...";
 			}
 			System.out.println(result);
+			
+			// forward
+			JsonObject deployRequestJson = DianneJSONRPCRequestFactory.createDeployRequest(3, nn.name);
+			byte[] deployRequest = deployRequestJson.toString().getBytes();
+			out.write(deployRequest);
+			JsonElement deployResult = parser.parse(reader);
+			String nnId = deployResult.getAsJsonObject().get("result").getAsString();
+			System.out.println("Deployed "+nnId);
+			
+			JsonObject forwardRequestJson = DianneJSONRPCRequestFactory.createForwardRequest(4, nnId, new int[]{1,28,28});
+			byte[] forwardRequest = forwardRequestJson.toString().getBytes();
+			out.write(forwardRequest);
+			JsonElement forwardResult = parser.parse(reader);
+			String classification = forwardResult.getAsJsonObject().get("result").getAsString();
+			System.out.println("Result "+classification);
+			
+			JsonObject undeployRequestJson = DianneJSONRPCRequestFactory.createUndeployRequest(5, nnId);
+			byte[] undeployRequest = undeployRequestJson.toString().getBytes();
+			out.write(undeployRequest);
+			JsonElement undeployResult = parser.parse(reader);
+			System.out.println("Undeployed "+deployResult.getAsJsonObject().get("result").getAsString());
 		}
 	}
 }
