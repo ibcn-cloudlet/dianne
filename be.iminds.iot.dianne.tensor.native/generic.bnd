@@ -5,7 +5,14 @@
 # architectures and systems
 #
 
+# os = Linux / MacOSX
+os=Linux
+# arch = x86_64 / i386 / armvX / arm / ... 
+arch=x86_64
+# lib = torch / cutorch
+lib=torch
+
 Fragment-Host: be.iminds.iot.dianne.tensor;bundle-version=${Bundle-Version}
-Provide-Capability: tensor.native;library=be.iminds.iot.dianne.tensor
-Bundle-NativeCode: libTensor.so;osname=Linux;processor=x86_64
--includeresource: native/Linux/x86_64
+Provide-Capability: tensor.native;library=be.iminds.iot.dianne.tensor.${lib}
+Bundle-NativeCode: libTensor.so;osname=${os};processor=${arch}
+-includeresource: native/${os}/${arch}
