@@ -48,6 +48,8 @@ public interface DiannePlatform {
 	 */
 	NeuralNetworkInstanceDTO deployNeuralNetwork(String name) throws InstantiationException;
 	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description) throws InstantiationException;
+	NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn) throws InstantiationException;
+	NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, String description) throws InstantiationException;
 
 	
 	/**
@@ -60,6 +62,8 @@ public interface DiannePlatform {
 	 */
 	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, UUID runtimeId) throws InstantiationException;
 	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description, UUID runtimeId) throws InstantiationException;
+	NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, UUID runtimeId) throws InstantiationException;
+	NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, String description, UUID runtimeId) throws InstantiationException;
 
 	
 	/**
@@ -73,6 +77,8 @@ public interface DiannePlatform {
 	 */
 	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, UUID runtimeId, Map<UUID, UUID> deployment) throws InstantiationException;
 	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description, UUID runtimeId, Map<UUID, UUID> deployment) throws InstantiationException;
+	NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, UUID runtimeId, Map<UUID, UUID> deployment) throws InstantiationException;
+	NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, String description, UUID runtimeId, Map<UUID, UUID> deployment) throws InstantiationException;
 
 
 	/**
@@ -81,7 +87,7 @@ public interface DiannePlatform {
 	 * @param nn the neural network instance to undeploy
 	 */
 	void undeployNeuralNetwork(NeuralNetworkInstanceDTO nn);
-
+	void undeployNeuralNetwork(UUID nnId);
 	
 	
 	/**

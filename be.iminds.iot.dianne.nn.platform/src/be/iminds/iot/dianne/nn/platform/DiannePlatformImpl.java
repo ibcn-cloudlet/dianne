@@ -150,23 +150,67 @@ public class DiannePlatformImpl implements DiannePlatform {
 		nnis.put(nnId, nni);
 		return nni;
 	}
+	
+	@Override
+	public NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn)
+			throws InstantiationException {
+		repository.storeNeuralNetwork(nn);
+		return deployNeuralNetwork(nn.name);
+	}
+	
+	@Override
+	public NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, String description)
+			throws InstantiationException {
+		repository.storeNeuralNetwork(nn);
+		return deployNeuralNetwork(nn.name, description);
+	}
+	
+	@Override
+	public NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, 
+			UUID runtimeId) throws InstantiationException {
+		repository.storeNeuralNetwork(nn);
+		return deployNeuralNetwork(nn.name, null, runtimeId, new HashMap<UUID, UUID>());
+	}
+	
+	@Override
+	public NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, String description,
+			UUID runtimeId) throws InstantiationException {
+		repository.storeNeuralNetwork(nn);
+		return deployNeuralNetwork(nn.name, description, runtimeId, new HashMap<UUID, UUID>());
+	}
+
+
+	@Override
+	public NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn,
+			UUID runtimeId,  Map<UUID, UUID> deployment) throws InstantiationException {
+		repository.storeNeuralNetwork(nn);
+		return deployNeuralNetwork(nn.name, null, runtimeId, deployment);
+	}
+	
+	@Override
+	public NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, String description,
+			UUID runtimeId, Map<UUID, UUID> deployment) throws InstantiationException {
+		repository.storeNeuralNetwork(nn);
+		return deployNeuralNetwork(nn.name, description, runtimeId, deployment);
+	}
 
 	@Override
 	public void undeployNeuralNetwork(NeuralNetworkInstanceDTO nni) {
 		undeployNeuralNetwork(nni.id);
-	
-		// remove all modules from nni
-		nnis.get(nni.id).modules.clear();
-		nnis.remove(nni.id);
 	}
 
-	private void undeployNeuralNetwork(UUID nnId){
+	@Override
+	public void undeployNeuralNetwork(UUID nnId){
 		// undeploy all modules with nnId
 		synchronized(runtimes){
 			for(DianneRuntime runtime : runtimes.values()){
 				runtime.undeployModules(nnId);
 			}
 		}
+		
+		// remove all modules from nni
+		nnis.get(nnId).modules.clear();
+		nnis.remove(nnId);
 	}
 	
 	@Override
