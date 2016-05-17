@@ -79,30 +79,45 @@ public class FeedForwardLearner extends AbstractLearner {
 			
 			// Preallocate batch if necessary
 			if(nextBatch == null){
-				int[] inputDims = dataset.inputDims();
-				int[] batchInputDims = new int[inputDims.length+1];
-				batchInputDims[0] = batchSize;
-				for(int i=0;i<inputDims.length;i++){
-					batchInputDims[i+1] = inputDims[i];
-				}
 				nextBatch = new ArrayList<>(batchSize+1);
-				Tensor b = new Tensor(batchInputDims);
-				nextBatch.add(b);
-				for(int i=0;i<batchSize;i++){
-					nextBatch.add(b.select(0, i));
-				}
-				
-				int[] targetDims = dataset.outputDims();
-				int[] batchTargetDims = new int[targetDims.length+1];
-				batchTargetDims[0] = batchSize;
-				for(int i=0;i<targetDims.length;i++){
-					batchTargetDims[i+1] = targetDims[i];
-				}
 				nextTarget = new ArrayList<>(batchSize+1);
-				Tensor o = new Tensor(batchTargetDims);
-				nextTarget.add(o);
-				for(int i=0;i<batchSize;i++){
-					nextTarget.add(o.select(0, i));
+				
+				int[] inputDims = dataset.inputDims();
+				if(inputDims == null){
+					// Variable input dimension, cannot create batch tensor
+					nextBatch.add(null);
+					for(int i=0;i<batchSize;i++){
+						nextBatch.add(new Tensor());
+					}
+					
+					nextTarget.add(null);
+					for(int i=0;i<batchSize;i++){
+						nextTarget.add(new Tensor());
+					}
+				} else {
+					int[] batchInputDims = new int[inputDims.length+1];
+					batchInputDims[0] = batchSize;
+					for(int i=0;i<inputDims.length;i++){
+						batchInputDims[i+1] = inputDims[i];
+					}
+					Tensor b = new Tensor(batchInputDims);
+					nextBatch.add(b);
+					for(int i=0;i<batchSize;i++){
+						nextBatch.add(b.select(0, i));
+					}
+					
+					
+					int[] targetDims = dataset.outputDims();
+					int[] batchTargetDims = new int[targetDims.length+1];
+					batchTargetDims[0] = batchSize;
+					for(int i=0;i<targetDims.length;i++){
+						batchTargetDims[i+1] = targetDims[i];
+					}
+					Tensor o = new Tensor(batchTargetDims);
+					nextTarget.add(o);
+					for(int i=0;i<batchSize;i++){
+						nextTarget.add(o.select(0, i));
+					}
 				}
 			}
 			
@@ -133,55 +148,93 @@ public class FeedForwardLearner extends AbstractLearner {
 		nextTarget = temp;
 		
 		// Forward/backward pass - executed asynchronously
-		Promise result = nn.forward(null, null, batch.get(0)).then(
-				p -> {
-					// Forward
-					Tensor output = p.getValue().tensor;
-					
-					// Error
-					error[0] += criterion.error(output, target.get(0)).get(0);
-
-					// Error gradient
-					Tensor gradOut = criterion.grad(output, target.get(0));
-					
-					// Backward
-					return nn.backward(null, null, gradOut);
-				}).then(		
-				p -> {	
-					// Accumulate gradient weights
-					nn.getTrainables().values().stream().forEach(Trainable::accGradParameters);
-					
-					if(batchAverage) {
-						nn.getTrainables().values().stream().forEach(m -> {
-							Tensor deltaParams = m.getDeltaParameters();
-				
-							TensorOps.div(deltaParams, deltaParams, batchSize);
-									
-							// Set DeltaParameters to be sure in case of remote module instance
-							m.setDeltaParameters(deltaParams);
-						});
+		if(batch.get(0) != null) {
+			// Execute in batch
+			Promise result = nn.forward(null, null, batch.get(0)).then(
+					p -> {
+						// Forward
+						Tensor output = p.getValue().tensor;
 						
-						error[0] /= batchSize;
-					}
-					
-					// Run gradient processors
-					gradientProcessor.calculateDelta(i);
-					
-					// Update parameters
-					nn.getTrainables().values().stream().forEach(Trainable::updateParameters);
-					
-					return p;
-				});
+						// Error
+						error[0] += criterion.error(output, target.get(0)).get(0);
+	
+						// Error gradient
+						Tensor gradOut = criterion.grad(output, target.get(0));
+						
+						// Backward
+						return nn.backward(null, null, gradOut);
+					}).then(		
+					p -> {	
+						// Accumulate gradient weights
+						nn.getTrainables().values().stream().forEach(Trainable::accGradParameters);
+						
+						return p;
+					});
+			
+			// Load next batch while processing previous one
+			loadBatch();
+			
+			try {
+				result.getValue();
+			} catch (InvocationTargetException | InterruptedException e) {
+				e.printStackTrace();
+			}
+		} else {
+			// Cannot load a batch for this dataset, still process one by one
+			for(int k=0;k<batchSize;k++){
+				final int b = k+1;
+				Promise result = nn.forward(null, null, batch.get(b)).then(
+						p -> {
+							// Forward
+							Tensor output = p.getValue().tensor;
+							
+							// Error
+							error[0] += criterion.error(output, target.get(b)).get(0);
 		
-		// Load next batch while processing previous one
-		loadBatch();
+							// Error gradient
+							Tensor gradOut = criterion.grad(output, target.get(b));
+							
+							// Backward
+							return nn.backward(null, null, gradOut);
+						}).then(
+						p -> {	
+							// Accumulate gradient weights
+							nn.getTrainables().values().stream().forEach(Trainable::accGradParameters);
+							
+							return p;
+						});
+				
+				try {
+					result.getValue();
+				} catch (InvocationTargetException | InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+			
+			// Load next batch
+			loadBatch();
+		}
+
+		// Batch done, calculate deltas
+		if(batchAverage) {
+			nn.getTrainables().values().stream().forEach(m -> {
+				Tensor deltaParams = m.getDeltaParameters();
+	
+				TensorOps.div(deltaParams, deltaParams, batchSize);
 		
-		try {
-			result.getValue();
-		} catch (InvocationTargetException | InterruptedException e) {
-			e.printStackTrace();
+				// Set DeltaParameters to be sure in case of remote module instance
+				m.setDeltaParameters(deltaParams);
+			});
+			
+			error[0] /= batchSize;
 		}
 		
+		// Run gradient processors
+		gradientProcessor.calculateDelta(i);
+		
+		// Update parameters
+		nn.getTrainables().values().stream().forEach(Trainable::updateParameters);
+
 		return error[0];
 	}
 	
