@@ -27,16 +27,15 @@
 
 JavaVM* jvm;
 
+static jmethodID SYSTEM_GC;
+static jclass SYSTEM_CLASS;
+static jclass EXCEPTION_CLASS;
+
 static void throwException(const char * msg){
 	JNIEnv* env;
 	(*jvm)->AttachCurrentThread(jvm, (void**)&env, NULL);
-
-	jclass exClass;
-	char *className = "java/lang/Exception";
-
-	exClass = (*env)->FindClass( env, className);
-
-	(*env)->ThrowNew( env, exClass, msg );
+	(*env)->ThrowNew( env, EXCEPTION_CLASS, msg );
+	(*jvm)->DetachCurrentThread(jvm);
 }
 
 static void torchErrorHandlerFunction(const char *msg, void *data){
@@ -45,6 +44,14 @@ static void torchErrorHandlerFunction(const char *msg, void *data){
 
 static void torchArgErrorHandlerFunction(int argNumber, const char *msg, void *data){
 	throwException(msg);
+}
+
+
+static void gcFunction(void *data){
+	JNIEnv* env;
+	(*jvm)->AttachCurrentThread(jvm, (void**)&env, NULL);
+	(*env)->CallStaticVoidMethod(env, SYSTEM_CLASS, SYSTEM_GC);
+	(*jvm)->DetachCurrentThread(jvm);
 }
 
 /** Initialize and cleanup **/
@@ -61,11 +68,24 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_NativeTensorLoader_init
 	TENSOR_ADDRESS_FIELD = (*env)->GetFieldID(env, TENSOR_CLASS, "address", "J");
 	TENSOR_INIT = (*env)->GetMethodID(env, TENSOR_CLASS, "<init>", "(J)V");
 
+	jclass systemClass;
+	char *systemClassName = "java/lang/System";
+	systemClass = (*env)->FindClass(env, systemClassName);
+    SYSTEM_CLASS = (*env)->NewGlobalRef(env, systemClass);
+	SYSTEM_GC = (*env)->GetStaticMethodID(env, SYSTEM_CLASS, "gc", "()V");
+
+	jclass exceptionClass;
+	char *exClassName = "java/lang/Exception";
+	exceptionClass = (*env)->FindClass( env, exClassName);
+    EXCEPTION_CLASS = (*env)->NewGlobalRef(env, exceptionClass);
 
 	// Set Torch error handler functions to throw Exceptions in Java
 	(*env)->GetJavaVM(env, &jvm);
 	THSetErrorHandler(torchErrorHandlerFunction, NULL);
 	THSetArgErrorHandler(torchArgErrorHandlerFunction, NULL);
+
+	// Set Torch GC handler
+	THSetGCHandler(gcFunction, NULL);
 
 	// initialize CUDA
 #ifdef CUDA
@@ -80,8 +100,11 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_NativeTensorLoader_init
 
 JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_NativeTensorLoader_cleanup
   (JNIEnv * env, jobject loader){
-	// release global reference to tensor class
+	// release global class references
 	(*env)->DeleteGlobalRef(env, TENSOR_CLASS);
+	(*env)->DeleteGlobalRef(env, SYSTEM_CLASS);
+	(*env)->DeleteGlobalRef(env, EXCEPTION_CLASS);
+
 
 	// cleanup CUDA
 #ifdef CUDA
