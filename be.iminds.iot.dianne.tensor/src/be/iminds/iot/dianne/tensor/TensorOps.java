@@ -202,5 +202,11 @@ public class TensorOps {
 	 * In case of 3D tensor it will scale all 'channels'
 	 */
 	public static native Tensor scale2D(Tensor res, final Tensor t, final int... dims);
+
+	/**
+	 * First crop to not stretch the image before scaling
+	 */
+	public static native Tensor frame(Tensor res, final Tensor t, final int... dims);
+	
 }
 

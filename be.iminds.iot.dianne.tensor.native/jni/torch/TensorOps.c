@@ -579,12 +579,29 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_scale2D
 #ifdef CUDA
 	THCudaTensor_scale2d(state, r, t);
 #else
+	scale2d(r, t);
+#endif
 
+	if(noDims==2){
+		THTensor_(resize2d)(
+#ifdef CUDA
+			state,
+#endif
+			r, d[0], d[1]);
+	}
+
+	(*env)->ReleaseIntArrayElements(env, dims, d, 0);
+
+	return res == NULL ? createTensorObject(env, r) : res;
+}
+
+
+void scale2d(THTensor* r, THTensor* t){
 	int y_in = t->size[t->nDimension-2];
 	int x_in = t->size[t->nDimension-1];
 
-	int y_out = d[noDims-2];
-	int x_out = d[noDims-1];
+	int y_out = r->size[r->nDimension-2];
+	int x_out = r->size[r->nDimension-1];
 
 	float s_y = (y_in-1)/(float)(y_out-1);
 	float s_x = (x_in-1)/(float)(x_out-1);
@@ -642,14 +659,173 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_scale2D
 			}
 		}
 	}
-#endif
+}
 
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_frame
+  (JNIEnv * env, jclass c, jobject res, jobject tensor, jintArray dims){
+	THTensor* t = getTensor(env, tensor);
+	THTensor* r;
+
+	jsize noDims = (*env)->GetArrayLength(env, dims);
+	jint *d = (*env)->GetIntArrayElements(env, dims, 0);
+
+	int noBatches;
+	if(t->nDimension == noDims + 1){
+		noBatches = t->size[0];
+	} else {
+		noBatches = 1;
+	}
+
+	// make sure input and output or 4d  [batch, channel, y ,x]
 	if(noDims==2){
-		THTensor_(resize2d)(
+		if(noBatches > 1)
+			r = getTensor4d(env, res, noBatches, 1, d[0], d[1]);
+		else
+			r = getTensor4d(env, res, 1, 1, d[0], d[1]);
+	} else {
+		if(noBatches > 1)
+			r = getTensor4d(env, res, noBatches, d[0], d[1], d[2]);
+		else
+			r = getTensor4d(env, res, 1, d[0], d[1], d[2]);
+	}
+
+	// check input size
+	int i;
+	int correct = 1;
+	for(i = 0;i<noDims;i++){
+		if(t->size[noBatches == 1 ? i : i+1] != d[i])
+			correct = 0;
+	}
+
+	if(correct){
+		// input has correct size, just copy to output
+#ifdef CUDA
+		THTensor_(copyCuda)(state, r, t);
+#else
+		THTensor_(copyFloat)(r, t);
+#endif
+		return res == NULL ? createTensorObject(env, r) : res;
+	} else {
+		// narrow and scale input
+		if(t->nDimension == 2){
+			THTensor_(resize4d)(
+#ifdef CUDA
+					state,
+#endif
+					t, 1, 1, t->size[0], t->size[1]);
+		} else if(t->nDimension == 3){
+			if(noBatches == 1){
+				THTensor_(resize4d)(
+#ifdef CUDA
+						state,
+#endif
+						t, 1, t->size[0], t->size[1], t->size[2]);
+			} else {
+				THTensor_(resize4d)(
+#ifdef CUDA
+					state,
+#endif
+					t, t->size[0], 1, t->size[1], t->size[2]);
+			}
+		} else {
+			THTensor_(resize4d)(
+#ifdef CUDA
+				state,
+#endif
+				t, t->size[0], t->size[1], t->size[2], t->size[3]);
+		}
+
+		// narrow
+		float sx = (float)(t->size[3])/r->size[3];
+		float sy = (float)(t->size[2])/r->size[2];
+
+		float s = sx < sy ? sx : sy;
+
+		// dim y
+		int size = (int)(r->size[2]*s);
+		int index = (t->size[2]-size)/2;
+
+		THTensor* narrow = THTensor_(newNarrow)(
 #ifdef CUDA
 			state,
 #endif
-			r, d[0], d[1]);
+			t, 2, index, size);
+
+		// dim x
+		size = (int)(r->size[3]*s);
+		index = (t->size[3]-size)/2;
+
+		THTensor_(narrow)(
+#ifdef CUDA
+			state,
+#endif
+			narrow, narrow, 3, index, size);
+
+		int b;
+		for(b = 0; b < noBatches ; b++){
+			THTensor* selectIn = THTensor_(newSelect)(
+#ifdef CUDA
+				state,
+#endif
+				narrow, 0, b);
+
+			THTensor* selectOut = THTensor_(newSelect)(
+#ifdef CUDA
+				state,
+#endif
+				r, 0, b);
+
+#ifdef CUDA
+			THCudaTensor_scale2d(state, selectOut, selectIn);
+#else
+			scale2d(selectOut, selectIn);
+#endif
+
+			THTensor_(free)(
+#ifdef CUDA
+				state,
+#endif
+				selectIn);
+
+			THTensor_(free)(
+#ifdef CUDA
+				state,
+#endif
+				selectOut);
+		}
+
+		THTensor_(free)(
+#ifdef CUDA
+			state,
+#endif
+			narrow);
+
+	}
+
+	// resize to correct size
+	if(noDims == 2){
+		if(noBatches == 1){
+			THTensor_(resize2d)(
+#ifdef CUDA
+				state,
+#endif
+				r, d[0], d[1]);
+		} else {
+			THTensor_(resize3d)(
+#ifdef CUDA
+				state,
+#endif
+				r, noBatches, d[0], d[1]);
+		}
+	} else if(noDims == 3){
+		if(noBatches == 1){
+		THTensor_(resize3d)(
+#ifdef CUDA
+				state,
+#endif
+				r, d[0], d[1], d[2]);
+		}
 	}
 
 	(*env)->ReleaseIntArrayElements(env, dims, d, 0);
