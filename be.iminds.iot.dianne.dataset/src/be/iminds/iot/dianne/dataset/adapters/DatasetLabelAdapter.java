@@ -20,11 +20,18 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.api.dataset;
+package be.iminds.iot.dianne.dataset.adapters;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.component.annotations.Reference;
+
+import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
@@ -33,12 +40,25 @@ import be.iminds.iot.dianne.tensor.TensorOps;
  * a subset of the labels available. The other labels can be either ignored or 
  * be aggregated into one "other" class.
  * 
+ * Example config:
+   {
+	"dataset":"MNIST",
+	"adapter":"be.iminds.iot.dianne.dataset.adapters.LabelAdapter",
+	"name": "MNIST 1vs all",
+	"other": true,
+	"labels":["1"]
+	}
+ * 
  * @author tverbele
  *
  */
+@Component(configurationPolicy=ConfigurationPolicy.REQUIRE,
+	configurationPid="be.iminds.iot.dianne.dataset.adapters.LabelAdapter",
+	property={"aiolos.unique=true"})
 public class DatasetLabelAdapter implements Dataset {
 	
 	private Dataset data;
+	private String name;
 	
 	// label indices
 	private int[] labelIndices;
@@ -46,18 +66,17 @@ public class DatasetLabelAdapter implements Dataset {
 	// add "other" category
 	private boolean other;
 	
-	/**
-	 * Create a new DatasetLabelAdapter
-	 * 
-	 * @param f tensor factory to use for creating Tensors
-	 * @param data the dataset to wrap
-	 * @param labels the labels to keep
-	 * @param other whether or not the other labels should be aggregated into an "other" class
-	 * 
-	 */
-	public DatasetLabelAdapter(Dataset data, String[] labels, boolean other) {
-		this.data = data;
-		this.other = other;
+	@Reference
+	void setDataset(Dataset d){
+		this.data = d;
+	}
+	
+	@Activate
+	void activate(Map<String, Object> config){
+		this.name = (String)config.get("name");
+		// whether or not to aggregate unspecified labels into "other" class
+		this.other = Boolean.parseBoolean((String)config.get("other"));
+		String[] labels = (String[])config.get("labels");
 		this.labels = new String[labels.length+ (other ? 1 : 0)];
 		System.arraycopy(labels, 0, this.labels, 0, labels.length);
 		if(other){
@@ -70,9 +89,10 @@ public class DatasetLabelAdapter implements Dataset {
 		}
 	}
 	
+	
 	@Override
 	public String getName(){
-		return data.getName();
+		return name;
 	}
 	
 	@Override

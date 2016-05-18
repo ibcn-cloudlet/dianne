@@ -20,8 +20,16 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.api.dataset;
+package be.iminds.iot.dianne.dataset.adapters;
 
+import java.util.Map;
+
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.component.annotations.Reference;
+
+import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
@@ -29,33 +37,45 @@ import be.iminds.iot.dianne.tensor.Tensor;
  * a subset of the samples. Can for example be used to split up a Dataset into
  * a training, validation and test set.
  * 
+ * Example config:
+   {
+	"dataset":"MNIST",
+	"adapter":"be.iminds.iot.dianne.dataset.adapters.RangeAdapter",
+	"name": "MNIST train set",
+	"start": 0,
+	"end": 60000 
+   }
+ * 
  * @author tverbele
  *
  */
+@Component(configurationPolicy=ConfigurationPolicy.REQUIRE,
+	configurationPid="be.iminds.iot.dianne.dataset.adapters.RangeAdapter",
+	property={"aiolos.unique=true"})
 public class DatasetRangeAdapter implements Dataset {
 
 	private Dataset data;
-	
+	private String name;
+
 	// start and end index
 	private int start;
 	private int end;
 	
-	/**
-	 * Creates a new DatasetRangeAdapter
-	 * 
-	 * @param data the dataset to wrap
-	 * @param start the start index for the new dataset
-	 * @param end the end index of the new dataset
-	 */
-	public DatasetRangeAdapter(Dataset data, int start, int end) {
-		this.start = start;
-		this.end = end;
-		this.data = data;
+	@Reference
+	void setDataset(Dataset d){
+		this.data = d;
+	}
+	
+	@Activate
+	void activate(Map<String, Object> properties) {
+		this.name = (String)properties.get("name");
+		this.start = Integer.parseInt((String)properties.get("start"));
+		this.end = Integer.parseInt((String)properties.get("end"));
 	}
 	
 	@Override
 	public String getName(){
-		return data.getName();
+		return name;
 	}
 	
 	@Override

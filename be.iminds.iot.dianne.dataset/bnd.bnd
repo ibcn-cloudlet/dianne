@@ -6,5 +6,6 @@ Bundle-Version: 0.4.0.${tstamp}
 	biz.aQute.junit,\
 	osgi.enterprise;version=5.0,\
 	osgi.core;version=5.0,\
-	be.iminds.iot.dianne.api;version=latest
+	be.iminds.iot.dianne.api;version=latest,\
+	com.google.gson
 -sub: *.bnd
