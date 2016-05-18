@@ -27,6 +27,7 @@ import java.util.UUID;
 import org.osgi.framework.ServiceReference;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -51,69 +52,15 @@ public class WrongSizeTest extends AbstractDianneTest {
     }
 	
 	public void testWrongInputSize() throws Exception {
-		deployNN("../tools/nn/mnist-20/modules.txt");
+		NeuralNetwork nn = deployNN("mnist-20");
 		
 		final Tensor sample = new Tensor(100);
-		final Tensor result = new Tensor(10);
-		result.fill(0.0f);
-	
 		
-		// wait for output
-		final Object lock = new Object();
-		getOutput().addForwardListener(new ForwardListener() {
-			
-			@Override
-			public void onForward(UUID moduleId, Tensor output, String... tags) {
-				output.copyInto(result);
-			
-				synchronized(lock){
-					lock.notifyAll();
-				}
-			}
-
-			@Override
-			public void onError(UUID moduleId, ModuleException e, String... tags) {
-				e.printStackTrace();
-				
-				synchronized(lock){
-					lock.notifyAll();
-				}
-			}
-		});
-		
-//		// Write intermediate output to file
-//		for(Module m : getModules()){
-//			m.addForwardListener(new ForwardListener() {
-//				@Override
-//				public void onForward(UUID moduleId, Tensor output, String... tags) {
-//					try {
-//						File f = new File("out_"+m.getId()+".txt");
-//						PrintWriter writer = new PrintWriter(f);
-//						writer.println(Arrays.toString(output.dims()));
-//						
-//						float[] data = output.get();
-//						for(int i=0;i<data.length;i++){
-//							writer.write(data[i]+" ");
-//						}
-//						writer.close();
-//					} catch(Exception e){
-//					}
-//				}
-//			});
-//		}
-		
-		synchronized(lock){
-			getInput().input(sample);
-			lock.wait(1000);
+		try {
+			Tensor result = nn.forward(sample);
+			fail();
+		} catch(Exception e){
+			// expect exception
 		}
-		
-		Assert.assertTrue(TensorOps.max(result)==0.0f);
-		
-		synchronized(lock){
-			getInput().input(mnist.getInputSample(0));
-			lock.wait(1000);
-		}
-		
-		Assert.assertFalse(TensorOps.max(result)==0.0f);
 	}
 }

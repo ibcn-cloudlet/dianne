@@ -22,70 +22,58 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.test;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import org.junit.Assert;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 
+import be.iminds.iot.dianne.api.nn.Dianne;
+import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.Output;
 import be.iminds.iot.dianne.api.nn.module.Preprocessor;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
-import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
-import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
-import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
-import be.iminds.iot.dianne.api.nn.runtime.DianneRuntime;
-import be.iminds.iot.dianne.nn.util.DianneJSONConverter;
+import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
+import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
+import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorOps;
 import junit.framework.TestCase;
 
 public class AbstractDianneTest extends TestCase {
 
-	protected final UUID TEST_NN_ID = UUID.randomUUID();
-	
     protected final BundleContext context = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
     
-    protected DianneRuntime mm;
+    protected DiannePlatform platform;
+    protected Dianne dianne;
 
-    protected List<ModuleInstanceDTO> modules = null;
+    protected NeuralNetworkInstanceDTO nni = null;
 	
     public void setUp() throws Exception {
-    	ServiceReference rmm =  context.getServiceReference(DianneRuntime.class.getName());
-    	mm = (DianneRuntime) context.getService(rmm);
+    	ServiceReference rp =  context.getServiceReference(DiannePlatform.class.getName());
+    	platform = (DiannePlatform) context.getService(rp);
+    	
+    	ServiceReference rd =  context.getServiceReference(Dianne.class.getName());
+    	dianne = (Dianne) context.getService(rd);
     }
     
     public void tearDown(){
     	// tear down deployed NN modules after each test
-    	if(modules!=null){
-    		undeployNN(modules);
-    		modules = null;
-    	}
+    	if(nni != null)
+    		platform.undeployNeuralNetwork(nni);
     }
     
-    protected void deployNN(String configLocation) throws Exception {
-    	String json = new String(Files.readAllBytes(Paths.get(configLocation)));
-    	NeuralNetworkDTO nn = DianneJSONConverter.parseJSON(json);
-    	
-    	List<ModuleInstanceDTO> instances = new ArrayList<ModuleInstanceDTO>();
-    	for(ModuleDTO module : nn.modules.values()){
-    		ModuleInstanceDTO mi = mm.deployModule(module, TEST_NN_ID);
-	    	instances.add(mi);
-    	}
-    	
-    	this.modules = instances;
-    }
+    public void testServices() throws Exception {
+    	Assert.assertNotNull(platform);
+    	Assert.assertNotNull(dianne);
+	}    
     
-    protected void undeployNN(List<ModuleInstanceDTO> modules){
-    	for(ModuleInstanceDTO m : modules){
-    		mm.undeployModule(m);
-    	}
-    	this.modules = null;
+    protected NeuralNetwork deployNN(String name) throws Exception {
+    	nni = platform.deployNeuralNetwork(name);
+    	return dianne.getNeuralNetwork(nni).getValue();
     }
     
     protected Input getInput(){

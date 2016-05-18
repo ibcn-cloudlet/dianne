@@ -9,40 +9,39 @@ Bundle-Version: 0.4.0.${tstamp}
 	be.iminds.iot.dianne.api;version=latest,\
 	be.iminds.iot.dianne.nn.module;version=latest,\
 	be.iminds.iot.dianne.nn.runtime;version=latest,\
-	be.iminds.iot.dianne.nn.util;version=latest
+	be.iminds.iot.dianne.nn.util;version=latest,\
+	osgi.promise
+
+-include: ../tools/common.bndrun
 	
--runbundles: \
+-runbundles.test: \
 	biz.aQute.junit,\
-	osgi.promise;version='[6.0.0,6.0.1)',\
-	org.apache.felix.scr;version='[1.8.2,1.8.3)',\
-	org.apache.felix.configadmin;version='[1.6.0,1.7.0)',\
-	kxml;version='[2.2.2,2.2.3)',\
-	com.google.gson;version='[2.2.4,2.3)',\
 	be.iminds.iot.dianne.tensor.th;version=latest,\
 	be.iminds.iot.dianne.tensor.util;version=latest,\
-	be.iminds.iot.dianne.nn;version=latest,\
+	be.iminds.iot.dianne.tensor;version=latest,\
+	be.iminds.iot.dianne.tensor.native.generic;version=latest,\
+	be.iminds.iot.dianne.tensor.util;version=latest,\
+	be.iminds.iot.dianne.log;version=latest,\
+	be.iminds.iot.dianne.nn.util;version=latest,\
 	be.iminds.iot.dianne.nn.module;version=latest,\
+	be.iminds.iot.dianne.nn;version=latest,\
 	be.iminds.iot.dianne.nn.runtime;version=latest,\
-	be.iminds.iot.dianne.nn.train;version=latest,\
+	be.iminds.iot.dianne.nn.platform;version=latest,\
+	be.iminds.iot.dianne.nn.learn;version=latest,\
+	be.iminds.iot.dianne.nn.eval;version=latest,\
 	be.iminds.iot.dianne.repository;version=latest,\
 	be.iminds.iot.dianne.dataset.mnist;version=latest,\
 	be.iminds.iot.dianne.dataset.imagenet;version=latest,\
 	be.iminds.iot.dianne.nn.test;version=latest
 	
--runproperties:\
+-runproperties.test:\
 	be.iminds.iot.dianne.storage="../tools/nn",\
 	be.iminds.iot.dianne.dataset.mnist.location="../tools/datasets/MNIST/",\
 	be.iminds.iot.dianne.dataset.imagenet.location="../tools/datasets/ImageNet/"
 	
--runfw: org.eclipse.concierge
--runsystempackages:\
-	sun.reflect,\
-	javax.xml.bind,\
-	javax.imageio,\
-	javax.imageio.plugins.jpeg,\
-	javax.imageio.stream
-	
--runvm: -d64 -Xms512m -Xmx4g	
 	
 Private-Package: be.iminds.iot.dianne.nn.test
-Test-Cases: ${classes;CONCRETE;EXTENDS;junit.framework.TestCase}
+Test-Cases: \
+	be.iminds.iot.dianne.nn.test.MNISTTest,\
+	be.iminds.iot.dianne.nn.test.OverfeatTest,\
+	be.iminds.iot.dianne.nn.test.WrongSizeTest

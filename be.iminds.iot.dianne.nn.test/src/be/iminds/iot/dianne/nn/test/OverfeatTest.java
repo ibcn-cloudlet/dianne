@@ -22,16 +22,10 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.test;
 
-import java.io.File;
-import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.UUID;
-
 import org.osgi.framework.ServiceReference;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
-import be.iminds.iot.dianne.api.nn.module.ForwardListener;
-import be.iminds.iot.dianne.api.nn.module.Module;
+import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 import junit.framework.Assert;
@@ -56,56 +50,13 @@ public class OverfeatTest extends AbstractDianneTest {
     }
 	
 	public void testOverfeat() throws Exception {
-		deployNN("../tools/nn/overfeat_fast_2/modules.txt");
+		NeuralNetwork nn = deployNN("overfeat_fast");
 		
 		final Tensor sample = imagenet.getInputSample(TEST_SAMPLE);		
-		final Tensor result = new Tensor(1000);
-		
-		// wait for output
-		final Object lock = new Object();
-		getOutput().addForwardListener(new ForwardListener() {
-			
-			@Override
-			public void onForward(UUID moduleId, Tensor output, String... tags) {
-				output.copyInto(result);
-			
-				synchronized(lock){
-					lock.notifyAll();
-				}
-			}
-		});
-
-		// Write intermediate output to file
-		for(Module m : getModules()){
-			m.addForwardListener(new ForwardListener() {
-				@Override
-				public void onForward(UUID moduleId, Tensor output, String... tags) {
-					try {
-						File f = new File("out_"+m.getId()+".txt");
-						PrintWriter writer = new PrintWriter(f);
-						writer.println(Arrays.toString(output.dims()));
-						
-						float[] data = output.get();
-						for(int i=0;i<data.length;i++){
-							writer.write(data[i]+" ");
-						}
-						writer.close();
-					} catch(Exception e){
-					}
-				}
-			});
-		}
-		
-		synchronized(lock){
-			getInput().input(sample);
-			lock.wait();
-		}
+		final Tensor result = nn.forward(sample);
 		
 		int index = TensorOps.argmax(result);
-		System.out.println(getOutput().getOutputLabels()[index]+" "+result.get(index));
-		
 		int expected = TensorOps.argmax(imagenet.getOutputSample(TEST_SAMPLE));
-		System.out.println("Expected: "+getOutput().getOutputLabels()[expected]);
 		Assert.assertEquals(expected, index);
 	}
 }
