@@ -595,7 +595,8 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_scale2D
 	return res == NULL ? createTensorObject(env, r) : res;
 }
 
-
+#ifndef CUDA
+// helper function on CPU only
 void scale2d(THTensor* r, THTensor* t){
 	int y_in = t->size[t->nDimension-2];
 	int x_in = t->size[t->nDimension-1];
@@ -660,7 +661,7 @@ void scale2d(THTensor* r, THTensor* t){
 		}
 	}
 }
-
+#endif
 
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_frame
   (JNIEnv * env, jclass c, jobject res, jobject tensor, jintArray dims){
