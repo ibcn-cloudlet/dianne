@@ -1,0 +1,7 @@
+Private-Package: \
+	be.iminds.iot.dianne.nn.test.integration,\
+	be.iminds.iot.dianne.nn.test
+Test-Cases: \
+	be.iminds.iot.dianne.nn.test.integration.MNISTTest,\
+	be.iminds.iot.dianne.nn.test.integration.OverfeatTest,\
+	be.iminds.iot.dianne.nn.test.integration.WrongSizeTest

@@ -20,47 +20,32 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.nn.test;
-
-import java.util.UUID;
-
-import org.osgi.framework.ServiceReference;
+package be.iminds.iot.dianne.nn.test.integration;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
-import be.iminds.iot.dianne.api.nn.module.ForwardListener;
-import be.iminds.iot.dianne.api.nn.module.ModuleException;
+import be.iminds.iot.dianne.nn.test.DianneTest;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 import junit.framework.Assert;
 
 
-public class WrongSizeTest extends AbstractDianneTest {
-
-	private Dataset mnist;
+public class MNISTTest extends DianneTest {
 	
-	public void setUp() throws Exception {
-    	super.setUp();
-    	
-    	ServiceReference[] rds = context.getAllServiceReferences(Dataset.class.getName(), null);
-    	for(ServiceReference rd : rds){
-    		Dataset d = (Dataset) context.getService(rd);
-    		if(d.getName().equals("MNIST")){
-    			mnist = d;
-    		}
-    	}
-    }
-	
-	public void testWrongInputSize() throws Exception {
+	public void testMNIST() throws Exception {
 		NeuralNetwork nn = deployNN("mnist-20");
+		Dataset mnist = getDataset("MNIST");
 		
-		final Tensor sample = new Tensor(100);
+		final Tensor sample = mnist.getInputSample(0);		
+		final Tensor result = nn.forward(sample);
 		
-		try {
-			Tensor result = nn.forward(sample);
-			fail();
-		} catch(Exception e){
-			// expect exception
-		}
+		int index = TensorOps.argmax(result);
+		float prob = result.get(index);
+		int expected = TensorOps.argmax(mnist.getOutputSample(0));
+		Assert.assertEquals(expected, index);
+		
+		// should yield the same result
+		index = TensorOps.argmax(result);
+		Assert.assertEquals(prob, result.get(index));
 	}
 }

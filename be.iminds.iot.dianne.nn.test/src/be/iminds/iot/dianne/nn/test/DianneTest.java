@@ -30,6 +30,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 
+import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.Input;
@@ -39,11 +40,9 @@ import be.iminds.iot.dianne.api.nn.module.Preprocessor;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
-import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorOps;
 import junit.framework.TestCase;
 
-public class AbstractDianneTest extends TestCase {
+public class DianneTest extends TestCase {
 
     protected final BundleContext context = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
     
@@ -66,14 +65,19 @@ public class AbstractDianneTest extends TestCase {
     		platform.undeployNeuralNetwork(nni);
     }
     
-    public void testServices() throws Exception {
-    	Assert.assertNotNull(platform);
-    	Assert.assertNotNull(dianne);
-	}    
-    
     protected NeuralNetwork deployNN(String name) throws Exception {
     	nni = platform.deployNeuralNetwork(name);
     	return dianne.getNeuralNetwork(nni).getValue();
+    }
+    
+    protected Dataset getDataset(String name) throws Exception {
+    	ServiceReference[] rds = context.getAllServiceReferences(Dataset.class.getName(), null);
+    	for(ServiceReference rd : rds){
+    		if(name.equals(rd.getProperty("name"))){
+    			return (Dataset) context.getService(rd);
+    		} 
+    	}
+    	return null;
     }
     
     protected Input getInput(){

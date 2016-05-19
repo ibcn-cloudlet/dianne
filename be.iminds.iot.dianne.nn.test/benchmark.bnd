@@ -1,0 +1,5 @@
+Private-Package: \
+	be.iminds.iot.dianne.nn.test,\
+	be.iminds.iot.dianne.nn.test.benchmark
+Test-Cases: \
+	be.iminds.iot.dianne.nn.test.benchmark.OverfeatFast

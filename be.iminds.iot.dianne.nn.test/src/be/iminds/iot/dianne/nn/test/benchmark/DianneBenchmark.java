@@ -20,46 +20,51 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.nn.test;
+package be.iminds.iot.dianne.nn.test.benchmark;
 
-import org.osgi.framework.ServiceReference;
-
-import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
+import be.iminds.iot.dianne.nn.test.DianneTest;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorOps;
-import junit.framework.Assert;
 
+public class DianneBenchmark extends DianneTest {
 
-public class MNISTTest extends AbstractDianneTest {
-
-	private Dataset mnist;
+	protected long benchmark(String nnName, int[] inputDims, int times, boolean backward) throws Exception {
+		System.gc();
+		
+		NeuralNetwork nn = deployNN(nnName);
+		final Tensor input = new Tensor(inputDims);
+		input.rand();
+		
+		// dry run
+		for(int i=0;i<10;i++){
+			run(nn, input, backward);
+		}
+		
+		long t1 = System.currentTimeMillis();
+		for(int i=0;i<times;i++){
+			run(nn, input, backward);
+		}
+		long t2 = System.currentTimeMillis();
+		
+		return (t2-t1)/times;
+	}
 	
-	public void setUp() throws Exception {
-    	super.setUp();
-    	
-    	ServiceReference[] rds = context.getAllServiceReferences(Dataset.class.getName(), null);
-    	for(ServiceReference rd : rds){
-    		Dataset d = (Dataset) context.getService(rd);
-    		if(d.getName().equals("MNIST")){
-    			mnist = d;
-    		}
-    	}
-    }
-	
-	public void testMNIST() throws Exception {
-		NeuralNetwork nn = deployNN("mnist-20");
-		
-		final Tensor sample = mnist.getInputSample(0);		
-		final Tensor result = nn.forward(sample);
-		
-		int index = TensorOps.argmax(result);
-		float prob = result.get(index);
-		int expected = TensorOps.argmax(mnist.getOutputSample(0));
-		Assert.assertEquals(expected, index);
-		
-		// should yield the same result
-		index = TensorOps.argmax(result);
-		Assert.assertEquals(prob, result.get(index));
+	private void run(NeuralNetwork nn, Tensor input, boolean backward) throws Exception {
+		nn.forward(null, null, input).then(
+				p -> {
+					Tensor out = p.getValue().tensor;
+					// TODO also evaluate criterion here?
+					out.rand();
+					if(backward)
+						return nn.backward(null, null, out);
+					else 
+						return p;
+				}).then(
+				p -> {	
+					// acc grad
+					if(backward)
+						nn.getTrainables().values().stream().forEach(m -> m.accGradParameters());
+					return p;
+				}).getValue();
 	}
 }

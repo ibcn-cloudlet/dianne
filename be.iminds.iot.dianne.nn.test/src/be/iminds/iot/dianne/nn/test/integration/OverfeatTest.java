@@ -20,37 +20,23 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.nn.test;
-
-import org.osgi.framework.ServiceReference;
+package be.iminds.iot.dianne.nn.test.integration;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
+import be.iminds.iot.dianne.nn.test.DianneTest;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 import junit.framework.Assert;
 
 
-public class OverfeatTest extends AbstractDianneTest {
+public class OverfeatTest extends DianneTest {
 
 	public final int TEST_SAMPLE = 2;
 
-	private Dataset imagenet;
-	
-	public void setUp() throws Exception {
-    	super.setUp();
-    	
-    	ServiceReference[] rds = context.getAllServiceReferences(Dataset.class.getName(), null);
-    	for(ServiceReference rd : rds){
-    		Dataset d = (Dataset) context.getService(rd);
-    		if(d.getName().equals("ImageNet")){
-    			imagenet = d;
-    		}
-    	}
-    }
-	
 	public void testOverfeat() throws Exception {
 		NeuralNetwork nn = deployNN("overfeat_fast");
+		Dataset imagenet = getDataset("ImageNet");
 		
 		final Tensor sample = imagenet.getInputSample(TEST_SAMPLE);		
 		final Tensor result = nn.forward(sample);
