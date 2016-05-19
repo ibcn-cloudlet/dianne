@@ -421,16 +421,17 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_batchnormGr
 	          save_mean,
 	          save_std,
 	          train,
-	          0.1,
-			  1e-5);
+	          1.0,
+		  1e-5);
 
 	return gradIn == NULL ? createTensorObject(env, gradInput) : gradIn;
 }
 
 JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_batchnormAccGrad
-  (JNIEnv * env, jclass c, jobject gradW, jobject gradB, jobject gradOut, jobject in, jobject rm, jobject rv, jobject sm, jobject sv, jboolean train){
+  (JNIEnv * env, jclass c, jobject gradW, jobject gradB, jobject gradOut, jobject in, jobject w, jobject rm, jobject rv, jobject sm, jobject sv, jboolean train){
 	THTensor* gradOutput = getTensor(env, gradOut);
 	THTensor* input = getTensor(env, in);
+	THTensor* weight = getTensor(env, w);
 	THTensor* gradWeight = getTensor(env, gradW);
 	THTensor* gradBias = getTensor(env, gradB);
 	THTensor* running_mean = getTensor(env, rm);
@@ -445,14 +446,14 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_batchnormAccGr
 	          0,
 	          gradWeight,
 	          gradBias,
-	          0,
+	          weight,
 	          running_mean,
 	          running_var,
 	          save_mean,
 	          save_std,
 	          train,
-	          0.1,
-			  1e-5);
+	          1.0,
+		  1e-5);
 }
 
 

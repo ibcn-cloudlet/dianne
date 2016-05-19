@@ -26,7 +26,7 @@ public class BatchNormalizationTest extends ModuleTest {
 		// TODO check if these are the correct values?
 		Tensor expOutput = new Tensor(new float[]{0.14999975f, 0.19999951f, 0.24999925f, 0.299999f, 0.34999874f, 0.39999852f, 0.44999823f, 0.499998f, 0.54999775f, 0.5999975f},2, 5);
 		Tensor expGradInput = new Tensor(new float[]{-0.00175f, -0.0045000003f, -0.008250001f, -0.012999999f, -0.01875f, -0.010500001f, -0.01575f, -0.022000002f, -0.029249998f, -0.0375f}, 2, 5);
-		Tensor expDeltaParams = new Tensor(new float[]{0.007f, 0.009000001f, 0.011000001f, 0.013f, 0.015000001f, 0.02f, 0.02f, 0.02f, 0.02f, 0.02f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 20);
+		Tensor expDeltaParams = new Tensor(new float[]{0.07f, 0.09000001f, 0.11000001f, 0.13f, 0.15000001f, 0.2f, 0.2f, 0.2f, 0.2f, 0.2f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 20);
 
 		testModule(bn, params, input, expOutput, gradOutput, expGradInput, expDeltaParams);
 	}

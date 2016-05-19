@@ -126,7 +126,7 @@ public class BatchNormalization extends AbstractTrainableModule{
 
 	@Override
 	public void accGradParameters() {
-		ModuleOps.batchnormAccGrad(gradWeights, gradBias, gradOutput, input, rMean, rVar, sMean, sVar, train);
+		ModuleOps.batchnormAccGrad(gradWeights, gradBias, gradOutput, input, weights, rMean, rVar, sMean, sVar, train);
 	}
 
 	@Override
