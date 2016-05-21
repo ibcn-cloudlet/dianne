@@ -185,8 +185,10 @@ public class LearnerUtil {
 			indices = parseRange(range);
 			
 			System.out.println("Dataset range");
-			System.out.println("* range = "+range);
-			System.out.println("---");
+			if(range.contains(":"))
+				System.out.println("* range = "+range);
+			else 
+				System.out.println("* "+indices.length+" indices selected");			System.out.println("---");
 		} else  {
 			String start = config.get("startIndex");
 			String end = config.get("endIndex");

@@ -118,7 +118,10 @@ public class ArgMaxEvaluator implements Evaluator {
 				indices = parseRange(range);
 				
 				System.out.println("Dataset range");
-				System.out.println("* range = "+range);
+				if(range.contains(":"))
+					System.out.println("* range = "+range);
+				else 
+					System.out.println("* "+indices.length+" indices selected");
 				System.out.println("---");
 			} else {
 				int startIndex = 0;
