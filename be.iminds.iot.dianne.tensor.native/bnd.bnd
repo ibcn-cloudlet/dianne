@@ -1,4 +1,7 @@
 Bundle-Version: 0.4.0
+
+-buildpath: \
+	be.iminds.iot.dianne.tensor;version=latest
 Provide-Capability: tensor.native;library=be.iminds.iot.dianne.tensor.native
 Bundle-Name: Dianne Tensor Library - native implementation
 -sub: *.bnd

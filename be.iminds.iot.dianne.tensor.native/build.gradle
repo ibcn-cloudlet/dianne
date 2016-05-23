@@ -1,0 +1,21 @@
+def fileToCopy = copySpec{
+	from 'host.bnd.template'
+	expand(project.properties)
+}
+task generateFilesHost(type:Copy) {
+	outputs.upToDateWhen { false }
+	with fileToCopy
+	into projectDir
+	rename { file -> "${lib}.${os}.${arch}.bnd" }
+}
+task generateFilesGeneric(type:Copy) {
+	outputs.upToDateWhen { false }
+	with fileToCopy
+	into projectDir
+	rename { file -> "generic.bnd" }
+}
+task generateFiles(description: "Generate <lib.os.arch>.bnd file for this host. This behaviour can be adjusted with environment variables (OS, ARCH, LIB, ...)", group: "build") {
+	dependsOn generateFilesGeneric, generateFilesHost
+}
+processResources.dependsOn(generateFiles)
+assemble.dependsOn(jar)

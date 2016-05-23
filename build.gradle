@@ -34,8 +34,15 @@ if (bndWorkspace == null) {
 }
 ext {
 	cnf = rootProject.project(bnd_cnf)
-	os = runCommand('uname', '-s')
-	arch = runCommand('uname', '-m')
+	os = System.env.OS ?: runCommand('uname', '-s').replaceFirst(/^Darwin/, "MacOSX")
+	arch = System.env.ARCH ?: runCommand('uname', '-m')
+	if (os == "MacOSX") { 
+		extension = 'dylib'
+	} else {
+		extension = 'so'
+	}
+	lib = System.env.NATIVE ?: "torch"
+	println("Configuring workspace with configuration parameters 'OS': $os, 'ARCH': $arch, extension: $extension and 'NATIVE' lib: $lib")
 }
 
 /* Configure the subprojects */
@@ -66,10 +73,49 @@ subprojects {
 			}
 		}
 	}
+	
+	task("cleanAll", description: "Clean all code including all (sub)native libraries.", group: 'build') {}
+	cleanAll.dependsOn(clean)
+
+	fileTree(projectDir) {
+		include 'jni/Makefile'
+	}.each { File file ->
+		logger.info "Found Makefile in jni folder: {}", file.absolutePath
+		task("buildNative", type: Exec, description: "Build native code", group: "build") {
+			def outputExtentions = ["*.o","*.dylib","*.so","*.a", "*_*.h"]
+			inputs.files compileJava
+			inputs.files fileTree(dir: file.parent, excludes: outputExtentions)
+			outputs.dir "$projectDir/native/"
+			outputs.files fileTree(dir: file.parent, includes: outputExtentions)
+			workingDir file.parent
+			commandLine "make"
+		}
+		jar.dependsOn("buildNative")
+		
+		task("cleanNative", type: Delete, description: "Clean dynamic libraries.", group: 'build') {
+			delete "native"
+			doLast {
+				exec {
+					workingDir file.parent
+					commandLine "make", "clean"
+					standardOutput = new ByteArrayOutputStream()
+				}
+			}
+		}
+		clean.dependsOn("cleanNative")
+		
+		task("cleanAllNative", type: Exec, description: "Clean all native code including sub projects.", group: 'build', dependsOn: "cleanNative") {
+			workingDir file.parent
+			commandLine "make", "cleanAll"
+			standardOutput = new ByteArrayOutputStream()
+		}
+		cleanAll.dependsOn("cleanAllNative")
+	}
 
 	/* fix native tests */
     tasks.withType(Test) {
-      systemProperty "java.library.path", "${bnd.workspace}/be.iminds.iot.dianne.tensor.native/native/"
+      systemProperty "java.library.path", "${bnd.workspace}/be.iminds.iot.dianne.tensor.native/native/${lib}/${os}/${arch}/"
     }
   }
 }
+getTasksByName('test', true).each{ task -> task.dependsOn(getTasksByName('buildNative', true)) }

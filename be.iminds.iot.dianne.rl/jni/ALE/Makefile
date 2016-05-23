@@ -7,28 +7,23 @@ ifeq ($(OS),Linux)
 endif
 ifeq ($(OS),Darwin)
     include Makefile.Darwin
+    OS := MacOSX
 endif
 
 JAVA_INCLUDE := $(JAVA_HOME)/include
 JAVA_PLATFORMINCLUDE := $(JAVA_INCLUDE)/$(JDKPLATFORMINCLUDESUBDIR)
 
-JAVAH := be.iminds.iot.dianne.rl.ale.ArcadeLearningEnvironment
+JAVAH := $(abspath ../../generated/jni-headers)
 SRC := ALE.cpp  
-INCLUDES := -I$(JAVA_INCLUDE) -I$(JAVA_PLATFORMINCLUDE) -IArcade-Learning-Environment/src
+INCLUDES := -I$(JAVA_INCLUDE) -I$(JAVA_PLATFORMINCLUDE) -IArcade-Learning-Environment/src -I$(JAVAH)
 OBJECT := ALE.o 
 FLAGS := -O3 -w
 LINKS := libale.a -lz
 DEPLOY_DIR := ../../native/$(OS)/$(ARCH)
 
 all: install 
-
-# the generated header file is already put in the git repository
-javah:
-	for file in $(JAVAH); do \
-    	javah -jni -classpath ../../bin:../../../be.iminds.iot.dianne.tensor/generated/be.iminds.iot.dianne.tensor.api.jar $$file; \
-	done
 	
-compile:
+compile: $(SRC) $(JAVAH)
 	$(CXX) $(FLAGS) $(CCFLAGS) -fPIC $(INCLUDES) -c $(SRC)
 	
 link: compile 

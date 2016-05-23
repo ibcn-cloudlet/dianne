@@ -12,3 +12,5 @@
 /jni/cutorch/*.a
 /jni/cutorch/*_*.h
 /jni/cutorch/*.dylib
+!bnd.bnd
+*.bnd
