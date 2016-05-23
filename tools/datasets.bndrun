@@ -6,6 +6,7 @@
 #
 
 -runbundles.zdatasets: \
+	be.iminds.iot.dianne.dataset.generic;version=latest,\
 	be.iminds.iot.dianne.dataset.adapters;version=latest,\
 	be.iminds.iot.dianne.dataset.svhn;version=latest,\
     be.iminds.iot.dianne.dataset.mnist;version=latest,\
@@ -18,7 +19,7 @@
 	
 	
 -runproperties.zdatasets:\
-	be.iminds.iot.dianne.datasets.location="datasets",\
+	be.iminds.iot.dianne.datasets.location="datasets/",\
 	be.iminds.iot.dianne.dataset.mnist.location="datasets/MNIST/",\
 	be.iminds.iot.dianne.dataset.imagenet.location="datasets/ImageNet/",\
 	be.iminds.iot.dianne.dataset.kaggle.location="datasets/Kaggle-CatvsDog/",\
