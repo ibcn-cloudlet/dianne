@@ -46,10 +46,11 @@ public abstract class ImageDataset extends AbstractDataset {
 	protected void activate(Map<String, Object> properties) {
 		super.activate(properties);
 
-		if(properties.containsKey("outputs")){
-			outputsFile = (String)properties.get("outputs");
+		if(properties.containsKey("outputsFile")){
+			outputsFile = (String)properties.get("outputsFile");
 		}
-		
+
+		outputs = new int[noSamples];
 		readOutputs(outputsFile);
 	}
 

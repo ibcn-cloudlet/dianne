@@ -105,21 +105,15 @@ public class ImageNetDataset extends ImageDataset {
 		try {
 			InputStream outputsInput = new FileInputStream(dir + File.separator + file);
 
-			ArrayList<Integer> l = new ArrayList<Integer>();
+			int i = 0;
 			BufferedReader reader = new BufferedReader(new InputStreamReader(
 					outputsInput));
 			String s;
 			while ((s = reader.readLine()) != null) {
-				// only pick first label in case of multiple definitions
 				int clazz = Integer.parseInt(s) - 1; // in the file this ranges
 														// from 1..1000, convert
 														// to 0..999
-				l.add(clazz);
-			}
-			// TODO this assumes one only has the first x samples...
-			outputs = new int[noSamples];
-			for (int i = 0; i < noSamples; i++) {
-				outputs[i] = l.get(i);
+				outputs[i++] = clazz;
 			}
 			reader.close();
 		} catch (IOException e) {

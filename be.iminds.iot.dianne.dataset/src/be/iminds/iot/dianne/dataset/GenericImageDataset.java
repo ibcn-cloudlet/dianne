@@ -81,7 +81,7 @@ public class GenericImageDataset extends ImageDataset {
 	@Override
 	protected void init(Map<String, Object> properties) {
 		File images = new File(properties.get("dir") + File.separator + "images/");
-		this.noSamples = images.list().length;	
+		this.noSamples = images.list().length;
 	}
 
 	@Override
