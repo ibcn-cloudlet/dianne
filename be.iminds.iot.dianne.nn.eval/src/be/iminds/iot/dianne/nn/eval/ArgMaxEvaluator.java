@@ -184,7 +184,7 @@ public class ArgMaxEvaluator implements Evaluator {
 				tForward += System.nanoTime() - t;
 				
 				if(outputs!=null)
-					outputs.add(out);
+					outputs.add(out.copyInto(null));
 				
 				if(confusion==null){
 					int outputSize = out.size();
