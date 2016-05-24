@@ -4,7 +4,7 @@
 #
 #
 
--include: common.bndrun,datasets.bndrun
+-include: common.bndrun
 
 -runbundles.dianne: \
 	be.iminds.aiolos.platformmanager;version=${aiolos.version},\
@@ -20,9 +20,11 @@
 	be.iminds.iot.dianne.nn.learn;version=latest,\
 	be.iminds.iot.dianne.nn.eval;version=latest,\
 	be.iminds.iot.dianne.repository;version=latest,\
+	be.iminds.iot.dianne.dataset;version=latest,\
 	be.iminds.iot.dianne.builder;version=latest,\
 	be.iminds.iot.dianne.command;version=latest
 	
 -runproperties.dianne:\
+	be.iminds.iot.dianne.datasets.location="datasets",\
 	be.iminds.iot.dianne.runtime.name="Builder"
 	

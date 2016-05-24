@@ -20,7 +20,8 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.dataset.imagenet;
+package be.iminds.iot.dianne.dataset;
+
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -29,75 +30,33 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
-import be.iminds.iot.dianne.dataset.ImageDataset;
 
 /**
- * Sample of the Imagenet dataset
- * 
- * Currently based on the ILSVRC 2012 validation set
+ * A generic ImageDataset that contains a number of numbered .jpg files
+ * in a images/ subdir, together with a labels and outputs file.
+ * The labels file contains a label on each line, the outputs file
+ * contains an class index on each line.
  * 
  * @author tverbele
  *
  */
 @Component(
 		service={Dataset.class},
-		immediate=true, 
 		configurationPolicy=ConfigurationPolicy.REQUIRE,
-		configurationPid="be.iminds.iot.dianne.dataset.ImageNet",		
+		configurationPid="be.iminds.iot.dianne.dataset.ImageDataset",
+		immediate=true, 
 		property={"aiolos.unique=true"})
-public class ImageNetDataset extends ImageDataset {
-
-	@Override
-	protected void init(Map<String, Object> properties) {
-		this.name = "ImageNet";
-		this.inputDims = null;
-		this.outputDims = new int[]{1000};
-
-		File images = new File(properties.get("dir") + File.separator + "images/");
-		noSamples = (int) Arrays.stream(images.listFiles()).filter(f -> !f.isHidden()).count();
-		
-		this.labelsFile = "classes.txt";
-		this.outputsFile = "outputs.txt";
-	}
+public class GenericImageDataset extends ImageDataset {
 
 	@Override
 	protected String getImageFile(int index) {
-		return dir+File.separator+ "images/" + "ILSVRC2012_val_"
-				 + String.format("%08d", index+1) + ".JPEG";
-	}
-
-	@Override
-	protected void readLabels(String file) {
-		try {
-			InputStream labelInput = new FileInputStream(dir + File.separator + file);
-
-			ArrayList<String> l = new ArrayList<String>();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(
-					labelInput));
-			String s;
-			while ((s = reader.readLine()) != null) {
-				// only pick first label in case of multiple definitions
-				int comma = s.indexOf(",");
-				if (comma > 0) {
-					s = s.substring(0, comma);
-				}
-				l.add(s);
-			}
-			labels = new String[l.size()];
-			for (int i = 0; i < l.size(); i++) {
-				labels[i] = l.get(i);
-			}
-			reader.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		return dir+File.separator+ "images/" + index + ".jpg";
 	}
 
 	@Override
@@ -105,21 +64,41 @@ public class ImageNetDataset extends ImageDataset {
 		try {
 			InputStream outputsInput = new FileInputStream(dir + File.separator + file);
 
-			ArrayList<Integer> l = new ArrayList<Integer>();
+			int i = 0;
 			BufferedReader reader = new BufferedReader(new InputStreamReader(
 					outputsInput));
 			String s;
 			while ((s = reader.readLine()) != null) {
-				// only pick first label in case of multiple definitions
-				int clazz = Integer.parseInt(s) - 1; // in the file this ranges
-														// from 1..1000, convert
-														// to 0..999
-				l.add(clazz);
+				int clazz = Integer.parseInt(s);
+				outputs[i++] = clazz;
 			}
-			// TODO this assumes one only has the first x samples...
-			outputs = new int[noSamples];
-			for (int i = 0; i < noSamples; i++) {
-				outputs[i] = l.get(i);
+			reader.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}	
+	}
+
+	@Override
+	protected void init(Map<String, Object> properties) {
+		File images = new File(properties.get("dir") + File.separator + "images/");
+		this.noSamples = images.list().length;	
+	}
+
+	@Override
+	protected void readLabels(String labelsFile) {
+		try {
+			InputStream labelInput = new FileInputStream(dir + File.separator + labelsFile);
+
+			ArrayList<String> l = new ArrayList<String>();
+			BufferedReader reader = new BufferedReader(new InputStreamReader(
+					labelInput));
+			String s;
+			while ((s = reader.readLine()) != null) {
+				l.add(s);
+			}
+			labels = new String[l.size()];
+			for (int i = 0; i < l.size(); i++) {
+				labels[i] = l.get(i);
 			}
 			reader.close();
 		} catch (IOException e) {

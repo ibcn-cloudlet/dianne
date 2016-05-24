@@ -26,9 +26,10 @@ import java.io.InputStream;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
-import be.iminds.iot.dianne.api.dataset.GenericFileDataset;
+import be.iminds.iot.dianne.dataset.FileDataset;
 
 /**
  * The CIFAR-10 dataset, uses the binary images from:
@@ -39,19 +40,14 @@ import be.iminds.iot.dianne.api.dataset.GenericFileDataset;
  */
 @Component(
 		service={Dataset.class},
+		configurationPolicy=ConfigurationPolicy.REQUIRE,
+		configurationPid="be.iminds.iot.dianne.dataset.CIFAR10",
 		immediate=true, 
-		property={"name=CIFAR-10","aiolos.unique=true"})
-public class Cifar10Dataset extends GenericFileDataset {
-
-	private int s = 0;
+		property={"aiolos.unique=true"})
+public class Cifar10Dataset extends FileDataset {
 
 	@Override
 	protected void init(Map<String, Object> properties){
-		String d = (String)properties.get("be.iminds.iot.dianne.dataset.cifar10.location");
-		if(d!=null){
-			this.dir = d;
-		}
-
 		this.name = "CIFAR-10";
 		this.inputDims = new int[]{3, 32, 32};
 		this.outputDims = new int[]{10};
@@ -68,13 +64,13 @@ public class Cifar10Dataset extends GenericFileDataset {
 	protected void parse(InputStream in, InputStream out) throws Exception {
 		while(in.available()>0){
 			int i = readUByte(in);
-			outputs[s][i] = 1;
+			outputs[count][i] = 1;
 			
 			for(int j=0;j<inputSize;j++){
-				inputs[s][j] = (float)readUByte(in)/255f;
+				inputs[count][j] = (float)readUByte(in)/255f;
 			}
 			
-			s++;
+			count++;
 		}
 	}
 	

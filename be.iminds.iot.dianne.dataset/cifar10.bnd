@@ -1,4 +1,0 @@
-Export-Package: be.iminds.iot.dianne.api.dataset
--dsannotations: *
-Private-Package: be.iminds.iot.dianne.dataset.cifar10
-Bundle-Name: Dianne CIFAR-10 dataset

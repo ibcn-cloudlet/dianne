@@ -26,9 +26,10 @@ import java.io.InputStream;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
-import be.iminds.iot.dianne.api.dataset.GenericFileDataset;
+import be.iminds.iot.dianne.dataset.FileDataset;
 
 /**
  * The MNIST dataset, uses the images form LeCun's website:
@@ -40,18 +41,13 @@ import be.iminds.iot.dianne.api.dataset.GenericFileDataset;
 @Component(
 		service={Dataset.class},
 		immediate=true, 
-		property={"name=MNIST","aiolos.unique=true"})
-public class MNISTDataset extends GenericFileDataset {
-
-	private int s = 0;
+		configurationPolicy=ConfigurationPolicy.REQUIRE,
+		configurationPid="be.iminds.iot.dianne.dataset.MNIST",		
+		property={"aiolos.unique=true"})
+public class MNISTDataset extends FileDataset {
 
 	@Override
 	protected void init(Map<String, Object> properties){
-		String d = (String)properties.get("be.iminds.iot.dianne.dataset.mnist.location");
-		if(d!=null){
-			this.dir = d;
-		}
-
 		this.name = "MNIST";
 		this.inputDims = new int[]{1, 28, 28};
 		this.outputDims = new int[]{10};
@@ -78,13 +74,13 @@ public class MNISTDataset extends GenericFileDataset {
 		
 		for(int read = 0;read<noImages;read++){
 			for(int j=0;j<inputSize;j++){
-				inputs[s][j] = (float)readUByte(in)/255f;
+				inputs[count][j] = (float)readUByte(in)/255f;
 			}
 			                               
 			int i = readUByte(out);
-			outputs[s][i] = 1;
+			outputs[count][i] = 1;
 			
-			s++;
+			count++;
 		}
 	}
 	

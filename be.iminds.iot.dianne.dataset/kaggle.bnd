@@ -1,4 +1,0 @@
-Export-Package: be.iminds.iot.dianne.api.dataset
--dsannotations: *
-Private-Package: be.iminds.iot.dianne.dataset.kaggle
-Bundle-Name: Dianne Kaggle dataset

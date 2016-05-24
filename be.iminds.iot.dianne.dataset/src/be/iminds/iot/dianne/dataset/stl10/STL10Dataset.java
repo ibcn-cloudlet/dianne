@@ -26,9 +26,10 @@ import java.io.InputStream;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
-import be.iminds.iot.dianne.api.dataset.GenericFileDataset;
+import be.iminds.iot.dianne.dataset.FileDataset;
 
 /**
  * The CIFAR-10 dataset, uses the binary images from:
@@ -40,18 +41,13 @@ import be.iminds.iot.dianne.api.dataset.GenericFileDataset;
 @Component(
 		service={Dataset.class},
 		immediate=true, 
-		property={"name=STL-10","aiolos.unique=true"})
-public class STL10Dataset extends GenericFileDataset {
-
-	private int s = 0;
+		configurationPolicy=ConfigurationPolicy.REQUIRE,
+		configurationPid="be.iminds.iot.dianne.dataset.STL10",	
+		property={"aiolos.unique=true"})
+public class STL10Dataset extends FileDataset {
 
 	@Override
 	protected void init(Map<String, Object> properties){
-		String d = (String)properties.get("be.iminds.iot.dianne.dataset.stl10.location");
-		if(d!=null){
-			this.dir = d;
-		}
-
 		this.name = "STL-10";
 		this.inputDims = new int[]{3, 96, 96};
 		this.outputDims = new int[]{10};
@@ -71,19 +67,19 @@ public class STL10Dataset extends GenericFileDataset {
 			
 			int i = readUByte(out);
 			// categories are from 1..10
-			outputs[s][i-1] = 1;
+			outputs[count][i-1] = 1;
 
 			
 			// STL10 is formatted column-major, convert to row-major
 			for(int c=0;c<3;c++){
 				for(int y=0;y<96;y++){
 					for(int x=0;x<96;x++){
-						inputs[s][c*96*96+x*96+y] = (float)readUByte(in)/255f;
+						inputs[count][c*96*96+x*96+y] = (float)readUByte(in)/255f;
 					}
 				}
 			}
 
-			s++;
+			count++;
 		}
 	}
 	

@@ -26,9 +26,10 @@ import java.io.InputStream;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
-import be.iminds.iot.dianne.api.dataset.GenericFileDataset;
+import be.iminds.iot.dianne.dataset.FileDataset;
 
 /**
  * The CIFAR-100 dataset, uses the binary images from:
@@ -40,37 +41,18 @@ import be.iminds.iot.dianne.api.dataset.GenericFileDataset;
 @Component(
 		service={Dataset.class},
 		immediate=true, 
-		property={"name=CIFAR-100","aiolos.unique=true"})
-public class Cifar100Dataset extends GenericFileDataset {
-
-	private int s = 0;
-	private boolean coarse = false;
+		configurationPolicy=ConfigurationPolicy.REQUIRE,
+		configurationPid="be.iminds.iot.dianne.dataset.CIFAR100",
+		property={"aiolos.unique=true"})
+public class Cifar100Dataset extends FileDataset {
 
 	@Override
 	protected void init(Map<String, Object> properties){
-		String d = (String)properties.get("be.iminds.iot.dianne.dataset.cifar100.location");
-		if(d!=null){
-			this.dir = d;
-		}
-
 		this.name = "CIFAR-100";
 		this.inputDims = new int[]{3, 32, 32};
 		this.outputDims = new int[]{100};
 		this.noSamples = 60000;
-		
-		String l = (String) properties.get("be.iminds.iot.dianne.dataset.cifar100.labels");
-		if(l!=null){
-			if(l.equals("coarse")){
-				coarse = true;
-				outputDims = new int[]{20};
-			} 
-		}
-		
-		if(coarse){
-			this.labelsFile = "coarse_label_names.txt";
-		} else {
-			this.labelsFile = "fine_label_names.txt";
-		}
+		this.labelsFile = "fine_label_names.txt";
 
 		this.inputFiles = new String[]{
 				"train.bin","test.bin"};
@@ -82,14 +64,14 @@ public class Cifar100Dataset extends GenericFileDataset {
 			int i1 = readUByte(in);
 			int i2 = readUByte(in);
 			
-			int i = coarse ? i1 : i2;
-			outputs[s][i] = 1;
+			int i = outputSize == 20 ? i1 : i2;
+			outputs[count][i] = 1;
 			
 			for(int j=0;j<inputSize;j++){
-				inputs[s][j] = (float)readUByte(in)/255f;
+				inputs[count][j] = (float)readUByte(in)/255f;
 			}
 			
-			s++;
+			count++;
 		}
 	}
 	

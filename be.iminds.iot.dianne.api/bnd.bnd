@@ -27,6 +27,4 @@ Bundle-Name: Dianne API
 Bundle-Description: API bundle for the Dianne project
 -buildpath: \
 	osgi.promise,\
-	be.iminds.iot.dianne.tensor;version=latest,\
-	osgi.core;version=5.0,\
-	osgi.enterprise;version=5.0
+	be.iminds.iot.dianne.tensor;version=latest

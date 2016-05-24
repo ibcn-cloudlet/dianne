@@ -20,7 +20,7 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.api.dataset;
+package be.iminds.iot.dianne.dataset;
 
 
 import java.io.BufferedInputStream;
@@ -38,10 +38,11 @@ import java.util.concurrent.Executors;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 
+import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
- * This provides a generic abstract class to implement Datasets that read data 
+ * This provides an abstract class to implement Datasets that read data 
  * from binary input files that contain raw data blobs. Specific Datasets should
  * implement the parse method to correctly parse out the input/output samples
  * into a float[][] array in memory.
@@ -49,21 +50,14 @@ import be.iminds.iot.dianne.tensor.Tensor;
  * @author tverbele
  *
  */
-public abstract class GenericFileDataset implements Dataset {
+public abstract class FileDataset extends AbstractDataset {
 
 	// load data in separate thread
 	private ExecutorService loader = null;
 	private Object lock = new Object();
 	private int loaded = -1;
-	
-	protected String name;
-	protected int[] inputDims;
-	protected int inputSize;
-	protected int[] outputDims;
-	protected int outputSize;
-	protected int noSamples;
-	protected String[] labels;
-	protected String labelsFile;
+	protected int count = 0;
+
 	
 	// files with custom format
 	protected String[] inputFiles;
@@ -72,69 +66,25 @@ public abstract class GenericFileDataset implements Dataset {
 	protected float[][] inputs;
 	protected float[][] outputs;
 	
-	protected boolean prefetch = true;
+	protected boolean prefetch = false;
 	
-	protected String dir = "";
-	
-	@Activate
-	protected void activate(Map<String, Object> properties, BundleContext context) {
-		String d = context.getProperty("be.iminds.iot.dianne.datasets.location");
-		if(d != null){
-			dir = d;
-		}
+	@Override
+	protected void activate(Map<String, Object> properties) {
+		super.activate(properties);
 		
-		this.name = (String)properties.get("name");
-
-		String[] id = (String[])properties.get("inputDims");
-		if(id!=null){
-			inputDims= new int[id.length];
-			for(int i=0;i<id.length;i++){
-				inputDims[i] = Integer.parseInt(id[i]);
-			}
-		}
-		
-		String[] od = (String[])properties.get("outputDims");
-		if(od != null){
-			outputDims= new int[od.length];
-			for(int i=0;i<od.length;i++){
-				outputDims[i] = Integer.parseInt(od[i]);
-			}
-		}
-		
-		String ns = (String)properties.get("noSamples");
-		if(ns != null)
-			noSamples = Integer.parseInt(ns);
-		
-		labels = (String[])properties.get("labels");
-		if(labels == null){
-			labelsFile = (String) properties.get("labelsFile");
-		}
-		
-		inputFiles = (String[])properties.get("inputFiles");
-		if(inputFiles == null){
+		if(properties.containsKey("inputFiles")){
+			inputFiles = (String[])properties.get("inputFiles");
+		} else if(properties.containsKey("files")){
 			inputFiles = (String[])properties.get("files");
 		}
-		outputFiles = (String[])properties.get("outputFiles");
+	
+		if(properties.containsKey("outputFiles"))
+			this.outputFiles = (String[])properties.get("outputFiles");
 
 		String pf = (String)properties.get("prefetch");
 		if(pf != null){
 			prefetch = Boolean.parseBoolean(pf);
 		}
-		
-		init(new ComboMap(properties, context));
-		
-		inputSize = 1;
-		for(int i=0;i<inputDims.length;i++){
-			inputSize *= inputDims[i];
-		}
-		
-		outputSize = 1;
-		for(int i=0;i<outputDims.length;i++){
-			outputSize *= outputDims[i];
-		}
-		
-		if(labelsFile != null)
-			readLabels(labelsFile);
 		
 		if(prefetch){
 			load();
@@ -151,10 +101,10 @@ public abstract class GenericFileDataset implements Dataset {
 		loaded = 0;
 		for(int i=0;i<inputFiles.length;i++){
 			try {
-				final InputStream ins = new BufferedInputStream(new FileInputStream(new File(dir+inputFiles[i])));
+				final InputStream ins = new BufferedInputStream(new FileInputStream(new File(dir+File.separator+inputFiles[i])));
 				final InputStream outs;
 				if(outputFiles != null){
-					 outs = new BufferedInputStream(new FileInputStream(new File(dir+outputFiles[i])));
+					 outs = new BufferedInputStream(new FileInputStream(new File(dir+File.separator+outputFiles[i])));
 				} else {
 					outs = null;
 				}
@@ -167,6 +117,11 @@ public abstract class GenericFileDataset implements Dataset {
 								loaded = 1;
 								loader.shutdown();
 								loader = null;
+								if(count != noSamples){
+									System.err.println("Warning loading dataset "+name+": "+count+" samples loaded, "+noSamples+" expected");
+									noSamples = count;
+								}
+								
 								lock.notifyAll();
 							}
 						}
@@ -196,10 +151,11 @@ public abstract class GenericFileDataset implements Dataset {
 		}
 	}
 	
+	@Override
 	protected void readLabels(String file) {
 		labels = new String[outputSize];
 		try {
-			InputStream labelInput = new FileInputStream(dir+file);
+			InputStream labelInput = new FileInputStream(dir+File.separator+file);
 				
 			BufferedReader reader = new BufferedReader(new InputStreamReader(labelInput));
 			for(int i=0;i<outputSize;i++){
@@ -211,30 +167,8 @@ public abstract class GenericFileDataset implements Dataset {
 		}
 	}
 	
-	protected abstract void init(Map<String, Object> properties);
-	
-	protected abstract void parse(InputStream inputs, InputStream outputs) throws Exception;			
+	protected abstract void parse(InputStream in, InputStream out) throws Exception;
 				
-	@Override
-	public String getName(){
-		return name;
-	}
-	
-	@Override
-	public int[] inputDims(){
-		return inputDims;
-	}
-	
-	@Override
-	public int[] outputDims(){
-		return outputDims;
-	}
-	
-	@Override
-	public int size() {
-		return noSamples;
-	}
-
 	@Override
 	public Tensor getInputSample(int index, Tensor t) {
 		checkLoaded();
@@ -257,12 +191,6 @@ public abstract class GenericFileDataset implements Dataset {
 		return t;
 	}
 	
-	@Override
-	public String[] getLabels(){
-		return labels;
-	}
-
-	
 	protected int readInt(InputStream is) throws IOException{
 		byte[] b = new byte[4];
 		is.read(b, 0, 4);
@@ -276,26 +204,5 @@ public abstract class GenericFileDataset implements Dataset {
 		is.read(b, 0, 1);
 		int i = (0xFF & b[0]);
 		return i;
-	}
-	
-	private class ComboMap extends HashMap<String, Object> {
-		
-		private final Map<String, Object> componentProperties;
-		private final BundleContext bundleContext;
-		
-		public ComboMap(Map<String, Object> properties, BundleContext context){
-			super();
-			this.componentProperties = properties;
-			this.bundleContext = context;
-		}
-		
-		@Override
-		public Object get(Object key){
-			Object o = componentProperties.get(key);
-			if(o != null)
-				return o;
-			
-			return bundleContext.getProperty((String)key);
-		}
 	}
 }

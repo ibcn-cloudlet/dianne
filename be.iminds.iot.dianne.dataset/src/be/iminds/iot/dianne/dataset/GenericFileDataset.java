@@ -20,7 +20,8 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.dataset.svhn;
+package be.iminds.iot.dianne.dataset;
+
 
 import java.io.InputStream;
 import java.util.Map;
@@ -29,40 +30,32 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
-import be.iminds.iot.dianne.dataset.FileDataset;
 
 /**
- * The Street View House Numbers dataset, based on the cropped 32x32 images
- * http://ufldl.stanford.edu/housenumbers/
+ * A generic FileDataset that treats input/output as a blob of unsigned bytes
  * 
  * @author tverbele
  *
  */
 @Component(
 		service={Dataset.class},
-		immediate=true, 
 		configurationPolicy=ConfigurationPolicy.REQUIRE,
-		configurationPid="be.iminds.iot.dianne.dataset.SVHN",		
+		configurationPid="be.iminds.iot.dianne.dataset.FileDataset",
+		immediate=true, 
 		property={"aiolos.unique=true"})
-public class SVHNDataset extends FileDataset{
+public class GenericFileDataset extends FileDataset {
 
-	@Override
-	protected void init(Map<String, Object> properties){
-		this.name = "SVHN";
-		this.inputDims = new int[]{3, 32, 32};
-		this.outputDims = new int[]{10};
-		this.noSamples = 73257+26032;
-		this.labels = new String[]{"0","1","2","3","4","5","6","7","8","9"};
-
-		this.inputFiles = new String[]{"train_images.bin", "test_images.bin"};
-		this.outputFiles = new String[]{"train_labels.bin", "test_labels.bin"};
-	}
+	protected void init(Map<String, Object> properties){}
 	
-	@Override
 	protected void parse(InputStream in, InputStream out) throws Exception{
 		while(in.available()>0){
-			int i = readUByte(out);
-			outputs[count][i] = 1;
+			if(out != null){
+				int i = readUByte(out);
+				outputs[count][i] = 1;
+			} else {
+				int i = readUByte(in);
+				outputs[count][i] = 1;
+			}
 			
 			for(int j=0;j<inputSize;j++){
 				inputs[count][j] = (float)readUByte(in)/255f;
