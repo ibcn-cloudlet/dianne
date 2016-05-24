@@ -10,6 +10,7 @@ Bundle-Version: 0.4.0.${tstamp}
 	com.google.gson
 #-sub: *.bnd
 Private-Package: \
+	be.iminds.iot.dianne.dataset.csv,\
 	be.iminds.iot.dianne.dataset.svhn,\
 	be.iminds.iot.dianne.dataset,\
 	be.iminds.iot.dianne.dataset.adapters,\
