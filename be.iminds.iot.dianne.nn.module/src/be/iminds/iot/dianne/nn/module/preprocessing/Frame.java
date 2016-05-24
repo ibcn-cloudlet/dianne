@@ -22,7 +22,6 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.module.preprocessing;
 
-import java.util.Arrays;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;

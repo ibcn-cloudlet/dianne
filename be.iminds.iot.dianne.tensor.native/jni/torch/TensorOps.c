@@ -706,7 +706,6 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_frame
 #else
 		THTensor_(copyFloat)(r, t);
 #endif
-		return res == NULL ? createTensorObject(env, r) : res;
 	} else {
 		// narrow and scale input
 		if(t->nDimension == 2){
@@ -821,7 +820,7 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_frame
 		}
 	} else if(noDims == 3){
 		if(noBatches == 1){
-		THTensor_(resize3d)(
+			THTensor_(resize3d)(
 #ifdef CUDA
 				state,
 #endif
