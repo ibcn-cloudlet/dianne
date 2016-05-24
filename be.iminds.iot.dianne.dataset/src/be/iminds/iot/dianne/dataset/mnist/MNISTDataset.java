@@ -60,8 +60,8 @@ public class MNISTDataset extends GenericFileDataset {
 
 		this.prefetch = true;
 		
-		inputFiles = new String[]{dir+"train-images.idx3-ubyte", dir+"t10k-images.idx3-ubyte"};
-		outputFiles = new String[]{dir+"train-labels.idx1-ubyte", dir+"t10k-labels.idx1-ubyte"};
+		inputFiles = new String[]{"train-images.idx3-ubyte", "t10k-images.idx3-ubyte"};
+		outputFiles = new String[]{"train-labels.idx1-ubyte", "t10k-labels.idx1-ubyte"};
 	}
 	
 	@Override

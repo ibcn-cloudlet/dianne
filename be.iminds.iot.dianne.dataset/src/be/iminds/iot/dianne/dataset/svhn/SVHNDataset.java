@@ -22,18 +22,13 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.dataset.svhn;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.Map;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
-import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.api.dataset.GenericFileDataset;
 
 /**
  * The Street View House Numbers dataset, based on the cropped 32x32 images
@@ -42,140 +37,43 @@ import be.iminds.iot.dianne.tensor.Tensor;
  * @author tverbele
  *
  */
-@Component(immediate=true, property={"name=SVHN","aiolos.unique=true"})
-public class SVHNDataset implements Dataset{
+@Component(
+		service={Dataset.class},
+		immediate=true, 
+		property={"name=SVHN","aiolos.unique=true"})
+public class SVHNDataset extends GenericFileDataset{
 
-	private float[][] inputs;
-	private float[][] outputs;
-	private int loaded = 0;
-	
-	private String[] labels = new String[]{"0","1","2","3","4","5","6","7","8","9"};
-	
-	private int[] inputDims = new int[]{3, 32, 32};
-	private int inputSize = 3*32*32;
-	private int[] outputDims = new int[]{10};
-	private int outputSize = 10;
-	private int noSamples = 73257+26032;
-	
-	
-	private String dir = "";
-	// thread to start loading data when constructed
-	private ExecutorService loader = Executors.newSingleThreadExecutor();
-	
-	@Activate
-	public void activate(BundleContext context){
-		String d = context.getProperty("be.iminds.iot.dianne.dataset.svhn.location");
+	private int s = 0;
+
+	@Override
+	protected void init(Map<String, Object> properties){
+		String d = (String)properties.get("be.iminds.iot.dianne.dataset.svhn.location");
 		if(d!=null){
 			this.dir = d;
 		}
-		
-		inputs = new float[noSamples][inputSize];
-		outputs = new float[noSamples][outputSize];
 
-		// merge train and test samples into one dataset
-		read("train_images.bin", "train_labels.bin", 73257);
-		read("test_images.bin", "test_labels.bin", 26032);
-	}
-	
-	@Override
-	public int[] inputDims(){
-		return inputDims;
-	}
-	
-	@Override
-	public int[] outputDims(){
-		return outputDims;
-	}
-	
-	private void read(String images, String labels, int count){
-		try {
-			InputStream imageInput = new FileInputStream(dir+images);
-			InputStream labelInput = new FileInputStream(dir+labels);
-			
-			loader.execute(new Runnable() {
-				@Override
-				public void run() {
-					parse(imageInput, labelInput, count);
-				}
-			});
-		} catch(IOException e){
-			e.printStackTrace();
-		}
-	}
-	
-	@Override
-	public String getName(){
-		return "SVHN";
-	}
-	
-	@Override
-	public int size() {
-		return noSamples;
-	}
+		this.name = "SVHN";
+		this.inputDims = new int[]{3, 32, 32};
+		this.outputDims = new int[]{10};
+		this.noSamples = 73257+26032;
+		this.labels = new String[]{"0","1","2","3","4","5","6","7","8","9"};
 
-	@Override
-	public Tensor getInputSample(int index, Tensor t) {
-		// some hack to allow prefecting on construction
-		// TODO better solution?
-		while(loaded<index && index < noSamples){
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {}
-		}
-
-		if(t == null)
-			t = new Tensor(inputs[index], inputDims);
-		else 
-			t.set(inputs[index]);
-		return t;
-	}
-
-	@Override
-	public Tensor getOutputSample(int index, Tensor t) {
-		// some hack to allow prefecting on construction
-		// TODO better solution?
-		while(loaded<index && index < noSamples){
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {}
-		}
-
-		if(t == null)
-			t = new Tensor(outputs[index], outputDims);
-		else 
-			t.set(outputs[index]);
-		return t;
-	}
-
-	@Override
-	public String[] getLabels(){
-		return labels;
+		this.inputFiles = new String[]{"train_images.bin", "test_images.bin"};
+		this.outputFiles = new String[]{"train_labels.bin", "test_labels.bin"};
 	}
 	
-	private int readUByte(InputStream is) throws IOException{
-		byte[] b = new byte[1];
-		is.read(b, 0, 1);
-		int i = (0xFF & b[0]);
-		return i;
-	}
-	
-	private void parse(InputStream imageInput, InputStream labelInput, int count) {
-		try {
-			for(int k=0;k<count;k++){
-				for(int j=0;j<inputSize;j++){
-					inputs[loaded][j] = (float)readUByte(imageInput)/255f;
-				}
-				
-				int i = readUByte(labelInput);
-				outputs[loaded][i] = 1;
-				
-				loaded++;
+	@Override
+	protected void parse(InputStream in, InputStream out) throws Exception {
+		while(in.available()>0
+				&& out.available()>0){
+			for(int j=0;j<inputSize;j++){
+				inputs[s][j] = (float)readUByte(in)/255f;
 			}
 			
-		} catch(Exception e){
-			e.printStackTrace();
+			int i = readUByte(out);
+			outputs[s][i] = 1;
+			
+			s++;
 		}
-		
 	}
-	
 }

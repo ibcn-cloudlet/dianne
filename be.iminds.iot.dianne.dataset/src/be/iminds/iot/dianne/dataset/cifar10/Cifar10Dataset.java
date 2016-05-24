@@ -22,20 +22,13 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.dataset.cifar10;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.Map;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
-import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.api.dataset.GenericFileDataset;
 
 /**
  * The CIFAR-10 dataset, uses the binary images from:
@@ -44,167 +37,45 @@ import be.iminds.iot.dianne.tensor.Tensor;
  * @author tverbele
  *
  */
-@Component(immediate=true, property={"name=CIFAR-10","aiolos.unique=true"})
-public class Cifar10Dataset implements Dataset {
+@Component(
+		service={Dataset.class},
+		immediate=true, 
+		property={"name=CIFAR-10","aiolos.unique=true"})
+public class Cifar10Dataset extends GenericFileDataset {
 
-	private float[][] inputs;
-	private float[][] outputs;
-	private int loaded = 0;
-	
-	private String[] labels;
-	
-	private int[] inputDims = new int[]{3, 32, 32};
-	private int inputSize = 3*32*32;
-	private int[] outputDims = new int[]{10};
-	private int outputSize = 10;
-	private int noSamples = 60000;
-	
-	private String dir = "";
-	// thread to start loading data when constructed
-	private ExecutorService loader = Executors.newSingleThreadExecutor();
-	
-	@Activate
-	public void activate(BundleContext context){
-		String d = context.getProperty("be.iminds.iot.dianne.dataset.cifar10.location");
+	private int s = 0;
+
+	@Override
+	protected void init(Map<String, Object> properties){
+		String d = (String)properties.get("be.iminds.iot.dianne.dataset.cifar10.location");
 		if(d!=null){
 			this.dir = d;
 		}
+
+		this.name = "CIFAR-10";
+		this.inputDims = new int[]{3, 32, 32};
+		this.outputDims = new int[]{10};
+		this.noSamples = 60000;
 		
-		inputs = new float[noSamples][inputSize];
-		outputs = new float[noSamples][outputSize];
-		
-		readLabels("batches.meta.txt");
-		// merge all samples into one dataset
-		read("data_batch_1.bin");
-		read("data_batch_2.bin");
-		read("data_batch_3.bin");
-		read("data_batch_4.bin");
-		read("data_batch_5.bin");
-		read("test_batch.bin");
+		this.labelsFile = "batches.meta.txt";
+		this.inputFiles = new String[]{
+				"data_batch_1.bin", "data_batch_2.bin", 
+				"data_batch_3.bin", "data_batch_4.bin", 
+				"data_batch_5.bin", "test_batch.bin"};
 	}
 	
 	@Override
-	public int[] inputDims(){
-		return inputDims;
-	}
-	
-	@Override
-	public int[] outputDims(){
-		return outputDims;
-	}
-	
-	private void readLabels(String file){
-		try {
-			InputStream labelInput = new FileInputStream(dir+file);
+	protected void parse(InputStream in, InputStream out) throws Exception {
+		while(in.available()>0){
+			int i = readUByte(in);
+			outputs[s][i] = 1;
 			
-			labels = new String[10];
-			BufferedReader reader = new BufferedReader(new InputStreamReader(labelInput));
-			for(int i=0;i<10;i++){
-				labels[i] = reader.readLine();
-			}
-			reader.close();
-		} catch(IOException e){
-			e.printStackTrace();
-		}
-	}
-	
-	private void read(String file){
-		try {
-			InputStream input = new FileInputStream(dir+file);
-			
-			loader.execute(new Runnable() {
-				@Override
-				public void run() {
-					parse(input);
-				}
-			});
-		} catch(IOException e){
-			e.printStackTrace();
-		}
-	}
-	
-	@Override
-	public String getName(){
-		return "CIFAR-10";
-	}
-	
-	@Override
-	public int size() {
-		return noSamples;
-	}
-
-	@Override
-	public Tensor getInputSample(int index, Tensor t) {
-		// some hack to allow prefecting on construction
-		// TODO better solution?
-		while(loaded<index && index < noSamples){
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {}
-		}
-
-		if(t == null)
-			t = new Tensor(inputs[index], inputDims);
-		else 
-			t.set(inputs[index]);
-		return t;
-	}
-
-	@Override
-	public Tensor getOutputSample(int index, Tensor t) {
-		// some hack to allow prefecting on construction
-		// TODO better solution?
-		while(loaded<index && index < noSamples){
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {}
-		}
-
-		if(t == null)
-			t = new Tensor(outputs[index], outputDims);
-		else 
-			t.set(outputs[index]);
-		return t;
-	}
-	
-	@Override
-	public String[] getLabels(){
-		return labels;
-	}
-
-	private int readInt(InputStream is) throws IOException{
-		byte[] b = new byte[4];
-		is.read(b, 0, 4);
-		int i = ((0xFF & b[0]) << 24) | ((0xFF & b[1]) << 16) |
-	            ((0xFF & b[2]) << 8) | (0xFF & b[3]);
-		return i;
-	}
-	
-	private int readUByte(InputStream is) throws IOException{
-		byte[] b = new byte[1];
-		is.read(b, 0, 1);
-		int i = (0xFF & b[0]);
-		return i;
-	}
-	
-	private void parse(InputStream input) {
-		try {
-			while(input.available()>0){
-				
-				int i = readUByte(input);
-				outputs[loaded][i] = 1;
-				
-				for(int j=0;j<inputSize;j++){
-					inputs[loaded][j] = (float)readUByte(input)/255f;
-				}
-				
-				loaded++;
+			for(int j=0;j<inputSize;j++){
+				inputs[s][j] = (float)readUByte(in)/255f;
 			}
 			
-		} catch(Exception e){
-			e.printStackTrace();
+			s++;
 		}
-		
 	}
 	
 }

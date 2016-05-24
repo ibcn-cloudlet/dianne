@@ -24,10 +24,12 @@ package be.iminds.iot.dianne.api.dataset;
 
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -61,6 +63,7 @@ public abstract class GenericFileDataset implements Dataset {
 	protected int outputSize;
 	protected int noSamples;
 	protected String[] labels;
+	protected String labelsFile;
 	
 	// files with custom format
 	protected String[] inputFiles;
@@ -69,7 +72,7 @@ public abstract class GenericFileDataset implements Dataset {
 	protected float[][] inputs;
 	protected float[][] outputs;
 	
-	protected boolean prefetch = false;
+	protected boolean prefetch = true;
 	
 	protected String dir = "";
 	
@@ -103,6 +106,9 @@ public abstract class GenericFileDataset implements Dataset {
 			noSamples = Integer.parseInt(ns);
 		
 		labels = (String[])properties.get("labels");
+		if(labels == null){
+			labelsFile = (String) properties.get("labelsFile");
+		}
 		
 		inputFiles = (String[])properties.get("inputFiles");
 		if(inputFiles == null){
@@ -127,9 +133,8 @@ public abstract class GenericFileDataset implements Dataset {
 			outputSize *= outputDims[i];
 		}
 		
-		// allocate in float[][]
-		inputs = new float[noSamples][inputSize];
-		outputs = new float[noSamples][outputSize];
+		if(labelsFile != null)
+			readLabels(labelsFile);
 		
 		if(prefetch){
 			load();
@@ -137,15 +142,19 @@ public abstract class GenericFileDataset implements Dataset {
 	}
 	
 	private void load(){
+		// allocate in float[][]
+		inputs = new float[noSamples][inputSize];
+		outputs = new float[noSamples][outputSize];
+		
 		// load all files on executor
 		loader = Executors.newSingleThreadExecutor();
 		loaded = 0;
 		for(int i=0;i<inputFiles.length;i++){
 			try {
-				final InputStream ins = new BufferedInputStream(new FileInputStream(new File(inputFiles[i])));
+				final InputStream ins = new BufferedInputStream(new FileInputStream(new File(dir+inputFiles[i])));
 				final InputStream outs;
 				if(outputFiles != null){
-					 outs = new BufferedInputStream(new FileInputStream(new File(outputFiles[i])));
+					 outs = new BufferedInputStream(new FileInputStream(new File(dir+outputFiles[i])));
 				} else {
 					outs = null;
 				}
@@ -184,6 +193,21 @@ public abstract class GenericFileDataset implements Dataset {
 					} catch (InterruptedException e) {}
 				}
 			}
+		}
+	}
+	
+	protected void readLabels(String file) {
+		labels = new String[outputSize];
+		try {
+			InputStream labelInput = new FileInputStream(dir+file);
+				
+			BufferedReader reader = new BufferedReader(new InputStreamReader(labelInput));
+			for(int i=0;i<outputSize;i++){
+				labels[i] = reader.readLine();
+			}
+			reader.close();
+		} catch(IOException e){
+			e.printStackTrace();
 		}
 	}
 	
