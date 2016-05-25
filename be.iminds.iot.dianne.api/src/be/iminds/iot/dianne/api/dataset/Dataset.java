@@ -59,16 +59,62 @@ public interface Dataset {
 	 * @return the sample at position index
 	 */
 	default Sample getSample(final int index){
-		return new Sample(getInputSample(index), getOutputSample(index));
+		return getSample(null, index);
 	}
 	
 	default Sample getSample(Sample s, final int index){
 		if(s == null)
-			return getSample(index);
+			return new Sample(getInputSample(index), getOutputSample(index));
 		
 		getInputSample(s.input, index);
 		getOutputSample(s.output, index);
 		return s;
+	}
+	
+	default Batch getBatch(final int...indices) {
+		return getBatch(null, indices);
+	}
+	
+	default Batch getBatch(Batch b, final int...indices){
+		if(b == null){
+			int[] inputDims = inputDims();
+			int[] outputDims = outputDims();
+
+			if(inputDims == null){
+				Tensor[] inputs = new Tensor[indices.length];
+				for(int i=0;i<indices.length;i++){
+					inputs[i] = new Tensor(inputDims);
+				}
+				
+				Tensor[] outputs = new Tensor[indices.length];
+				for(int i=0;i<indices.length;i++){
+					outputs[i] = new Tensor(outputDims);
+				}
+				
+				b = new Batch(inputs, outputs);
+			} else {
+				int[] batchedInputDims = new int[inputDims.length+1];
+				batchedInputDims[0] = indices.length;
+				for(int i=0;i<inputDims.length;i++){
+					batchedInputDims[i+1] = inputDims[i];
+				}
+				
+				int[] batchedOutputDims = new int[outputDims.length+1];
+				batchedOutputDims[0] = indices.length;
+				for(int i=0;i<outputDims.length;i++){
+					batchedOutputDims[i+1] = outputDims[i];
+				}
+				
+				b = new Batch(new Tensor(batchedInputDims), new Tensor(batchedOutputDims));
+			}
+		}
+		
+		for(int i=0;i<indices.length;i++){
+			getInputSample(b.inputSamples[i], indices[i]);
+			getOutputSample(b.outputSamples[i], indices[i]);
+		}
+		
+		return b;
 	}
 	
 	/**

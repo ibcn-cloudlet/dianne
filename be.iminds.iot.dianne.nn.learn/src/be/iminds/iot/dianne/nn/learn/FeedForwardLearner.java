@@ -30,6 +30,7 @@ import java.util.Map;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.util.promise.Promise;
 
+import be.iminds.iot.dianne.api.dataset.Batch;
 import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -43,15 +44,9 @@ public class FeedForwardLearner extends AbstractLearner {
 	protected int batchSize = 10;
 	protected boolean batchAverage = true;
 	
-	// Current batch
-	// Each lists consists of noBatches + 1 tensors: 0 = batch tensor, 1..noBatch+1 = selects per index
-	private List<Tensor> batch = null;
-	private List<Tensor> target = null;
-
-	
 	// For loading next batch while processing current batch
-	private List<Tensor> nextBatch = null;
-	private List<Tensor> nextTarget = null;
+	private Batch batch = null;
+	private Batch nextBatch = null;
 	
 	protected void loadConfig(Map<String, String> config){
 		super.loadConfig(config);
@@ -67,64 +62,17 @@ public class FeedForwardLearner extends AbstractLearner {
 		
 		// Reset next batch
 		batch = null;
-		target = null;
 		nextBatch = null;
-		nextTarget = null;
 	}
 	
 	private void loadBatch(){
-		for(int k=0;k<batchSize;k++){
-			// Select new sample
-			int index = sampling.next();
-			
-			// Preallocate batch if necessary
-			if(nextBatch == null){
-				nextBatch = new ArrayList<>(batchSize+1);
-				nextTarget = new ArrayList<>(batchSize+1);
-				
-				int[] inputDims = dataset.inputDims();
-				if(inputDims == null){
-					// Variable input dimension, cannot create batch tensor
-					nextBatch.add(null);
-					for(int i=0;i<batchSize;i++){
-						nextBatch.add(new Tensor());
-					}
-					
-					nextTarget.add(null);
-					for(int i=0;i<batchSize;i++){
-						nextTarget.add(new Tensor());
-					}
-				} else {
-					int[] batchInputDims = new int[inputDims.length+1];
-					batchInputDims[0] = batchSize;
-					for(int i=0;i<inputDims.length;i++){
-						batchInputDims[i+1] = inputDims[i];
-					}
-					Tensor b = new Tensor(batchInputDims);
-					nextBatch.add(b);
-					for(int i=0;i<batchSize;i++){
-						nextBatch.add(b.select(0, i));
-					}
-					
-					
-					int[] targetDims = dataset.outputDims();
-					int[] batchTargetDims = new int[targetDims.length+1];
-					batchTargetDims[0] = batchSize;
-					for(int i=0;i<targetDims.length;i++){
-						batchTargetDims[i+1] = targetDims[i];
-					}
-					Tensor o = new Tensor(batchTargetDims);
-					nextTarget.add(o);
-					for(int i=0;i<batchSize;i++){
-						nextTarget.add(o.select(0, i));
-					}
-				}
-			}
-			
-			//Fetch sample
-			dataset.getInputSample(nextBatch.get(k+1), index);
-			dataset.getOutputSample(nextTarget.get(k+1), index);
-		}
+		int[] indices = new int[batchSize];
+		
+		// Select new samples
+		for(int k=0;k<batchSize;k++)
+			indices[k] = sampling.next();
+
+		nextBatch = dataset.getBatch(nextBatch, indices);
 	}
 	
 	protected float process(long i){
@@ -139,27 +87,23 @@ public class FeedForwardLearner extends AbstractLearner {
 			loadBatch();
 		
 		// Flip current/next
-		List<Tensor> temp = batch;
+		Batch temp = batch;
 		batch = nextBatch;
 		nextBatch = temp;
 		
-		temp = target;
-		target = nextTarget;
-		nextTarget = temp;
-		
 		// Forward/backward pass - executed asynchronously
-		if(batch.get(0) != null) {
+		if(batch.input != null) {
 			// Execute in batch
-			Promise result = nn.forward(null, null, batch.get(0)).then(
+			Promise result = nn.forward(null, null, batch.input).then(
 					p -> {
 						// Forward
 						Tensor output = p.getValue().tensor;
 						
 						// Error
-						error[0] += criterion.error(output, target.get(0)).get(0);
+						error[0] += criterion.error(output, batch.output).get(0);
 	
 						// Error gradient
-						Tensor gradOut = criterion.grad(output, target.get(0));
+						Tensor gradOut = criterion.grad(output, batch.output);
 						
 						// Backward
 						return nn.backward(null, null, gradOut);
@@ -182,17 +126,17 @@ public class FeedForwardLearner extends AbstractLearner {
 		} else {
 			// Cannot load a batch for this dataset, still process one by one
 			for(int k=0;k<batchSize;k++){
-				final int b = k+1;
-				Promise result = nn.forward(null, null, batch.get(b)).then(
+				final int b = k;
+				Promise result = nn.forward(null, null, batch.inputSamples[b]).then(
 						p -> {
 							// Forward
 							Tensor output = p.getValue().tensor;
 							
 							// Error
-							error[0] += criterion.error(output, target.get(b)).get(0);
+							error[0] += criterion.error(output, batch.outputSamples[b]).get(0);
 		
 							// Error gradient
-							Tensor gradOut = criterion.grad(output, target.get(b));
+							Tensor gradOut = criterion.grad(output, batch.outputSamples[b]);
 							
 							// Backward
 							return nn.backward(null, null, gradOut);
