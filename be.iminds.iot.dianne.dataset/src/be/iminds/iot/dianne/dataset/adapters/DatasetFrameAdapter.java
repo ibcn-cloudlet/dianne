@@ -94,13 +94,13 @@ public class DatasetFrameAdapter implements Dataset {
 	}
 
 	@Override
-	public Tensor getInputSample(int index, Tensor t) {
+	public Tensor getInputSample(Tensor t, int index) {
 		return TensorOps.frame(t, data.getInputSample(index), dims);
 	}
 
 	@Override
-	public Tensor getOutputSample(int index, Tensor t) {
-		return data.getOutputSample(index, t);
+	public Tensor getOutputSample(Tensor t, int index) {
+		return data.getOutputSample(t, index);
 	}
 	
 	@Override

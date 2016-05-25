@@ -122,8 +122,8 @@ public class FeedForwardLearner extends AbstractLearner {
 			}
 			
 			//Fetch sample
-			dataset.getInputSample(index, nextBatch.get(k+1));
-			dataset.getOutputSample(index, nextTarget.get(k+1));
+			dataset.getInputSample(nextBatch.get(k+1), index);
+			dataset.getOutputSample(nextTarget.get(k+1), index);
 		}
 	}
 	

@@ -55,7 +55,7 @@ public interface ExperiencePool extends Dataset {
 	 */
 	ExperiencePoolSample getSample(final int index);
 	
-	ExperiencePoolSample getSample(final int index, ExperiencePoolSample s);
+	ExperiencePoolSample getSample(ExperiencePoolSample s, final int index);
 
 	/**
 	 * Get an input sample from the experience pool. This vector represents an Environment state
@@ -64,10 +64,10 @@ public interface ExperiencePool extends Dataset {
 	 * @return the input sample at position index
 	 */
 	default Tensor getInputSample(final int index){
-		return getInputSample(index, null);
+		return getInputSample(null, index);
 	}
 	
-	Tensor getInputSample(final int index, Tensor t);
+	Tensor getInputSample(Tensor t, final int index);
 	
 	/**
 	 * Get the Environment state of a sample, identical to getInputSample()
@@ -76,10 +76,10 @@ public interface ExperiencePool extends Dataset {
 	 * @return the state of sample at position index
 	 */
 	default Tensor getState(final int index){
-		return getState(index, null);
+		return getState(null, index);
 	}
 	
-	Tensor getState(final int index, Tensor t);
+	Tensor getState(Tensor t, final int index);
 		
 	default int[] stateDims(){
 		return inputDims();
@@ -93,10 +93,10 @@ public interface ExperiencePool extends Dataset {
 	 * @return the output vector corresponding with input sample index
 	 */
 	default Tensor getOutputSample(final int index){
-		return getOutputSample(index, null);
+		return getOutputSample(null, index);
 	}
 	
-	Tensor getOutputSample(final int index, Tensor t);
+	Tensor getOutputSample(Tensor t, final int index);
 	
 	/**
 	 * Get the action done in state of a sample, identical to getOutputSample()
@@ -105,10 +105,10 @@ public interface ExperiencePool extends Dataset {
 	 * @return the action of sample at position index
 	 */
 	default Tensor getAction(final int index){
-		return getAction(index, null);
+		return getAction(null, index);
 	}
 	
-	Tensor getAction(final int index, Tensor t);
+	Tensor getAction(Tensor t, final int index);
 	
 	default int[] actionDims(){
 		return outputDims();
@@ -143,10 +143,10 @@ public interface ExperiencePool extends Dataset {
 	 * @return reward
 	 */
 	default Tensor getNextState(final int index){
-		return getNextState(index, null);
+		return getNextState(null, index);
 	}
 	
-	Tensor getNextState(final int index, Tensor t);
+	Tensor getNextState(Tensor t, final int index);
 	
 	/**
 	 * Add a new sample to the experience pool

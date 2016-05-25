@@ -94,13 +94,13 @@ public class DatasetRangeAdapter implements Dataset {
 	}
 
 	@Override
-	public Tensor getInputSample(int index, Tensor t) {
-		return data.getInputSample(start+index, t);
+	public Tensor getInputSample(Tensor t, int index) {
+		return data.getInputSample(t, start+index);
 	}
 
 	@Override
-	public Tensor getOutputSample(int index, Tensor t) {
-		return data.getOutputSample(start+index, t);
+	public Tensor getOutputSample(Tensor t, int index) {
+		return data.getOutputSample(t, start+index);
 	}
 	
 	@Override

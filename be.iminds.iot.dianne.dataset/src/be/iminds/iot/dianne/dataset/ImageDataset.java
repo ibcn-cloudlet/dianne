@@ -59,7 +59,7 @@ public abstract class ImageDataset extends AbstractDataset {
 	protected abstract void readOutputs(String file);
 	
 	@Override
-	public Tensor getInputSample(int index, Tensor t) {
+	public Tensor getInputSample(Tensor t, int index) {
 		// Open JPEG file and convert to size
 		String file = getImageFile(index);
 		try {
@@ -72,7 +72,7 @@ public abstract class ImageDataset extends AbstractDataset {
 	}
 
 	@Override
-	public Tensor getOutputSample(int index, Tensor t) {
+	public Tensor getOutputSample(Tensor t, int index) {
 		if(t == null)
 			t = new Tensor(outputSize);
 		t.fill(0.0f);

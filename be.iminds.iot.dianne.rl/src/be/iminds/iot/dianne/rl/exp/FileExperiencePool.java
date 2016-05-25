@@ -151,25 +151,25 @@ public class FileExperiencePool implements ExperiencePool {
 	}
 
 	@Override
-	public Tensor getInputSample(int index, Tensor t) {
+	public Tensor getInputSample(Tensor t, int index) {
 		t = getSample(index).state.copyInto(t);
 		return t;
 	}
 
 	@Override
-	public Tensor getState(int index, Tensor t) {
+	public Tensor getState(Tensor t, int index) {
 		t =  getSample(index).state.copyInto(t);
 		return t;
 	}
 
 	@Override
-	public Tensor getOutputSample(int index, Tensor t) {
+	public Tensor getOutputSample(Tensor t, int index) {
 		t =  getSample(index).action.copyInto(t);
 		return t;
 	}
 
 	@Override
-	public Tensor getAction(int index, Tensor t) {
+	public Tensor getAction(Tensor t, int index) {
 		t =  getSample(index).action.copyInto(t);
 		return t;
 	}
@@ -180,7 +180,7 @@ public class FileExperiencePool implements ExperiencePool {
 	}
 
 	@Override
-	public Tensor getNextState(int index, Tensor t) {
+	public Tensor getNextState(Tensor t, int index) {
 		t =  getSample(index).state.copyInto(t);
 		return t;
 	}
@@ -196,7 +196,7 @@ public class FileExperiencePool implements ExperiencePool {
 		return sample;
 	}
 	
-	public ExperiencePoolSample getSample(int index, ExperiencePoolSample s){
+	public ExperiencePoolSample getSample(ExperiencePoolSample s, int index){
 		ExperiencePoolSample ss = getSample(index);
 		ss.action.copyInto(s.action);
 		ss.state.copyInto(s.state);

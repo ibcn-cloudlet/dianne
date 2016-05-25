@@ -170,7 +170,7 @@ public abstract class FileDataset extends AbstractDataset {
 	protected abstract void parse(InputStream in, InputStream out) throws Exception;
 				
 	@Override
-	public Tensor getInputSample(int index, Tensor t) {
+	public Tensor getInputSample(Tensor t, int index) {
 		checkLoaded();
 
 		if(t == null)
@@ -181,7 +181,7 @@ public abstract class FileDataset extends AbstractDataset {
 	}
 
 	@Override
-	public Tensor getOutputSample(int index, Tensor t) {
+	public Tensor getOutputSample(Tensor t, int index) {
 		checkLoaded();
 
 		if(t == null)

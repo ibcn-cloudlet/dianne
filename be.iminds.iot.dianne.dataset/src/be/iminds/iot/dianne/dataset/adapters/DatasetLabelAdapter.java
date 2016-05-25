@@ -111,14 +111,14 @@ public class DatasetLabelAdapter implements Dataset {
 	}
 	
 	@Override
-	public Tensor getInputSample(int index, Tensor t) {
-		return data.getInputSample(index, t);
+	public Tensor getInputSample(Tensor t, int index) {
+		return data.getInputSample(t, index);
 	}
 
 	@Override
-	public Tensor getOutputSample(int index, Tensor t) {
+	public Tensor getOutputSample(Tensor t, int index) {
 		// TODO adapt outputsample
-		Tensor out = data.getOutputSample(index);
+		Tensor out = data.getOutputSample(t, index);
 		if(t == null)
 			t = new Tensor(labels.length);
 		for(int i=0;i<labelIndices.length;i++){

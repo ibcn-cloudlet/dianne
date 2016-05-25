@@ -85,13 +85,13 @@ public class CharSequenceDataset implements SequenceDataset{
 	}
 	
 	@Override
-	public Tensor getInputSample(int index , Tensor t) {
+	public Tensor getInputSample(Tensor t, int index ) {
 		t = asTensor(data.charAt(index), t);
 		return t;
 	}
 
 	@Override
-	public Tensor getOutputSample(int index, Tensor t) {
+	public Tensor getOutputSample(Tensor t, int index) {
 		t = asTensor(data.charAt(index+1), t);
 		return t;
 	}

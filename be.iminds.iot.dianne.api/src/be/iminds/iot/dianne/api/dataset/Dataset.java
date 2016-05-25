@@ -62,12 +62,12 @@ public interface Dataset {
 		return new Sample(getInputSample(index), getOutputSample(index));
 	}
 	
-	default Sample getSample(final int index, Sample s){
+	default Sample getSample(Sample s, final int index){
 		if(s == null)
 			return getSample(index);
 		
-		getInputSample(index, s.input);
-		getOutputSample(index, s.output);
+		getInputSample(s.input, index);
+		getOutputSample(s.output, index);
 		return s;
 	}
 	
@@ -78,10 +78,10 @@ public interface Dataset {
 	 * @return the input sample at position index
 	 */
 	default Tensor getInputSample(final int index){
-		return getInputSample(index, null);
+		return getInputSample(null, index);
 	}
 		
-	Tensor getInputSample(final int index, Tensor t);
+	Tensor getInputSample(Tensor t, final int index);
 	
 	/**
 	 * Get an output vector from the dataset
@@ -90,10 +90,10 @@ public interface Dataset {
 	 * @return the output vector corresponding with input sample index
 	 */
 	default Tensor getOutputSample(final int index){
-		return getOutputSample(index, null);
+		return getOutputSample(null, index);
 	}
 	
-	Tensor getOutputSample(final int index, Tensor t);
+	Tensor getOutputSample(Tensor t, final int index);
 	
 	/**
 	 * A human-readable name for this dataset
