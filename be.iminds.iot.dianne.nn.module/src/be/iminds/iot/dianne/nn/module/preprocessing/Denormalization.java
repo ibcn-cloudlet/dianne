@@ -31,13 +31,14 @@ import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
 /**
- * The Normalization module will calculate mean and std over all input values of the dataset
- * before training starts, and normalize the data at train and runtime with these parameters.
+ * The Normalization module will calculate mean and std over all output values of the dataset
+ * before training starts, and do the inverse normalization operations using these parameters
+ * at train/runtime.
  * 
  * @author tverbele
  *
  */
-public class Normalization extends AbstractModule implements Preprocessor {
+public class Denormalization extends AbstractModule implements Preprocessor {
 
 	// TODO per channel normalization?
 	private float mean = 0.0f;
@@ -45,15 +46,15 @@ public class Normalization extends AbstractModule implements Preprocessor {
 	
 	private boolean preprocessed = false;
 	
-	public Normalization(){
+	public Denormalization(){
 		super();
 	}
 	
-	public Normalization(UUID id){
+	public Denormalization(UUID id){
 		super(id);
 	}
 	
-	public Normalization(UUID id, float mean, float std){
+	public Denormalization(UUID id, float mean, float std){
 		super(id);
 		this.mean = mean;
 		this.std = std;
@@ -62,13 +63,13 @@ public class Normalization extends AbstractModule implements Preprocessor {
 
 	@Override
 	protected void forward() {
-		output = TensorOps.sub(output, input, mean);
-		output = TensorOps.div(output, output, std);
+		output = TensorOps.mul(output, input, std);
+		output = TensorOps.add(output, output, mean);
 	}
 
 	@Override
 	protected void backward() {
-		gradInput = TensorOps.div(gradInput, gradOutput, std);
+		gradInput = TensorOps.mul(gradInput, gradOutput, std);
 	}
 
 	@Override
@@ -78,11 +79,11 @@ public class Normalization extends AbstractModule implements Preprocessor {
 		float m2 = 0;
 		float d,x;
 		for(int i=0;i<data.size();i++){
-			Tensor input = data.getInputSample(i);
-			float[] inputData = input.get();
+			Tensor output = data.getOutputSample(i);
+			float[] outputData = output.get();
 			// TODO normalize over all data, what if this is subtensor?
-			for(int k=0;k<inputData.length;k++){
-				x = inputData[k];
+			for(int k=0;k<outputData.length;k++){
+				x = outputData[k];
 				n++;
 				d = x - m;
 				m = m + d/n;

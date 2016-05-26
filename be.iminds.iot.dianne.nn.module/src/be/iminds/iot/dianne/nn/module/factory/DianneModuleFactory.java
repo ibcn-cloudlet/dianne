@@ -58,6 +58,7 @@ import be.iminds.iot.dianne.nn.module.layer.MaskedMaxPooling;
 import be.iminds.iot.dianne.nn.module.layer.Reshape;
 import be.iminds.iot.dianne.nn.module.layer.SpatialConvolution;
 import be.iminds.iot.dianne.nn.module.layer.SpatialMaxPooling;
+import be.iminds.iot.dianne.nn.module.preprocessing.Denormalization;
 import be.iminds.iot.dianne.nn.module.preprocessing.Frame;
 import be.iminds.iot.dianne.nn.module.preprocessing.Narrow;
 import be.iminds.iot.dianne.nn.module.preprocessing.Normalization;
@@ -134,6 +135,7 @@ public class DianneModuleFactory implements ModuleFactory {
 				new ModulePropertyDTO("Stride Y", "strideY", Integer.class.getName())));	
 		
 		addSupportedType(new ModuleTypeDTO("Normalization", "Preprocessing", true));
+		addSupportedType(new ModuleTypeDTO("Denormalization", "Preprocessing", true));
 		
 		addSupportedType(new ModuleTypeDTO("Narrow", "Preprocessing", false, 
 				new ModulePropertyDTO("Index dim 0", "index0", Integer.class.getName()),
@@ -329,6 +331,14 @@ public class DianneModuleFactory implements ModuleFactory {
 			module = new Normalization(id);
 			if(parameters!=null){
 				((Normalization)module).setParameters(parameters);
+			}
+			break;
+		}
+		case "Denormalization":
+		{
+			module = new Denormalization(id);
+			if(parameters!=null){
+				((Denormalization)module).setParameters(parameters);
 			}
 			break;
 		}
