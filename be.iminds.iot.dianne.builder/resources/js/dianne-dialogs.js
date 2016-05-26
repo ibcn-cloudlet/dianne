@@ -452,17 +452,29 @@ function createRunModuleDialog(id, moduleItem){
 		inputCanvas.addEventListener('touchend', upListener, false);
 		
 		
-	} else if(module.type==="ProbabilityOutput"){
-		dialog = renderTemplate("dialog", {
-			id : id,
-			type: "probability",
-			title : "Output probabilities",
-			submit: "",
-			cancel: "Delete"
-		}, $(document.body));
-		
-		createOutputChart(dialog.find(".content"));
-		dialog.find(".content").append("<span class='time'></span>");
+	} else if(module.category ==="Visualize"){
+		if(module.type ==="ProbabilityOutput"){		
+			dialog = renderTemplate("dialog", {
+				id : id,
+				type: "probability",
+				title : "Output probabilities",
+				submit: "",
+				cancel: "Delete"
+			}, $(document.body));
+			
+			createOutputChart(dialog.find(".content"));
+		} else {
+			dialog = renderTemplate("dialog", {
+				id : id,
+				type: "outputviz",
+				title : "Output",
+				submit: "",
+				cancel: "Delete"
+			}, $(document.body));
+		}
+
+		dialog.find(".content").append("<div class='outputviz'></div>");
+		dialog.find(".content").append("<div class='time'></div>");
 
 		if(eventsource===undefined){
 			eventsource = new EventSource("/dianne/run?nnId="+nn.id);
@@ -474,29 +486,37 @@ function createRunModuleDialog(id, moduleItem){
 					$.each(running, function(id, module){
 						// choose right RunOutput to set the chart of
 						if(module.output===data.id){
-							var attr = $("#dialog-"+module.id).find(".content").attr("data-highcharts-chart");
-							if(attr!==undefined){
-								var index = Number(attr);
-								// data.output is tensor representation as string, should be parsed first
-	
-								console.log(data.tags+" "+data.output);
-								if(data.tags.length != 0){
-									var title = "";
-									for(var i =0; i<data.tags.length; i++){
-										if(!isFinite(String(data.tags[i]))){
-											title+= data.tags[i]+" ";
+							if(module.type ==="ProbabilityOutput"){
+								// classification plot
+								var attr = $("#dialog-"+module.id).find(".content").attr("data-highcharts-chart");
+								if(attr!==undefined){
+									var index = Number(attr);
+									// data.output is tensor representation as string, should be parsed first
+		
+									console.log(data.tags+" "+data.output);
+									if(data.tags.length != 0){
+										var title = "";
+										for(var i =0; i<data.tags.length; i++){
+											if(!isFinite(String(data.tags[i]))){
+												title+= data.tags[i]+" ";
+											}
 										}
+										Highcharts.charts[index].setTitle({text: title});
 									}
-									Highcharts.charts[index].setTitle({text: title});
+									Highcharts.charts[index].series[0].setData(data.output, true, true, true);
+									Highcharts.charts[index].xAxis[0].setCategories(data.labels);
 								}
-								Highcharts.charts[index].series[0].setData(data.output, true, true, true);
-								Highcharts.charts[index].xAxis[0].setCategories(data.labels);
+								$("#dialog-"+module.id).find(".content").find('.outputviz').hide();
+							} else {
+								// TODO render 2d tensor as image?
+								$("#dialog-"+module.id).find(".content").find('.outputviz').html('<b>Output: </b>'+JSON.stringify(data.output).replace(/,/g,"  "));
+								$("#dialog-"+module.id).find(".content").find('.outputviz').show();
 							}
 							
 							if(data.time === undefined){
 								$("#dialog-"+module.id).find(".content").find('.time').hide();
 							} else {
-								$("#dialog-"+module.id).find(".content").find('.time').text('Forward time: '+data.time+' ms')
+								$("#dialog-"+module.id).find(".content").find('.time').html('<b>Forward time: </b>'+data.time+' ms');
 								$("#dialog-"+module.id).find(".content").find('.time').show();
 	
 							}
