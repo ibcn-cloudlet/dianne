@@ -880,9 +880,7 @@ function load(name){
 	
 	$.post("/dianne/load", {"action":"load", "name":name}, 
 			function( data ) {
-				// empty canvas - keep alerts div
-				var alerts = $('#canvas #alerts').detach();
-				$('#canvas').empty().append(alerts);
+				resetCanvas();
 		
 				nn.modules = data.nn.modules;
 				loadLayout(data.layout);
@@ -991,6 +989,14 @@ function recover(id){
 				console.log("Succesfully recovered");
 			}
 			, "json");
+}
+
+function resetCanvas(){
+	// empty canvas - keep alerts div
+	var alerts = $('#canvas #alerts').detach();
+	$('#canvas').empty().append(alerts);
+	learning = {};
+	running = {};
 }
 
 /*
