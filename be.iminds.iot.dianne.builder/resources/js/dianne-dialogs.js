@@ -545,6 +545,7 @@ function createRunModuleDialog(id, moduleItem){
 		}, $(document.body));
 		
 		dialog.find(".content").append("<canvas class='sampleCanvas' width='256' height='256' style=\"border:1px solid #000000; margin-left:150px\"></canvas>");
+		dialog.find(".content").append("<center><div class='expected'></div></center>");
 		dialog.find(".content").append("<button class='btn' onclick='sample(\""+module.type+"\",\""+module.input+"\")' style=\"margin-left:10px\">Sample</button>");
 		
 		sampleCanvas = dialog.find('.sampleCanvas')[0];
@@ -702,6 +703,7 @@ function sample(dataset, input){
 	$.post("/dianne/run", {"dataset":dataset,"input":input, "id": nn.id}, 
 			function( sample ) {
 				render(sample, sampleCanvasCtx);
+				$('.expected').text('Expected output: '+sample.output);
 			}
 			, "json");
 }

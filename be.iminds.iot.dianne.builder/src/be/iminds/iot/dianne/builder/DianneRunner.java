@@ -61,6 +61,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
@@ -70,6 +71,7 @@ import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorOps;
 import be.iminds.iot.dianne.tensor.util.ImageConverter;
 
 @Component(service = { javax.servlet.Servlet.class }, 
@@ -231,22 +233,34 @@ public class DianneRunner extends HttpServlet {
 			if(d!=null){
 				String inputId = request.getParameter("input");
 
-				Tensor t = d.getInputSample(rand.nextInt(d.size()));
+				Sample s = d.getSample(rand.nextInt(d.size()));
 				
 				start = System.currentTimeMillis();
-				nn.forward(UUID.fromString(inputId), null, t, "ui");
+				nn.forward(UUID.fromString(inputId), null, s.input, "ui");
 				
 				JsonObject sample = new JsonObject();
-				if(t.dims().length==3){
-					sample.add("channels", new JsonPrimitive(t.dims()[0]));
-					sample.add("height", new JsonPrimitive(t.dims()[1]));
-					sample.add("width", new JsonPrimitive(t.dims()[2]));
-				} else {
+				if(s.input.dims().length==3){
+					sample.add("channels", new JsonPrimitive(s.input.dims()[0]));
+					sample.add("height", new JsonPrimitive(s.input.dims()[1]));
+					sample.add("width", new JsonPrimitive(s.input.dims()[2]));
+				} else if(s.input.dims().length==2){
 					sample.add("channels", new JsonPrimitive(1));
-					sample.add("height", new JsonPrimitive(t.dims()[0]));
-					sample.add("width", new JsonPrimitive(t.dims()[1]));
+					sample.add("height", new JsonPrimitive(s.input.dims()[0]));
+					sample.add("width", new JsonPrimitive(s.input.dims()[1]));
+				} else if(s.input.dims().length==1){
+					sample.add("channels", new JsonPrimitive(1));
+					sample.add("height", new JsonPrimitive(1));
+					sample.add("width", new JsonPrimitive(s.input.dims()[0]));
 				}
-				sample.add("data", parser.parse(Arrays.toString(t.get())));
+				sample.add("data", parser.parse(Arrays.toString(s.input.get())));
+				
+				String[] labels = d.getLabels();
+				if(labels != null){
+					sample.add("output", new JsonPrimitive(labels[TensorOps.argmax(s.output)]));
+				} else {
+					sample.add("output", parser.parse(Arrays.toString(s.output.get())));
+				}
+				
 				response.getWriter().println(sample.toString());
 				response.getWriter().flush();
 			}
