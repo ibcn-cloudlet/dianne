@@ -219,12 +219,20 @@ public interface NeuralNetwork {
 	 */
 	void randomizeParameters();
 	
+	
 	/**
 	 * Store the current parameters into the repository
 	 * @param tag
 	 */
 	void storeParameters(String... tag);
 
+	
+	/**
+	 * Store the current parameters into the repository
+	 * @param tag
+	 */
+	void storeParameters(Map<UUID, Tensor> params, String... tag);
+	
 	/**
 	 * Store the delta compared to previous in the repository
 	 * @param tag

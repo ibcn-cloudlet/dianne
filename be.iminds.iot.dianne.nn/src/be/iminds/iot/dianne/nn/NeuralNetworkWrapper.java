@@ -529,6 +529,18 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		 
 		repository.storeParameters(nn.id, getParameters(), tag);
 	}
+	
+	@Override
+	public void storeParameters(Map<UUID, Tensor> params, String... tag) {
+		if(!valid){
+			throw new RuntimeException("This neural network object is no longer valid");
+		}
+		
+		if(tag == null)
+			repository.storeParameters(nn.id, params); 
+		else 
+			repository.storeParameters(nn.id, params, tag);
+	}
 
 	@Override
 	public void storeDeltaParameters(Map<UUID, Tensor> previous, String... tag) {

@@ -293,6 +293,10 @@ public abstract class AbstractLearner implements Learner {
 		nn.getPreprocessors().values().stream()
 			.filter(p -> !p.isPreprocessed())
 			.forEach(p -> p.preprocess(dataset));
+		
+		Map<UUID, Tensor> preprocessorParameters = new HashMap<>();
+		nn.getPreprocessors().entrySet().stream().forEach(e -> preprocessorParameters.put(e.getKey(), e.getValue().getParameters()));
+		nn.storeParameters(preprocessorParameters, tag);
 	}
 	
 	/**
