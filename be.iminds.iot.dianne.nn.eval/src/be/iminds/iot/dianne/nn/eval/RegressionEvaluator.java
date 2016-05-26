@@ -20,29 +20,34 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.api.nn.eval;
+package be.iminds.iot.dianne.nn.eval;
 
-/**
- * Represents the progress made by an Evaluator
- * 
- * @author tverbele
- *
- */
-public class EvaluationProgress extends Evaluation {
+import org.osgi.service.component.annotations.Component;
 
-	/** Total number of samples to be processed */
-	private final long processed;
+import be.iminds.iot.dianne.api.nn.eval.Evaluator;
+import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorOps;
+
+@Component(
+		service={Evaluator.class},
+		property={"aiolos.unique=true",
+		"dianne.evaluator.category=REGRESSION"})
+public class RegressionEvaluator extends AbstractEvaluator {
 	
-	public EvaluationProgress(long processed, long total, float error, long evaluationTime, float forwardTime){
-		super(total, error, null, evaluationTime, forwardTime);
-		this.processed = processed;
-		this.total = total;
-	}
+	private Tensor err;
+	private Tensor sqerr;
 	
-	/**
-	 * @return the number of samples processed
-	 */
-	public long getProcessed(){
-		return processed;
+	protected void evalOutput(int index, Tensor out, Tensor expected){
+		
+		// for now fixed MSE error ... TODO allow different metrics (use Criterion?)
+		err = TensorOps.sub(err, out, expected);
+		sqerr = TensorOps.cmul(sqerr, err, err);
+		error = error + TensorOps.sum(sqerr)*0.5f;
+		
+		if(trace){
+			System.out.println("Sample "+index+" was "+expected+", should be "+out);
+		}
 	}
+
 }
+

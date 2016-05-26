@@ -23,8 +23,11 @@
 package be.iminds.iot.dianne.dataset.csv;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.LineNumberReader;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
@@ -48,7 +51,10 @@ import be.iminds.iot.dianne.dataset.FileDataset;
 		property={"aiolos.unique=true"})
 public class CSVDataset extends FileDataset{
 
-	String separator = ",";
+	private String separator = ",";
+	private int inputOffset = 0;
+	private int outputOffset = 0;
+	private boolean classification = false;
 	
 	@Override
 	protected void init(Map<String, Object> properties){
@@ -60,6 +66,35 @@ public class CSVDataset extends FileDataset{
 		if(s != null){
 			separator = s;
 		}
+		
+		// how many columns to skip before input begins
+		String io = (String)properties.get("inputOffset");
+		if(io != null){
+			inputOffset = Integer.parseInt(io);
+		}
+		
+		// how many columns to skip before output begins
+		String oo = (String)properties.get("outputOffset");
+		if(oo != null){
+			outputOffset = Integer.parseInt(oo);
+		}
+		
+		// check whether it is a classification problem or not
+		String c = (String)properties.get("classification");
+		if(c != null){
+			classification = Boolean.parseBoolean(c);
+		}
+		
+		if(!properties.containsKey("noSamples")){
+			// count line numbers in file
+			try {
+				File f = new File((String)properties.get("dir")+File.separator+file);
+				LineNumberReader lineNumberReader = new LineNumberReader(new FileReader(f));
+				lineNumberReader.skip(Long.MAX_VALUE);
+				noSamples = lineNumberReader.getLineNumber();
+				lineNumberReader.close();
+			} catch(Exception e){ }
+		}
 	}
 	
 	@Override
@@ -67,12 +102,13 @@ public class CSVDataset extends FileDataset{
 		BufferedReader reader = new BufferedReader(new InputStreamReader(in));
 		String s;
 		while ((s = reader.readLine()) != null) {
-			String[] data = s.split(",");
-			int i=0;
-			for(i=0;i<inputSize;i++){
+			String[] data = s.split(separator);
+			int i=inputOffset;
+			for(;i<inputOffset+inputSize;i++){
 				inputs[count][i] = Float.parseFloat(data[i]);
 			}
-			if(data.length - i == 1 && outputSize > 1){
+			i += outputOffset;
+			if(classification){
 				// threat as class index?
 				int index = Integer.parseInt(data[i]);
 				outputs[count][index] = 1;

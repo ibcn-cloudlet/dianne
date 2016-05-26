@@ -12,6 +12,7 @@ import be.iminds.iot.dianne.api.coordinator.AgentResult;
 import be.iminds.iot.dianne.api.coordinator.EvaluationResult;
 import be.iminds.iot.dianne.api.coordinator.Job;
 import be.iminds.iot.dianne.api.coordinator.LearnResult;
+import be.iminds.iot.dianne.api.nn.eval.ClassificationEvaluation;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.eval.EvaluationProgress;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
@@ -117,24 +118,32 @@ public class DianneCoordinatorWriter {
 				writer.name("total");
 				writer.value(((EvaluationProgress) eval).getTotal());
 			} else {
-				writer.name("accuracy");
-				writer.value(new Float(eval.accuracy()));
+				writer.name("error");
+				writer.value(new Float(eval.error()));
 				writer.name("evaluationTime");
 				writer.value(eval.evaluationTime());
 				writer.name("forwardTime");
 				writer.value(new Float(eval.forwardTime()));
-				// write confusion matrix
-				writer.name("confusionMatrix");
-				writer.beginArray();
-				Tensor confusionMatrix = eval.getConfusionMatix();
-				for(int i=0;i<confusionMatrix.size(0);i++){
+				
+				if(eval instanceof ClassificationEvaluation){
+					ClassificationEvaluation ceval = (ClassificationEvaluation) eval;
+					// write accuracy
+					writer.name("accuracy");
+					writer.value(new Float(ceval.accuracy()));
+					
+					// write confusion matrix
+					writer.name("confusionMatrix");
 					writer.beginArray();
-					for(int j=0;j<confusionMatrix.size(1);j++){
-						writer.value(new Float(confusionMatrix.get(i, j)));
+					Tensor confusionMatrix = ceval.getConfusionMatix();
+					for(int i=0;i<confusionMatrix.size(0);i++){
+						writer.beginArray();
+						for(int j=0;j<confusionMatrix.size(1);j++){
+							writer.value(new Float(confusionMatrix.get(i, j)));
+						}
+						writer.endArray();
 					}
 					writer.endArray();
 				}
-				writer.endArray();
 				// write all outputs
 				if(eval.getOutputs()!=null){
 					writer.name("outputs");

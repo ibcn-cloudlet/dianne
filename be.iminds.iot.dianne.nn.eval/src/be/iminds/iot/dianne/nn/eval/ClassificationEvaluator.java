@@ -20,29 +20,38 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.api.nn.eval;
+package be.iminds.iot.dianne.nn.eval;
 
-/**
- * Represents the progress made by an Evaluator
- * 
- * @author tverbele
- *
- */
-public class EvaluationProgress extends Evaluation {
+import org.osgi.service.component.annotations.Component;
 
-	/** Total number of samples to be processed */
-	private final long processed;
+import be.iminds.iot.dianne.api.nn.eval.Evaluator;
+import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorOps;
+
+@Component(
+		service={Evaluator.class},
+		property={"aiolos.unique=true",
+		"dianne.evaluator.category=CLASSIFICATION"})
+public class ClassificationEvaluator extends AbstractEvaluator {
 	
-	public EvaluationProgress(long processed, long total, float error, long evaluationTime, float forwardTime){
-		super(total, error, null, evaluationTime, forwardTime);
-		this.processed = processed;
-		this.total = total;
+	protected void evalOutput(int index, Tensor out, Tensor expected){
+		if(confusion==null){
+			int outputSize = out.size();
+			confusion = new Tensor(outputSize, outputSize);
+			confusion.fill(0.0f);
+		}
+		
+		int predicted = TensorOps.argmax(out);
+		int real = TensorOps.argmax(expected);
+		if(real!=predicted)
+			error= error+1.0f;
+		
+		if(trace){
+			System.out.println("Sample "+index+" was "+predicted+", should be "+real);
+		}
+		
+		confusion.set(confusion.get(real, predicted)+1, real, predicted);
 	}
-	
-	/**
-	 * @return the number of samples processed
-	 */
-	public long getProcessed(){
-		return processed;
-	}
+
 }
+

@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.coordinator.EvaluationResult;
+import be.iminds.iot.dianne.api.coordinator.Job.EvaluationCategory;
 import be.iminds.iot.dianne.api.coordinator.Job.Type;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.eval.EvaluationProgress;
@@ -21,6 +22,13 @@ public class EvaluationJob extends AbstractJob<EvaluationResult> {
 			String d,
 			Map<String, String> c){
 		super(coord, Type.EVALUATE, nn, d, c);
+		
+		// TODO when to use MSE category?!
+		if(coord.platform.isClassificationDatset(d)){
+			category = EvaluationCategory.CLASSIFICATION;
+		} else {
+			category = EvaluationCategory.REGRESSION;
+		}
 	}
 	
 	@Override
@@ -37,12 +45,11 @@ public class EvaluationJob extends AbstractJob<EvaluationResult> {
 			threads[i] = new Thread(new Runnable(){
 				public void run(){
 					try {
-						Evaluator evaluator = coordinator.evaluators.get(target);
+						Evaluator evaluator = coordinator.evaluators.get(category.toString()).get(target);
 						Evaluation e = evaluator.eval(dataset, evalConfig, nnis.get(target));
 						results.put(target, e);
 					} catch(Exception e){
-						// TODO should this fail the entire job?
-						results.put(target, null);
+						done(e);
 					}
 				}
 			});
@@ -68,9 +75,9 @@ public class EvaluationJob extends AbstractJob<EvaluationResult> {
 			EvaluationProgress p = null; 
 			if(results.containsKey(target)){
 				Evaluation eval = results.get(target);
-				p = new EvaluationProgress(eval.getTotal(), eval.getTotal(), eval.evaluationTime(), eval.forwardTime());
+				p = new EvaluationProgress(eval.getTotal(), eval.getTotal(), eval.error(), eval.evaluationTime(), eval.forwardTime());
 			} else {
-				Evaluator evaluator = coordinator.evaluators.get(target);
+				Evaluator evaluator = coordinator.evaluators.get(category.toString()).get(target);
 				p = evaluator.getProgress();
 			}
 			progresses.put(target, p);

@@ -235,8 +235,10 @@ public abstract class AbstractLearner implements Learner {
 		// Set module mode to blocking
 		nn.getModules().values().stream().forEach(m -> m.setMode(EnumSet.of(Mode.BLOCKING)));
 		
-		// Store the labels
-		nn.setOutputLabels(dataset.getLabels());
+		// Store the labels if classification dataset
+		String[] labels = dataset.getLabels();
+		if(labels!=null)
+			nn.setOutputLabels(labels);
 	}
 	
 	/**

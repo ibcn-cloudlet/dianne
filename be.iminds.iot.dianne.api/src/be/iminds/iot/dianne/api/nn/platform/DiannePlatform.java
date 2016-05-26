@@ -151,6 +151,11 @@ public interface DiannePlatform {
 	 */
 	List<String> getAvailableDatasets();
 	List<String> getAvailableExperiencePools();
+	List<String> getAvailableSequenceDatasets();
+	
+	boolean isExperiencePool(String dataset);
+	boolean isSequenceDataset(String dataset);
+	boolean isClassificationDatset(String dataset);
 	
 	/**
 	 * A map of available Dianne runtimes to which modules can be deployed to

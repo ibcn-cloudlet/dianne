@@ -195,7 +195,7 @@ function setupLearnToolbox(){
 			, "json");
 	
 	addToolboxItem('SGD Trainer','StochasticGradientDescent','Trainer','learn');
-	addToolboxItem('Arg Max Evaluator','ArgMax','Evaluator','learn');
+	addToolboxItem('Evaluator','Evaluator','Evaluator','learn');
 }
 
 function setupRunToolbox(){

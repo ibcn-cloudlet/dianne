@@ -12,10 +12,17 @@ public class Job {
 		ACT
 	}
 	
-	public enum Category {
+	public interface Category {}
+	
+	public enum LearnCategory implements Category {
 		FF,
 		RNN,
 		RL
+	}
+	
+	public enum EvaluationCategory implements Category {
+		CLASSIFICATION,
+		REGRESSION
 	}
 	
 	public final UUID id;

@@ -21,7 +21,7 @@ public abstract class AbstractJob<T> implements Runnable {
 	protected final UUID jobId;
 	protected final String name;
 	protected final Type type;
-	protected final Category category;
+	protected Category category;
 	
 	protected final DianneCoordinatorImpl coordinator;
 	
@@ -53,15 +53,6 @@ public abstract class AbstractJob<T> implements Runnable {
 		}
 	
 		this.type = type;
-		
-		if(c.containsKey("environment") || coord.isExperiencePool(d)){
-			category = Category.RL;
-		} else if(coord.isRecurrent(nn)){
-			category = Category.RNN;
-		} else {
-			category = Category.FF;
-		}
-		
 		
 		this.coordinator = coord;
 		

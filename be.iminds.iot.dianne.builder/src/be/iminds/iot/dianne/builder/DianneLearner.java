@@ -32,6 +32,7 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.AsyncEvent;
@@ -56,6 +57,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.nn.eval.ClassificationEvaluation;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.eval.Evaluator;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
@@ -81,8 +83,8 @@ public class DianneLearner extends HttpServlet {
 	
 	private Map<String, Dataset> datasets = new HashMap<String, Dataset>();
 	private DiannePlatform platform;
-	private Learner learner;
-	private Evaluator evaluator;
+	private Map<String, Learner> learners = new ConcurrentHashMap<>();
+	private Map<String, Evaluator> evaluators = new ConcurrentHashMap<>();
 
 	private int interval = 10;
 	private AsyncContext sse = null;
@@ -97,14 +99,26 @@ public class DianneLearner extends HttpServlet {
 		this.repository = repo;
 	}
 	
-	@Reference
-	void setLearner(Learner l){
-		this.learner = l;
+	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
+			policy=ReferencePolicy.DYNAMIC)
+	void addLearner(Map<String, Object> properties, Learner l){
+		String category = (String)properties.get("dianne.learner.category");
+		this.learners.put(category, l);
 	}
 	
-	@Reference
-	void setEvaluator(Evaluator e){
-		this.evaluator = e;
+	void removeLearner(Learner l){
+		this.learners.values().remove(l);
+	}
+	
+	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
+			policy=ReferencePolicy.DYNAMIC)
+	void addEvaluator(Map<String, Object> properties, Evaluator e){
+		String category = (String)properties.get("dianne.evaluator.category");
+		this.evaluators.put(category, e);
+	}
+	
+	void removeEvaluator(Evaluator e){
+		this.evaluators.values().remove(e);
 	}
 	
 	@Reference
@@ -170,7 +184,7 @@ public class DianneLearner extends HttpServlet {
 
 		String action = request.getParameter("action");
 		if(action.equals("stop")){
-			learner.stop();
+			learners.get("FF").stop();
 			return;
 		}
 		
@@ -222,7 +236,7 @@ public class DianneLearner extends HttpServlet {
 							response.getWriter().flush();
 						}
 						
-						learner.learn(dataset, config, nni);
+						learners.get("FF").learn(dataset, config, nni);
 
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -236,29 +250,44 @@ public class DianneLearner extends HttpServlet {
 					config.put("startIndex", ""+start);
 					config.put("endIndex", ""+end);
 					
+					String type = "REGRESSION";
+					if(platform.isClassificationDatset(dataset)){
+						type = "CLASSIFICATION";
+					}
+					
 					try {
-						Evaluation result = evaluator.eval(dataset, config, nni);
-						
+						Evaluation result = evaluators.get(type).eval(dataset, config, nni);
+
 						JsonObject eval = new JsonObject();
-						eval.add("accuracy", new JsonPrimitive(result.accuracy()*100));
 						
-						Tensor confusionMatrix = result.getConfusionMatix();
-						JsonArray data = new JsonArray();
-						for(int i=0;i<confusionMatrix.size(0);i++){
-							for(int j=0;j<confusionMatrix.size(1);j++){
-								JsonArray element = new JsonArray();
-								element.add(new JsonPrimitive(i));
-								element.add(new JsonPrimitive(j));
-								element.add(new JsonPrimitive(confusionMatrix.get(i,j)));
-								data.add(element);
+						if(result instanceof ClassificationEvaluation){
+							ClassificationEvaluation ce = (ClassificationEvaluation)result;
+							eval.add("accuracy", new JsonPrimitive(ce.accuracy()*100));
+							
+							Tensor confusionMatrix = ce.getConfusionMatix();
+							JsonArray data = new JsonArray();
+							for(int i=0;i<confusionMatrix.size(0);i++){
+								for(int j=0;j<confusionMatrix.size(1);j++){
+									JsonArray element = new JsonArray();
+									element.add(new JsonPrimitive(i));
+									element.add(new JsonPrimitive(j));
+									element.add(new JsonPrimitive(confusionMatrix.get(i,j)));
+									data.add(element);
+								}
 							}
+							eval.add("confusionMatrix", data);
+						} else {
+							eval.add("error", new JsonPrimitive(result.error()));
 						}
-						eval.add("confusionMatrix", data);
 						
 						response.getWriter().write(eval.toString());
 						response.getWriter().flush();
 					} catch(Exception e){
 						e.printStackTrace();
+						JsonObject eval = new JsonObject();
+						eval.add("error", new JsonPrimitive(e.getCause().getMessage()));
+						response.getWriter().write(eval.toString());
+						response.getWriter().flush();
 					}
 				}
 				break;
@@ -308,7 +337,7 @@ public class DianneLearner extends HttpServlet {
 		public void onParametersUpdate(UUID nnId, Collection<UUID> moduleIds,
 				String... tag) {
 			try {
-				LearnProgress progress = learner.getProgress();
+				LearnProgress progress = learners.get("FF").getProgress();
 				if(progress == null) // ignore if no progress yet
 					return;
 				

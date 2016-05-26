@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import org.osgi.framework.ServiceRegistration;
 
 import be.iminds.iot.dianne.api.coordinator.LearnResult;
+import be.iminds.iot.dianne.api.coordinator.Job.LearnCategory;
 import be.iminds.iot.dianne.api.coordinator.Job.Type;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.learn.Learner;
@@ -35,6 +36,14 @@ public class LearnJob extends AbstractJob<LearnResult> implements RepositoryList
 			String d,
 			Map<String, String> c){
 		super(coord, Type.LEARN, nn, d, c);
+		
+		if(c.containsKey("environment") || coord.isExperiencePool(d)){
+			category = LearnCategory.RL;
+		} else if(coord.isRecurrent(nn)){
+			category = LearnCategory.RNN;
+		} else {
+			category = LearnCategory.FF;
+		}
 	}
 		
 	@Override

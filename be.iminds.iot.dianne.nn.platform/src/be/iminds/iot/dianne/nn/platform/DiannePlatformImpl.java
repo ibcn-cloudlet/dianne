@@ -51,6 +51,7 @@ import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.api.nn.runtime.DianneRuntime;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
+import be.iminds.iot.dianne.api.rnn.dataset.SequenceDataset;
 
 @Component
 public class DiannePlatformImpl implements DiannePlatform {
@@ -350,6 +351,42 @@ public class DiannePlatformImpl implements DiannePlatform {
 	public List<String> getAvailableExperiencePools(){
 		return datasets.entrySet().stream().filter(e -> e.getValue() instanceof ExperiencePool)
 			.map(e -> e.getKey()).collect(Collectors.toList());
+	}
+	
+	@Override
+	public List<String> getAvailableSequenceDatasets() {
+		return datasets.entrySet().stream().filter(e -> e.getValue() instanceof SequenceDataset)
+				.map(e -> e.getKey()).collect(Collectors.toList());
+	}
+
+
+	@Override
+	public boolean isExperiencePool(String dataset) {
+		Dataset d = datasets.get(dataset);
+		if(d == null)
+			return false;
+		
+		return d instanceof ExperiencePool;
+	}
+
+
+	@Override
+	public boolean isSequenceDataset(String dataset) {
+		Dataset d = datasets.get(dataset);
+		if(d == null)
+			return false;
+		
+		return d instanceof SequenceDataset;
+	}
+
+
+	@Override
+	public boolean isClassificationDatset(String dataset) {
+		Dataset d = datasets.get(dataset);
+		if(d == null)
+			return false;
+		
+		return d.getLabels() != null;
 	}
 	
 	@Override

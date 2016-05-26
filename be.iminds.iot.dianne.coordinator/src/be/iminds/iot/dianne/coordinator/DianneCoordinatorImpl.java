@@ -106,7 +106,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	Queue<AbstractJob> finished = new CircularBlockingQueue<>(10);
 	
 	Map<String, Map<UUID, Learner>> learners = new ConcurrentHashMap<>();
-	Map<UUID, Evaluator> evaluators = new ConcurrentHashMap<>();
+	Map<String, Map<UUID, Evaluator>> evaluators = new ConcurrentHashMap<>();
 	Map<UUID, Agent> agents = new ConcurrentHashMap<>();
 
 	
@@ -455,7 +455,10 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 			if(targets!=null){
 				targets = findTargets(targets, filter, count);
 			} else if(type==Type.EVALUATE){
-				targets = findTargets(evaluators.keySet(), filter, count);
+				if(!evaluators.containsKey(job.category.toString())){
+					throw new Exception("No evaluator available for category "+job.category.toString());
+				}
+				targets = findTargets(evaluators.get(job.category.toString()).keySet(), filter, count);
 			} else if(type==Type.LEARN){
 				if(!learners.containsKey(job.category.toString())){
 					throw new Exception("No learner available for category "+job.category.toString());
@@ -628,12 +631,12 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	@Reference(policy=ReferencePolicy.DYNAMIC,
 			cardinality=ReferenceCardinality.MULTIPLE)
 	void addLearner(Learner learner, Map<String, Object> properties){
-		String type = (String)properties.get("dianne.learner.category");
+		String category = (String)properties.get("dianne.learner.category");
 		
-		Map<UUID, Learner> ll = learners.get(type);
+		Map<UUID, Learner> ll = learners.get(category);
 		if(ll==null){
 			ll = new ConcurrentHashMap<>();
-			learners.put(type, ll);
+			learners.put(category, ll);
 		}
 		
 		UUID id = learner.getLearnerId();
@@ -642,15 +645,15 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		Device device = addDevice(id);
 		device.learn = true;
 		
-		sendNotification(null, Level.INFO, "New "+type+" Learner "+id+" is added to the system.");
+		sendNotification(null, Level.INFO, "New "+category+" Learner "+id+" is added to the system.");
 		
 		schedule(Type.LEARN);
 	}
 	
 	void removeLearner(Learner learner, Map<String, Object> properties){
-		String type = (String)properties.get("dianne.learner.category");
+		String category = (String)properties.get("dianne.learner.category");
 
-		Map<UUID, Learner> ll = learners.get(type);
+		Map<UUID, Learner> ll = learners.get(category);
 		
 		UUID id = null;
 		Iterator<Entry<UUID, Learner>> it = ll.entrySet().iterator();
@@ -676,8 +679,16 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	@Reference(policy=ReferencePolicy.DYNAMIC,
 			cardinality=ReferenceCardinality.MULTIPLE)
 	void addEvaluator(Evaluator evaluator, Map<String, Object> properties){
+		String category = (String)properties.get("dianne.evaluator.category");
+
+		Map<UUID, Evaluator> ee = evaluators.get(category);
+		if(ee==null){
+			ee = new ConcurrentHashMap<>();
+			evaluators.put(category, ee);
+		}
+		
 		UUID id = evaluator.getEvaluatorId();
-		this.evaluators.put(id, evaluator);
+		ee.put(id, evaluator);
 		
 		Device device = addDevice(id);
 		device.eval = true;
@@ -688,8 +699,12 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	}
 	
 	void removeEvaluator(Evaluator evaluator, Map<String, Object> properties){
+		String category = (String)properties.get("dianne.evaluator.category");
+
+		Map<UUID, Evaluator> ee = evaluators.get(category);
+		
 		UUID id = null;
-		Iterator<Entry<UUID, Evaluator>> it =this.evaluators.entrySet().iterator();
+		Iterator<Entry<UUID, Evaluator>> it = ee.entrySet().iterator();
 		while(it.hasNext()){
 			Entry<UUID, Evaluator> e = it.next();
 			if(e.getValue()==evaluator){

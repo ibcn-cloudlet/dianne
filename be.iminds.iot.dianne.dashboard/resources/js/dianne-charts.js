@@ -119,11 +119,12 @@ function createResultChart(container, job, scale){
 				if(eval.confusionMatrix!==undefined){
 					// TODO what with multiple evaluations?
 					createConfusionChart(container, eval.confusionMatrix, scale);
+					container.prepend( "<div><b>Accuracy:</b> "+eval.accuracy*100+" %</div><br/>" );
 				} else {				
-					if(eval.processed===undefined){
-						createProgressBar(container, 0, "no samples processed");
-					} else {
+					if(eval.processed!==undefined){
 						createProgressBar(container, 100*eval.processed/eval.total, eval.processed+"/"+eval.total+" samples processed");
+					} else {
+						container.prepend( "<div><b>Error:</b> "+eval.error+"</div><br/>" );
 					}
 				}
 			});

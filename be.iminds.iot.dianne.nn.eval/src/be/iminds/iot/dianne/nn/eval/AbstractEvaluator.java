@@ -32,7 +32,6 @@ import java.util.UUID;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
@@ -41,16 +40,24 @@ import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
+import be.iminds.iot.dianne.api.nn.eval.ClassificationEvaluation;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.eval.EvaluationProgress;
 import be.iminds.iot.dianne.api.nn.eval.Evaluator;
 import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorOps;
 
-@Component(property={"aiolos.unique=true"})
-public class ArgMaxEvaluator implements Evaluator {
+/**
+ * The AbstractEvaluator has all mechanics to loop through (part of) a Dataset
+ * and forward each sample.
+ * 
+ * Concrete evaluators should implement the evalOutput(index, output, expected output)
+ * and update the error/confusionMatrix
+ * @author tverbele
+ *
+ */
+public abstract class AbstractEvaluator implements Evaluator {
 	
 	protected UUID evaluatorId;
 	
@@ -66,7 +73,7 @@ public class ArgMaxEvaluator implements Evaluator {
 	protected volatile boolean evaluating = false;
 	
 	protected int sample = 0;
-	protected int faulty = 0;
+	protected float error = 0;
 	protected int total = 0;
 	protected Tensor confusion;
 	protected List<Tensor> outputs;
@@ -150,7 +157,7 @@ public class ArgMaxEvaluator implements Evaluator {
 			}
 			
 			total = indices.length;
-			faulty = 0;
+			error = 0;
 			
 			NeuralNetwork nn = null;
 			try {
@@ -186,37 +193,29 @@ public class ArgMaxEvaluator implements Evaluator {
 				if(outputs!=null)
 					outputs.add(out.copyInto(null));
 				
-				if(confusion==null){
-					int outputSize = out.size();
-					confusion = new Tensor(outputSize, outputSize);
-					confusion.fill(0.0f);
-				}
-				
-				int predicted = TensorOps.argmax(out);
-				int real = TensorOps.argmax(d.getOutputSample(indices[sample]));
-				if(real!=predicted)
-					faulty++;
-				
-				if(trace){
-					System.out.println("Sample "+indices[sample]+" was "+predicted+", should be "+real);
-				}
-				
-				confusion.set(confusion.get(real, predicted)+1, real, predicted);
+				evalOutput(indices[sample], out, d.getOutputSample(indices[sample]));
 			}
 			tEnd = System.currentTimeMillis();
 			
-			Evaluation e = new Evaluation(total, faulty/(float)total, confusion, outputs, tEnd-tStart, (tForward/1000000f)/total);
-			return e;
+			long evaluationTime = tEnd-tStart;
+			float forwardTime =  (tForward/1000000f)/total;
+			if(confusion == null){
+				return new Evaluation(total, error/(float)total, outputs, evaluationTime, forwardTime);
+			} else {
+				return new ClassificationEvaluation(total, error/(float)total, outputs, evaluationTime, forwardTime, confusion);
+			}
 		} finally {
 			evaluating = false;
 		}
 	}
 	
+	protected abstract void evalOutput(int index, Tensor out, Tensor expected);
+	
 	public EvaluationProgress getProgress(){
 		if(!evaluating)
 			return null;
 		
-		EvaluationProgress progress = new EvaluationProgress(sample, total, System.currentTimeMillis()-tStart, (tForward/1000000f)/total);
+		EvaluationProgress progress = new EvaluationProgress(sample, total, error/sample, System.currentTimeMillis()-tStart, (tForward/1000000f)/total);
 		return progress;
 	}
 	

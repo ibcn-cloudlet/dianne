@@ -389,9 +389,6 @@ function createLearnModuleDialog(id, moduleItem){
 			cancel: "Delete"
 		}, $(document.body));
 				
-		// confusion chart and accuracy div
-		createConfusionChart(dialog.find(".content"));
-		dialog.find(".content").append("<div class=\"accuracy\"></div>")
 		
 		dialog.find(".submit").click(function(e){
 			var id = $(this).closest(".modal").find(".module-id").val();
@@ -837,31 +834,23 @@ function learn(id){
 }
 
 function evaluate(id){
-	// reset chart
-	var index = Number($("#dialog-"+id).find(".content").attr("data-highcharts-chart"));
-	Highcharts.charts[index].series[0].setData(null, true, true, false);
-	$("#dialog-"+id).find(".accuracy").text("");
-
-	// TODO there are no more intermediate updates now...
-	eventsource = new EventSource("/dianne/learner");
-	eventsource.onmessage = function(event){
-		var data = JSON.parse(event.data);
-		var index = Number($("#dialog-"+id).find(".content").attr("data-highcharts-chart"));
-		Highcharts.charts[index].series[0].setData(data, true, true, false);
-	}
+	$("#dialog-"+id).find(".content").empty();
+	
 	$("#spinnerwrap").show();
 	$.post("/dianne/learner", {"action":"evaluate",
 		"id": nn.id,
 		"config":JSON.stringify(learning),
 		"target": id}, 
 			function( data ) {
-				eventsource.close();
-				eventsource = undefined;
-				$("#dialog-"+id).find(".accuracy").text("Accuracy: "+data.accuracy+" %");
-				
-				var index = Number($("#dialog-"+id).find(".content").attr("data-highcharts-chart"));
-				Highcharts.charts[index].series[0].setData(data.confusionMatrix, true, true, false);
-				
+				if(data.confusionMatrix!==undefined){
+					// confusion chart and accuracy div
+					createConfusionChart($("#dialog-"+id).find(".content"));
+					$("#dialog-"+id).find(".content").append("<div>Accuracy: "+data.accuracy+" %</div>");
+					var index = Number($("#dialog-"+id).find(".content").attr("data-highcharts-chart"));
+					Highcharts.charts[index].series[0].setData(data.confusionMatrix, true, true, false);
+				} else {
+					$("#dialog-"+id).find(".content").append("<div>Error: "+data.error+"</div>");
+				} 
 				$("#spinnerwrap").hide();
 			}
 			, "json");
