@@ -50,8 +50,7 @@ import be.iminds.iot.dianne.dataset.ImageDataset;
 		service={Dataset.class},
 		immediate=true, 
 		configurationPolicy=ConfigurationPolicy.REQUIRE,
-		configurationPid="be.iminds.iot.dianne.dataset.ImageNet",		
-		property={"aiolos.unique=true"})
+		configurationPid="be.iminds.iot.dianne.dataset.ImageNet")
 public class ImageNetDataset extends ImageDataset {
 
 	@Override

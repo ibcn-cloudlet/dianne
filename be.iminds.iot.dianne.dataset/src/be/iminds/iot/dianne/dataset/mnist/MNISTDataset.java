@@ -42,8 +42,7 @@ import be.iminds.iot.dianne.dataset.FileDataset;
 		service={Dataset.class},
 		immediate=true, 
 		configurationPolicy=ConfigurationPolicy.REQUIRE,
-		configurationPid="be.iminds.iot.dianne.dataset.MNIST",		
-		property={"aiolos.unique=true"})
+		configurationPid="be.iminds.iot.dianne.dataset.MNIST")
 public class MNISTDataset extends FileDataset {
 
 	@Override

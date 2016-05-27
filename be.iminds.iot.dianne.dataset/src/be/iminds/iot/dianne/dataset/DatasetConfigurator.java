@@ -122,6 +122,9 @@ public class DatasetConfigurator {
 			if(pid == null)
 				return;
 			
+			// set an aiolos instance id using the dataset name to treat
+			// equally named datasets as single instance in the network
+			props.put("aiolos.instance.id", name);
 				
 			// TODO use object conversion from JSON here?
 			Configuration config = ca.createFactoryConfiguration(pid);

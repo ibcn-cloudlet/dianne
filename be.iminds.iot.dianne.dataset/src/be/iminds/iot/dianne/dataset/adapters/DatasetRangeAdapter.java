@@ -50,8 +50,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
  *
  */
 @Component(configurationPolicy=ConfigurationPolicy.REQUIRE,
-	configurationPid="be.iminds.iot.dianne.dataset.adapters.RangeAdapter",
-	property={"aiolos.unique=true"})
+	configurationPid="be.iminds.iot.dianne.dataset.adapters.RangeAdapter")
 public class DatasetRangeAdapter implements Dataset {
 
 	private Dataset data;

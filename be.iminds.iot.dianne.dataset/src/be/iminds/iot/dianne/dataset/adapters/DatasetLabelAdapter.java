@@ -53,8 +53,7 @@ import be.iminds.iot.dianne.tensor.TensorOps;
  *
  */
 @Component(configurationPolicy=ConfigurationPolicy.REQUIRE,
-	configurationPid="be.iminds.iot.dianne.dataset.adapters.LabelAdapter",
-	property={"aiolos.unique=true"})
+	configurationPid="be.iminds.iot.dianne.dataset.adapters.LabelAdapter")
 public class DatasetLabelAdapter implements Dataset {
 	
 	private Dataset data;

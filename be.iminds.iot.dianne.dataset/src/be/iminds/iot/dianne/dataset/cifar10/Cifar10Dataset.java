@@ -42,8 +42,7 @@ import be.iminds.iot.dianne.dataset.FileDataset;
 		service={Dataset.class},
 		configurationPolicy=ConfigurationPolicy.REQUIRE,
 		configurationPid="be.iminds.iot.dianne.dataset.CIFAR10",
-		immediate=true, 
-		property={"aiolos.unique=true"})
+		immediate=true)
 public class Cifar10Dataset extends FileDataset {
 
 	@Override

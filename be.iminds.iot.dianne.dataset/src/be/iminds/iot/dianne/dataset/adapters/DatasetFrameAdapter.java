@@ -49,8 +49,7 @@ import be.iminds.iot.dianne.tensor.TensorOps;
  *
  */
 @Component(configurationPolicy=ConfigurationPolicy.REQUIRE,
-	configurationPid="be.iminds.iot.dianne.dataset.adapters.FrameAdapter",
-	property={"aiolos.unique=true"})
+	configurationPid="be.iminds.iot.dianne.dataset.adapters.FrameAdapter")
 public class DatasetFrameAdapter implements Dataset {
 
 	private Dataset data;
