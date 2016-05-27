@@ -207,6 +207,37 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_softmaxGrad
 
 
 
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_logsoftmax
+  (JNIEnv * env, jclass c, jobject out, jobject in){
+	THTensor* input = getTensor(env, in);
+	THTensor* output = getTensor(env, out);
+
+	THNN_(LogSoftMax_updateOutput)(
+	          state,
+	          input,
+	          output);
+
+	return out == NULL ? createTensorObject(env, output) : out;
+}
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_logsoftmaxGradIn
+(JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject out){
+	THTensor* gradInput = getTensor(env, gradIn);
+	THTensor* gradOutput = getTensor(env, gradOut);
+	THTensor* output = getTensor(env, out);
+
+	THNN_(LogSoftMax_updateGradInput)(
+	          state,
+	          0,
+	          gradOutput,
+	          gradInput,
+	          output);
+
+	return gradIn == NULL ? createTensorObject(env, gradInput) : gradIn;
+}
+
+
+
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialmaxpool
   (JNIEnv * env, jclass c, jobject out, jobject in, jobject ind, jint kW, jint kH, jint dW, jint dH, jint pW, jint pH){
 	THTensor* input = getTensor(env, in);

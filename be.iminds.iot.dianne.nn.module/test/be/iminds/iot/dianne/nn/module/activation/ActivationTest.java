@@ -28,6 +28,7 @@ import org.junit.Test;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.nn.module.ModuleTest;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class ActivationTest extends ModuleTest {
 
@@ -204,5 +205,22 @@ public class ActivationTest extends ModuleTest {
 
 		Module m = new Softmax();
 		testModule(m, inputBatch, expOutput, gradOutputBatch, expGradInput);
+	}
+	
+	@Test
+	public void testLogSoftmax() throws Exception {
+		float[] eo = new float[] { 
+				-10.458658f, -9.458658f, -8.458658f, -7.458658f, -6.458658f,
+				-5.458658f, -4.458658f, -3.4586585f, -2.4586585f, -1.4586585f, -0.45865846f };
+		Tensor expOutput = new Tensor(eo, 11);
+
+		float[] eg = new float[] {0.99968433f, 0.9991419f, 0.9976674f,
+				0.99365926f, 0.9827641f, 0.95314807f, 0.87264323f,
+				0.6538085f, 0.058953933f, -1.5580285f, -5.953442f};
+
+		Tensor expGradInput = new Tensor(eg, 11);
+
+		Module m = new LogSoftmax();
+		testModule(m, input, expOutput, gradOutput, expGradInput);
 	}
 }

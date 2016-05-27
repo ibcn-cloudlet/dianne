@@ -56,6 +56,10 @@ public class ModuleTest {
 					}
 				}
 			});
+			
+			if(TRACE)
+				System.out.println("INPUT "+input);
+			
 			synchronized(m) {
 				m.forward(UUID.randomUUID(), input);
 				m.wait(1000);
@@ -118,7 +122,7 @@ public class ModuleTest {
 			
 			if(TRACE)
 				System.out.println("DELTA PARAMS "+m.getDeltaParameters());
-
+			
 			Assert.assertTrue(expOutput.equals(output, 0.001f));
 			Assert.assertTrue(expGradInput.equals(gradInput, 0.001f));
 			Assert.assertTrue(expDeltaParameters.equals(m.getDeltaParameters(), 0.001f));

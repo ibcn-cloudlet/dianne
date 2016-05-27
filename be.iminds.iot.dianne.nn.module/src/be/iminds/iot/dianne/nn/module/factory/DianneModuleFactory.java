@@ -37,6 +37,7 @@ import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModulePropertyDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleTypeDTO;
 import be.iminds.iot.dianne.api.nn.module.factory.ModuleFactory;
+import be.iminds.iot.dianne.nn.module.activation.LogSoftmax;
 import be.iminds.iot.dianne.nn.module.activation.PReLU;
 import be.iminds.iot.dianne.nn.module.activation.ReLU;
 import be.iminds.iot.dianne.nn.module.activation.Sigmoid;
@@ -89,7 +90,9 @@ public class DianneModuleFactory implements ModuleFactory {
 		
 		addSupportedType(new ModuleTypeDTO("Tanh", "Activation", false));
 		
-		addSupportedType(new ModuleTypeDTO("Softmax", "Activation", false));	
+		addSupportedType(new ModuleTypeDTO("Softmax", "Activation", false));
+		
+		addSupportedType(new ModuleTypeDTO("LogSoftmax", "Activation", false));	
 	
 		addSupportedType(new ModuleTypeDTO("ReLU", "Activation", false));
 
@@ -227,6 +230,11 @@ public class DianneModuleFactory implements ModuleFactory {
 		case "Softmax":
 		{
 			module = new Softmax(id);
+			break;
+		}
+		case "LogSoftmax":
+		{
+			module = new LogSoftmax(id);
 			break;
 		}
 		case "ReLU":
