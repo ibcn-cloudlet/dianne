@@ -130,6 +130,14 @@ public class DianneNeuralNetworkBuilder {
 		modules.add(softmax);
 		return this;
 	}
+
+	public DianneNeuralNetworkBuilder addLogSoftmax(){
+		ModuleDTO prev = modules.getLast();
+		ModuleDTO logsoftmax = new ModuleDTO(UUID.randomUUID(), "LogSoftmax", null, new UUID[]{prev.id}, null);
+		prev.next = new UUID[]{logsoftmax.id};
+		modules.add(logsoftmax);
+		return this;
+	}
 	
 	public NeuralNetworkDTO create(){
 		ModuleDTO prev = modules.getLast();
