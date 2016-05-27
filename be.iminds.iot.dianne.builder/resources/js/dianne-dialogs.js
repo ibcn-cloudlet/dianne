@@ -503,7 +503,7 @@ function createRunModuleDialog(id, moduleItem){
 										}
 										Highcharts.charts[index].setTitle({text: title});
 									}
-									Highcharts.charts[index].series[0].setData(data.output, true, true, true);
+									Highcharts.charts[index].series[0].setData(data.probabilities, true, true, true);
 									Highcharts.charts[index].xAxis[0].setCategories(data.labels);
 								}
 								$("#dialog-"+module.id).find(".content").find('.outputviz').hide();

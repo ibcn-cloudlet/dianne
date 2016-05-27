@@ -279,52 +279,68 @@ public class DianneRunner extends HttpServlet {
 	private String outputSSEMessage(UUID outputId, String[] outputLabels, Tensor output, long time, String...tags){
 		JsonObject data = new JsonObject();
 
-		// format output as [['label', val],['label2',val2],...] for in highcharts
-		String[] labels;
-		float[] values;
-		if(output.size()>10){
-			// if more than 10 outputs, only send top-10 results
-			Integer[] indices = new Integer[output.size()];
-			for(int i=0;i<output.size();i++){
-				indices[i] = i;
-			}
-			Arrays.sort(indices, new Comparator<Integer>() {
-				@Override
-				public int compare(Integer o1, Integer o2) {
-					float v1 = output.get(o1);
-					float v2 = output.get(o2);
-					// inverse order to have large->small order
-					return v1 > v2 ? -1 : (v1 < v2 ? 1 : 0);
+		float max = TensorOps.max(output);
+		
+		if(outputLabels != null){
+			// format output as [['label', val],['label2',val2],...] for in highcharts
+			String[] labels;
+			float[] values;
+			if(output.size()>10){
+				// if more than 10 outputs, only send top-10 results
+				Integer[] indices = new Integer[output.size()];
+				for(int i=0;i<output.size();i++){
+					indices[i] = i;
 				}
-			});
-			labels = new String[10];
-			values = new float[10];
-			for(int i=0;i<10;i++){
-				labels[i] = outputLabels!=null ? outputLabels[indices[i]] : ""+indices[i];
-				values[i] = output.get(indices[i]);
-			}
-		} else {
-			labels = outputLabels;
-			if(labels==null){
-				labels = new String[output.size()];
-				for(int i=0;i<labels.length;i++){
-					labels[i] = ""+i;
+				Arrays.sort(indices, new Comparator<Integer>() {
+					@Override
+					public int compare(Integer o1, Integer o2) {
+						float v1 = output.get(o1);
+						float v2 = output.get(o2);
+						// inverse order to have large->small order
+						return v1 > v2 ? -1 : (v1 < v2 ? 1 : 0);
+					}
+				});
+				labels = new String[10];
+				values = new float[10];
+				for(int i=0;i<10;i++){
+					labels[i] = outputLabels!=null ? outputLabels[indices[i]] : ""+indices[i];
+					values[i] = output.get(indices[i]);
 				}
+			} else {
+				labels = outputLabels;
+				if(labels==null){
+					labels = new String[output.size()];
+					for(int i=0;i<labels.length;i++){
+						labels[i] = ""+i;
+					}
+				}
+				values = output.get();
 			}
-			values = output.get();
+			
+			JsonArray probabilities = new JsonArray();
+			for(int i=0;i<values.length;i++){
+				// if negative values for classification - assume log probabilities
+				// take exp to return probability
+				if(max < 0){
+					values[i] = (float)Math.exp(values[i]);
+				}
+				probabilities.add(new JsonPrimitive(values[i]));
+			}
+			data.add("probabilities", probabilities);
+			
+			JsonArray l = new JsonArray();
+			for(int i=0;i<labels.length;i++){
+				l.add(new JsonPrimitive(labels[i]));
+			}
+			data.add("labels", l);
 		}
 		
-		JsonArray result = new JsonArray();
-		for(int i=0;i<values.length;i++){
-			result.add(new JsonPrimitive(values[i]));
+		JsonArray r = new JsonArray();
+		float[] raw = output.get();
+		for(int i=0;i<raw.length;i++){
+			r.add(new JsonPrimitive(raw[i]));
 		}
-		data.add("output", result);
-		
-		JsonArray l = new JsonArray();
-		for(int i=0;i<labels.length;i++){
-			l.add(new JsonPrimitive(labels[i]));
-		}
-		data.add("labels", l);
+		data.add("output", r);
 		
 		if(time > 0){
 			data.add("time", new JsonPrimitive(time));
