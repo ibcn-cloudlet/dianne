@@ -69,7 +69,7 @@ public class Denormalization extends AbstractModule implements Preprocessor {
 
 	@Override
 	protected void backward() {
-		gradInput = TensorOps.mul(gradInput, gradOutput, std);
+		gradInput = TensorOps.div(gradInput, gradOutput, std);
 	}
 
 	@Override
