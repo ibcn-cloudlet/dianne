@@ -26,6 +26,12 @@ import be.iminds.iot.dianne.api.nn.learn.Criterion;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
+/**
+ * Mean squared error criterion
+ * 
+ * @author tverbele
+ *
+ */
 public class MSECriterion implements Criterion {
 
 	protected Tensor error;

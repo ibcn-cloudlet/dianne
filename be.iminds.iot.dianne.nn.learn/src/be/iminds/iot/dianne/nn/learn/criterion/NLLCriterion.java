@@ -26,6 +26,14 @@ import be.iminds.iot.dianne.api.nn.learn.Criterion;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
+/**
+ * Negative Log Likelihood criterion
+ * 
+ * Assumes the outputs are log probabilities (i.e. from LogSoftmax output)
+ * 
+ * @author tverbele
+ *
+ */
 public class NLLCriterion implements Criterion {
 
 	protected Tensor gradInput;
@@ -38,16 +46,14 @@ public class NLLCriterion implements Criterion {
 	
 	@Override
 	public Tensor error(final Tensor output, final Tensor target) {
-		log = TensorOps.log(log, output);
-		float ll = TensorOps.dot(log, target);
+		float ll = TensorOps.dot(output, target);
 		nll.set(-ll, 0);
 		return nll;
 	}
 
 	@Override
 	public Tensor grad(final Tensor output, final Tensor target) {
-		gradInput = TensorOps.cdiv(gradInput, target, output);
-		gradInput = TensorOps.mul(gradInput, gradInput, -1.0f);
+		gradInput = TensorOps.mul(gradInput, target, -1.0f);
 		return gradInput;
 	}
 }
