@@ -31,7 +31,7 @@ public class TensorOpsTest {
 	@BeforeClass
 	public static void load() {
 		NativeTensorLoader loader = new NativeTensorLoader();
-		loader.activate();
+		loader.activate(null);
 	}
 	
 	@Test

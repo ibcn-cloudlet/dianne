@@ -20,7 +20,7 @@ public class ModuleTest {
 	@BeforeClass
 	public static void setup() {
 		NativeTensorLoader loader = new NativeTensorLoader();
-		loader.activate();
+		loader.activate(null);
 	}
 	
 	protected void testModule(Module m, Tensor input, Tensor expOutput, Tensor gradOutput, 

@@ -30,6 +30,11 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_init
   (JNIEnv * env, jobject t, jfloatArray data, jintArray dims){
 	THTensor * tensor;
 
+#ifdef CUDA
+	selectGPU(CURRENT_GPU);
+#endif
+
+
 	if(dims == NULL){
 		tensor = THTensor_(new)(
 #ifdef CUDA

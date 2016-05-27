@@ -54,10 +54,12 @@ static void gcFunction(void *data){
 	(*jvm)->DetachCurrentThread(jvm);
 }
 
+
+
 /** Initialize and cleanup **/
 
 JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_NativeTensorLoader_init
-  (JNIEnv * env, jobject loader){
+  (JNIEnv * env, jobject loader, jint device){
 	// cache class, field and method IDs for interacting with Tensor java object
 	jclass tensorClass;
 	char *className = "be/iminds/iot/dianne/tensor/Tensor";
@@ -92,6 +94,13 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_NativeTensorLoader_init
 	if(state == 0){
 		state = (THCState*)malloc(sizeof(THCState));
 		THCudaInit(state);
+
+		if(device >= 0){
+			CURRENT_GPU = device;
+			selectGPU(device);
+		} else {
+			CURRENT_GPU = 0;
+		}
 	}
 	THCudaCheck(cudaGetLastError());
 #endif
@@ -117,7 +126,12 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_NativeTensorLoader_clean
 /** Tensor creation **/
 
 THTensor* getTensor(JNIEnv* env, jobject o){
+#ifdef CUDA
+	selectGPU(CURRENT_GPU);
+#endif
+
 	if(o == NULL){
+
 		// return new empty THTensor if jobject is null
 		THTensor* t = THTensor_(new)(
 #ifdef CUDA
@@ -181,3 +195,21 @@ THTensor* getTensor4d(JNIEnv* env, jobject o, int d0, int d1, int d2, int d3){
 jobject createTensorObject(JNIEnv* env, THTensor* t){
 	return (*env)->NewObject(env, TENSOR_CLASS, TENSOR_INIT, (jlong)t);
 }
+
+
+#ifdef CUDA
+void selectGPU(int d){
+	int current;
+
+	THCudaCheck(cudaGetDevice(&current));
+	if(current == d)
+		return;
+
+	THCudaCheck(cudaSetDevice(d));	
+	THCRandom_setGenerator(state, d);
+
+	/* The stream is per device, so update the stream as well */
+	THCState_setStream(state, d, THCState_getCurrentStreamIndex(state));
+	THCState_setBlasHandle(state, d, THCState_getCurrentBlasHandleIndex(state));
+}
+#endif

@@ -1,5 +1,6 @@
 package be.iminds.iot.dianne.tensor;
 
+import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -17,8 +18,16 @@ public class NativeTensorLoader {
 	}
 	
 	@Activate
-	public void activate(){
-		init();
+	public void activate(BundleContext context){
+		int device = -1;
+		if(context != null){
+			String d = context.getProperty("be.iminds.iot.dianne.tensor.device");
+			if(d != null){
+				device = Integer.parseInt(d);
+			}
+		}
+		
+		init(device);
 	}
 	
 	@Deactivate()
@@ -26,7 +35,8 @@ public class NativeTensorLoader {
 		cleanup();
 	}
 	
-	private native void init();
+	// set GPU device id in case of multiple GPUs on machine!
+	private native void init(int device);
 	
 	private native void cleanup();
 	

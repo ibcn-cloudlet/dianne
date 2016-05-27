@@ -55,4 +55,7 @@ typedef THCudaStorage THStorage;
 
 THCState* state;
 
+int CURRENT_GPU;
+void selectGPU(int d);
+
 #endif
