@@ -86,6 +86,9 @@ public abstract class AbstractLearner implements Learner {
 	
 	// Fixed properties
 	protected static final float alpha = 1e-2f;
+
+	// Retry with previously stored parameters in case of NaN
+	protected int nanretry = 0;
 	
 	@Override
 	public UUID getLearnerId(){
@@ -147,10 +150,17 @@ public abstract class AbstractLearner implements Learner {
 						// Process training sample(s) for this iteration
 						float err = process(i);
 						
-						// If error is NaN, trigger something to repo to catch notification
-						// TODO reset parameters?
-						if(Float.isNaN(err))
-							nn.storeParameters(tag, "NaN");
+						if(Float.isNaN(err)){
+							if(nanretry > 0){
+								System.out.println("Retry after NaN");
+								nn.loadParameters(tag);
+								nanretry--;
+								continue;
+							} else {
+								// If error is NaN, trigger something to repo to catch notification
+								nn.storeParameters(tag, "NaN");
+							}
+						}
 						
 						// Keep track of error
 						if(i==0)
@@ -213,6 +223,10 @@ public abstract class AbstractLearner implements Learner {
 		if (config.containsKey("trace"))
 			trace = Boolean.parseBoolean(config.get("trace"));
 		System.out.println("* trace = " +trace);
+
+		if (config.containsKey("nanretry"))
+			nanretry = Integer.parseInt(config.get("nanretry"));
+		System.out.println("* retry after NaN = " +nanretry);
 	}
 	
 	/**
