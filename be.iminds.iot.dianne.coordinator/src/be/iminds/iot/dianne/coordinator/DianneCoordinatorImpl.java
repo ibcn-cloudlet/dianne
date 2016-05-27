@@ -693,7 +693,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		Device device = addDevice(id);
 		device.eval = true;
 		
-		sendNotification(null, Level.INFO, "New Evaluator "+id+" is added to the system.");
+		sendNotification(null, Level.INFO, "New "+category+" Evaluator "+id+" is added to the system.");
 		
 		schedule(Type.EVALUATE);
 	}
