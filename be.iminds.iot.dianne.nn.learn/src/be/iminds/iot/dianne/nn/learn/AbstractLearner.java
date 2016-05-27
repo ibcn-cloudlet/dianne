@@ -159,7 +159,7 @@ public abstract class AbstractLearner implements Learner {
 							error = (1 - alpha) * error + alpha * err;
 	
 						if(trace)
-							System.out.println(error);
+							System.out.println("Batch: "+i+"\tError: "+error);
 						
 						// Publish parameters to repository
 						publishParameters(i);
