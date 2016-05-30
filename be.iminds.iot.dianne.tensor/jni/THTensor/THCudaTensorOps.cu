@@ -184,8 +184,9 @@ __global__ void dmaxpool(float *input, float *output, float *goutput,
 	const int yy_step = blockDim.y*gridDim.y;
 
 	// select input/output plane
-	output = output + o*output_w*output_h;
 	input = input + i*input_w*input_h;
+	output = output + i*input_w*input_h;
+	goutput = goutput + o*output_w*output_h;
 
 	// For all output pixels...
 	for(yy = yy_start; yy < yy_end; yy+=yy_step) {
@@ -514,12 +515,14 @@ extern "C" {
     	//long nOutputRows = (nInputRows - kH) / dH + 1;
 
     	input = THCudaTensor_newContiguous(state, input);
+    	gradoutput = THCudaTensor_newContiguous(state, gradoutput);
+    	
     	float* input_data = THCudaTensor_data(state, input);
+    	float* goutput_data = THCudaTensor_data(state, gradoutput);
 
     	THCudaTensor_resize3d(state, output, nInputPlane, nInputRows, nInputCols);
     	float* output_data = THCudaTensor_data(state, output);
     	
-    	float* goutput_data = THCudaTensor_data(state, gradoutput);
 
     	// cuda blocks & threads:
     	int yblocks = (int)(16L / nInputPlane);
@@ -533,6 +536,7 @@ extern "C" {
     	  nInputPlane, nInputRows, nInputCols, kH, kW, dH, dW);
 	
 		THCudaTensor_free(state, input);
+		THCudaTensor_free(state, gradoutput);
 	}
 	
 	
