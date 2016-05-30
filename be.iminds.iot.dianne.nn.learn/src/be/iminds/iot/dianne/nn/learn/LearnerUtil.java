@@ -64,6 +64,10 @@ public class LearnerUtil {
 		if(config.containsKey("decayRate"))
 			decayRate = Float.parseFloat(config.get("decayRate"));
 		
+		float learningRateMin = 0.0f;
+		if(config.containsKey("learningRateMin"))
+			learningRateMin = Float.parseFloat(config.get("learningRateMin"));
+		
 		GradientProcessor p = null;
 		
 		switch(method) {
@@ -93,7 +97,7 @@ public class LearnerUtil {
 			if(!method.equals("SGD"))
 				System.out.println("Method "+method+" unknown, fall back to SGD");
 			
-			p = new StochasticGradientDescentProcessor(nn, logger, learningRate);
+			p = new StochasticGradientDescentProcessor(nn, logger, learningRate, decayRate, learningRateMin);
 			
 			System.out.println("StochasticGradientDescent");
 			System.out.println("* learningRate = "+learningRate);

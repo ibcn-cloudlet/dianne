@@ -30,15 +30,21 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class StochasticGradientDescentProcessor extends GradientProcessor {
 
-	private final float rate;
+	private final float maxRate;
+	private final float minRate;
+	private final float decayRate;
 	
-	public StochasticGradientDescentProcessor(NeuralNetwork nn, DataLogger logger, float rate) {
+	public StochasticGradientDescentProcessor(NeuralNetwork nn, DataLogger logger, float maxRate, float minRate, float decayRate) {
 		super(nn, logger);
-		this.rate = rate;
+		this.maxRate = maxRate;
+		this.minRate = minRate;
+		this.decayRate = decayRate;
 	}
 	
 	@Override
 	public void updateDelta(long i) {
+		final float rate = (float) (minRate + (maxRate - minRate)*Math.exp(-i * decayRate));
+		
 		nn.getTrainables().values().stream().forEach(m -> {
 			// Get the gradients
 			Tensor deltaParams = m.getDeltaParameters();
