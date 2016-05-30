@@ -99,6 +99,21 @@ public class DianneNeuralNetworkBuilder {
 		return this;
 	}
 	
+	public DianneNeuralNetworkBuilder addAvgpool(int kernelWidth, int kernelHeight, int strideX, int strideY){
+		Map<String, String> properties = new HashMap<>();
+		properties.put("width", ""+kernelWidth);
+		properties.put("height", ""+kernelHeight);
+		properties.put("strideX", ""+strideX);
+		properties.put("strideY", ""+strideY);
+		
+		ModuleDTO prev = modules.getLast();
+		ModuleDTO avgpool = new ModuleDTO(UUID.randomUUID(), "AvgPooling", null, new UUID[]{prev.id}, properties);
+		prev.next = new UUID[]{avgpool.id};
+		modules.add(avgpool);
+		
+		return this;
+	}
+	
 	public DianneNeuralNetworkBuilder addReLU(){
 		ModuleDTO prev = modules.getLast();
 		ModuleDTO relu = new ModuleDTO(UUID.randomUUID(), "ReLU", null, new UUID[]{prev.id}, null);

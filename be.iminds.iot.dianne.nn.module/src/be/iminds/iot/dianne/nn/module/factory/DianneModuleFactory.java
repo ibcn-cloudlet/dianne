@@ -57,6 +57,7 @@ import be.iminds.iot.dianne.nn.module.layer.Dropout;
 import be.iminds.iot.dianne.nn.module.layer.Linear;
 import be.iminds.iot.dianne.nn.module.layer.MaskedMaxPooling;
 import be.iminds.iot.dianne.nn.module.layer.Reshape;
+import be.iminds.iot.dianne.nn.module.layer.SpatialAvgPooling;
 import be.iminds.iot.dianne.nn.module.layer.SpatialConvolution;
 import be.iminds.iot.dianne.nn.module.layer.SpatialMaxPooling;
 import be.iminds.iot.dianne.nn.module.preprocessing.Denormalization;
@@ -122,7 +123,7 @@ public class DianneModuleFactory implements ModuleFactory {
 				new ModulePropertyDTO("Stride X", "strideX", Integer.class.getName()),
 				new ModulePropertyDTO("Stride Y", "strideY", Integer.class.getName())));
 			
-		addSupportedType(new ModuleTypeDTO("Convolution", "Layer", true, 
+		addSupportedType(new ModuleTypeDTO("Spatial Convolution", "Layer", true, 
 				new ModulePropertyDTO("Input planes", "noInputPlanes", Integer.class.getName()),
 				new ModulePropertyDTO("Output planes", "noOutputPlanes", Integer.class.getName()),
 				new ModulePropertyDTO("Kernel width", "kernelWidth", Integer.class.getName()),
@@ -131,11 +132,17 @@ public class DianneModuleFactory implements ModuleFactory {
 				new ModulePropertyDTO("Stride Y", "strideY", Integer.class.getName()),
 				new ModulePropertyDTO("Add zero padding", "pad", Boolean.class.getName())));
 			
-		addSupportedType(new ModuleTypeDTO("MaxPooling" , "Layer", false, 
+		addSupportedType(new ModuleTypeDTO("Spatial MaxPooling" , "Layer", false, 
 				new ModulePropertyDTO("Width", "width", Integer.class.getName()),
 				new ModulePropertyDTO("Height", "height", Integer.class.getName()),
 				new ModulePropertyDTO("Stride X", "strideX", Integer.class.getName()),
-				new ModulePropertyDTO("Stride Y", "strideY", Integer.class.getName())));	
+				new ModulePropertyDTO("Stride Y", "strideY", Integer.class.getName())));
+		
+		addSupportedType(new ModuleTypeDTO("Spatial AvgPooling" , "Layer", false, 
+				new ModulePropertyDTO("Width", "width", Integer.class.getName()),
+				new ModulePropertyDTO("Height", "height", Integer.class.getName()),
+				new ModulePropertyDTO("Stride X", "strideX", Integer.class.getName()),
+				new ModulePropertyDTO("Stride Y", "strideY", Integer.class.getName())));
 		
 		addSupportedType(new ModuleTypeDTO("Normalization", "Preprocessing", true));
 		addSupportedType(new ModuleTypeDTO("Denormalization", "Preprocessing", true));
@@ -305,6 +312,7 @@ public class DianneModuleFactory implements ModuleFactory {
 			break;
 		}
 		case "Convolution":
+		case "Spatial Convolution":
 		{
 			int noInputPlanes = Integer.parseInt(dto.properties.get("noInputPlanes"));
 			int noOutputPlanes = Integer.parseInt(dto.properties.get("noOutputPlanes"));
@@ -324,6 +332,7 @@ public class DianneModuleFactory implements ModuleFactory {
 			break;
 		}
 		case "MaxPooling":
+		case "Spatial MaxPooling":
 		{
 			int width = Integer.parseInt(dto.properties.get("width"));
 			int height = Integer.parseInt(dto.properties.get("height"));
@@ -332,6 +341,18 @@ public class DianneModuleFactory implements ModuleFactory {
 			int sy = hasProperty(dto.properties,"strideY") ? Integer.parseInt(dto.properties.get("strideY")) : height;
 			
 			module = new SpatialMaxPooling(id, width, height, sx, sy);
+			break;
+		}
+		case "AvgPooling":
+		case "Spatial AvgPooling":
+		{
+			int width = Integer.parseInt(dto.properties.get("width"));
+			int height = Integer.parseInt(dto.properties.get("height"));
+
+			int sx = hasProperty(dto.properties, "strideX") ? Integer.parseInt(dto.properties.get("strideX")) : width;
+			int sy = hasProperty(dto.properties,"strideY") ? Integer.parseInt(dto.properties.get("strideY")) : height;
+			
+			module = new SpatialAvgPooling(id, width, height, sx, sy);
 			break;
 		}
 		case "Normalization":

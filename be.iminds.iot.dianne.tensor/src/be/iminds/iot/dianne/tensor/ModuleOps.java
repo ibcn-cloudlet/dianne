@@ -42,6 +42,13 @@ public class ModuleOps {
 			final int kW, final int kH, final int dW, final int dH, final int padW, final int padH);
 
 	
+	public static native Tensor spatialavgpool(Tensor output, final Tensor input,
+			final int kW, final int kH, final int dW, final int dH, final int padW, final int padH, boolean ceil, boolean count_pad);
+
+	public static native Tensor spatialavgpoolGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor input,
+			final int kW, final int kH, final int dW, final int dH, final int padW, final int padH, boolean ceil, boolean count_pad);
+
+	
 	public static native Tensor spatialconvolve(Tensor output, final Tensor input, final Tensor kernels, final Tensor bias, final Tensor temp1, final Tensor temp2,
 			final int kW, final int kH, final int dW, final int dH, final int padW, final int padH);
 
