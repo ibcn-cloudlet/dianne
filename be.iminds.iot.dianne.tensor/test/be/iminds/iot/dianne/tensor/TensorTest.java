@@ -116,6 +116,15 @@ public class TensorTest {
 	}
 	
 	@Test
+	public void testFill(){
+		Tensor t = new Tensor(2, 2);
+		t.fill(1.0f);
+		Tensor expected = new Tensor(new float[]{1.0f, 1.0f, 1.0f, 1.0f}, 2, 2);
+		
+		Assert.assertEquals(expected, t);
+	}
+	
+	@Test
 	public void testReshape() {
 		Tensor t = new Tensor(2, 2);
 		t.fill(1.0f);
