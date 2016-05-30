@@ -112,15 +112,18 @@ public abstract class AbstractJob<T> implements Runnable {
 	private void done(){
 		stopped = System.currentTimeMillis();
 		
-		cleanup();
+		try {
+			cleanup();
+			
+			// undeploy neural networks on target instances here?
+			for(NeuralNetworkInstanceDTO nni : nnis.values()){
+				coordinator.platform.undeployNeuralNetwork(nni);
+			}
 		
-		// undeploy neural networks on target instances here?
-		for(NeuralNetworkInstanceDTO nni : nnis.values()){
-			coordinator.platform.undeployNeuralNetwork(nni);
+		} finally {
+			// this one is free again for the coordinator
+			coordinator.done(this);
 		}
-		
-		// this one is free again for the coordinator
-		coordinator.done(this);
 	}
 	
 	public void start(List<UUID> targets){

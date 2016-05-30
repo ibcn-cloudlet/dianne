@@ -62,6 +62,7 @@ import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.eval.Evaluator;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.learn.Learner;
+import be.iminds.iot.dianne.api.nn.learn.LearnerListener;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
@@ -295,7 +296,7 @@ public class DianneLearner extends HttpServlet {
 		}
 	}
 	
-	private class SSERepositoryListener implements RepositoryListener{
+	private class SSERepositoryListener implements LearnerListener {
 
 		private final String nnId;
 		private final AsyncContext async;
@@ -332,15 +333,21 @@ public class DianneLearner extends HttpServlet {
 				}
 			});
 		}
+	
+		public void register(BundleContext context){
+			Dictionary<String, Object> props = new Hashtable();
+			props.put("targets", new String[]{learners.get("FF").getLearnerId().toString()});
+			props.put("aiolos.unique", true);
+			reg = context.registerService(LearnerListener.class, this, props);
+		}
 		
+		public void unregister(){
+			reg.unregister();
+		}
+
 		@Override
-		public void onParametersUpdate(UUID nnId, Collection<UUID> moduleIds,
-				String... tag) {
+		public void onProgress(UUID learnerId, LearnProgress progress) {
 			try {
-				LearnProgress progress = learners.get("FF").getProgress();
-				if(progress == null) // ignore if no progress yet
-					return;
-				
 				JsonObject data = new JsonObject();
 				data.add("sample", new JsonPrimitive(progress.iteration));
 				data.add("error", new JsonPrimitive(progress.error));
@@ -358,16 +365,31 @@ public class DianneLearner extends HttpServlet {
 				unregister();
 			}	
 		}
+
+		@Override
+		public void onException(UUID learnerId, Throwable ex) {
+			try {
+				PrintWriter writer = async.getResponse().getWriter();
 	
-		public void register(BundleContext context){
-			Dictionary<String, Object> props = new Hashtable();
-			props.put("targets", new String[]{":"+nnId});
-			props.put("aiolos.unique", true);
-			reg = context.registerService(RepositoryListener.class, this, props);
+				JsonObject err = new JsonObject();
+				err.add("error", new JsonPrimitive(ex.getCause().getMessage()));
+				StringBuilder builder = new StringBuilder();
+				builder.append("data: ").append(err.toString()).append("\n\n");
+				
+				writer.write(builder.toString());
+				writer.flush();
+				if(writer.checkError()){
+					unregister();
+				}
+			} catch(Exception e){
+				e.printStackTrace();
+				unregister();
+			}	
 		}
-		
-		public void unregister(){
-			reg.unregister();
+
+		@Override
+		public void onFinish(UUID learnerId, LearnProgress p) {
+	
 		}
 		
 	}

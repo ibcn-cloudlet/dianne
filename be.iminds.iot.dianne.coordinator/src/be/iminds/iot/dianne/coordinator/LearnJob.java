@@ -1,6 +1,5 @@
 package be.iminds.iot.dianne.coordinator;
 
-import java.util.Collection;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -10,16 +9,16 @@ import java.util.stream.Collectors;
 
 import org.osgi.framework.ServiceRegistration;
 
-import be.iminds.iot.dianne.api.coordinator.LearnResult;
 import be.iminds.iot.dianne.api.coordinator.Job.LearnCategory;
 import be.iminds.iot.dianne.api.coordinator.Job.Type;
+import be.iminds.iot.dianne.api.coordinator.LearnResult;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.learn.Learner;
+import be.iminds.iot.dianne.api.nn.learn.LearnerListener;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
-import be.iminds.iot.dianne.api.repository.RepositoryListener;
 
-public class LearnJob extends AbstractJob<LearnResult> implements RepositoryListener {
+public class LearnJob extends AbstractJob<LearnResult> implements LearnerListener {
 
 	private ServiceRegistration reg;
 	
@@ -63,10 +62,10 @@ public class LearnJob extends AbstractJob<LearnResult> implements RepositoryList
 		}
 		
 		Dictionary<String, Object> props = new Hashtable();
-		String[] t = nnis.values().stream().map(nni -> ":"+nni.id.toString()).collect(Collectors.toList()).toArray(new String[nnis.size()]);
+		String[] t = targets.stream().map(uuid -> uuid.toString()).collect(Collectors.toList()).toArray(new String[targets.size()]);
 		props.put("targets", t);
 		props.put("aiolos.unique", true);
-		reg = coordinator.context.registerService(RepositoryListener.class, this, props);
+		reg = coordinator.context.registerService(LearnerListener.class, this, props);
 		
 		// TODO deploy dataset?
 		
@@ -89,23 +88,11 @@ public class LearnJob extends AbstractJob<LearnResult> implements RepositoryList
 			learner.learn(dataset, learnConfig, nnis.get(target), nnis2.get(target));
 		}
 	}
-
+	
 	@Override
-	public void onParametersUpdate(UUID nnId, Collection<UUID> moduleIds, String... tag) {
+	public void onProgress(UUID learnerId, LearnProgress progress) {
 		if(deferred.getPromise().isDone()){
 			return;
-		}
-		
-		// check stop condition
-		LearnProgress progress = learners.get(targetsByNNi.get(nnId)).getProgress();
-		if(progress==null){
-			// not yet started...
-			return;
-		}
-		
-		if(Float.isNaN(progress.error)){
-			// NaN throw error!
-			done(new Exception("Error became NaN"));
 		}
 		
 		result.progress.add(progress);
@@ -115,13 +102,13 @@ public class LearnJob extends AbstractJob<LearnResult> implements RepositoryList
 		// maxIterations stop condition
 		// what in case of multiple learners?!
 		boolean stop = progress.iteration >= maxIterations;
-		
+				
 		// TODO other stop conditions
 		// - check error rate evolution (on train and/or validationSet)
 		// - stop at a certain error rate
 		// - stop after certain time
 		// ...
-		
+				
 		// if stop ... assemble result object and resolve
 		if(stop){
 			done(result);
@@ -129,10 +116,22 @@ public class LearnJob extends AbstractJob<LearnResult> implements RepositoryList
 	}
 
 	@Override
+	public void onException(UUID learnerId, Throwable e) {
+		if(deferred.getPromise().isDone()){
+			return;
+		}
+		done(e);
+	}
+
+	@Override
+	public void onFinish(UUID learnerId, LearnProgress p) {
+		// TODO should we wait for onFinish to assemble result object?!
+	}
+
+	@Override
 	public void cleanup() {
 		if(reg!=null)
 			reg.unregister();
-		
 
 		for(Learner learner : learners.values()){
 			learner.stop();
@@ -158,4 +157,5 @@ public class LearnJob extends AbstractJob<LearnResult> implements RepositoryList
 			done(new Exception("Job "+this.jobId+" cancelled."));
 		}
 	}
+
 }

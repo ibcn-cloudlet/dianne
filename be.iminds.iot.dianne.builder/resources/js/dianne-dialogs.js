@@ -834,10 +834,15 @@ function learn(id){
 	eventsource = new EventSource("/dianne/learner?nnId="+nn.id);
 	eventsource.onmessage = function(event){
 		var data = JSON.parse(event.data);
-		var index = Number($("#dialog-"+id).find(".content").attr("data-highcharts-chart"));
-    	var x = Number(data.sample);
-        var y = Number(data.error); 
-		Highcharts.charts[index].series[0].addPoint([x, y], true, true, false);
+		
+		if(data.sample===undefined){
+			error(data.error);
+		} else {
+			var index = Number($("#dialog-"+id).find(".content").attr("data-highcharts-chart"));
+    		var x = Number(data.sample);
+        	var y = Number(data.error); 
+			Highcharts.charts[index].series[0].addPoint([x, y], true, true, false);
+		}
 	};
 	
 	$.post("/dianne/learner", {"action":"learn",

@@ -23,11 +23,14 @@
 package be.iminds.iot.dianne.nn.eval;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -44,6 +47,7 @@ import be.iminds.iot.dianne.api.nn.eval.ClassificationEvaluation;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.eval.EvaluationProgress;
 import be.iminds.iot.dianne.api.nn.eval.Evaluator;
+import be.iminds.iot.dianne.api.nn.eval.EvaluatorListener;
 import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -58,6 +62,9 @@ import be.iminds.iot.dianne.tensor.Tensor;
  *
  */
 public abstract class AbstractEvaluator implements Evaluator {
+	
+	private static ExecutorService listenerExecutor = Executors.newSingleThreadExecutor(); 
+	protected List<EvaluatorListener> listeners = Collections.synchronizedList(new ArrayList<>());
 	
 	protected UUID evaluatorId;
 	
@@ -194,6 +201,19 @@ public abstract class AbstractEvaluator implements Evaluator {
 					outputs.add(out.copyInto(null));
 				
 				evalOutput(indices[sample], out, d.getOutputSample(indices[sample]));
+				
+				if(sample % 1000 == 0){
+					listenerExecutor.execute(()->{
+						List<EvaluatorListener> copy = new ArrayList<>();
+						synchronized(listeners){
+							copy.addAll(listeners);
+						}
+						EvaluationProgress progress =  getProgress();
+						for(EvaluatorListener l : copy){
+							l.onProgress(evaluatorId, progress);
+						}
+					});
+				}
 			}
 			tEnd = System.currentTimeMillis();
 			
@@ -204,7 +224,25 @@ public abstract class AbstractEvaluator implements Evaluator {
 			} else {
 				return new ClassificationEvaluation(total, error/(float)total, outputs, evaluationTime, forwardTime, confusion);
 			}
-		} finally {
+		} catch(Throwable t){
+			System.err.println("Error during evaluation");
+			List<EvaluatorListener> copy = new ArrayList<>();
+			synchronized(listeners){
+				copy.addAll(listeners);
+			}
+			for(EvaluatorListener l : copy){
+				l.onException(evaluatorId, t);
+			}
+			throw t;
+		}finally {
+			List<EvaluatorListener> copy = new ArrayList<>();
+			synchronized(listeners){
+				copy.addAll(listeners);
+			}
+			EvaluationProgress progress =  getProgress();
+			for(EvaluatorListener l : copy){
+				l.onFinish(evaluatorId, progress);
+			}
 			evaluating = false;
 		}
 	}
@@ -248,6 +286,27 @@ public abstract class AbstractEvaluator implements Evaluator {
 	@Reference(cardinality = ReferenceCardinality.OPTIONAL)
 	void setDataLogger(DataLogger l){
 		this.logger = l;
+	}
+	
+	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
+			policy=ReferencePolicy.DYNAMIC)
+	protected void addListener(EvaluatorListener listener, Map<String, Object> properties){
+		String[] targets = (String[])properties.get("targets");
+		if(targets!=null){
+			boolean listen = false;
+			for(String target : targets){
+				if(evaluatorId.toString().equals(target)){
+					listen  = true;
+				}
+			}
+			if(!listen)
+				return;	
+		}
+		this.listeners.add(listener);
+	}
+	
+	protected void removeListener(EvaluatorListener listener, Map<String, Object> properties){
+		this.listeners.remove(listener);
 	}
 	
 	private int[] parseRange(String range){

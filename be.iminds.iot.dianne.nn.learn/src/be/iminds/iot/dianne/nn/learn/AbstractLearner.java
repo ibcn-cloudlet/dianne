@@ -22,10 +22,15 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.learn;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import org.osgi.framework.BundleContext;
@@ -43,6 +48,7 @@ import be.iminds.iot.dianne.api.nn.learn.Criterion;
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.learn.Learner;
+import be.iminds.iot.dianne.api.nn.learn.LearnerListener;
 import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
@@ -50,6 +56,11 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 public abstract class AbstractLearner implements Learner {
 	
+	// Listeners
+	private static ExecutorService listenerExecutor = Executors.newSingleThreadExecutor(); 
+	protected List<LearnerListener> listeners = Collections.synchronizedList(new ArrayList<>());
+
+
 	// Identification
 	protected UUID learnerId;
 	
@@ -157,8 +168,8 @@ public abstract class AbstractLearner implements Learner {
 								nanretry--;
 								continue;
 							} else {
-								// If error is NaN, trigger something to repo to catch notification
-								nn.storeParameters(tag, "NaN");
+								// if error is NaN, trigger something to repo to catch notification
+								throw new Exception("Learner error became NaN");
 							}
 						}
 						
@@ -175,13 +186,31 @@ public abstract class AbstractLearner implements Learner {
 						publishParameters(i);
 					}
 				} catch(Throwable t){
+					learning = false;
+
 					System.err.println("Error during learning");
 					t.printStackTrace();
-					// TODO how should the coordinator be notified of this error?!
-					learning = false;
+					
+					List<LearnerListener> copy = new ArrayList<>();
+					synchronized(listeners){
+						copy.addAll(listeners);
+					}
+					for(LearnerListener l : copy){
+						l.onException(learnerId, t.getCause()!=null ? t.getCause() : t);
+					}
+					
+					return;
 				}
-				
+
 				System.out.println("Stopped learning");
+				List<LearnerListener> copy = new ArrayList<>();
+				synchronized(listeners){
+					copy.addAll(listeners);
+				}
+				LearnProgress progress =  getProgress();
+				for(LearnerListener l : copy){
+					l.onFinish(learnerId, progress);
+				}
 			});
 			learnerThread.start();
 		
@@ -275,6 +304,17 @@ public abstract class AbstractLearner implements Learner {
 				
 			// Fetch update again from repo (could be merged from other learners)
 			loadParameters();
+			
+			listenerExecutor.submit(()->{
+				List<LearnerListener> copy = new ArrayList<>();
+				synchronized(listeners){
+					copy.addAll(listeners);
+				}
+				LearnProgress progress =  getProgress();
+				for(LearnerListener l : copy){
+					l.onProgress(learnerId, progress);
+				}
+			});
 		}
 	}
 	
@@ -318,7 +358,7 @@ public abstract class AbstractLearner implements Learner {
 	 * 
 	 * Each concrete Learner should update the neural network weights in this method.
 	 */
-	protected abstract float process(long i);
+	protected abstract float process(long i) throws Exception;
 	
 	@Activate
 	public void activate(BundleContext context){
@@ -346,5 +386,27 @@ public abstract class AbstractLearner implements Learner {
 	protected void setDataLogger(DataLogger l){
 		this.logger = l;
 	}
+	
+	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
+			policy=ReferencePolicy.DYNAMIC)
+	protected void addListener(LearnerListener listener, Map<String, Object> properties){
+		String[] targets = (String[])properties.get("targets");
+		if(targets!=null){
+			boolean listen = false;
+			for(String target : targets){
+				if(learnerId.toString().equals(target)){
+					listen  = true;
+				}
+			}
+			if(!listen)
+				return;	
+		}
+		this.listeners.add(listener);
+	}
+	
+	protected void removeListener(LearnerListener listener, Map<String, Object> properties){
+		this.listeners.remove(listener);
+	}
+	
 }
 

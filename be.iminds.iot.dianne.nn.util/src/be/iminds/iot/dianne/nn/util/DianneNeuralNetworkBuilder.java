@@ -180,7 +180,7 @@ public class DianneNeuralNetworkBuilder {
 		}
 
 		builder.addLinear(layers[layers.length-1], output);
-		builder.addSoftmax();
+		builder.addLogSoftmax();
 		return builder.create();
 	}
 }

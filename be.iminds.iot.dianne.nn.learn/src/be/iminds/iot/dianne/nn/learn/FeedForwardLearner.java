@@ -22,9 +22,6 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.learn;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
@@ -75,7 +72,7 @@ public class FeedForwardLearner extends AbstractLearner {
 		nextBatch = dataset.getBatch(nextBatch, indices);
 	}
 	
-	protected float process(long i){
+	protected float process(long i) throws Exception {
 		// Clear delta params
 		nn.getTrainables().values().stream().forEach(Trainable::zeroDeltaParameters);
 		
@@ -118,11 +115,8 @@ public class FeedForwardLearner extends AbstractLearner {
 			// Load next batch while processing previous one
 			loadBatch();
 			
-			try {
-				result.getValue();
-			} catch (InvocationTargetException | InterruptedException e) {
-				e.printStackTrace();
-			}
+			// Fetch the result (errors are handled by caller)
+			result.getValue();
 		} else {
 			// Cannot load a batch for this dataset, still process one by one
 			for(int k=0;k<batchSize;k++){
@@ -148,11 +142,8 @@ public class FeedForwardLearner extends AbstractLearner {
 							return p;
 						});
 				
-				try {
-					result.getValue();
-				} catch (InvocationTargetException | InterruptedException e) {
-					e.printStackTrace();
-				}
+				//Fetch the result (errors are handled by caller)
+				result.getValue();
 			}
 			
 			// Load next batch
