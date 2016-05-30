@@ -39,7 +39,7 @@ CUDA_LINKS := -Llib -lTHC -lTH $(SHARED) -lgomp -L$(CUDA_HOME)/lib -L$(CUDA_HOME
 CUDA_FLAGS := -DCUDA
 NVCC_FLAGS := -Xcompiler -fPIC
 CUDA_SRC := THCudaTensorOps.cu
-CUDA_OBJECTS := $(SRC:.cu=.o)
+CUDA_OBJECTS := $(CUDA_SRC:.cu=.o)
 
 # check if it is the Jetson TK board
 ifneq (,$(findstring 0e13,$(GPU)))
@@ -52,7 +52,7 @@ all: install
 cuda: INCLUDES += $(CUDA_INCLUDES)
 cuda: LINKS = $(CUDA_LINKS)
 cuda: FLAGS += $(CUDA_FLAGS)
-cuda: OBJECT += $(CUDA_OBJECT)
+cuda: OBJECTS += $(CUDA_OBJECTS)
 cuda: DEPLOY_DIR := ../../cuda/$(OS)/$(ARCH)
 cuda: cudaops lib/libTHC.a install	
 
