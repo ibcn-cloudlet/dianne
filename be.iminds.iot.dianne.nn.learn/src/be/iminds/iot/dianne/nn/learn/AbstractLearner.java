@@ -184,6 +184,9 @@ public abstract class AbstractLearner implements Learner {
 						
 						// Publish parameters to repository
 						publishParameters(i);
+						
+						// Publish progress
+						publishProgress(i);
 					}
 				} catch(Throwable t){
 					learning = false;
@@ -304,20 +307,9 @@ public abstract class AbstractLearner implements Learner {
 				
 			// Fetch update again from repo (could be merged from other learners)
 			loadParameters();
-			
-			listenerExecutor.submit(()->{
-				List<LearnerListener> copy = new ArrayList<>();
-				synchronized(listeners){
-					copy.addAll(listeners);
-				}
-				LearnProgress progress =  getProgress();
-				for(LearnerListener l : copy){
-					l.onProgress(learnerId, progress);
-				}
-			});
 		}
 	}
-	
+
 	private void resetParameters(){
 		// Randomize parameters
 		nn.randomizeParameters();
@@ -408,5 +400,22 @@ public abstract class AbstractLearner implements Learner {
 		this.listeners.remove(listener);
 	}
 	
+	/**
+	 * Publish progress on sync interval times
+	 */
+	private void publishProgress(long i){
+		if(syncInterval>0 && i % syncInterval == 0){
+			listenerExecutor.submit(()->{
+				List<LearnerListener> copy = new ArrayList<>();
+				synchronized(listeners){
+					copy.addAll(listeners);
+				}
+				LearnProgress progress =  getProgress();
+				for(LearnerListener l : copy){
+					l.onProgress(learnerId, progress);
+				}
+			});
+		}
+	}
 }
 
