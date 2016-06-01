@@ -41,14 +41,16 @@ public class SpatialConvolution extends AbstractTrainableModule {
 	private int padY = 0;
 	
 	// subtensors for weights / bias
-	Tensor weights;
-	Tensor deltaWeights;
-	Tensor bias;
-	Tensor deltaBias;
+	private Tensor weights;
+	private Tensor deltaWeights;
+	private Tensor bias;
+	private Tensor deltaBias;
 	
 	// tensors for unfolded data
 	private Tensor temp1 = new Tensor();
 	private Tensor temp2 = new Tensor();
+
+	private int[] outputDims;
 	
 	public SpatialConvolution(
 			int noInputPlanes, int noOutputPlanes, 
@@ -130,6 +132,7 @@ public class SpatialConvolution extends AbstractTrainableModule {
 		}
 		
 		output = ModuleOps.spatialconvolve(output, input, weights, bias, temp1, temp2, kernelWidth, kernelHeight, strideX, strideY, padX, padY);
+		outputDims = output.dims();
 	}
 
 	@Override
@@ -138,7 +141,7 @@ public class SpatialConvolution extends AbstractTrainableModule {
 			initDeltaParameters(null);
 		}
 			
-		gradOutput.reshape(output.dims());
+		gradOutput.reshape(outputDims);
 		gradInput = ModuleOps.spatialconvolveGradIn(gradInput, gradOutput, weights, input, temp1, temp2, kernelWidth, kernelHeight, strideX, strideY, padX, padY);
 	}
 
