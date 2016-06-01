@@ -113,7 +113,7 @@ public abstract class AbstractLearner implements Learner {
 	
 	@Override
 	public LearnProgress getProgress() {
-		if(!learning || i==0)
+		if(!learning)
 			return null;
 		return new LearnProgress(i, error);
 	}
@@ -136,9 +136,6 @@ public abstract class AbstractLearner implements Learner {
 			// Load neural network instance(s)
 			loadNNs(nni);
 			
-			// Initialize NN parameters
-			initializeParameters();
-			
 			// Read config
 			System.out.println("Learner Configuration");
 			System.out.println("=====================");
@@ -147,6 +144,9 @@ public abstract class AbstractLearner implements Learner {
 			loadConfig(config);
 
 			System.out.println("---");
+			
+			// Initialize NN parameters
+			initializeParameters();
 			
 			// setup criterion, sampling strategy and gradient processor
 			criterion = LearnerUtil.createCriterion(config);
@@ -405,12 +405,15 @@ public abstract class AbstractLearner implements Learner {
 	 */
 	private void publishProgress(long i){
 		if(syncInterval>0 && i % syncInterval == 0){
+			final LearnProgress progress =  getProgress();
+			if(progress == null)
+				return;
+			
 			listenerExecutor.submit(()->{
 				List<LearnerListener> copy = new ArrayList<>();
 				synchronized(listeners){
 					copy.addAll(listeners);
 				}
-				LearnProgress progress =  getProgress();
 				for(LearnerListener l : copy){
 					l.onProgress(learnerId, progress);
 				}
