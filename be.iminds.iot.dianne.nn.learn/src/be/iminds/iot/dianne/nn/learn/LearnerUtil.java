@@ -60,7 +60,7 @@ public class LearnerUtil {
 		if(config.containsKey("learningRate"))
 			learningRate = Float.parseFloat(config.get("learningRate"));
 		
-		float decayRate = 0.9f;
+		float decayRate = 0.0f;
 		if(config.containsKey("decayRate"))
 			decayRate = Float.parseFloat(config.get("decayRate"));
 		
