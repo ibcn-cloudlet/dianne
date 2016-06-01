@@ -39,6 +39,7 @@ import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.api.rl.environment.EnvironmentListener;
 import be.iminds.iot.dianne.rl.pong.api.PongEnvironment;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 /**
  * Simple Pong environment in which an agents plays against an AI trying to
@@ -128,7 +129,7 @@ public class Pong implements PongEnvironment, Environment {
 
 	@Override
 	public float performAction(Tensor action) {
-		agentAction = factory.getTensorMath().argmax(action) - 1;
+		agentAction = TensorOps.argmax(action) - 1;
 		
 		if(ai)
 			updateAI();
