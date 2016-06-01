@@ -203,10 +203,12 @@ public class DianneFileRepository implements DianneRepository {
 	}
 
 	@Override
-	public Map<UUID, Tensor> loadParameters(String nnName, String... tag) {
+	public Map<UUID, Tensor> loadParameters(String nnName, String... tag) throws Exception {
 		Map<UUID, Tensor> parameters  = new HashMap<>();
 		
 		NeuralNetworkDTO nn = loadNeuralNetwork(nnName);
+		// TODO should we deduce based on ModuleDTO whether the module is trainable and throw
+		// exception when trainable module has no parameters on file system?
 		for(ModuleDTO m : nn.modules.values()){
 			try {
 				parameters.put(m.id, load(m.id, tag));
@@ -214,6 +216,8 @@ public class DianneFileRepository implements DianneRepository {
 				// ignore if no parameters found for a module
 			}
 		}
+		if(parameters.isEmpty())
+			throw new Exception("No parameters available for NN "+nnName);
 		return parameters;
 	}
 	
