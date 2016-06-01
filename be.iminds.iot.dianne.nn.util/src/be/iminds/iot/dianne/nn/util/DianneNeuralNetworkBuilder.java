@@ -153,6 +153,17 @@ public class DianneNeuralNetworkBuilder {
 		modules.add(logsoftmax);
 		return this;
 	}
+
+	public DianneNeuralNetworkBuilder addBatchNormalization(int size){
+		Map<String, String> properties = new HashMap<>();
+		properties.put("size", ""+size);
+		
+		ModuleDTO prev = modules.getLast();
+		ModuleDTO bn = new ModuleDTO(UUID.randomUUID(), "BatchNormalization", null, new UUID[]{prev.id}, properties);
+		prev.next = new UUID[]{bn.id};
+		modules.add(bn);
+		return this;
+	}
 	
 	public NeuralNetworkDTO create(){
 		ModuleDTO prev = modules.getLast();
@@ -180,6 +191,33 @@ public class DianneNeuralNetworkBuilder {
 			int in = i==0 ? input : layers[i-1];
 			int out = layers[i];
 			builder.addLinear(in, out);
+			
+			switch(activation){
+			case ReLU:
+				builder.addReLU();
+				break;
+			case Sigmoid:
+				builder.addSigmoid();
+				break;
+			case Tanh:
+				builder.addTanh();
+				break;
+			}
+		}
+
+		builder.addLinear(layers[layers.length-1], output);
+		builder.addLogSoftmax();
+		return builder.create();
+	}
+	
+	public static NeuralNetworkDTO createMLP_BN(String name, int input, int output, Activation activation, int...layers){
+		DianneNeuralNetworkBuilder builder = new DianneNeuralNetworkBuilder(name);
+		
+		for(int i=0;i<layers.length;i++){
+			int in = i==0 ? input : layers[i-1];
+			int out = layers[i];
+			builder.addLinear(in, out);
+			builder.addBatchNormalization(out);
 			
 			switch(activation){
 			case ReLU:
