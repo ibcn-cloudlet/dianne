@@ -28,10 +28,10 @@ $(DEPLOY_DIR)/$(LIB): $(LIB)
 $(LIB): cutorch/lib/THC/build/libTHC.a cunn/lib/THCUNN/build/libTHCUNN.a $(OBJECTS) $(CUDA_OBJECTS)
 	$(CC) $(SHARED) $(FLAGS) $(CCFLAGS) $(OBJECTS) $(LINKS) -o $(LIB)
 
-.c.o: $(JAVAH) $(SRC)
+%.o: %.c $(JAVAH)
 	$(CC) $(FLAGS) $(CCFLAGS) $(INCLUDES) -c $<
 
-.cu.o: $(CUDA_SRC)
+%.o: %.cu $(JAVAH)
 	$(NVCC) $(FLAGS) $(NVCC_FLAGS) $(INCLUDES) -c $<
 
 cutorch/lib/THC/build/libTHC.a:

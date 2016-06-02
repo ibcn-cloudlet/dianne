@@ -36,12 +36,14 @@ install:
 	@$(MAKE) -f $(THIS_FILE) $(NATIVE);
 
 .PHONY: cutorch
-cutorch: torch
-	NATIVE=cutorch $(MAKE) -C cutorch install;
+cutorch:
+	$(MAKE) -C torch torch7/lib/TH/build/libTH.a 
+	$(MAKE) -C torch nn/lib/THNN/build/libTHNN.a
+	$(MAKE) -C cutorch install;
 	
 .PHONY: torch
 torch:
-	NATIVE=torch $(MAKE) -C torch install;
+	$(MAKE) -C torch install;
 
 .PHONY: clean cleanall
 clean cleanall:

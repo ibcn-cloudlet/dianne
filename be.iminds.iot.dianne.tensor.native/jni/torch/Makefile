@@ -14,7 +14,7 @@ $(DEPLOY_DIR)/$(LIB): $(LIB)
 $(LIB): OpenBLAS/libopenblas.a torch7/lib/TH/build/libTH.a nn/lib/THNN/build/libTHNN.a $(OBJECTS)
 	$(CC) $(SHARED) $(FLAGS) $(CCFLAGS) $(OBJECTS) $(LINKS) -o $(LIB)
 
-.c.o: $(JAVAH) $(SRC)
+%.o: %.c $(JAVAH)
 	$(CC) $(FLAGS) $(CCFLAGS) $(INCLUDES) -c $< 
 
 torch7/lib/TH/build/libTH.a:
