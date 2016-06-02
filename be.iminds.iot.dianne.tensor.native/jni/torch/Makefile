@@ -30,7 +30,7 @@ OpenBLAS/libopenblas.a:
 
 .PHONY: clean
 clean:
-	rm -f $(OBJECTS) $(LIB)
+	rm -f $(OBJECTS) $(LIB) $(DEPLOY_DIR)/$(LIB)
 
 .PHONY: cleanAll
 cleanall: clean

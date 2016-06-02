@@ -44,7 +44,7 @@ cunn/lib/THCUNN/build/libTHCUNN.a:
 
 .PHONY: clean
 clean:
-	rm -f $(OBJECTS) $(LIB)  
+	rm -f $(OBJECTS) $(LIB) $(DEPLOY_DIR)/$(LIB)
 
 .PHONY: cleanall
 cleanall: clean
