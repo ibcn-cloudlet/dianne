@@ -1,7 +1,7 @@
 CUDA_HOME := /usr/local/cuda
 
 SRC := $(wildcard ../torch/*.c)
-OBJECTS := $(SRC:.c=.o)
+OBJECTS := $(notdir $(SRC:.c=.o))
 JAVAH := $(abspath ../../../be.iminds.iot.dianne.tensor/generated/jni-headers)
 LINKS := -Lcunn/lib/THCUNN/build -lTHCUNN -Lcutorch/lib/THC/build -lTHC -L../torch/torch7/lib/TH/build -lTH -L$(CUDA_HOME)/lib -L$(CUDA_HOME)/lib64 -lcudart -lcublas
 INCLUDES += -I$(CUDA_HOME)/include/
@@ -12,7 +12,7 @@ INCLUDES += -I../torch/nn/lib/THNN -I../torch/nn/lib/THNN/build
 INCLUDES += -I$(JAVAH)
 FLAGS += -DCUDA 
 
-NVCC=nvcc -ccbin $(CXX)
+NVCC=nvcc -ccbin clang
 export NVCC
 NVCC_FLAGS := -Xcompiler -fPIC
 CUDA_SRC := THCudaTensorOps.cu
