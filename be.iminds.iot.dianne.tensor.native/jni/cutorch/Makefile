@@ -12,7 +12,7 @@ INCLUDES += -I../torch/nn/lib/THNN -I../torch/nn/lib/THNN/build
 INCLUDES += -I$(JAVAH)
 FLAGS += -DCUDA 
 
-NVCC=nvcc -ccbin clang
+NVCC=nvcc -ccbin $(CXX)
 export NVCC
 NVCC_FLAGS := -Xcompiler -fPIC
 CUDA_SRC := THCudaTensorOps.cu
@@ -46,8 +46,8 @@ cunn/lib/THCUNN/build/libTHCUNN.a:
 clean:
 	rm -f $(OBJECTS) $(LIB)  
 
-.PHONY: cleanAll
-cleanAll: clean
+.PHONY: cleanall
+cleanall: clean
 	rm -rf cutorch/lib/THC/build	
 	rm -rf cunn/lib/THCUNN/build	
 	

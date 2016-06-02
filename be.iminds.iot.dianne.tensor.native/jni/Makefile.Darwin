@@ -3,8 +3,7 @@
 # Compiler
 CC=gcc-5
 CXX=g++-5
-NVCC=nvcc
-FLAGS += -DOSX
+FLAGS := -DOSX
 LIB := libTensor.dylib
 SHARED := -dynamiclib
 

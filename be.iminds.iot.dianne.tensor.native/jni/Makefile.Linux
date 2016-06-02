@@ -3,8 +3,7 @@
 # Compiler
 CC=gcc
 CXX=g++
-NVCC=nvcc
-FLAGS += -DLINUX
+FLAGS := -DLINUX
 LIB := libTensor.so
 SHARED := -shared
 
