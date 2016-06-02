@@ -22,6 +22,9 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.eval;
 
+import java.util.Arrays;
+import java.util.Comparator;
+
 import org.osgi.service.component.annotations.Component;
 
 import be.iminds.iot.dianne.api.nn.eval.Evaluator;
@@ -51,7 +54,28 @@ public class ClassificationEvaluator extends AbstractEvaluator {
 		}
 		
 		confusion.set(confusion.get(real, predicted)+1, real, predicted);
+		
+		Integer[] indices = new Integer[out.size()];
+		for(int i=0;i<out.size();i++){
+			indices[i] = i;
+		}
+		Arrays.sort(indices, new Comparator<Integer>() {
+			@Override
+			public int compare(Integer o1, Integer o2) {
+				float v1 = out.get(o1);
+				float v2 = out.get(o2);
+				// inverse order to have large->small order
+				return v1 > v2 ? -1 : (v1 < v2 ? 1 : 0);
+			}
+		});
+		int ranking = 0;
+		for(int i=0;i<indices.length;i++){
+			if(indices[i] == real){
+				break;
+			}
+			ranking++;
+		}
+		rankings[index] = ranking;
 	}
-
 }
 

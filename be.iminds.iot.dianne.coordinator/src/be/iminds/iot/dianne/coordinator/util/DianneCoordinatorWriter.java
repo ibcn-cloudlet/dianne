@@ -131,6 +131,12 @@ public class DianneCoordinatorWriter {
 					writer.name("accuracy");
 					writer.value(new Float(ceval.accuracy()));
 					
+					writer.name("top3");
+					writer.value(new Float(ceval.topNaccuracy(3)));
+
+					writer.name("top5");
+					writer.value(new Float(ceval.topNaccuracy(5)));
+
 					// write confusion matrix
 					writer.name("confusionMatrix");
 					writer.beginArray();

@@ -154,7 +154,11 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	
 	@Override
 	public Promise<EvaluationResult> eval(NeuralNetworkDTO nn, String dataset, Map<String, String> config) {
-		repository.storeNeuralNetwork(nn);
+		try {
+			repository.storeNeuralNetwork(nn);
+		} catch(Exception e){
+			// NN could be locked but still evaluation should be possible
+		}
 		
 		EvaluationJob job = new EvaluationJob(this, nn, dataset, config);
 		queueEval.add(job);

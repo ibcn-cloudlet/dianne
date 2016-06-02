@@ -7,6 +7,7 @@ import java.util.UUID;
 import be.iminds.iot.dianne.api.coordinator.EvaluationResult;
 import be.iminds.iot.dianne.api.coordinator.Job.EvaluationCategory;
 import be.iminds.iot.dianne.api.coordinator.Job.Type;
+import be.iminds.iot.dianne.api.nn.eval.ClassificationEvaluation;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.eval.EvaluationProgress;
 import be.iminds.iot.dianne.api.nn.eval.Evaluator;
@@ -47,6 +48,18 @@ public class EvaluationJob extends AbstractJob<EvaluationResult> {
 					try {
 						Evaluator evaluator = coordinator.evaluators.get(category.toString()).get(target);
 						Evaluation e = evaluator.eval(dataset, evalConfig, nnis.get(target));
+						
+						System.out.println("Evaluation result");
+						System.out.println("---");
+						System.out.println("Error: "+e.error());
+						if(e instanceof ClassificationEvaluation){
+							ClassificationEvaluation ce = (ClassificationEvaluation)e;
+							System.out.println("Accuracy: "+ce.accuracy());
+							System.out.println("Top-1 accuracy: "+ce.topNaccuracy(1));
+							System.out.println("Top-3 accuracy: "+ce.topNaccuracy(3));
+						}
+						System.out.println("---");
+						
 						results.put(target, e);
 					} catch(Exception e){
 						done(e);

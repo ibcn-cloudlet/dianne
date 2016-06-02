@@ -118,12 +118,18 @@ function createResultChart(container, job, scale){
 				var eval = evaluations[i];
 				if(eval.confusionMatrix!==undefined){
 					// TODO what with multiple evaluations?
-					createConfusionChart(container, eval.confusionMatrix, scale);
+					if(eval.confusionMatrix.length <= 20)
+						createConfusionChart(container, eval.confusionMatrix, scale);
+					else {
+						container.prepend( "<div><b>Top-5 accuracy:</b> "+eval.top5*100+" %</div><br/>" );
+						container.prepend( "<div><b>Top-3 accuracy:</b> "+eval.top3*100+" %</div><br/>" );
+					}
 					container.prepend( "<div><b>Accuracy:</b> "+eval.accuracy*100+" %</div><br/>" );
+
 				} else {				
 					if(eval.processed!==undefined){
 						createProgressBar(container, 100*eval.processed/eval.total, eval.processed+"/"+eval.total+" samples processed");
-					} else {
+					} else if(eval.error !== undefined){
 						container.prepend( "<div><b>Error:</b> "+eval.error+"</div><br/>" );
 					}
 				}

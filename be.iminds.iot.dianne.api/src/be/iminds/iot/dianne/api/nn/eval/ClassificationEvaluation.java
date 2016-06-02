@@ -36,11 +36,14 @@ public class ClassificationEvaluation extends Evaluation {
 
 	// resulting confusion matrix
 	protected Tensor confusionMatrix;
+	// the index of the correct sample in the sorted output
+	protected int[] rankings;
 	
-	public ClassificationEvaluation(long total, float error, List<Tensor> outputs, long evaluationTime, float forwardTime, Tensor confusionMatrix){
+	public ClassificationEvaluation(long total, float error, List<Tensor> outputs, long evaluationTime, float forwardTime, Tensor confusionMatrix, int[] rankings){
 		super(total, error, outputs, evaluationTime, forwardTime);
 
 		this.confusionMatrix = confusionMatrix;
+		this.rankings = rankings;
 	}
 	
 	@Override
@@ -53,6 +56,28 @@ public class ClassificationEvaluation extends Evaluation {
 	 */
 	public Tensor getConfusionMatix(){
 		return confusionMatrix;
+	}
+	
+	/**
+	 * @param n 
+	 * @return the top-n classification accuracy
+	 */
+	public float topNaccuracy(int n){
+		int correct = 0;
+		for(int i=0;i<rankings.length;i++){
+			if(rankings[i] < n){
+				correct ++;
+			}
+		}
+		return (float)correct/rankings.length;
+	}
+	
+	/**
+	 * @param n 
+	 * @return the top-n classification error
+	 */
+	public float topNerror(int n){
+		return 1-topNaccuracy(n);
 	}
 	
 	/**

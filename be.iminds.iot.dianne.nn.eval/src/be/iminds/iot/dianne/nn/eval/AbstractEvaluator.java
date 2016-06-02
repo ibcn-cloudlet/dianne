@@ -83,6 +83,7 @@ public abstract class AbstractEvaluator implements Evaluator {
 	protected float error = 0;
 	protected int total = 0;
 	protected Tensor confusion;
+	protected int[] rankings;
 	protected List<Tensor> outputs;
 	protected long tStart, tEnd, tForward;
 	
@@ -186,6 +187,7 @@ public abstract class AbstractEvaluator implements Evaluator {
 			}
 		
 			confusion = null;
+			rankings = new int[indices.length];
 			outputs = includeOutputs ? new ArrayList<Tensor>() : null;
 			tStart = System.currentTimeMillis(); tForward = 0;
 			
@@ -200,7 +202,7 @@ public abstract class AbstractEvaluator implements Evaluator {
 				if(outputs!=null)
 					outputs.add(out.copyInto(null));
 				
-				evalOutput(indices[sample], out, d.getOutputSample(indices[sample]));
+				evalOutput(sample, out, d.getOutputSample(indices[sample]));
 				
 				if(sample % 1000 == 0){
 					listenerExecutor.execute(()->{
@@ -222,7 +224,7 @@ public abstract class AbstractEvaluator implements Evaluator {
 			if(confusion == null){
 				return new Evaluation(total, error/(float)total, outputs, evaluationTime, forwardTime);
 			} else {
-				return new ClassificationEvaluation(total, error/(float)total, outputs, evaluationTime, forwardTime, confusion);
+				return new ClassificationEvaluation(total, error/(float)total, outputs, evaluationTime, forwardTime, confusion, rankings);
 			}
 		} catch(Throwable t){
 			System.err.println("Error during evaluation");
