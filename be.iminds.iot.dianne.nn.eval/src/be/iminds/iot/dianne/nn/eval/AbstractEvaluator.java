@@ -40,6 +40,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.SamplingConfig;
 import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
@@ -50,6 +51,8 @@ import be.iminds.iot.dianne.api.nn.eval.Evaluator;
 import be.iminds.iot.dianne.api.nn.eval.EvaluatorListener;
 import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
+import be.iminds.iot.dianne.nn.eval.config.EvaluatorConfig;
+import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
@@ -73,9 +76,7 @@ public abstract class AbstractEvaluator implements Evaluator {
 	protected Dianne dianne;
 	protected Map<String, Dataset> datasets = new HashMap<String, Dataset>();
 	
-	protected String tag = null;
-	protected boolean trace = false;
-	protected boolean includeOutputs = false;
+	protected EvaluatorConfig config;
 	
 	protected volatile boolean evaluating = false;
 	
@@ -107,62 +108,18 @@ public abstract class AbstractEvaluator implements Evaluator {
 				throw new Exception("Dataset "+dataset+" not available");
 			}
 			
-			if(config.containsKey("tag")){
-				tag = config.get("tag"); 
-			}
-			
-			if(config.containsKey("trace")){
-				trace = Boolean.parseBoolean(config.get("trace"));
-			}
-			
-			if(config.containsKey("includeOutputs")){
-				includeOutputs = Boolean.parseBoolean(config.get("includeOutputs"));
-			}
-			
 			System.out.println("Evaluator Configuration");
 			System.out.println("=======================");
+			
+			this.config = DianneConfigHandler.getConfig(config, EvaluatorConfig.class);
+			
+			System.out.println("Dataset");
+			System.out.println("---");
 			System.out.println("* dataset = "+dataset);
-			System.out.println("* tag = "+tag);
-			System.out.println("* trace = "+trace);
-			System.out.println("* includeOutputs = "+includeOutputs);
+			System.out.println("---");
 			
-			
-			int[] indices = null;
-			String range = config.get("range");
-			if(range!=null){
-				indices = parseRange(range);
-				
-				System.out.println("Dataset range");
-				if(range.contains(":"))
-					System.out.println("* range = "+range);
-				else 
-					System.out.println("* "+indices.length+" indices selected");
-				System.out.println("---");
-			} else {
-				int startIndex = 0;
-				int endIndex = d.size();
-				
-				String start = config.get("startIndex");
-				if(start!=null){
-					startIndex = Integer.parseInt(start);
-				}
-				
-				String end = config.get("endIndex");
-				if(end!=null){
-					endIndex = Integer.parseInt(end);
-				}
-				
-				int index = startIndex;
-				indices = new int[endIndex-startIndex];
-				for(int i=0;i<indices.length;i++){
-					indices[i] = index++;
-				}
-				
-				System.out.println("Dataset range");
-				System.out.println("* startIndex = "+startIndex);
-				System.out.println("* endIndex = "+endIndex);
-				System.out.println("---");
-			}
+			SamplingConfig sc = DianneConfigHandler.getConfig(config, SamplingConfig.class);
+			int[] indices = sc.indices(d);
 			
 			total = indices.length;
 			error = 0;
@@ -176,10 +133,10 @@ public abstract class AbstractEvaluator implements Evaluator {
 			nn.getModules().values().stream().forEach(m -> m.setMode(EnumSet.of(Mode.BLOCKING)));
 			
 			try {
-				if(tag==null){
+				if(this.config.tag==null){
 					nn.loadParameters();
 				} else {
-					nn.loadParameters(tag);
+					nn.loadParameters(this.config.tag);
 				}
 			} catch(Exception e){
 				// ignore if no parameters found
@@ -188,7 +145,7 @@ public abstract class AbstractEvaluator implements Evaluator {
 		
 			confusion = null;
 			rankings = new int[indices.length];
-			outputs = includeOutputs ? new ArrayList<Tensor>() : null;
+			outputs = this.config.includeOutputs ? new ArrayList<Tensor>() : null;
 			tStart = System.currentTimeMillis(); tForward = 0;
 			
 			Tensor in = null;

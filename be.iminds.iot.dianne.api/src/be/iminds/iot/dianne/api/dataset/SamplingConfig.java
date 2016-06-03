@@ -20,10 +20,19 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.nn.learn.sampling.config;
+package be.iminds.iot.dianne.api.dataset;
 
 import java.util.ArrayList;
 
+/**
+ * Helper configuration class to configure a sampling range of a Dataset
+ * 
+ * Set either startIndex/endIndex, a range or directly an indices array.
+ * Call indices() method to generate the indices from the specified config parameters.
+ * 
+ * @author tverbele
+ *
+ */
 public class SamplingConfig {
 
 	/**
@@ -46,16 +55,22 @@ public class SamplingConfig {
 	 */
 	public int[] indices;
 	
-	public int[] indices(){
+	public int[] indices(Dataset d){
 		if(indices==null){
-			if(startIndex != -1 && endIndex != -1){
+			if(range != null){
+				indices = parseRange(range);
+			} else {
+				if(startIndex == -1){
+					startIndex = 0;
+				} 
+				if(endIndex == -1){
+					endIndex = d.size();
+				}
 				int index = startIndex;
 				indices = new int[endIndex-startIndex];
 				for(int i=0;i<indices.length;i++){
 					indices[i] = index++;
 				}
-			} else if(range != null){
-				indices = parseRange(range);
 			}
 		}
 		return indices;

@@ -25,6 +25,7 @@ package be.iminds.iot.dianne.nn.learn;
 import java.util.Map;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.SamplingConfig;
 import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
@@ -49,7 +50,6 @@ import be.iminds.iot.dianne.nn.learn.processors.config.RegularizationConfig;
 import be.iminds.iot.dianne.nn.learn.processors.config.SGDConfig;
 import be.iminds.iot.dianne.nn.learn.sampling.RandomSamplingStrategy;
 import be.iminds.iot.dianne.nn.learn.sampling.SequentialSamplingStrategy;
-import be.iminds.iot.dianne.nn.learn.sampling.config.SamplingConfig;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 
 public class LearnerUtil {
@@ -125,10 +125,10 @@ public class LearnerUtil {
 
 		switch(strategy) {
 		case SEQUENTIAL:
-			sampling = new SequentialSamplingStrategy(d, sc.indices());
+			sampling = new SequentialSamplingStrategy(d, sc.indices(d));
 			break;
 		default:
-			sampling = new RandomSamplingStrategy(d, sc.indices());
+			sampling = new RandomSamplingStrategy(d, sc.indices(d));
 		}
 		
 		return sampling;

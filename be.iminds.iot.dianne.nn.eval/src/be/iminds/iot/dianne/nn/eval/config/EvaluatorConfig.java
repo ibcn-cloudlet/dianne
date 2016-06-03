@@ -20,34 +20,28 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.nn.eval;
+package be.iminds.iot.dianne.nn.eval.config;
 
-import org.osgi.service.component.annotations.Component;
+public class EvaluatorConfig {
 
-import be.iminds.iot.dianne.api.nn.eval.Evaluator;
-import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorOps;
-
-@Component(
-		service={Evaluator.class},
-		property={"aiolos.unique=true",
-		"dianne.evaluator.category=REGRESSION"})
-public class RegressionEvaluator extends AbstractEvaluator {
+	/**
+	 * The tag under which to publish the trained parameters
+	 */
+	public String tag;
 	
-	private Tensor err;
-	private Tensor sqerr;
+	/**
+	 * Start the training with new randomized parameters
+	 */
+	public boolean clean = false;
 	
-	protected void evalOutput(int index, Tensor out, Tensor expected){
-		
-		// for now fixed MSE error ... TODO allow different metrics (use Criterion?)
-		err = TensorOps.sub(err, out, expected);
-		sqerr = TensorOps.cmul(sqerr, err, err);
-		error = error + TensorOps.sum(sqerr)*0.5f;
-		
-		if(this.config.trace){
-			System.out.println("Sample "+index+" was "+expected+", should be "+out);
-		}
-	}
-
+	/**
+	 * Output intermediate results to the console
+	 */
+	public boolean trace = false;
+	
+	/**
+	 * Include all raw outputs in the evaluation results
+	 */
+	public boolean includeOutputs = false;
+	
 }
-

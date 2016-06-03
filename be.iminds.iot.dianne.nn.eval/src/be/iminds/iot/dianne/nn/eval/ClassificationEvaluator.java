@@ -49,7 +49,7 @@ public class ClassificationEvaluator extends AbstractEvaluator {
 		if(real!=predicted)
 			error= error+1.0f;
 		
-		if(trace){
+		if(this.config.trace){
 			System.out.println("Sample "+index+" was "+predicted+", should be "+real);
 		}
 		
