@@ -92,19 +92,14 @@ subprojects {
 		}
 		jar.dependsOn("buildNative")
 		
-		task("cleanNative", type: Delete, description: "Clean dynamic libraries.", group: 'build') {
-			delete "native"
-			doLast {
-				exec {
-					workingDir file.parent
-					commandLine "make", "clean"
-					standardOutput = new ByteArrayOutputStream()
-				}
-			}
+		task("cleanNative", type: Exec, description: "Clean dynamic libraries.", group: 'build') {
+			workingDir file.parent
+			commandLine "make", "clean"
+			standardOutput = new ByteArrayOutputStream()
 		}
 		clean.dependsOn("cleanNative")
 		
-		task("cleanAllNative", type: Exec, description: "Clean all native code including sub projects.", group: 'build', dependsOn: "cleanNative") {
+		task("cleanAllNative", type: Exec, description: "Clean all native code including sub projects.", group: 'build') {
 			workingDir file.parent
 			commandLine "make", "cleanall"
 			standardOutput = new ByteArrayOutputStream()
