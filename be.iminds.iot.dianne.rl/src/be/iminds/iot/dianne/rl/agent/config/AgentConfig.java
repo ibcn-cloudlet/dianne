@@ -35,7 +35,7 @@ public class AgentConfig {
 	/**
 	 * The strategy with which actions are chosen
 	 */
-	public ActionStrategy strategy;
+	public ActionStrategy strategy = ActionStrategy.GREEDY;
 	
 	/**
 	 * After how many actions to fetch new weights from the Repository
