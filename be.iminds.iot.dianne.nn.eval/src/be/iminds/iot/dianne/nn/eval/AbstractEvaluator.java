@@ -120,6 +120,12 @@ public abstract class AbstractEvaluator implements Evaluator {
 			
 			SamplingConfig sc = DianneConfigHandler.getConfig(config, SamplingConfig.class);
 			int[] indices = sc.indices(d);
+			if(indices == null){
+				indices = new int[d.size()];
+				for(int i=0;i<indices.length;i++){
+					indices[i] = i;
+				}
+			}
 			
 			total = indices.length;
 			error = 0;

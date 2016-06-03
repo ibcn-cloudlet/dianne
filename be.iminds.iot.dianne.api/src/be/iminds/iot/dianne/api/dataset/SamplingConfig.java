@@ -59,10 +59,9 @@ public class SamplingConfig {
 		if(indices==null){
 			if(range != null){
 				indices = parseRange(range);
-			} else {
-				if(startIndex == -1){
+			} else if(startIndex != -1 && endIndex != -1){
+				if(startIndex == -1)
 					startIndex = 0;
-				} 
 				if(endIndex == -1){
 					endIndex = d.size();
 				}
