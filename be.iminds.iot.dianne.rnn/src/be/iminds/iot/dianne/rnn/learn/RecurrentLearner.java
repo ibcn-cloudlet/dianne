@@ -32,6 +32,8 @@ import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.api.rnn.dataset.SequenceDataset;
 import be.iminds.iot.dianne.nn.learn.AbstractLearner;
+import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
+import be.iminds.iot.dianne.rnn.learn.config.RecurrentLearnerConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 @Component(service=Learner.class, 
@@ -39,22 +41,12 @@ import be.iminds.iot.dianne.tensor.Tensor;
 			  "dianne.learner.category=RNN"})
 public class RecurrentLearner extends AbstractLearner {
 	
-	protected int sequenceLength = 10;
-	
-	protected boolean backpropAll = false;
+	protected RecurrentLearnerConfig config;
 
 	protected void loadConfig(Map<String, String> config){
 		super.loadConfig(config);
 		
-		if(config.get("sequenceLength")!=null){
-			sequenceLength = Integer.parseInt(config.get("sequenceLength"));
-		}
-		System.out.println("* sequenceLength = " +sequenceLength);
-
-		if(config.get("backpropAll")!=null){
-			backpropAll = Boolean.parseBoolean(config.get("backpropAll"));
-		}
-		System.out.println("* backpropAll = " +backpropAll);
+		this.config = DianneConfigHandler.getConfig(config, RecurrentLearnerConfig.class);
 	}
 	
 	protected float process(long i){
@@ -66,30 +58,30 @@ public class RecurrentLearner extends AbstractLearner {
 		// calculate grad through sequence
 		float err = 0;
 		int index = sampling.next();
-		if(dataset.size()-index < sequenceLength+1){
-			index-=(sequenceLength+1);
+		if(dataset.size()-index < config.sequenceLength+1){
+			index-=(config.sequenceLength+1);
 			if(index < 0){
 				throw new RuntimeException("Sequence length larger than dataset...");
 			}
 		}
 		
-		Tensor[] sequence = ((SequenceDataset)dataset).getSequence(index, sequenceLength);
+		Tensor[] sequence = ((SequenceDataset)dataset).getSequence(index, config.sequenceLength);
 		
 		// keep all memories hidden states
 		Map<UUID, Tensor[]> memories = new HashMap<UUID, Tensor[]>();
 		nn.getMemories().entrySet().forEach(e -> {
-			Tensor[] mems = new Tensor[sequenceLength];
-			for(int k=0;k<sequenceLength;k++){
+			Tensor[] mems = new Tensor[config.sequenceLength];
+			for(int k=0;k<config.sequenceLength;k++){
 				mems[k] = e.getValue().getMemory().copyInto(null);
 			}
 			memories.put(e.getKey(), mems);
 		});
 		
 		// also keep all outputs (in case we want to backprop all)
-		Tensor[] outputs = new Tensor[sequenceLength];
+		Tensor[] outputs = new Tensor[config.sequenceLength];
 		
 		
-		for(int k=0;k<sequenceLength;k++){
+		for(int k=0;k<config.sequenceLength;k++){
 			final int in = k;
 			nn.getMemories().entrySet().forEach(e ->{
 				e.getValue().getMemory().copyInto(memories.get(e.getKey())[in]);
@@ -104,10 +96,10 @@ public class RecurrentLearner extends AbstractLearner {
 		
 		
 		// backward
-		for(int k=sequenceLength-1;k>=0;k--){
+		for(int k=config.sequenceLength-1;k>=0;k--){
 			Tensor target = sequence[k+1];
 			float er = criterion.error(outputs[k], target).get(0);
-			if(backpropAll || k==sequenceLength-1){
+			if(config.backpropAll || k==config.sequenceLength-1){
 				err+=er;
 			}
 			Tensor grad = criterion.grad(outputs[k], target);
@@ -120,8 +112,8 @@ public class RecurrentLearner extends AbstractLearner {
 			nn.forward(sequence[k]);
 				
 			// set grad to zero for all intermediate outputs
-			if(!backpropAll){
-				if(k!=sequenceLength-1){
+			if(!config.backpropAll){
+				if(k!=config.sequenceLength-1){
 					grad.fill(0.0f);
 				}
 			}

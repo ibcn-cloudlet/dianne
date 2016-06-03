@@ -1,3 +1,4 @@
 -dsannotations: *
 Bundle-Name: Dianne RNN Learner
 Private-Package: be.iminds.iot.dianne.rnn.learn
+Export-Package: be.iminds.iot.dianne.rnn.learn.config
