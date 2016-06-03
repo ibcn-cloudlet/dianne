@@ -1,54 +1,54 @@
-include ../Makefile
-
 CUDA_HOME := /usr/local/cuda
 
-SRC := ../torch/TensorLoader.c ../torch/Tensor.c ../torch/TensorOps.c ../torch/ModuleOps.c
-OBJECTS := TensorLoader.o Tensor.o TensorOps.o THCudaTensorOps.o ModuleOps.o
-
-LINKS := -L. -lTHCUNN -lTHC -L../torch -lTH -L$(CUDA_HOME)/lib -L$(CUDA_HOME)/lib64 -lcudart -lcublas
-
+SRC := $(wildcard ../torch/*.c)
+OBJECTS := $(notdir $(SRC:.c=.o))
+JAVAH := $(abspath ../../../be.iminds.iot.dianne.tensor/generated/jni-headers)
+LINKS := -Lcunn/lib/THCUNN/build -lTHCUNN -Lcutorch/lib/THC/build -lTHC -L../torch/torch7/lib/TH/build -lTH -L$(CUDA_HOME)/lib -L$(CUDA_HOME)/lib64 -lcudart -lcublas
 INCLUDES += -I.
 INCLUDES += -I$(CUDA_HOME)/include/
+INCLUDES += -Icutorch/lib/THC -Icutorch/lib/THC/build
+INCLUDES += -Icunn/lib/THCUNN -Icunn/lib/THCUNN/build
 INCLUDES += -I../torch/torch7/lib/TH -I../torch/torch7/lib/TH/build
-INCLUDES += -I../torch/nn/lib/THNN 
-INCLUDES += -Icutorch/lib -Icutorch/lib/THC -Icutorch/lib/THC/build
-INCLUDES += -Icunn/lib/THNN  
-
+INCLUDES += -I../torch/nn/lib/THNN -I../torch/nn/lib/THNN/build
+INCLUDES += -I$(JAVAH)
 FLAGS += -DCUDA 
 
 NVCC=nvcc -ccbin clang
+export NVCC
 NVCC_FLAGS := -Xcompiler -fPIC
-CUDA_SRC := THCudaTensorOps.cu
-CUDA_OBJECTS := $(SRC:.cu=.o)
+CUDA_SRC := $(wildcard *.cu)
+CUDA_OBJECTS := $(CUDA_SRC:.cu=.o)
 
-compile: javah $(SRC)
-	$(CC) $(FLAGS) $(CCFLAGS) $(INCLUDES) -c $(SRC)
+.PHONY: install
+install: $(DEPLOY_DIR)/$(LIB)
 
-THCudaTensorOps.o: $(CUDA_SRC)
-	$(NVCC) $(FLAGS) $(NVCC_FLAGS) $(INCLUDES) -c $(CUDA_SRC)
-
-link: libTHC.a libTHCUNN.a THCudaTensorOps.o compile 
-	$(CC) -shared $(FLAGS) $(CCFLAGS) $(OBJECTS) $(LINKS) -o $(LIB)
-	
-install: link 
-	mkdir -p $(DEPLOY_DIR); \
+$(DEPLOY_DIR)/$(LIB): $(LIB)
+	mkdir -p $(DEPLOY_DIR)
 	cp $(LIB) $(DEPLOY_DIR)/$(LIB)
 
-libTHC.a:
+$(LIB): cutorch/lib/THC/build/libTHC.a cunn/lib/THCUNN/build/libTHCUNN.a $(OBJECTS) $(CUDA_OBJECTS)
+	$(CC) $(SHARED) $(FLAGS) $(CCFLAGS) $(OBJECTS) $(CUDA_OBJECTS) $(LINKS) -o $(LIB)
+
+%.o: ../torch/%.c $(JAVAH)
+	$(CC) $(FLAGS) $(CCFLAGS) $(INCLUDES) -c $<
+
+%.o: %.cu $(JAVAH)
+	$(NVCC) $(FLAGS) $(NVCC_FLAGS) $(INCLUDES) -c $<
+
+cutorch/lib/THC/build/libTHC.a:
 	cmake -Hcutorch/lib/THC -Bcutorch/lib/THC/build
-	make -C cutorch/lib/THC/build ; \
-	cp cutorch/lib/THC/build/libTHC.a libTHC.a
+	$(MAKE) -C cutorch/lib/THC/build
 
-libTHCUNN.a:
+cunn/lib/THCUNN/build/libTHCUNN.a:
 	cmake -Hcunn/lib/THCUNN -Bcunn/lib/THCUNN/build
-	make -C cunn/lib/THCUNN/build ; \
-	cp cunn/lib/THCUNN/build/libTHCUNN.a libTHCUNN.a
+	$(MAKE) -C cunn/lib/THCUNN/build
 
+.PHONY: clean
 clean:
-	rm -rf *.o $(LIB) be_*.h test
-	
-cleanAll: clean
-	rm -rf *.a 
+	rm -f $(OBJECTS) $(CUDA_OBJECTS) $(LIB) $(DEPLOY_DIR)/$(LIB)
+
+.PHONY: cleanall
+cleanall: clean
 	rm -rf cutorch/lib/THC/build	
 	rm -rf cunn/lib/THCUNN/build	
 	

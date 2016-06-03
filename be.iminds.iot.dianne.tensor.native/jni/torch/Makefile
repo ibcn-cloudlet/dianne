@@ -1,39 +1,40 @@
-include ../Makefile
+SRC := $(wildcard *.c)
+OBJECTS=$(SRC:.c=.o)
+JAVAH := $(abspath ../../../be.iminds.iot.dianne.tensor/generated/jni-headers)
+LINKS := -Lnn/lib/THNN/build -lTHNN -Ltorch7/lib/TH/build -lTH -LOpenBLAS -lopenblas -lgomp -lgfortran
+INCLUDES += -Itorch7/lib/TH -Itorch7/lib/TH/build -Inn/lib/THNN -Inn/lib/THNN/build -I$(JAVAH)
 
-SRC := TensorLoader.c Tensor.c TensorOps.c ModuleOps.c
-LINKS := -L. -lTHNN -lTH -lopenblas -lgomp 
-INCLUDES += -Itorch7/lib/TH -Itorch7/lib/TH/build
-INCLUDES += -Inn/lib/THNN 
+.PHONY: install
+install: $(DEPLOY_DIR)/$(LIB)
 
-compile: javah $(SRC)
-	$(CC) $(FLAGS) $(CCFLAGS) $(INCLUDES) -c $(SRC)
-
-link: libopenblas.a libTH.a libTHNN.a compile 
-	$(CC) -shared $(FLAGS) $(CCFLAGS) $(OBJECTS) $(LINKS) -o $(LIB)
-	
-install: link 
-	mkdir -p $(DEPLOY_DIR); \
+$(DEPLOY_DIR)/$(LIB): $(LIB)
+	mkdir -p $(DEPLOY_DIR)
 	cp $(LIB) $(DEPLOY_DIR)/$(LIB)
 
-libTH.a:
-	cmake -Htorch7/lib/TH -Btorch7/lib/TH/build
-	make -C torch7/lib/TH/build ; \
-	cp torch7/lib/TH/build/libTH.a libTH.a
+$(LIB): OpenBLAS/libopenblas.a torch7/lib/TH/build/libTH.a nn/lib/THNN/build/libTHNN.a $(OBJECTS)
+	$(CC) $(SHARED) $(FLAGS) $(CCFLAGS) $(OBJECTS) $(LINKS) -o $(LIB)
 
-libTHNN.a:
+%.o: %.c $(JAVAH)
+	$(CC) $(FLAGS) $(CCFLAGS) $(INCLUDES) -c $< 
+
+torch7/lib/TH/build/libTH.a:
+	cmake -Htorch7/lib/TH -Btorch7/lib/TH/build -DCMAKE_DISABLE_FIND_PACKAGE_MKL=TRUE
+	$(MAKE) -C torch7/lib/TH/build
+
+nn/lib/THNN/build/libTHNN.a:
 	cmake -Hnn/lib/THNN -Bnn/lib/THNN/build
-	make -C nn/lib/THNN/build ; \
-	cp nn/lib/THNN/build/libTHNN.a libTHNN.a
+	$(MAKE) -C nn/lib/THNN/build
 
-libopenblas.a:
-	cd OpenBLAS; make USE_OPENMP=1; cp libopenblas.a ..
+OpenBLAS/libopenblas.a:
+	$(MAKE) -C OpenBLAS USE_OPENMP=1 NO_SHARED=1
 
+.PHONY: clean
 clean:
-	rm -rf *.o $(LIB) be_*.h test
-	
-cleanAll: clean
-	rm -rf *.a 
-	rm -rf torch7/lib/TH/build	
-	rm -rf nn/lib/THNN/build	
-	cd OpenBLAS; make clean
+	rm -f $(OBJECTS) $(LIB) $(DEPLOY_DIR)/$(LIB)
+
+.PHONY: cleanAll
+cleanall: clean
+	rm -rf torch7/lib/TH/build
+	rm -rf nn/lib/THNN/build
+	$(MAKE) -C OpenBLAS clean
 	

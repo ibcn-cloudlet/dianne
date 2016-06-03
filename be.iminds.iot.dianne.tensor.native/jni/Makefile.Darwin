@@ -1,15 +1,15 @@
 #---------------------------------------------------------------------------
-# Linux settings
+# Darwin settings
 # Compiler
-CC := gcc
-CXX := g++
-CCFLAGS += -DLINUX
-LIB := libALE.so
-SHARED := -shared
+CC=gcc-5
+CXX=g++-5
+FLAGS := -DOSX
+LIB := libTensor.dylib
+SHARED := -dynamiclib
 
-JAVA_HOME ?= /usr/lib/jvm/default-java
+JAVA_HOME ?= $(shell /usr/libexec/java_home)
 # this is the subdirectory name in JAVA_HOME/include/ that contains platform-specific files
 # it seems that some versions of Java 1.1 on linux need this to be "genunix"
-JDKPLATFORMINCLUDESUBDIR := linux
+JDKPLATFORMINCLUDESUBDIR := darwin
 
 #---------------------------------------------------------------------------

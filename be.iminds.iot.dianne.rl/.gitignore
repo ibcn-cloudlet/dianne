@@ -7,3 +7,4 @@
 /jni/ALE/*.a
 /jni/ALE/*_*.h
 /jni/ALE/*.dylib
+ale.bnd

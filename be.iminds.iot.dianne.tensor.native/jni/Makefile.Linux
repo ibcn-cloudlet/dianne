@@ -1,10 +1,10 @@
 #---------------------------------------------------------------------------
 # Linux settings
 # Compiler
-CC := gcc
-CXX := g++
-CCFLAGS += -DLINUX
-LIB := libALE.so
+CC=gcc
+CXX=g++
+FLAGS := -DLINUX
+LIB := libTensor.so
 SHARED := -shared
 
 JAVA_HOME ?= /usr/lib/jvm/default-java
