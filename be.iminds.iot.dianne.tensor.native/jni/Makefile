@@ -7,7 +7,6 @@ OS ?= $(shell uname -s)
 ARCH ?= $(shell uname -m)
 # basic check to see if any CUDA compatible GPU is installed
 # set this to false to turn off GPU related functionality
-
 HAS_GPU ?= $(shell lspci -v 2>/dev/null | grep NVIDIA && echo true)
 HAS_NVCC ?= $(shell nvcc --version > /dev/null 2>&1 && echo true)
 NATIVE ?= torch

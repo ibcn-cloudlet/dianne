@@ -1,9 +1,7 @@
 MY_TARGETS = ALE
 
-.PHONY: all clean cleanAll $(MY_TARGETS)
-all: $(MY_TARGETS)
-clean: $(MY_TARGETS)
-cleanAll: $(MY_TARGETS)
+.PHONY: install clean cleanall $(MY_TARGETS)
+install clean cleanall: $(MY_TARGETS)
 
 $(MY_TARGETS):
 	$(MAKE) -C $@ $(MAKECMDGOALS);

@@ -106,7 +106,7 @@ subprojects {
 		
 		task("cleanAllNative", type: Exec, description: "Clean all native code including sub projects.", group: 'build', dependsOn: "cleanNative") {
 			workingDir file.parent
-			commandLine "make", "cleanAll"
+			commandLine "make", "cleanall"
 			standardOutput = new ByteArrayOutputStream()
 		}
 		cleanAll.dependsOn("cleanAllNative")

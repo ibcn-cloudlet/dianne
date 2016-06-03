@@ -1,6 +1,6 @@
 # This file builds the native Arcade Learning Environment and the JNI interface
-OS := $(shell uname -s)
-ARCH := $(shell uname -m)
+OS ?= $(shell uname -s)
+ARCH ?= $(shell uname -m)
 
 ifeq ($(OS),Linux)
     include Makefile.Linux
@@ -14,32 +14,36 @@ JAVA_INCLUDE := $(JAVA_HOME)/include
 JAVA_PLATFORMINCLUDE := $(JAVA_INCLUDE)/$(JDKPLATFORMINCLUDESUBDIR)
 
 JAVAH := $(abspath ../../generated/jni-headers)
-SRC := ALE.cpp  
+SRC := $(wildcard *.cpp)  
 INCLUDES := -I$(JAVA_INCLUDE) -I$(JAVA_PLATFORMINCLUDE) -IArcade-Learning-Environment/src -I$(JAVAH)
-OBJECT := ALE.o 
+OBJECTS := $(SRC:.cpp=.o)
 FLAGS := -O3 -w
-LINKS := libale.a -lz
+LINKS := -LArcade-Learning-Environment/build -lale -lz
 DEPLOY_DIR := ../../native/$(OS)/$(ARCH)
+export
 
-all: install 
-	
-compile: $(SRC) $(JAVAH)
-	$(CXX) $(FLAGS) $(CCFLAGS) -fPIC $(INCLUDES) -c $(SRC)
-	
-link: compile 
-	$(CXX) $(FLAGS) $(CCFLAGS) $(SHARED) $(OBJECT) $(LINKS) -o $(LIB) 
-	
-install: libale.a link 
+.PHONY: install
+install: $(DEPLOY_DIR)/$(LIB)
+
+$(DEPLOY_DIR)/$(LIB): $(LIB)
 	mkdir -p $(DEPLOY_DIR)
-	cp $(LIB) $(DEPLOY_DIR)/$(LIB)	
+	cp $(LIB) $(DEPLOY_DIR)/$(LIB)
 
-
-libale.a:
-	cd Arcade-Learning-Environment; cmake -DUSE_SDL=OFF -DUSE_RLGLUE=OFF -DBUILD_EXAMPLES=OFF; make -j 4; cp libale.a ..
+$(LIB): Arcade-Learning-Environment/build/libale.a $(OBJECTS)
+	$(CXX) $(FLAGS) $(CCFLAGS) $(SHARED) $(OBJECTS) $(LINKS) -o $(LIB)
 	
-clean:
-	rm -rf *.o $(LIB)
+%.o: %.cpp $(JAVAH)
+	$(CXX) $(FLAGS) $(CCFLAGS) -fPIC $(INCLUDES) -c $<		
 
-cleanAll: clean
-	rm libale.a; cd Arcade-Learning-Environment; make clean
+Arcade-Learning-Environment/build/libale.a:
+	cmake -HArcade-Learning-Environment -BArcade-Learning-Environment/build -DUSE_SDL=OFF -DUSE_RLGLUE=OFF -DBUILD_EXAMPLES=OFF
+	$(MAKE) -j 4 -C Arcade-Learning-Environment/build
+
+.PHONY: clean
+clean:
+	rm -f $(OBJECTS) $(LIB) $(DEPLOY_DIR)/$(LIB)
+
+.PHONY: cleanall
+cleanall: clean
+	rm -rf Arcade-Learning-Environment/build
 	
