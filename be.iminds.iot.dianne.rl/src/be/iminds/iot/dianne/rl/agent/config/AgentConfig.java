@@ -20,33 +20,52 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.rl.agent.strategy;
+package be.iminds.iot.dianne.rl.agent.config;
 
-import java.util.Map;
 
-import org.osgi.service.component.annotations.Component;
+public class AgentConfig {
 
-import be.iminds.iot.dianne.rl.agent.api.ManualActionController;
-import be.iminds.iot.dianne.tensor.Tensor;
-
-@Component(property={"strategy=MANUAL",
-		"aiolos.proxy=false"})
-public class ManualActionStrategy implements ActionStrategy, ManualActionController {
-
-	private Tensor action;
-	
-	@Override
-	public Tensor selectActionFromOutput(Tensor output, long i) {
-		return action;
-	}
-
-	@Override
-	public void setAction(Tensor a){
-		this.action = a;
-	}
-
-	@Override
-	public void configure(Map<String, String> config) {
+	public enum ActionStrategy {
+		GREEDY,
+		BOLTZMANN,
+		MANUAL
+		// TODO add "raw" in case of continuous outputs?
 	}
 	
+	/**
+	 * The strategy with which actions are chosen
+	 */
+	public ActionStrategy strategy;
+	
+	/**
+	 * After how many actions to fetch new weights from the Repository
+	 */
+	public int syncInterval = 10000;
+	
+	/**
+	 * Tag of fetched weights
+	 */
+	public String tag;
+	
+	/**
+	 * After how many actions to push experience to Experience Pool
+	 */
+	public int experienceInterval = 1000;
+	
+	/**
+	 * Maximum size of the experience pool
+	 */
+	public int experienceSize = 1000000;
+
+	/**
+	 * After how many actions to trigger gc
+	 */
+	public int gcInterval = 1000;
+	
+	/**
+	 * Clean experience pool at start
+	 */
+	public boolean clean = false;
+
+
 }

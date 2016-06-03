@@ -47,6 +47,8 @@ import be.iminds.iot.dianne.api.rl.agent.AgentProgress;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
 import be.iminds.iot.dianne.api.rl.environment.Environment;
+import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
+import be.iminds.iot.dianne.rl.agent.config.AgentConfig;
 import be.iminds.iot.dianne.rl.agent.strategy.ActionStrategy;
 import be.iminds.iot.dianne.tensor.Tensor;
 
@@ -64,21 +66,16 @@ public class DeepRLAgent implements Agent {
 	private ExperiencePool pool;
 	private Environment env;
 	
+	private AgentConfig config;
+	
 	private Thread actingThread;
 	private long i = 0;
 	private volatile boolean acting;
-	private int syncInterval = 10000;
-	private int gcInterval = 1000;
 	
 	// separate thread for updating the experience pool
 	private Thread experienceUploadThread;
-	private int experienceInterval = 1000; // update in batches
-	private int experienceSize = 1000000; // maximum size in experience pool
 	private List<ExperiencePoolSample> samples = new ArrayList<ExperiencePoolSample>();
 
-	private String tag = "run";
-	private boolean clean = false;
-	
 	private ActionStrategy actionStrategy;
 	
 	@Reference
@@ -150,40 +147,13 @@ public class DeepRLAgent implements Agent {
 		else if (experiencePool != null && !pools.containsKey(experiencePool))
 			throw new Exception("ExperiencePool " + experiencePool + " is not available");
 
-		if(config.containsKey("tag"))
-			tag = config.get("tag"); 
-		
-		if(config.containsKey("gcInterval")){
-			gcInterval = Integer.parseInt(config.get("gcInterval"));
-		}
-		
-		if (config.containsKey("clean"))
-			clean = Boolean.parseBoolean(config.get("clean"));
-		
-		if (config.containsKey("syncInterval"))
-			syncInterval = Integer.parseInt(config.get("syncInterval"));
-		
-		if (config.containsKey("experienceInterval"))
-			experienceInterval = Integer.parseInt(config.get("experienceInterval"));
-		
-		if (config.containsKey("experienceSize"))
-			experienceSize = Integer.parseInt(config.get("experienceSize"));
-		
-		String strategy = "greedy";
-		if(config.containsKey("strategy"))
-			strategy = config.get("strategy");
 		
 		System.out.println("Agent Configuration");
 		System.out.println("===================");
-		System.out.println("* tag = "+tag);
-		System.out.println("* strategy = "+strategy);
-		System.out.println("* clean = "+clean);
-		System.out.println("* syncInterval = "+syncInterval);
-		System.out.println("* gcInterval = "+gcInterval);
-		System.out.println("* experienceInterval = "+experienceInterval);
-		System.out.println("* experienceSize = "+experienceSize);
-		System.out.println("---");
+
+		this.config = DianneConfigHandler.getConfig(config, AgentConfig.class);
 		
+		String strategy = this.config.strategy.toString();
 		actionStrategy = strategies.get(strategy);
 		if(actionStrategy==null)
 			throw new RuntimeException("Invalid strategy selected: "+strategy);
@@ -242,12 +212,12 @@ public class DeepRLAgent implements Agent {
 			Tensor observation = env.getObservation();
 
 			for(i = 0; acting; i++) {
-				if(syncInterval > 0 && i % syncInterval == 0){
+				if(config.syncInterval > 0 && i % config.syncInterval == 0){
 					// sync parameters
 					try {
-						nn.loadParameters(tag);
+						nn.loadParameters(config.tag);
 					} catch(Exception e){
-						System.out.println("Failed to load parameters with tag "+tag);
+						System.out.println("Failed to load parameters with tag "+config.tag);
 					}
 				}
 				
@@ -258,7 +228,7 @@ public class DeepRLAgent implements Agent {
 
 				synchronized(samples){
 					samples.add(new ExperiencePoolSample(observation, action, reward, nextObservation));
-					if(i % experienceInterval == 0){
+					if(i % config.experienceInterval == 0){
 						samples.notifyAll();
 					}
 				}
@@ -270,7 +240,7 @@ public class DeepRLAgent implements Agent {
 					observation = env.getObservation();
 				}
 
-				if(gcInterval > 0 && i % gcInterval == 0){
+				if(config.gcInterval > 0 && i % config.gcInterval == 0){
 					System.gc();
 				}
 			}
@@ -281,19 +251,19 @@ public class DeepRLAgent implements Agent {
 
 		@Override
 		public void run() {
-			if(clean){
+			if(config.clean){
 				if(pool!=null)
 					pool.reset();
 			}
 			
 			if(pool!=null){
-				pool.setMaxSize(experienceSize);
+				pool.setMaxSize(config.experienceSize);
 			}
 			
 			while(acting){
 				List<ExperiencePoolSample> toUpdate = new ArrayList<>();
 				synchronized(samples){
-					if(samples.size() >= experienceInterval){
+					if(samples.size() >= config.experienceInterval){
 						toUpdate.addAll(samples);
 						samples.clear();
 					} else {

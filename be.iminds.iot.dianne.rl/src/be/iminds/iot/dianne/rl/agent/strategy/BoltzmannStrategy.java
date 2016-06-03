@@ -29,17 +29,17 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 
 import be.iminds.iot.dianne.api.log.DataLogger;
+import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
+import be.iminds.iot.dianne.rl.agent.strategy.config.BoltzmannConfig;
 import be.iminds.iot.dianne.tensor.ModuleOps;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
-@Component(property={"strategy=boltzmann",
+@Component(property={"strategy=BOLTZMANN",
 			"aiolos.proxy=false"})
 public class BoltzmannStrategy implements ActionStrategy {
 	
-	private double temperatureMax = 1e0;
-	private double temperatureMin = 1e0;
-	private double temperatureDecay = 1e-6;
+	private BoltzmannConfig config;
 	
 	private DataLogger logger = null;
 	private String[] loglabels = new String[]{"Q0", "Q1", "Q2", "temperature"};
@@ -59,7 +59,7 @@ public class BoltzmannStrategy implements ActionStrategy {
 		Tensor action = new Tensor(output.size());
 		action.fill(-1);
 		
-		double temperature = temperatureMin + (temperatureMax - temperatureMin) * Math.exp(-i * temperatureDecay);
+		double temperature = config.temperatureMin + (config.temperatureMax - config.temperatureMin) * Math.exp(-i * config.temperatureDecay);
 		
 		if(logger!=null){
 			logger.log("AGENT", loglabels, output.get(0), output.get(1), output.get(2), (float) temperature);
@@ -81,20 +81,7 @@ public class BoltzmannStrategy implements ActionStrategy {
 
 	@Override
 	public void configure(Map<String, String> config) {
-		if (config.containsKey("temperatureMax"))
-			temperatureMax = Double.parseDouble(config.get("temperatureMax"));
-		
-		if (config.containsKey("temperatureMin"))
-			temperatureMin = Double.parseDouble(config.get("temperatureMin"));
-		
-		if (config.containsKey("temperatureDecay"))
-			temperatureDecay = Double.parseDouble(config.get("temperatureDecay"));
-		
-		System.out.println("Boltzmann Action Selection");
-		System.out.println("* temperature max = "+temperatureMax);
-		System.out.println("* temperature min = "+temperatureMin);
-		System.out.println("* temperature decay = "+temperatureDecay);
-		System.out.println("---");
+		this.config = DianneConfigHandler.getConfig(config, BoltzmannConfig.class);
 	}
 
 }

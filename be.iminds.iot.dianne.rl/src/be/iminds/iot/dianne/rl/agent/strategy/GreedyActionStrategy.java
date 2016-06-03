@@ -29,17 +29,17 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 
 import be.iminds.iot.dianne.api.log.DataLogger;
+import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.agent.api.ExplorationController;
+import be.iminds.iot.dianne.rl.agent.strategy.config.GreedyConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
-@Component(property={"strategy=greedy",
+@Component(property={"strategy=GREEDY",
 		"aiolos.proxy=false"})
 public class GreedyActionStrategy implements ActionStrategy, ExplorationController {
 	
-	private double epsilonMax = 1e0;
-	private double epsilonMin = 0;
-	private double epsilonDecay = 1e-6;
+	private GreedyConfig config;
 	
 	private DataLogger logger = null;
 	private String[] loglabels = new String[]{"Q0", "Q1", "Q2", "epsilon"};
@@ -49,7 +49,7 @@ public class GreedyActionStrategy implements ActionStrategy, ExplorationControll
 		Tensor action = new Tensor(output.size());
 		action.fill(-1);
 		
-		double epsilon = epsilonMin + (epsilonMax - epsilonMin) * Math.exp(-i * epsilonDecay);
+		double epsilon = config.epsilonMin + (config.epsilonMax - config.epsilonMin) * Math.exp(-i * config.epsilonDecay);
 		
 		if(logger!=null){
 			logger.log("AGENT", loglabels, output.get()[0],output.get()[1],output.get()[2], (float)epsilon);
@@ -66,20 +66,7 @@ public class GreedyActionStrategy implements ActionStrategy, ExplorationControll
 	
 	@Override
 	public void configure(Map<String, String> config) {
-		if (config.containsKey("epsilonMax"))
-			epsilonMax = Double.parseDouble(config.get("epsilonMax"));
-		
-		if (config.containsKey("epsilonMin"))
-			epsilonMin = Double.parseDouble(config.get("epsilonMin"));
-		
-		if (config.containsKey("epsilonDecay"))
-			epsilonDecay = Double.parseDouble(config.get("epsilonDecay"));
-		
-		System.out.println("Greedy Action Selection");
-		System.out.println("* epsilon max = "+epsilonMax);
-		System.out.println("* epsilon min = "+epsilonMin);
-		System.out.println("* epsilon decay = "+epsilonDecay);
-		System.out.println("---");
+		this.config = DianneConfigHandler.getConfig(config, GreedyConfig.class);
 	}
 
 	@Reference(cardinality = ReferenceCardinality.OPTIONAL)
@@ -93,8 +80,8 @@ public class GreedyActionStrategy implements ActionStrategy, ExplorationControll
 
 	@Override
 	public void setExploration(float exploration) {
-		this.epsilonMax = exploration;
-		this.epsilonMin = exploration;
+		this.config.epsilonMax = exploration;
+		this.config.epsilonMin = exploration;
 	}
 
 }

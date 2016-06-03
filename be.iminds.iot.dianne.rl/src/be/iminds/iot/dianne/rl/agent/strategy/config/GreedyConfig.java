@@ -20,33 +20,13 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.rl.agent.strategy;
+package be.iminds.iot.dianne.rl.agent.strategy.config;
 
-import java.util.Map;
 
-import org.osgi.service.component.annotations.Component;
+public class GreedyConfig {
 
-import be.iminds.iot.dianne.rl.agent.api.ManualActionController;
-import be.iminds.iot.dianne.tensor.Tensor;
+	public double epsilonMax = 1e0;
+	public double epsilonMin = 0;
+	public double epsilonDecay = 1e-6;
 
-@Component(property={"strategy=MANUAL",
-		"aiolos.proxy=false"})
-public class ManualActionStrategy implements ActionStrategy, ManualActionController {
-
-	private Tensor action;
-	
-	@Override
-	public Tensor selectActionFromOutput(Tensor output, long i) {
-		return action;
-	}
-
-	@Override
-	public void setAction(Tensor a){
-		this.action = a;
-	}
-
-	@Override
-	public void configure(Map<String, String> config) {
-	}
-	
 }

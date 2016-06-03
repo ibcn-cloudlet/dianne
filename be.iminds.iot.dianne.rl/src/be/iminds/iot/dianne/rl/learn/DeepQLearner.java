@@ -37,6 +37,8 @@ import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
 import be.iminds.iot.dianne.api.rl.learn.QLearnProgress;
 import be.iminds.iot.dianne.nn.learn.AbstractLearner;
+import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
+import be.iminds.iot.dianne.rl.learn.config.DeepQLearnerConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
@@ -51,44 +53,14 @@ public class DeepQLearner extends AbstractLearner {
 	
 	private ExperiencePool pool; 
 
-	private int targetInterval = 1000;
-	private int storeInterval = 0;
-	private String storeTag = "store";
-	private int minSamples = 10000;
-	
-	private int batchSize = 10;
-	private float discount = 0.99f;
+	private DeepQLearnerConfig config;
 	
 	private float q;
 
 	protected void loadConfig(Map<String, String> config){
 		super.loadConfig(config);
 		
-		if (config.containsKey("targetInterval"))
-			targetInterval = Integer.parseInt(config.get("targetInterval"));
-		System.out.println("* targetInterval = "+targetInterval);
-
-		if (config.containsKey("storeInterval"))
-			storeInterval = Integer.parseInt(config.get("storeInterval"));
-		System.out.println("* storeInterval = "+storeInterval);
-
-		if (config.containsKey("storeTag"))
-			storeTag = config.get("storeTag");
-		System.out.println("* storeTag = "+storeTag);
-		
-		if (config.containsKey("minSamples"))
-			minSamples = Integer.parseInt(config.get("minSamples"));
-		System.out.println("* minSamples = "+minSamples);
-	
-		if(config.get("batchSize")!=null){
-			batchSize = Integer.parseInt(config.get("batchSize"));
-		}
-		System.out.println("* batchSize = "+batchSize);
-
-		if(config.containsKey("discount"))
-			discount = Float.parseFloat(config.get("discount"));
-		System.out.println("* discount = "+discount);
-
+		this.config = DianneConfigHandler.getConfig(config, DeepQLearnerConfig.class);
 	}
 
 	
@@ -117,9 +89,9 @@ public class DeepQLearner extends AbstractLearner {
 		super.preprocess();
 		
 		// wait until pool has some samples
-		if(pool.size() < minSamples){
+		if(pool.size() < config.minSamples){
 			System.out.println("Experience pool has too few samples, waiting a bit to start learning...");
-			while(pool.size() < minSamples){
+			while(pool.size() < config.minSamples){
 				try {
 					Thread.sleep(5000);
 				} catch (InterruptedException e) {
@@ -140,7 +112,7 @@ public class DeepQLearner extends AbstractLearner {
 
 		float err = 0;
 			
-		for(int k=0;k<batchSize;k++){
+		for(int k=0;k<config.batchSize;k++){
 			// new sample
 			int index = sampling.next();
 			
@@ -163,7 +135,7 @@ public class DeepQLearner extends AbstractLearner {
 				targetQ = reward;
 			} else {
 				Tensor nextQ = target.forward(nextState, ""+index);
-				targetQ = reward + discount * TensorOps.max(nextQ);
+				targetQ = reward + config.discount * TensorOps.max(nextQ);
 			}
 			
 			Tensor targetOut = out.copyInto(null);
@@ -200,12 +172,12 @@ public class DeepQLearner extends AbstractLearner {
 
 		nn.getTrainables().values().stream().forEach(Trainable::updateParameters);
 		
-		return err/batchSize;
+		return err/config.batchSize;
 	}
 	
 	
 	protected void initializeParameters(){
-		if(config.clean){
+		if(super.config.clean){
 			// reset parameters
 			resetParameters();
 		} else {
@@ -215,25 +187,25 @@ public class DeepQLearner extends AbstractLearner {
 	}
 	
 	protected void publishParameters(long i){
-		if (targetInterval > 0 && i % targetInterval == 0) {
-			nn.storeDeltaParameters(previousParameters, config.tag);
+		if (config.targetInterval > 0 && i % config.targetInterval == 0) {
+			nn.storeDeltaParameters(previousParameters, super.config.tag);
 			loadParameters(nn, target);
 			// also store these parameters tagged with batch number
 			nn.storeParameters(""+i);
-		} else if(config.syncInterval > 0 && i % config.syncInterval == 0){
-			nn.storeDeltaParameters(previousParameters, config.tag);
+		} else if(super.config.syncInterval > 0 && i % super.config.syncInterval == 0){
+			nn.storeDeltaParameters(previousParameters, super.config.tag);
 			loadParameters(nn);
 		}
 		
-		if(storeInterval > 0 && i % storeInterval == 0){
-			nn.storeParameters(storeTag, ""+i);
+		if(config.storeInterval > 0 && i % config.storeInterval == 0){
+			nn.storeParameters(config.storeTag, ""+i);
 		}
 	}
 
 	private void loadParameters(NeuralNetwork... nns) {
 		try {
 			for(NeuralNetwork nn : nns){
-				previousParameters = nn.loadParameters(config.tag);
+				previousParameters = nn.loadParameters(super.config.tag);
 			}
 		} catch (Exception ex) {
 			resetParameters();
@@ -244,7 +216,7 @@ public class DeepQLearner extends AbstractLearner {
 		nn.randomizeParameters();
 		
 		// store those parameters
-		nn.storeParameters(config.tag);
+		nn.storeParameters(super.config.tag);
 		
 		// copy to target
 		target.setParameters(nn.getParameters());

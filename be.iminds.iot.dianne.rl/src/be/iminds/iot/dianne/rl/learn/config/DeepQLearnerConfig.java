@@ -20,33 +20,41 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.rl.agent.strategy;
+package be.iminds.iot.dianne.rl.learn.config;
 
-import java.util.Map;
 
-import org.osgi.service.component.annotations.Component;
+public class DeepQLearnerConfig {
 
-import be.iminds.iot.dianne.rl.agent.api.ManualActionController;
-import be.iminds.iot.dianne.tensor.Tensor;
-
-@Component(property={"strategy=MANUAL",
-		"aiolos.proxy=false"})
-public class ManualActionStrategy implements ActionStrategy, ManualActionController {
-
-	private Tensor action;
+	/**
+	 * Discount factor
+	 */
+	public float discount = 0.99f;
 	
-	@Override
-	public Tensor selectActionFromOutput(Tensor output, long i) {
-		return action;
-	}
+	/**
+	 * Interval to update the target NN
+	 */
+	public int targetInterval = 1000;
 
-	@Override
-	public void setAction(Tensor a){
-		this.action = a;
-	}
 
-	@Override
-	public void configure(Map<String, String> config) {
-	}
+	/**
+	 * Size of the batches that are processed by the Learner
+	 */
+	public int batchSize = 10;
+	
+	/**
+	 * Minimum samples that should be in the Experience Pool before training starts
+	 */
+	public int minSamples = 1000;
+
+	
+	/**
+	 * Interval to store the intermediate weights during training 
+	 */
+	public int storeInterval = -1;
+	
+	/**
+	 * Tag to store the weights with
+	 */
+	public String storeTag;
 	
 }

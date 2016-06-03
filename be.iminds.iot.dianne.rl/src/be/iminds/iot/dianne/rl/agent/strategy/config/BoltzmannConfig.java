@@ -20,33 +20,24 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.rl.agent.strategy;
+package be.iminds.iot.dianne.rl.agent.strategy.config;
 
-import java.util.Map;
 
-import org.osgi.service.component.annotations.Component;
+public class BoltzmannConfig {
 
-import be.iminds.iot.dianne.rl.agent.api.ManualActionController;
-import be.iminds.iot.dianne.tensor.Tensor;
-
-@Component(property={"strategy=MANUAL",
-		"aiolos.proxy=false"})
-public class ManualActionStrategy implements ActionStrategy, ManualActionController {
-
-	private Tensor action;
+	/**
+	 * Max temperature
+	 */
+	public double temperatureMax = 1e0;
 	
-	@Override
-	public Tensor selectActionFromOutput(Tensor output, long i) {
-		return action;
-	}
-
-	@Override
-	public void setAction(Tensor a){
-		this.action = a;
-	}
-
-	@Override
-	public void configure(Map<String, String> config) {
-	}
+	/**
+	 * Min temperature
+	 */
+	public double temperatureMin = 1e0;
 	
+	/**
+	 * Temperature exponential decay rate
+	 */
+	public double temperatureDecay = 1e-6;
+
 }
