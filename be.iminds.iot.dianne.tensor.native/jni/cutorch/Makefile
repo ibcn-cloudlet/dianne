@@ -16,7 +16,7 @@ FLAGS += -DCUDA
 NVCC=nvcc -ccbin clang
 export NVCC
 NVCC_FLAGS := -Xcompiler -fPIC
-CUDA_SRC := THCudaTensorOps.cu
+CUDA_SRC := $(wildcard *.cu)
 CUDA_OBJECTS := $(CUDA_SRC:.cu=.o)
 
 .PHONY: install
@@ -45,7 +45,7 @@ cunn/lib/THCUNN/build/libTHCUNN.a:
 
 .PHONY: clean
 clean:
-	rm -f $(OBJECTS) $(LIB) $(DEPLOY_DIR)/$(LIB)
+	rm -f $(OBJECTS) $(CUDA_OBJECTS) $(LIB) $(DEPLOY_DIR)/$(LIB)
 
 .PHONY: cleanall
 cleanall: clean
