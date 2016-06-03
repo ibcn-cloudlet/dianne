@@ -28,7 +28,7 @@ $(DEPLOY_DIR)/$(LIB): $(LIB)
 $(LIB): cutorch/lib/THC/build/libTHC.a cunn/lib/THCUNN/build/libTHCUNN.a $(OBJECTS) $(CUDA_OBJECTS)
 	$(CC) $(SHARED) $(FLAGS) $(CCFLAGS) $(OBJECTS) $(LINKS) -o $(LIB)
 
-%.o: %.c $(JAVAH)
+%.o: ../torch/%.c $(JAVAH)
 	$(CC) $(FLAGS) $(CCFLAGS) $(INCLUDES) -c $<
 
 %.o: %.cu $(JAVAH)
