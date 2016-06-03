@@ -6,7 +6,7 @@ task generateFiles(type:Copy, description: "Generate <lib.os.arch>.bnd file for 
 	def fileName = "${lib}.${os}.${arch}.bnd"
 	rename { file ->  fileName }
 	exec {
-		commandLine "ln", "-sfn", fileName, "generic.bnd" 
+		commandLine "cp", "-f", fileName, "generic.bnd" 
 		standardOutput = new ByteArrayOutputStream()
 	}
 }
