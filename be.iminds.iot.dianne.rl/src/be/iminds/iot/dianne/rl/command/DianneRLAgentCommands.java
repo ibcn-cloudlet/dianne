@@ -67,12 +67,6 @@ public class DianneRLAgentCommands {
 	
 	static Map<String, String> createAgentConfig(String[] properties){
 		Map<String, String> config = new HashMap<String, String>();
-		// defaults
-		config.put("strategy", "greedy");
-		config.put("epsilonMax", "1");
-		config.put("epsilonMin", "0.1");
-		config.put("epsilonDecay", "1e-6");
-
 		for(String property : properties){
 			String[] p = property.split("=");
 			if(p.length==2){
