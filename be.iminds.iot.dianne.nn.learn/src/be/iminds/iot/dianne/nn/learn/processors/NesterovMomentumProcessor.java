@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
+import be.iminds.iot.dianne.nn.learn.processors.config.NesterovConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
@@ -35,14 +36,14 @@ import be.iminds.iot.dianne.tensor.TensorOps;
  */
 public class NesterovMomentumProcessor extends GradientProcessor {
 
-	private final float momentum;
+	private final NesterovConfig config;
 	
 	private Map<UUID, Tensor> previousVelocity = new HashMap<UUID, Tensor>();
 	private Map<UUID, Tensor> velocity = new HashMap<UUID, Tensor>();
 	
-	public NesterovMomentumProcessor( GradientProcessor p, float momentum ) {
+	public NesterovMomentumProcessor( GradientProcessor p, NesterovConfig config) {
 		super(p);
-		this.momentum = momentum;
+		this.config = config;
 	}
 	
 	@Override
@@ -61,7 +62,7 @@ public class NesterovMomentumProcessor extends GradientProcessor {
 			Tensor deltaParams = e.getValue().getDeltaParameters();
 			Tensor v = velocity.get(e.getKey());
 			if(v!=null){
-				v = TensorOps.add(v, deltaParams, momentum , v);
+				v = TensorOps.add(v, deltaParams, config.nesterov , v);
 			} else {
 				// if no velocity yet, just copy deltaParams
 				v = deltaParams.copyInto(v);
@@ -77,13 +78,13 @@ public class NesterovMomentumProcessor extends GradientProcessor {
 	
 			Tensor prev = previousVelocity.get(e.getKey());
 			if(prev!=null){
-				TensorOps.mul(deltaParams, prev, -momentum);
+				TensorOps.mul(deltaParams, prev, -config.nesterov);
 			} else {
 				deltaParams.fill(0.0f);
 			}
 			
 			Tensor v = velocity.get(e.getKey());
-			TensorOps.add(deltaParams, deltaParams , (1+momentum), v);
+			TensorOps.add(deltaParams, deltaParams , (1+config.nesterov), v);
 			
 			// set DeltaParameters to be sure in case of remote module instance
 			e.getValue().setDeltaParameters(deltaParams);

@@ -25,25 +25,22 @@ package be.iminds.iot.dianne.nn.learn.processors;
 import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
+import be.iminds.iot.dianne.nn.learn.processors.config.SGDConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class StochasticGradientDescentProcessor extends GradientProcessor {
 
-	private final float maxRate;
-	private final float minRate;
-	private final float decayRate;
+	private final SGDConfig config;
 	
-	public StochasticGradientDescentProcessor(NeuralNetwork nn, DataLogger logger, float maxRate, float minRate, float decayRate) {
+	public StochasticGradientDescentProcessor(NeuralNetwork nn, DataLogger logger, SGDConfig config) {
 		super(nn, logger);
-		this.maxRate = maxRate;
-		this.minRate = minRate;
-		this.decayRate = decayRate;
+		this.config = config;
 	}
 	
 	@Override
 	public void updateDelta(long i) {
-		final float rate = (float) (minRate + (maxRate - minRate)*Math.exp(-i * decayRate));
+		final float rate = (float) (config.minLearningRate + (config.learningRate - config.minLearningRate)*Math.exp(-i * config.decayRate));
 		
 		nn.getTrainables().values().stream().forEach(m -> {
 			// Get the gradients

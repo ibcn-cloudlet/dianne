@@ -25,12 +25,12 @@ package be.iminds.iot.dianne.nn.learn.sampling;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 
-public class SequentialSamplingStrategy implements SamplingStrategy{
+public class SequentialSamplingStrategy implements SamplingStrategy {
 
 	private int index;
 
-	private Dataset dataset;
-	private int[] indices;
+	private final Dataset dataset;
+	private final int[] indices;
 	
 	public SequentialSamplingStrategy(Dataset dataset, int[] indices) {
 		this.dataset = dataset;

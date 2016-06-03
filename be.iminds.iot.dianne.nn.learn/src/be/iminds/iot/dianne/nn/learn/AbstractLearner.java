@@ -52,6 +52,8 @@ import be.iminds.iot.dianne.api.nn.learn.LearnerListener;
 import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
+import be.iminds.iot.dianne.nn.learn.config.LearnerConfig;
+import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 public abstract class AbstractLearner implements Learner {
@@ -82,11 +84,8 @@ public abstract class AbstractLearner implements Learner {
 	protected NeuralNetwork nn;
 	protected Dataset dataset;
 	
-	// Miscellaneous properties
-	protected String tag = null;
-	protected int syncInterval = 1000;
-	protected boolean clean = false;
-	protected boolean trace = false;
+	// Configuration
+	protected LearnerConfig config;
 	
 	// Initial  parameters
 	protected Map<UUID, Tensor> previousParameters;
@@ -100,6 +99,7 @@ public abstract class AbstractLearner implements Learner {
 
 	// Retry with previously stored parameters in case of NaN
 	protected int nanretry = 0;
+	
 	
 	@Override
 	public UUID getLearnerId(){
@@ -139,19 +139,21 @@ public abstract class AbstractLearner implements Learner {
 			// Read config
 			System.out.println("Learner Configuration");
 			System.out.println("=====================");
-			System.out.println("* dataset = "+d);
 			
 			loadConfig(config);
 
-			System.out.println("---");
-			
 			// Initialize NN parameters
 			initializeParameters();
 			
 			// setup criterion, sampling strategy and gradient processor
-			criterion = LearnerUtil.createCriterion(config);
-			sampling = LearnerUtil.createSamplingStrategy(dataset, config);
-			gradientProcessor = LearnerUtil.createGradientProcessor(nn, dataset, config, logger);
+			System.out.println("Dataset");
+			System.out.println("---");
+			System.out.println("* dataset = "+d);
+			System.out.println("---");
+			sampling = LearnerUtil.createSamplingStrategy(this.config.sampling, dataset, config);
+
+			criterion = LearnerUtil.createCriterion(this.config.criterion);
+			gradientProcessor = LearnerUtil.createGradientProcessor(this.config.method, nn, config, logger);
 			
 			learnerThread = new Thread(() -> {
 				try {
@@ -164,7 +166,7 @@ public abstract class AbstractLearner implements Learner {
 						if(Float.isNaN(err)){
 							if(nanretry > 0){
 								System.out.println("Retry after NaN");
-								nn.loadParameters(tag);
+								nn.loadParameters(this.config.tag);
 								nanretry--;
 								continue;
 							} else {
@@ -179,7 +181,7 @@ public abstract class AbstractLearner implements Learner {
 						else
 							error = (1 - alpha) * error + alpha * err;
 	
-						if(trace)
+						if(this.config.trace)
 							System.out.println("Batch: "+i+"\tError: "+error);
 						
 						// Publish parameters to repository
@@ -240,25 +242,7 @@ public abstract class AbstractLearner implements Learner {
 	 * Fetch configuration parameters for this learner from the configuration map
 	 */
 	protected void loadConfig(Map<String, String> config){
-		if(config.containsKey("tag"))
-			tag = config.get("tag"); 
-		System.out.println("* tag = "+tag);
-		
-		if(config.containsKey("syncInterval"))
-			syncInterval = Integer.parseInt(config.get("syncInterval")); 
-		System.out.println("* syncInterval = "+syncInterval);
-
-		if (config.containsKey("clean"))
-			clean = Boolean.parseBoolean(config.get("clean"));
-		System.out.println("* clean = " +clean);
-
-		if (config.containsKey("trace"))
-			trace = Boolean.parseBoolean(config.get("trace"));
-		System.out.println("* trace = " +trace);
-
-		if (config.containsKey("nanretry"))
-			nanretry = Integer.parseInt(config.get("nanretry"));
-		System.out.println("* retry after NaN = " +nanretry);
+		this.config = DianneConfigHandler.getConfig(config, LearnerConfig.class);
 	}
 	
 	/**
@@ -291,7 +275,7 @@ public abstract class AbstractLearner implements Learner {
 	 * Initialize the parameters for all neural network instances before learning starts
 	 */
 	protected void initializeParameters(){
-		if(clean)
+		if(config.clean)
 			resetParameters();
 		else
 			loadParameters();
@@ -301,9 +285,9 @@ public abstract class AbstractLearner implements Learner {
 	 * Publish parameters (or deltas ) to the repository
 	 */
 	protected void publishParameters(long i){
-		if(syncInterval>0 && i%syncInterval==0 && i!=0){
+		if(config.syncInterval > 0 && i % config.syncInterval==0 && i!=0){
 			// Publish delta
-			nn.storeDeltaParameters(previousParameters, tag);
+			nn.storeDeltaParameters(previousParameters, config.tag);
 				
 			// Fetch update again from repo (could be merged from other learners)
 			loadParameters();
@@ -315,7 +299,7 @@ public abstract class AbstractLearner implements Learner {
 		nn.randomizeParameters();
 		
 		// Store new parameters
-		nn.storeParameters(tag);
+		nn.storeParameters(config.tag);
 		
 		// Update previous parameters
 		previousParameters = nn.getParameters().entrySet().stream().collect(
@@ -324,9 +308,9 @@ public abstract class AbstractLearner implements Learner {
 	
 	private void loadParameters(){
 		try {
-			previousParameters = nn.loadParameters(tag);
+			previousParameters = nn.loadParameters(config.tag);
 		} catch(Exception ex){
-			System.out.println("Failed to load parameters "+tag+", fill with random parameters");
+			System.out.println("Failed to load parameters "+config.tag+", fill with random parameters");
 			resetParameters();
 		}
 	}
@@ -342,7 +326,7 @@ public abstract class AbstractLearner implements Learner {
 		
 		Map<UUID, Tensor> preprocessorParameters = new HashMap<>();
 		nn.getPreprocessors().entrySet().stream().forEach(e -> preprocessorParameters.put(e.getKey(), e.getValue().getParameters()));
-		nn.storeParameters(preprocessorParameters, tag);
+		nn.storeParameters(preprocessorParameters, config.tag);
 	}
 	
 	/**
@@ -404,7 +388,7 @@ public abstract class AbstractLearner implements Learner {
 	 * Publish progress on sync interval times
 	 */
 	private void publishProgress(long i){
-		if(syncInterval>0 && i % syncInterval == 0){
+		if(config.syncInterval > 0 && i % config.syncInterval == 0){
 			final LearnProgress progress =  getProgress();
 			if(progress == null)
 				return;

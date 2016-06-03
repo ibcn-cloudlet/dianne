@@ -31,8 +31,8 @@ public class RandomSamplingStrategy implements SamplingStrategy{
 
 	private Random random = new Random(System.currentTimeMillis());
 	
-	private Dataset dataset;
-	private int[] indices;
+	private final Dataset dataset;
+	private final int[] indices;
 	
 	public RandomSamplingStrategy(Dataset dataset, int[] indices) {
 		this.dataset = dataset;

@@ -30,6 +30,8 @@ import org.osgi.util.promise.Promise;
 import be.iminds.iot.dianne.api.dataset.Batch;
 import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
+import be.iminds.iot.dianne.nn.learn.config.FeedForwardLearnerConfig;
+import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
@@ -38,24 +40,16 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 			  "dianne.learner.category=FF"})
 public class FeedForwardLearner extends AbstractLearner {
 	
-	protected int batchSize = 10;
-	protected boolean batchAverage = true;
-	
 	// For loading next batch while processing current batch
 	private Batch batch = null;
 	private Batch nextBatch = null;
 	
+	private FeedForwardLearnerConfig config;
+	
 	protected void loadConfig(Map<String, String> config){
 		super.loadConfig(config);
 		
-		if(config.containsKey("batchSize"))
-			batchSize = Integer.parseInt(config.get("batchSize"));
-		
-		if(config.containsKey("batchAverage"))
-			batchAverage = Boolean.parseBoolean(config.get("batchAverage"));
-		
-		System.out.println("* batchSize = " +batchSize);
-		System.out.println("* batchAverage = " + batchAverage);
+		this.config = DianneConfigHandler.getConfig(config, FeedForwardLearnerConfig.class);
 		
 		// Reset next batch
 		batch = null;
@@ -63,10 +57,10 @@ public class FeedForwardLearner extends AbstractLearner {
 	}
 	
 	private void loadBatch(){
-		int[] indices = new int[batchSize];
+		int[] indices = new int[config.batchSize];
 		
 		// Select new samples
-		for(int k=0;k<batchSize;k++)
+		for(int k=0;k<config.batchSize;k++)
 			indices[k] = sampling.next();
 
 		nextBatch = dataset.getBatch(nextBatch, indices);
@@ -119,7 +113,7 @@ public class FeedForwardLearner extends AbstractLearner {
 			result.getValue();
 		} else {
 			// Cannot load a batch for this dataset, still process one by one
-			for(int k=0;k<batchSize;k++){
+			for(int k=0;k<config.batchSize;k++){
 				final int b = k;
 				Promise result = nn.forward(null, null, batch.inputSamples[b]).then(
 						p -> {
@@ -151,17 +145,17 @@ public class FeedForwardLearner extends AbstractLearner {
 		}
 
 		// Batch done, calculate deltas
-		if(batchAverage) {
+		if(config.batchAverage) {
 			nn.getTrainables().values().stream().forEach(m -> {
 				Tensor deltaParams = m.getDeltaParameters();
 	
-				TensorOps.div(deltaParams, deltaParams, batchSize);
+				TensorOps.div(deltaParams, deltaParams, config.batchSize);
 		
 				// Set DeltaParameters to be sure in case of remote module instance
 				m.setDeltaParameters(deltaParams);
 			});
 			
-			error[0] /= batchSize;
+			error[0] /= config.batchSize;
 		}
 		
 		// Run gradient processors

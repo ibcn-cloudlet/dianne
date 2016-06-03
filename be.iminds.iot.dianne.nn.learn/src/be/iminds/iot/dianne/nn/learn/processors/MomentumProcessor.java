@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
+import be.iminds.iot.dianne.nn.learn.processors.config.MomentumConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
@@ -35,13 +36,13 @@ import be.iminds.iot.dianne.tensor.TensorOps;
  */
 public class MomentumProcessor extends GradientProcessor {
 
-	private final float rate;
+	private final MomentumConfig config;
 	
 	private final Map<UUID, Tensor> momentum = new HashMap<>();
 	
-	public MomentumProcessor(GradientProcessor p, float rate) {
+	public MomentumProcessor(GradientProcessor p, MomentumConfig config) {
 		super(p);
-		this.rate = rate;
+		this.config = config;
 	}
 	
 	@Override
@@ -55,7 +56,7 @@ public class MomentumProcessor extends GradientProcessor {
 				return t;
 			});
 			
-			TensorOps.add(deltaParams, deltaParams, rate, momentum);
+			TensorOps.add(deltaParams, deltaParams, config.momentum, momentum);
 			deltaParams.copyInto(momentum);
 			
 			// Set DeltaParameters to be sure in case of remote module instance

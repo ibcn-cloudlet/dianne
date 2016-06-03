@@ -1,0 +1,74 @@
+package be.iminds.iot.dianne.nn.util;
+
+import java.lang.reflect.Field;
+import java.util.Map;
+
+public class DianneConfigHandler {
+
+	// TODO use Object Conversion spec implementation for this?!
+	public static <T> T getConfig(Map<String, String> config, Class<T> c){
+		T instance = null;
+		try {
+			instance = c.newInstance();
+			
+			for(Field f : c.getFields()){
+				String value = config.get(f.getName());
+				if(value != null){
+					if(f.getType().isPrimitive()){
+						if(f.getType().equals(Integer.TYPE)){
+							f.setInt(instance, Integer.parseInt(value));
+						} else if(f.getType().equals(Long.TYPE)){
+							f.setLong(instance, Long.parseLong(value));
+						} else if(f.getType().equals(Float.TYPE)){
+							f.setFloat(instance, Float.parseFloat(value));
+						} else if(f.getType().equals(Double.TYPE)){
+							f.setDouble(instance, Double.parseDouble(value));
+						} else if(f.getType().equals(Byte.TYPE)){
+							f.setByte(instance, Byte.parseByte(value));
+						} else if(f.getType().equals(Short.TYPE)){
+							f.setShort(instance, Short.parseShort(value));
+						} else if(f.getType().equals(Boolean.TYPE)){
+							f.setBoolean(instance, Boolean.parseBoolean(value));
+						}
+					} else if(f.getType().isEnum()){
+						f.set(instance, Enum.valueOf((Class<Enum>) f.getType(), value));
+					} else if(f.getType().isArray()){
+						String[] array = value.split(",");
+						if(f.getType().getComponentType().equals(Integer.TYPE)){
+							int[] intarray = new int[array.length];
+							for(int i=0;i<intarray.length;i++){
+								intarray[i] = Integer.parseInt(array[i]);
+							}
+							f.set(instance, intarray);
+						} else {
+							f.set(instance, array);
+						}
+					} else {
+						f.set(instance, value);
+					}
+				}
+			}
+		
+			printConfig(instance);
+		} catch(Exception e){
+			e.printStackTrace();
+		}
+		return instance;
+	}
+	
+	private static void printConfig(Object config){
+		String name = config.getClass().getName();
+		name = name.substring(name.lastIndexOf(".")+1);
+		name = name.substring(0, name.length()-6);
+		System.out.println(name);
+		System.out.println("---");
+		for(Field f : config.getClass().getFields()){
+			try {
+				System.out.println("* "+f.getName()+" = "+f.get(config));
+			} catch (IllegalArgumentException e) {
+			} catch (IllegalAccessException e) {
+			}
+		}
+		System.out.println("---");
+	}
+}

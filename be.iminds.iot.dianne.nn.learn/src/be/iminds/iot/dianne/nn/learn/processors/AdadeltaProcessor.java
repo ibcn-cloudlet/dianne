@@ -29,22 +29,23 @@ import java.util.UUID;
 import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
+import be.iminds.iot.dianne.nn.learn.processors.config.AdadeltaConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class AdadeltaProcessor extends GradientProcessor {
 
-	private final float decayRate;
+	private final AdadeltaConfig config;
 	
 	private final Map<UUID, Tensor> meanSquaredGradient = new HashMap<>();
 	private final Map<UUID, Tensor> meanSquaredDelta = new HashMap<>();
 
 	private Tensor squared = null;
 	
-	public AdadeltaProcessor(NeuralNetwork nn, DataLogger logger, float decayRate) {
+	public AdadeltaProcessor(NeuralNetwork nn, DataLogger logger, AdadeltaConfig config) {
 		super(nn, logger);
 		
-		this.decayRate = decayRate;
+		this.config = config;
 	}
 	
 	@Override
@@ -58,10 +59,10 @@ public class AdadeltaProcessor extends GradientProcessor {
 			
 			Tensor mSq = meanSquaredGradient.get(e.getKey());
 			if(mSq == null){
-				mSq = TensorOps.mul(mSq, squared, (1-decayRate));
+				mSq = TensorOps.mul(mSq, squared, (1-config.decayRate));
 			} else {
-				mSq = TensorOps.mul(mSq, mSq, decayRate);
-				mSq = TensorOps.add(mSq, mSq, (1-decayRate), squared);
+				mSq = TensorOps.mul(mSq, mSq, config.decayRate);
+				mSq = TensorOps.add(mSq, mSq, (1-config.decayRate), squared);
 			}
 			meanSquaredGradient.put(e.getKey(), mSq);
 			
@@ -73,9 +74,9 @@ public class AdadeltaProcessor extends GradientProcessor {
 				meanSquaredDelta.put(e.getKey(), deltaSq);
 			} 
 			
-			// divide mean squared delta by mean squared gradient + 1e-8
+			// divide mean squared delta by mean squared gradient + epsilon
 			// update = - RMS(delta)/RMS(grad) * grad
-			TensorOps.add(squared, mSq, (float)1e-8);
+			TensorOps.add(squared, mSq, config.epsilon);
 			TensorOps.cdiv(squared, deltaSq, squared);
 			
 			TensorOps.sqrt(squared, squared);
@@ -84,10 +85,10 @@ public class AdadeltaProcessor extends GradientProcessor {
 			
 			
 			// calculate new mean delta squared
-			deltaSq = TensorOps.mul(deltaSq, deltaSq, decayRate);
+			deltaSq = TensorOps.mul(deltaSq, deltaSq, config.decayRate);
 			deltaParams.copyInto(squared);
 			squared = TensorOps.cmul(squared, squared, squared);
-			deltaSq = TensorOps.add(deltaSq, deltaSq, (1-decayRate), squared);
+			deltaSq = TensorOps.add(deltaSq, deltaSq, (1-config.decayRate), squared);
 			
 			// set DeltaParameters to be sure in case of remote module instance
 			e.getValue().setDeltaParameters(deltaParams);

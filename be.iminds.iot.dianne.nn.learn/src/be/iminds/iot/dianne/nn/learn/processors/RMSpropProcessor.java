@@ -29,23 +29,22 @@ import java.util.UUID;
 import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
+import be.iminds.iot.dianne.nn.learn.processors.config.RMSpropConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class RMSpropProcessor extends GradientProcessor {
 
-	private final float learningRate;
-	private final float decayRate;
+	private final RMSpropConfig config;
 	
 	private final Map<UUID, Tensor> meanSquared = new HashMap<>();
 
 	private Tensor squared = null;
 	
-	public RMSpropProcessor( NeuralNetwork nn, DataLogger logger, float learningRate, float decayRate) {
+	public RMSpropProcessor( NeuralNetwork nn, DataLogger logger, RMSpropConfig config) {
 		super(nn, logger);
 		
-		this.learningRate = learningRate;
-		this.decayRate = decayRate;
+		this.config = config;
 	}
 	
 	@Override
@@ -59,18 +58,18 @@ public class RMSpropProcessor extends GradientProcessor {
 			
 			Tensor mSq = meanSquared.get(e.getKey());
 			if(mSq == null){
-				mSq = TensorOps.mul(mSq, squared, (1-decayRate));
+				mSq = TensorOps.mul(mSq, squared, (1-config.decayRate));
 			} else {
-				mSq = TensorOps.mul(mSq, mSq, decayRate);
-				mSq = TensorOps.add(mSq, mSq, (1-decayRate), squared);
+				mSq = TensorOps.mul(mSq, mSq, config.decayRate);
+				mSq = TensorOps.add(mSq, mSq, (1-config.decayRate), squared);
 			}
 			meanSquared.put(e.getKey(), mSq);
 
-			// delta params = - learning_rate * dx / np.sqrt(meanSquared + 1e-8)
-			TensorOps.mul(deltaParams, deltaParams, -learningRate);
+			// delta params = - learning_rate * dx / np.sqrt(meanSquared + epsiolon)
+			TensorOps.mul(deltaParams, deltaParams, -config.learningRate);
 			
 			// add 1e-8 to avoid div by zero, reuse squared tensor for this
-			TensorOps.add(squared, mSq, (float) 1e-8);
+			TensorOps.add(squared, mSq, config.epsilon);
 			TensorOps.sqrt(squared, squared);
 			
 			// now div by cached tensor

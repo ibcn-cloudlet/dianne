@@ -205,7 +205,7 @@ public class DeepQLearner extends AbstractLearner {
 	
 	
 	protected void initializeParameters(){
-		if(clean){
+		if(config.clean){
 			// reset parameters
 			resetParameters();
 		} else {
@@ -216,12 +216,12 @@ public class DeepQLearner extends AbstractLearner {
 	
 	protected void publishParameters(long i){
 		if (targetInterval > 0 && i % targetInterval == 0) {
-			nn.storeDeltaParameters(previousParameters, tag);
+			nn.storeDeltaParameters(previousParameters, config.tag);
 			loadParameters(nn, target);
 			// also store these parameters tagged with batch number
 			nn.storeParameters(""+i);
-		} else if(syncInterval > 0 && i % syncInterval == 0){
-			nn.storeDeltaParameters(previousParameters, tag);
+		} else if(config.syncInterval > 0 && i % config.syncInterval == 0){
+			nn.storeDeltaParameters(previousParameters, config.tag);
 			loadParameters(nn);
 		}
 		
@@ -233,7 +233,7 @@ public class DeepQLearner extends AbstractLearner {
 	private void loadParameters(NeuralNetwork... nns) {
 		try {
 			for(NeuralNetwork nn : nns){
-				previousParameters = nn.loadParameters(tag);
+				previousParameters = nn.loadParameters(config.tag);
 			}
 		} catch (Exception ex) {
 			resetParameters();
@@ -244,7 +244,7 @@ public class DeepQLearner extends AbstractLearner {
 		nn.randomizeParameters();
 		
 		// store those parameters
-		nn.storeParameters(tag);
+		nn.storeParameters(config.tag);
 		
 		// copy to target
 		target.setParameters(nn.getParameters());

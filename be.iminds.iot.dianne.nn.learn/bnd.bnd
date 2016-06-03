@@ -6,13 +6,17 @@ Bundle-Version: 0.4.0.${tstamp}
 	osgi.enterprise;version=5.0,\
 	be.iminds.iot.dianne.tensor;version=latest,\
 	be.iminds.iot.dianne.api;version=latest,\
-	osgi.promise
+	osgi.promise,\
+	be.iminds.iot.dianne.nn.util;version=latest
 	
 -dsannotations: *
 Bundle-Name: Dianne Learner
 Private-Package: be.iminds.iot.dianne.nn.learn.command
 Export-Package: \
 	be.iminds.iot.dianne.api.nn.learn,\
+	be.iminds.iot.dianne.nn.learn.config,\
+	be.iminds.iot.dianne.nn.learn.sampling.config,\
+	be.iminds.iot.dianne.nn.learn.processors.config,\
 	be.iminds.iot.dianne.nn.learn,\
 	be.iminds.iot.dianne.nn.learn.sampling,\
 	be.iminds.iot.dianne.nn.learn.criterion,\

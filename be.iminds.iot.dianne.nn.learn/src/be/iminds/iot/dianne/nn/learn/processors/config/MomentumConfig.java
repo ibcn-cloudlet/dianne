@@ -20,34 +20,13 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.nn.learn.processors;
+package be.iminds.iot.dianne.nn.learn.processors.config;
 
-import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
-import be.iminds.iot.dianne.nn.learn.processors.config.RegularizationConfig;
-import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorOps;
+public class MomentumConfig {
 
-public class RegularizationProcessor extends GradientProcessor {
-
-	private final RegularizationConfig config;
+	/**
+	 * Momentum
+	 */
+	public float momentum = 0.9f;
 	
-	public RegularizationProcessor(GradientProcessor p, RegularizationConfig config) {
-		super(p);
-		this.config = config;
-	}
-	
-	@Override
-	public void updateDelta(long i) {
-		nn.getTrainables().values().stream().forEach(m -> {
-			// Get the gradients and parameters
-			Tensor deltaParams = m.getDeltaParameters();
-			Tensor params = m.getParameters();
-			
-			// Subtract previous parameters
-			TensorOps.sub(deltaParams, deltaParams, config.l2, params);
-			
-			// Set DeltaParameters to be sure in case of remote module instance
-			m.setDeltaParameters(deltaParams);
-		});
-	}
 }

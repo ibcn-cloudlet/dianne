@@ -20,34 +20,23 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.nn.learn.processors;
+package be.iminds.iot.dianne.nn.learn.processors.config;
 
-import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
-import be.iminds.iot.dianne.nn.learn.processors.config.RegularizationConfig;
-import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorOps;
+public class RMSpropConfig {
 
-public class RegularizationProcessor extends GradientProcessor {
-
-	private final RegularizationConfig config;
+	/**
+	 * Learning rate
+	 */
+	public float learningRate = 0.001f;
 	
-	public RegularizationProcessor(GradientProcessor p, RegularizationConfig config) {
-		super(p);
-		this.config = config;
-	}
+	/**
+	 * Decay rate
+	 */
+	public float decayRate = 0.9f;
 	
-	@Override
-	public void updateDelta(long i) {
-		nn.getTrainables().values().stream().forEach(m -> {
-			// Get the gradients and parameters
-			Tensor deltaParams = m.getDeltaParameters();
-			Tensor params = m.getParameters();
-			
-			// Subtract previous parameters
-			TensorOps.sub(deltaParams, deltaParams, config.l2, params);
-			
-			// Set DeltaParameters to be sure in case of remote module instance
-			m.setDeltaParameters(deltaParams);
-		});
-	}
+	/**
+	 * Smoothing term epsilon to avoid division by zero
+	 */
+	public float epsilon = 1e-8f;
+	
 }
