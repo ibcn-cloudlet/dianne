@@ -46,4 +46,5 @@ torch:
 
 .PHONY: clean cleanall
 clean cleanall:
-	$(MAKE) -C $(NATIVE) $(MAKECMDGOALS);
+	$(MAKE) -C torch $(MAKECMDGOALS);
+	$(MAKE) -C cutorch $(MAKECMDGOALS);
