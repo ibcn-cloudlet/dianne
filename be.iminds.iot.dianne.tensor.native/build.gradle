@@ -1,14 +1,9 @@
 task generateFiles(description: "Generate <lib.os.arch>.bnd file for this host. This behaviour can be adjusted with environment variables (OS, ARCH, LIB, ...)", group: "build") {
-	def template = "host.bnd.template"
-	def specificFileName = "${lib}.${os}.${arch}.bnd"
-	def genericFileName = "generic.bnd"
-	def fileName = jenkins_build.equalsIgnoreCase("true") ? specificFileName : genericFileName
-	inputs.file file(template)
-	outputs.file file(specificFileName)
-	outputs.file file(genericFileName)
+	def fileName = jenkins_build.equalsIgnoreCase("true") ? "${lib}.${os}.${arch}.bnd" : "generic.bnd"
+	outputs.file fileTree(dir: projectDir, include: "*.bnd", exclude: "bnd.bnd")
 	doLast {
 		copy {
-			from template
+			from "host.bnd.template"
 			into projectDir
 			expand(project.properties)
 			rename { file ->  fileName }
