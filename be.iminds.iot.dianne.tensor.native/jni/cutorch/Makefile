@@ -2,7 +2,7 @@ CUDA_HOME := /usr/local/cuda
 
 SRC := $(wildcard ../torch/*.c)
 OBJECTS := $(notdir $(SRC:.c=.o))
-JAVAH := $(abspath ../../../be.iminds.iot.dianne.tensor/generated/jni-headers)
+JAVAH := ../../../be.iminds.iot.dianne.tensor/generated/jni-headers
 LINKS := -Lcunn/lib/THCUNN/build -lTHCUNN -Lcutorch/lib/THC/build -lTHC -L../torch/torch7/lib/TH/build -lTH -L$(CUDA_HOME)/lib -L$(CUDA_HOME)/lib64 -lcudart -lcublas
 INCLUDES += -I.
 INCLUDES += -I$(CUDA_HOME)/include/

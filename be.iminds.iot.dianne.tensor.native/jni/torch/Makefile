@@ -1,6 +1,6 @@
 SRC := $(wildcard *.c)
 OBJECTS=$(SRC:.c=.o)
-JAVAH := $(abspath ../../../be.iminds.iot.dianne.tensor/generated/jni-headers)
+JAVAH := ../../../be.iminds.iot.dianne.tensor/generated/jni-headers
 LINKS := -Lnn/lib/THNN/build -lTHNN -Ltorch7/lib/TH/build -lTH -LOpenBLAS -lopenblas -lgomp -lgfortran
 INCLUDES += -Itorch7/lib/TH -Itorch7/lib/TH/build -Inn/lib/THNN -Inn/lib/THNN/build -I$(JAVAH)
 

@@ -25,7 +25,7 @@ INCLUDES := -I$(JAVA_INCLUDE) -I$(JAVA_PLATFORMINCLUDE)
 
 # Compiler config
 CCFLAGS := -O3 -fPIC
-DEPLOY_DIR ?= $(abspath ../native/$(NATIVE)/$(OS)/$(ARCH)/)
+DEPLOY_DIR ?= ../../native/$(NATIVE)/$(OS)/$(ARCH)/
 
 # export all variables: call export without arguments.
 export

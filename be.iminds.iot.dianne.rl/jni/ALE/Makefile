@@ -13,7 +13,7 @@ endif
 JAVA_INCLUDE := $(JAVA_HOME)/include
 JAVA_PLATFORMINCLUDE := $(JAVA_INCLUDE)/$(JDKPLATFORMINCLUDESUBDIR)
 
-JAVAH := $(abspath ../../generated/jni-headers)
+JAVAH := ../../generated/jni-headers
 SRC := $(wildcard *.cpp)  
 INCLUDES := -I$(JAVA_INCLUDE) -I$(JAVA_PLATFORMINCLUDE) -IArcade-Learning-Environment/src -I$(JAVAH)
 OBJECTS := $(SRC:.cpp=.o)
@@ -33,7 +33,7 @@ $(LIB): Arcade-Learning-Environment/build/libale.a $(OBJECTS)
 	$(CXX) $(FLAGS) $(CCFLAGS) $(SHARED) $(OBJECTS) $(LINKS) -o $(LIB)
 	
 %.o: %.cpp $(JAVAH)
-	$(CXX) $(FLAGS) $(CCFLAGS) -fPIC $(INCLUDES) -c $<		
+	$(CXX) $(FLAGS) $(CCFLAGS) -fPIC $(INCLUDES) -c $<	
 
 Arcade-Learning-Environment/build/libale.a:
 	cmake -HArcade-Learning-Environment -BArcade-Learning-Environment/build -DUSE_SDL=OFF -DUSE_RLGLUE=OFF -DBUILD_EXAMPLES=OFF
