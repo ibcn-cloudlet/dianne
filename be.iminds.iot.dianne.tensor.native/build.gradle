@@ -1,15 +1,20 @@
 task generateFiles(description: "Generate <lib.os.arch>.bnd file for this host. This behaviour can be adjusted with environment variables (OS, ARCH, LIB, ...)", group: "build") {
-	def fileName = "${lib}.${os}.${arch}.bnd"
-	copy {
-		from 'host.bnd.template'
-		into projectDir
-		expand(project.properties)
-		rename { file ->  fileName }
-	}
-	exec {
-		commandLine "cp", "-f", fileName, "generic.bnd" 
-		standardOutput = new ByteArrayOutputStream()
+	def template = "host.bnd.template"
+	def specificFileName = "${lib}.${os}.${arch}.bnd"
+	def genericFileName = "generic.bnd"
+	def fileName = jenkins_build.equalsIgnoreCase("true") ? specificFileName : genericFileName
+	inputs.file file(template)
+	outputs.file file(specificFileName)
+	outputs.file file(genericFileName)
+	doLast {
+		copy {
+			from template
+			into projectDir
+			expand(project.properties)
+			rename { file ->  fileName }
+		}
 	}
 }
+generateFiles.dependsOn(cleanGenerateFiles)
 processResources.dependsOn(generateFiles)
 assemble.dependsOn(jar)

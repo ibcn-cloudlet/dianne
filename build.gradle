@@ -42,6 +42,7 @@ ext {
 		extension = 'so'
 	}
 	lib = System.env.NATIVE ?: "torch"
+	jenkins_build = System.env.BUILD ?: "false"
 	println("Configuring workspace with configuration parameters 'OS': $os, 'ARCH': $arch, extension: $extension and 'NATIVE' lib: $lib")
 }
 

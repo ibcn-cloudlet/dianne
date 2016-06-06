@@ -1,10 +1,13 @@
-task generateFiles(type:Copy, description: "Generate ale.bnd files for this host. This behaviour can be adjusted with environment variables (OS, ARCH, LIB, ...)", group: "build") {
-	outputs.upToDateWhen { false }
-	from projectDir
-	into projectDir
-	include "*.template"
-	rename { file -> file.replace('.template', '') }
-	expand(project.properties)
+task generateFiles(description: "Generate ale.bnd files for this host. This behaviour can be adjusted with environment variables (OS, ARCH, LIB, ...)", group: "build") {
+	doLast {
+		copy {
+			from projectDir
+			into projectDir
+			include "*.template"
+			rename { file -> file.replace('.template', '') }
+			expand(project.properties)
+		}
+	}
 }
 processResources.dependsOn(generateFiles)
 
