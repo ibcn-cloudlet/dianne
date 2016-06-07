@@ -125,9 +125,11 @@ public class DatasetConfigurator {
 			// set an aiolos instance id using the dataset name to treat
 			// equally named datasets as single instance in the network
 			props.put("aiolos.instance.id", name);
+			// combine all offered interfaces (might be SequenceDataset or ExperiencePool)
+			props.put("aiolos.combine", "*");
 				
 			// TODO use object conversion from JSON here?
-			Configuration config = ca.createFactoryConfiguration(pid);
+			Configuration config = ca.createFactoryConfiguration(pid, null);
 			json.entrySet().stream().forEach(e -> {
 				if(e.getValue().isJsonArray()){
 					JsonArray a = e.getValue().getAsJsonArray();

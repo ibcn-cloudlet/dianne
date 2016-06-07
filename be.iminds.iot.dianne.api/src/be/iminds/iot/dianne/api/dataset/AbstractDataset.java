@@ -1,10 +1,8 @@
-package be.iminds.iot.dianne.dataset;
+package be.iminds.iot.dianne.api.dataset;
 
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Activate;
-
-import be.iminds.iot.dianne.api.dataset.Dataset;
 
 public abstract class AbstractDataset implements Dataset {
 	

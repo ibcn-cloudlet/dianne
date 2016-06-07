@@ -117,9 +117,9 @@ public class Pong implements PongEnvironment, Environment {
 			}
 		}
 		
-		reset();
-		
 		observation = new Tensor(new float[] { x, y, vx, vy, p, o }, 6);
+		
+		reset();
 	}
 
 	@Deactivate
@@ -231,11 +231,11 @@ public class Pong implements PongEnvironment, Environment {
 	}
 
 	@Override
-	public Tensor getObservation() {
+	public Tensor getObservation(Tensor t) {
 		if(terminal){
 			return null;
 		}
-		return observation;
+		return observation.copyInto(t);
 	}
 
 	@Override
@@ -260,7 +260,7 @@ public class Pong implements PongEnvironment, Environment {
 		
 		terminal = false;
 		
-		observation = new Tensor(new float[] { x, y, vx, vy, p, o }, 6);
+		observation.set(new float[] { x, y, vx, vy, p, o });
 		listeners.stream().forEach(l -> l.onAction(0, observation));
 	}
 

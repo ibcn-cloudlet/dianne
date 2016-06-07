@@ -118,7 +118,7 @@ public class DeepQLearner extends AbstractLearner {
 			
 			ExperiencePoolSample sample = pool.getSample(index);
 			
-			Tensor in = sample.input;
+			Tensor in = sample.state;
 
 			// forward
 			Tensor out = nn.forward(in, ""+index);

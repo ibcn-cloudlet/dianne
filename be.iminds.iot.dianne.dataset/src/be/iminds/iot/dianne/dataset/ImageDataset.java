@@ -24,6 +24,7 @@ package be.iminds.iot.dianne.dataset;
 
 import java.util.Map;
 
+import be.iminds.iot.dianne.api.dataset.AbstractDataset;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.util.ImageConverter;
 

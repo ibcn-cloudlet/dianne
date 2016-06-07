@@ -58,11 +58,6 @@ public class AgentConfig {
 	public int experienceSize = 1000000;
 
 	/**
-	 * After how many actions to trigger gc
-	 */
-	public int gcInterval = 1000;
-	
-	/**
 	 * Clean experience pool at start
 	 */
 	public boolean clean = false;

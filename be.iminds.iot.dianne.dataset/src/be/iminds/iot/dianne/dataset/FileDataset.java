@@ -38,6 +38,7 @@ import java.util.concurrent.Executors;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 
+import be.iminds.iot.dianne.api.dataset.AbstractDataset;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.tensor.Tensor;
 

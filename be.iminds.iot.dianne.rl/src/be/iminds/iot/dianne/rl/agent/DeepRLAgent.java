@@ -74,8 +74,11 @@ public class DeepRLAgent implements Agent {
 	
 	// separate thread for updating the experience pool
 	private Thread experienceUploadThread;
-	private List<ExperiencePoolSample> samples = new ArrayList<ExperiencePoolSample>();
-
+	private List<ExperiencePoolSample> buffer;
+	private List<ExperiencePoolSample> upload;
+	private volatile boolean bufferReady = false;
+	private volatile boolean uploading = false;
+	
 	private ActionStrategy actionStrategy;
 	
 	@Reference
@@ -171,6 +174,13 @@ public class DeepRLAgent implements Agent {
 		env = envs.get(environment);
 		pool = pools.get(experiencePool);
 
+		buffer = new ArrayList<>(this.config.experienceInterval);
+		upload = new ArrayList<>(this.config.experienceInterval);
+		for(int i=0;i<this.config.experienceInterval;i++){
+			buffer.add(new ExperiencePoolSample(null, null, 0, null));
+			upload.add(new ExperiencePoolSample(null, null, 0, null));
+		}
+		
 		actingThread = new Thread(new AgentRunnable());
 		experienceUploadThread = new Thread(new UploadRunnable());
 		acting = true;
@@ -197,8 +207,6 @@ public class DeepRLAgent implements Agent {
 		}
 	}
 	
-	private Tensor action = null;
-	
 	private Tensor selectActionFromObservation(Tensor state, long i) {
 		Tensor out = nn.forward(state);
 		return actionStrategy.selectActionFromOutput(out, i);
@@ -208,8 +216,12 @@ public class DeepRLAgent implements Agent {
 
 		@Override
 		public void run() {
+			Tensor current = new Tensor();
+			Tensor next = new Tensor();
+			ExperiencePoolSample s = buffer.get(0);
+			
 			env.reset();
-			Tensor observation = env.getObservation();
+			s.state = env.getObservation(current);
 
 			for(i = 0; acting; i++) {
 				if(config.syncInterval > 0 && i % config.syncInterval == 0){
@@ -221,27 +233,45 @@ public class DeepRLAgent implements Agent {
 					}
 				}
 				
-				Tensor action = selectActionFromObservation(observation, i);
+				s.action = selectActionFromObservation(s.state, i);
 
-				float reward = env.performAction(action);
-				Tensor nextObservation = env.getObservation();
+				s.reward= env.performAction(s.action);
+				s.nextState = env.getObservation(next);
 
-				synchronized(samples){
-					samples.add(new ExperiencePoolSample(observation, action, reward, nextObservation));
-					if(i % config.experienceInterval == 0){
-						samples.notifyAll();
+				// upload in batch
+				if(i > 0 && i % config.experienceInterval == 0){
+					// buffer full, switch to upload
+					// check if upload finished
+					// if still uploading ... wait now
+					if(uploading){
+						synchronized(upload){
+							if(uploading){
+								try {
+									upload.wait();
+								} catch (InterruptedException e) {
+								}
+							}
+						}
+					}
+					List<ExperiencePoolSample> temp = upload;
+					upload = buffer;
+					buffer = temp;
+					bufferReady = true;
+					if(!uploading){
+						synchronized(upload){
+							upload.notifyAll();
+						}
 					}
 				}
 
-				observation = nextObservation;
 				// if nextObservation was null, this is a terminal state - reset environment and start over
-				if(env.getObservation() == null){
+				if(s.nextState == null){
+					s = buffer.get((int)(i % config.experienceInterval));
 					env.reset();
-					observation = env.getObservation();
-				}
-
-				if(config.gcInterval > 0 && i % config.gcInterval == 0){
-					System.gc();
+					s.state = env.getObservation(current);
+				} else {
+					s = buffer.get((int)(i % config.experienceInterval));
+					s.state = next.copyInto(current);
 				}
 			}
 		}
@@ -256,27 +286,32 @@ public class DeepRLAgent implements Agent {
 					pool.reset();
 			}
 			
-			if(pool!=null){
-				pool.setMaxSize(config.experienceSize);
-			}
-			
 			while(acting){
-				List<ExperiencePoolSample> toUpdate = new ArrayList<>();
-				synchronized(samples){
-					if(samples.size() >= config.experienceInterval){
-						toUpdate.addAll(samples);
-						samples.clear();
-					} else {
-						try {
-							samples.wait();
-						} catch (InterruptedException e) {
+				// wait till new buffer is ready
+				if(!bufferReady){
+					synchronized(buffer){
+						if(!bufferReady){
+							try {
+								buffer.wait();
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
 						}
 					}
 				}
-				
-				if(pool!=null && !toUpdate.isEmpty()){
-					pool.addSamples(toUpdate);
+
+				bufferReady = false;
+				uploading = true;
+				if(pool!=null){
+					pool.addSamples(upload);
 				}
+				
+				uploading = false;
+				
+				synchronized(upload){
+					upload.notifyAll();
+				}
+				
 			}
 		}
 		

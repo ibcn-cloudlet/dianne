@@ -157,6 +157,9 @@ public interface ExperiencePool extends Dataset {
 	 * @param nextState the next state of the environment after executing the action
 	 */
 	void addSample(Tensor state, Tensor action, float reward, Tensor nextState);
+
+	void addSample(ExperiencePoolSample sample);
+
 	
 	/**
 	 * Add a collection of samples to the experience pool
@@ -170,11 +173,4 @@ public interface ExperiencePool extends Dataset {
 	 */
 	void reset();
 	
-	/**
-	 * Set a maximum size for this Experience Pool, from then on old samples will be replaced
-	 * by addSample(s) following a FIFO strategy.
-	 * 
-	 * @param size the new maximum size
-	 */
-	void setMaxSize(int size);
 }

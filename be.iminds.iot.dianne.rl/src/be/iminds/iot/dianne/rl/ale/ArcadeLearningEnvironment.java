@@ -149,11 +149,11 @@ public class ArcadeLearningEnvironment implements Environment {
 	}
 
 	@Override
-	public Tensor getObservation() {
+	public Tensor getObservation(Tensor t) {
 		if(gameOver()){
 			return null;
 		} else {
-			return observation.copyInto(null);
+			return observation.copyInto(t);
 		}
 	}
 

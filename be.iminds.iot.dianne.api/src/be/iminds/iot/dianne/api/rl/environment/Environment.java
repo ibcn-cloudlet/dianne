@@ -46,10 +46,16 @@ public interface Environment {
 	/**
 	 * Get an observation of the current state of the environment.
 	 * 
+	 * @param t a tensor to copy the new observation into - in case null is passed a new Tensor is created
 	 * @return an observation of the current state
 	 */
-	Tensor getObservation();
+	Tensor getObservation(Tensor t);
 
+//	
+//	default Tensor getObservation(){
+//		return getObservation(null);
+//	}
+	
 	/**
 	 * Reset the environment to the initial configuration (if possible).
 	 */
