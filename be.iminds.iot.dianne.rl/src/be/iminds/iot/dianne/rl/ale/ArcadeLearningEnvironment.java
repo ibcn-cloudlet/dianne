@@ -22,14 +22,11 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rl.ale;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
@@ -37,6 +34,8 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.api.rl.environment.EnvironmentListener;
+import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
+import be.iminds.iot.dianne.rl.ale.config.ALEConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
@@ -63,70 +62,28 @@ public class ArcadeLearningEnvironment implements Environment {
 
 	private Set<EnvironmentListener> listeners = Collections.synchronizedSet(new HashSet<>());
 
-	private String rom = "roms/pong.bin"; 
-	private int skip = 1;
-	private int observationLength = 4; // number of frames in an observation
+	private ALEConfig config;
+	private volatile boolean active = false;
+	
 	private Tensor observation;
-	private boolean grayscale = true; // convert to grayscale
-    
 	// placeholder tensors for generating observation
 	private Tensor screen; 
 	private Tensor gray;
 	
-    @Activate
-    public void activate(BundleContext context) throws Exception {
-    	String r = context.getProperty("be.iminds.iot.dianne.rl.ale.rom");
-    	if(r!=null){
-    		rom = r;
-    	}
-    	
-    	String grays = context.getProperty("be.iminds.iot.dianne.rl.ale.grayscale");
-    	if(grays!=null){
-    		grayscale = Boolean.parseBoolean(grays);
-    	}
-    	
-		String sk = context.getProperty("be.iminds.iot.dianne.rl.ale.skip");
-		if (sk != null)
-			this.skip = Integer.parseInt(sk);
-		
-		String ol = context.getProperty("be.iminds.iot.dianne.rl.ale.observationLength");
-		if (ol != null)
-			this.observationLength = Integer.parseInt(ol);
-    	
-    	// check if file exists
-    	File f = new File(rom);
-    	if(!f.exists()){
-    		System.err.println("Failed to initialize ALE - ROM "+rom+" does not exist!");
-    		throw new Exception("ROM "+rom+" does not exist!");
-    	}
-    	
-    	// init screen tensor
-    	screen = new Tensor(3, 210, 160);
-    	if(grayscale){
-    		gray = new Tensor(210, 160);
-    	}
-		int channels = grayscale ? 1 : 3;
-		observation = new Tensor(observationLength*channels, 210, 160);
-
-    	
-    	loadROM(rom);
-    	setFrameskip(skip);
-    	
-    	System.out.println("Loaded rom "+rom+", this has "+getActions()+" valid actions");
-    	
-    	reset();
-    }
     
 	@Override
 	public float performAction(Tensor action) {
+		if(!active)
+			throw new RuntimeException("The Environment is not active!");
+		
 		int r = 0;
 		
-		for(int i=0;i<observationLength;i++){
+		for(int i=0;i<config.observationLength;i++){
 			r += performAction(TensorOps.argmax(action));
 			
 			screen.set(getScreen());
 			
-			if(grayscale){
+			if(config.grayscale){
 				screen.select(0, 0).copyInto(gray);
 				TensorOps.add(gray, gray, screen.select(0, 1));
 				TensorOps.add(gray, gray, screen.select(0, 2));
@@ -150,6 +107,9 @@ public class ArcadeLearningEnvironment implements Environment {
 
 	@Override
 	public Tensor getObservation(Tensor t) {
+		if(!active)
+			throw new RuntimeException("The Environment is not active!");
+		
 		if(gameOver()){
 			return null;
 		} else {
@@ -159,20 +119,23 @@ public class ArcadeLearningEnvironment implements Environment {
 
 	@Override
 	public void reset() {
+		if(!active)
+			throw new RuntimeException("The Environment is not active!");
+		
 		resetGame();
 		
 		screen.set(getScreen());
-		if(grayscale){
+		if(config.grayscale){
 			screen.select(0, 0).copyInto(gray);
 			TensorOps.add(gray, gray, screen.select(0, 1));
 			TensorOps.add(gray, gray, screen.select(0, 2));
 			TensorOps.div(gray, gray, 3);
 				
-			for(int i=0;i<observationLength;i++){
+			for(int i=0;i<config.observationLength;i++){
 				gray.copyInto(observation.select(0, i));
 			}
 		} else {
-			for(int i=0;i<observationLength;i++){
+			for(int i=0;i<config.observationLength;i++){
 				screen.select(0, 0).copyInto(observation.select(0, 3*i));
 				screen.select(0, 1).copyInto(observation.select(0, 3*i+1));
 				screen.select(0, 2).copyInto(observation.select(0, 3*i+2));
@@ -194,6 +157,7 @@ public class ArcadeLearningEnvironment implements Environment {
 	
 	private native void setFrameskip(int skip);
 	
+	
 	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
 	void addEnvironmentListener(EnvironmentListener l, Map<String, Object> properties){
 		String target = (String) properties.get("target");
@@ -204,5 +168,35 @@ public class ArcadeLearningEnvironment implements Environment {
 	
 	void removeEnvironmentListener(EnvironmentListener l){
 		listeners.remove(l);
+	}
+
+	@Override
+	public void setup(Map<String, String> config) {
+		if(active)
+			throw new RuntimeException("This Environment is already active");
+		
+		this.config = DianneConfigHandler.getConfig(config, ALEConfig.class);
+		
+		// init screen tensor
+    	screen = new Tensor(3, 210, 160);
+    	if(this.config.grayscale){
+    		gray = new Tensor(210, 160);
+    	}
+		int channels = this.config.grayscale ? 1 : 3;
+		observation = new Tensor(this.config.observationLength*channels, 210, 160);
+
+    	
+    	loadROM(this.config.rom);
+    	setFrameskip(this.config.skip);
+
+    	active = true;
+    	
+    	reset();
+	}
+
+	@Override
+	public void cleanup() {
+		//TODO cleanup?
+		active = false;
 	}
 }

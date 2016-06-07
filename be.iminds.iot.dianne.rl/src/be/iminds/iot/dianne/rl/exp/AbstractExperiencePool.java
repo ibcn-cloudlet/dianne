@@ -243,7 +243,6 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	
 	@Override
 	public void reset() {
-		// TODO concurrency?
 		noSamples = 0;
 		start = 0;
 	}

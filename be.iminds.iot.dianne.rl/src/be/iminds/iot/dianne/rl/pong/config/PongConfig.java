@@ -20,42 +20,29 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.rl.agent.config;
+package be.iminds.iot.dianne.rl.pong.config;
 
 
-public class AgentConfig {
+public class PongConfig {
 
-	public enum ActionStrategy {
-		GREEDY,
-		BOLTZMANN,
-		MANUAL
-		// TODO add "raw" in case of continuous outputs?
-	}
+	/**
+	 * Reset the paddles after score
+	 */
+	public boolean resetPaddles = true;
 	
 	/**
-	 * The strategy with which actions are chosen
+	 * Start the ball in a random direction
 	 */
-	public ActionStrategy strategy = ActionStrategy.GREEDY;
+	public boolean randomStart = false;
 	
 	/**
-	 * After how many actions to fetch new weights from the Repository
+	 * Skip frames before creating new observation
 	 */
-	public int syncInterval = 10000;
+	public int skip = 5;
 	
 	/**
-	 * Tag of fetched weights
+	 * Identify a terminal state when game ends
 	 */
-	public String tag;
-	
-	/**
-	 * After how many actions to push experience to Experience Pool
-	 */
-	public int experienceInterval = 1000;
-	
-	/**
-	 * Clean experience pool at start
-	 */
-	public boolean clean = false;
-
+	public boolean terminalState = false;
 
 }

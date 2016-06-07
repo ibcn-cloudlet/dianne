@@ -20,42 +20,30 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.rl.agent.config;
+package be.iminds.iot.dianne.rl.ale.config;
 
 
-public class AgentConfig {
+public class ALEConfig {
 
-	public enum ActionStrategy {
-		GREEDY,
-		BOLTZMANN,
-		MANUAL
-		// TODO add "raw" in case of continuous outputs?
-	}
+	/**
+	 * ROM to load
+	 */
+	public String rom = "roms/pong.bin";
 	
 	/**
-	 * The strategy with which actions are chosen
+	 * Frames to skip in the emulator
 	 */
-	public ActionStrategy strategy = ActionStrategy.GREEDY;
+	public int skip = 1;
 	
 	/**
-	 * After how many actions to fetch new weights from the Repository
+	 * How many observations to cluster in one state
 	 */
-	public int syncInterval = 10000;
+	public int observationLength = 4;
 	
 	/**
-	 * Tag of fetched weights
+	 * Convert the screens to grayscale
 	 */
-	public String tag;
-	
-	/**
-	 * After how many actions to push experience to Experience Pool
-	 */
-	public int experienceInterval = 1000;
-	
-	/**
-	 * Clean experience pool at start
-	 */
-	public boolean clean = false;
+	public boolean grayscale = true;
 
 
 }

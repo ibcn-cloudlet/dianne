@@ -67,6 +67,7 @@ public class DeepRLAgent implements Agent {
 	private Environment env;
 	
 	private AgentConfig config;
+	private Map<String, String> properties;
 	
 	private Thread actingThread;
 	private long i = 0;
@@ -155,6 +156,7 @@ public class DeepRLAgent implements Agent {
 		System.out.println("===================");
 
 		this.config = DianneConfigHandler.getConfig(config, AgentConfig.class);
+		this.properties = config;
 		
 		String strategy = this.config.strategy.toString();
 		actionStrategy = strategies.get(strategy);
@@ -220,60 +222,70 @@ public class DeepRLAgent implements Agent {
 			Tensor next = new Tensor();
 			ExperiencePoolSample s = buffer.get(0);
 			
-			env.reset();
-			s.state = env.getObservation(current);
-
-			for(i = 0; acting; i++) {
-				if(config.syncInterval > 0 && i % config.syncInterval == 0){
-					// sync parameters
-					try {
-						nn.loadParameters(config.tag);
-					} catch(Exception e){
-						System.out.println("Failed to load parameters with tag "+config.tag);
+			env.setup(properties);
+			
+			try {
+				s.state = env.getObservation(current);
+	
+				for(i = 0; acting; i++) {
+					if(config.syncInterval > 0 && i % config.syncInterval == 0){
+						// sync parameters
+						try {
+							nn.loadParameters(config.tag);
+						} catch(Exception e){
+							System.out.println("Failed to load parameters with tag "+config.tag);
+						}
 					}
-				}
-				
-				s.action = selectActionFromObservation(s.state, i);
-
-				s.reward= env.performAction(s.action);
-				s.nextState = env.getObservation(next);
-
-				// upload in batch
-				if(i > 0 && i % config.experienceInterval == 0){
-					// buffer full, switch to upload
-					// check if upload finished
-					// if still uploading ... wait now
-					if(uploading){
-						synchronized(upload){
-							if(uploading){
-								try {
-									upload.wait();
-								} catch (InterruptedException e) {
+					
+					s.action = selectActionFromObservation(s.state, i);
+	
+					s.reward= env.performAction(s.action);
+					s.nextState = env.getObservation(next);
+	
+					// upload in batch
+					if(i > 0 && i % config.experienceInterval == 0){
+						// buffer full, switch to upload
+						// check if upload finished
+						// if still uploading ... wait now
+						if(uploading){
+							synchronized(upload){
+								if(uploading){
+									try {
+										upload.wait();
+									} catch (InterruptedException e) {
+										return;
+									}
 								}
 							}
 						}
-					}
-					List<ExperiencePoolSample> temp = upload;
-					upload = buffer;
-					buffer = temp;
-					bufferReady = true;
-					if(!uploading){
-						synchronized(upload){
-							upload.notifyAll();
+						List<ExperiencePoolSample> temp = upload;
+						upload = buffer;
+						buffer = temp;
+						bufferReady = true;
+						if(!uploading){
+							synchronized(upload){
+								upload.notifyAll();
+							}
 						}
 					}
+	
+					// if nextObservation was null, this is a terminal state - reset environment and start over
+					if(s.nextState == null){
+						s = buffer.get((int)(i % config.experienceInterval));
+						env.reset();
+						s.state = env.getObservation(current);
+					} else {
+						s = buffer.get((int)(i % config.experienceInterval));
+						s.state = next.copyInto(current);
+					}
 				}
-
-				// if nextObservation was null, this is a terminal state - reset environment and start over
-				if(s.nextState == null){
-					s = buffer.get((int)(i % config.experienceInterval));
-					env.reset();
-					s.state = env.getObservation(current);
-				} else {
-					s = buffer.get((int)(i % config.experienceInterval));
-					s.state = next.copyInto(current);
-				}
+			} catch(Exception e){
+				e.printStackTrace();
 			}
+			
+			env.cleanup();
+			
+			acting = false;
 		}
 	}
 	
@@ -294,7 +306,7 @@ public class DeepRLAgent implements Agent {
 							try {
 								buffer.wait();
 							} catch (InterruptedException e) {
-								e.printStackTrace();
+								return;
 							}
 						}
 					}

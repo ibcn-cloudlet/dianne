@@ -27,17 +27,16 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.api.rl.environment.EnvironmentListener;
+import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.pong.api.PongEnvironment;
+import be.iminds.iot.dianne.rl.pong.config.PongConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
@@ -67,8 +66,6 @@ public class Pong implements PongEnvironment, Environment {
 	private float vdef = 0.012f; 
 	// speedup when bouncing
 	private float m = 1.5f;
-	// frame skip for sparser sample generation
-	private int skip = 5;
 	// check if in terminal state
 	private boolean terminal = false;
 	
@@ -77,58 +74,19 @@ public class Pong implements PongEnvironment, Environment {
 	// state
 	private float x, y, vx, vy, p, o;
 	
-	private boolean resetPaddles = true;
-	private boolean randomStart = false;
-	private boolean terminalState = false;
+	private PongConfig config;
+	private volatile boolean active = false;
 	
 	// AI
 	private boolean ai = true;
 	private int agentAction = 0;
 	private int opponentAction = 0;
 	
-	@Activate
-	void activate(BundleContext context) {
-		String l = context.getProperty("be.iminds.iot.dianne.rl.pong.paddleLength");
-		if (l != null)
-			this.pl = Float.parseFloat(l);
-
-		String vdef = context.getProperty("be.iminds.iot.dianne.rl.pong.defaultSpeed");
-		if (vdef != null)
-			this.vdef = Float.parseFloat(vdef);
-
-		String rp = context.getProperty("be.iminds.iot.dianne.rl.pong.resetPaddles");
-		if (rp != null)
-			this.resetPaddles = Boolean.parseBoolean(rp);
-		
-		String rs = context.getProperty("be.iminds.iot.dianne.rl.pong.randomStart");
-		if (rs != null)
-			this.randomStart = Boolean.parseBoolean(rs);
-		
-		String sk = context.getProperty("be.iminds.iot.dianne.rl.pong.skip");
-		if (sk != null)
-			this.skip = Integer.parseInt(sk);
-		
-		String ts = context.getProperty("be.iminds.iot.dianne.rl.pong.terminalState");
-		if (ts != null){
-			this.terminalState = Boolean.parseBoolean(ts);
-			if(terminalState){
-				// also reset paddles in case of terminal state
-				resetPaddles = true;
-			}
-		}
-		
-		observation = new Tensor(new float[] { x, y, vx, vy, p, o }, 6);
-		
-		reset();
-	}
-
-	@Deactivate
-	void deactivate() {
-
-	}
-
 	@Override
 	public float performAction(Tensor action) {
+		if(!active)
+			throw new RuntimeException("The Environment is not active!");
+		
 		agentAction = TensorOps.argmax(action) - 1;
 		
 		if(ai)
@@ -136,7 +94,7 @@ public class Pong implements PongEnvironment, Environment {
 		
 		float totalReward = 0;
 
-		for(int i=0;i<skip;i++){
+		for(int i=0;i<config.skip;i++){
 			// immediate return if terminal state
 			if(terminal){
 				return totalReward;
@@ -177,7 +135,7 @@ public class Pong implements PongEnvironment, Environment {
 				} else if (x < -1) {
 					reward = -1;
 					
-					if(terminalState){
+					if(config.terminalState){
 						// end
 						terminal = true;
 					} else {
@@ -193,7 +151,7 @@ public class Pong implements PongEnvironment, Environment {
 				} else if (x > 1){
 					reward = 1;
 					
-					if(terminalState){
+					if(config.terminalState){
 						// end
 						terminal = true;
 					} else {
@@ -232,6 +190,9 @@ public class Pong implements PongEnvironment, Environment {
 
 	@Override
 	public Tensor getObservation(Tensor t) {
+		if(!active)
+			throw new RuntimeException("The Environment is not active!");
+		
 		if(terminal){
 			return null;
 		}
@@ -240,10 +201,13 @@ public class Pong implements PongEnvironment, Environment {
 
 	@Override
 	public void reset() {
+		if(!active)
+			throw new RuntimeException("The Environment is not active!");
+		
 		// reset ball position
 		x = y = 0;
 		// reset paddles ?
-		if(resetPaddles){
+		if(config.resetPaddles){
 			p = o = 0;
 		}
 
@@ -251,7 +215,7 @@ public class Pong implements PongEnvironment, Environment {
 		r = (r < 0.5) ? 3 * Math.PI / 4 + r * Math.PI : -Math.PI / 4 + (r - 0.5) * Math.PI;
 		
 		// fixed start position ?
-		if(!randomStart){
+		if(!config.randomStart){
 			r = - Math.PI;
 		}
 		
@@ -311,6 +275,25 @@ public class Pong implements PongEnvironment, Environment {
 		if(!ai){
 			this.opponentAction = action;
 		}
+	}
+
+	@Override
+	public void setup(Map<String, String> config) {
+		if(active)
+			throw new RuntimeException("This Environment is already active");
+		
+		this.config = DianneConfigHandler.getConfig(config, PongConfig.class);
+		
+		observation = new Tensor(new float[] { x, y, vx, vy, p, o }, 6);
+			
+		active = true;
+		
+		reset();
+	}
+
+	@Override
+	public void cleanup() {
+		active = false;
 	}
 	
 }

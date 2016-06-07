@@ -22,6 +22,8 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.rl.environment;
 
+import java.util.Map;
+
 import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
@@ -51,14 +53,25 @@ public interface Environment {
 	 */
 	Tensor getObservation(Tensor t);
 
-//	
-//	default Tensor getObservation(){
-//		return getObservation(null);
-//	}
+	
+	default Tensor getObservation(){
+		return getObservation(null);
+	}
 	
 	/**
-	 * Reset the environment to the initial configuration (if possible).
+	 * Reset the environment with the given configuration (if possible).
 	 */
 	void reset();
 
+	/**
+	 * Set up the environment... should be called first before one can peform actions
+	 * @param config
+	 */
+	void setup(Map<String, String> config);
+	
+	/**
+	 * Cleanup the environment when you no longer require it
+	 */
+	void cleanup();
+	
 }

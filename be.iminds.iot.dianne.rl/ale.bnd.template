@@ -2,7 +2,9 @@
 # Instead alter the template file directly.
 Export-Package: be.iminds.iot.dianne.api.rl.environment
 -dsannotations: *
-Private-Package: be.iminds.iot.dianne.rl.ale;
+Private-Package: \
+	be.iminds.iot.dianne.rl.ale,\
+	be.iminds.iot.dianne.rl.ale.config
 Bundle-Name: Dianne Arcade Learning Environment
 
 # os = Linux / MacOSX
