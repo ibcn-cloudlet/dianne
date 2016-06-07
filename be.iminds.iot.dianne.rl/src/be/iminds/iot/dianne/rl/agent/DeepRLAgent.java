@@ -73,14 +73,14 @@ public class DeepRLAgent implements Agent {
 	private long i = 0;
 	private volatile boolean acting;
 	
+	private ActionStrategy actionStrategy;
+	
 	// separate thread for updating the experience pool
 	private Thread experienceUploadThread;
 	private List<ExperiencePoolSample> buffer;
 	private List<ExperiencePoolSample> upload;
 	private volatile boolean bufferReady = false;
 	private volatile boolean uploading = false;
-	
-	private ActionStrategy actionStrategy;
 	
 	@Reference
 	void setDianne(Dianne d){
@@ -179,8 +179,8 @@ public class DeepRLAgent implements Agent {
 		buffer = new ArrayList<>(this.config.experienceInterval);
 		upload = new ArrayList<>(this.config.experienceInterval);
 		for(int i=0;i<this.config.experienceInterval;i++){
-			buffer.add(new ExperiencePoolSample(null, null, 0, null));
-			upload.add(new ExperiencePoolSample(null, null, 0, null));
+			buffer.add(new ExperiencePoolSample());
+			upload.add(new ExperiencePoolSample());
 		}
 		
 		actingThread = new Thread(new AgentRunnable());
@@ -201,8 +201,6 @@ public class DeepRLAgent implements Agent {
 			if (actingThread != null && actingThread.isAlive()) {
 				acting = false;
 				actingThread.join();
-				experienceUploadThread.interrupt();
-				experienceUploadThread.join();
 			}
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -220,12 +218,12 @@ public class DeepRLAgent implements Agent {
 		public void run() {
 			Tensor current = new Tensor();
 			Tensor next = new Tensor();
-			ExperiencePoolSample s = buffer.get(0);
+			ExperiencePoolSample s = new ExperiencePoolSample();
 			
 			env.setup(properties);
 			
 			try {
-				s.state = env.getObservation(current);
+				s.input = env.getObservation(current);
 	
 				for(i = 0; acting; i++) {
 					if(config.syncInterval > 0 && i % config.syncInterval == 0){
@@ -237,13 +235,27 @@ public class DeepRLAgent implements Agent {
 						}
 					}
 					
-					s.action = selectActionFromObservation(s.state, i);
+					s.output = selectActionFromObservation(s.input, i);
 	
-					s.reward= env.performAction(s.action);
+					s.reward= env.performAction(s.output);
 					s.nextState = env.getObservation(next);
+					if(s.nextState == null){
+						s.isTerminal = true;
+					} else {
+						s.isTerminal = false;
+					}
 	
 					// upload in batch
-					if(i > 0 && i % config.experienceInterval == 0){
+					ExperiencePoolSample b = buffer.get((int)(i % config.experienceInterval));
+					b.input = s.input.copyInto(b.input);
+					b.output = s.output.copyInto(b.output);
+					b.reward = s.reward;
+					b.isTerminal = s.isTerminal;
+					if(!s.isTerminal){
+						b.nextState = s.nextState.copyInto(b.nextState);
+					}
+					
+					if(i > 0 && (i+1) % config.experienceInterval == 0){
 						// buffer full, switch to upload
 						// check if upload finished
 						// if still uploading ... wait now
@@ -253,7 +265,6 @@ public class DeepRLAgent implements Agent {
 									try {
 										upload.wait();
 									} catch (InterruptedException e) {
-										return;
 									}
 								}
 							}
@@ -268,15 +279,14 @@ public class DeepRLAgent implements Agent {
 							}
 						}
 					}
+					
 	
 					// if nextObservation was null, this is a terminal state - reset environment and start over
 					if(s.nextState == null){
-						s = buffer.get((int)(i % config.experienceInterval));
 						env.reset();
-						s.state = env.getObservation(current);
+						s.input = env.getObservation(current);
 					} else {
-						s = buffer.get((int)(i % config.experienceInterval));
-						s.state = next.copyInto(current);
+						s.input = next.copyInto(current);
 					}
 				}
 			} catch(Exception e){
@@ -306,7 +316,7 @@ public class DeepRLAgent implements Agent {
 							try {
 								buffer.wait();
 							} catch (InterruptedException e) {
-								return;
+								e.printStackTrace();
 							}
 						}
 					}
@@ -328,5 +338,4 @@ public class DeepRLAgent implements Agent {
 		}
 		
 	}
-
 }

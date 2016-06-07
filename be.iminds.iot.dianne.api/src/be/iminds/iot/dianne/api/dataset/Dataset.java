@@ -63,8 +63,9 @@ public interface Dataset {
 	}
 	
 	default Sample getSample(Sample s, final int index){
-		if(s == null)
+		if(s == null){
 			return new Sample(getInputSample(index), getOutputSample(index));
+		}
 		
 		getInputSample(s.input, index);
 		getOutputSample(s.output, index);

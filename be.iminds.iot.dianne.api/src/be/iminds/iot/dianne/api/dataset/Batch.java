@@ -59,7 +59,6 @@ public class Batch extends Sample {
 	}
 
 	public Batch(Tensor[] i, Tensor[] o){
-		super(null, null); 
 		// no single batch Tensor exists
 		// only an array of separate tensors
 		// TODO check i.length == o.length??

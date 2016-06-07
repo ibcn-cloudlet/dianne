@@ -119,7 +119,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		float[] nextStateBuffer = new float[stateSize];
 		System.arraycopy(sampleBuffer, stateSize+actionSize+1, nextStateBuffer, 0, stateSize);
 		
-		if(nextStateBuffer[0] != -Float.MAX_VALUE){
+		if(nextStateBuffer[0] == -Float.MAX_VALUE){
 			return null;
 		}
 		
@@ -149,34 +149,34 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		System.arraycopy(sampleBuffer, stateSize+actionSize+1, nextStateBuffer, 0, stateSize);
 		
 		if(s == null){
-			s = new ExperiencePoolSample(null, null, 0.0f, null);	
+			s = new ExperiencePoolSample();	
 		}
 		
 		// copy into the existing sample
-		if(s.state == null){
-			s.state = new Tensor(stateBuffer, stateDims);
+		if(s.input == null){
+			s.input = new Tensor(stateBuffer, stateDims);
 		} else {
-			s.state.set(stateBuffer);
+			s.input.set(stateBuffer);
 		}
 		
-		if(s.action == null){
-			s.action = new Tensor(actionBuffer, actionDims);
+		if(s.output == null){
+			s.output = new Tensor(actionBuffer, actionDims);
 		} else {
-			s.action.set(actionBuffer);
+			s.output.set(actionBuffer);
 		}
 		
 		s.reward = rewardBuffer;
 		
-		if(nextStateBuffer[0] != -Float.MAX_VALUE){
-			if(s.nextState == null){
-				s.nextState = new Tensor(nextStateBuffer, stateDims);
-			} else {
-				s.nextState.set(nextStateBuffer);
-			}
+		if(s.nextState == null){
+			s.nextState = new Tensor(nextStateBuffer, stateDims);
 		} else {
-			s.nextState = null;
+			s.nextState.set(nextStateBuffer);
 		}
-
+		
+		if(nextStateBuffer[0] == -Float.MAX_VALUE){
+			s.isTerminal = true;
+		}
+		
 		return s;
 	}
 	
@@ -230,10 +230,10 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		}
 
 		float[] writeBuffer = new float[sampleSize];
-		System.arraycopy(s.state.get(), 0, writeBuffer, 0, stateSize);
-		System.arraycopy(s.action.get(), 0, writeBuffer, stateSize, actionSize);
+		System.arraycopy(s.input.get(), 0, writeBuffer, 0, stateSize);
+		System.arraycopy(s.output.get(), 0, writeBuffer, stateSize, actionSize);
 		writeBuffer[stateSize+actionSize] = s.reward;
-		if(s.nextState == null){
+		if(s.isTerminal){
 			System.arraycopy(emptyState, 0, writeBuffer, stateSize+actionSize+1, stateSize);
 		} else {
 			System.arraycopy(s.nextState.get(), 0, writeBuffer, stateSize+actionSize+1, stateSize);

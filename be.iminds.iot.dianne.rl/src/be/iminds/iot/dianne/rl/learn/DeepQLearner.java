@@ -118,19 +118,19 @@ public class DeepQLearner extends AbstractLearner {
 			
 			ExperiencePoolSample sample = pool.getSample(index);
 			
-			Tensor in = sample.state;
+			Tensor in = sample.input;
 
 			// forward
 			Tensor out = nn.forward(in, ""+index);
 			
 			// evaluate criterion
-			Tensor action = sample.action;
+			Tensor action = sample.output;
 			float reward = sample.reward;
 			Tensor nextState = sample.nextState;
 			
 			float targetQ = 0;
 			
-			if(nextState==null){
+			if(sample.isTerminal){
 				// terminal state
 				targetQ = reward;
 			} else {
