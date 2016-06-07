@@ -18,7 +18,7 @@ $(LIB): OpenBLAS/libopenblas.a torch7/lib/TH/build/libTH.a nn/lib/THNN/build/lib
 	$(CC) $(FLAGS) $(CCFLAGS) $(INCLUDES) -c $< 
 
 torch7/lib/TH/build/libTH.a:
-	cmake -Htorch7/lib/TH -Btorch7/lib/TH/build -DCMAKE_DISABLE_FIND_PACKAGE_MKL=TRUE
+	cmake -Htorch7/lib/TH -Btorch7/lib/TH/build -DWITH_BLAS=open -DCMAKE_LIBRARY_PATH="$(abspath OpenBLAS)"
 	$(MAKE) -C torch7/lib/TH/build
 
 nn/lib/THNN/build/libTHNN.a:
