@@ -69,8 +69,9 @@ public class ArcadeLearningEnvironment implements Environment {
 	// placeholder tensors for generating observation
 	private Tensor screen; 
 	private Tensor gray;
+	private Tensor scaled;
+	private Tensor narrowed;
 	
-    
 	@Override
 	public float performAction(Tensor action) {
 		if(!active)
@@ -83,23 +84,20 @@ public class ArcadeLearningEnvironment implements Environment {
 			
 			screen.set(getScreen());
 			
-			if(config.grayscale){
-				screen.select(0, 0).copyInto(gray);
-				TensorOps.add(gray, gray, screen.select(0, 1));
-				TensorOps.add(gray, gray, screen.select(0, 2));
-				TensorOps.div(gray, gray, 3);
-				
-				gray.copyInto(observation.select(0, i));
-			} else {
-				screen.select(0, 0).copyInto(observation.select(0, 3*i));
-				screen.select(0, 1).copyInto(observation.select(0, 3*i+1));
-				screen.select(0, 2).copyInto(observation.select(0, 3*i+2));
-			}
+			// convert to grayscale
+			gray = screen.select(0, 0).copyInto(gray);
+			TensorOps.add(gray, gray, screen.select(0, 1));
+			TensorOps.add(gray, gray, screen.select(0, 2));
+			TensorOps.div(gray, gray, 3);
+			// downsample to 110 x 84
+			TensorOps.scale2D(scaled, gray, 110, 84);
+			// copy narrowed 84x84 into observation
+			narrowed.copyInto(observation.select(0, i));
 		}
 		
     	final float reward = r;
 		synchronized(listeners){
-			listeners.stream().forEach(l -> l.onAction(reward, observation));
+			listeners.stream().forEach(l -> l.onAction(reward, screen));
 		}
     	
 		return r > 0 ? 1 : r < 0 ? -1 : 0;
@@ -125,21 +123,16 @@ public class ArcadeLearningEnvironment implements Environment {
 		resetGame();
 		
 		screen.set(getScreen());
-		if(config.grayscale){
-			screen.select(0, 0).copyInto(gray);
-			TensorOps.add(gray, gray, screen.select(0, 1));
-			TensorOps.add(gray, gray, screen.select(0, 2));
-			TensorOps.div(gray, gray, 3);
+
+		screen.select(0, 0).copyInto(gray);
+		TensorOps.add(gray, gray, screen.select(0, 1));
+		TensorOps.add(gray, gray, screen.select(0, 2));
+		TensorOps.div(gray, gray, 3);
 				
-			for(int i=0;i<config.observationLength;i++){
-				gray.copyInto(observation.select(0, i));
-			}
-		} else {
-			for(int i=0;i<config.observationLength;i++){
-				screen.select(0, 0).copyInto(observation.select(0, 3*i));
-				screen.select(0, 1).copyInto(observation.select(0, 3*i+1));
-				screen.select(0, 2).copyInto(observation.select(0, 3*i+2));
-			}
+		TensorOps.scale2D(scaled, gray, 110, 84);
+
+		for(int i=0;i<config.observationLength;i++){
+			narrowed.copyInto(observation.select(0, i));
 		}
 	}
 
@@ -179,11 +172,13 @@ public class ArcadeLearningEnvironment implements Environment {
 		
 		// init screen tensor
     	screen = new Tensor(3, 210, 160);
-    	if(this.config.grayscale){
-    		gray = new Tensor(210, 160);
-    	}
-		int channels = this.config.grayscale ? 1 : 3;
-		observation = new Tensor(this.config.observationLength*channels, 210, 160);
+    	gray = new Tensor(210, 160);
+		
+    	scaled = new Tensor(110, 84);
+    	// narrow with offset in y-dim to crop game area
+    	narrowed = scaled.narrow(0, 18, 84);
+    	
+    	observation = new Tensor(this.config.observationLength, 84, 84);
 
     	
     	loadROM(this.config.rom);

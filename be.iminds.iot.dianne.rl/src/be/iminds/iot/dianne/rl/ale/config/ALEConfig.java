@@ -40,10 +40,5 @@ public class ALEConfig {
 	 */
 	public int observationLength = 4;
 	
-	/**
-	 * Convert the screens to grayscale
-	 */
-	public boolean grayscale = true;
-
 
 }
