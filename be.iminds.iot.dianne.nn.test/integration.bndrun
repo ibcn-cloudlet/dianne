@@ -2,7 +2,6 @@
 	
 -runbundles.test: \
 	biz.aQute.junit,\
-	be.iminds.iot.dianne.tensor.th;version=latest,\
 	be.iminds.iot.dianne.tensor.util;version=latest,\
 	be.iminds.iot.dianne.tensor;version=latest,\
 	be.iminds.iot.dianne.tensor.native.generic;version=latest,\
@@ -16,12 +15,10 @@
 	be.iminds.iot.dianne.nn.learn;version=latest,\
 	be.iminds.iot.dianne.nn.eval;version=latest,\
 	be.iminds.iot.dianne.repository;version=latest,\
-	be.iminds.iot.dianne.dataset.mnist;version=latest,\
-	be.iminds.iot.dianne.dataset.imagenet;version=latest,\
+	be.iminds.iot.dianne.dataset;version=latest,\
 	be.iminds.iot.dianne.nn.test.integration;version=latest
 	
 -runproperties.test:\
 	be.iminds.iot.dianne.storage="../tools/nn",\
-	be.iminds.iot.dianne.dataset.mnist.location="../tools/datasets/MNIST/",\
-	be.iminds.iot.dianne.dataset.imagenet.location="../tools/datasets/ImageNet/"
+	be.iminds.iot.dianne.datasets.location="../tools/datasets"
 	

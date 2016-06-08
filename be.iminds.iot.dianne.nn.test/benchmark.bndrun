@@ -2,7 +2,6 @@
 	
 -runbundles.test: \
 	biz.aQute.junit,\
-	be.iminds.iot.dianne.tensor.th;version=latest,\
 	be.iminds.iot.dianne.tensor.util;version=latest,\
 	be.iminds.iot.dianne.tensor;version=latest,\
 	be.iminds.iot.dianne.tensor.native.generic;version=latest,\
