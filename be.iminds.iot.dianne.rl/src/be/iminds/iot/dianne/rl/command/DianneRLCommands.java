@@ -62,10 +62,6 @@ public class DianneRLCommands {
 	public void rl(String nnName, String environment, String experiencePool, String... properties) throws Exception {
 		Map<String, String> agentConfig = DianneRLAgentCommands.createAgentConfig(properties);
 		Map<String, String> learnConfig = DianneRLLearnCommands.createLearnConfig(properties);
-		if(!agentConfig.containsKey("tag")){
-			agentConfig.put("tag", "run");
-			learnConfig.put("tag", "run");
-		}
 		
 		NeuralNetworkInstanceDTO agentnni = platform.deployNeuralNetwork(nnName);
 		NeuralNetworkInstanceDTO nni = platform.deployNeuralNetwork(nnName);

@@ -1,4 +1,0 @@
--dsannotations: *
-Private-Package: be.iminds.iot.dianne.rl.worker
-Bundle-Name: Dianne RL Worker
-Import-Package: *
