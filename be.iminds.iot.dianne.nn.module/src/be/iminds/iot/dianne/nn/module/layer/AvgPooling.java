@@ -28,7 +28,7 @@ import be.iminds.iot.dianne.api.nn.module.AbstractModule;
 import be.iminds.iot.dianne.tensor.ModuleOps;
 import be.iminds.iot.dianne.tensor.Tensor;
 
-public class SpatialAvgPooling extends AbstractModule {
+public class AvgPooling extends AbstractModule {
 	
 	private int w;
 	private int h;
@@ -38,7 +38,7 @@ public class SpatialAvgPooling extends AbstractModule {
 	private boolean ceil = false;
 	private boolean include_pad = false;
 	
-	public SpatialAvgPooling(int width, int height, int sx, int sy){
+	public AvgPooling(int width, int height, int sx, int sy){
 		super();
 		this.w = width;
 		this.h = height;
@@ -46,7 +46,7 @@ public class SpatialAvgPooling extends AbstractModule {
 		this.sy = sy;
 	}
 	
-	public SpatialAvgPooling(UUID id,
+	public AvgPooling(UUID id,
 			 int width, int height, int sx, int sy){
 		super(id);
 		this.w = width;

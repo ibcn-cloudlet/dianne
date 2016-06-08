@@ -32,7 +32,7 @@ public class SpatialMaxpoolingTest extends ModuleTest{
 	@Test
 	public void testSpatialMaxPooling() throws Exception {
 		
-		SpatialMaxPooling pool = new SpatialMaxPooling(2, 2, 2, 2); 
+		MaxPooling pool = new MaxPooling(2, 2, 2, 2); 
 		
 		float[] inputData = new float[]{
 				-1.0016336f, -0.3659996f, -0.561763f, 0.025022956f, 0.39551026f, 0.25571227f, 
@@ -93,7 +93,7 @@ public class SpatialMaxpoolingTest extends ModuleTest{
 	@Test
 	public void testSpatialMaxPoolingBatch() throws Exception {
 		
-		SpatialMaxPooling pool = new SpatialMaxPooling(2, 2, 2, 2); 
+		MaxPooling pool = new MaxPooling(2, 2, 2, 2); 
 		
 		float[] inputData = new float[]{
 				-1.0016336f, -0.3659996f, -0.561763f, 0.025022956f, 0.39551026f, 0.25571227f, 

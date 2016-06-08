@@ -28,7 +28,7 @@ import be.iminds.iot.dianne.api.nn.module.AbstractModule;
 import be.iminds.iot.dianne.tensor.ModuleOps;
 import be.iminds.iot.dianne.tensor.Tensor;
 
-public class SpatialMaxPooling extends AbstractModule {
+public class MaxPooling extends AbstractModule {
 	
 	private int w;
 	private int h;
@@ -38,7 +38,7 @@ public class SpatialMaxPooling extends AbstractModule {
 	// temp tensor with max indices to speed up backward
 	private Tensor indices = new Tensor();
 	
-	public SpatialMaxPooling(int width, int height, int sx, int sy){
+	public MaxPooling(int width, int height, int sx, int sy){
 		super();
 		this.w = width;
 		this.h = height;
@@ -46,7 +46,7 @@ public class SpatialMaxPooling extends AbstractModule {
 		this.sy = sy;
 	}
 	
-	public SpatialMaxPooling(UUID id,
+	public MaxPooling(UUID id,
 			 int width, int height, int sx, int sy){
 		super(id);
 		this.w = width;
