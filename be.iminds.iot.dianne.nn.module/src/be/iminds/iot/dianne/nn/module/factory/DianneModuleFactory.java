@@ -139,14 +139,18 @@ public class DianneModuleFactory implements ModuleFactory {
 		addSupportedType(new ModuleTypeDTO("MaxPooling" , "Layer", false, 
 				new ModulePropertyDTO("Width", "width", Integer.class.getName()),
 				new ModulePropertyDTO("Height", "height", Integer.class.getName()),
+				new ModulePropertyDTO("Depth", "depth", Integer.class.getName()),
 				new ModulePropertyDTO("Stride X", "strideX", Integer.class.getName()),
-				new ModulePropertyDTO("Stride Y", "strideY", Integer.class.getName())));
+				new ModulePropertyDTO("Stride Y", "strideY", Integer.class.getName()),
+				new ModulePropertyDTO("Stride Z", "strideZ", Integer.class.getName())));
 		
 		addSupportedType(new ModuleTypeDTO("AvgPooling" , "Layer", false, 
 				new ModulePropertyDTO("Width", "width", Integer.class.getName()),
 				new ModulePropertyDTO("Height", "height", Integer.class.getName()),
+				new ModulePropertyDTO("Depth", "depth", Integer.class.getName()),
 				new ModulePropertyDTO("Stride X", "strideX", Integer.class.getName()),
-				new ModulePropertyDTO("Stride Y", "strideY", Integer.class.getName())));
+				new ModulePropertyDTO("Stride Y", "strideY", Integer.class.getName()),
+				new ModulePropertyDTO("Stride Z", "strideZ", Integer.class.getName())));
 		
 		addSupportedType(new ModuleTypeDTO("Normalization", "Preprocessing", true));
 		addSupportedType(new ModuleTypeDTO("Denormalization", "Preprocessing", true));
@@ -372,23 +376,40 @@ public class DianneModuleFactory implements ModuleFactory {
 		case "MaxPooling":
 		{
 			int width = Integer.parseInt(dto.properties.get("width"));
-			int height = Integer.parseInt(dto.properties.get("height"));
+			int height = hasProperty(dto.properties, "height") ? Integer.parseInt(dto.properties.get("height")) : 1;
+			int depth =  hasProperty(dto.properties, "depth") ? Integer.parseInt(dto.properties.get("depth")) : 1;
 
 			int sx = hasProperty(dto.properties, "strideX") ? Integer.parseInt(dto.properties.get("strideX")) : width;
 			int sy = hasProperty(dto.properties,"strideY") ? Integer.parseInt(dto.properties.get("strideY")) : height;
+			int sz = hasProperty(dto.properties,"strideZ") ? Integer.parseInt(dto.properties.get("strideZ")) : depth;
+
+			if(hasProperty(dto.properties, "depth")){
+				module = new MaxPooling(id, width, height, depth, sx, sy, sz);
+			} else if(hasProperty(dto.properties, "height")){
+				module = new MaxPooling(id, width, height, sx, sy);
+			} else {
+				module = new MaxPooling(id, width, sx);
+			}
 			
-			module = new MaxPooling(id, width, height, sx, sy);
 			break;
 		}
 		case "AvgPooling":
 		{
 			int width = Integer.parseInt(dto.properties.get("width"));
-			int height = Integer.parseInt(dto.properties.get("height"));
+			int height = hasProperty(dto.properties, "height") ? Integer.parseInt(dto.properties.get("height")) : 1;
+			int depth =  hasProperty(dto.properties, "depth") ? Integer.parseInt(dto.properties.get("depth")) : 1;
 
 			int sx = hasProperty(dto.properties, "strideX") ? Integer.parseInt(dto.properties.get("strideX")) : width;
 			int sy = hasProperty(dto.properties,"strideY") ? Integer.parseInt(dto.properties.get("strideY")) : height;
-			
-			module = new AvgPooling(id, width, height, sx, sy);
+			int sz = hasProperty(dto.properties,"strideZ") ? Integer.parseInt(dto.properties.get("strideZ")) : depth;
+
+			if(hasProperty(dto.properties, "depth")){
+				module = new AvgPooling(id, width, height, depth, sx, sy, sz);
+			} else if(hasProperty(dto.properties, "height")){
+				module = new AvgPooling(id, width, height, sx, sy);
+			} else {
+				module = new AvgPooling(id, width, sx);
+			}
 			break;
 		}
 		case "Normalization":

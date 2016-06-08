@@ -30,40 +30,98 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 public class MaxPooling extends AbstractModule {
 	
-	private int w;
-	private int h;
-	private int d;
+	private int width;
+	private int height;
+	private int depth;
 	
-	private int sx;
-	private int sy;
-	private int sz;
+	private int strideX;
+	private int strideY;
+	private int strideZ;
+	
+	// unused for now
+	private int padX = 0;
+	private int padY = 0;
+	private int padZ = 0;
 	
 	private Type type;
 	
 	// temp tensor with max indices to speed up backward
 	private Tensor indices = new Tensor();
 	
-	/* Spatial constructors */
-	public MaxPooling(int width, int height, int sx, int sy){
+	/* Temporal constructors */
+	public MaxPooling(int width, int stride){
 		super();
-		this.w = width;
-		this.h = height;
-		this.sx = sx;
-		this.sy = sy;
+		this.width = width;
+		this.strideX = stride;
+		type = Type.TEMPORAL;
 	}
 	
 	public MaxPooling(UUID id,
-			 int width, int height, int sx, int sy){
+			 int width, int stride){
 		super(id);
-		this.w = width;
-		this.h = height;
-		this.sx = sx;
-		this.sy = sy;
+		this.width = width;
+		this.strideX = stride;
+		type = Type.TEMPORAL;
 	}
+	
+	/* Spatial constructors */
+	public MaxPooling(int width, int height, int strideX, int strideY){
+		super();
+		this.width = width;
+		this.height = height;
+		this.strideX = strideX;
+		this.strideY = strideY;
+		type = Type.SPATIAL;
+	}
+	
+	public MaxPooling(UUID id,
+			 int width, int height, int strideX, int strideY){
+		super(id);
+		this.width = width;
+		this.height = height;
+		this.strideX = strideX;
+		this.strideY = strideY;
+		type = Type.SPATIAL;
+	}
+	
+	/* Volumetric constructors */
+	public MaxPooling(int width, int height, int depth, int strideX, int strideY, int strideZ){
+		super();
+		this.width = width;
+		this.height = height;
+		this.depth = depth;
+		this.strideX = strideX;
+		this.strideY = strideY;
+		this.strideZ = strideZ;
+		type = Type.VOLUMETRIC;
+	}
+	
+	public MaxPooling(UUID id,
+			 int width, int height, int depth, int strideX, int strideY, int strideZ){
+		super(id);
+		this.width = width;
+		this.height = height;
+		this.depth = depth;
+		this.strideX = strideX;
+		this.strideY = strideY;
+		this.strideZ = strideZ;
+		type = Type.VOLUMETRIC;
+	}
+
 
 	@Override
 	protected void forward() {
-		output = ModuleOps.spatialmaxpool(output, input, indices, w, h, sx, sy, 0, 0);
+		switch(type){
+		case TEMPORAL:
+			throw new UnsupportedOperationException();
+			//break;
+		case SPATIAL:
+			output = ModuleOps.spatialmaxpool(output, input, indices, width, height, strideX, strideY, 0, 0);
+			break;
+		case VOLUMETRIC:
+			throw new UnsupportedOperationException();
+			//break;
+		}
 	}
 
 	@Override
@@ -72,7 +130,17 @@ public class MaxPooling extends AbstractModule {
 			gradInput = new Tensor(input.dims());
 		} 
 
-		ModuleOps.spatialmaxpoolGradIn(gradInput, gradOutput, input, indices, w, h, sx, sy, 0, 0);
+		switch(type){
+		case TEMPORAL:
+			throw new UnsupportedOperationException();
+			//break;
+		case SPATIAL:
+			gradInput = ModuleOps.spatialmaxpoolGradIn(gradInput, gradOutput, input, indices, width, height, strideX, strideY, 0, 0);
+			break;
+		case VOLUMETRIC:
+			throw new UnsupportedOperationException();
+			//break;
+		}
 	}
 	
 }
