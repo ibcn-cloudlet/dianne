@@ -32,12 +32,18 @@ public class MaxPooling extends AbstractModule {
 	
 	private int w;
 	private int h;
+	private int d;
+	
 	private int sx;
 	private int sy;
+	private int sz;
+	
+	private Type type;
 	
 	// temp tensor with max indices to speed up backward
 	private Tensor indices = new Tensor();
 	
+	/* Spatial constructors */
 	public MaxPooling(int width, int height, int sx, int sy){
 		super();
 		this.w = width;
@@ -57,17 +63,6 @@ public class MaxPooling extends AbstractModule {
 
 	@Override
 	protected void forward() {
-		int noPlanes = input.size(0);
-		int y = input.size(1)/h;
-		int x = input.size(2)/w;
-		if(output==null){
-			output = new Tensor(noPlanes, y, x);
-		} else {
-			// reshape if output was input for linear...
-			// TODO check size
-			output.reshape(noPlanes, y, x);
-		}
-		
 		output = ModuleOps.spatialmaxpool(output, input, indices, w, h, sx, sy, 0, 0);
 	}
 
