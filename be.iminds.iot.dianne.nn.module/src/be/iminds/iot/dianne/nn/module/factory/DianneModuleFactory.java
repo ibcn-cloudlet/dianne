@@ -56,6 +56,7 @@ import be.iminds.iot.dianne.nn.module.layer.AvgPooling;
 import be.iminds.iot.dianne.nn.module.layer.BatchNormalization;
 import be.iminds.iot.dianne.nn.module.layer.Convolution;
 import be.iminds.iot.dianne.nn.module.layer.Dropout;
+import be.iminds.iot.dianne.nn.module.layer.FullConvolution;
 import be.iminds.iot.dianne.nn.module.layer.Linear;
 import be.iminds.iot.dianne.nn.module.layer.MaskedMaxPooling;
 import be.iminds.iot.dianne.nn.module.layer.MaxPooling;
@@ -138,6 +139,19 @@ public class DianneModuleFactory implements ModuleFactory {
 				new ModulePropertyDTO("Pad Y", "padY", Integer.class.getName()),
 				new ModulePropertyDTO("Pad Z", "padZ", Integer.class.getName())));
 			
+		addSupportedType(new ModuleTypeDTO("FullConvolution", "Layer", true, 
+				new ModulePropertyDTO("Input planes", "noInputPlanes", Integer.class.getName()),
+				new ModulePropertyDTO("Output planes", "noOutputPlanes", Integer.class.getName()),
+				new ModulePropertyDTO("Kernel width", "kernelWidth", Integer.class.getName()),
+				new ModulePropertyDTO("Kernel height", "kernelHeight", Integer.class.getName()),
+				new ModulePropertyDTO("Kernel depth", "kernelDepth", Integer.class.getName()),
+				new ModulePropertyDTO("Stride X", "strideX", Integer.class.getName()),
+				new ModulePropertyDTO("Stride Y", "strideY", Integer.class.getName()),
+				new ModulePropertyDTO("Stride Z", "strideZ", Integer.class.getName()),
+				new ModulePropertyDTO("Pad X", "padX", Integer.class.getName()),
+				new ModulePropertyDTO("Pad Y", "padY", Integer.class.getName()),
+				new ModulePropertyDTO("Pad Z", "padZ", Integer.class.getName())));
+		
 		addSupportedType(new ModuleTypeDTO("MaxPooling" , "Layer", false, 
 				new ModulePropertyDTO("Width", "width", Integer.class.getName()),
 				new ModulePropertyDTO("Height", "height", Integer.class.getName()),
@@ -384,6 +398,55 @@ public class DianneModuleFactory implements ModuleFactory {
 				} else {
 					module = new Convolution(id, noInputPlanes, noOutputPlanes, kernelWidth, strideX);
 				}
+			}
+
+			break;
+		}
+		case "FullConvolution":
+		{
+			int noInputPlanes = Integer.parseInt(dto.properties.get("noInputPlanes"));
+			int noOutputPlanes = Integer.parseInt(dto.properties.get("noOutputPlanes"));
+			int kernelWidth = Integer.parseInt(dto.properties.get("kernelWidth"));
+			int kernelHeight = hasProperty(dto.properties,"kernelHeight") ? Integer.parseInt(dto.properties.get("kernelHeight")) : 1;
+			int kernelDepth = hasProperty(dto.properties,"kernelDepth") ? Integer.parseInt(dto.properties.get("kernelDepth")) : 1;
+			
+			int strideX = 1, strideY = 1, strideZ = 1;
+			int padX = 0, padY = 0, padZ = 0;
+			
+			// remain backward compatible with the old boolean for full conv zero padding
+			boolean pad = hasProperty(dto.properties,"pad") ? Boolean.parseBoolean(dto.properties.get("pad")) : false;
+			if(pad){
+				padX = (kernelWidth-1)/2;
+				padY = (kernelHeight-1)/2;
+				padZ = (kernelDepth-1)/2;
+			}
+			
+			strideX = hasProperty(dto.properties,"strideX") ? Integer.parseInt(dto.properties.get("strideX")) : strideX;
+			strideY = hasProperty(dto.properties,"strideY") ? Integer.parseInt(dto.properties.get("strideY")) : strideY;
+			strideZ = hasProperty(dto.properties,"strideZ") ? Integer.parseInt(dto.properties.get("strideZ")) : strideZ;
+
+			padX = hasProperty(dto.properties,"padX") ? Integer.parseInt(dto.properties.get("padX")) : padX;
+			padY = hasProperty(dto.properties,"padY") ? Integer.parseInt(dto.properties.get("padY")) : padY;
+			padZ = hasProperty(dto.properties,"padZ") ? Integer.parseInt(dto.properties.get("padZ")) : padZ;
+
+			
+			if(hasProperty(dto.properties,"kernelDepth")){
+				// volumetric
+				if(parameters!=null){
+					module = new FullConvolution(id, parameters, noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, kernelDepth, strideX, strideY, strideZ, padX, padY, padZ);
+				} else {
+					module = new FullConvolution(id, noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, kernelDepth, strideX, strideY, strideZ, padX, padY, padZ);
+				}
+
+			} else if(hasProperty(dto.properties,"kernelHeight")){
+				// spatial
+				if(parameters!=null){
+					module = new FullConvolution(id, parameters, noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY, padX, padY);
+				} else {
+					module = new FullConvolution(id, noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, strideX, strideY, padX, padY);
+				}
+			} else {
+				throw new RuntimeException("Temporal Full convultion not implemented");
 			}
 
 			break;

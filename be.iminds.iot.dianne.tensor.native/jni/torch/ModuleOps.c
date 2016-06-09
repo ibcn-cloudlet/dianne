@@ -940,6 +940,283 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_volumetricconv
 
 
 
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialfullconvolve
+(JNIEnv * env, jclass c, jobject out, jobject in, jobject ker, jobject b, jobject t1, jobject t2, jint kW, jint kH, jint dW, jint dH, jint pW, jint pH){
+	THTensor* input = getTensor(env, in);
+	THTensor* output = getTensor(env, out);
+	THTensor* weight = getTensor(env, ker);
+	THTensor* bias = getTensor(env, b);
+	THTensor* temp1 = getTensor(env, t1);
+	THTensor* temp2 = getTensor(env, t2);
+
+	THNN_(SpatialFullConvolution_updateOutput)(
+		state,
+	    input,
+	    output,
+	    weight,
+	    bias,
+	    temp1,
+	    temp2,
+	    kW, kH,
+	    dW, dH,
+	    pW, pH,
+	    0, 0);
+
+	if(t1 == NULL){
+		THTensor_(free)(
+#ifdef CUDA
+				state,
+#endif
+				temp1);
+	}
+	if(t2 == NULL){
+		THTensor_(free)(
+#ifdef CUDA
+				state,
+#endif
+				temp2);
+	}
+
+	return out == NULL ? createTensorObject(env, output) : out;
+}
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialfullconvolveGradIn
+(JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject ker, jobject in, jobject t1, jobject t2, jint kW, jint kH, jint dW, jint dH, jint pW, jint pH){
+	THTensor* gradInput = getTensor(env, gradIn);
+	THTensor* gradOutput = getTensor(env, gradOut);
+	THTensor* weight = getTensor(env, ker);
+	THTensor* input = getTensor(env, in);
+	THTensor* temp1 = getTensor(env, t1);
+	THTensor* temp2 = getTensor(env, t2);
+
+	THNN_(SpatialFullConvolution_updateGradInput)(
+		state,
+	    input,
+	    gradOutput,
+	    gradInput,
+	    weight,
+	    temp1,
+	    kW, kH,
+	    dW, dH,
+	    pW, pH,
+	    0, 0);
+
+	if(t1 == NULL){
+		THTensor_(free)(
+#ifdef CUDA
+				state,
+#endif
+				temp1);
+	}
+	if(t2 == NULL){
+		THTensor_(free)(
+#ifdef CUDA
+				state,
+#endif
+				temp2);
+	}
+
+	return gradIn == NULL ? createTensorObject(env, gradInput) : gradIn;
+}
+
+JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialfullconvolveAccGrad
+(JNIEnv * env, jclass c, jobject gradKer, jobject gradB, jobject gradOut, jobject in, jobject t1, jobject t2, jint kW, jint kH, jint dW, jint dH, jint pW, jint pH){
+	THTensor* gradWeight = getTensor(env, gradKer);
+	THTensor* gradBias = getTensor(env, gradB);
+	THTensor* gradOutput = getTensor(env, gradOut);
+	THTensor* input = getTensor(env, in);
+	THTensor* temp1 = getTensor(env, t1);
+	THTensor* temp2 = getTensor(env, t2);
+
+	THNN_(SpatialFullConvolution_accGradParameters)(
+			state,
+	        input,
+	        gradOutput,
+	        gradWeight,
+	        gradBias,
+	        temp1,
+	        temp2,
+	        kW, kH,
+	        dW, dH,
+	        pW, pH,
+	        0, 0,
+	        1.0);
+
+	if(t1 == NULL){
+		THTensor_(free)(
+#ifdef CUDA
+				state,
+#endif
+				temp1);
+	}
+	if(t2 == NULL){
+		THTensor_(free)(
+#ifdef CUDA
+				state,
+#endif
+				temp2);
+	}
+}
+
+
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_volumetricfullconvolve
+(JNIEnv * env, jclass c, jobject out, jobject in, jobject ker, jobject b, jobject t1, jobject t2,
+		  jint kW, jint kH, jint kD, jint dW, jint dH, jint dD, jint pW, jint pH, jint pD){
+	THTensor* input = getTensor(env, in);
+	THTensor* output = getTensor(env, out);
+	THTensor* weight = getTensor(env, ker);
+	THTensor* bias = getTensor(env, b);
+	THTensor* temp1 = getTensor(env, t1);
+	THTensor* temp2 = getTensor(env, t2);
+
+	// reshape
+	if(weight->nDimension == 2){
+		int nOutputPlanes = weight->size[0];
+		int nInputPlanes = weight->size[1]/(kD*kH*kW);
+		THTensor_(resize5d)(
+#ifdef CUDA
+				state,
+#endif
+				weight, nOutputPlanes, nInputPlanes, kD, kH, kW);
+	}
+
+	THNN_(VolumetricFullConvolution_updateOutput)(
+	 	state,
+	    input,
+	    output,
+	    weight,
+	    bias,
+	    temp1,
+		temp2,
+		dD, dW, dH,
+	    pD, pW, pH,
+	    0, 0, 0);
+
+
+	if(t1 == NULL){
+		THTensor_(free)(
+#ifdef CUDA
+				state,
+#endif
+				temp1);
+	}
+	if(t2 == NULL){
+		THTensor_(free)(
+#ifdef CUDA
+				state,
+#endif
+				temp2);
+	}
+
+	return out == NULL ? createTensorObject(env, output) : out;
+}
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_volumetricfullconvolveGradIn
+(JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject ker, jobject in, jobject t1, jobject t2,
+		  jint kW, jint kH, jint kD, jint dW, jint dH, jint dD, jint pW, jint pH, jint pD){
+	THTensor* gradInput = getTensor(env, gradIn);
+	THTensor* gradOutput = getTensor(env, gradOut);
+	THTensor* weight = getTensor(env, ker);
+	THTensor* input = getTensor(env, in);
+	THTensor* temp1 = getTensor(env, t1);
+	THTensor* temp2 = getTensor(env, t2);
+
+	// reshape
+	if(weight->nDimension == 2){
+		int nOutputPlanes = weight->size[0];
+		int nInputPlanes = weight->size[1]/(kD*kH*kW);
+		THTensor_(resize5d)(
+#ifdef CUDA
+				state,
+#endif
+				weight, nOutputPlanes, nInputPlanes, kD, kH, kW);
+	}
+
+	THNN_(VolumetricFullConvolution_updateGradInput)(
+		state,
+	    input,
+	    gradOutput,
+	    gradInput,
+	    weight,
+		temp1,
+	    temp2,
+	    dD, dW, dH,
+		pD, pW, pH,
+	    0, 0, 0);
+
+
+	if(t1 == NULL){
+		THTensor_(free)(
+#ifdef CUDA
+				state,
+#endif
+				temp1);
+	}
+	if(t2 == NULL){
+		THTensor_(free)(
+#ifdef CUDA
+				state,
+#endif
+				temp2);
+	}
+
+	return gradIn == NULL ? createTensorObject(env, gradInput) : gradIn;
+}
+
+JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_volumetricfullconvolveAccGrad
+(JNIEnv * env, jclass c, jobject gradKer, jobject gradB, jobject gradOut, jobject in, jobject t1, jobject t2,
+		  jint kW, jint kH, jint kD, jint dW, jint dH, jint dD, jint pW, jint pH, jint pD){
+	THTensor* gradWeight = getTensor(env, gradKer);
+	THTensor* gradBias = getTensor(env, gradB);
+	THTensor* gradOutput = getTensor(env, gradOut);
+	THTensor* input = getTensor(env, in);
+	THTensor* temp1 = getTensor(env, t1);
+	THTensor* temp2 = getTensor(env, t2);
+
+	// reshape
+	if(gradWeight->nDimension == 2){
+		int nOutputPlanes = gradWeight->size[0];
+		int nInputPlanes = gradWeight->size[1]/(kD*kH*kW);
+		THTensor_(resize5d)(
+#ifdef CUDA
+				state,
+#endif
+				gradWeight, nOutputPlanes, nInputPlanes, kD, kH, kW);
+	}
+
+	THNN_(VolumetricFullConvolution_accGradParameters)(
+			state,
+			input,
+			gradOutput,
+			gradWeight,
+			gradBias,
+			temp1,
+			temp2,
+			dD, dW, dH,
+			pD, pW, pH,
+			0, 0, 0,
+			1.0);
+
+
+	if(t1 == NULL){
+		THTensor_(free)(
+#ifdef CUDA
+				state,
+#endif
+				temp1);
+	}
+	if(t2 == NULL){
+		THTensor_(free)(
+#ifdef CUDA
+				state,
+#endif
+				temp2);
+	}
+}
+
+
+
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_batchnorm
   (JNIEnv * env, jclass c, jobject out, jobject in, jobject w, jobject b, jobject rm, jobject rv, jobject sm, jobject sv, jboolean train){
 	THTensor* input = getTensor(env, in);

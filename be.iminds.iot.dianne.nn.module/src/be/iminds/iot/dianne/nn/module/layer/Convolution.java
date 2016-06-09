@@ -31,31 +31,31 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class Convolution extends AbstractTrainableModule {
 
-	private int noInputPlanes;
-	private int noOutputPlanes;
-	private int kernelWidth = 1;
-	private int kernelHeight = 1;
-	private int kernelDepth = 1;
-	private int strideX = 1;
-	private int strideY = 1;
-	private int strideZ = 1;
-	private int padX = 0;
-	private int padY = 0;
-	private int padZ = 0;
+	protected int noInputPlanes;
+	protected int noOutputPlanes;
+	protected int kernelWidth = 1;
+	protected int kernelHeight = 1;
+	protected int kernelDepth = 1;
+	protected int strideX = 1;
+	protected int strideY = 1;
+	protected int strideZ = 1;
+	protected int padX = 0;
+	protected int padY = 0;
+	protected int padZ = 0;
 
-	private Type type;
+	protected Type type;
 	
 	// subtensors for weights / bias
-	private Tensor weights;
-	private Tensor deltaWeights;
-	private Tensor bias;
-	private Tensor deltaBias;
+	protected Tensor weights;
+	protected Tensor deltaWeights;
+	protected Tensor bias;
+	protected Tensor deltaBias;
 	
 	// tensors for unfolded data
-	private Tensor temp1 = new Tensor();
-	private Tensor temp2 = new Tensor();
+	protected Tensor temp1 = new Tensor();
+	protected Tensor temp2 = new Tensor();
 
-	private int[] outputDims;
+	protected int[] outputDims;
 	
 	/* Temporal Convolution constructors */
 	public Convolution(

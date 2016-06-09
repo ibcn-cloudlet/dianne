@@ -124,6 +124,33 @@ public class ModuleOps {
 	
 	
 	
+	public static native Tensor spatialfullconvolve(Tensor output, final Tensor input, final Tensor kernels, final Tensor bias, 
+			final Tensor temp1, final Tensor temp2,
+			final int kW, final int kH, final int dW, final int dH, final int padW, final int padH);
+
+	public static native Tensor spatialfullconvolveGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor kernels, final Tensor input, 
+			final Tensor temp1, final Tensor temp2,
+			final int kW, final int kH, final int dW, final int dH, final int padW, final int padH);
+
+	public static native void spatialfullconvolveAccGrad(final Tensor gradKernels, final Tensor gradBias, final Tensor gradOutput, final Tensor input, 
+			final Tensor temp1, final Tensor temp2,
+			final int kW, final int kH, final int dW, final int dH, final int padW, final int padH);
+	
+	
+	public static native Tensor volumetricfullconvolve(Tensor output, final Tensor input, final Tensor kernels, final Tensor bias, 
+			final Tensor temp1, final Tensor temp2,
+			final int kW, final int kH, final int kD, final int dW, final int dH, int dD, final int padW, final int padH, final int padD);
+
+	public static native Tensor volumetricfullconvolveGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor kernels, final Tensor input, 
+			final Tensor temp1, final Tensor temp2,
+			final int kW, final int kH, final int kD, final int dW, final int dH, final int dD, final int padW, final int padH, final int padD);
+
+	public static native void volumetricfullconvolveAccGrad(final Tensor gradKernels, final Tensor gradBias, final Tensor gradOutput, final Tensor input, 
+			final Tensor temp1, final Tensor temp2,
+			final int kW, final int kH, final int kD, final int dW, final int dH, final int dD, final int padW, final int padH, final int padD);
+	
+	
+	
 	public static native Tensor batchnorm(Tensor output, final Tensor input, final Tensor weights, final Tensor bias, final Tensor rMean, final Tensor rVar, final Tensor sMean, final Tensor sVar, boolean train);
 
 	public static native Tensor batchnormGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor input, final Tensor weights, final Tensor rMean, final Tensor rVar, final Tensor sMean, final Tensor sVar, boolean train);
