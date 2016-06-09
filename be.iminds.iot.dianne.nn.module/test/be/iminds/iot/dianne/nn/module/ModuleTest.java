@@ -15,7 +15,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 public class ModuleTest {
 	
-	public static final boolean TRACE = true;
+	public static final boolean TRACE = false;
 	
 	@BeforeClass
 	public static void setup() {
@@ -65,9 +65,9 @@ public class ModuleTest {
 				m.wait(1000);
 			}
 			
-			Assert.assertTrue(expOutput.equals(output, 0.005f));
+			Assert.assertTrue("Wrong output", expOutput.equals(output, 0.005f));
 			if(expGradInput != null)
-				Assert.assertTrue(expGradInput.equals(gradInput, 0.005f));
+				Assert.assertTrue("Wrong grad input", expGradInput.equals(gradInput, 0.005f));
 
 		} catch (UnsupportedOperationException ex) {
 			Assume.assumeNoException("Method not implemented yet for current configuration.", ex);
@@ -123,9 +123,9 @@ public class ModuleTest {
 			if(TRACE)
 				System.out.println("DELTA PARAMS "+m.getDeltaParameters());
 			
-			Assert.assertTrue(expOutput.equals(output, 0.001f));
-			Assert.assertTrue(expGradInput.equals(gradInput, 0.001f));
-			Assert.assertTrue(expDeltaParameters.equals(m.getDeltaParameters(), 0.001f));
+			Assert.assertTrue("Wrong output", expOutput.equals(output, 0.001f));
+			Assert.assertTrue("Wrong grad input", expGradInput.equals(gradInput, 0.001f));
+			Assert.assertTrue("Wrong delta parameters", expDeltaParameters.equals(m.getDeltaParameters(), 0.001f));
 			
 		} catch (UnsupportedOperationException ex) {
 			Assume.assumeNoException("Method not implemented yet for current configuration.", ex);
