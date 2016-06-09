@@ -921,7 +921,7 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_linear
 		THTensor_(resize2d)(
 #ifdef CUDA
 			state,
-#endif)
+#endif
 			output,
 			input->size[0], weight->size[0]);
 
