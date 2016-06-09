@@ -59,6 +59,7 @@ import be.iminds.iot.dianne.nn.module.layer.Dropout;
 import be.iminds.iot.dianne.nn.module.layer.Linear;
 import be.iminds.iot.dianne.nn.module.layer.MaskedMaxPooling;
 import be.iminds.iot.dianne.nn.module.layer.MaxPooling;
+import be.iminds.iot.dianne.nn.module.layer.MaxUnpooling;
 import be.iminds.iot.dianne.nn.module.layer.Reshape;
 import be.iminds.iot.dianne.nn.module.layer.Zeropad;
 import be.iminds.iot.dianne.nn.module.preprocessing.Denormalization;
@@ -138,6 +139,14 @@ public class DianneModuleFactory implements ModuleFactory {
 				new ModulePropertyDTO("Pad Z", "padZ", Integer.class.getName())));
 			
 		addSupportedType(new ModuleTypeDTO("MaxPooling" , "Layer", false, 
+				new ModulePropertyDTO("Width", "width", Integer.class.getName()),
+				new ModulePropertyDTO("Height", "height", Integer.class.getName()),
+				new ModulePropertyDTO("Depth", "depth", Integer.class.getName()),
+				new ModulePropertyDTO("Stride X", "strideX", Integer.class.getName()),
+				new ModulePropertyDTO("Stride Y", "strideY", Integer.class.getName()),
+				new ModulePropertyDTO("Stride Z", "strideZ", Integer.class.getName())));
+
+		addSupportedType(new ModuleTypeDTO("MaxUnpooling" , "Layer", false, 
 				new ModulePropertyDTO("Width", "width", Integer.class.getName()),
 				new ModulePropertyDTO("Height", "height", Integer.class.getName()),
 				new ModulePropertyDTO("Depth", "depth", Integer.class.getName()),
@@ -399,6 +408,26 @@ public class DianneModuleFactory implements ModuleFactory {
 			
 			break;
 		}
+		case "MaxUnpooling":
+		{
+			int width = Integer.parseInt(dto.properties.get("width"));
+			int height = hasProperty(dto.properties, "height") ? Integer.parseInt(dto.properties.get("height")) : 1;
+			int depth =  hasProperty(dto.properties, "depth") ? Integer.parseInt(dto.properties.get("depth")) : 1;
+
+			int sx = hasProperty(dto.properties, "strideX") ? Integer.parseInt(dto.properties.get("strideX")) : width;
+			int sy = hasProperty(dto.properties,"strideY") ? Integer.parseInt(dto.properties.get("strideY")) : height;
+			int sz = hasProperty(dto.properties,"strideZ") ? Integer.parseInt(dto.properties.get("strideZ")) : depth;
+
+			if(hasProperty(dto.properties, "depth")){
+				module = new MaxUnpooling(id, width, height, depth, sx, sy, sz);
+			} else if(hasProperty(dto.properties, "height")){
+				module = new MaxUnpooling(id, width, height, sx, sy);
+			} else {
+				module = new MaxUnpooling(id, width, sx);
+			}
+			
+			break;
+		}		
 		case "AvgPooling":
 		{
 			int width = Integer.parseInt(dto.properties.get("width"));

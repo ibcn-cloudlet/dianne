@@ -357,6 +357,151 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_volumetricm
 
 
 
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialmaxunpool
+  (JNIEnv * env, jclass c, jobject out, jobject in, jobject ind, jint kW, jint kH, jint dW, jint dH, jint pW, jint pH){
+	THTensor* input = getTensor(env, in);
+	THTensor* output = getTensor(env, out);
+	THTensor* indices = getTensor(env, ind);
+
+	int dimh = 1;
+	int dimw = 2;
+
+	if (input->nDimension == 4)
+	{
+	  dimh++;
+	  dimw++;
+	}
+
+	int iH = input->size[dimh];
+	int iW = input->size[dimw];
+
+	int oH = (iH - 1) * dH + kH - 2* pH;
+	int oW = (iW - 1) * dW + kW - 2* pW;
+
+	THNN_(SpatialMaxUnpooling_updateOutput)(
+	          state,
+	          input,
+	          output,
+	          indices,
+	          oW, oH);
+
+	return out == NULL ? createTensorObject(env, output) : out;
+}
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialmaxunpoolGradIn
+  (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject ind, jint kW, jint kH, jint dW, jint dH, jint pW, jint pH){
+	THTensor* gradInput = getTensor(env, gradIn);
+	THTensor* gradOutput = getTensor(env, gradOut);
+	THTensor* input = getTensor(env, in);
+	THTensor* indices = getTensor(env, ind);
+
+	int dimh = 1;
+	int dimw = 2;
+
+	if (input->nDimension == 4)
+	{
+	  dimh++;
+	  dimw++;
+	}
+
+	int iH = input->size[dimh];
+	int iW = input->size[dimw];
+
+	int oH = (iH - 1) * dH + kH - 2* pH;
+	int oW = (iW - 1) * dW + kW - 2* pW;
+
+	THNN_(SpatialMaxUnpooling_updateGradInput)(
+	          state,
+	          input,
+	          gradOutput,
+	          gradInput,
+	          indices,
+	          oW, oH);
+
+	return gradIn == NULL ? createTensorObject(env, gradInput) : gradIn;
+}
+
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_volumetricmaxunpool
+  (JNIEnv * env, jclass c, jobject out, jobject in, jobject ind, jint kW, jint kH, jint kD,
+		  jint dW, jint dH, jint dD, jint pW, jint pH, jint pD){
+	THTensor* input = getTensor(env, in);
+	THTensor* output = getTensor(env, out);
+	THTensor* indices = getTensor(env, ind);
+
+	int dimd = 1;
+	int dimh = 2;
+	int dimw = 3;
+
+	if (input->nDimension == 5)
+	{
+	  dimd++;
+	  dimh++;
+	  dimw++;
+	}
+
+	int iD = input->size[dimd];
+	int iH = input->size[dimh];
+	int iW = input->size[dimw];
+
+	int oD = (iD - 1) * dD + kD - 2* pD;
+	int oH = (iH - 1) * dH + kH - 2* pH;
+	int oW = (iW - 1) * dW + kW - 2* pW;
+
+	THNN_(VolumetricMaxUnpooling_updateOutput)(
+	          state,
+	          input,
+	          output,
+	          indices,
+	          oD, oW, oH,
+	          dD, dW, dH,
+	          pD, pW, pH);
+
+	return out == NULL ? createTensorObject(env, output) : out;
+}
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_volumetricmaxunpoolGradIn
+  (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject ind,
+		  jint kW, jint kH, jint kD, jint dW, jint dH, jint dD, jint pW, jint pH, jint pD){
+	THTensor* gradInput = getTensor(env, gradIn);
+	THTensor* gradOutput = getTensor(env, gradOut);
+	THTensor* input = getTensor(env, in);
+	THTensor* indices = getTensor(env, ind);
+
+	int dimd = 1;
+	int dimh = 2;
+	int dimw = 3;
+
+	if (input->nDimension == 5)
+	{
+	  dimd++;
+	  dimh++;
+	  dimw++;
+	}
+
+	int iD = input->size[dimd];
+	int iH = input->size[dimh];
+	int iW = input->size[dimw];
+
+	int oD = (iD - 1) * dD + kD - 2* pD;
+	int oH = (iH - 1) * dH + kH - 2* pH;
+	int oW = (iW - 1) * dW + kW - 2* pW;
+
+	THNN_(VolumetricMaxUnpooling_updateGradInput)(
+	          state,
+	          input,
+	          gradOutput,
+	          gradInput,
+	          indices,
+			  oD, oW, oH,
+	          dD, dW, dH,
+	          pD, pW, pH);
+
+	return gradIn == NULL ? createTensorObject(env, gradInput) : gradIn;
+}
+
+
+
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialavgpool
   (JNIEnv * env, jclass c, jobject out, jobject in, jint kW, jint kH, jint dW, jint dH, jint pW, jint pH, jboolean ceil, jboolean count_pad){
 	THTensor* input = getTensor(env, in);

@@ -24,11 +24,11 @@ package be.iminds.iot.dianne.nn.module.layer;
 
 import java.util.UUID;
 
-import be.iminds.iot.dianne.nn.module.fork.Fork;
+import be.iminds.iot.dianne.nn.module.join.Join;
 import be.iminds.iot.dianne.tensor.ModuleOps;
 import be.iminds.iot.dianne.tensor.Tensor;
 
-public class MaxPooling extends Fork {
+public class MaxUnpooling extends Join {
 	
 	private int width;
 	private int height;
@@ -45,18 +45,18 @@ public class MaxPooling extends Fork {
 	
 	private Type type;
 	
-	// temp tensor with max indices to speed up backward
-	private Tensor indices = new Tensor();
+	// indices should be given by the corresponding MaxPooling module
+	private Tensor indices;
 	
 	/* Temporal constructors */
-	public MaxPooling(int width, int stride){
+	public MaxUnpooling(int width, int stride){
 		super();
 		this.width = width;
 		this.strideX = stride;
 		type = Type.TEMPORAL;
 	}
 	
-	public MaxPooling(UUID id,
+	public MaxUnpooling(UUID id,
 			 int width, int stride){
 		super(id);
 		this.width = width;
@@ -65,7 +65,7 @@ public class MaxPooling extends Fork {
 	}
 	
 	/* Spatial constructors */
-	public MaxPooling(int width, int height, int strideX, int strideY){
+	public MaxUnpooling(int width, int height, int strideX, int strideY){
 		super();
 		this.width = width;
 		this.height = height;
@@ -74,7 +74,7 @@ public class MaxPooling extends Fork {
 		type = Type.SPATIAL;
 	}
 	
-	public MaxPooling(UUID id,
+	public MaxUnpooling(UUID id,
 			 int width, int height, int strideX, int strideY){
 		super(id);
 		this.width = width;
@@ -85,7 +85,7 @@ public class MaxPooling extends Fork {
 	}
 	
 	/* Volumetric constructors */
-	public MaxPooling(int width, int height, int depth, int strideX, int strideY, int strideZ){
+	public MaxUnpooling(int width, int height, int depth, int strideX, int strideY, int strideZ){
 		super();
 		this.width = width;
 		this.height = height;
@@ -96,7 +96,7 @@ public class MaxPooling extends Fork {
 		type = Type.VOLUMETRIC;
 	}
 	
-	public MaxPooling(UUID id,
+	public MaxUnpooling(UUID id,
 			 int width, int height, int depth, int strideX, int strideY, int strideZ){
 		super(id);
 		this.width = width;
@@ -111,53 +111,47 @@ public class MaxPooling extends Fork {
 
 	@Override
 	protected void forward() {
-		switch(type){
-		case TEMPORAL:
-			output = ModuleOps.temporalmaxpool(output, input, indices, width, strideX);
-			break;
-		case SPATIAL:
-			output = ModuleOps.spatialmaxpool(output, input, indices, width, height, strideX, strideY, 0, 0);
-			break;
-		case VOLUMETRIC:
-			output = ModuleOps.volumetricmaxpool(output, input, indices, 
-					width, height, depth, strideX, strideY, strideZ, padX, padY, padZ);
-			break;
+		if(prev==null || prevIds.length!=2){
+			throw new RuntimeException("MaxUnPooling not configured correctly, should receive both input and indices");
 		}
 		
-		if(next!=null){
-			outputs.put(nextIds[0], output);
-			if(next.length==2){
-				outputs.put(nextIds[1], indices);
-			}
+		input = inputs.get(prevIds[0]);
+		indices = inputs.get(prevIds[1]);
+		
+		switch(type){
+		case TEMPORAL:
+			// TODO can we implement this with spatial variant?
+			throw new UnsupportedOperationException();
+		case SPATIAL:
+			output = ModuleOps.spatialmaxunpool(output, input, indices, width, height, strideX, strideY, 0, 0);
+			break;
+		case VOLUMETRIC:
+			output = ModuleOps.volumetricmaxunpool(output, input, indices, 
+					width, height, depth, strideX, strideY, strideZ, padX, padY, padZ);
+			break;
 		}
 	}
 
 	@Override
 	protected void backward() {	
-		if(next==null){
-			// in case of junit test mode there can be no next defined
-			// then just pick whatever you find in gradOutputs
-			gradOutput = gradOutputs.values().iterator().next();
-		} else {
-			gradOutput = gradOutputs.get(nextIds[0]);
-		}
-		
 		if(gradInput == null){
 			gradInput = new Tensor(input.dims());
 		} 
 
 		switch(type){
 		case TEMPORAL:
-			gradInput = ModuleOps.temporalmaxpoolGradIn(gradInput, gradOutput, input, indices, width, strideX);
-			break;
+			// TODO can we implement this with spatial variant?
+			throw new UnsupportedOperationException();
 		case SPATIAL:
-			gradInput = ModuleOps.spatialmaxpoolGradIn(gradInput, gradOutput, input, indices, width, height, strideX, strideY, 0, 0);
+			gradInput = ModuleOps.spatialmaxunpoolGradIn(gradInput, gradOutput, input, indices, width, height, strideX, strideY, 0, 0);
 			break;
 		case VOLUMETRIC:
-			gradInput = ModuleOps.volumetricmaxpoolGradIn(gradInput, gradOutput, input, indices,
+			gradInput = ModuleOps.volumetricmaxunpoolGradIn(gradInput, gradOutput, input, indices,
 					width, height, depth, strideX, strideY, strideZ, padX, padY, padZ);
 			break;
 		}
+		
+		gradInputs.put(prevIds[0], gradInput);
 	}
-
+	
 }

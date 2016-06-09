@@ -57,6 +57,21 @@ public class ModuleOps {
 	
 	
 	
+	public static native Tensor spatialmaxunpool(Tensor output, final Tensor input, final Tensor indices,
+			final int kW, final int kH, final int dW, final int dH, final int padW, final int padH);
+
+	public static native Tensor spatialmaxunpoolGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor input, final Tensor indices,
+			final int kW, final int kH, final int dW, final int dH, final int padW, final int padH);
+
+	
+	public static native Tensor volumetricmaxunpool(Tensor output, final Tensor input, final Tensor indices,
+			final int kW, final int kH, final int kD, final int dW, final int dH, final int dD, final int padW, final int padH, final int padD);
+
+	public static native Tensor volumetricmaxunpoolGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor input, final Tensor indices,
+			final int kW, final int kH, final int kD, final int dW, final int dH, final int dD, final int padW, final int padH, final int padD);
+	
+	
+	
 	public static native Tensor spatialavgpool(Tensor output, final Tensor input,
 			final int kW, final int kH, final int dW, final int dH, final int padW, final int padH, boolean ceil, boolean count_pad);
 
