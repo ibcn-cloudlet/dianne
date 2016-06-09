@@ -58,7 +58,7 @@ public class Reshape extends AbstractModule {
 		inputDims = input.dims();
 		int inputSize = input.size();
 		
-		input.copyInto(output);
+		output = input.copyInto(output);
 		
 		if(inputSize != targetSize){
 			if(inputSize / inputDims[0] == targetSize){
@@ -79,7 +79,7 @@ public class Reshape extends AbstractModule {
 
 	@Override
 	protected void backward() {
-		gradOutput.copyInto(gradInput);
+		gradInput = gradOutput.copyInto(gradInput);
 		gradOutput.reshape(inputDims);
 	}
 
