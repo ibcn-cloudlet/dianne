@@ -86,7 +86,8 @@ subprojects {
 			def outputExtentions = ["*.o","*.dylib","*.so","*.a", "*_*.h"]
 			inputs.files compileJava
 			inputs.files fileTree(dir: file.parent, excludes: outputExtentions)
-			outputs.dir "$projectDir/native/"
+			outputs.dir "$projectDir/native/$lib/$os/$arch"
+			outputs.dir "$projectDir/native/$os/$arch"
 			outputs.files fileTree(dir: file.parent, includes: outputExtentions)
 			workingDir file.parent
 			commandLine "make"

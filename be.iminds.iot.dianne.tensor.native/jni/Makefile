@@ -36,8 +36,7 @@ install:
 
 .PHONY: cutorch
 cutorch:
-	$(MAKE) -C torch torch7/lib/TH/build/libTH.a 
-	$(MAKE) -C torch nn/lib/THNN/build/libTHNN.a
+	$(MAKE) -C torch;
 	$(MAKE) -C cutorch install;
 	
 .PHONY: torch

@@ -18,8 +18,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Contributors:
- *     Tim Verbelen, Steven Bohez
+ *     Tim Verbelen, Steven Bohez, Elias De Coninck
  *******************************************************************************/
+// added to be able to compile with default c++ compiler and cross compilers
+#include "cuda_runtime.h"
+#include "curand.h"
+#include "cublas_v2.h"
 // define some additional CUDA operations
 extern "C" {
 #include "THCudaTensorOps.h"
