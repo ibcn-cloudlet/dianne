@@ -113,14 +113,15 @@ public class MaxPooling extends AbstractModule {
 	protected void forward() {
 		switch(type){
 		case TEMPORAL:
-			throw new UnsupportedOperationException();
-			//break;
+			output = ModuleOps.temporalmaxpool(output, input, indices, width, strideX);
+			break;
 		case SPATIAL:
 			output = ModuleOps.spatialmaxpool(output, input, indices, width, height, strideX, strideY, 0, 0);
 			break;
 		case VOLUMETRIC:
-			throw new UnsupportedOperationException();
-			//break;
+			output = ModuleOps.volumetricmaxpool(output, input, indices, 
+					width, height, depth, strideX, strideY, strideZ, padX, padY, padZ);
+			break;
 		}
 	}
 
@@ -132,14 +133,15 @@ public class MaxPooling extends AbstractModule {
 
 		switch(type){
 		case TEMPORAL:
-			throw new UnsupportedOperationException();
-			//break;
+			gradInput = ModuleOps.temporalmaxpoolGradIn(gradInput, gradOutput, input, indices, width, strideX);
+			break;
 		case SPATIAL:
 			gradInput = ModuleOps.spatialmaxpoolGradIn(gradInput, gradOutput, input, indices, width, height, strideX, strideY, 0, 0);
 			break;
 		case VOLUMETRIC:
-			throw new UnsupportedOperationException();
-			//break;
+			gradInput = ModuleOps.volumetricmaxpoolGradIn(gradInput, gradOutput, input, indices,
+					width, height, depth, strideX, strideY, strideZ, padX, padY, padZ);
+			break;
 		}
 	}
 	

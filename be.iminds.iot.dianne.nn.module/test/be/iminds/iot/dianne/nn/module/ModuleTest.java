@@ -15,7 +15,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 public class ModuleTest {
 	
-	public static final boolean TRACE = false;
+	public static final boolean TRACE = true;
 	
 	@BeforeClass
 	public static void setup() {

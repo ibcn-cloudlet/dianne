@@ -61,33 +61,30 @@ public class Convolution extends AbstractTrainableModule {
 	public Convolution(
 			int noInputPlanes, int noOutputPlanes, 
 			int kernelWidth,
-			int stride, 
-			int pad){
+			int stride){
 		super(new Tensor(noOutputPlanes*noInputPlanes*kernelWidth+noOutputPlanes));
 		type = Type.TEMPORAL;
-		init(noInputPlanes, noOutputPlanes, kernelWidth, 1, 1, stride, 1, 1, pad, 0, 0);
+		init(noInputPlanes, noOutputPlanes, kernelWidth, 1, 1, stride, 1, 1, 0, 0, 0);
 		parameters.fill(0.0f);
 	}
 	
 	public Convolution(UUID id,
 			int noInputPlanes, int noOutputPlanes, 
 			int kernelWidth,
-			int stride, 
-			int pad){
+			int stride){
 		super(id, new Tensor(noOutputPlanes*noInputPlanes*kernelWidth+noOutputPlanes));
 		type = Type.TEMPORAL;
-		init(noInputPlanes, noOutputPlanes, kernelWidth, 1, 1, stride, 1, 1, pad, 0, 0);
+		init(noInputPlanes, noOutputPlanes, kernelWidth, 1, 1, stride, 1, 1, 0, 0, 0);
 		parameters.fill(0.0f);
 	}
 	
 	public Convolution(UUID id, Tensor parameters,
 			int noInputPlanes, int noOutputPlanes, 
 			int kernelWidth,
-			int stride, 
-			int pad){
+			int stride){
 		super(id, parameters);
 		type = Type.TEMPORAL;
-		init(noInputPlanes, noOutputPlanes, kernelWidth, 1, 1, stride, 1, 1, pad, 0, 0);
+		init(noInputPlanes, noOutputPlanes, kernelWidth, 1, 1, stride, 1, 1, 0, 0, 0);
 	}
 	
 	/* Spatial Convolution constructors */
@@ -163,8 +160,8 @@ public class Convolution extends AbstractTrainableModule {
 			int kernelWidth, int kernelHeight, int kernelDepth,
 			int strideX, int strideY, int strideZ,
 			int padX, int padY, int padZ){
-		if(parameters.size()!=(noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight+noOutputPlanes)){
-			parameters.reshape(noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight+noOutputPlanes);
+		if(parameters.size()!=(noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight*kernelDepth+noOutputPlanes)){
+			parameters.reshape(noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight*kernelDepth+noOutputPlanes);
 		}
 		
 		this.noInputPlanes = noInputPlanes;
@@ -180,7 +177,7 @@ public class Convolution extends AbstractTrainableModule {
 		this.padZ = padZ;
 		
 		weights = parameters.narrow(0, 0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight*kernelDepth);
-		weights.reshape(noOutputPlanes, noInputPlanes*kernelWidth*kernelHeight*kernelDepth);
+		weights.reshape(noOutputPlanes, noInputPlanes*kernelDepth*kernelHeight*kernelWidth);
 		bias = parameters.narrow(0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight*kernelDepth, noOutputPlanes);
 	}
 	
@@ -192,7 +189,7 @@ public class Convolution extends AbstractTrainableModule {
 			deltaParameters = deltas;
 		}
 		deltaWeights = deltaParameters.narrow(0, 0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight*kernelDepth);
-		deltaWeights.reshape(noOutputPlanes, noInputPlanes*kernelWidth*kernelHeight*kernelDepth);
+		deltaWeights.reshape(noOutputPlanes, noInputPlanes*kernelDepth*kernelHeight*kernelWidth);
 		deltaBias = deltaParameters.narrow(0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight*kernelDepth, noOutputPlanes);
 		
 		deltaParameters.fill(0.0f);
@@ -213,8 +210,11 @@ public class Convolution extends AbstractTrainableModule {
 		// TODO check kernel sizes
 		switch(type){
 		case TEMPORAL:
-			throw new UnsupportedOperationException();
-			//break;
+			if(input.dim() == 1){
+				input.reshape(input.dims()[0], 1);
+			} 
+			output = ModuleOps.temporalconvolve(output, input, weights, bias, kernelWidth, strideX, noInputPlanes, noOutputPlanes);
+			break;
 		case SPATIAL:
 			if(input.dim() == 2 && noInputPlanes == 1) {
 				input.reshape(1, input.size(0), input.size(1));
@@ -222,8 +222,9 @@ public class Convolution extends AbstractTrainableModule {
 			output = ModuleOps.spatialconvolve(output, input, weights, bias, temp1, temp2, kernelWidth, kernelHeight, strideX, strideY, padX, padY);
 			break;
 		case VOLUMETRIC:
-			throw new UnsupportedOperationException();
-			//break;
+			output = ModuleOps.volumetricconvolve(output, input, weights, bias, temp1, temp2, 
+					kernelWidth, kernelHeight, kernelDepth, strideX, strideY, strideZ, padX, padY, padZ);
+			break;
 		}
 		
 		outputDims = output.dims();
@@ -238,14 +239,16 @@ public class Convolution extends AbstractTrainableModule {
 		gradOutput.reshape(outputDims);
 		switch(type){
 		case TEMPORAL:
-			throw new UnsupportedOperationException();
-			//break;
+			
+			gradInput = ModuleOps.temporalconvolveGradIn(gradInput, gradOutput, weights, input, kernelWidth, strideX);
+			break;
 		case SPATIAL:
 			gradInput = ModuleOps.spatialconvolveGradIn(gradInput, gradOutput, weights, input, temp1, temp2, kernelWidth, kernelHeight, strideX, strideY, padX, padY);
 			break;
 		case VOLUMETRIC:
-			throw new UnsupportedOperationException();
-			//break;
+			gradInput = ModuleOps.volumetricconvolveGradIn(gradInput, gradOutput, weights, input, temp1, temp2,
+					kernelWidth, kernelHeight, kernelDepth, strideX, strideY, strideZ, padX, padY, padZ);
+			break;
 		}
 		
 	}
@@ -254,14 +257,15 @@ public class Convolution extends AbstractTrainableModule {
 	public void accGradParameters() {
 		switch(type){
 		case TEMPORAL:
-			throw new UnsupportedOperationException();
-			//break;
+			ModuleOps.temporalconvolveAccGrad(deltaWeights, deltaBias, gradOutput, input, kernelWidth, strideX);
+			break;
 		case SPATIAL:
 			ModuleOps.spatialconvolveAccGrad(deltaWeights, deltaBias, gradOutput, input, temp1, temp2, kernelWidth, kernelHeight, strideX, strideY, padX, padY);
 			break;
 		case VOLUMETRIC:
-			throw new UnsupportedOperationException();
-			//break;
+			ModuleOps.volumetricconvolveAccGrad(deltaWeights, deltaBias, gradOutput, input, temp1, temp2,
+					kernelWidth, kernelHeight, kernelDepth, strideX, strideY, strideZ, padX, padY, padZ);
+			break;
 		}
 	}
 }

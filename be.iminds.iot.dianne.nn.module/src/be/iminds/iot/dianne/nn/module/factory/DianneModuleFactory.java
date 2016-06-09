@@ -365,9 +365,9 @@ public class DianneModuleFactory implements ModuleFactory {
 			} else {
 				// temporal
 				if(parameters!=null){
-					module = new Convolution(id, parameters, noInputPlanes, noOutputPlanes, kernelWidth, strideX, padX);
+					module = new Convolution(id, parameters, noInputPlanes, noOutputPlanes, kernelWidth, strideX);
 				} else {
-					module = new Convolution(id, noInputPlanes, noOutputPlanes, kernelWidth, strideX, padX);
+					module = new Convolution(id, noInputPlanes, noOutputPlanes, kernelWidth, strideX);
 				}
 			}
 

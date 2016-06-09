@@ -192,6 +192,18 @@ THTensor* getTensor4d(JNIEnv* env, jobject o, int d0, int d1, int d2, int d3){
 	return t;
 }
 
+THTensor* getTensor5d(JNIEnv* env, jobject o, int d0, int d1, int d2, int d3, int d4){
+	THTensor* t = getTensor(env, o);
+
+	THTensor_(resize5d)(
+#ifdef CUDA
+			state,
+#endif
+			t, d0, d1, d2, d3, d4);
+
+	return t;
+}
+
 jobject createTensorObject(JNIEnv* env, THTensor* t){
 	return (*env)->NewObject(env, TENSOR_CLASS, TENSOR_INIT, (jlong)t);
 }

@@ -108,18 +108,29 @@ public class AvgPooling extends AbstractModule {
 		type = Type.VOLUMETRIC;
 	}
 
+	private int[] inputDims;
+	
 	@Override
 	protected void forward() {
 		switch(type){
 		case TEMPORAL:
-			throw new UnsupportedOperationException();
-			//break;
+			// temporal avg pooling as spatial pooling in height dim?
+			inputDims = input.dims();
+			if(input.dim()==2){
+				input.reshape(1, inputDims[0], inputDims[1]);
+			}
+			output = ModuleOps.spatialavgpool(output, input, 1, width, 1, strideX, 0, padX, ceil, include_pad);
+			if(inputDims.length == 2){
+				int[] outputDims = output.dims();
+				output.reshape(outputDims[1], outputDims[2]);
+			}
+			break;
 		case SPATIAL:
 			output = ModuleOps.spatialavgpool(output, input, width, height, strideX, strideY, padX, padY, ceil, include_pad);
 			break;
 		case VOLUMETRIC:
-			throw new UnsupportedOperationException();
-			//break;
+			output = ModuleOps.volumetricavgpool(output, input, width, height, depth, strideX, strideY, strideZ);
+			break;
 		}
 	}
 
@@ -131,14 +142,16 @@ public class AvgPooling extends AbstractModule {
 
 		switch(type){
 		case TEMPORAL:
-			throw new UnsupportedOperationException();
-			//break;
+			// 1D as 2d with height = 1
+			gradInput = ModuleOps.spatialavgpoolGradIn(gradInput, gradOutput, input, width, 1, strideX, 1, padX, 0, ceil, include_pad);
+			gradInput.reshape(inputDims);
+			break;
 		case SPATIAL:
 			gradInput = ModuleOps.spatialavgpoolGradIn(gradInput, gradOutput, input, width, height, strideX, strideY, padX, padY, ceil, include_pad);
 			break;
 		case VOLUMETRIC:
-			throw new UnsupportedOperationException();
-			//break;
+			gradInput = ModuleOps.volumetricavgpoolGradIn(gradInput, gradOutput, input, width, height, depth, strideX, strideY, strideZ);
+			break;
 		}
 	}
 	
