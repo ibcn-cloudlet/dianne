@@ -1,5 +1,7 @@
 package be.iminds.iot.dianne.nn.module;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.junit.Assert;
@@ -9,6 +11,7 @@ import org.junit.BeforeClass;
 import be.iminds.iot.dianne.api.nn.module.BackwardListener;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Module;
+import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.tensor.NativeTensorLoader;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -28,6 +31,7 @@ public class ModuleTest {
 		try {
 			Tensor output = new Tensor();
 			Tensor gradInput = new Tensor();
+			final List<Exception> errors = new ArrayList<>();
 			
 			m.addForwardListener(new ForwardListener() {
 				@Override
@@ -40,6 +44,15 @@ public class ModuleTest {
 						System.out.println("GRAD OUT "+gradOutput);
 					
 					m.backward(UUID.randomUUID(), gradOutput);
+				}
+				
+				@Override
+				public void onError(final UUID moduleId, final ModuleException e, final String...tags){
+					e.printStackTrace();
+					errors.add(e);
+					synchronized(m){
+						m.notify();
+					}
 				}
 			});
 			m.addBackwardListener(new BackwardListener() {
@@ -55,6 +68,15 @@ public class ModuleTest {
 						m.notify();
 					}
 				}
+				
+				@Override
+				public void onError(final UUID moduleId, final ModuleException e, final String...tags){
+					e.printStackTrace();
+					errors.add(e);
+					synchronized(m){
+						m.notify();
+					}
+				}
 			});
 			
 			if(TRACE)
@@ -63,6 +85,9 @@ public class ModuleTest {
 			synchronized(m) {
 				m.forward(UUID.randomUUID(), input);
 				m.wait(1000);
+				if(!errors.isEmpty()){
+					Assert.fail(errors.get(0).getMessage());
+				}
 			}
 			
 			Assert.assertTrue("Wrong output", expOutput.equals(output, 0.005f));
@@ -80,6 +105,7 @@ public class ModuleTest {
 		try {
 			Tensor output = new Tensor();
 			Tensor gradInput = new Tensor();
+			final List<Exception> errors = new ArrayList<>();
 			
 			m.zeroDeltaParameters();
 			if(params !=null)
@@ -97,6 +123,15 @@ public class ModuleTest {
 					
 					m.backward(UUID.randomUUID(), gradOutput);
 				}
+				
+				@Override
+				public void onError(final UUID moduleId, final ModuleException e, final String...tags){
+					e.printStackTrace();
+					errors.add(e);
+					synchronized(m){
+						m.notify();
+					}
+				}
 			});
 			m.addBackwardListener(new BackwardListener() {
 				@Override
@@ -109,6 +144,15 @@ public class ModuleTest {
 						m.notify();
 					}
 				}
+				
+				@Override
+				public void onError(final UUID moduleId, final ModuleException e, final String...tags){
+					e.printStackTrace();
+					errors.add(e);
+					synchronized(m){
+						m.notify();
+					}
+				}
 			});
 
 			if(TRACE)
@@ -117,6 +161,9 @@ public class ModuleTest {
 			synchronized(m) {
 				m.forward(UUID.randomUUID(), input);
 				m.wait(1000);
+				if(!errors.isEmpty()){
+					Assert.fail(errors.get(0).getMessage());
+				}
 				m.accGradParameters();
 			}
 			
