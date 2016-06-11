@@ -39,8 +39,6 @@ public class FullConvolution extends Convolution {
 			int padX, int padY){
 		super(noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, 
 				strideX, strideY, padX, padY);
-		// THNN expects other weights dimensions than "normal" convolution
-		weights.reshape(noInputPlanes, noOutputPlanes, kernelHeight, kernelWidth);
 	}
 	
 	public FullConvolution(UUID id,
@@ -50,7 +48,6 @@ public class FullConvolution extends Convolution {
 			int padX, int padY){
 		super(id, noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight,
 				strideX, strideY, padX, padY);
-		weights.reshape(noInputPlanes, noOutputPlanes, kernelHeight, kernelWidth);
 	}
 	
 	public FullConvolution(UUID id, Tensor parameters,
@@ -60,7 +57,6 @@ public class FullConvolution extends Convolution {
 			int padX, int padY){
 		super(id, parameters, noInputPlanes, noOutputPlanes, kernelWidth,
 				kernelHeight, strideX, strideY, padX, padY);
-		weights.reshape(noInputPlanes, noOutputPlanes, kernelHeight, kernelWidth);
 	}
 	
 	/* Volumetric Convolution constructors */
@@ -71,7 +67,6 @@ public class FullConvolution extends Convolution {
 			int padX, int padY, int padZ){
 		super(noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight,
 				kernelDepth, strideX, strideY, strideZ, padX, padY, padZ);
-		weights.reshape(noInputPlanes, noOutputPlanes, kernelDepth, kernelHeight, kernelWidth);
 	}
 	
 	public FullConvolution(UUID id,
@@ -81,7 +76,6 @@ public class FullConvolution extends Convolution {
 			int padX, int padY, int padZ){
 		super(id, noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight,
 				kernelDepth, strideX, strideY, strideZ, padX, padY, padZ);
-		weights.reshape(noInputPlanes, noOutputPlanes, kernelDepth, kernelHeight, kernelWidth);
 	}
 	
 	public FullConvolution(UUID id, Tensor parameters,
@@ -91,9 +85,42 @@ public class FullConvolution extends Convolution {
 			int padX, int padY, int padZ){
 		super(id, parameters, noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight,
 				kernelDepth, strideX, strideY, strideZ, padX, padY, padZ);
-		weights.reshape(noInputPlanes, noOutputPlanes, kernelDepth, kernelHeight, kernelWidth);
 	}
 	
+
+	// full convolution expects weights shaped with noInputplanes as first dim
+	@Override
+	protected void init(int noInputPlanes, int noOutputPlanes, int kernelWidth, int kernelHeight, int kernelDepth,
+			int strideX, int strideY, int strideZ, int padX, int padY, int padZ) {
+		super.init(noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, kernelDepth, strideX, strideY, strideZ, padX, padY, padZ);
+		
+		switch(type){
+		case TEMPORAL:
+			weights.reshape(noInputPlanes, noOutputPlanes, kernelWidth);
+			break;
+		case SPATIAL:
+			weights.reshape(noInputPlanes, noOutputPlanes, kernelHeight, kernelWidth);
+			break;
+		case VOLUMETRIC:
+			weights.reshape(noInputPlanes, noOutputPlanes, kernelDepth, kernelHeight, kernelWidth);
+		}
+	}
+	
+	@Override
+	public void initDeltaParameters(Tensor deltas) {
+		super.initDeltaParameters(deltas);
+		
+		switch(type){
+		case TEMPORAL:
+			deltaWeights.reshape(noInputPlanes, noOutputPlanes, kernelWidth);
+			break;
+		case SPATIAL:
+			deltaWeights.reshape(noInputPlanes, noOutputPlanes, kernelHeight, kernelWidth);
+			break;
+		case VOLUMETRIC:
+			deltaWeights.reshape(noInputPlanes, noOutputPlanes, kernelDepth, kernelHeight, kernelWidth);
+		}
+	}
 	
 	@Override
 	protected void forward() {
@@ -116,21 +143,11 @@ public class FullConvolution extends Convolution {
 		outputDims = output.dims();
 	}
 
+	
 	@Override
 	protected void backward() {
 		if(deltaParameters==null){
 			initDeltaParameters(null);
-			switch(type){
-			case TEMPORAL:
-				deltaWeights.reshape(noInputPlanes, noOutputPlanes, kernelWidth);
-				break;
-			case SPATIAL:
-				deltaWeights.reshape(noInputPlanes, noOutputPlanes, kernelHeight, kernelWidth);
-				break;
-			case VOLUMETRIC:
-				deltaWeights.reshape(noInputPlanes, noOutputPlanes, kernelDepth, kernelHeight, kernelWidth);
-			}
-			
 		}
 		
 		gradOutput.reshape(outputDims);

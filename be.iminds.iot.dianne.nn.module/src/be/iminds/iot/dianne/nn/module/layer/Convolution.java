@@ -141,7 +141,7 @@ public class Convolution extends AbstractTrainableModule {
 		super(id, new Tensor(noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight*kernelDepth+noOutputPlanes));
 		type = Type.VOLUMETRIC;
 		init(noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, kernelDepth, 
-				strideX, strideY, strideZ, padX, padY, padZ);		
+				strideX, strideY, strideZ, padX, padY, padZ);	
 		parameters.fill(0.0f);
 	}
 	
@@ -177,8 +177,19 @@ public class Convolution extends AbstractTrainableModule {
 		this.padZ = padZ;
 		
 		weights = parameters.narrow(0, 0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight*kernelDepth);
-		weights.reshape(noOutputPlanes, noInputPlanes*kernelDepth*kernelHeight*kernelWidth);
 		bias = parameters.narrow(0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight*kernelDepth, noOutputPlanes);
+		
+//		switch(type){
+//		case TEMPORAL:
+//			weights.reshape(noOutputPlanes, noInputPlanes, kernelWidth);
+//			break;
+//		case SPATIAL:
+//			weights.reshape(noOutputPlanes, noInputPlanes, kernelHeight, kernelWidth);
+//			break;
+//		case VOLUMETRIC:
+//			weights.reshape(noOutputPlanes, noInputPlanes, kernelDepth, kernelHeight, kernelWidth);
+//		}
+		weights.reshape(noOutputPlanes, noInputPlanes*kernelDepth*kernelHeight*kernelWidth);
 	}
 	
 	public void initDeltaParameters(Tensor deltas){
@@ -189,10 +200,22 @@ public class Convolution extends AbstractTrainableModule {
 			deltaParameters = deltas;
 		}
 		deltaWeights = deltaParameters.narrow(0, 0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight*kernelDepth);
-		deltaWeights.reshape(noOutputPlanes, noInputPlanes*kernelDepth*kernelHeight*kernelWidth);
 		deltaBias = deltaParameters.narrow(0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight*kernelDepth, noOutputPlanes);
 		
 		deltaParameters.fill(0.0f);
+		
+//		switch(type){
+//		case TEMPORAL:
+//			deltaWeights.reshape(noOutputPlanes, noInputPlanes, kernelWidth);
+//			break;
+//		case SPATIAL:
+//			deltaWeights.reshape(noOutputPlanes, noInputPlanes, kernelHeight, kernelWidth);
+//			break;
+//		case VOLUMETRIC:
+//			deltaWeights.reshape(noOutputPlanes, noInputPlanes, kernelDepth, kernelHeight, kernelWidth);
+//		}
+		deltaWeights.reshape(noOutputPlanes, noInputPlanes*kernelDepth*kernelHeight*kernelWidth);
+
 	}
 	
 	@Override
@@ -239,7 +262,6 @@ public class Convolution extends AbstractTrainableModule {
 		gradOutput.reshape(outputDims);
 		switch(type){
 		case TEMPORAL:
-			
 			gradInput = ModuleOps.temporalconvolveGradIn(gradInput, gradOutput, weights, input, kernelWidth, strideX);
 			break;
 		case SPATIAL:

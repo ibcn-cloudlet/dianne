@@ -32,7 +32,7 @@ public class SpatialFullConvolutionTest extends ModuleTest{
 	@Test
 	public void testSpatialFullConvolution1() throws InterruptedException {
 		int noInputPlanes = 2;
-		int noOutputPlanes = 2;
+		int noOutputPlanes = 3;
 		int kernelWidth = 3;
 		int kernelHeight = 3;
 		int stride = 1;
@@ -42,27 +42,30 @@ public class SpatialFullConvolutionTest extends ModuleTest{
 		Tensor input = new Tensor(2, 2, 2);
 		input.fill(2.0f);
 		
-		Tensor gradOutput = new Tensor(2,4,4);
+		Tensor gradOutput = new Tensor(3,4,4);
 		gradOutput.fill(1.0f);
 		
 		Tensor params = new Tensor(noOutputPlanes*(noInputPlanes*kernelHeight*kernelWidth+1));
 		params.fill(1.0f);
 		
 		float[] expOutputData = new float[]{
-			5.0f, 9.0f, 9.0f, 5.0f, 9.0f, 17.0f, 17.0f, 9.0f,
-			9.0f, 17.0f, 17.0f, 9.0f, 5.0f, 9.0f, 9.0f, 5.0f,
-			5.0f, 9.0f, 9.0f, 5.0f, 9.0f, 17.0f, 17.0f, 9.0f,
-			9.0f, 17.0f, 17.0f, 9.0f, 5.0f, 9.0f, 9.0f, 5.0f
+				5.0f, 9.0f, 9.0f, 5.0f, 9.0f, 17.0f, 17.0f, 9.0f,
+				9.0f, 17.0f, 17.0f, 9.0f, 5.0f, 9.0f, 9.0f, 5.0f,
+				5.0f, 9.0f, 9.0f, 5.0f, 9.0f, 17.0f, 17.0f, 9.0f,
+				9.0f, 17.0f, 17.0f, 9.0f, 5.0f, 9.0f, 9.0f, 5.0f,
+				5.0f, 9.0f, 9.0f, 5.0f, 9.0f, 17.0f, 17.0f, 9.0f,
+				9.0f, 17.0f, 17.0f, 9.0f, 5.0f, 9.0f, 9.0f, 5.0f
 		};
-		Tensor expOutput = new Tensor(expOutputData, 2, 4, 4);
+		Tensor expOutput = new Tensor(expOutputData, 3, 4, 4);
 		
 		Tensor expGradInput = new Tensor(2, 2, 2);
-		expGradInput.fill(18.0f);
+		expGradInput.fill(27.0f);
 
 		Tensor expDelta = new Tensor(noOutputPlanes*(noInputPlanes*kernelHeight*kernelWidth+1));
 		expDelta.fill(8.0f);
-		expDelta.set(16.0f, noOutputPlanes*(noInputPlanes*kernelHeight*kernelWidth+1)-2);
-		expDelta.set(16.0f, noOutputPlanes*(noInputPlanes*kernelHeight*kernelWidth+1)-1);
+		expDelta.set(16.0f, expDelta.size()-3);
+		expDelta.set(16.0f, expDelta.size()-2);
+		expDelta.set(16.0f, expDelta.size()-1);
 		
 		testModule(sc, params, input, expOutput, gradOutput, expGradInput, expDelta);
 	}

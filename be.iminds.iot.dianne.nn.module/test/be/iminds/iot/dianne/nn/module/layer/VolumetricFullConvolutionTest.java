@@ -32,7 +32,7 @@ public class VolumetricFullConvolutionTest extends ModuleTest{
 	@Test
 	public void testVolumetricFullConvolution1() throws InterruptedException {
 		int noInputPlanes = 2;
-		int noOutputPlanes = 2;
+		int noOutputPlanes = 3;
 		int kernelWidth = 3;
 		int kernelHeight = 3;
 		int kernelDepth = 3;
@@ -43,37 +43,35 @@ public class VolumetricFullConvolutionTest extends ModuleTest{
 		Tensor input = new Tensor(2, 2, 2, 2);
 		input.fill(2.0f);
 		
-		Tensor gradOutput = new Tensor(2, 4, 4, 4);
+		Tensor gradOutput = new Tensor(3, 4, 4, 4);
 		gradOutput.fill(1.0f);
 		
 		Tensor params = new Tensor(noOutputPlanes*(noInputPlanes*kernelDepth*kernelHeight*kernelWidth+1));
 		params.fill(1.0f);
 		
 		float[] expOutputData = new float[]{
-				5.0f, 9.0f, 9.0f, 5.0f, 9.0f, 17.0f, 17.0f, 9.0f,
-				9.0f, 17.0f, 17.0f, 9.0f, 5.0f, 9.0f, 9.0f, 5.0f,
-				9.0f, 17.0f, 17.0f, 9.0f, 17.0f, 33.0f, 33.0f, 17.0f,
-				17.0f, 33.0f, 33.0f, 17.0f, 9.0f, 17.0f, 17.0f, 9.0f,
-				9.0f, 17.0f, 17.0f, 9.0f, 17.0f, 33.0f, 33.0f, 17.0f,
-				17.0f, 33.0f, 33.0f, 17.0f, 9.0f, 17.0f, 17.0f, 9.0f,
-				5.0f, 9.0f, 9.0f, 5.0f, 9.0f, 17.0f, 17.0f, 9.0f, 9.0f,
-				17.0f, 17.0f, 9.0f, 5.0f, 9.0f, 9.0f, 5.0f, 5.0f, 9.0f,
-				9.0f, 5.0f, 9.0f, 17.0f, 17.0f, 9.0f, 9.0f, 17.0f,
-				17.0f, 9.0f, 5.0f, 9.0f, 9.0f, 5.0f, 9.0f, 17.0f,
-				17.0f, 9.0f, 17.0f, 33.0f, 33.0f, 17.0f, 17.0f, 33.0f,
-				33.0f, 17.0f, 9.0f, 17.0f, 17.0f, 9.0f, 9.0f, 17.0f,
-				17.0f, 9.0f, 17.0f, 33.0f, 33.0f, 17.0f, 17.0f, 33.0f,
-				33.0f, 17.0f, 9.0f, 17.0f, 17.0f, 9.0f, 5.0f, 9.0f,
-				9.0f, 5.0f, 9.0f, 17.0f, 17.0f, 9.0f, 9.0f, 17.0f,
-				17.0f, 9.0f, 5.0f, 9.0f, 9.0f, 5.0f
+			5.0f, 9.0f, 9.0f, 5.0f, 9.0f, 17.0f, 17.0f, 9.0f, 9.0f, 17.0f, 17.0f, 9.0f, 5.0f, 9.0f, 9.0f, 5.0f,
+			9.0f, 17.0f, 17.0f, 9.0f, 17.0f, 33.0f, 33.0f, 17.0f, 17.0f, 33.0f, 33.0f, 17.0f, 9.0f, 17.0f, 17.0f,
+			9.0f, 9.0f, 17.0f, 17.0f, 9.0f, 17.0f, 33.0f, 33.0f, 17.0f, 17.0f, 33.0f, 33.0f, 17.0f, 9.0f, 17.0f,
+			17.0f, 9.0f, 5.0f, 9.0f, 9.0f, 5.0f, 9.0f, 17.0f, 17.0f, 9.0f, 9.0f, 17.0f, 17.0f, 9.0f, 5.0f, 9.0f,
+			9.0f, 5.0f, 5.0f, 9.0f, 9.0f, 5.0f, 9.0f, 17.0f, 17.0f, 9.0f, 9.0f, 17.0f, 17.0f, 9.0f, 5.0f, 9.0f,
+			9.0f, 5.0f, 9.0f, 17.0f, 17.0f, 9.0f, 17.0f, 33.0f, 33.0f, 17.0f, 17.0f, 33.0f, 33.0f, 17.0f, 9.0f,
+			17.0f, 17.0f, 9.0f, 9.0f, 17.0f, 17.0f, 9.0f, 17.0f, 33.0f, 33.0f, 17.0f, 17.0f, 33.0f, 33.0f, 17.0f,
+			9.0f, 17.0f, 17.0f, 9.0f, 5.0f, 9.0f, 9.0f, 5.0f, 9.0f, 17.0f, 17.0f, 9.0f, 9.0f, 17.0f, 17.0f, 9.0f,
+			5.0f, 9.0f, 9.0f, 5.0f, 5.0f, 9.0f, 9.0f, 5.0f, 9.0f, 17.0f, 17.0f, 9.0f, 9.0f, 17.0f, 17.0f, 9.0f,
+			5.0f, 9.0f, 9.0f, 5.0f, 9.0f, 17.0f, 17.0f, 9.0f, 17.0f, 33.0f, 33.0f, 17.0f, 17.0f, 33.0f, 33.0f,
+			17.0f, 9.0f, 17.0f, 17.0f, 9.0f, 9.0f, 17.0f, 17.0f, 9.0f, 17.0f, 33.0f, 33.0f, 17.0f, 17.0f, 33.0f,
+			33.0f, 17.0f, 9.0f, 17.0f, 17.0f, 9.0f, 5.0f, 9.0f, 9.0f, 5.0f, 9.0f, 17.0f, 17.0f, 9.0f, 9.0f, 17.0f,
+			17.0f, 9.0f, 5.0f, 9.0f, 9.0f, 5.0f
 		};
-		Tensor expOutput = new Tensor(expOutputData, 2, 4, 4, 4);
+		Tensor expOutput = new Tensor(expOutputData, 3, 4, 4, 4);
 		
 		Tensor expGradInput = new Tensor(2, 2, 2, 2);
-		expGradInput.fill(54.0f);
+		expGradInput.fill(81.0f);
 
 		Tensor expDelta = new Tensor(noOutputPlanes*(noInputPlanes*kernelDepth*kernelHeight*kernelWidth+1));
 		expDelta.fill(16.0f);
+		expDelta.set(64, expDelta.size()-3);
 		expDelta.set(64, expDelta.size()-2);
 		expDelta.set(64, expDelta.size()-1);
 		

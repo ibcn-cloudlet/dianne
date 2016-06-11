@@ -262,7 +262,13 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_reshape
 				state,
 #endif
 				tensor, index[0], index[1], index[2], index[3]);
-	} // for now only support up to 4D tensors...
+	} else if(noDims==5){
+		THTensor_(resize5d)(
+#ifdef CUDA
+				state,
+#endif
+				tensor, index[0], index[1], index[2], index[3], index[4]);
+	}
 	(*env)->ReleaseIntArrayElements(env, dims, index, 0);
 }
 

@@ -759,16 +759,17 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_volumetricc
 
 
 #ifdef CUDA
-	// reshape
+	// VolumericConvolution expects other dimensions than MM
 	if(weight->nDimension == 2){
 		int nOutputPlanes = weight->size[0];
 		int nInputPlanes = weight->size[1]/(kD*kH*kW);
 		THTensor_(resize5d)(
 #ifdef CUDA
-				state,
+			state,
 #endif
-				weight, nOutputPlanes, nInputPlanes, kD, kH, kW);
+			weight, nOutputPlanes, nInputPlanes, kD, kH, kW);
 	}
+
 
 	THNN_(VolumetricConvolution_updateOutput)(
 	          state,
@@ -823,7 +824,7 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_volumetricc
 	THTensor* temp2 = getTensor(env, t2);
 
 #ifdef CUDA
-	// reshape
+	// VolumericConvolution expects other dimensions than MM
 	if(weight->nDimension == 2){
 		int nOutputPlanes = weight->size[0];
 		int nInputPlanes = weight->size[1]/(kD*kH*kW);
@@ -885,18 +886,16 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_volumetricconv
 	THTensor* temp1 = getTensor(env, t1);
 	THTensor* temp2 = getTensor(env, t2);
 
-
-
 #ifdef CUDA
-	// reshape
+	// VolumericConvolution expects other dimensions than MM
 	if(gradWeight->nDimension == 2){
 		int nOutputPlanes = gradWeight->size[0];
 		int nInputPlanes = gradWeight->size[1]/(kD*kH*kW);
 		THTensor_(resize5d)(
 #ifdef CUDA
-				state,
+			state,
 #endif
-				gradWeight, nOutputPlanes, nInputPlanes, kD, kH, kW);
+			gradWeight, nOutputPlanes, nInputPlanes, kD, kH, kW);
 	}
 
 	THNN_(VolumetricConvolution_accGradParameters)(
@@ -1070,17 +1069,6 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_volumetricf
 	THTensor* temp1 = getTensor(env, t1);
 	THTensor* temp2 = getTensor(env, t2);
 
-	// reshape
-	if(weight->nDimension == 2){
-		int nOutputPlanes = weight->size[0];
-		int nInputPlanes = weight->size[1]/(kD*kH*kW);
-		THTensor_(resize5d)(
-#ifdef CUDA
-				state,
-#endif
-				weight, nOutputPlanes, nInputPlanes, kD, kH, kW);
-	}
-
 	THNN_(VolumetricFullConvolution_updateOutput)(
 	 	state,
 	    input,
@@ -1122,17 +1110,6 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_volumetricf
 	THTensor* temp1 = getTensor(env, t1);
 	THTensor* temp2 = getTensor(env, t2);
 
-	// reshape
-	if(weight->nDimension == 2){
-		int nOutputPlanes = weight->size[0];
-		int nInputPlanes = weight->size[1]/(kD*kH*kW);
-		THTensor_(resize5d)(
-#ifdef CUDA
-				state,
-#endif
-				weight, nOutputPlanes, nInputPlanes, kD, kH, kW);
-	}
-
 	THNN_(VolumetricFullConvolution_updateGradInput)(
 		state,
 	    input,
@@ -1173,17 +1150,6 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_volumetricfull
 	THTensor* input = getTensor(env, in);
 	THTensor* temp1 = getTensor(env, t1);
 	THTensor* temp2 = getTensor(env, t2);
-
-	// reshape
-	if(gradWeight->nDimension == 2){
-		int nOutputPlanes = gradWeight->size[0];
-		int nInputPlanes = gradWeight->size[1]/(kD*kH*kW);
-		THTensor_(resize5d)(
-#ifdef CUDA
-				state,
-#endif
-				gradWeight, nOutputPlanes, nInputPlanes, kD, kH, kW);
-	}
 
 	THNN_(VolumetricFullConvolution_accGradParameters)(
 			state,
