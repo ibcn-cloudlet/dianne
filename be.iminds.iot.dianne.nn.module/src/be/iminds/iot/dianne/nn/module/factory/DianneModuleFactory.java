@@ -70,7 +70,7 @@ import be.iminds.iot.dianne.nn.module.preprocessing.Normalization;
 import be.iminds.iot.dianne.nn.module.preprocessing.Scale;
 import be.iminds.iot.dianne.tensor.Tensor;
 
-@Component(property={"aiolos.export=false"})
+@Component(property={"aiolos.proxy=false"})
 public class DianneModuleFactory implements ModuleFactory {
 
 	private final Map<String, ModuleTypeDTO> supportedModules = new HashMap<String, ModuleTypeDTO>();

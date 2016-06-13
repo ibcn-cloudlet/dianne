@@ -50,7 +50,7 @@ import be.iminds.iot.dianne.api.nn.runtime.DianneRuntime;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.tensor.Tensor;
 
-@Component(property={"aiolos.export=false"})
+@Component(property={"aiolos.proxy=false"})
 public class CompositeModuleFactory implements ModuleFactory {
 
 	private DianneRepository repository;
@@ -147,8 +147,10 @@ public class CompositeModuleFactory implements ModuleFactory {
 				int noOutputPlanes = Integer.parseInt(m.properties.get("noOutputPlanes"));
 				int kernelWidth = Integer.parseInt(m.properties.get("kernelWidth"));
 				int kernelHeight = Integer.parseInt(m.properties.get("kernelHeight"));
+				int kernelDepth = Integer.parseInt(m.properties.get("kernelDepth"));
+
 				
-				size = noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight+noOutputPlanes;
+				size = noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight*kernelDepth+noOutputPlanes;
 				parameterMapping.put(m.id, size);
 				break;
 			case "PReLU":
