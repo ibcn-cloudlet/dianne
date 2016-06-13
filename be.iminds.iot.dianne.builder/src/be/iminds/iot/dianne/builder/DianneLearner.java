@@ -227,6 +227,7 @@ public class DianneLearner extends HttpServlet {
 					config.put("method", method);
 					config.put("syncInterval", ""+interval);
 					config.put("clean", clean ? "true" : "false");
+					config.put("trace", "true");
 					
 					try {
 						Dataset d = datasets.get(dataset);

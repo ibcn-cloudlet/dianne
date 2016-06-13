@@ -334,13 +334,17 @@ public class DianneRunner extends HttpServlet {
 			}
 			data.add("labels", l);
 		}
-		
-		JsonArray r = new JsonArray();
-		float[] raw = output.get();
-		for(int i=0;i<raw.length;i++){
-			r.add(new JsonPrimitive(raw[i]));
+
+		if(output.dims().length==3){
+			data.add("channels", new JsonPrimitive(output.dims()[0]));
+			data.add("height", new JsonPrimitive(output.dims()[1]));
+			data.add("width", new JsonPrimitive(output.dims()[2]));
+		} else if(output.dims().length==2) {
+			data.add("channels", new JsonPrimitive(1));
+			data.add("height", new JsonPrimitive(output.dims()[0]));
+			data.add("width", new JsonPrimitive(output.dims()[1]));
 		}
-		data.add("output", r);
+		data.add("data", parser.parse(Arrays.toString(output.get())));
 		
 		if(time > 0){
 			data.add("time", new JsonPrimitive(time));

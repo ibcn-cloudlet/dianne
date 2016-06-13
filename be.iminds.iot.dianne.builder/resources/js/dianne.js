@@ -105,6 +105,9 @@ function setModus(m){
 		});
 		jsPlumb.repaintEverything();
 	}
+	
+	// reset eventsource
+	eventsource = undefined;
 }
 
 /**

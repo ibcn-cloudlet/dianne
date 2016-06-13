@@ -479,41 +479,51 @@ function createRunModuleDialog(id, moduleItem){
 		if(eventsource===undefined){
 			eventsource = new EventSource("/dianne/run?nnId="+nn.id);
 			eventsource.onmessage = function(event){
-				var data = JSON.parse(event.data);
-				if(data.error!==undefined){
-					error(data.error);
+				var output = JSON.parse(event.data);
+				if(output.error!==undefined){
+					error(output.error);
 				} else {
 					$.each(running, function(id, module){
 						// choose right RunOutput to set the chart of
-						if(module.output===data.id){
+						if(module.output===output.id){
 							if(module.type ==="ProbabilityOutput"){
 								// classification plot
 								var attr = $("#dialog-"+module.id).find(".content").attr("data-highcharts-chart");
 								if(attr!==undefined){
 									var index = Number(attr);
-									// data.output is tensor representation as string, should be parsed first
 		
-									console.log(data.tags+" "+data.output);
-									if(data.tags.length != 0){
+									if(output.tags.length != 0){
 										var title = "";
-										for(var i =0; i<data.tags.length; i++){
-											if(!isFinite(String(data.tags[i]))){
-												title+= data.tags[i]+" ";
+										for(var i =0; i<output.tags.length; i++){
+											if(!isFinite(String(output.tags[i]))){
+												title+= output.tags[i]+" ";
 											}
 										}
 										Highcharts.charts[index].setTitle({text: title});
 									}
-									Highcharts.charts[index].series[0].setData(data.probabilities, true, true, true);
-									Highcharts.charts[index].xAxis[0].setCategories(data.labels);
+									Highcharts.charts[index].series[0].setData(output.probabilities, true, true, true);
+									Highcharts.charts[index].xAxis[0].setCategories(output.labels);
 								}
 								$("#dialog-"+module.id).find(".content").find('.outputviz').hide();
 							} else {
-								// TODO render 2d tensor as image?
-								$("#dialog-"+module.id).find(".content").find('.outputviz').html('<b>Output: </b>'+JSON.stringify(data.output).replace(/,/g,"  "));
-								$("#dialog-"+module.id).find(".content").find('.outputviz').show();
+								// render raw output
+								if(output.height!==undefined){
+									// as image
+									var outputCanvas = dialog.find('.outputCanvas')[0];
+									if(outputCanvas === undefined){
+										$("#dialog-"+module.id).find(".content").append("<canvas class='outputCanvas' width='256' height='256' style=\"border:1px solid #000000; margin-left:150px\"></canvas>");
+										 outputCanvas = dialog.find('.outputCanvas')[0];
+									}
+									var outputCanvasCtx = outputCanvas.getContext('2d');
+									render(output, outputCanvasCtx);
+								} else {
+									// as floats
+									$("#dialog-"+module.id).find(".content").find('.outputviz').html('<b>Output: </b>'+JSON.stringify(output.data).replace(/,/g,"  "));
+									$("#dialog-"+module.id).find(".content").find('.outputviz').show();
+								}
 							}
 							
-							if(data.time === undefined){
+							if(output.time === undefined){
 								$("#dialog-"+module.id).find(".content").find('.time').hide();
 							} else {
 								$("#dialog-"+module.id).find(".content").find('.time').html('<b>Forward time: </b>'+data.time+' ms');
