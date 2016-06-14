@@ -8,7 +8,8 @@ Bundle-Version: 0.4.0.${tstamp}
 	be.iminds.iot.dianne.api;version=latest,\
 	osgi.promise,\
 	osgi.core;version=5.0,\
-	be.iminds.iot.dianne.nn.util;version=latest
+	be.iminds.iot.dianne.nn.util;version=latest,\
+	com.google.gson
 
 Export-Package: \
 	be.iminds.iot.dianne.api.nn.module,\
