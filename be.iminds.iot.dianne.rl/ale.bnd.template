@@ -1,7 +1,7 @@
 ## This is the template file for ale.bnd and changes should be made here.
 #
 # osgi_os = Linux / MacOSX
-# osgi_arch = x86_64 / i686 / ARM / ...
+# osgi_arch = x86_64 / i386 / ARM / ...
 # (see constant values: https://www.osgi.org/developer/specifications/reference/)
 #
 

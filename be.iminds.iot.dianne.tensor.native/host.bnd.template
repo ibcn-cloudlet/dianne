@@ -2,7 +2,7 @@
 # The build system should automatically generate <fragment>.bnd files.
 #
 # osgi_os = Linux / MacOSX
-# osgi_arch = x86_64 / i686 / ARM / ...
+# osgi_arch = x86_64 / i386 / ARM / ...
 # (see constant values: https://www.osgi.org/developer/specifications/reference/)
 #
 
