@@ -21,7 +21,7 @@ TENSORNATIVE:=1
 	INCLUDES := -I$(JAVA_INCLUDE) -I$(JAVA_PLATFORMINCLUDE)
 	
 	# Compiler config
-	CCFLAGS += -O3 -fPIC
+	CCFLAGS += -O3 -w -fPIC
 	DEPLOY_DIR ?= ../../native/$(NATIVE)/$(OS)/$(ARCH)/
 	
 	# export all variables: call export without arguments.
