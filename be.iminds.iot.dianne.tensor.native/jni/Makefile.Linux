@@ -1,6 +1,6 @@
 #---------------------------------------------------------------------------
 # Linux settings
-FLAGS := -DLINUX
+CCFLAGS += -DLINUX
 LIB := libTensor.so
 SHARED := -shared
 

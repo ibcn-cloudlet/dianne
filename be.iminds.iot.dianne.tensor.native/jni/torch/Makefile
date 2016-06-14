@@ -15,10 +15,10 @@ $(DEPLOY_DIR)/$(LIB): $(LIB)
 	cp $(LIB) $(DEPLOY_DIR)/$(LIB)
 
 $(LIB): OpenBLAS/libopenblas.a torch7/lib/TH/build/libTH.a nn/lib/THNN/build/libTHNN.a $(OBJECTS)
-	$(CC) $(SHARED) $(FLAGS) $(CCFLAGS) $(OBJECTS) $(LINKS) -o $(LIB)
+	$(CC) $(SHARED) $(CFLAGS) $(CCFLAGS) $(OBJECTS) $(LINKS) -o $(LIB)
 
 %.o: %.c $(JAVAH)
-	$(CC) $(FLAGS) $(CCFLAGS) $(INCLUDES) -c $< 
+	$(CC) $(CFLAGS) $(CCFLAGS) $(INCLUDES) -c $< 
 
 torch7/lib/TH/build/libTH.a:
 	cmake -Htorch7/lib/TH -Btorch7/lib/TH/build -DWITH_BLAS=open -DCMAKE_LIBRARY_PATH="$(abspath OpenBLAS)"

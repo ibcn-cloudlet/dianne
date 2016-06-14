@@ -1,6 +1,6 @@
 #---------------------------------------------------------------------------
 # Darwin settings
-FLAGS := -DOSX
+CCFLAGS += -DOSX
 LIB := libTensor.dylib
 SHARED := -dynamiclib
 

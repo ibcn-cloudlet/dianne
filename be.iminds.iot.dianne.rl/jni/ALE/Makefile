@@ -7,7 +7,6 @@ ifeq ($(OS),Linux)
 endif
 ifeq ($(OS),Darwin)
     include Makefile.Darwin
-    OS := MacOSX
 endif
 
 JAVA_INCLUDE := $(JAVA_HOME)/include
@@ -17,7 +16,7 @@ JAVAH := ../../generated/jni-headers
 SRC := $(wildcard *.cpp)  
 INCLUDES := -I$(JAVA_INCLUDE) -I$(JAVA_PLATFORMINCLUDE) -IArcade-Learning-Environment/src -I$(JAVAH)
 OBJECTS := $(SRC:.cpp=.o)
-FLAGS := -O3 -w
+CCFLAGS += -O3 -w
 LINKS := -LArcade-Learning-Environment/build -lale -lz
 DEPLOY_DIR := ../../native/$(OS)/$(ARCH)
 export
@@ -30,10 +29,10 @@ $(DEPLOY_DIR)/$(LIB): $(LIB)
 	cp $(LIB) $(DEPLOY_DIR)/$(LIB)
 
 $(LIB): Arcade-Learning-Environment/build/libale.a $(OBJECTS)
-	$(CXX) $(FLAGS) $(CCFLAGS) $(SHARED) $(OBJECTS) $(LINKS) -o $(LIB)
+	$(CXX) $(CFLAGS) $(CCFLAGS) $(SHARED) $(OBJECTS) $(LINKS) -o $(LIB)
 	
 %.o: %.cpp $(JAVAH)
-	$(CXX) $(FLAGS) $(CCFLAGS) -fPIC $(INCLUDES) -c $<	
+	$(CXX) $(CFLAGS) $(CCFLAGS) -fPIC $(INCLUDES) -c $<	
 
 Arcade-Learning-Environment/build/libale.a:
 	cmake -HArcade-Learning-Environment -BArcade-Learning-Environment/build -DUSE_SDL=OFF -DUSE_RLGLUE=OFF -DBUILD_EXAMPLES=OFF
