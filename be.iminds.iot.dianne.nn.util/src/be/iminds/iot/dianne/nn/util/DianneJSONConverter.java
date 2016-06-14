@@ -22,6 +22,8 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.util;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -30,9 +32,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
-import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
-import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -40,6 +39,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import com.google.gson.stream.JsonReader;
+
+import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
+import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 
 /**
  * JSON Parser class ... reads in either new or old JSON format and convert it to the DTOs
@@ -52,6 +55,12 @@ import com.google.gson.JsonPrimitive;
 public class DianneJSONConverter {
 
 	private static final JsonParser parser = new JsonParser();
+	
+	public static NeuralNetworkDTO parseJSON(InputStream i){
+		JsonReader reader = new JsonReader(new InputStreamReader(i));
+		JsonObject json = parser.parse(reader).getAsJsonObject();
+		return parseJSON(json);
+	}
 	
 	public static NeuralNetworkDTO parseJSON(String s){
 		JsonObject json = parser.parse(s).getAsJsonObject();

@@ -41,13 +41,6 @@ import be.iminds.iot.dianne.tensor.Tensor;
 public interface DianneRepository {
 
 	/**
-	 * Some neural network descriptions can also be loaded as a CompositeModule
-	 * using the CompositeModuleFactory
-	 * @return list of available composite types
-	 */
-	List<ModuleTypeDTO> availableCompositeModules();
-	
-	/**
 	 * Get a list of available neural networks
 	 * @return list of available neural networks
 	 */

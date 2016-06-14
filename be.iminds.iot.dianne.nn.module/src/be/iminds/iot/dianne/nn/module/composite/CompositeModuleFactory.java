@@ -22,7 +22,11 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.module.composite;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -30,7 +34,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.BundleListener;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -48,6 +57,7 @@ import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.factory.ModuleFactory;
 import be.iminds.iot.dianne.api.nn.runtime.DianneRuntime;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
+import be.iminds.iot.dianne.nn.util.DianneJSONConverter;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 @Component(property={"aiolos.proxy=false"})
@@ -59,16 +69,93 @@ public class CompositeModuleFactory implements ModuleFactory {
 	
 	private Dianne dianne;
 	
-	private final Map<String, ModuleTypeDTO> supportedModules = new HashMap<String, ModuleTypeDTO>();
+	private final Map<String, CompositeType> supportedModules = new HashMap<String, CompositeType>();
 	
-	@Activate
-	void activate(){
-		// fetch all supported composite types from the repository
-		for(ModuleTypeDTO t : repository.availableCompositeModules()){
-			addSupportedType(t);
+	private class CompositeType {
+		
+		public final ModuleTypeDTO type;
+		public final String url;
+		public final long providingBundle;
+		
+		public CompositeType(ModuleTypeDTO type, String url, long providingBundle){
+			this.type = type;
+			this.url = url;
+			this.providingBundle = providingBundle;
 		}
 	}
 	
+	@Activate
+	void activate(BundleContext context){
+		context.addBundleListener(new BundleListener() {
+			@Override
+			public void bundleChanged(BundleEvent event) {
+				long bundleId = event.getBundle().getBundleId();
+				if(event.getType() == BundleEvent.STOPPING
+					|| event.getType() == BundleEvent.UPDATED){
+					Iterator<Entry<String, CompositeType>> it = supportedModules.entrySet().iterator();
+					while(it.hasNext()){
+						if(it.next().getValue().providingBundle==bundleId){
+							it.remove();
+						}
+					}	
+				}
+				if(event.getType() == BundleEvent.STARTED
+					|| event.getType() == BundleEvent.UPDATED){
+					searchCompositeTypes(event.getBundle());
+				}
+			}
+		});
+		for(Bundle b : context.getBundles()){
+			try {
+			searchCompositeTypes(b);
+			} catch(Throwable t){
+				t.printStackTrace();
+			}
+		}
+	}
+
+	private void searchCompositeTypes(Bundle bundle){
+		Enumeration<String> paths = bundle.getEntryPaths("composites");
+		if(paths == null)
+			return;
+		
+		while(paths.hasMoreElements()){
+			String path = paths.nextElement();
+			
+			int s = path.substring(0, path.length()-1).lastIndexOf("/")+1;
+			String name = path.substring(s, path.length()-1);
+			String category = "Composite";
+			
+			// a composite module parameters is identified by a composite.txt configuration file
+			// these are formatted one per line, with on each line
+			// <property name>,<property key>,<property class type, i.e. java.lang.Integer>
+			// these properties can be referred to in the Neural Network description as ${<property key>} 
+			URL url = bundle.getEntry(path+"composite.txt");
+			List<ModulePropertyDTO> props = new ArrayList<>();
+			if(url != null){
+				try {
+				BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
+				String line;
+				
+				while((line = reader.readLine()) != null){
+					String[] entries = line.split(",");
+					ModulePropertyDTO prop = new ModulePropertyDTO(entries[0], entries[1], entries[2]);
+					props.add(prop);
+				}
+				} catch(Exception e){
+					System.err.println("Error parsing "+path+" composite configuration: "+e.getMessage());
+				}
+			}
+			ModulePropertyDTO[] array = null;
+			if(props.size() > 0){
+				array = new ModulePropertyDTO[props.size()];
+				props.toArray(array);
+			}
+			
+			ModuleTypeDTO compositeType = new ModuleTypeDTO(name, category, true, array);
+			supportedModules.put(name, new CompositeType(compositeType, bundle.getEntry("composites/"+name+"/modules.txt").toString(), bundle.getBundleId()));
+		}
+	}
 	
 	@Override
 	public Module createModule(ModuleDTO dto)
@@ -85,43 +172,57 @@ public class CompositeModuleFactory implements ModuleFactory {
 		String nnName = dto.type;
 		UUID compositeId = dto.id;
 
-		if(!supportedModules.containsKey(nnName)){
-			throw new InstantiationException("Could not instantiate module of type "+nnName);
-		}
-		
-		
-		NeuralNetworkDTO nnDescription = repository.loadNeuralNetwork(nnName);
-
-		// find any composite properties defined as ${property key} and replace
-		ModuleTypeDTO compositeType = supportedModules.get(nnName);
-		for(ModuleDTO m : nnDescription.modules.values()){
-			m.properties.replaceAll((key, value) -> {
-				if(!value.contains("$")){
-					return value;
-				}
-				for(ModulePropertyDTO p : compositeType.properties){
-					value = value.replace("${"+p.id+"}", dto.properties.get(p.id));
-				}
-				if(value.contains("$")){
-					int i1 = value.indexOf("$");
-					int i2 = value.indexOf("}", i1);		
-					throw new RuntimeException("Could not find value for "+value.substring(i1, i2+1));
-				}
-				
-				// figure out whether result should be an int or float
-				String clazz = null;
-				ModuleTypeDTO type = runtime.getSupportedModules().stream().filter(s -> s.type.equals(m.type)).findFirst().get();
-				for(ModulePropertyDTO p : type.properties){
-					if(p.id.equals(key)){
-						clazz = p.clazz;
+		NeuralNetworkDTO nnDescription = null;
+		if(supportedModules.containsKey(nnName)){
+			CompositeType composite = supportedModules.get(nnName);
+			// read from composites folder
+			try {
+				URL modules = new URL(composite.url);
+				nnDescription = DianneJSONConverter.parseJSON(modules.openStream());
+			} catch(Exception e){
+				throw new InstantiationException("Failed to instantiate module "+dto.type+": "+e.getMessage());
+			}
+			
+			// find any composite properties defined as ${property key} and replace
+			ModuleTypeDTO compositeType = composite.type;
+			for(ModuleDTO m : nnDescription.modules.values()){
+				m.properties.replaceAll((key, value) -> {
+					if(!value.contains("$")){
+						return value;
 					}
-				}
-				
-				value = eval(value, clazz);
-				
-				return value;
-			});
+					for(ModulePropertyDTO p : compositeType.properties){
+						value = value.replace("${"+p.id+"}", dto.properties.get(p.id));
+					}
+					if(value.contains("$")){
+						int i1 = value.indexOf("$");
+						int i2 = value.indexOf("}", i1);		
+						throw new RuntimeException("Could not find value for "+value.substring(i1, i2+1));
+					}
+					
+					// figure out whether result should be an int or float
+					String clazz = null;
+					ModuleTypeDTO type = runtime.getSupportedModules().stream().filter(s -> s.type.equals(m.type)).findFirst().get();
+					for(ModulePropertyDTO p : type.properties){
+						if(p.id.equals(key)){
+							clazz = p.clazz;
+						}
+					}
+					
+					value = eval(value, clazz);
+					
+					return value;
+				});
+			}
+		} else {
+			// try repository - in case we want to create ensembles
+			try {
+				nnDescription = repository.loadNeuralNetwork(nnName);
+			} catch(Exception e){
+				throw new InstantiationException();
+			}
 		}
+
+
 		
 		// calculate parameters Tensor size
 		// TODO should this somehow be made available by the module(dto) or something?
@@ -143,13 +244,13 @@ public class CompositeModuleFactory implements ModuleFactory {
 				parameterMapping.put(m.id, size);
 				break;
 			case "Convolution":
+			case "FullConvolution":
 				int noInputPlanes = Integer.parseInt(m.properties.get("noInputPlanes"));
 				int noOutputPlanes = Integer.parseInt(m.properties.get("noOutputPlanes"));
 				int kernelWidth = Integer.parseInt(m.properties.get("kernelWidth"));
 				int kernelHeight = Integer.parseInt(m.properties.get("kernelHeight"));
 				int kernelDepth = Integer.parseInt(m.properties.get("kernelDepth"));
 
-				
 				size = noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight*kernelDepth+noOutputPlanes;
 				parameterMapping.put(m.id, size);
 				break;
@@ -234,7 +335,7 @@ public class CompositeModuleFactory implements ModuleFactory {
 				for(ModuleInstanceDTO mi : deployed.values()){
 					runtime.undeployModule(mi);
 				}
-				throw new RuntimeException("Failed to deploy composite module "+compositeNNid+": "+e.getMessage());
+				throw new RuntimeException("Failed to deploy composite module "+compositeNNid+": "+e.getMessage(), e);
 			}
 		}
 		NeuralNetworkInstanceDTO nnDTO = new NeuralNetworkInstanceDTO(compositeNNid, nnName, deployed);
@@ -244,10 +345,12 @@ public class CompositeModuleFactory implements ModuleFactory {
 			NeuralNetwork nn = dianne.getNeuralNetwork(nnDTO).getValue();
 			
 			// create CompositeModule with parameters and NeuralNetwork
-			module = new CompositeModule(compositeId, parameters.narrow(0, total-memory), parameters.narrow(total-memory, memory), nn, parameterMapping);
+			Tensor params = total-memory == 0 ? null : parameters.narrow(0, total-memory);
+			Tensor mem = memory == 0 ? null : parameters.narrow(total-memory, memory); 
+			module = new CompositeModule(compositeId, params, mem, nn, parameterMapping);
 			
 		} catch (Exception e) {
-			throw new RuntimeException("Failed to deploy composite module "+compositeId+": "+e.getMessage());
+			throw new RuntimeException("Failed to deploy composite module "+compositeId+": "+e.getMessage(), e);
 		} 
 
 		return module;
@@ -255,26 +358,23 @@ public class CompositeModuleFactory implements ModuleFactory {
 
 	@Override
 	public List<ModuleTypeDTO> getAvailableModuleTypes() {
-		return new ArrayList<ModuleTypeDTO>(supportedModules.values());
+		List<ModuleTypeDTO> moduleTypes = supportedModules.values().stream().map(m -> m.type).collect(Collectors.toList());
+		
+		// TODO do we want entries for each NN in builder toolbox?
+		//for(String nnName : repository.availableNeuralNetworks()){
+		//	ModuleTypeDTO type = new ModuleTypeDTO(nnName, "Networks", true);
+		//	moduleTypes.add(type);
+		//}
+		
+		return moduleTypes;
 	}
 
 	@Override
 	public ModuleTypeDTO getModuleType(String name) {
-		return supportedModules.get(name);
-	}
-	
-	private boolean hasProperty(Map<String, String> config, String property){
-		String value = (String) config.get(property);
-		if(value==null){
-			return false;
-		} else if(value.isEmpty()){
-			return false;
+		if(!supportedModules.containsKey(name)){
+			return null;
 		}
-		return true;
-	}
-	
-	private void addSupportedType(ModuleTypeDTO t){
-		supportedModules.put(t.type, t);
+		return supportedModules.get(name).type;
 	}
 	
 	// evaluate simple expressions a+b, a-b, a*b or a/c

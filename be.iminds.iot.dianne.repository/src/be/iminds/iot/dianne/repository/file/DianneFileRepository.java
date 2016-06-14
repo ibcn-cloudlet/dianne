@@ -87,44 +87,6 @@ public class DianneFileRepository implements DianneRepository {
 	public void deactivate(){
 		executor.shutdownNow();
 	}
-
-	@Override
-	public List<ModuleTypeDTO> availableCompositeModules(){
-		List<ModuleTypeDTO> composites = new ArrayList<ModuleTypeDTO>();
-		File d = new File(dir);
-		for(File f : d.listFiles()){
-			if(!f.isDirectory())
-				continue;
-
-			// a composite module is identified by a .composite configuration file in the nn folder
-			File configFile = new File(f.getPath()+File.separator+".composite");
-			if(!configFile.exists())
-				continue;
-			
-			String type = f.getName();
-			String category = "Composite";
-			
-			// the .composite file can contain a number of configurable properties of the component
-			// these are formatted one per line, with on each line
-			// <property name>,<property key>,<property class type, i.e. java.lang.Integer>
-			// these properties can be referred to in the Neural Network description as ${<property key>} 
-			try {
-				List<String> lines = Files.readAllLines(configFile.toPath());
-				List<ModulePropertyDTO> properties = lines.stream().map(line -> {
-					String[] entries = line.split(",");
-					return new ModulePropertyDTO(entries[0], entries[1], entries[2]);
-				}).collect(Collectors.toList());
-				ModulePropertyDTO[] array = new ModulePropertyDTO[properties.size()];
-				properties.toArray(array);
-	
-				ModuleTypeDTO compositeType = new ModuleTypeDTO(type, category, true, array);
-				composites.add(compositeType);
-			} catch(Exception e ){
-				e.printStackTrace();
-			}
-		}
-		return composites;
-	}
 	
 	@Override
 	public List<String> availableNeuralNetworks() {

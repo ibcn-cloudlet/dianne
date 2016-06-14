@@ -7,7 +7,8 @@ Bundle-Version: 0.4.0.${tstamp}
 	be.iminds.iot.dianne.tensor.util;version=latest,\
 	be.iminds.iot.dianne.api;version=latest,\
 	osgi.promise,\
-	osgi.core;version=5.0
+	osgi.core;version=5.0,\
+	be.iminds.iot.dianne.nn.util;version=latest
 
 Export-Package: \
 	be.iminds.iot.dianne.api.nn.module,\
@@ -25,3 +26,4 @@ Private-Package: \
 	be.iminds.iot.dianne.nn.module.layer
 Bundle-Name: Dianne NN modules
 Bundle-Description: Dianne Neural Network module implementations
+-includeresource: composites=composites
