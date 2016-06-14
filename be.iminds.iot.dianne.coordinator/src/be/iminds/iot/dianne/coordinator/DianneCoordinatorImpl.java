@@ -786,8 +786,10 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 			return true;
 		
 		return nn.modules.values().stream().filter(module -> module.properties.get("category")!= null && module.properties.get("category").equals("Composite"))
-			.mapToInt(module ->  
-				isRecurrent(repository.loadNeuralNetwork(module.properties.get("name"))) ? 1 : 0).sum() > 0;
+			.mapToInt(module -> {	try {  
+				return isRecurrent(repository.loadNeuralNetwork(module.properties.get("name"))) ? 1 : 0;
+				//TODO if the composite is not inside the repository this might not work
+			} catch(Exception e){ return 0;}}).sum() > 0;
 	}
 	
 	boolean isExperiencePool(String dataset){
