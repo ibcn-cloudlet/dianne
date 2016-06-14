@@ -196,7 +196,7 @@ public class CompositeModuleFactory implements ModuleFactory {
 					if(value.contains("$")){
 						int i1 = value.indexOf("$");
 						int i2 = value.indexOf("}", i1);		
-						throw new RuntimeException("Could not find value for "+value.substring(i1, i2+1));
+						throw new RuntimeException("Could not find value for "+value);
 					}
 					
 					// figure out whether result should be an int or float
@@ -248,8 +248,8 @@ public class CompositeModuleFactory implements ModuleFactory {
 				int noInputPlanes = Integer.parseInt(m.properties.get("noInputPlanes"));
 				int noOutputPlanes = Integer.parseInt(m.properties.get("noOutputPlanes"));
 				int kernelWidth = Integer.parseInt(m.properties.get("kernelWidth"));
-				int kernelHeight = Integer.parseInt(m.properties.get("kernelHeight"));
-				int kernelDepth = Integer.parseInt(m.properties.get("kernelDepth"));
+				int kernelHeight = hasProperty(m.properties, "kernelHeight") ? Integer.parseInt(m.properties.get("kernelHeight")) : 1;
+				int kernelDepth = hasProperty(m.properties, "kernelDepth") ? Integer.parseInt(m.properties.get("kernelDepth")) : 1;
 
 				size = noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight*kernelDepth+noOutputPlanes;
 				parameterMapping.put(m.id, size);
@@ -419,6 +419,16 @@ public class CompositeModuleFactory implements ModuleFactory {
 		} else {
 			return ""+result;
 		}
+	}
+	
+	private boolean hasProperty(Map<String, String> config, String property){
+		String value = (String) config.get(property);
+		if(value==null){
+			return false;
+		} else if(value.isEmpty()){
+			return false;
+		}
+		return true;
 	}
 	
 	@Reference

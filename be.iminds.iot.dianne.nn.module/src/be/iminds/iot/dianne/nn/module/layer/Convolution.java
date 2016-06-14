@@ -178,17 +178,6 @@ public class Convolution extends AbstractTrainableModule {
 		
 		weights = parameters.narrow(0, 0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight*kernelDepth);
 		bias = parameters.narrow(0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight*kernelDepth, noOutputPlanes);
-		
-//		switch(type){
-//		case TEMPORAL:
-//			weights.reshape(noOutputPlanes, noInputPlanes, kernelWidth);
-//			break;
-//		case SPATIAL:
-//			weights.reshape(noOutputPlanes, noInputPlanes, kernelHeight, kernelWidth);
-//			break;
-//		case VOLUMETRIC:
-//			weights.reshape(noOutputPlanes, noInputPlanes, kernelDepth, kernelHeight, kernelWidth);
-//		}
 		weights.reshape(noOutputPlanes, noInputPlanes*kernelDepth*kernelHeight*kernelWidth);
 	}
 	
@@ -203,19 +192,7 @@ public class Convolution extends AbstractTrainableModule {
 		deltaBias = deltaParameters.narrow(0, noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight*kernelDepth, noOutputPlanes);
 		
 		deltaParameters.fill(0.0f);
-		
-//		switch(type){
-//		case TEMPORAL:
-//			deltaWeights.reshape(noOutputPlanes, noInputPlanes, kernelWidth);
-//			break;
-//		case SPATIAL:
-//			deltaWeights.reshape(noOutputPlanes, noInputPlanes, kernelHeight, kernelWidth);
-//			break;
-//		case VOLUMETRIC:
-//			deltaWeights.reshape(noOutputPlanes, noInputPlanes, kernelDepth, kernelHeight, kernelWidth);
-//		}
 		deltaWeights.reshape(noOutputPlanes, noInputPlanes*kernelDepth*kernelHeight*kernelWidth);
-
 	}
 	
 	@Override
