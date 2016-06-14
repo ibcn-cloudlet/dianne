@@ -1,0 +1,300 @@
+{
+  "name": "Inception",
+  "modules": {
+    "93964d41-25ab-be58-f41f-14e5770a7bb4": {
+      "id": "93964d41-25ab-be58-f41f-14e5770a7bb4",
+      "type": "Convolution",
+      "next": [
+        "bb2642c6-4359-a22f-ac34-486b82861cb3"
+      ],
+      "prev": [
+        "67cf3d88-4a01-5d6b-9c28-58c01c1c5a4c"
+      ],
+      "noInputPlanes": "${3x3reduce}",
+      "strideX": "1",
+      "kernelWidth": "3",
+      "trainable": "true",
+      "kernelHeight": "3",
+      "padX": "1",
+      "noOutputPlanes": "${3x3}",
+      "padY": "1",
+      "padZ": "",
+      "strideY": "1",
+      "strideZ": "",
+      "name": "Convolution",
+      "category": "Layer",
+      "kernelDepth": ""
+    },
+    "9db041a9-88f8-59fc-1780-210581d724af": {
+      "id": "9db041a9-88f8-59fc-1780-210581d724af",
+      "type": "ReLU",
+      "next": [
+        "246e061c-316a-cb49-fbf8-bf2c1d29a66a"
+      ],
+      "prev": [
+        "ffbae280-adb4-3652-ec0d-0968e8ea0bd6"
+      ],
+      "name": "ReLU",
+      "category": "Activation"
+    },
+    "ffbae280-adb4-3652-ec0d-0968e8ea0bd6": {
+      "id": "ffbae280-adb4-3652-ec0d-0968e8ea0bd6",
+      "type": "Convolution",
+      "next": [
+        "9db041a9-88f8-59fc-1780-210581d724af"
+      ],
+      "prev": [
+        "d5591d27-5ee3-b761-f822-88baeb2ba295"
+      ],
+      "noInputPlanes": "${5x5reduce}",
+      "strideX": "1",
+      "kernelWidth": "5",
+      "trainable": "true",
+      "kernelHeight": "5",
+      "padX": "2",
+      "noOutputPlanes": "${5x5}",
+      "padY": "2",
+      "padZ": "",
+      "strideY": "1",
+      "strideZ": "",
+      "name": "Convolution",
+      "category": "Layer",
+      "kernelDepth": ""
+    },
+    "246e061c-316a-cb49-fbf8-bf2c1d29a66a": {
+      "id": "246e061c-316a-cb49-fbf8-bf2c1d29a66a",
+      "type": "Concat",
+      "next": [
+        "047dd425-7a81-7918-8432-e9ee7770af73"
+      ],
+      "prev": [
+        "ba6bbe1a-db72-4ee0-4b46-4f56df1a8183",
+        "bb2642c6-4359-a22f-ac34-486b82861cb3",
+        "9db041a9-88f8-59fc-1780-210581d724af",
+        "ebf755db-11bb-d48a-140b-e8a4b6d4c0d2"
+      ],
+      "name": "Concat",
+      "dim": "2",
+      "category": "Join"
+    },
+    "ba6bbe1a-db72-4ee0-4b46-4f56df1a8183": {
+      "id": "ba6bbe1a-db72-4ee0-4b46-4f56df1a8183",
+      "type": "ReLU",
+      "next": [
+        "246e061c-316a-cb49-fbf8-bf2c1d29a66a"
+      ],
+      "prev": [
+        "863c1560-9e71-053b-a7f7-634ba0bbaea8"
+      ],
+      "name": "ReLU",
+      "category": "Activation"
+    },
+    "0d49d877-bdad-907e-eb48-ad78ed34dc02": {
+      "id": "0d49d877-bdad-907e-eb48-ad78ed34dc02",
+      "type": "Duplicate",
+      "next": [
+        "863c1560-9e71-053b-a7f7-634ba0bbaea8",
+        "38346778-636b-bbd2-e6f4-31ca49630135",
+        "45f5ea18-8dcd-2563-39f6-d2cb7a37a991",
+        "896944be-f745-8d59-02cf-5a653796f548"
+      ],
+      "prev": [
+        "086c1ab2-f5bb-1d9f-48dd-b69481b49a35"
+      ],
+      "name": "Duplicate",
+      "category": "Fork"
+    },
+    "95221ce1-f6da-efcb-d42b-4f62bf84a490": {
+      "id": "95221ce1-f6da-efcb-d42b-4f62bf84a490",
+      "type": "ReLU",
+      "next": [
+        "d273445a-2056-fb11-5b5b-c465a6fcdc32"
+      ],
+      "prev": [
+        "896944be-f745-8d59-02cf-5a653796f548"
+      ],
+      "name": "ReLU",
+      "category": "Activation"
+    },
+    "086c1ab2-f5bb-1d9f-48dd-b69481b49a35": {
+      "id": "086c1ab2-f5bb-1d9f-48dd-b69481b49a35",
+      "type": "Input",
+      "next": [
+        "0d49d877-bdad-907e-eb48-ad78ed34dc02"
+      ],
+      "name": "Input",
+      "category": "Input-Output"
+    },
+    "ebf755db-11bb-d48a-140b-e8a4b6d4c0d2": {
+      "id": "ebf755db-11bb-d48a-140b-e8a4b6d4c0d2",
+      "type": "ReLU",
+      "next": [
+        "246e061c-316a-cb49-fbf8-bf2c1d29a66a"
+      ],
+      "prev": [
+        "d273445a-2056-fb11-5b5b-c465a6fcdc32"
+      ],
+      "name": "ReLU",
+      "category": "Activation"
+    },
+    "67cf3d88-4a01-5d6b-9c28-58c01c1c5a4c": {
+      "id": "67cf3d88-4a01-5d6b-9c28-58c01c1c5a4c",
+      "type": "ReLU",
+      "next": [
+        "93964d41-25ab-be58-f41f-14e5770a7bb4"
+      ],
+      "prev": [
+        "38346778-636b-bbd2-e6f4-31ca49630135"
+      ],
+      "name": "ReLU",
+      "category": "Activation"
+    },
+    "45f5ea18-8dcd-2563-39f6-d2cb7a37a991": {
+      "id": "45f5ea18-8dcd-2563-39f6-d2cb7a37a991",
+      "type": "Convolution",
+      "next": [
+        "d5591d27-5ee3-b761-f822-88baeb2ba295"
+      ],
+      "prev": [
+        "0d49d877-bdad-907e-eb48-ad78ed34dc02"
+      ],
+      "noInputPlanes": "${noInputPlanes}",
+      "strideX": "1",
+      "kernelWidth": "1",
+      "trainable": "true",
+      "kernelHeight": "1",
+      "padX": "",
+      "noOutputPlanes": "${5x5reduce}",
+      "padY": "",
+      "padZ": "",
+      "strideY": "1",
+      "strideZ": "",
+      "name": "Convolution",
+      "category": "Layer",
+      "kernelDepth": ""
+    },
+    "863c1560-9e71-053b-a7f7-634ba0bbaea8": {
+      "id": "863c1560-9e71-053b-a7f7-634ba0bbaea8",
+      "type": "Convolution",
+      "next": [
+        "ba6bbe1a-db72-4ee0-4b46-4f56df1a8183"
+      ],
+      "prev": [
+        "0d49d877-bdad-907e-eb48-ad78ed34dc02"
+      ],
+      "noInputPlanes": "${noInputPlanes}",
+      "strideX": "1",
+      "kernelWidth": "1",
+      "trainable": "true",
+      "kernelHeight": "1",
+      "padX": "",
+      "noOutputPlanes": "${1x1}",
+      "padY": "",
+      "padZ": "",
+      "strideY": "1",
+      "strideZ": "",
+      "name": "Convolution",
+      "category": "Layer",
+      "kernelDepth": ""
+    },
+    "d5591d27-5ee3-b761-f822-88baeb2ba295": {
+      "id": "d5591d27-5ee3-b761-f822-88baeb2ba295",
+      "type": "ReLU",
+      "next": [
+        "ffbae280-adb4-3652-ec0d-0968e8ea0bd6"
+      ],
+      "prev": [
+        "45f5ea18-8dcd-2563-39f6-d2cb7a37a991"
+      ],
+      "name": "ReLU",
+      "category": "Activation"
+    },
+    "bb2642c6-4359-a22f-ac34-486b82861cb3": {
+      "id": "bb2642c6-4359-a22f-ac34-486b82861cb3",
+      "type": "ReLU",
+      "next": [
+        "246e061c-316a-cb49-fbf8-bf2c1d29a66a"
+      ],
+      "prev": [
+        "93964d41-25ab-be58-f41f-14e5770a7bb4"
+      ],
+      "name": "ReLU",
+      "category": "Activation"
+    },
+    "38346778-636b-bbd2-e6f4-31ca49630135": {
+      "id": "38346778-636b-bbd2-e6f4-31ca49630135",
+      "type": "Convolution",
+      "next": [
+        "67cf3d88-4a01-5d6b-9c28-58c01c1c5a4c"
+      ],
+      "prev": [
+        "0d49d877-bdad-907e-eb48-ad78ed34dc02"
+      ],
+      "noInputPlanes": "${noInputPlanes}",
+      "strideX": "1",
+      "kernelWidth": "1",
+      "trainable": "true",
+      "kernelHeight": "1",
+      "padX": "",
+      "noOutputPlanes": "${3x3reduce}",
+      "padY": "",
+      "padZ": "",
+      "strideY": "1",
+      "strideZ": "",
+      "name": "Convolution",
+      "category": "Layer",
+      "kernelDepth": ""
+    },
+    "047dd425-7a81-7918-8432-e9ee7770af73": {
+      "id": "047dd425-7a81-7918-8432-e9ee7770af73",
+      "type": "Output",
+      "prev": [
+        "246e061c-316a-cb49-fbf8-bf2c1d29a66a"
+      ],
+      "name": "Output",
+      "category": "Input-Output"
+    },
+    "d273445a-2056-fb11-5b5b-c465a6fcdc32": {
+      "id": "d273445a-2056-fb11-5b5b-c465a6fcdc32",
+      "type": "Convolution",
+      "next": [
+        "ebf755db-11bb-d48a-140b-e8a4b6d4c0d2"
+      ],
+      "prev": [
+        "95221ce1-f6da-efcb-d42b-4f62bf84a490"
+      ],
+      "noInputPlanes": "${noInputPlanes}",
+      "strideX": "1",
+      "kernelWidth": "1",
+      "trainable": "true",
+      "kernelHeight": "1",
+      "padX": "1",
+      "noOutputPlanes": "${poolproj}",
+      "padY": "1",
+      "padZ": "",
+      "strideY": "1",
+      "strideZ": "",
+      "name": "Convolution",
+      "category": "Layer",
+      "kernelDepth": ""
+    },
+    "896944be-f745-8d59-02cf-5a653796f548": {
+      "id": "896944be-f745-8d59-02cf-5a653796f548",
+      "type": "MaxPooling",
+      "next": [
+        "95221ce1-f6da-efcb-d42b-4f62bf84a490"
+      ],
+      "prev": [
+        "0d49d877-bdad-907e-eb48-ad78ed34dc02"
+      ],
+      "depth": "",
+      "strideY": "1",
+      "strideZ": "",
+      "name": "MaxPooling",
+      "width": "3",
+      "strideX": "1",
+      "category": "Layer",
+      "height": "3"
+    }
+  }
+}

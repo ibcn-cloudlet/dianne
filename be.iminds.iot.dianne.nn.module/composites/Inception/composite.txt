@@ -1,0 +1,7 @@
+Input Planes,noInputPlanes,java.lang.Integer
+1x1 Filters,1x1,java.lang.Integer
+3x3 Filters,3x3,java.lang.Integer
+5x5 Filters,5x5,java.lang.Integer
+3x3 Reductions,3x3reduce,java.lang.Integer
+5x5 Reductions,5x5reduce,java.lang.Integer
+Pool Projections,poolproj,java.lang.Integer
