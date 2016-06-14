@@ -11,11 +11,11 @@ INCLUDES += -Icunn/lib/THCUNN -Icunn/lib/THCUNN/build
 INCLUDES += -I../torch/torch7/lib/TH -I../torch/torch7/lib/TH/build
 INCLUDES += -I../torch/nn/lib/THNN -I../torch/nn/lib/THNN/build
 INCLUDES += -I$(JAVAH)
-FLAGS += -DCUDA 
+CCFLAGS += -DCUDA 
 
 NVCC=nvcc -ccbin $(CXX)
 export NVCC
-NVCC_FLAGS := -Xcompiler -fPIC
+NVCC_FLAGS := -DCUDA -Xcompiler -fPIC
 CUDA_SRC := $(wildcard *.cu)
 CUDA_OBJECTS := $(CUDA_SRC:.cu=.o)
 
@@ -27,13 +27,13 @@ $(DEPLOY_DIR)/$(LIB): $(LIB)
 	cp $(LIB) $(DEPLOY_DIR)/$(LIB)
 
 $(LIB): cutorch/lib/THC/build/libTHC.a cunn/lib/THCUNN/build/libTHCUNN.a $(OBJECTS) $(CUDA_OBJECTS)
-	$(CC) $(SHARED) $(FLAGS) $(CCFLAGS) $(OBJECTS) $(CUDA_OBJECTS) $(LINKS) -o $(LIB)
+	$(CC) $(SHARED) $(CFLAGS) $(CCFLAGS) $(OBJECTS) $(CUDA_OBJECTS) $(LINKS) -o $(LIB)
 
 %.o: ../torch/%.c $(JAVAH)
-	$(CC) $(FLAGS) $(CCFLAGS) $(INCLUDES) -c $<
+	$(CC) $(CFLAGS) $(CCFLAGS) $(INCLUDES) -c $<
 
 %.o: %.cu $(JAVAH)
-	$(NVCC) $(FLAGS) $(NVCC_FLAGS) $(INCLUDES) -c $<
+	$(NVCC) $(CFLAGS) $(NVCC_FLAGS) $(INCLUDES) -c $<
 
 cutorch/lib/THC/build/libTHC.a:
 	cmake -Hcutorch/lib/THC -Bcutorch/lib/THC/build
