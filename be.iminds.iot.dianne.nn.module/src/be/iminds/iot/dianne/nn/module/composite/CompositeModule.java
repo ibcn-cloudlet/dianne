@@ -67,7 +67,7 @@ public class CompositeModule extends AbstractTrainableModule implements Composit
 			Entry<UUID, Integer> e = it.next();
 			int size = e.getValue();
 			Tensor narrowed = deltaParameters.narrow(0, offset, size);
-			((AbstractTrainableModule)nn.getTrainables().get(e.getKey())).initDeltaParameters(narrowed);
+			nn.getTrainables().get(e.getKey()).initDeltaParameters(narrowed);
 			deltas.put(e.getKey(), narrowed);
 			offset += size;
 		}

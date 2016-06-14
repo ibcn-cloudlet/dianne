@@ -78,6 +78,13 @@ public interface Trainable extends Module {
 	void setDeltaParameters(final Tensor deltaParameters);
 	
 	/**
+	 * This tensor will be used for deltaParameters 
+	 * This is used for composite modules to provide external deltaParameters tensor
+	 * @param deltaParameters
+	 */
+	void initDeltaParameters(final Tensor deltaParameters);
+	
+	/**
 	 * Return the current parameters
 	 * 
 	 * Attention: at the moment this returns a reference to the parameters,
