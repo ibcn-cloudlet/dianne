@@ -22,7 +22,6 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.module.layer;
 
-import java.util.Arrays;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractTrainableModule;
@@ -122,6 +121,7 @@ public class Linear extends AbstractTrainableModule {
 	@Override
 	public void accGradParameters() {
 		ModuleOps.linearAccGrad(deltaWeights, deltaBias, gradOutput, input);
+		input.reshape(inputDims);
 	}
 
 }
