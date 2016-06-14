@@ -45,6 +45,8 @@ public class CompositeModule extends AbstractTrainableModule implements Composit
 	
 	private Map<UUID, Tensor> deltas;
 	
+	private Tensor in;
+	
 	public CompositeModule(UUID id, Tensor parameters, Tensor memory, NeuralNetwork nn, LinkedHashMap<UUID, Integer> parameterMapping){
 		super(id, parameters);
 		this.nn = nn;
@@ -84,9 +86,9 @@ public class CompositeModule extends AbstractTrainableModule implements Composit
 		// for now only supported for nns with one input and one output
 		// TODO for now we need to take a copy of the input, for avoiding synchronisation issues
 		// should be cleaner if we could pass it to next as if next input was next module?
-		input = input.copyInto(null);
+		in = input.copyInto(in);
 		
-		output = nn.forward(input);
+		output = nn.forward(in);
 	}
 
 	@Override
