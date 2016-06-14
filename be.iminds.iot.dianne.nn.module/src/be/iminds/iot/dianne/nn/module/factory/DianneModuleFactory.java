@@ -116,9 +116,11 @@ public class DianneModuleFactory implements ModuleFactory {
 		
 		addSupportedType(new ModuleTypeDTO("Multiply", "Join", false));
 		
-		addSupportedType(new ModuleTypeDTO("Split", "Fork", false));
+		addSupportedType(new ModuleTypeDTO("Split", "Fork", false,
+				new ModulePropertyDTO("Split dimension", "dim", Integer.class.getName())));
 		
-		addSupportedType(new ModuleTypeDTO("Concat", "Join", false));
+		addSupportedType(new ModuleTypeDTO("Concat", "Join", false,
+				new ModulePropertyDTO("Concat dimension", "dim", Integer.class.getName())));
 			
 		addSupportedType(new ModuleTypeDTO("Grid", "Fork", false,
 				new ModulePropertyDTO("X", "x", Integer.class.getName()),
@@ -329,12 +331,14 @@ public class DianneModuleFactory implements ModuleFactory {
 		}
 		case "Split":
 		{
-			module = new Split(id);
+			int dim = Integer.parseInt(dto.properties.get("dim"));
+			module = new Split(id, dim);
 			break;
 		}
 		case "Concat":
 		{
-			module = new Concat(id);
+			int dim = Integer.parseInt(dto.properties.get("dim"));
+			module = new Concat(id, dim);
 			break;
 		}
 		case "Grid":

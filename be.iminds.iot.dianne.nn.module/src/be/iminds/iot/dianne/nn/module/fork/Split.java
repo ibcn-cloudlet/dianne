@@ -28,22 +28,31 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 public class Split extends Fork {
 
-	public Split() {
+	// dimension on which to split
+	// counted starting from the last dimension
+	// e.g. 3-dim tensor (x,y,z), dim 0 = split on z, dim 1 = split on y
+	// this allows to have the desired split in case of batched tensors
+	private int dim;
+	
+	public Split(int dim) {
 		super();
+		this.dim = dim;
 	}
 	
-	public Split(UUID id) {
+	public Split(UUID id, int dim) {
 		super(id);
+		this.dim = dim;
 	}
 	
 	@Override
 	protected void forward() {
 		// split in N equal parts in dimension 1
-		// TODO other split strategies?
+		int[] inputDims = input.dims();
+		int splitDim = inputDims[inputDims.length-1-dim];
 		if(next!=null){
-			int size = input.size(0)/next.length;
+			int size = input.size(splitDim)/next.length;
 			for(int i=0;i<next.length;i++){
-				outputs.put(nextIds[i], input.narrow(0, i*size, size));
+				outputs.put(nextIds[i], input.narrow(splitDim, i*size, size));
 			}
 		}
 	}
@@ -52,14 +61,15 @@ public class Split extends Fork {
 	protected void backward() {
 		if(next!=null){
 			int[] dims = gradOutputs.values().iterator().next().dims();
-			int size = dims[0];
-			if(output==null){
-				dims[0] = dims[0]*gradOutputs.size();
+			int splitDim = dims[dims.length-1-dim];
+			int size = dims[splitDim];
+			if(gradInput==null){
+				dims[splitDim] = dims[splitDim]*gradOutputs.size();
 				gradInput = new Tensor(dims);
 			}
 
 			for(int i=0;i<next.length;i++){
-				gradOutputs.get(nextIds[i]).copyInto(gradInput.narrow(0, i*size, size));
+				gradOutputs.get(nextIds[i]).copyInto(gradInput.narrow(splitDim, i*size, size));
 			}
 		}
 		

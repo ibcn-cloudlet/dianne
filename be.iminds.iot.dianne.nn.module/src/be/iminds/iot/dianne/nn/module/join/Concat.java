@@ -28,41 +28,52 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 public class Concat extends Join {
 
-	public Concat() {
+	// dimension on which to concat
+	// counted starting from the last dimension
+	// e.g. 3-dim tensor (x,y,z), dim 0 = concat on z, dim 1 = concat on y
+	// this allows to have the desired concatenation in case of batched tensors
+	private int dim;
+	
+	public Concat(int dim) {
 		super();
+		this.dim = dim;
 	}
 	
-	public Concat(UUID id) {
+	public Concat(UUID id, int dim) {
 		super(id);
+		this.dim = dim;
 	}
 	
 	@Override
 	protected void forward() {
-		// concat from N parts in dimension 0 (other dims should be equal)
 		if(prev!=null){
 			int[] dims = null;
+			int concatDim = 0;
 			for(Tensor i : inputs.values()){
 				if(i!=null){
 					if(dims==null){
 						dims = i.dims();
+						concatDim = dims.length-dim-1;
 					} else {
-						dims[0] += i.dims()[0];
+						dims[concatDim] += i.dims()[concatDim];
 					}
 				} else {
 					// what with null inputs? exception or skip?
 				}
 			}
 	
-			if(output==null || !output.hasDim(dims)){
+			if(output==null){
 				output = new Tensor(dims);
 			}
+			
+			output.reshape(dims);
 		
 			int offset = 0;
 			for(int i=0;i<prev.length;i++){
 				Tensor in = inputs.get(prevIds[i]);
 				if(in!=null){
-					int size = in.dims()[0];
-					in.copyInto(output.narrow(0, offset, size));
+					int size = in.dims()[concatDim];
+					in.copyInto(output.narrow(concatDim, offset, size));
 					offset+=size;
 				}
 			}
@@ -76,8 +87,10 @@ public class Concat extends Join {
 			for(int i=0;i<prev.length;i++){
 				Tensor in = inputs.get(prevIds[i]);
 				if(in!=null){
-					int size = in.dims()[0];
-					gradInputs.put(prevIds[i], gradOutput.narrow(0, offset, size));
+					int[] inputDims = in.dims();
+					int concatDim = inputDims.length-1-dim;
+					int size = inputDims[concatDim];
+					gradInputs.put(prevIds[i], gradOutput.narrow(concatDim, offset, size));
 					offset+=size;
 				}
 			}
