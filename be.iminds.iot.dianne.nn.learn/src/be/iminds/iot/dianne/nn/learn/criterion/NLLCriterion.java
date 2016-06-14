@@ -46,8 +46,18 @@ public class NLLCriterion implements Criterion {
 	
 	@Override
 	public Tensor error(final Tensor output, final Tensor target) {
-		float ll = TensorOps.dot(output, target);
-		nll.set(-ll, 0);
+		if(output.get()[0] < 0){
+			// output comes from LogSoftmax, no log required
+			// this should be numerically more stable
+			float ll = TensorOps.dot(output, target);
+			nll.set(-ll, 0);
+		} else {
+			// calculate negative log 
+			TensorOps.log(log, output);
+			float ll = TensorOps.dot(log, target);
+			nll.set(-ll, 0);
+		}
+	
 		return nll;
 	}
 
