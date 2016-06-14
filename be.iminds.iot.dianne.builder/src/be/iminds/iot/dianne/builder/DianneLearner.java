@@ -373,7 +373,7 @@ public class DianneLearner extends HttpServlet {
 				PrintWriter writer = async.getResponse().getWriter();
 	
 				JsonObject err = new JsonObject();
-				err.add("error", new JsonPrimitive(ex.getCause().getMessage()));
+				err.add("error", new JsonPrimitive(ex.getCause() == null ? ex.getMessage() : ex.getCause().getMessage()));
 				StringBuilder builder = new StringBuilder();
 				builder.append("data: ").append(err.toString()).append("\n\n");
 				
