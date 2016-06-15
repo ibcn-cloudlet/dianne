@@ -1,0 +1,427 @@
+{
+  "name": "Fractal-3",
+  "modules": {
+    "dca0c520-5b1b-efba-ef24-b33ab92b8695": {
+      "id": "dca0c520-5b1b-efba-ef24-b33ab92b8695",
+      "type": "ReLU",
+      "next": [
+        "f6081833-e02b-993c-0f32-d36e8d98f3aa"
+      ],
+      "prev": [
+        "f39d6101-c3c9-5000-4fc8-8dc6888546ab"
+      ],
+      "name": "ReLU",
+      "category": "Activation"
+    },
+    "f6081833-e02b-993c-0f32-d36e8d98f3aa": {
+      "id": "f6081833-e02b-993c-0f32-d36e8d98f3aa",
+      "type": "Average",
+      "next": [
+        "da8aa044-8295-e114-c775-445ecbb19aa1"
+      ],
+      "prev": [
+        "dca0c520-5b1b-efba-ef24-b33ab92b8695",
+        "6037a824-592a-86ed-e9ab-94413bbee625",
+        "b4485523-98d6-74f3-f235-601de3e850d1"
+      ],
+      "name": "Average",
+      "category": "Join"
+    },
+    "b4e8ba45-f8be-769d-229c-672876157a2c": {
+      "id": "b4e8ba45-f8be-769d-229c-672876157a2c",
+      "type": "ReLU",
+      "next": [
+        "c0a9f90a-30c6-d659-e885-7ee9691ca0c7"
+      ],
+      "prev": [
+        "b85c4a74-3db6-5235-cba5-3311f83c6f7b"
+      ],
+      "name": "ReLU",
+      "category": "Activation"
+    },
+    "76da7981-5183-c336-9ae2-d31eec6e913a": {
+      "id": "76da7981-5183-c336-9ae2-d31eec6e913a",
+      "type": "BatchNormalization",
+      "next": [
+        "e1bf3ad8-a405-9a91-9d7f-c709c1c3f066"
+      ],
+      "prev": [
+        "4c679da6-498c-2c4e-b26a-1ae79edd76f5"
+      ],
+      "size": "${inputWidth}*${inputHeight}*${noFilters}",
+      "name": "BatchNormalization",
+      "category": "Regularization",
+      "trainable": "true"
+    },
+    "a1f3e961-eded-5262-bd2d-65dca17b62d1": {
+      "id": "a1f3e961-eded-5262-bd2d-65dca17b62d1",
+      "type": "Convolution",
+      "next": [
+        "b85c4a74-3db6-5235-cba5-3311f83c6f7b"
+      ],
+      "prev": [
+        "33881177-f5ed-7644-06d9-65b0fd46ac36"
+      ],
+      "noInputPlanes": "${noInputPlanes}",
+      "strideX": "1",
+      "kernelWidth": "3",
+      "trainable": "true",
+      "kernelHeight": "3",
+      "padX": "1",
+      "noOutputPlanes": "${noFilters}",
+      "padY": "1",
+      "padZ": "",
+      "strideY": "1",
+      "strideZ": "",
+      "name": "Convolution",
+      "category": "Layer",
+      "kernelDepth": ""
+    },
+    "c0a9f90a-30c6-d659-e885-7ee9691ca0c7": {
+      "id": "c0a9f90a-30c6-d659-e885-7ee9691ca0c7",
+      "type": "Convolution",
+      "next": [
+        "fd44ab75-1862-601c-5e78-1e217a93e1d4"
+      ],
+      "prev": [
+        "b4e8ba45-f8be-769d-229c-672876157a2c"
+      ],
+      "noInputPlanes": "${noFilters}",
+      "strideX": "1",
+      "kernelWidth": "3",
+      "trainable": "true",
+      "kernelHeight": "3",
+      "padX": "1",
+      "noOutputPlanes": "${noFilters}",
+      "padY": "1",
+      "padZ": "",
+      "strideY": "1",
+      "strideZ": "",
+      "name": "Convolution",
+      "category": "Layer",
+      "kernelDepth": ""
+    },
+    "2c0fc4f7-1ba5-1729-ea81-4aca42534161": {
+      "id": "2c0fc4f7-1ba5-1729-ea81-4aca42534161",
+      "type": "ReLU",
+      "next": [
+        "f93349bc-08e5-1f17-2e08-7a07a188b0d1"
+      ],
+      "prev": [
+        "fd44ab75-1862-601c-5e78-1e217a93e1d4"
+      ],
+      "name": "ReLU",
+      "category": "Activation"
+    },
+    "33881177-f5ed-7644-06d9-65b0fd46ac36": {
+      "id": "33881177-f5ed-7644-06d9-65b0fd46ac36",
+      "type": "Duplicate",
+      "next": [
+        "4c679da6-498c-2c4e-b26a-1ae79edd76f5",
+        "a1f3e961-eded-5262-bd2d-65dca17b62d1",
+        "b4e62a78-0f13-a6b7-15e1-aa89632a2992"
+      ],
+      "prev": [
+        "7467e594-7bb0-2368-3460-80a98bd38288"
+      ],
+      "name": "Duplicate",
+      "category": "Fork"
+    },
+    "fd44ab75-1862-601c-5e78-1e217a93e1d4": {
+      "id": "fd44ab75-1862-601c-5e78-1e217a93e1d4",
+      "type": "BatchNormalization",
+      "next": [
+        "2c0fc4f7-1ba5-1729-ea81-4aca42534161"
+      ],
+      "prev": [
+        "c0a9f90a-30c6-d659-e885-7ee9691ca0c7"
+      ],
+      "size": "${inputWidth}*${inputHeight}*${noFilters}",
+      "name": "BatchNormalization",
+      "category": "Regularization",
+      "trainable": "true"
+    },
+    "17c2af55-d95d-effe-45e1-1c966c362021": {
+      "id": "17c2af55-d95d-effe-45e1-1c966c362021",
+      "type": "BatchNormalization",
+      "next": [
+        "b4485523-98d6-74f3-f235-601de3e850d1"
+      ],
+      "prev": [
+        "b4e62a78-0f13-a6b7-15e1-aa89632a2992"
+      ],
+      "size": "${inputWidth}*${inputHeight}*${noFilters}",
+      "name": "BatchNormalization",
+      "category": "Regularization",
+      "trainable": "true"
+    },
+    "b85c4a74-3db6-5235-cba5-3311f83c6f7b": {
+      "id": "b85c4a74-3db6-5235-cba5-3311f83c6f7b",
+      "type": "BatchNormalization",
+      "next": [
+        "b4e8ba45-f8be-769d-229c-672876157a2c"
+      ],
+      "prev": [
+        "a1f3e961-eded-5262-bd2d-65dca17b62d1"
+      ],
+      "size": "${inputWidth}*${inputHeight}*${noFilters}",
+      "name": "BatchNormalization",
+      "category": "Regularization",
+      "trainable": "true"
+    },
+    "713d9d1c-84d2-39ae-8485-daa2374cd8ae": {
+      "id": "713d9d1c-84d2-39ae-8485-daa2374cd8ae",
+      "type": "Convolution",
+      "next": [
+        "f39d6101-c3c9-5000-4fc8-8dc6888546ab"
+      ],
+      "prev": [
+        "ed5d85e3-5135-1311-710b-8c06734ac968"
+      ],
+      "noInputPlanes": "${noFilters}",
+      "strideX": "1",
+      "kernelWidth": "3",
+      "trainable": "true",
+      "kernelHeight": "3",
+      "padX": "1",
+      "noOutputPlanes": "${noFilters}",
+      "padY": "1",
+      "padZ": "",
+      "strideY": "1",
+      "strideZ": "",
+      "name": "Convolution",
+      "category": "Layer",
+      "kernelDepth": ""
+    },
+    "b4485523-98d6-74f3-f235-601de3e850d1": {
+      "id": "b4485523-98d6-74f3-f235-601de3e850d1",
+      "type": "ReLU",
+      "next": [
+        "f6081833-e02b-993c-0f32-d36e8d98f3aa"
+      ],
+      "prev": [
+        "17c2af55-d95d-effe-45e1-1c966c362021"
+      ],
+      "name": "ReLU",
+      "category": "Activation"
+    },
+    "e1bf3ad8-a405-9a91-9d7f-c709c1c3f066": {
+      "id": "e1bf3ad8-a405-9a91-9d7f-c709c1c3f066",
+      "type": "ReLU",
+      "next": [
+        "f93349bc-08e5-1f17-2e08-7a07a188b0d1"
+      ],
+      "prev": [
+        "76da7981-5183-c336-9ae2-d31eec6e913a"
+      ],
+      "name": "ReLU",
+      "category": "Activation"
+    },
+    "3fdf423d-5d29-2edd-3a3b-f7896e86f9c0": {
+      "id": "3fdf423d-5d29-2edd-3a3b-f7896e86f9c0",
+      "type": "BatchNormalization",
+      "next": [
+        "1ca6e920-a1c1-a178-f06e-e6798faadf6d"
+      ],
+      "prev": [
+        "010a3cda-717f-85cb-e250-3f8447af9fbb"
+      ],
+      "size": "${inputWidth}*${inputHeight}*${noFilters}",
+      "name": "BatchNormalization",
+      "category": "Regularization",
+      "trainable": "true"
+    },
+    "010a3cda-717f-85cb-e250-3f8447af9fbb": {
+      "id": "010a3cda-717f-85cb-e250-3f8447af9fbb",
+      "type": "Convolution",
+      "next": [
+        "3fdf423d-5d29-2edd-3a3b-f7896e86f9c0"
+      ],
+      "prev": [
+        "ed5d85e3-5135-1311-710b-8c06734ac968"
+      ],
+      "noInputPlanes": "${noFilters}",
+      "strideX": "1",
+      "kernelWidth": "3",
+      "trainable": "true",
+      "kernelHeight": "3",
+      "padX": "1",
+      "noOutputPlanes": "${noFilters}",
+      "padY": "1",
+      "padZ": "",
+      "strideY": "1",
+      "strideZ": "",
+      "name": "Convolution",
+      "category": "Layer",
+      "kernelDepth": ""
+    },
+    "6037a824-592a-86ed-e9ab-94413bbee625": {
+      "id": "6037a824-592a-86ed-e9ab-94413bbee625",
+      "type": "ReLU",
+      "next": [
+        "f6081833-e02b-993c-0f32-d36e8d98f3aa"
+      ],
+      "prev": [
+        "7182c3da-e304-f2ce-84d8-52d13766428e"
+      ],
+      "name": "ReLU",
+      "category": "Activation"
+    },
+    "4c679da6-498c-2c4e-b26a-1ae79edd76f5": {
+      "id": "4c679da6-498c-2c4e-b26a-1ae79edd76f5",
+      "type": "Convolution",
+      "next": [
+        "76da7981-5183-c336-9ae2-d31eec6e913a"
+      ],
+      "prev": [
+        "33881177-f5ed-7644-06d9-65b0fd46ac36"
+      ],
+      "noInputPlanes": "${noInputPlanes}",
+      "strideX": "1",
+      "kernelWidth": "3",
+      "trainable": "true",
+      "kernelHeight": "3",
+      "padX": "1",
+      "noOutputPlanes": "${noFilters}",
+      "padY": "1",
+      "padZ": "",
+      "strideY": "1",
+      "strideZ": "",
+      "name": "Convolution",
+      "category": "Layer",
+      "kernelDepth": ""
+    },
+    "b4e62a78-0f13-a6b7-15e1-aa89632a2992": {
+      "id": "b4e62a78-0f13-a6b7-15e1-aa89632a2992",
+      "type": "Convolution",
+      "next": [
+        "17c2af55-d95d-effe-45e1-1c966c362021"
+      ],
+      "prev": [
+        "33881177-f5ed-7644-06d9-65b0fd46ac36"
+      ],
+      "noInputPlanes": "${noInputPlanes}",
+      "strideX": "1",
+      "kernelWidth": "3",
+      "trainable": "true",
+      "kernelHeight": "3",
+      "padX": "1",
+      "noOutputPlanes": "${noFilters}",
+      "padY": "1",
+      "padZ": "",
+      "strideY": "1",
+      "strideZ": "",
+      "name": "Convolution",
+      "category": "Layer",
+      "kernelDepth": ""
+    },
+    "f93349bc-08e5-1f17-2e08-7a07a188b0d1": {
+      "id": "f93349bc-08e5-1f17-2e08-7a07a188b0d1",
+      "type": "Average",
+      "next": [
+        "ed5d85e3-5135-1311-710b-8c06734ac968"
+      ],
+      "prev": [
+        "e1bf3ad8-a405-9a91-9d7f-c709c1c3f066",
+        "2c0fc4f7-1ba5-1729-ea81-4aca42534161"
+      ],
+      "name": "Average",
+      "category": "Join"
+    },
+    "1ca6e920-a1c1-a178-f06e-e6798faadf6d": {
+      "id": "1ca6e920-a1c1-a178-f06e-e6798faadf6d",
+      "type": "ReLU",
+      "next": [
+        "2681951e-f7aa-59e8-417e-21f1d02740c1"
+      ],
+      "prev": [
+        "3fdf423d-5d29-2edd-3a3b-f7896e86f9c0"
+      ],
+      "name": "ReLU",
+      "category": "Activation"
+    },
+    "7182c3da-e304-f2ce-84d8-52d13766428e": {
+      "id": "7182c3da-e304-f2ce-84d8-52d13766428e",
+      "type": "BatchNormalization",
+      "next": [
+        "6037a824-592a-86ed-e9ab-94413bbee625"
+      ],
+      "prev": [
+        "2681951e-f7aa-59e8-417e-21f1d02740c1"
+      ],
+      "size": "${inputWidth}*${inputHeight}*${noFilters}",
+      "name": "BatchNormalization",
+      "category": "Regularization",
+      "trainable": "true"
+    },
+    "da8aa044-8295-e114-c775-445ecbb19aa1": {
+      "id": "da8aa044-8295-e114-c775-445ecbb19aa1",
+      "type": "Output",
+      "prev": [
+        "f6081833-e02b-993c-0f32-d36e8d98f3aa"
+      ],
+      "name": "Output",
+      "category": "Input-Output"
+    },
+    "2681951e-f7aa-59e8-417e-21f1d02740c1": {
+      "id": "2681951e-f7aa-59e8-417e-21f1d02740c1",
+      "type": "Convolution",
+      "next": [
+        "7182c3da-e304-f2ce-84d8-52d13766428e"
+      ],
+      "prev": [
+        "1ca6e920-a1c1-a178-f06e-e6798faadf6d"
+      ],
+      "noInputPlanes": "${noFilters}",
+      "strideX": "1",
+      "kernelWidth": "3",
+      "trainable": "true",
+      "kernelHeight": "3",
+      "padX": "1",
+      "noOutputPlanes": "${noFilters}",
+      "padY": "1",
+      "padZ": "",
+      "strideY": "1",
+      "strideZ": "",
+      "name": "Convolution",
+      "category": "Layer",
+      "kernelDepth": ""
+    },
+    "f39d6101-c3c9-5000-4fc8-8dc6888546ab": {
+      "id": "f39d6101-c3c9-5000-4fc8-8dc6888546ab",
+      "type": "BatchNormalization",
+      "next": [
+        "dca0c520-5b1b-efba-ef24-b33ab92b8695"
+      ],
+      "prev": [
+        "713d9d1c-84d2-39ae-8485-daa2374cd8ae"
+      ],
+      "size": "${inputWidth}*${inputHeight}*${noFilters}",
+      "name": "BatchNormalization",
+      "category": "Regularization",
+      "trainable": "true"
+    },
+    "ed5d85e3-5135-1311-710b-8c06734ac968": {
+      "id": "ed5d85e3-5135-1311-710b-8c06734ac968",
+      "type": "Duplicate",
+      "next": [
+        "713d9d1c-84d2-39ae-8485-daa2374cd8ae",
+        "010a3cda-717f-85cb-e250-3f8447af9fbb"
+      ],
+      "prev": [
+        "f93349bc-08e5-1f17-2e08-7a07a188b0d1"
+      ],
+      "name": "Duplicate",
+      "category": "Fork"
+    },
+    "7467e594-7bb0-2368-3460-80a98bd38288": {
+      "id": "7467e594-7bb0-2368-3460-80a98bd38288",
+      "type": "Input",
+      "next": [
+        "33881177-f5ed-7644-06d9-65b0fd46ac36"
+      ],
+      "name": "Input",
+      "category": "Input-Output"
+    }
+  }
+}
