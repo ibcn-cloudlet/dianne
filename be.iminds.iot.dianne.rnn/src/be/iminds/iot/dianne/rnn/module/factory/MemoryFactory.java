@@ -37,6 +37,7 @@ import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModulePropertyDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleTypeDTO;
 import be.iminds.iot.dianne.api.nn.module.factory.ModuleFactory;
+import be.iminds.iot.dianne.api.nn.module.factory.ModuleTypeNotSupportedException;
 import be.iminds.iot.dianne.rnn.module.memory.SimpleMemory;
 import be.iminds.iot.dianne.tensor.Tensor;
 
@@ -101,14 +102,28 @@ public class MemoryFactory implements ModuleFactory {
 		return supportedModules.get(name);
 	}
 	
-	private boolean hasProperty(Map<String, String> config, String property){
-		String value = (String) config.get(property);
-		if(value==null){
-			return false;
-		} else if(value.isEmpty()){
-			return false;
+	@Override
+	public int parameterSize(ModuleDTO m) throws ModuleTypeNotSupportedException {
+		if(!supportedModules.containsKey(m.type))
+			throw new ModuleTypeNotSupportedException(m.type);
+		
+		return 0;
+	}
+
+	@Override
+	public int memorySize(ModuleDTO m) throws ModuleTypeNotSupportedException {
+		if(!supportedModules.containsKey(m.type))
+			throw new ModuleTypeNotSupportedException(m.type);
+		
+		int size = 0;
+		switch(m.type){
+			case "Memory":
+			{
+				size = Integer.parseInt(m.properties.get("size"));
+				break;
+			}
 		}
-		return true;
+		return size;
 	}
 	
 	private void addSupportedType(ModuleTypeDTO t){

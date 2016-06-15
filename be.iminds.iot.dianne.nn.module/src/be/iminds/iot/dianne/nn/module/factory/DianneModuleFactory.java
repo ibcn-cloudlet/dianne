@@ -37,6 +37,7 @@ import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModulePropertyDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleTypeDTO;
 import be.iminds.iot.dianne.api.nn.module.factory.ModuleFactory;
+import be.iminds.iot.dianne.api.nn.module.factory.ModuleTypeNotSupportedException;
 import be.iminds.iot.dianne.nn.module.activation.LogSoftmax;
 import be.iminds.iot.dianne.nn.module.activation.PReLU;
 import be.iminds.iot.dianne.nn.module.activation.ReLU;
@@ -647,6 +648,47 @@ public class DianneModuleFactory implements ModuleFactory {
 	@Override
 	public ModuleTypeDTO getModuleType(String name) {
 		return supportedModules.get(name);
+	}
+	
+	@Override
+	public int parameterSize(ModuleDTO m) throws ModuleTypeNotSupportedException {
+		if(!supportedModules.containsKey(m.type))
+			throw new ModuleTypeNotSupportedException(m.type);
+		
+		int size = 0;
+		switch(m.type){
+		case "Linear":
+			int inSize = Integer.parseInt(m.properties.get("input"));
+			int outSize = Integer.parseInt(m.properties.get("output"));
+			size = outSize*(inSize+1);
+			break;
+		case "Convolution":
+		case "FullConvolution":
+			int noInputPlanes = Integer.parseInt(m.properties.get("noInputPlanes"));
+			int noOutputPlanes = Integer.parseInt(m.properties.get("noOutputPlanes"));
+			int kernelWidth = Integer.parseInt(m.properties.get("kernelWidth"));
+			int kernelHeight = hasProperty(m.properties, "kernelHeight") ? Integer.parseInt(m.properties.get("kernelHeight")) : 1;
+			int kernelDepth = hasProperty(m.properties, "kernelDepth") ? Integer.parseInt(m.properties.get("kernelDepth")) : 1;
+
+			size = noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight*kernelDepth+noOutputPlanes;
+			break;
+		case "PReLU":
+			size = 1;
+			break;
+		case "BatchNormalization":
+			size = Integer.parseInt(m.properties.get("size"))*4;
+			break;	
+		}
+		return size;
+	}
+
+
+	@Override
+	public int memorySize(ModuleDTO m) throws ModuleTypeNotSupportedException {
+		if(!supportedModules.containsKey(m.type))
+			throw new ModuleTypeNotSupportedException(m.type);
+		
+		return 0;
 	}
 	
 	private boolean hasProperty(Map<String, String> config, String property){

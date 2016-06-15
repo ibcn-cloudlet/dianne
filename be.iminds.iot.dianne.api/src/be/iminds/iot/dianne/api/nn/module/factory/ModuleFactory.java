@@ -70,4 +70,18 @@ public interface ModuleFactory {
 	 * @return the detailed ModuleDTO matching this type, or null if this type is not available
 	 */
 	ModuleTypeDTO getModuleType(String name);
+	
+	/**
+	 * Return the expected parameter size for this Module
+	 * @param dto
+	 * @return
+	 */
+	int parameterSize(ModuleDTO dto) throws ModuleTypeNotSupportedException;
+	
+	/**
+	 * Return the expected memory size for this Module
+	 * @param dto
+	 * @return
+	 */
+	int memorySize(ModuleDTO dto) throws ModuleTypeNotSupportedException;
 }

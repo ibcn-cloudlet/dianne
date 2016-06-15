@@ -26,6 +26,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -43,6 +44,8 @@ import org.osgi.framework.BundleListener;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
@@ -55,6 +58,7 @@ import be.iminds.iot.dianne.api.nn.module.dto.ModuleTypeDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.factory.ModuleFactory;
+import be.iminds.iot.dianne.api.nn.module.factory.ModuleTypeNotSupportedException;
 import be.iminds.iot.dianne.api.nn.runtime.DianneRuntime;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.nn.util.DianneJSONConverter;
@@ -70,6 +74,8 @@ public class CompositeModuleFactory implements ModuleFactory {
 	private Dianne dianne;
 	
 	private final Map<String, CompositeType> supportedModules = new HashMap<String, CompositeType>();
+	
+	private List<ModuleFactory> moduleFactories = Collections.synchronizedList(new ArrayList<ModuleFactory>());
 	
 	private class CompositeType {
 		
@@ -169,109 +175,37 @@ public class CompositeModuleFactory implements ModuleFactory {
 
 		AbstractModule module = null;
 		
-		String nnName = dto.type;
 		UUID compositeId = dto.id;
 
-		NeuralNetworkDTO nnDescription = null;
-		if(supportedModules.containsKey(nnName)){
-			CompositeType composite = supportedModules.get(nnName);
-			// read from composites folder
-			try {
-				URL modules = new URL(composite.url);
-				nnDescription = DianneJSONConverter.parseJSON(modules.openStream());
-			} catch(Exception e){
-				throw new InstantiationException("Failed to instantiate module "+dto.type+": "+e.getMessage());
-			}
-			
-			// find any composite properties defined as ${property key} and replace
-			ModuleTypeDTO compositeType = composite.type;
-			for(ModuleDTO m : nnDescription.modules.values()){
-				m.properties.replaceAll((key, value) -> {
-					if(!value.contains("$")){
-						return value;
-					}
-					for(ModulePropertyDTO p : compositeType.properties){
-						value = value.replace("${"+p.id+"}", dto.properties.get(p.id));
-					}
-					if(value.contains("$")){
-						int i1 = value.indexOf("$");
-						int i2 = value.indexOf("}", i1);		
-						throw new RuntimeException("Could not find value for "+value);
-					}
-					
-					// figure out whether result should be an int or float
-					String clazz = null;
-					ModuleTypeDTO type = runtime.getSupportedModules().stream().filter(s -> s.type.equals(m.type)).findFirst().get();
-					for(ModulePropertyDTO p : type.properties){
-						if(p.id.equals(key)){
-							clazz = p.clazz;
-						}
-					}
-					
-					value = eval(value, clazz);
-					
-					return value;
-				});
-			}
-		} else {
-			// try repository - in case we want to create ensembles
-			try {
-				nnDescription = repository.loadNeuralNetwork(nnName);
-			} catch(Exception e){
-				throw new InstantiationException();
-			}
-		}
-
-
+		NeuralNetworkDTO nnDescription = getNeuralNetworkDTO(dto);
 		
 		// calculate parameters Tensor size
-		// TODO should this somehow be made available by the module(dto) or something?
-		// This is now replicated properties parsing code from the other factory
-		// and size calculation from the module impl :-(
 		
 		// for composite we combine training parameters and memory state ... becomes messy?
 		int total = 0;
 		int memory = 0;
-		int size = 0;
 		LinkedHashMap<UUID, Integer> parameterMapping = new LinkedHashMap<>();
 		LinkedHashMap<UUID, Integer> memoryMapping = new LinkedHashMap<>();
 		for(ModuleDTO m : nnDescription.modules.values()){
-			switch(m.type){
-			case "Linear":
-				int inSize = Integer.parseInt(m.properties.get("input"));
-				int outSize = Integer.parseInt(m.properties.get("output"));
-				size = outSize*(inSize+1);
-				parameterMapping.put(m.id, size);
-				break;
-			case "Convolution":
-			case "FullConvolution":
-				int noInputPlanes = Integer.parseInt(m.properties.get("noInputPlanes"));
-				int noOutputPlanes = Integer.parseInt(m.properties.get("noOutputPlanes"));
-				int kernelWidth = Integer.parseInt(m.properties.get("kernelWidth"));
-				int kernelHeight = hasProperty(m.properties, "kernelHeight") ? Integer.parseInt(m.properties.get("kernelHeight")) : 1;
-				int kernelDepth = hasProperty(m.properties, "kernelDepth") ? Integer.parseInt(m.properties.get("kernelDepth")) : 1;
-
-				size = noOutputPlanes*noInputPlanes*kernelWidth*kernelHeight*kernelDepth+noOutputPlanes;
-				parameterMapping.put(m.id, size);
-				break;
-			case "PReLU":
-				size = 1;
-				parameterMapping.put(m.id, size);
-				break;
-			case "BatchNormalization":
-				size = Integer.parseInt(m.properties.get("size"))*4;
-				parameterMapping.put(m.id, size);
-				break;	
-			case "Memory":
-				size =  Integer.parseInt(m.properties.get("size"));
-				memoryMapping.put(m.id, size);
-				memory+=size;
-				break;
-			default : 
-				size = 0;
-				break;
+			int size = 0;
+			int mem = 0;
+			synchronized(moduleFactories){
+				for(ModuleFactory f : moduleFactories){
+					try {
+						size = f.parameterSize(m);
+						mem = f.memorySize(m);
+					} catch(ModuleTypeNotSupportedException e){}
+				}
+				if(mem > 0){
+					memoryMapping.put(m.id, mem);
+				}
+				if(size > 0){
+					parameterMapping.put(m.id, size);
+				}
+				memory += mem;
+				total += mem;
+				total += size;
 			}
-			total+=size;
 		}
 		
 		// narrow for each trainable and memory module
@@ -342,7 +276,7 @@ public class CompositeModuleFactory implements ModuleFactory {
 				throw new RuntimeException("Failed to deploy composite module "+compositeNNid+": "+e.getMessage(), e);
 			}
 		}
-		NeuralNetworkInstanceDTO nnDTO = new NeuralNetworkInstanceDTO(compositeNNid, nnName, deployed);
+		NeuralNetworkInstanceDTO nnDTO = new NeuralNetworkInstanceDTO(compositeNNid, dto.type, deployed);
 		
 		// get NeuralNetwork object
 		try {
@@ -379,6 +313,55 @@ public class CompositeModuleFactory implements ModuleFactory {
 			return null;
 		}
 		return supportedModules.get(name).type;
+	}
+	
+	@Override
+	public int parameterSize(ModuleDTO dto) throws ModuleTypeNotSupportedException {
+		NeuralNetworkDTO nnDescription = null;
+		try {
+			nnDescription = getNeuralNetworkDTO(dto);
+		} catch(InstantiationException e){
+			throw new ModuleTypeNotSupportedException(dto.type);
+		}
+		
+		int total = 0;
+		for(ModuleDTO m : nnDescription.modules.values()){
+			synchronized(moduleFactories){
+				int size = 0;
+				for(ModuleFactory f : moduleFactories){
+					try {
+						size = f.parameterSize(m);
+					} catch(ModuleTypeNotSupportedException e){}
+				}
+				total += size;
+			}
+		}
+		return total;
+	}
+
+
+	@Override
+	public int memorySize(ModuleDTO dto) throws ModuleTypeNotSupportedException {
+		NeuralNetworkDTO nnDescription = null;
+		try {
+			nnDescription = getNeuralNetworkDTO(dto);
+		} catch(InstantiationException e){
+			throw new ModuleTypeNotSupportedException(dto.type);
+		}
+		
+		int total = 0;
+		for(ModuleDTO m : nnDescription.modules.values()){
+			synchronized(moduleFactories){
+				int size = 0;
+				for(ModuleFactory f : moduleFactories){
+					try {
+						size = f.memorySize(m);
+					} catch(ModuleTypeNotSupportedException e){}
+				}
+				total += size;
+			}
+		}
+		return total;
 	}
 	
 	// evaluate simple expressions a+b, a-b, a*b or a/c
@@ -425,14 +408,60 @@ public class CompositeModuleFactory implements ModuleFactory {
 		}
 	}
 	
-	private boolean hasProperty(Map<String, String> config, String property){
-		String value = (String) config.get(property);
-		if(value==null){
-			return false;
-		} else if(value.isEmpty()){
-			return false;
+	private NeuralNetworkDTO getNeuralNetworkDTO(ModuleDTO dto) throws InstantiationException {
+		NeuralNetworkDTO nnDescription = null;
+		
+		String nnName = dto.type;
+		if(supportedModules.containsKey(nnName)){
+			CompositeType composite = supportedModules.get(nnName);
+			// read from composites folder
+			try {
+				URL modules = new URL(composite.url);
+				nnDescription = DianneJSONConverter.parseJSON(modules.openStream());
+			} catch(Exception e){
+				throw new InstantiationException("Failed to instantiate module "+dto.type+": "+e.getMessage());
+			}
+			
+			// find any composite properties defined as ${property key} and replace
+			ModuleTypeDTO compositeType = composite.type;
+			for(ModuleDTO m : nnDescription.modules.values()){
+				m.properties.replaceAll((key, value) -> {
+					if(!value.contains("$")){
+						return value;
+					}
+					for(ModulePropertyDTO p : compositeType.properties){
+						value = value.replace("${"+p.id+"}", dto.properties.get(p.id));
+					}
+					if(value.contains("$")){
+						int i1 = value.indexOf("$");
+						int i2 = value.indexOf("}", i1);		
+						throw new RuntimeException("Could not find value for "+value);
+					}
+					
+					// figure out whether result should be an int or float
+					String clazz = null;
+					ModuleTypeDTO type = runtime.getSupportedModules().stream().filter(s -> s.type.equals(m.type)).findFirst().get();
+					for(ModulePropertyDTO p : type.properties){
+						if(p.id.equals(key)){
+							clazz = p.clazz;
+						}
+					}
+					
+					value = eval(value, clazz);
+					
+					return value;
+				});
+			}
+		} else {
+			// try repository - in case we want to create ensembles
+			try {
+				nnDescription = repository.loadNeuralNetwork(nnName);
+			} catch(Exception e){
+				throw new InstantiationException();
+			}
 		}
-		return true;
+		
+		return nnDescription;
 	}
 	
 	@Reference
@@ -448,5 +477,15 @@ public class CompositeModuleFactory implements ModuleFactory {
 	@Reference
 	void setDianne(Dianne d){
 		this.dianne = d;
+	}
+	
+	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
+			policy=ReferencePolicy.DYNAMIC)
+	void addModuleFactory(ModuleFactory factory){
+		this.moduleFactories.add(factory);
+	}
+	
+	void removeModuleFactory(ModuleFactory factory){
+		this.moduleFactories.remove(factory);
 	}
 }
