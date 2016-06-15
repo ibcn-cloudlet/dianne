@@ -1,0 +1,5 @@
+Input Width,inputWidth,java.lang.Integer
+Input Height,inputHeight,java.lang.Integer
+Input Planes,noInputPlanes,java.lang.Integer
+Filters,noFilters,java.lang.Integer
+Output Planes,noOutputPlanes,java.lang.Integer
