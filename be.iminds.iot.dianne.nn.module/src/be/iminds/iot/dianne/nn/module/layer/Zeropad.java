@@ -54,6 +54,7 @@ public class Zeropad extends AbstractModule {
 	}
 
 	private int[] inputDims;
+	private int[] outputDims;
 	private int[] ranges;
 	
 	@Override
@@ -65,7 +66,7 @@ public class Zeropad extends AbstractModule {
 		}
 		
 		inputDims = input.dims();
-		int[] outputDims = new int[inputDims.length];
+		outputDims = new int[inputDims.length];
 		// apply padding from back to front ... 2d padding on 3d tensor means padding the last 2 dims
 		ranges = new int[outputDims.length*2];
 		for(int i=0;i<outputDims.length;i++){
@@ -93,6 +94,7 @@ public class Zeropad extends AbstractModule {
 			return;
 		}
 		
+		gradOutput.reshape(outputDims);
 		if(gradInput == null){
 			gradInput = new Tensor(inputDims);
 		}
