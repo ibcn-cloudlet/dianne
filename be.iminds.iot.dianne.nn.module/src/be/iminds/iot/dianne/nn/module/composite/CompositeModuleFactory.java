@@ -367,20 +367,31 @@ public class CompositeModuleFactory implements ModuleFactory {
 	// evaluate simple expressions a+b, a-b, a*b or a/c
 	// for now only supports float or int return type
 	private String eval(String expression, String clazz){
+		
+		int i1 = 0;
+		int i2 = 0;
+		
+		if(expression.startsWith("(")){
+			i1 = 1;
+			i2 = expression.lastIndexOf(")");
+		} 
+		
 		int op = -1;
-		op = expression.indexOf('+');
+		op = expression.indexOf('+', i2);
 		if(op==-1)
-			op = expression.indexOf('-');
+			op = expression.indexOf('-', i2);
 		if(op==-1)
-			op = expression.indexOf('*');
+			op = expression.indexOf('*', i2);
 		if(op==-1)
-			op = expression.indexOf('/');
+			op = expression.indexOf('/', i2);
 		if(op==-1)
 			return expression;
 		
+		if(i2 == 0)
+			i2 = op;
 		
-		String s1 = expression.substring(0, op);
-		float a1 = Float.parseFloat(s1);
+		String s1 = expression.substring(i1, i2);
+		float a1 = Float.parseFloat(eval(s1, clazz));
 		String s2 = expression.substring(op+1);
 		float a2 = Float.parseFloat(eval(s2, clazz));
 		char operator = expression.charAt(op);
