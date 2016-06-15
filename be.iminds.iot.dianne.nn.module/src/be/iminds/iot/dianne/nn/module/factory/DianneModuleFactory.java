@@ -51,6 +51,7 @@ import be.iminds.iot.dianne.nn.module.fork.Split;
 import be.iminds.iot.dianne.nn.module.io.InputImpl;
 import be.iminds.iot.dianne.nn.module.io.OutputImpl;
 import be.iminds.iot.dianne.nn.module.join.Accumulate;
+import be.iminds.iot.dianne.nn.module.join.Average;
 import be.iminds.iot.dianne.nn.module.join.Concat;
 import be.iminds.iot.dianne.nn.module.join.Multiply;
 import be.iminds.iot.dianne.nn.module.layer.AvgPooling;
@@ -114,6 +115,8 @@ public class DianneModuleFactory implements ModuleFactory {
 		addSupportedType(new ModuleTypeDTO("Duplicate", "Fork", false));
 		
 		addSupportedType(new ModuleTypeDTO("Accumulate", "Join", false));
+		
+		addSupportedType(new ModuleTypeDTO("Average", "Join", false));
 		
 		addSupportedType(new ModuleTypeDTO("Multiply", "Join", false));
 		
@@ -325,6 +328,11 @@ public class DianneModuleFactory implements ModuleFactory {
 			module = new Accumulate(id);
 			break;
 		}
+		case "Average":
+		{
+			module = new Average(id);
+			break;
+		}		
 		case "Multiply":
 		{
 			module = new Multiply(id);
