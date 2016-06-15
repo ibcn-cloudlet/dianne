@@ -5,7 +5,7 @@
       "id": "93964d41-25ab-be58-f41f-14e5770a7bb4",
       "type": "Convolution",
       "next": [
-        "bb2642c6-4359-a22f-ac34-486b82861cb3"
+        "ab455c37-8574-bb41-ad72-0b61c49a5a61"
       ],
       "prev": [
         "67cf3d88-4a01-5d6b-9c28-58c01c1c5a4c"
@@ -32,18 +32,33 @@
         "246e061c-316a-cb49-fbf8-bf2c1d29a66a"
       ],
       "prev": [
-        "ffbae280-adb4-3652-ec0d-0968e8ea0bd6"
+        "85598796-adc9-45f0-fa55-92e04387738e"
       ],
       "name": "ReLU",
       "category": "Activation"
+    },
+    "2291b462-223c-f738-ce28-3e458a589143": {
+      "id": "2291b462-223c-f738-ce28-3e458a589143",
+      "type": "BatchNormalization",
+      "next": [
+        "67cf3d88-4a01-5d6b-9c28-58c01c1c5a4c"
+      ],
+      "prev": [
+        "38346778-636b-bbd2-e6f4-31ca49630135"
+      ],
+      "size": "${inputWidth}*${inputHeight}*${3x3reduce}",
+      "name": "BatchNormalization",
+      "category": "Regularization",
+      "trainable": "true"
     },
     "ffbae280-adb4-3652-ec0d-0968e8ea0bd6": {
       "id": "ffbae280-adb4-3652-ec0d-0968e8ea0bd6",
       "type": "Convolution",
       "next": [
-        "9db041a9-88f8-59fc-1780-210581d724af"
+        "85598796-adc9-45f0-fa55-92e04387738e"
       ],
       "prev": [
+        "d5591d27-5ee3-b761-f822-88baeb2ba295",
         "d5591d27-5ee3-b761-f822-88baeb2ba295"
       ],
       "noInputPlanes": "${5x5reduce}",
@@ -84,10 +99,38 @@
         "246e061c-316a-cb49-fbf8-bf2c1d29a66a"
       ],
       "prev": [
-        "863c1560-9e71-053b-a7f7-634ba0bbaea8"
+        "d9dd9006-2c7a-bd15-46ec-a286a3e71b44"
       ],
       "name": "ReLU",
       "category": "Activation"
+    },
+    "aaa92ec4-4d7b-ed79-46c8-8c90bad20b0f": {
+      "id": "aaa92ec4-4d7b-ed79-46c8-8c90bad20b0f",
+      "type": "BatchNormalization",
+      "next": [
+        "d5591d27-5ee3-b761-f822-88baeb2ba295"
+      ],
+      "prev": [
+        "45f5ea18-8dcd-2563-39f6-d2cb7a37a991"
+      ],
+      "size": "${inputWidth}*${inputHeight}*${5x5reduce}",
+      "name": "BatchNormalization",
+      "category": "Regularization",
+      "trainable": "true"
+    },
+    "85598796-adc9-45f0-fa55-92e04387738e": {
+      "id": "85598796-adc9-45f0-fa55-92e04387738e",
+      "type": "BatchNormalization",
+      "next": [
+        "9db041a9-88f8-59fc-1780-210581d724af"
+      ],
+      "prev": [
+        "ffbae280-adb4-3652-ec0d-0968e8ea0bd6"
+      ],
+      "size": "${inputWidth}*${inputHeight}*${5x5}",
+      "name": "BatchNormalization",
+      "category": "Regularization",
+      "trainable": "true"
     },
     "0d49d877-bdad-907e-eb48-ad78ed34dc02": {
       "id": "0d49d877-bdad-907e-eb48-ad78ed34dc02",
@@ -104,17 +147,19 @@
       "name": "Duplicate",
       "category": "Fork"
     },
-    "95221ce1-f6da-efcb-d42b-4f62bf84a490": {
-      "id": "95221ce1-f6da-efcb-d42b-4f62bf84a490",
-      "type": "ReLU",
+    "ab455c37-8574-bb41-ad72-0b61c49a5a61": {
+      "id": "ab455c37-8574-bb41-ad72-0b61c49a5a61",
+      "type": "BatchNormalization",
       "next": [
-        "d273445a-2056-fb11-5b5b-c465a6fcdc32"
+        "bb2642c6-4359-a22f-ac34-486b82861cb3"
       ],
       "prev": [
-        "896944be-f745-8d59-02cf-5a653796f548"
+        "93964d41-25ab-be58-f41f-14e5770a7bb4"
       ],
-      "name": "ReLU",
-      "category": "Activation"
+      "size": "${inputWidth}*${inputHeight}*${3x3}",
+      "name": "BatchNormalization",
+      "category": "Regularization",
+      "trainable": "true"
     },
     "086c1ab2-f5bb-1d9f-48dd-b69481b49a35": {
       "id": "086c1ab2-f5bb-1d9f-48dd-b69481b49a35",
@@ -132,7 +177,7 @@
         "246e061c-316a-cb49-fbf8-bf2c1d29a66a"
       ],
       "prev": [
-        "d273445a-2056-fb11-5b5b-c465a6fcdc32"
+        "d603e872-5b3e-a8d0-8d86-c4ab088bbe6f"
       ],
       "name": "ReLU",
       "category": "Activation"
@@ -144,16 +189,30 @@
         "93964d41-25ab-be58-f41f-14e5770a7bb4"
       ],
       "prev": [
-        "38346778-636b-bbd2-e6f4-31ca49630135"
+        "2291b462-223c-f738-ce28-3e458a589143"
       ],
       "name": "ReLU",
       "category": "Activation"
+    },
+    "d603e872-5b3e-a8d0-8d86-c4ab088bbe6f": {
+      "id": "d603e872-5b3e-a8d0-8d86-c4ab088bbe6f",
+      "type": "BatchNormalization",
+      "next": [
+        "ebf755db-11bb-d48a-140b-e8a4b6d4c0d2"
+      ],
+      "prev": [
+        "d273445a-2056-fb11-5b5b-c465a6fcdc32"
+      ],
+      "size": "${inputWidth}*${inputHeight}*${poolproj}",
+      "name": "BatchNormalization",
+      "category": "Regularization",
+      "trainable": "true"
     },
     "45f5ea18-8dcd-2563-39f6-d2cb7a37a991": {
       "id": "45f5ea18-8dcd-2563-39f6-d2cb7a37a991",
       "type": "Convolution",
       "next": [
-        "d5591d27-5ee3-b761-f822-88baeb2ba295"
+        "aaa92ec4-4d7b-ed79-46c8-8c90bad20b0f"
       ],
       "prev": [
         "0d49d877-bdad-907e-eb48-ad78ed34dc02"
@@ -177,7 +236,7 @@
       "id": "863c1560-9e71-053b-a7f7-634ba0bbaea8",
       "type": "Convolution",
       "next": [
-        "ba6bbe1a-db72-4ee0-4b46-4f56df1a8183"
+        "d9dd9006-2c7a-bd15-46ec-a286a3e71b44"
       ],
       "prev": [
         "0d49d877-bdad-907e-eb48-ad78ed34dc02"
@@ -201,10 +260,11 @@
       "id": "d5591d27-5ee3-b761-f822-88baeb2ba295",
       "type": "ReLU",
       "next": [
+        "ffbae280-adb4-3652-ec0d-0968e8ea0bd6",
         "ffbae280-adb4-3652-ec0d-0968e8ea0bd6"
       ],
       "prev": [
-        "45f5ea18-8dcd-2563-39f6-d2cb7a37a991"
+        "aaa92ec4-4d7b-ed79-46c8-8c90bad20b0f"
       ],
       "name": "ReLU",
       "category": "Activation"
@@ -216,7 +276,7 @@
         "246e061c-316a-cb49-fbf8-bf2c1d29a66a"
       ],
       "prev": [
-        "93964d41-25ab-be58-f41f-14e5770a7bb4"
+        "ab455c37-8574-bb41-ad72-0b61c49a5a61"
       ],
       "name": "ReLU",
       "category": "Activation"
@@ -225,7 +285,7 @@
       "id": "38346778-636b-bbd2-e6f4-31ca49630135",
       "type": "Convolution",
       "next": [
-        "67cf3d88-4a01-5d6b-9c28-58c01c1c5a4c"
+        "2291b462-223c-f738-ce28-3e458a589143"
       ],
       "prev": [
         "0d49d877-bdad-907e-eb48-ad78ed34dc02"
@@ -245,6 +305,20 @@
       "category": "Layer",
       "kernelDepth": ""
     },
+    "d9dd9006-2c7a-bd15-46ec-a286a3e71b44": {
+      "id": "d9dd9006-2c7a-bd15-46ec-a286a3e71b44",
+      "type": "BatchNormalization",
+      "next": [
+        "ba6bbe1a-db72-4ee0-4b46-4f56df1a8183"
+      ],
+      "prev": [
+        "863c1560-9e71-053b-a7f7-634ba0bbaea8"
+      ],
+      "size": "${inputWidth}*${inputHeight}*${1x1}",
+      "name": "BatchNormalization",
+      "category": "Regularization",
+      "trainable": "true"
+    },
     "047dd425-7a81-7918-8432-e9ee7770af73": {
       "id": "047dd425-7a81-7918-8432-e9ee7770af73",
       "type": "Output",
@@ -258,10 +332,10 @@
       "id": "d273445a-2056-fb11-5b5b-c465a6fcdc32",
       "type": "Convolution",
       "next": [
-        "ebf755db-11bb-d48a-140b-e8a4b6d4c0d2"
+        "d603e872-5b3e-a8d0-8d86-c4ab088bbe6f"
       ],
       "prev": [
-        "95221ce1-f6da-efcb-d42b-4f62bf84a490"
+        "896944be-f745-8d59-02cf-5a653796f548"
       ],
       "noInputPlanes": "${noInputPlanes}",
       "strideX": "1",
@@ -282,7 +356,7 @@
       "id": "896944be-f745-8d59-02cf-5a653796f548",
       "type": "MaxPooling",
       "next": [
-        "95221ce1-f6da-efcb-d42b-4f62bf84a490"
+        "d273445a-2056-fb11-5b5b-c465a6fcdc32"
       ],
       "prev": [
         "0d49d877-bdad-907e-eb48-ad78ed34dc02"
