@@ -205,6 +205,8 @@ public abstract class AbstractLearner implements Learner {
 					}
 					
 					return;
+				} finally {
+					System.gc();
 				}
 
 				System.out.println("Stopped learning");

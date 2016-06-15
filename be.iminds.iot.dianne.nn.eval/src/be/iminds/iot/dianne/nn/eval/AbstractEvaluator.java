@@ -209,6 +209,8 @@ public abstract class AbstractEvaluator implements Evaluator {
 				l.onFinish(evaluatorId, progress);
 			}
 			evaluating = false;
+			
+			System.gc();
 		}
 	}
 	
