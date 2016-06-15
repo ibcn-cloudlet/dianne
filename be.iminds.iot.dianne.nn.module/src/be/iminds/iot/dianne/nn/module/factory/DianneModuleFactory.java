@@ -53,9 +53,7 @@ import be.iminds.iot.dianne.nn.module.join.Accumulate;
 import be.iminds.iot.dianne.nn.module.join.Concat;
 import be.iminds.iot.dianne.nn.module.join.Multiply;
 import be.iminds.iot.dianne.nn.module.layer.AvgPooling;
-import be.iminds.iot.dianne.nn.module.layer.BatchNormalization;
 import be.iminds.iot.dianne.nn.module.layer.Convolution;
-import be.iminds.iot.dianne.nn.module.layer.Dropout;
 import be.iminds.iot.dianne.nn.module.layer.FullConvolution;
 import be.iminds.iot.dianne.nn.module.layer.Linear;
 import be.iminds.iot.dianne.nn.module.layer.MaskedMaxPooling;
@@ -68,6 +66,8 @@ import be.iminds.iot.dianne.nn.module.preprocessing.Frame;
 import be.iminds.iot.dianne.nn.module.preprocessing.Narrow;
 import be.iminds.iot.dianne.nn.module.preprocessing.Normalization;
 import be.iminds.iot.dianne.nn.module.preprocessing.Scale;
+import be.iminds.iot.dianne.nn.module.regularization.BatchNormalization;
+import be.iminds.iot.dianne.nn.module.regularization.Dropout;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 @Component(property={"aiolos.proxy=false"})
@@ -80,16 +80,16 @@ public class DianneModuleFactory implements ModuleFactory {
 		// build list of supported modules
 		// TODO use reflection for this?
 		
+		addSupportedType( new ModuleTypeDTO("BatchNormalization", "Regularization", true, 
+				new ModulePropertyDTO("Size", "size", Integer.class.getName())));
+		
+		addSupportedType( new ModuleTypeDTO("Dropout", "Regularization", true, 
+				new ModulePropertyDTO("Dropout rate", "dropout", Float.class.getName())));
+		
 		addSupportedType( new ModuleTypeDTO("Linear", "Layer", true, 
 					new ModulePropertyDTO("Input size", "input", Integer.class.getName()),
 					new ModulePropertyDTO("Output size", "output", Integer.class.getName())));
 
-		addSupportedType( new ModuleTypeDTO("BatchNormalization", "Layer", true, 
-				new ModulePropertyDTO("Size", "size", Integer.class.getName())));
-		
-		addSupportedType( new ModuleTypeDTO("Dropout", "Layer", true, 
-				new ModulePropertyDTO("Dropout rate", "dropout", Float.class.getName())));
-		
 		addSupportedType(new ModuleTypeDTO("Sigmoid", "Activation", false));
 		
 		addSupportedType(new ModuleTypeDTO("Tanh", "Activation", false));

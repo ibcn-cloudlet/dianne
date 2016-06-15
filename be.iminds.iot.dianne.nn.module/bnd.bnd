@@ -18,6 +18,7 @@ Export-Package: \
 -dsannotations: *
 Private-Package: \
 	be.iminds.iot.dianne.nn.module.activation,\
+	be.iminds.iot.dianne.nn.module.regularization,\
 	be.iminds.iot.dianne.nn.module.composite,\
 	be.iminds.iot.dianne.nn.module.factory,\
 	be.iminds.iot.dianne.nn.module.preprocessing,\

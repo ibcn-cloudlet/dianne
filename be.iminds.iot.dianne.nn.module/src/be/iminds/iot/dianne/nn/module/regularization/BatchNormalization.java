@@ -20,7 +20,7 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez, Elias De Coninck
  *******************************************************************************/
-package be.iminds.iot.dianne.nn.module.layer;
+package be.iminds.iot.dianne.nn.module.regularization;
 
 import java.util.UUID;
 

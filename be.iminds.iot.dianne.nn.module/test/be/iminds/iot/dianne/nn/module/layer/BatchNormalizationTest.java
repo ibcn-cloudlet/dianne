@@ -3,6 +3,7 @@ package be.iminds.iot.dianne.nn.module.layer;
 import org.junit.Test;
 
 import be.iminds.iot.dianne.nn.module.ModuleTest;
+import be.iminds.iot.dianne.nn.module.regularization.BatchNormalization;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 public class BatchNormalizationTest extends ModuleTest {
