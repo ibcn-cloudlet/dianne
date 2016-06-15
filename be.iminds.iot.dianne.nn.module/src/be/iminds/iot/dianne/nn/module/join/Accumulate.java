@@ -54,9 +54,10 @@ public class Accumulate extends Join {
 	@Override
 	protected void backward() {
 		// forward same error to all
-		// TODO copy needed?
 		for(UUID id : gradInputs.keySet()){
-			gradInputs.put(id, gradOutput);
+			Tensor gradInput = gradInputs.get(id);
+			gradInput = gradOutput.copyInto(gradInput);
+			gradInputs.put(id, gradInput);
 		}
 	}
 
