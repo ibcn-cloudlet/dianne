@@ -33,12 +33,24 @@ public class Zeropad extends AbstractModule {
 	
 	public Zeropad(final int... padding){
 		super();
-		this.padding = padding;
+		for(int i = 0;i<padding.length;i++){
+			if(padding[i]!=0){
+				this.padding = padding;
+				return;
+			}
+		}
+		this.padding = null;
 	}
 	
 	public Zeropad(UUID id, final int... padding){
 		super(id);
-		this.padding = padding;
+		for(int i = 0;i<padding.length;i++){
+			if(padding[i]!=0){
+				this.padding = padding;
+				return;
+			}
+		}
+		this.padding = null;
 	}
 
 	private int[] inputDims;
@@ -46,6 +58,12 @@ public class Zeropad extends AbstractModule {
 	
 	@Override
 	protected void forward() {
+		// pass through if no padding specified
+		if(padding == null){
+			output = input;
+			return;
+		}
+		
 		inputDims = input.dims();
 		int[] outputDims = new int[inputDims.length];
 		// apply padding from back to front ... 2d padding on 3d tensor means padding the last 2 dims
@@ -69,6 +87,12 @@ public class Zeropad extends AbstractModule {
 
 	@Override
 	protected void backward() {
+		// pass through if no padding specified
+		if(padding==null){
+			gradInput = gradOutput;
+			return;
+		}
+		
 		if(gradInput == null){
 			gradInput = new Tensor(inputDims);
 		}
