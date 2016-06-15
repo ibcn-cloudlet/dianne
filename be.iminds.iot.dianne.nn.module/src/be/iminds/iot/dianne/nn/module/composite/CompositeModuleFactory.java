@@ -258,6 +258,10 @@ public class CompositeModuleFactory implements ModuleFactory {
 				size = 1;
 				parameterMapping.put(m.id, size);
 				break;
+			case "BatchNormalization":
+				size = Integer.parseInt(m.properties.get("size"))*4;
+				parameterMapping.put(m.id, size);
+				break;	
 			case "Memory":
 				size =  Integer.parseInt(m.properties.get("size"));
 				memoryMapping.put(m.id, size);
@@ -395,7 +399,7 @@ public class CompositeModuleFactory implements ModuleFactory {
 		String s1 = expression.substring(0, op);
 		float a1 = Float.parseFloat(s1);
 		String s2 = expression.substring(op+1);
-		float a2 = Float.parseFloat(s2);
+		float a2 = Float.parseFloat(eval(s2, clazz));
 		char operator = expression.charAt(op);
 		
 		float result = 0;
