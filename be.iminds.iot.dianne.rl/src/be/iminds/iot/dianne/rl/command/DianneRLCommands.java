@@ -38,6 +38,7 @@ import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.api.rl.agent.Agent;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
+import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
 
 /**
  * Separate component for rl commands ... should be moved to the command bundle later on
@@ -97,8 +98,10 @@ public class DianneRLCommands {
 			start = p.size() - count;
 			start = start > 0 ? start : 0;
 		}
+		ExperiencePoolSample s = null;
 		for(int i=start;i<p.size();i++){
-			writer.println(i+"\t"+Arrays.toString(p.getState(i).get())+"\t"+Arrays.toString(p.getAction(i).get())+"\t"+p.getReward(i)+"\t"+(p.getNextState(i)==null ? "null" : Arrays.toString(p.getNextState(i).get())));
+			s = p.getSample(s, i);
+			writer.println(i+"\t"+Arrays.toString(s.getState().get())+"\t"+Arrays.toString(s.getAction().get())+"\t"+s.getReward()+"\t"+(s.getNextState()==null ? "null" : Arrays.toString(s.getNextState().get())));
 		}
 	}
 	

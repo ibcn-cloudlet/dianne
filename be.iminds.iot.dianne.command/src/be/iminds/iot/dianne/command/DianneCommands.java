@@ -277,7 +277,7 @@ public class DianneCommands {
 
 		// get input and forward
 		try {
-			Tensor in = d.getInputSample(index);
+			Tensor in = d.getSample(index).input;
 			long t1 = System.currentTimeMillis();
 			nn.forward(null, null, in, tags).then(
 				p -> {

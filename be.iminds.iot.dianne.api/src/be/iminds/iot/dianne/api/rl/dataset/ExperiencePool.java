@@ -24,6 +24,7 @@ package be.iminds.iot.dianne.api.rl.dataset;
 
 import java.util.Collection;
 
+import be.iminds.iot.dianne.api.dataset.Batch;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.tensor.Tensor;
 
@@ -48,70 +49,37 @@ public interface ExperiencePool extends Dataset {
 	int size();
 
 	/**
-	 * Get a sample from the experience pool. 
+	 * Returns the dimensions of the state
 	 * 
-	 * @param index the index to fetch, should be smaller then size()
-	 * @return the sample at position index
+	 * @return state dimensions
 	 */
-	ExperiencePoolSample getSample(final int index);
-	
-	ExperiencePoolSample getSample(ExperiencePoolSample s, final int index);
-
-	/**
-	 * Get an input sample from the experience pool. This vector represents an Environment state
-	 * 
-	 * @param index the index to fetch, should be smaller then size()
-	 * @return the input sample at position index
-	 */
-	default Tensor getInputSample(final int index){
-		return getInputSample(null, index);
-	}
-	
-	Tensor getInputSample(Tensor t, final int index);
-	
-	/**
-	 * Get the Environment state of a sample, identical to getInputSample()
-	 * 
-	 * @param index the index to fetch, should be smaller then size()
-	 * @return the state of sample at position index
-	 */
-	default Tensor getState(final int index){
-		return getState(null, index);
-	}
-	
-	Tensor getState(Tensor t, final int index);
-		
 	default int[] stateDims(){
 		return inputDims();
 	}
 	
 	/**
-	 * Get an output vector from the experience pool. This vector represents the action done in the 
-	 * state of this sample
+	 * Returns the dimensions of the actions
 	 * 
-	 * @param index the index to fetch, should be smaller then size()
-	 * @return the output vector corresponding with input sample index
+	 * @return action dimensions
 	 */
-	default Tensor getOutputSample(final int index){
-		return getOutputSample(null, index);
+	default int[] actionDims(){
+		return targetDims();
 	}
-	
-	Tensor getOutputSample(Tensor t, final int index);
 	
 	/**
-	 * Get the action done in state of a sample, identical to getOutputSample()
+	 * Get a sample from the experience pool. 
 	 * 
 	 * @param index the index to fetch, should be smaller then size()
-	 * @return the action of sample at position index
+	 * @return the sample at position index
 	 */
-	default Tensor getAction(final int index){
-		return getAction(null, index);
+	default ExperiencePoolSample getSample(final int index){
+		return getSample(null, index);
 	}
 	
-	Tensor getAction(Tensor t, final int index);
-	
-	default int[] actionDims(){
-		return outputDims();
+	ExperiencePoolSample getSample(ExperiencePoolSample s, final int index);
+
+	default Batch getBatch(Batch b, final int...indices){
+		throw new UnsupportedOperationException("Batches not (yet) supported for Experience Pools");
 	}
 	
 	/**
@@ -128,25 +96,7 @@ public interface ExperiencePool extends Dataset {
 	 */
 	String[] getLabels();
 	
-	/**
-	 * Get the reward that the action for this sample resulted in
-	 * 
-	 * @param index the index to fetch, should be smaller then size()
-	 * @return reward
-	 */
-	float getReward(final int index);
-	
-	/**
-	 * Get the next state for a given sample
-	 * 
-	 * @param index the index to fetch, should be smaller then size()
-	 * @return reward
-	 */
-	default Tensor getNextState(final int index){
-		return getNextState(null, index);
-	}
-	
-	Tensor getNextState(Tensor t, final int index);
+
 	
 	/**
 	 * Add a new sample to the experience pool

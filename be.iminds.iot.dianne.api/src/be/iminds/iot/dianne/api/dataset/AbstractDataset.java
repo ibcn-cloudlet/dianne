@@ -4,6 +4,8 @@ import java.util.Map;
 
 import org.osgi.service.component.annotations.Activate;
 
+import be.iminds.iot.dianne.tensor.Tensor;
+
 public abstract class AbstractDataset implements Dataset {
 	
 	protected String name;
@@ -77,6 +79,21 @@ public abstract class AbstractDataset implements Dataset {
 	
 	protected abstract void readLabels(String labelsFile);
 
+	protected abstract Tensor getInputSample(Tensor t, int index);
+
+	protected abstract Tensor getOutputSample(Tensor t, int index);
+	
+	@Override
+	public Sample getSample(Sample s, final int index){
+		if(s == null){
+			s = new Sample();
+		}
+		
+		s.input = getInputSample(s.input, index);
+		s.target = getOutputSample(s.target, index);
+		
+		return s;
+	}
 	
 	@Override
 	public String getName(){
@@ -89,7 +106,7 @@ public abstract class AbstractDataset implements Dataset {
 	}
 	
 	@Override
-	public int[] outputDims(){
+	public int[] targetDims(){
 		return outputDims;
 	}
 	

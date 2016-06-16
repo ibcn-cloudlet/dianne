@@ -235,9 +235,9 @@ public class DeepRLAgent implements Agent {
 						}
 					}
 					
-					s.output = selectActionFromObservation(s.input, i);
+					s.target = selectActionFromObservation(s.input, i);
 	
-					s.reward= env.performAction(s.output);
+					s.reward= env.performAction(s.target);
 					s.nextState = env.getObservation(next);
 					if(s.nextState == null){
 						s.isTerminal = true;
@@ -248,7 +248,7 @@ public class DeepRLAgent implements Agent {
 					// upload in batch
 					ExperiencePoolSample b = buffer.get((int)(i % config.experienceInterval));
 					b.input = s.input.copyInto(b.input);
-					b.output = s.output.copyInto(b.output);
+					b.target = s.target.copyInto(b.target);
 					b.reward = s.reward;
 					b.isTerminal = s.isTerminal;
 					if(!s.isTerminal){

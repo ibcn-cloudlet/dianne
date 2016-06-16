@@ -41,41 +41,45 @@ import be.iminds.iot.dianne.tensor.Tensor;
  */
 public class Batch extends Sample {
 	
-	public final int batchSize;
-	public final Tensor[] inputSamples;
-	public final Tensor[] outputSamples;
+	public Sample[] samples;
 	
+	protected Batch(){};
 	
-	public Batch(Tensor i, Tensor o){
-		super(i, o);
-		// TODO check i.size(0)==o.size(0)??
-		batchSize = i.size(0);
-		inputSamples = new Tensor[batchSize];
-		outputSamples = new Tensor[batchSize];
-		for(int k=0;k<batchSize;k++){
-			inputSamples[k] = i.select(0, k);
-			outputSamples[k] = o.select(0, k);
+	public Batch(int batchSize, int[] inputDims, int[] targetDims){
+		super(new Tensor(batchSize, inputDims),new Tensor(batchSize, targetDims));
+		this.samples = new Sample[batchSize];
+		for(int i = 0; i< batchSize; i++){
+			this.samples[i] = new Sample(input.select(0, i), target.select(0, i));
 		}
 	}
 
-	public Batch(Tensor[] i, Tensor[] o){
+	public Batch(int batchSize){
+		// fill with empty samples...
+		this.samples = new Sample[batchSize];
+		for(int i = 0; i< batchSize; i++){
+			this.samples[i] = new Sample();
+		}
+	}
+	
+	public Batch(Sample[] samples){
 		// no single batch Tensor exists
 		// only an array of separate tensors
-		// TODO check i.length == o.length??
-		batchSize = i.length;
-		inputSamples = i;
-		outputSamples = o;
+		this.samples = samples;
 	}
 	
 	public int getSize(){
-		return batchSize;
+		return samples.length;
+	}
+	
+	public Sample getSample(int i){
+		return samples[i];
 	}
 	
 	public Tensor getInput(int i){
-		return inputSamples[i];
+		return samples[i].input;
 	}
 	
-	public Tensor getOutput(int i){
-		return outputSamples[i];
+	public Tensor getTarget(int i){
+		return samples[i].target;
 	}
 }

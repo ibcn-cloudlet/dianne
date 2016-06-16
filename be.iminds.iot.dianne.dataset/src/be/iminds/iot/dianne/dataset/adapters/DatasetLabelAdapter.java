@@ -32,6 +32,7 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
@@ -52,12 +53,11 @@ import be.iminds.iot.dianne.tensor.TensorOps;
  * @author tverbele
  *
  */
-@Component(configurationPolicy=ConfigurationPolicy.REQUIRE,
+@Component(
+	service={Dataset.class},
+	configurationPolicy=ConfigurationPolicy.REQUIRE,
 	configurationPid="be.iminds.iot.dianne.dataset.adapters.LabelAdapter")
-public class DatasetLabelAdapter implements Dataset {
-	
-	private Dataset data;
-	private String name;
+public class DatasetLabelAdapter extends AbstractDatasetAdapter {
 	
 	// label indices
 	private int[] labelIndices;
@@ -65,14 +65,7 @@ public class DatasetLabelAdapter implements Dataset {
 	// add "other" category
 	private boolean other;
 	
-	@Reference
-	void setDataset(Dataset d){
-		this.data = d;
-	}
-	
-	@Activate
-	void activate(Map<String, Object> config){
-		this.name = (String)config.get("name");
+	protected void configure(Map<String, Object> config){
 		// whether or not to aggregate unspecified labels into "other" class
 		this.other = Boolean.parseBoolean((String)config.get("other"));
 		String[] labels = (String[])config.get("labels");
@@ -88,52 +81,21 @@ public class DatasetLabelAdapter implements Dataset {
 		}
 	}
 	
-	
 	@Override
-	public String getName(){
-		return name;
-	}
-	
-	@Override
-	public int[] inputDims(){
-		return data.inputDims();
-	}
-	
-	@Override
-	public int[] outputDims(){
-		return data.outputDims();
-	}
-	
-	@Override
-	public int size() {
-		return data.size();
-	}
-	
-	@Override
-	public Tensor getInputSample(Tensor t, int index) {
-		return data.getInputSample(t, index);
-	}
-
-	@Override
-	public Tensor getOutputSample(Tensor t, int index) {
-		// TODO adapt outputsample
-		Tensor out = data.getOutputSample(t, index);
-		if(t == null)
-			t = new Tensor(labels.length);
+	protected void adaptSample(Sample original, Sample adapted) {
+		adapted.input = original.input.copyInto(adapted.input);
+		if(adapted.target == null){
+			adapted.target = new Tensor(labels.length);
+		}
+		adapted.target.fill(0.0f);
 		for(int i=0;i<labelIndices.length;i++){
-			t.set(out.get(labelIndices[i]), i);
+			adapted.target.set(original.target.get(labelIndices[i]), i);
 		}
 		if(other){
-			if(TensorOps.sum(t)==0){
-				t.set(1.0f, labels.length-1);
+			if(TensorOps.sum(adapted.target)==0){
+				adapted.target.set(1.0f, labels.length-1);
 			}
 		}
-		return t;
 	}
 	
-	@Override
-	public String[] getLabels(){
-		return labels;
-	}
-
 }

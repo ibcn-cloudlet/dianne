@@ -23,6 +23,7 @@
 package be.iminds.iot.dianne.nn.test.integration;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.nn.test.DianneTest;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -38,11 +39,11 @@ public class OverfeatTest extends DianneTest {
 		NeuralNetwork nn = deployNN("overfeat_fast");
 		Dataset imagenet = getDataset("ImageNet");
 		
-		final Tensor sample = imagenet.getInputSample(TEST_SAMPLE);		
-		final Tensor result = nn.forward(sample);
+		final Sample sample = imagenet.getSample(TEST_SAMPLE);
+		final Tensor result = nn.forward(sample.input);
 		
 		int index = TensorOps.argmax(result);
-		int expected = TensorOps.argmax(imagenet.getOutputSample(TEST_SAMPLE));
+		int expected = TensorOps.argmax(sample.target);
 		Assert.assertEquals(expected, index);
 	}
 }

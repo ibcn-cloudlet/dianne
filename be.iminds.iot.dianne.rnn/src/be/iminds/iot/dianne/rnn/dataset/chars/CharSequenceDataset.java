@@ -31,6 +31,7 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.api.rnn.dataset.SequenceDataset;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
@@ -85,15 +86,13 @@ public class CharSequenceDataset implements SequenceDataset{
 	}
 	
 	@Override
-	public Tensor getInputSample(Tensor t, int index ) {
-		t = asTensor(data.charAt(index), t);
-		return t;
-	}
-
-	@Override
-	public Tensor getOutputSample(Tensor t, int index) {
-		t = asTensor(data.charAt(index+1), t);
-		return t;
+	public Sample getSample(Sample s, int index){
+		if(s == null){
+			s = new Sample();
+		}
+		s.input = asTensor(data.charAt(index), s.input);
+		s.target = asTensor(data.charAt(index+1), s.target);
+		return s;
 	}
 
 	@Override
@@ -135,7 +134,7 @@ public class CharSequenceDataset implements SequenceDataset{
 	}
 
 	@Override
-	public int[] outputDims() {
+	public int[] targetDims() {
 		return new int[]{chars.length()};
 	}
 }

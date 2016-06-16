@@ -124,7 +124,7 @@ public class DeepQLearner extends AbstractLearner {
 			Tensor out = nn.forward(in, ""+index);
 			
 			// evaluate criterion
-			Tensor action = sample.output;
+			Tensor action = sample.target;
 			float reward = sample.reward;
 			Tensor nextState = sample.nextState;
 			

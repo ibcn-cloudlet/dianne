@@ -30,7 +30,7 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
-import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.api.dataset.Sample;
 
 /**
  * This Dataset adapter will set the target output the same as the input.
@@ -40,56 +40,26 @@ import be.iminds.iot.dianne.tensor.Tensor;
  * @author tverbele
  *
  */
-@Component(configurationPolicy=ConfigurationPolicy.REQUIRE,
+@Component(
+	service={Dataset.class},	
+	configurationPolicy=ConfigurationPolicy.REQUIRE,
 	configurationPid="be.iminds.iot.dianne.dataset.adapters.AutoencoderAdapter")
-public class DatasetAutoencoderAdapter implements Dataset {
-
-	private Dataset data;
-	private String name;
-
-	@Reference
-	void setDataset(Dataset d){
-		this.data = d;
-	}
-	
-	@Activate
-	void activate(Map<String, Object> properties) {
-		this.name = (String)properties.get("name");
-	}
-	
-	@Override
-	public String getName(){
-		return name;
-	}
-	
-	@Override
-	public int[] inputDims(){
-		return data.inputDims();
-	}
-	
-	@Override
-	public int[] outputDims(){
-		return data.inputDims();
-	}
-	
-	@Override
-	public int size() {
-		return data.size();
-	}
+public class DatasetAutoencoderAdapter extends AbstractDatasetAdapter {
 
 	@Override
-	public Tensor getInputSample(Tensor t, int index) {
-		return data.getInputSample(t, index);
-	}
-
-	@Override
-	public Tensor getOutputSample(Tensor t, int index) {
-		return data.getInputSample(t, index);
+	protected void configure(Map<String, Object> properties) {
 	}
 	
 	@Override
 	public String[] getLabels(){
 		return null;
+	}
+
+
+	@Override
+	protected void adaptSample(Sample original, Sample adapted) {
+		adapted.input = original.input.copyInto(adapted.input);
+		adapted.target = original.target.copyInto(adapted.target);
 	}
 
 }

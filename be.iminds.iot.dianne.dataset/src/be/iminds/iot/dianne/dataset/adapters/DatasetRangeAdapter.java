@@ -24,12 +24,11 @@ package be.iminds.iot.dianne.dataset.adapters;
 
 import java.util.Map;
 
-import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
-import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
@@ -49,42 +48,19 @@ import be.iminds.iot.dianne.tensor.Tensor;
  * @author tverbele
  *
  */
-@Component(configurationPolicy=ConfigurationPolicy.REQUIRE,
+@Component(
+	service={Dataset.class},
+	configurationPolicy=ConfigurationPolicy.REQUIRE,
 	configurationPid="be.iminds.iot.dianne.dataset.adapters.RangeAdapter")
-public class DatasetRangeAdapter implements Dataset {
-
-	private Dataset data;
-	private String name;
+public class DatasetRangeAdapter extends AbstractDatasetAdapter {
 
 	// start and end index
 	private int start;
 	private int end;
 	
-	@Reference
-	void setDataset(Dataset d){
-		this.data = d;
-	}
-	
-	@Activate
-	void activate(Map<String, Object> properties) {
-		this.name = (String)properties.get("name");
+	protected void configure(Map<String, Object> properties) {
 		this.start = Integer.parseInt((String)properties.get("start"));
 		this.end = Integer.parseInt((String)properties.get("end"));
-	}
-	
-	@Override
-	public String getName(){
-		return name;
-	}
-	
-	@Override
-	public int[] inputDims(){
-		return data.inputDims();
-	}
-	
-	@Override
-	public int[] outputDims(){
-		return data.outputDims();
 	}
 	
 	@Override
@@ -93,18 +69,11 @@ public class DatasetRangeAdapter implements Dataset {
 	}
 
 	@Override
-	public Tensor getInputSample(Tensor t, int index) {
-		return data.getInputSample(t, start+index);
+	public Sample getSample(Sample s, int index){
+		return data.getSample(s, start+index);
 	}
 
 	@Override
-	public Tensor getOutputSample(Tensor t, int index) {
-		return data.getOutputSample(t, start+index);
-	}
-	
-	@Override
-	public String[] getLabels(){
-		return data.getLabels();
-	}
+	protected void adaptSample(Sample original, Sample adapted) {}
 
 }

@@ -23,6 +23,7 @@
 package be.iminds.iot.dianne.nn.test.integration;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.nn.test.DianneTest;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -36,12 +37,12 @@ public class MNISTTest extends DianneTest {
 		NeuralNetwork nn = deployNN("mnist-20");
 		Dataset mnist = getDataset("MNIST");
 		
-		final Tensor sample = mnist.getInputSample(0);		
-		final Tensor result = nn.forward(sample);
+		final Sample sample = mnist.getSample(0);
+		final Tensor result = nn.forward(sample.input);
 		
 		int index = TensorOps.argmax(result);
 		float prob = result.get(index);
-		int expected = TensorOps.argmax(mnist.getOutputSample(0));
+		int expected = TensorOps.argmax(sample.target);
 		Assert.assertEquals(expected, index);
 		
 		// should yield the same result

@@ -91,10 +91,10 @@ public class FeedForwardLearner extends AbstractLearner {
 						Tensor output = p.getValue().tensor;
 						
 						// Error
-						error[0] += criterion.error(output, batch.output).get(0);
+						error[0] += criterion.error(output, batch.target).get(0);
 	
 						// Error gradient
-						Tensor gradOut = criterion.grad(output, batch.output);
+						Tensor gradOut = criterion.grad(output, batch.target);
 						
 						// Backward
 						return nn.backward(null, null, gradOut);
@@ -115,16 +115,16 @@ public class FeedForwardLearner extends AbstractLearner {
 			// Cannot load a batch for this dataset, still process one by one
 			for(int k=0;k<config.batchSize;k++){
 				final int b = k;
-				Promise result = nn.forward(null, null, batch.inputSamples[b]).then(
+				Promise result = nn.forward(null, null, batch.samples[b].input).then(
 						p -> {
 							// Forward
 							Tensor output = p.getValue().tensor;
 							
 							// Error
-							error[0] += criterion.error(output, batch.outputSamples[b]).get(0);
+							error[0] += criterion.error(output, batch.samples[b].target).get(0);
 		
 							// Error gradient
-							Tensor gradOut = criterion.grad(output, batch.outputSamples[b]);
+							Tensor gradOut = criterion.grad(output, batch.samples[b].target);
 							
 							// Backward
 							return nn.backward(null, null, gradOut);

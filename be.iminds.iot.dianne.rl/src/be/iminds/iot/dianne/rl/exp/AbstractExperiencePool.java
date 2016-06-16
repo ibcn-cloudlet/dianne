@@ -67,75 +67,19 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	@Override
 	protected void readLabels(String labelsFile) {}
 	
+	// obsolete for ExperiencePool?
 	@Override
-	public Tensor getInputSample(Tensor t, int index) {
-		return getState(t, index);
+	protected Tensor getInputSample(Tensor t, int index) {
+		return null;
 	}
 
 	@Override
-	public Tensor getState(Tensor t, int index) {
-		float[] sampleBuffer = loadData(getIndex(index));
-		float[] stateBuffer = new float[stateSize];
-		System.arraycopy(sampleBuffer, 0, stateBuffer, 0, stateSize);
-
-		if(t == null){
-			t = new Tensor(stateBuffer, stateDims);
-		} else {
-			t.set(stateBuffer);
-		}
-		
-		return t;
+	protected Tensor getOutputSample(Tensor t, int index) {
+		return null;
 	}
 
-	@Override
-	public Tensor getOutputSample(Tensor t, int index) {
-		return getAction(t, index);	
-	}
-
-	@Override
-	public Tensor getAction(Tensor t, int index) {
-		float[] sampleBuffer = loadData(getIndex(index));
-		float[] actionBuffer = new float[actionSize];
-		System.arraycopy(sampleBuffer, stateSize, actionBuffer, 0, actionSize);
-		
-		if(t == null){
-			t = new Tensor(actionBuffer, actionDims);
-		} else {
-			t.set(actionBuffer);
-		}
-		
-		return t;
-	}
-
-	@Override
-	public float getReward(int index) {
-		float[] sampleBuffer = loadData(getIndex(index));
-		return sampleBuffer[stateSize+actionSize];
-	}
-
-	@Override
-	public Tensor getNextState(Tensor t, int index) {
-		float[] sampleBuffer = loadData(getIndex(index));
-		float[] nextStateBuffer = new float[stateSize];
-		System.arraycopy(sampleBuffer, stateSize+actionSize+1, nextStateBuffer, 0, stateSize);
-		
-		if(nextStateBuffer[0] == -Float.MAX_VALUE){
-			return null;
-		}
-		
-		if(t == null){
-			t = new Tensor(nextStateBuffer, stateDims);
-		} else {
-			t.set(nextStateBuffer);
-		}
-		
-		return t;
-	}
 	
-	public ExperiencePoolSample getSample(int index) {
-		return getSample(null, index);
-	}
-	
+	@Override
 	public ExperiencePoolSample getSample(ExperiencePoolSample s, int index){
 		int i = getIndex(index); // TODO does it matter that we shift the index here?!
 		
@@ -159,10 +103,10 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 			s.input.set(stateBuffer);
 		}
 		
-		if(s.output == null){
-			s.output = new Tensor(actionBuffer, actionDims);
+		if(s.target == null){
+			s.target = new Tensor(actionBuffer, actionDims);
 		} else {
-			s.output.set(actionBuffer);
+			s.target.set(actionBuffer);
 		}
 		
 		s.reward = rewardBuffer;
@@ -231,7 +175,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 
 		float[] writeBuffer = new float[sampleSize];
 		System.arraycopy(s.input.get(), 0, writeBuffer, 0, stateSize);
-		System.arraycopy(s.output.get(), 0, writeBuffer, stateSize, actionSize);
+		System.arraycopy(s.target.get(), 0, writeBuffer, stateSize, actionSize);
 		writeBuffer[stateSize+actionSize] = s.reward;
 		if(s.isTerminal){
 			System.arraycopy(emptyState, 0, writeBuffer, stateSize+actionSize+1, stateSize);

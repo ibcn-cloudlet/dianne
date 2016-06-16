@@ -40,6 +40,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.api.dataset.SamplingConfig;
 import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.Dianne;
@@ -80,7 +81,7 @@ public abstract class AbstractEvaluator implements Evaluator {
 	
 	protected volatile boolean evaluating = false;
 	
-	protected int sample = 0;
+	protected int s = 0;
 	protected float error = 0;
 	protected int total = 0;
 	protected Tensor confusion;
@@ -154,20 +155,20 @@ public abstract class AbstractEvaluator implements Evaluator {
 			outputs = this.config.includeOutputs ? new ArrayList<Tensor>() : null;
 			tStart = System.currentTimeMillis(); tForward = 0;
 			
-			Tensor in = null;
-			for(sample=0;sample<indices.length;sample++){
-				in = d.getInputSample(in, indices[sample]);
+			Sample sample = null;
+			for(s=0;s<indices.length;s++){
+				sample = d.getSample(sample, indices[s]);
 				
 				long t = System.nanoTime();
-				Tensor out = nn.forward(in);
+				Tensor out = nn.forward(sample.input);
 				tForward += System.nanoTime() - t;
 				
 				if(outputs!=null)
 					outputs.add(out.copyInto(null));
 				
-				evalOutput(sample, out, d.getOutputSample(indices[sample]));
+				evalOutput(s, out, sample.target);
 				
-				if(sample % 1000 == 0){
+				if(s % 1000 == 0){
 					listenerExecutor.execute(()->{
 						List<EvaluatorListener> copy = new ArrayList<>();
 						synchronized(listeners){
@@ -220,7 +221,7 @@ public abstract class AbstractEvaluator implements Evaluator {
 		if(!evaluating)
 			return null;
 		
-		EvaluationProgress progress = new EvaluationProgress(sample, total, error/sample, System.currentTimeMillis()-tStart, (tForward/1000000f)/total);
+		EvaluationProgress progress = new EvaluationProgress(s, total, error/s, System.currentTimeMillis()-tStart, (tForward/1000000f)/total);
 		return progress;
 	}
 	

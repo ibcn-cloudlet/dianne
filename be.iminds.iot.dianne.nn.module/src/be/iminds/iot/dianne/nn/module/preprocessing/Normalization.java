@@ -25,6 +25,7 @@ package be.iminds.iot.dianne.nn.module.preprocessing;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
 import be.iminds.iot.dianne.api.nn.module.Preprocessor;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -77,9 +78,10 @@ public class Normalization extends AbstractModule implements Preprocessor {
 		float m = 0;
 		float m2 = 0;
 		float d,x;
+		Sample s = null;
 		for(int i=0;i<data.size();i++){
-			Tensor input = data.getInputSample(i);
-			float[] inputData = input.get();
+			s = data.getSample(s, i);
+			float[] inputData = s.input.get();
 			// TODO normalize over all data, what if this is subtensor?
 			for(int k=0;k<inputData.length;k++){
 				x = inputData[k];

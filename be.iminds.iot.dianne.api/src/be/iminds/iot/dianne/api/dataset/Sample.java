@@ -34,20 +34,20 @@ import be.iminds.iot.dianne.tensor.Tensor;
 public class Sample {
 	
 	public Tensor input;
-	public Tensor output;
+	public Tensor target;
 	
 	public Sample(){}
 	
-	public Sample(Tensor input, Tensor output){
+	public Sample(Tensor input, Tensor target){
 		this.input = input;
-		this.output = output;
+		this.target = target;
 	}
 	
 	public Tensor getInput(){
 		return input;
 	}
 	
-	public Tensor getOutput(){
-		return output;
+	public Tensor getTarget(){
+		return target;
 	}
 }

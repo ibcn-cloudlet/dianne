@@ -256,9 +256,9 @@ public class DianneRunner extends HttpServlet {
 				
 				String[] labels = d.getLabels();
 				if(labels != null){
-					sample.add("output", new JsonPrimitive(labels[TensorOps.argmax(s.output)]));
+					sample.add("output", new JsonPrimitive(labels[TensorOps.argmax(s.target)]));
 				} else {
-					sample.add("output", parser.parse(Arrays.toString(s.output.get())));
+					sample.add("output", parser.parse(Arrays.toString(s.target.get())));
 				}
 				
 				response.getWriter().println(sample.toString());

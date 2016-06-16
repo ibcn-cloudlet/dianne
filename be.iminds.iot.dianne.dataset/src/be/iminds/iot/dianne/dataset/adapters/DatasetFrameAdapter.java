@@ -30,7 +30,7 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
-import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
 /**
@@ -48,63 +48,50 @@ import be.iminds.iot.dianne.tensor.TensorOps;
  * @author tverbele
  *
  */
-@Component(configurationPolicy=ConfigurationPolicy.REQUIRE,
+@Component(
+	service={Dataset.class},
+	configurationPolicy=ConfigurationPolicy.REQUIRE,
 	configurationPid="be.iminds.iot.dianne.dataset.adapters.FrameAdapter")
-public class DatasetFrameAdapter implements Dataset {
-
-	private Dataset data;
-	private String name;
+public class DatasetFrameAdapter extends AbstractDatasetAdapter {
 
 	private int[] dims;
+	private boolean frameTarget = false;
 	
-	@Reference
-	void setDataset(Dataset d){
-		this.data = d;
-	}
-	
-	@Activate
-	void activate(Map<String, Object> properties) {
-		this.name = (String)properties.get("name");
+	protected void configure(Map<String, Object> properties) {
 		String[] d = (String[])properties.get("frame");
 		dims = new int[d.length];
 		for(int i=0;i<d.length;i++){
 			dims[i] = Integer.parseInt(d[i]);
 		}
+		
+		// also frame the target if it has same dimensions!
+		int[] inputDims = data.inputDims();
+		if(inputDims != null){
+			int[] targetDims = data.targetDims();
+			if(inputDims.length == targetDims.length){
+				frameTarget = true;
+				for(int i=0;i<inputDims.length;i++){
+					if(inputDims[i] != targetDims[i]){
+						frameTarget = false;
+						break;
+					}
+				}
+			}
+		}
 	}
 	
-	@Override
-	public String getName(){
-		return name;
-	}
-	
-	@Override
 	public int[] inputDims(){
 		return dims;
 	}
 	
 	@Override
-	public int[] outputDims(){
-		return data.outputDims();
-	}
-	
-	@Override
-	public int size() {
-		return data.size();
-	}
-
-	@Override
-	public Tensor getInputSample(Tensor t, int index) {
-		return TensorOps.frame(t, data.getInputSample(index), dims);
-	}
-
-	@Override
-	public Tensor getOutputSample(Tensor t, int index) {
-		return data.getOutputSample(t, index);
-	}
-	
-	@Override
-	public String[] getLabels(){
-		return data.getLabels();
+	protected void adaptSample(Sample original, Sample adapted) {
+		adapted.input = TensorOps.frame(adapted.input, original.input, dims);
+		if(frameTarget){
+			adapted.target = TensorOps.frame(adapted.target, original.target, dims);
+		} else {
+			adapted.target = original.target.copyInto(adapted.target);
+		}
 	}
 
 }

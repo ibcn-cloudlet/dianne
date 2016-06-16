@@ -104,7 +104,7 @@ public class DianneDatasets extends HttpServlet {
 			if(d!=null){
 				JsonObject sample = new JsonObject();
 				
-				Tensor t = d.getInputSample(rand.nextInt(d.size()));
+				Tensor t = d.getSample(rand.nextInt(d.size())).input;
 				
 				if(t.dims().length==3){
 					sample.add("channels", new JsonPrimitive(t.dims()[0]));

@@ -54,7 +54,7 @@ public class ExperiencePoolSample extends Sample {
 	}
 	
 	public Tensor getAction(){
-		return output;
+		return target;
 	}
 	
 	public float getReward(){

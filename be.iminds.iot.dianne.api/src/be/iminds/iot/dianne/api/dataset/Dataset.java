@@ -22,16 +22,16 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.dataset;
 
-import be.iminds.iot.dianne.tensor.Tensor;
-
 /**
- * A Dataset is a collection of input data and the corresponding output classes.
+ * A Dataset is a collection of input data and the corresponding targets.
  * 
  * The input tensor can be an n-dimensional input (likely 1-D (sequence) or 2-D (images))
  * The input values range between 0 and 1.
  * 
- * The output tensor is a 1 dimensional vector filled with zeros and only 1 for the classes
- * that are represented by the corresponding input sample. 
+ * For classification problems the target tensor can be a 1 dimensional vector filled with 
+ * zeros and only 1 for the classes that are represented by the corresponding input sample.
+ * 
+ * For regression problems the target tensor can be arbitrary.
  * 
  * Each item from the output tensor corresponds with a human-readable label.
  * 
@@ -43,15 +43,15 @@ import be.iminds.iot.dianne.tensor.Tensor;
 public interface Dataset {
 	
 	/**
-	 * Returns the number of input-output samples in the dataset
+	 * Returns the number of samples in the dataset
 	 * 
-	 * @return the number of input-output samples in the dataset
+	 * @return the number of samples in the dataset
 	 */
 	int size();
 
 	int[] inputDims();
 	
-	int[] outputDims();
+	int[] targetDims();
 	
 	/**
 	 * Returns a sample from the dataset
@@ -62,85 +62,49 @@ public interface Dataset {
 		return getSample(null, index);
 	}
 	
-	default Sample getSample(Sample s, final int index){
-		if(s == null){
-			return new Sample(getInputSample(index), getOutputSample(index));
-		}
-		
-		getInputSample(s.input, index);
-		getOutputSample(s.output, index);
-		return s;
-	}
+	/**
+	 * Fetches a sample from the dataset and puts the data into the provided Sample object
+	 * If the provided Sample object is null a new one will be created and returned.
+	 * @param s the Sample object to put the data into
+	 * @param index the index to fetch, should be smaller than size()
+	 * @return the sample at position index
+	 */
+	Sample getSample(Sample s, final int index);
 	
+	/**
+	 * Returns a batch from the dataset with samples at indices.
+	 * @param indices the indices of the samples to fetch
+	 * @return batch with samples at indices
+	 */
 	default Batch getBatch(final int...indices) {
 		return getBatch(null, indices);
 	}
 	
+	/**
+	 * Fetches the samples at indices from the dataset and puts the data into the provided Batch object
+	 * If the provided Batch object is null a new one will be created and returned.
+	 * @param b Batch object to put the data in
+	 * @param indices indices to fetch
+	 * @return
+	 */
 	default Batch getBatch(Batch b, final int...indices){
 		if(b == null){
 			int[] inputDims = inputDims();
-			int[] outputDims = outputDims();
+			int[] targetDims = targetDims();
 
 			if(inputDims == null){
-				Tensor[] inputs = new Tensor[indices.length];
-				for(int i=0;i<indices.length;i++){
-					inputs[i] = new Tensor(inputDims);
-				}
-				
-				Tensor[] outputs = new Tensor[indices.length];
-				for(int i=0;i<indices.length;i++){
-					outputs[i] = new Tensor(outputDims);
-				}
-				
-				b = new Batch(inputs, outputs);
+				b = new Batch(indices.length);
 			} else {
-				int[] batchedInputDims = new int[inputDims.length+1];
-				batchedInputDims[0] = indices.length;
-				for(int i=0;i<inputDims.length;i++){
-					batchedInputDims[i+1] = inputDims[i];
-				}
-				
-				int[] batchedOutputDims = new int[outputDims.length+1];
-				batchedOutputDims[0] = indices.length;
-				for(int i=0;i<outputDims.length;i++){
-					batchedOutputDims[i+1] = outputDims[i];
-				}
-				
-				b = new Batch(new Tensor(batchedInputDims), new Tensor(batchedOutputDims));
+				b = new Batch(indices.length, inputDims, targetDims);
 			}
 		}
 		
 		for(int i=0;i<indices.length;i++){
-			getInputSample(b.inputSamples[i], indices[i]);
-			getOutputSample(b.outputSamples[i], indices[i]);
+			getSample(b.samples[i], indices[i]);
 		}
 		
 		return b;
 	}
-	
-	/**
-	 * Get an input sample from the dataset
-	 * 
-	 * @param index the index to fetch, should be smaller than size()
-	 * @return the input sample at position index
-	 */
-	default Tensor getInputSample(final int index){
-		return getInputSample(null, index);
-	}
-		
-	Tensor getInputSample(Tensor t, final int index);
-	
-	/**
-	 * Get an output vector from the dataset
-	 * 
-	 * @param index the index to fetch, should be smaller than size()
-	 * @return the output vector corresponding with input sample index
-	 */
-	default Tensor getOutputSample(final int index){
-		return getOutputSample(null, index);
-	}
-	
-	Tensor getOutputSample(Tensor t, final int index);
 	
 	/**
 	 * A human-readable name for this dataset
