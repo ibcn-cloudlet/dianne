@@ -25,7 +25,6 @@ package be.iminds.iot.dianne.builder;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -57,6 +56,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.DianneDatasets;
 import be.iminds.iot.dianne.api.nn.eval.ClassificationEvaluation;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.eval.Evaluator;
@@ -66,7 +66,6 @@ import be.iminds.iot.dianne.api.nn.learn.LearnerListener;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
-import be.iminds.iot.dianne.api.repository.RepositoryListener;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 @Component(service = { javax.servlet.Servlet.class }, 
@@ -79,10 +78,10 @@ public class DianneLearner extends HttpServlet {
 
 	private BundleContext context;
 	private DianneRepository repository;
+	private DianneDatasets datasets;
 	
 	private static final JsonParser parser = new JsonParser();
 	
-	private Map<String, Dataset> datasets = new HashMap<String, Dataset>();
 	private DiannePlatform platform;
 	private Map<String, Learner> learners = new ConcurrentHashMap<>();
 	private Map<String, Evaluator> evaluators = new ConcurrentHashMap<>();
@@ -98,6 +97,12 @@ public class DianneLearner extends HttpServlet {
 	@Reference
 	void setDianneRepository(DianneRepository repo){
 		this.repository = repo;
+	}
+	
+	
+	@Reference
+	void setDianneDatasets(DianneDatasets d){
+		this.datasets = d;
 	}
 	
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
@@ -125,18 +130,6 @@ public class DianneLearner extends HttpServlet {
 	@Reference
 	void setDiannePlatform(DiannePlatform p){
 		platform = p;
-	}
-	
-	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
-			policy=ReferencePolicy.DYNAMIC)
-	void addDataset(Dataset dataset, Map<String, Object> properties){
-		String name = (String) properties.get("name");
-		this.datasets.put(name, dataset);
-	}
-	
-	void removeDataset(Dataset dataset, Map<String, Object> properties){
-		String name = (String) properties.get("name");
-		this.datasets.remove(name);
 	}
 	
 	@Override
@@ -230,7 +223,7 @@ public class DianneLearner extends HttpServlet {
 					config.put("trace", "true");
 					
 					try {
-						Dataset d = datasets.get(dataset);
+						Dataset d = datasets.getDataset(dataset);
 						if(d!=null){
 							JsonObject labels = new JsonObject();
 							labels.add(target, new JsonPrimitive(Arrays.toString(d.getLabels())));

@@ -63,6 +63,12 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 			}
 		}
 	}
+	
+	// return max size in case of experience pool
+	@Override
+	public int size(){
+		return maxSize;
+	}
 
 	@Override
 	protected void readLabels(String labelsFile) {}

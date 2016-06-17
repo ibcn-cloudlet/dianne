@@ -25,7 +25,12 @@ package be.iminds.iot.dianne.dataset;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.Configuration;
@@ -33,19 +38,31 @@ import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 
+import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.DatasetDTO;
+import be.iminds.iot.dianne.api.dataset.DianneDatasets;
 
-@Component(immediate=true)
-public class DatasetConfigurator {
+
+@Component(
+	property={"aiolos.export=false"})
+public class DatasetConfigurator implements DianneDatasets {
 
 	private ConfigurationAdmin ca;
 	
 	private String path = "datasets";
+	
+	protected Map<String, Dataset> datasets = new HashMap<String, Dataset>();
+	protected Map<String, DatasetDTO> dtos = new HashMap<String, DatasetDTO>(); 
+
+	protected Map<Dataset, List<Configuration>> adapters = new HashMap<Dataset, List<Configuration>>();
 	
 	@Activate
 	void activate(BundleContext context) {
@@ -56,6 +73,46 @@ public class DatasetConfigurator {
 		
 		File dir = new File(path);
 		searchDirectory(dir, true);
+	}
+	
+	@Override
+	public List<DatasetDTO> getDatasets() {
+		return dtos.values().stream().collect(Collectors.toList());
+	}
+
+	@Override
+	public Dataset getDataset(String name) {
+		if(!datasets.containsKey(name))
+			return null; // throw exception?
+		
+		return datasets.get(name);
+	}
+	
+	@Override
+	public Dataset configureDataset(String name, Map<String, String> config) {
+		Dataset d = getDataset(name);
+		if(d == null)
+			return null;
+		
+		// TODO apply adapter configurations and return adapter!
+		// flip -> rotate -> crop -> frame?
+		
+		
+		return datasets.get(name);
+	}
+
+	@Override
+	public void releaseDataset(Dataset d) {
+		// remove adapters
+		List<Configuration> configurations = adapters.remove(d);
+		if(configurations != null){
+			for(Configuration c : configurations){
+				try {
+					c.delete();
+				} catch (IOException e) {
+				}
+			}
+		}
 	}
 	
 	private void searchDirectory(File dir, boolean recurse){
@@ -154,4 +211,23 @@ public class DatasetConfigurator {
 		this.ca = ca;
 	}
 
+	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
+			policy=ReferencePolicy.DYNAMIC)
+	void addDataset(Dataset dataset, Map<String, Object> properties){
+		DatasetDTO dto = new DatasetDTO();
+		dto.name = dataset.getName();
+		dto.inputDims = dataset.inputDims();
+		dto.targetDims = dataset.targetDims();
+		dto.size = dataset.size();
+		dto.labels = dataset.getLabels();
+		
+		this.datasets.put(dto.name, dataset);
+		this.dtos.put(dto.name, dto);
+	}
+	
+	void removeDataset(Dataset dataset, Map<String, Object> properties){
+		String name = (String) properties.get("name");
+		this.datasets.remove(name);
+		this.dtos.remove(name);
+	}
 }

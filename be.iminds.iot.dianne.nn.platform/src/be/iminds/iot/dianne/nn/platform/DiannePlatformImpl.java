@@ -42,6 +42,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.DianneDatasets;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
@@ -63,8 +64,8 @@ public class DiannePlatformImpl implements DiannePlatform {
 	
 	// available neural networks
 	private Map<UUID, NeuralNetworkInstanceDTO> nnis = new ConcurrentHashMap<UUID, NeuralNetworkInstanceDTO>();
-	// available datasets
-	private Map<String, Dataset> datasets = new ConcurrentHashMap<String, Dataset>();
+
+	private DianneDatasets datasets;
 	
 	private UUID frameworkId;
 	private BundleContext context;
@@ -344,25 +345,25 @@ public class DiannePlatformImpl implements DiannePlatform {
 	
 	@Override
 	public List<String> getAvailableDatasets(){
-		return new ArrayList<>(datasets.keySet());
+		return datasets.getDatasets().stream().map(d -> d.name).collect(Collectors.toList());
 	}
 	
 	@Override
 	public List<String> getAvailableExperiencePools(){
-		return datasets.entrySet().stream().filter(e -> e.getValue() instanceof ExperiencePool)
-			.map(e -> e.getKey()).collect(Collectors.toList());
+		return datasets.getDatasets().stream().filter(d -> datasets.getDataset(d.name) instanceof ExperiencePool)
+			.map(d -> d.name).collect(Collectors.toList());
 	}
 	
 	@Override
 	public List<String> getAvailableSequenceDatasets() {
-		return datasets.entrySet().stream().filter(e -> e.getValue() instanceof SequenceDataset)
-				.map(e -> e.getKey()).collect(Collectors.toList());
+		return datasets.getDatasets().stream().filter(d -> datasets.getDataset(d.name) instanceof SequenceDataset)
+				.map(d -> d.name).collect(Collectors.toList());
 	}
 
 
 	@Override
 	public boolean isExperiencePool(String dataset) {
-		Dataset d = datasets.get(dataset);
+		Dataset d = datasets.getDataset(dataset);
 		if(d == null)
 			return false;
 		
@@ -372,7 +373,7 @@ public class DiannePlatformImpl implements DiannePlatform {
 
 	@Override
 	public boolean isSequenceDataset(String dataset) {
-		Dataset d = datasets.get(dataset);
+		Dataset d = datasets.getDataset(dataset);
 		if(d == null)
 			return false;
 		
@@ -382,7 +383,7 @@ public class DiannePlatformImpl implements DiannePlatform {
 
 	@Override
 	public boolean isClassificationDatset(String dataset) {
-		Dataset d = datasets.get(dataset);
+		Dataset d = datasets.getDataset(dataset);
 		if(d == null)
 			return false;
 		
@@ -455,15 +456,8 @@ public class DiannePlatformImpl implements DiannePlatform {
 		}
 	}
 	
-	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
-			policy=ReferencePolicy.DYNAMIC)
-	void addDataset(Dataset dataset, Map<String, Object> properties){
-		String name = (String) properties.get("name");
-		this.datasets.put(name, dataset);
-	}
-	
-	void removeDataset(Dataset dataset, Map<String, Object> properties){
-		String name = (String) properties.get("name");
-		datasets.remove(name);
+	@Reference
+	void setDianneDatasets(DianneDatasets d){
+		datasets = d;
 	}
 }

@@ -24,9 +24,6 @@ package be.iminds.iot.dianne.builder;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 
 import javax.servlet.ServletException;
@@ -36,16 +33,16 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.osgi.service.component.annotations.ReferencePolicy;
-
-import be.iminds.iot.dianne.api.dataset.Dataset;
-import be.iminds.iot.dianne.tensor.Tensor;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+
+import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.DatasetDTO;
+import be.iminds.iot.dianne.api.dataset.DianneDatasets;
+import be.iminds.iot.dianne.tensor.Tensor;
 
 
 @Component(service = { javax.servlet.Servlet.class }, 
@@ -53,23 +50,16 @@ import com.google.gson.JsonPrimitive;
 		 		 "osgi.http.whiteboard.servlet.pattern=/dianne/datasets",
 				 "aiolos.proxy=false" }, 
 	immediate = true)
-public class DianneDatasets extends HttpServlet {
+public class DianneData extends HttpServlet {
 
 	private Random rand = new Random(System.currentTimeMillis());
 	private JsonParser parser = new JsonParser();
 	
-	private Map<String, Dataset> datasets = Collections.synchronizedMap(new HashMap<String, Dataset>());
-
-	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 
-			policy=ReferencePolicy.DYNAMIC)
-	void addDataset(Dataset dataset, Map<String, Object> properties){
-		String name = (String) properties.get("name");
-		this.datasets.put(name, dataset);
-	}
+	private DianneDatasets datasets;
 	
-	void removeDataset(Dataset dataset, Map<String, Object> properties){
-		String name = (String) properties.get("name");
-		datasets.remove(name);
+	@Reference
+	void setDianneDatasets(DianneDatasets d){
+		this.datasets = d;
 	}
 	
 	@Override
@@ -81,11 +71,11 @@ public class DianneDatasets extends HttpServlet {
 		if(action.equals("available-datasets")){
 			JsonArray result = new JsonArray();
 			synchronized(datasets){
-				for(Dataset d : datasets.values()){
+				for(DatasetDTO d : datasets.getDatasets()){
 					JsonObject r = new JsonObject();
-					r.add("dataset", new JsonPrimitive(d.getName()));
-					r.add("size", new JsonPrimitive(d.size()));
-					String[] ll = d.getLabels();
+					r.add("dataset", new JsonPrimitive(d.name));
+					r.add("size", new JsonPrimitive(d.size));
+					String[] ll = d.labels;
 					if(ll != null){
 						JsonArray labels = new JsonArray();
 						for(String l :ll){
@@ -100,7 +90,7 @@ public class DianneDatasets extends HttpServlet {
 			response.getWriter().flush();
 		} else if(action.equals("sample")){
 			String dataset = request.getParameter("dataset");
-			Dataset d = datasets.get(dataset);
+			Dataset d = datasets.getDataset(dataset);
 			if(d!=null){
 				JsonObject sample = new JsonObject();
 				

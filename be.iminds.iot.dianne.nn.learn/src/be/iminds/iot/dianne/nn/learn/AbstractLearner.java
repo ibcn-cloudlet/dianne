@@ -41,6 +41,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.DianneDatasets;
 import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
@@ -69,7 +70,7 @@ public abstract class AbstractLearner implements Learner {
 	// References
 	protected DataLogger logger;
 	protected Dianne dianne;
-	protected Map<String, Dataset> datasets = new HashMap<>();
+	protected DianneDatasets datasets;
 	
 	// Threading
 	protected Thread learnerThread;
@@ -251,7 +252,7 @@ public abstract class AbstractLearner implements Learner {
 	 * Load the Dataset object from the provided dataset name
 	 */
 	protected void loadDataset(String d){
-		dataset = datasets.get(d);
+		dataset = datasets.getDataset(d);
 		
 		if(dataset==null)
 			throw new RuntimeException("Dataset "+d+" not available");
@@ -348,16 +349,9 @@ public abstract class AbstractLearner implements Learner {
 		dianne = d;
 	}
 	
-	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
-			policy=ReferencePolicy.DYNAMIC)
-	protected void addDataset(Dataset dataset, Map<String, Object> properties){
-		String name = (String) properties.get("name");
-		this.datasets.putIfAbsent(name, dataset);
-	}
-	
-	protected void removeDataset(Dataset dataset, Map<String, Object> properties){
-		String name = (String) properties.get("name");
-		this.datasets.remove(name, dataset);
+	@Reference
+	void setDianneDatasets(DianneDatasets d){
+		datasets = d;
 	}
 	
 	@Reference(cardinality = ReferenceCardinality.OPTIONAL)

@@ -25,7 +25,6 @@ package be.iminds.iot.dianne.command;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -40,10 +39,10 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.DatasetDTO;
+import be.iminds.iot.dianne.api.dataset.DianneDatasets;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
@@ -72,9 +71,9 @@ public class DianneCommands {
 	BundleContext context;
 	
 	// Dianne components
-	Map<String, Dataset> datasets = Collections.synchronizedMap(new HashMap<String, Dataset>());
 	Dianne dianne;
 	DiannePlatform platform;
+	DianneDatasets datasets;
 	
 	// State
 	Map<UUID, ServiceRegistration> repoListeners = new HashMap<UUID, ServiceRegistration>();
@@ -89,17 +88,17 @@ public class DianneCommands {
 	}
 	
 	public void datasets(){
-		if(datasets.size()==0){
+		List<DatasetDTO> ds = datasets.getDatasets();
+		
+		if(ds.size()==0){
 			System.out.println("No datasets available");
 			return;
 		}
 		
 		System.out.println("Available datasets:");
-		synchronized(datasets){
-			int i = 0;
-			for(Dataset dataset : datasets.values()){
-				System.out.println("["+(i++)+"] "+dataset.getName()+"\t"+dataset.size()+" samples");
-			}
+		int i = 0;
+		for(DatasetDTO dataset : ds){
+			System.out.println("["+(i++)+"] "+dataset.name+"\t"+dataset.size+" samples");
 		}
 	}
 	
@@ -249,7 +248,7 @@ public class DianneCommands {
 	
 	public void sample(String dataset, String nnId, int sample, String...tags){
 
-		Dataset d = datasets.get(dataset);
+		Dataset d = datasets.getDataset(dataset);
 		if(d==null){
 			System.out.println("Dataset "+dataset+" not available");
 			return;
@@ -355,16 +354,9 @@ public class DianneCommands {
 		}
 	}
 	
-	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
-			policy=ReferencePolicy.DYNAMIC)
-	void addDataset(Dataset dataset, Map<String, Object> properties){
-		String name = (String) properties.get("name");
-		this.datasets.put(name, dataset);
-	}
-	
-	void removeDataset(Dataset dataset, Map<String, Object> properties){
-		String name = (String) properties.get("name");
-		this.datasets.remove(name);
+	@Reference
+	void setDianneDatasets(DianneDatasets d){
+		datasets = d;
 	}
 	
 	@Reference

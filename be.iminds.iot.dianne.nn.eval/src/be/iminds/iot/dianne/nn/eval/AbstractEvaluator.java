@@ -25,7 +25,6 @@ package be.iminds.iot.dianne.nn.eval;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -40,6 +39,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.DianneDatasets;
 import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.api.dataset.SamplingConfig;
 import be.iminds.iot.dianne.api.log.DataLogger;
@@ -75,7 +75,7 @@ public abstract class AbstractEvaluator implements Evaluator {
 	protected DataLogger logger;
 	
 	protected Dianne dianne;
-	protected Map<String, Dataset> datasets = new HashMap<String, Dataset>();
+	protected DianneDatasets datasets;
 	
 	protected EvaluatorConfig config;
 	
@@ -104,7 +104,7 @@ public abstract class AbstractEvaluator implements Evaluator {
 		
 		try {
 			// Fetch the dataset
-			Dataset d = datasets.get(dataset);
+			Dataset d = datasets.getDataset(dataset);
 			if(d==null){
 				throw new Exception("Dataset "+dataset+" not available");
 			}
@@ -239,16 +239,9 @@ public abstract class AbstractEvaluator implements Evaluator {
 		dianne = d;
 	}
 	
-	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
-			policy=ReferencePolicy.DYNAMIC)
-	void addDataset(Dataset dataset, Map<String, Object> properties){
-		String name = (String) properties.get("name");
-		this.datasets.put(name, dataset);
-	}
-	
-	void removeDataset(Dataset dataset, Map<String, Object> properties){
-		String name = (String) properties.get("name");
-		this.datasets.remove(name);
+	@Reference
+	void setDianneDatasets(DianneDatasets d){
+		datasets = d;
 	}
 	
 	@Reference(cardinality = ReferenceCardinality.OPTIONAL)

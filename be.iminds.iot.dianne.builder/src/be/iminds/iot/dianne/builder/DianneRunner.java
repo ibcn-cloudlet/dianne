@@ -27,11 +27,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Dictionary;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Random;
@@ -52,8 +50,6 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.osgi.service.component.annotations.ReferencePolicy;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -61,6 +57,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.DianneDatasets;
 import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
@@ -90,9 +87,9 @@ public class DianneRunner extends HttpServlet {
 	
 	// also keep datasets to already forward random sample while sending sample to the ui
 	private Random rand = new Random(System.currentTimeMillis());
-	private Map<String, Dataset> datasets = Collections.synchronizedMap(new HashMap<String, Dataset>());
 	private Dianne dianne;
 	private DiannePlatform platform;
+	private DianneDatasets datasets;
 	
 	// can be used for timestamping, but won't always work (i.e. when multiple sources trigger inputs at the same time)
 	// works for basic demo purposes though
@@ -114,16 +111,9 @@ public class DianneRunner extends HttpServlet {
 		platform = p;
 	}
 	
-	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
-			policy=ReferencePolicy.DYNAMIC)
-	void addDataset(Dataset dataset, Map<String, Object> properties){
-		String name = (String) properties.get("name");
-		this.datasets.put(name, dataset);
-	}
-	
-	void removeDataset(Dataset dataset, Map<String, Object> properties){
-		String name = (String) properties.get("name");
-		datasets.remove(name);
+	@Reference
+	void setDianneDatasets(DianneDatasets d){
+		datasets = d;
 	}
 	
 	@Override
@@ -228,7 +218,7 @@ public class DianneRunner extends HttpServlet {
 			}
 		} else if(request.getParameter("dataset")!=null){
 			String dataset = request.getParameter("dataset");
-			Dataset d = datasets.get(dataset);
+			Dataset d = datasets.getDataset(dataset);
 			
 			if(d!=null){
 				String inputId = request.getParameter("input");
