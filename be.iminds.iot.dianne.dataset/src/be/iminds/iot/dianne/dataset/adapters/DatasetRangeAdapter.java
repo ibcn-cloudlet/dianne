@@ -29,7 +29,6 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.Sample;
-import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
  * This Dataset adapter allows you to wrap a Dataset in a new Dataset with only

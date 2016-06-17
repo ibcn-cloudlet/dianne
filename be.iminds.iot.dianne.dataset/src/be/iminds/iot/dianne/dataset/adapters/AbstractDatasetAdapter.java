@@ -12,6 +12,8 @@ public abstract class AbstractDatasetAdapter implements Dataset {
 
 	protected Dataset data;
 	protected String name;
+	
+	protected boolean targetDimsSameAsInput = false;
 
 	private Sample temp;
 	
@@ -23,6 +25,22 @@ public abstract class AbstractDatasetAdapter implements Dataset {
 	@Activate
 	void activate(Map<String, Object> properties) {
 		this.name = (String)properties.get("name");
+
+		// mark if targetDims are same as inputs
+		// often requires adapters to also adapt target
+		int[] inputDims = data.inputDims();
+		if(inputDims != null){
+			int[] targetDims = data.targetDims();
+			if(inputDims.length == targetDims.length){
+				targetDimsSameAsInput = true;
+				for(int i=0;i<inputDims.length;i++){
+					if(inputDims[i] != targetDims[i]){
+						targetDimsSameAsInput = false;
+						break;
+					}
+				}
+			}
+		}
 		
 		configure(properties);
 	}
@@ -41,7 +59,7 @@ public abstract class AbstractDatasetAdapter implements Dataset {
 	
 	@Override
 	public int[] targetDims(){
-		return data.inputDims();
+		return data.targetDims();
 	}
 	
 	@Override
@@ -63,6 +81,6 @@ public abstract class AbstractDatasetAdapter implements Dataset {
 	
 	@Override
 	public String[] getLabels(){
-		return null;
+		return data.getLabels();
 	}
 }

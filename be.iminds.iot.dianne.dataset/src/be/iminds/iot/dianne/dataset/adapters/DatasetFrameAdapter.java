@@ -55,7 +55,6 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 public class DatasetFrameAdapter extends AbstractDatasetAdapter {
 
 	private int[] dims;
-	private boolean frameTarget = false;
 	
 	protected void configure(Map<String, Object> properties) {
 		String[] d = (String[])properties.get("frame");
@@ -63,31 +62,23 @@ public class DatasetFrameAdapter extends AbstractDatasetAdapter {
 		for(int i=0;i<d.length;i++){
 			dims[i] = Integer.parseInt(d[i]);
 		}
-		
-		// also frame the target if it has same dimensions!
-		int[] inputDims = data.inputDims();
-		if(inputDims != null){
-			int[] targetDims = data.targetDims();
-			if(inputDims.length == targetDims.length){
-				frameTarget = true;
-				for(int i=0;i<inputDims.length;i++){
-					if(inputDims[i] != targetDims[i]){
-						frameTarget = false;
-						break;
-					}
-				}
-			}
-		}
 	}
 	
 	public int[] inputDims(){
 		return dims;
 	}
 	
+	public int[] targetDims(){
+		if(targetDimsSameAsInput){
+			return dims;
+		}
+		return data.targetDims();
+	}
+	
 	@Override
 	protected void adaptSample(Sample original, Sample adapted) {
 		adapted.input = TensorOps.frame(adapted.input, original.input, dims);
-		if(frameTarget){
+		if(targetDimsSameAsInput){
 			adapted.target = TensorOps.frame(adapted.target, original.target, dims);
 		} else {
 			adapted.target = original.target.copyInto(adapted.target);
