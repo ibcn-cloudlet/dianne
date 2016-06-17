@@ -51,7 +51,8 @@ public class LearnerConfig {
 	
 	public enum Criterion {
 		MSE,
-		NLL
+		NLL,
+		ABS
 	}
 	
 	/**

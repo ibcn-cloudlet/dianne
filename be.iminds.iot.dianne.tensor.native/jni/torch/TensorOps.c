@@ -456,6 +456,46 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_sqrt
 
 
 
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_abs
+  (JNIEnv * env, jclass c, jobject res, jobject tensor){
+	THTensor* r = getTensor(env, res);
+	THTensor* t = getTensor(env, tensor);
+	THTensor_(resizeAs)(
+#ifdef CUDA
+			state,
+#endif
+			r, t);
+
+	THTensor_(abs)(
+#ifdef CUDA
+			state,
+#endif
+			r, t);
+	return res == NULL ? createTensorObject(env, r) : res;
+}
+
+
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_sign
+  (JNIEnv * env, jclass c, jobject res, jobject tensor){
+	THTensor* r = getTensor(env, res);
+		THTensor* t = getTensor(env, tensor);
+		THTensor_(resizeAs)(
+	#ifdef CUDA
+				state,
+	#endif
+				r, t);
+
+		THTensor_(sign)(
+	#ifdef CUDA
+				state,
+	#endif
+				r, t);
+		return res == NULL ? createTensorObject(env, r) : res;
+}
+
+
+
 JNIEXPORT jfloat JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_sum
   (JNIEnv * env, jclass c, jobject tensor){
 	THTensor* t = getTensor(env, tensor);

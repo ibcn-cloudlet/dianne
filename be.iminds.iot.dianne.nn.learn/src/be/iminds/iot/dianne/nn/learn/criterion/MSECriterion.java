@@ -34,25 +34,25 @@ import be.iminds.iot.dianne.tensor.TensorOps;
  */
 public class MSECriterion implements Criterion {
 
+	protected Tensor diff;
 	protected Tensor error;
-	protected Tensor sqerror;
-	protected Tensor mse;
+	protected Tensor grad;
 	
 	public MSECriterion() {
-		this.mse = new Tensor(1);
+		this.error = new Tensor(1);
 	}
 	
 	@Override
 	public Tensor error(final Tensor output, final Tensor target) {
-		error = TensorOps.sub(error, output, target);
-		sqerror = TensorOps.cmul(sqerror, error, error);
-		mse.set(TensorOps.sum(sqerror)*0.5f, 0);
-		return mse;
+		diff = TensorOps.sub(diff, output, target);
+		error.set(TensorOps.dot(diff, diff) / (output.dim() == 2 ? output.size(1) : output.size(0)), 0);
+		return error;
 	}
 
 	@Override
 	public Tensor grad(final Tensor output, final Tensor target) {
-		return error;
+		grad = TensorOps.mul(grad, diff, 2.0f / (output.dim() == 2 ? output.size(1) : output.size(0)));
+		return grad;
 	}
 
 }

@@ -168,6 +168,16 @@ public class TensorOps {
 	public static native Tensor sqrt(Tensor res, final Tensor tensor);
 	
 	/**
+	 * Calculate element-wise absolute value
+	 */
+	public static native Tensor abs(Tensor res, final Tensor tensor);
+	
+	/**
+	 * Calculate element-wise sign
+	 */
+	public static native Tensor sign(Tensor res, final Tensor tensor);
+	
+	/**
 	 * Return the sum of all elements
 	 */
 	public static native float sum(final Tensor tensor);

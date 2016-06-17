@@ -32,6 +32,7 @@ import be.iminds.iot.dianne.api.nn.learn.Criterion;
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 import be.iminds.iot.dianne.nn.learn.config.LearnerConfig;
+import be.iminds.iot.dianne.nn.learn.criterion.AbsCriterion;
 import be.iminds.iot.dianne.nn.learn.criterion.MSECriterion;
 import be.iminds.iot.dianne.nn.learn.criterion.NLLCriterion;
 import be.iminds.iot.dianne.nn.learn.processors.AdadeltaProcessor;
@@ -107,6 +108,9 @@ public class LearnerUtil {
 		Criterion criterion = null;
 		
 		switch(c) {
+		case ABS :
+			criterion = new AbsCriterion();
+			break;
 		case NLL :
 			criterion = new NLLCriterion();
 			break;
