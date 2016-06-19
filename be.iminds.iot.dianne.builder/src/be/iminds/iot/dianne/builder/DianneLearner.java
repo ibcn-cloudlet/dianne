@@ -210,8 +210,7 @@ public class DianneLearner extends HttpServlet {
 					boolean clean = learnerConfig.get("clean").getAsBoolean();
 					
 					Map<String, String> config = new HashMap<>();
-					config.put("startIndex", ""+start);
-					config.put("endIndex", ""+end);
+					config.put("range", ""+start+","+end);
 					config.put("batchSize", ""+batch);
 					config.put("learningRate", ""+learningRate);
 					config.put("momentum", ""+momentum);
@@ -242,8 +241,7 @@ public class DianneLearner extends HttpServlet {
 					int end = start+datasetConfig.get("test").getAsInt();
 					
 					Map<String, String> config = new HashMap<>();
-					config.put("startIndex", ""+start);
-					config.put("endIndex", ""+end);
+					config.put("range", ""+start+","+end);
 					
 					String type = "REGRESSION";
 					if(platform.isClassificationDatset(dataset)){

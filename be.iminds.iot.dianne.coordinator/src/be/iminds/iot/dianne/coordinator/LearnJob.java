@@ -71,7 +71,7 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 		
 		// set training set
 		final Map<String, String> learnConfig = new HashMap<>(config);
-		learnConfig.put("range", config.get("trainingSet"));
+		learnConfig.put("range", config.get("trainSet"));
 
 		System.out.println("Start Learn Job");
 		System.out.println("===============");
@@ -111,7 +111,9 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 				
 		// if stop ... assemble result object and resolve
 		if(stop){
-			done(result);
+			for(Learner learner : learners.values()){
+				learner.stop();
+			}
 		}
 	}
 
@@ -125,7 +127,8 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 
 	@Override
 	public void onFinish(UUID learnerId, LearnProgress p) {
-		// TODO should we wait for onFinish to assemble result object?!
+		result.progress.add(p);
+		done(result);
 	}
 
 	@Override

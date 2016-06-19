@@ -32,16 +32,14 @@ public class RandomSamplingStrategy implements SamplingStrategy{
 	private Random random = new Random(System.currentTimeMillis());
 	
 	private final Dataset dataset;
-	private final int[] indices;
 	
-	public RandomSamplingStrategy(Dataset dataset, int[] indices) {
+	public RandomSamplingStrategy(Dataset dataset) {
 		this.dataset = dataset;
-		this.indices = indices;
 	}
 	
 	@Override
 	public int next() {
-		return indices==null ? random.nextInt(dataset.size()) : indices[random.nextInt(indices.length)];
+		return random.nextInt(dataset.size());
 	}
 
 }

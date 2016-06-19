@@ -26,10 +26,12 @@ package be.iminds.iot.dianne.dataset;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.osgi.framework.BundleContext;
@@ -94,11 +96,185 @@ public class DatasetConfigurator implements DianneDatasets {
 		if(d == null)
 			return null;
 		
-		// TODO apply adapter configurations and return adapter!
+		System.out.println("Dataset");
+		System.out.println("---");
+		System.out.println("* dataset = "+name);
+
+		
+		List<Configuration> adapterConfigurations = new ArrayList<>();
+
+		// TODO type safe creation of dataset adapter configurations?
 		// flip -> rotate -> crop -> frame?
+		String adapter = name;
+		// TODO range adapter
 		
+		if(config.containsKey("range")){
+			String pid = "be.iminds.iot.dianne.dataset.adapters.RangeAdapter";
+			Hashtable<String, Object> props = new Hashtable<>();
+			props.put("Dataset.target", "(name="+adapter+")");
+			adapter = name+"-"+UUID.randomUUID();
+			props.put("name", adapter);
+			props.put("aiolos.instance.id", adapter);
+			props.put("aiolos.combine", "*");
+
+			String s = config.get("range");
+			props.put("range", s.split(","));
+			System.out.println("* range = "+s);
+			
+			try {
+				Configuration c = ca.createFactoryConfiguration(pid, null);
+				c.update(props);
+				adapterConfigurations.add(c);
+			} catch(Exception e){
+				e.printStackTrace();
+			}
+		}
+		if(config.containsKey("vflip") || config.containsKey("hflip")){
+			String pid = "be.iminds.iot.dianne.dataset.adapters.RandomFlipAdapter";
+			Hashtable<String, Object> props = new Hashtable<>();
+			props.put("Dataset.target", "(name="+adapter+")");
+			adapter = name+"-"+UUID.randomUUID();
+			props.put("name", adapter);
+			props.put("aiolos.instance.id", adapter);
+			props.put("aiolos.combine", "*");
+
+			if(config.containsKey("vflip")){
+				String s = config.get("vflip");
+				props.put("vflip", s);
+				System.out.println("* vflip = "+s);
+			}
+
+			if(config.containsKey("hflip")){
+				String s = config.get("hflip");
+				props.put("hflip", s);
+				System.out.println("* hflip = "+s);
+			}
+			
+			try {
+				Configuration c = ca.createFactoryConfiguration(pid, null);
+				c.update(props);
+				adapterConfigurations.add(c);
+			} catch(Exception e){
+				e.printStackTrace();
+			}
+		} 
+		if(config.containsKey("rotationTheta")){
+			String pid = "be.iminds.iot.dianne.dataset.adapters.RandomRotationAdapter";
+			Hashtable<String, Object> props = new Hashtable<>();
+			props.put("Dataset.target", "(name="+adapter+")");
+			adapter = name+"-"+UUID.randomUUID();
+			props.put("name", adapter);
+			props.put("aiolos.instance.id", adapter);
+			props.put("aiolos.combine", "*");
+
+			if(config.containsKey("rotationTheta")){
+				String s = config.get("rotationTheta");
+				if(s.contains(",")){
+					props.put("rotationTheta", s.split(","));
+				} else {
+					props.put("rotationTheta", s);
+				}
+				System.out.println("* rotationTheta = "+s);
+			}
+			if(config.containsKey("rotationCenter")){
+				String s = config.get("rotationCenter");
+				if(s.contains(",")){
+					props.put("rotationCenter", s.split(","));
+				} else {
+					props.put("rotationCenter", s);
+				}
+				System.out.println("* rotationCenter = "+s);
+			}
+			
+			try {
+				Configuration c = ca.createFactoryConfiguration(pid, null);
+				c.update(props);
+				adapterConfigurations.add(c);
+			} catch(Exception e){
+				e.printStackTrace();
+			}
+		}
+		if(config.containsKey("cropWidth") || config.containsKey("cropHeight")){
+			String pid = "be.iminds.iot.dianne.dataset.adapters.RandomCropAdapter";
+			Hashtable<String, Object> props = new Hashtable<>();
+			props.put("Dataset.target", "(name="+adapter+")");
+			adapter = name+"-"+UUID.randomUUID();
+			props.put("name", adapter);
+			props.put("aiolos.instance.id", adapter);
+			props.put("aiolos.combine", "*");
+
+			if(config.containsKey("cropWidth")){
+				String s = config.get("cropWidth");
+				if(s.contains(",")){
+					props.put("cropWidth", s.split(","));
+				} else {
+					props.put("cropWidth", s);
+				}
+				System.out.println("* cropWidth = "+s);
+			}
+			if(config.containsKey("cropHeight")){
+				String s = config.get("cropHeight");
+				if(s.contains(",")){
+					props.put("cropHeight", s.split(","));
+				} else {
+					props.put("cropHeight", s);
+				}
+				System.out.println("* cropHeight = "+s);
+			}
+			if(config.containsKey("cropPadding")){
+				String s = config.get("cropPadding");
+				props.put("cropPadding", s);
+				System.out.println("* cropPadding = "+s);
+			}
+			
+			try {
+				Configuration c = ca.createFactoryConfiguration(pid, null);
+				c.update(props);
+				adapterConfigurations.add(c);
+			} catch(Exception e){
+				e.printStackTrace();
+			}
+		}
+		if(config.containsKey("frame")){
+			String pid = "be.iminds.iot.dianne.dataset.adapters.RandomCropAdapter";
+			Hashtable<String, Object> props = new Hashtable<>();
+			props.put("Dataset.target", "(name="+adapter+")");
+			adapter = name+"-"+UUID.randomUUID();
+			props.put("name", adapter);
+			props.put("aiolos.instance.id", adapter);
+			props.put("aiolos.combine", "*");
+
+			if(config.containsKey("frame")){
+				String s = config.get("frame");
+				props.put("frame", s.split(","));
+				System.out.println("* frame = "+s);
+			}
+			
+			try {
+				Configuration c = ca.createFactoryConfiguration(pid, null);
+				c.update(props);
+				adapterConfigurations.add(c);
+			} catch(Exception e){
+				e.printStackTrace();
+			}
+		}
+		System.out.println("---");
 		
-		return datasets.get(name);
+		// now wait for the adapter dataset to come online
+		d = getDataset(adapter);
+		if(d == null){
+			// TODO do something more intelligent here?!
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+			}
+			d = getDataset(adapter);
+		}
+
+		if(d != null)
+			adapters.put(d, adapterConfigurations);
+		
+		return d;
 	}
 
 	@Override

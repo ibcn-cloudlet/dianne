@@ -131,26 +131,22 @@ public abstract class AbstractLearner implements Learner {
 			previousParameters = null;
 			i = 0;
 			
-			// Fetch the dataset
-			loadDataset(d);
-			
-			// Load neural network instance(s)
-			loadNNs(nni);
-			
 			// Read config
 			System.out.println("Learner Configuration");
 			System.out.println("=====================");
 			
 			loadConfig(config);
+			
+			// Fetch the dataset
+			loadDataset(d, config);
+			
+			// Load neural network instance(s)
+			loadNNs(nni);
 
 			// Initialize NN parameters
 			initializeParameters();
 			
 			// setup criterion, sampling strategy and gradient processor
-			System.out.println("Dataset");
-			System.out.println("---");
-			System.out.println("* dataset = "+d);
-			System.out.println("---");
 			sampling = LearnerUtil.createSamplingStrategy(this.config.sampling, dataset, config);
 
 			criterion = LearnerUtil.createCriterion(this.config.criterion);
@@ -207,6 +203,7 @@ public abstract class AbstractLearner implements Learner {
 					
 					return;
 				} finally {
+					datasets.releaseDataset(dataset);
 					System.gc();
 				}
 
@@ -251,8 +248,8 @@ public abstract class AbstractLearner implements Learner {
 	/**
 	 * Load the Dataset object from the provided dataset name
 	 */
-	protected void loadDataset(String d){
-		dataset = datasets.getDataset(d);
+	protected void loadDataset(String d, Map<String, String> config){
+		dataset = datasets.configureDataset(d, config);
 		
 		if(dataset==null)
 			throw new RuntimeException("Dataset "+d+" not available");

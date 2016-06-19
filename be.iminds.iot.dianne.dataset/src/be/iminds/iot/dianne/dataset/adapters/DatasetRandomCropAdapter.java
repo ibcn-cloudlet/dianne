@@ -36,12 +36,12 @@ import be.iminds.iot.dianne.tensor.Tensor;
  * This Dataset adapter extends the Dataset by taking random crops of the image
  * 
  * Configure by providing a width and height of the target crop. These can also be ranges 
- * in which the widht and height can vary. e.g.
+ * in which the width and height can vary. e.g.
  * 
- * width = 32, height = 32  will calculate random 32x32 crops
- * width = [32,64] height = [32,64] will calculate random crops with width and height between 32 and 64
+ * cropWidth = 32, cropHeight = 32  will calculate random 32x32 crops
+ * cropWidth = [32,64] cropHeight = [32,64] will calculate random crops with width and height between 32 and 64
  * 
- * Optionally also a padding parameter can be provided that adds zero padding to the original 
+ * Optionally also a cropPadding parameter can be provided that adds zero padding to the original 
  * sample before cropping.
  * 
  * @author tverbele
@@ -65,7 +65,7 @@ public class DatasetRandomCropAdapter extends AbstractDatasetAdapter {
 	private Random r = new Random(System.currentTimeMillis());
 	
 	protected void configure(Map<String, Object> properties) {
-		Object w = properties.get("width");
+		Object w = properties.get("cropWidth");
 		if(w instanceof String[]){
 			minWidth = Integer.parseInt(((String[]) w)[0]);
 			maxWidth = Integer.parseInt(((String[]) w)[1]);
@@ -74,7 +74,7 @@ public class DatasetRandomCropAdapter extends AbstractDatasetAdapter {
 			maxWidth = minWidth;
 		}
 		
-		Object h = properties.get("height");
+		Object h = properties.get("cropHeight");
 		if(h instanceof String[]){
 			minHeight = Integer.parseInt(((String[]) h)[0]);
 			maxHeight = Integer.parseInt(((String[]) h)[1]);
@@ -83,8 +83,8 @@ public class DatasetRandomCropAdapter extends AbstractDatasetAdapter {
 			maxHeight = minHeight;
 		}
 		
-		if(properties.containsKey("padding")){
-			padding = Integer.parseInt((String) properties.get("padding"));
+		if(properties.containsKey("cropPadding")){
+			padding = Integer.parseInt((String) properties.get("cropPadding"));
 		}
 	}
 	

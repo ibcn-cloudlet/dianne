@@ -40,8 +40,7 @@ import be.iminds.iot.dianne.api.dataset.Sample;
 	"dataset":"MNIST",
 	"adapter":"be.iminds.iot.dianne.dataset.adapters.RangeAdapter",
 	"name": "MNIST train set",
-	"start": 0,
-	"end": 60000 
+	"range": [0,60000]
    }
  * 
  * @author tverbele
@@ -54,21 +53,44 @@ import be.iminds.iot.dianne.api.dataset.Sample;
 public class DatasetRangeAdapter extends AbstractDatasetAdapter {
 
 	// start and end index
-	private int start;
-	private int end;
+	private int start = 0;
+	private int end = 1;
+	
+	private int[] indices = null;
 	
 	protected void configure(Map<String, Object> properties) {
-		this.start = Integer.parseInt((String)properties.get("start"));
-		this.end = Integer.parseInt((String)properties.get("end"));
+		Object r = properties.get("range");
+		if(r instanceof String[]){
+			String[] range = (String[]) r;
+			if(range.length == 1){
+				end = Integer.parseInt(range[0]);
+			} else if(range.length == 2){
+				start = Integer.parseInt(range[0]);
+				end = Integer.parseInt(range[1]);
+			} else {
+				indices = new int[range.length];
+				for(int i=0;i<range.length;i++){
+					indices[i] = Integer.parseInt(range[i]);
+				}
+			}
+		} else {
+			end = Integer.parseInt((String)r);
+		}
 	}
 	
 	@Override
 	public int size() {
+		if(indices != null)
+			return indices.length;
+		
 		return end-start;
 	}
 
 	@Override
 	public Sample getSample(Sample s, int index){
+		if(indices != null){
+			return data.getSample(indices[index]);
+		}
 		return data.getSample(s, start+index);
 	}
 

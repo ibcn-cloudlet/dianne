@@ -25,7 +25,6 @@ package be.iminds.iot.dianne.nn.learn;
 import java.util.Map;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
-import be.iminds.iot.dianne.api.dataset.SamplingConfig;
 import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
@@ -123,16 +122,14 @@ public class LearnerUtil {
 	}
 	
 	public static SamplingStrategy createSamplingStrategy(LearnerConfig.Sampling strategy, Dataset d, Map<String, String> config){
-		SamplingConfig sc = DianneConfigHandler.getConfig(config, SamplingConfig.class);
-		
 		SamplingStrategy sampling = null;
 
 		switch(strategy) {
 		case SEQUENTIAL:
-			sampling = new SequentialSamplingStrategy(d, sc.indices(d));
+			sampling = new SequentialSamplingStrategy(d);
 			break;
 		default:
-			sampling = new RandomSamplingStrategy(d, sc.indices(d));
+			sampling = new RandomSamplingStrategy(d);
 		}
 		
 		return sampling;

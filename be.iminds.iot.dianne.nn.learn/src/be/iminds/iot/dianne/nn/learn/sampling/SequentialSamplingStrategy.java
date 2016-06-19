@@ -30,20 +30,18 @@ public class SequentialSamplingStrategy implements SamplingStrategy {
 	private int index;
 
 	private final Dataset dataset;
-	private final int[] indices;
 	
-	public SequentialSamplingStrategy(Dataset dataset, int[] indices) {
+	public SequentialSamplingStrategy(Dataset dataset) {
 		this.dataset = dataset;
-		this.indices = indices;
 		this.index = 0;
 	}
 	
 	@Override
 	public int next() {
-		if(index >= (indices==null ? dataset.size() : indices.length)){
+		if(index >= dataset.size()){
 			index = 0;
 		}
-		return indices[index++];
+		return index++;
 	}
 
 }

@@ -36,12 +36,12 @@ import be.iminds.iot.dianne.tensor.Tensor;
  * This Dataset adapter extends the Dataset by also rotating samples
  * 
  * Configure the adapter by providing a theta angle range 
- * theta = [min, max]
+ * rotationTheta = [min, max]
  * 
  * Optionally one can also set the center of rotation using either
  * 
- * center = [x, y]  // set x,y as center of rotation
- * center = true  // center around image center
+ * rotationCenter = [x, y]  // set x,y as center of rotation
+ * rotationCenter = true  // center around image center
  * 
  * If not configured a random center will be generated for each getSample()
  * 
@@ -63,7 +63,7 @@ public class DatasetRandomRotationAdapter extends AbstractDatasetAdapter {
 	private Random r = new Random(System.currentTimeMillis());
 	
 	protected void configure(Map<String, Object> properties) {
-		Object t = properties.get("theta");
+		Object t = properties.get("rotationTheta");
 		if(t instanceof String[]){
 			minTheta = Integer.parseInt(((String[]) t)[0]);
 			maxTheta = Integer.parseInt(((String[]) t)[1]);
@@ -71,8 +71,8 @@ public class DatasetRandomRotationAdapter extends AbstractDatasetAdapter {
 			minTheta = Integer.parseInt((String) t);
 			maxTheta = minTheta;
 		}
-		if(properties.containsKey("center")){
-			Object c = properties.get("center");
+		if(properties.containsKey("rotationCenter")){
+			Object c = properties.get("rotationCenter");
 			// center = [x,y] means : center rotation around x,y
 			if(c instanceof String[]){
 				center[0] = Integer.parseInt(((String[])c)[0]);

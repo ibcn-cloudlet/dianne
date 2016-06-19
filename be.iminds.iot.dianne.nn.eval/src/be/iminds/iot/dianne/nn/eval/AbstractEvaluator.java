@@ -41,7 +41,6 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.DianneDatasets;
 import be.iminds.iot.dianne.api.dataset.Sample;
-import be.iminds.iot.dianne.api.dataset.SamplingConfig;
 import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
@@ -81,7 +80,7 @@ public abstract class AbstractEvaluator implements Evaluator {
 	
 	protected volatile boolean evaluating = false;
 	
-	protected int s = 0;
+	protected int index = 0;
 	protected float error = 0;
 	protected int total = 0;
 	protected Tensor confusion;
@@ -102,33 +101,20 @@ public abstract class AbstractEvaluator implements Evaluator {
 		}
 		evaluating = true;
 		
+		Dataset d = null;
 		try {
-			// Fetch the dataset
-			Dataset d = datasets.getDataset(dataset);
-			if(d==null){
-				throw new Exception("Dataset "+dataset+" not available");
-			}
-			
 			System.out.println("Evaluator Configuration");
 			System.out.println("=======================");
 			
 			this.config = DianneConfigHandler.getConfig(config, EvaluatorConfig.class);
-			
-			System.out.println("Dataset");
-			System.out.println("---");
-			System.out.println("* dataset = "+dataset);
-			System.out.println("---");
-			
-			SamplingConfig sc = DianneConfigHandler.getConfig(config, SamplingConfig.class);
-			int[] indices = sc.indices(d);
-			if(indices == null){
-				indices = new int[d.size()];
-				for(int i=0;i<indices.length;i++){
-					indices[i] = i;
-				}
+
+			// Fetch the dataset
+			d = datasets.configureDataset(dataset, config);
+			if(d==null){
+				throw new Exception("Dataset "+dataset+" not available");
 			}
 			
-			total = indices.length;
+			total = d.size();
 			error = 0;
 			
 			NeuralNetwork nn = null;
@@ -151,13 +137,13 @@ public abstract class AbstractEvaluator implements Evaluator {
 			}
 		
 			confusion = null;
-			rankings = new int[indices.length];
+			rankings = new int[total];
 			outputs = this.config.includeOutputs ? new ArrayList<Tensor>() : null;
 			tStart = System.currentTimeMillis(); tForward = 0;
 			
 			Sample sample = null;
-			for(s=0;s<indices.length;s++){
-				sample = d.getSample(sample, indices[s]);
+			for(index=0;index<total;index++){
+				sample = d.getSample(sample, index);
 				
 				long t = System.nanoTime();
 				Tensor out = nn.forward(sample.input);
@@ -166,9 +152,9 @@ public abstract class AbstractEvaluator implements Evaluator {
 				if(outputs!=null)
 					outputs.add(out.copyInto(null));
 				
-				evalOutput(s, out, sample.target);
+				evalOutput(index, out, sample.target);
 				
-				if(s % 1000 == 0){
+				if(index % 1000 == 0){
 					listenerExecutor.execute(()->{
 						List<EvaluatorListener> copy = new ArrayList<>();
 						synchronized(listeners){
@@ -211,6 +197,7 @@ public abstract class AbstractEvaluator implements Evaluator {
 			}
 			evaluating = false;
 			
+			datasets.releaseDataset(d);
 			System.gc();
 		}
 	}
@@ -221,7 +208,7 @@ public abstract class AbstractEvaluator implements Evaluator {
 		if(!evaluating)
 			return null;
 		
-		EvaluationProgress progress = new EvaluationProgress(s, total, error/s, System.currentTimeMillis()-tStart, (tForward/1000000f)/total);
+		EvaluationProgress progress = new EvaluationProgress(index, total, error/index, System.currentTimeMillis()-tStart, (tForward/1000000f)/total);
 		return progress;
 	}
 	

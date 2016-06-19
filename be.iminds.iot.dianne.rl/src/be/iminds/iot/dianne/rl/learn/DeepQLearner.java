@@ -74,8 +74,8 @@ public class DeepQLearner extends AbstractLearner {
 		target.getModules().values().stream().forEach(m -> m.setMode(EnumSet.of(Mode.BLOCKING)));
 	}
 	
-	protected void loadDataset(String d){
-		super.loadDataset(d);
+	protected void loadDataset(String d, Map<String, String> config){
+		super.loadDataset(d, config);
 		
 		if(dataset instanceof ExperiencePool){
 			pool = (ExperiencePool) dataset;
