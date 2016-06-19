@@ -339,6 +339,10 @@ eventsource.onmessage = function(event){
     		y = Number(data.error);
     	}
 		Highcharts.charts[index].series[0].addPoint([x, y], true, true, false);
+		if(data.validation !== undefined){
+			var v = Number(data.validation);
+			Highcharts.charts[index].series[1].addPoint([x, v], true, true, false);
+		}
 	}
 }
 

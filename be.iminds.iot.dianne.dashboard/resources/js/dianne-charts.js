@@ -86,28 +86,35 @@ function createResultChart(container, job, scale){
      	if(job.category==="RL"){
      		// in case of RL jobs, plot Q value (TODO plot 2 series error + Q?)
  	  		DIANNE.learnResult(job.id).then(function(learnprogress){
-				 data = [];
+				 var q = [];
 				 $.each(learnprogress, function(i) {
 					 var progress = learnprogress[i];
-					 data.push({
+					 q.push({
 						 x: progress.iteration,
 	                     y: progress.q
 	                 });
 				 });
-				 createQChart(container, data, scale);
+				 createQChart(container, scale, q);
 			});
      	} else { 
      		// else plot error value
 			DIANNE.learnResult(job.id).then(function(learnprogress){
-				 data = [];
+				 var error = [];
+				 var validation = [];
 				 $.each(learnprogress, function(i) {
 					 var progress = learnprogress[i];
-					 data.push({
+					 error.push({
 						 x: progress.iteration,
 	                     y: progress.error
 	                 });
+					 if(progress.validation !== undefined){
+						 validation.push({
+							 x: progress.iteration,
+							 y: progress.validation
+				 	 	});
+					 }
 				 });
-				 createErrorChart(container, data, scale);
+				 createErrorChart(container, scale, error, validation);
 			});
      	}
 	} else if(job.type==="EVALUATE"){
@@ -147,35 +154,20 @@ function createResultChart(container, job, scale){
 	}
 }
 
-function createErrorChart(container, error, scale){
-	createLineChart(container, 'Iterations', 'Error', error, scale);
+function createErrorChart(container, scale, error, validation){
+	createLineChart(container, 'Iterations', 'Error', scale, error, validation);
 }
 
-function createQChart(container, q, scale){
-	createLineChart(container, 'Iterations', 'Q', q, scale);
+function createQChart(container, scale, q){
+	createLineChart(container, 'Iterations', 'Q', scale, q);
 }
 
 // generic line chart
-function createLineChart(container, xAxis, yAxis, data, scale) {
+function createLineChart(container, xAxis, yAxis, scale, data, data2) {
 	// if no data specified, initialize empty
-	var i;
-	if(data===undefined){
-		data = [];
-	    for (i = -29; i <= 0; i += 1) {
-	    	data.push({
-	         	x: 0,
-	        	y: null
-	         });
-	    }
-	} else if(data.length < 30){
-		// if not enough data, add some empty points
-		for(i = 0; i < 30-data.length; i+=1){
-	    	data.unshift({
-	         	x: 0,
-	        	y: null
-	         });
-		}
-	}
+	data = initializeLineData(data);
+	data2 = initializeLineData(data2);
+	
 	if(scale === undefined){
 		scale = 1;
 	}
@@ -219,10 +211,35 @@ function createLineChart(container, xAxis, yAxis, data, scale) {
         series: [{
             name: yAxis,
             data: data
+        },
+        {
+            name: yAxis,
+            data: data2
         }]
     });
 }
 
+function initializeLineData(data){
+	var i;
+	if(data===undefined){
+		data = [];
+	    for (i = -29; i <= 0; i += 1) {
+	    	data.push({
+	         	x: 0,
+	        	y: null
+	         });
+	    }
+	} else if(data.length < 30){
+		// if not enough data, add some empty points
+		for(i = 0; i < 30-data.length; i+=1){
+	    	data.unshift({
+	         	x: 0,
+	        	y: null
+	         });
+		}
+	}
+	return data;
+}
 
 // confusion matrix heatmap chart
 function createConfusionChart(container, matrix, scale) {
@@ -257,9 +274,6 @@ function createConfusionChart(container, matrix, scale) {
                 [0.9, '#c4463a']
             ],
             min: 0
-//            min: 0,
-//            minColor: Highcharts.getOptions().colors[0],
-//            maxColor: '#FFFFFF'
         },
         yAxis: {
             title: {

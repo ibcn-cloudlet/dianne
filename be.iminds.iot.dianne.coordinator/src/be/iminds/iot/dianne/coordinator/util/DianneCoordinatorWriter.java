@@ -17,6 +17,7 @@ import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.eval.EvaluationProgress;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.rl.agent.AgentProgress;
+import be.iminds.iot.dianne.api.rl.learn.QLearnProgress;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
@@ -100,8 +101,25 @@ public class DianneCoordinatorWriter {
 	
 	public static void writeLearnResult(JsonWriter writer, LearnResult result) throws Exception {
 		writer.beginArray();
-		for(LearnProgress p : result.progress){
-			writeObject(writer, p);
+		// merge (q) progress and validation in single object 
+		for(int i =0;i<result.progress.size();i++){
+			LearnProgress p = result.progress.get(i);
+			Evaluation val = result.validations.size() > i ? result.validations.get(i) : null;
+			
+			writer.beginObject();
+			writer.name("iteration");
+			writer.value(p.iteration);
+			writer.name("error");
+			writer.value(p.error);
+			if(p instanceof QLearnProgress){
+				writer.name("q");
+				writer.value(((QLearnProgress)p).q);
+			}
+			if(val != null){
+				writer.name("validation");
+				writer.value(val.error());
+			}
+			writer.endObject();
 		}
 		writer.endArray();
 	}
