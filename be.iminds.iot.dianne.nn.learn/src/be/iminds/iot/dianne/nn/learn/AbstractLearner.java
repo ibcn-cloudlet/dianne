@@ -212,9 +212,8 @@ public abstract class AbstractLearner implements Learner {
 				synchronized(listeners){
 					copy.addAll(listeners);
 				}
-				LearnProgress progress =  getProgress();
 				for(LearnerListener l : copy){
-					l.onFinish(learnerId, progress);
+					l.onFinish(learnerId, new LearnProgress(i, error));
 				}
 			});
 			learnerThread.start();

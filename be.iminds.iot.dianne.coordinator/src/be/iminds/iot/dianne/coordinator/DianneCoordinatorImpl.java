@@ -72,6 +72,7 @@ import be.iminds.iot.dianne.api.coordinator.LearnResult;
 import be.iminds.iot.dianne.api.coordinator.Notification;
 import be.iminds.iot.dianne.api.coordinator.Notification.Level;
 import be.iminds.iot.dianne.api.coordinator.Status;
+import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.eval.Evaluator;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.learn.Learner;
@@ -549,11 +550,15 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		notifications.add(n);
 	}
 
-	void sendLearnProgress(UUID jobId, LearnProgress progress){
+	void sendLearnProgress(UUID jobId, LearnProgress progress, Evaluation validation){
 		Map<String, Object> properties = new HashMap<>();
 		properties.put("jobId", jobId.toString());
 		properties.put("iteration", progress.iteration);
 		properties.put("error", progress.error);
+		
+		if(validation!=null)
+			properties.put("validation", validation.error());
+		
 		if(progress instanceof QLearnProgress){
 			properties.put("q", ((QLearnProgress)progress).q);
 		}

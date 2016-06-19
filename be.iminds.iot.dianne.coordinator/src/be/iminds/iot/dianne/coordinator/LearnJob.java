@@ -9,9 +9,13 @@ import java.util.stream.Collectors;
 
 import org.osgi.framework.ServiceRegistration;
 
+import be.iminds.iot.dianne.api.coordinator.Job.Category;
+import be.iminds.iot.dianne.api.coordinator.Job.EvaluationCategory;
 import be.iminds.iot.dianne.api.coordinator.Job.LearnCategory;
 import be.iminds.iot.dianne.api.coordinator.Job.Type;
 import be.iminds.iot.dianne.api.coordinator.LearnResult;
+import be.iminds.iot.dianne.api.nn.eval.Evaluation;
+import be.iminds.iot.dianne.api.nn.eval.Evaluator;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.learn.LearnerListener;
@@ -27,8 +31,10 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 	private LearnResult result = new LearnResult();
 	
 	private Map<UUID, Learner> learners = new HashMap<>();
+	private Evaluator validator = null;
 	
 	private Map<UUID, NeuralNetworkInstanceDTO> nnis2 = new HashMap<>();
+	private NeuralNetworkInstanceDTO validationNni;
 	
 	public LearnJob(DianneCoordinatorImpl coord, 
 			NeuralNetworkDTO nn,
@@ -57,6 +63,24 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 			}
 		}
 		
+		// check if we need to do validation - if so get an Evaluator on one of the targets
+		if(config.containsKey("validationSet")){
+			Category evaluatorCategory = null;
+			if(coordinator.platform.isClassificationDatset(dataset)){
+				evaluatorCategory = EvaluationCategory.CLASSIFICATION;
+			} else {
+				evaluatorCategory = EvaluationCategory.REGRESSION;
+			}
+			
+			for(UUID target : targets){
+				validator = coordinator.evaluators.get(evaluatorCategory.toString()).get(target);
+				if(validator != null){
+					validationNni = coordinator.platform.deployNeuralNetwork(nn.name, "Dianne Coordinator LearnJob Validaton NN"+jobId, target);
+					break;
+				}
+			}
+		}
+		
 		if(config.containsKey("maxIterations")){
 			maxIterations = Long.parseLong(config.get("maxIterations"));
 		}
@@ -66,8 +90,6 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 		props.put("targets", t);
 		props.put("aiolos.unique", true);
 		reg = coordinator.context.registerService(LearnerListener.class, this, props);
-		
-		// TODO deploy dataset?
 		
 		// set training set
 		final Map<String, String> learnConfig = new HashMap<>(config);
@@ -97,7 +119,25 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 		
 		result.progress.add(progress);
 		
-		coordinator.sendLearnProgress(this.jobId, progress);
+		// run validation
+		Evaluation validation = null;
+		if(validator != null){
+			Map<String, String> c = new HashMap<>();
+			c.put("range", config.get("validationSet"));
+			if(config.containsKey("tag")){
+				c.put("tag", config.get("tag"));
+			}
+			
+			try {
+				validation = validator.eval(dataset, c, validationNni);
+			} catch(Exception e){
+				System.err.println("Error running validation");
+			}
+			result.validations.add(validation);
+		}
+
+		coordinator.sendLearnProgress(this.jobId, progress, validation);
+
 		
 		// maxIterations stop condition
 		// what in case of multiple learners?!
@@ -144,6 +184,8 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 		for(NeuralNetworkInstanceDTO nni : nnis2.values()){
 			coordinator.platform.undeployNeuralNetwork(nni);
 		}
+		
+		coordinator.platform.undeployNeuralNetwork(validationNni);
 	}
 
 	@Override

@@ -25,6 +25,7 @@ package be.iminds.iot.dianne.api.coordinator;
 import java.util.ArrayList;
 import java.util.List;
 
+import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 
 /**
@@ -35,13 +36,20 @@ import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 public class LearnResult {
 
 	public List<LearnProgress> progress;
+	public List<Evaluation> validations;
 	
 	public LearnResult(){
 		this.progress = new ArrayList<>();
+		this.validations = new ArrayList<>();
 	}
 	
 	public LearnResult(ArrayList<LearnProgress> p){
 		this.progress = p;
+	}
+	
+	public LearnResult(ArrayList<LearnProgress> p, ArrayList<Evaluation> v){
+		this.progress = p;
+		this.validations = v;
 	}
 	
 	public long getIterations(){
