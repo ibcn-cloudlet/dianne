@@ -70,10 +70,15 @@ public class DianneBuilder extends HttpServlet {
 	void setHttpService(HttpService http){
 		try {
 			// TODO How to register resources with whiteboard pattern?
-			http.registerResources("/dianne/ui", "res", null);
+			http.registerResources("/dianne/ui/builder", "res", null);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	@Override
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		resp.sendRedirect("/dianne/ui/builder/builder.html");
 	}
 	
 	@Override
