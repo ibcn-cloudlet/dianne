@@ -346,3 +346,18 @@ eventsource.onmessage = function(event){
 	}
 }
 
+
+/**
+ * Redirect to builder if exists
+ */
+function redirect(){
+	$.ajax({
+	    type: 'HEAD',
+	    url: '../builder/builder.html',
+	    	success: function() {
+	    		window.location = '../builder/builder.html'
+	    	},
+	    	error: function() {
+	    	}
+	});
+}

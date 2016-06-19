@@ -1031,3 +1031,19 @@ function guid() {
     }
     return _p8() + _p8(true) + _p8(true) + _p8();
 }
+
+
+/**
+ * Redirect to dashboard if exists
+ */
+function redirect(){
+	$.ajax({
+	    type: 'HEAD',
+	    url: '../dashboard/dashboard.html',
+	    	success: function() {
+	    		window.location = '../dashboard/dashboard.html'
+	    	},
+	    	error: function() {
+	    	}
+	});
+}
