@@ -53,8 +53,6 @@ public class MNISTDataset extends FileDataset {
 		this.noSamples = 70000;
 		this.labels = new String[]{"0","1","2","3","4","5","6","7","8","9"};
 
-		this.prefetch = true;
-		
 		inputFiles = new String[]{"train-images.idx3-ubyte", "t10k-images.idx3-ubyte"};
 		outputFiles = new String[]{"train-labels.idx1-ubyte", "t10k-labels.idx1-ubyte"};
 	}
