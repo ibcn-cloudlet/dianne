@@ -38,7 +38,7 @@ public class NLLCriterion implements Criterion {
 
 	protected Tensor gradInput;
 	protected Tensor nll;
-	protected Tensor log;
+	protected Tensor log = null;
 	
 	public NLLCriterion() {
 		this.nll = new Tensor(1);
@@ -47,13 +47,14 @@ public class NLLCriterion implements Criterion {
 	@Override
 	public Tensor error(final Tensor output, final Tensor target) {
 		if(output.get()[0] < 0){
+			log = null;
 			// output comes from LogSoftmax, no log required
 			// this should be numerically more stable
 			float ll = TensorOps.dot(output, target);
 			nll.set(-ll, 0);
 		} else {
 			// calculate negative log 
-			TensorOps.log(log, output);
+			log = TensorOps.log(log, output);
 			float ll = TensorOps.dot(log, target);
 			nll.set(-ll, 0);
 		}
@@ -63,7 +64,12 @@ public class NLLCriterion implements Criterion {
 
 	@Override
 	public Tensor grad(final Tensor output, final Tensor target) {
-		gradInput = TensorOps.mul(gradInput, target, -1.0f);
+		if(log != null){
+			gradInput = TensorOps.cdiv(gradInput, target, output);
+			gradInput = TensorOps.mul(gradInput, gradInput, -1.0f);
+		} else {
+			gradInput = TensorOps.mul(gradInput, target, -1.0f);
+		}
 		return gradInput;
 	}
 }
