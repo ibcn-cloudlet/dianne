@@ -73,8 +73,9 @@ public class DatasetConfigurator implements DianneDatasets {
 			path = d;
 		}
 		
-		File dir = new File(path);
-		searchDirectory(dir, true);
+		final File dir = new File(path);
+		Thread t = new Thread(() -> searchDirectory(dir, true));
+		t.start();
 	}
 	
 	@Override
