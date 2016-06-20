@@ -600,41 +600,6 @@ JNIEXPORT jint JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_argmin
 	return index;
 }
 
-
-
-JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_scale2D
-  (JNIEnv * env, jclass clazz, jobject res, jobject tensor, jintArray dims){
-	THTensor* t = getTensor(env, tensor);
-	THTensor* r;
-
-	jsize noDims = (*env)->GetArrayLength(env, dims);
-	jint *d = (*env)->GetIntArrayElements(env, dims, 0);
-
-	if(noDims==2){
-		r = getTensor3d(env, res, 1, d[0], d[1]);
-	} else {
-		r = getTensor3d(env, res, d[0], d[1], d[2]);
-	}
-
-#ifdef CUDA
-	THCudaTensor_scale2d(state, r, t);
-#else
-	scale2d(r, t);
-#endif
-
-	if(noDims==2){
-		THTensor_(resize2d)(
-#ifdef CUDA
-			state,
-#endif
-			r, d[0], d[1]);
-	}
-
-	(*env)->ReleaseIntArrayElements(env, dims, d, 0);
-
-	return res == NULL ? createTensorObject(env, r) : res;
-}
-
 #ifndef CUDA
 // helper function on CPU only
 void scale2d(THTensor* r, THTensor* t){
@@ -702,6 +667,39 @@ void scale2d(THTensor* r, THTensor* t){
 	}
 }
 #endif
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_scale2D
+  (JNIEnv * env, jclass clazz, jobject res, jobject tensor, jintArray dims){
+	THTensor* t = getTensor(env, tensor);
+	THTensor* r;
+
+	jsize noDims = (*env)->GetArrayLength(env, dims);
+	jint *d = (*env)->GetIntArrayElements(env, dims, 0);
+
+	if(noDims==2){
+		r = getTensor3d(env, res, 1, d[0], d[1]);
+	} else {
+		r = getTensor3d(env, res, d[0], d[1], d[2]);
+	}
+
+#ifdef CUDA
+	THCudaTensor_scale2d(state, r, t);
+#else
+	scale2d(r, t);
+#endif
+
+	if(noDims==2){
+		THTensor_(resize2d)(
+#ifdef CUDA
+			state,
+#endif
+			r, d[0], d[1]);
+	}
+
+	(*env)->ReleaseIntArrayElements(env, dims, d, 0);
+
+	return res == NULL ? createTensorObject(env, r) : res;
+}
 
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_frame
   (JNIEnv * env, jclass c, jobject res, jobject tensor, jintArray dims){
