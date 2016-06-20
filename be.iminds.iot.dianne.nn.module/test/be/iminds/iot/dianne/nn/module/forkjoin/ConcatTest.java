@@ -23,6 +23,7 @@
 package be.iminds.iot.dianne.nn.module.forkjoin;
 
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -55,6 +56,7 @@ public class ConcatTest extends ModuleTest{
 		Tensor gradInput1 = new Tensor();
 		Tensor gradInput2 = new Tensor();
 		
+		CountDownLatch latch = new CountDownLatch(2);
 		
 		c.addForwardListener(new ForwardListener() {
 			@Override
@@ -72,29 +74,25 @@ public class ConcatTest extends ModuleTest{
 		i1.addBackwardListener(new BackwardListener() {
 			@Override
 			public void onBackward(UUID moduleId, Tensor gi, String... tags) {
-				synchronized(i1) {
-					if(expGradInput1!=null){
-						if(TRACE)
-							System.out.println("GRAD IN "+gi);
+				if(expGradInput1!=null){
+					if(TRACE)
+						System.out.println("GRAD IN "+gi);
 						
-						gi.copyInto(gradInput1);
-					}
-					i1.notify();
+					gi.copyInto(gradInput1);
 				}
+				latch.countDown();
 			}
 		});
 		i2.addBackwardListener(new BackwardListener() {
 			@Override
 			public void onBackward(UUID moduleId, Tensor gi, String... tags) {
-				synchronized(i2) {
-					if(expGradInput2!=null){
-						if(TRACE)
-							System.out.println("GRAD IN "+gi);
+				if(expGradInput2!=null){
+					if(TRACE)
+						System.out.println("GRAD IN "+gi);
 						
-						gi.copyInto(gradInput2);
-					}
-					i2.notify();
+					gi.copyInto(gradInput2);
 				}
+				latch.countDown();
 			}
 		});
 		
@@ -103,11 +101,9 @@ public class ConcatTest extends ModuleTest{
 			System.out.println("INPUT 2"+input2);
 		}
 		
-		synchronized(i2) {
-			i1.forward(UUID.randomUUID(), input1);
-			i2.forward(UUID.randomUUID(), input2);
-			i2.wait(1000);
-		}
+		i1.forward(UUID.randomUUID(), input1);
+		i2.forward(UUID.randomUUID(), input2);
+		latch.await();
 	
 		Assert.assertTrue("Wrong output", expOutput.equals(output, 0.005f));
 		Assert.assertTrue("Wrong grad input 1", expGradInput1.equals(gradInput1, 0.005f));
