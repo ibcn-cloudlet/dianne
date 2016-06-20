@@ -65,15 +65,8 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 		
 		// check if we need to do validation - if so get an Evaluator on one of the targets
 		if(config.containsKey("validationSet")){
-			Category evaluatorCategory = null;
-			if(coordinator.platform.isClassificationDatset(dataset)){
-				evaluatorCategory = EvaluationCategory.CLASSIFICATION;
-			} else {
-				evaluatorCategory = EvaluationCategory.REGRESSION;
-			}
-			
 			for(UUID target : targets){
-				validator = coordinator.evaluators.get(evaluatorCategory.toString()).get(target);
+				validator = coordinator.evaluators.get(EvaluationCategory.CRITERION.toString()).get(target);
 				if(validator != null){
 					validationNni = coordinator.platform.deployNeuralNetwork(nn.name, "Dianne Coordinator LearnJob Validaton NN"+jobId, target);
 					break;
@@ -126,6 +119,9 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 			c.put("range", config.get("validationSet"));
 			if(config.containsKey("tag")){
 				c.put("tag", config.get("tag"));
+			}
+			if(config.containsKey("criterion")){
+				c.put("criterion", config.get("criterion"));
 			}
 			
 			try {

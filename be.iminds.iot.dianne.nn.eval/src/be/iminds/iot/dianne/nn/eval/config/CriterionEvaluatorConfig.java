@@ -20,31 +20,15 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.api.nn.eval;
+package be.iminds.iot.dianne.nn.eval.config;
 
-/**
- * Represents the progress made by an Evaluator
- * 
- * @author tverbele
- *
- */
-public class EvaluationProgress extends Evaluation {
+import be.iminds.iot.dianne.nn.learn.config.LearnerConfig.Criterion;
 
-	/** Total number of samples to be processed */
-	private final long processed;
-	
-	public EvaluationProgress(long processed, long total, float error, long evaluationTime, float forwardTime){
-		this.error = error;
-		this.processed = processed;
-		this.total = total;
-		this.evaluationTime = evaluationTime;
-		this.forwardTime = forwardTime;
-	}
-	
+public class CriterionEvaluatorConfig {
+
 	/**
-	 * @return the number of samples processed
+	 * The criterion to use to evaluate the error between output and target
 	 */
-	public long getProcessed(){
-		return processed;
-	}
+	public Criterion criterion = Criterion.MSE;
+	
 }

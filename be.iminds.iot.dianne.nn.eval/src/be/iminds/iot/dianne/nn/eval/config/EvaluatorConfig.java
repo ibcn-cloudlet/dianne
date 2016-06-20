@@ -30,11 +30,6 @@ public class EvaluatorConfig {
 	public String tag;
 	
 	/**
-	 * Start the training with new randomized parameters
-	 */
-	public boolean clean = false;
-	
-	/**
 	 * Output intermediate results to the console
 	 */
 	public boolean trace = false;

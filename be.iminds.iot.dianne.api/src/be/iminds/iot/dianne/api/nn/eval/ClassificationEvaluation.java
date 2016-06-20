@@ -22,8 +22,6 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.nn.eval;
 
-import java.util.List;
-
 import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
@@ -35,16 +33,9 @@ import be.iminds.iot.dianne.tensor.Tensor;
 public class ClassificationEvaluation extends Evaluation {
 
 	// resulting confusion matrix
-	protected Tensor confusionMatrix;
+	public Tensor confusionMatrix;
 	// the index of the correct sample in the sorted output
-	protected int[] rankings;
-	
-	public ClassificationEvaluation(long total, float error, List<Tensor> outputs, long evaluationTime, float forwardTime, Tensor confusionMatrix, int[] rankings){
-		super(total, error, outputs, evaluationTime, forwardTime);
-
-		this.confusionMatrix = confusionMatrix;
-		this.rankings = rankings;
-	}
+	public int[] rankings;
 	
 	@Override
 	public String toString(){

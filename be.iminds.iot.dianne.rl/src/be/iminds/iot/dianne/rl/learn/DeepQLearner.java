@@ -85,9 +85,7 @@ public class DeepQLearner extends AbstractLearner {
 	}
 
 	
-	protected void preprocess(){
-		super.preprocess();
-		
+	protected void preprocess(String dataset, Map<String, String> c){
 		// wait until pool has some samples
 		if(pool.size() < config.minSamples){
 			System.out.println("Experience pool has too few samples, waiting a bit to start learning...");
@@ -98,6 +96,8 @@ public class DeepQLearner extends AbstractLearner {
 				}
 			}
 		}
+		
+		super.preprocess(dataset, c);
 		System.out.println("Start learning...");
 	}
 	

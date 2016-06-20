@@ -20,7 +20,7 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.nn.learn;
+package be.iminds.iot.dianne.nn.learn.sampling;
 
 import java.util.Map;
 
@@ -48,78 +48,9 @@ import be.iminds.iot.dianne.nn.learn.processors.config.NesterovConfig;
 import be.iminds.iot.dianne.nn.learn.processors.config.RMSpropConfig;
 import be.iminds.iot.dianne.nn.learn.processors.config.RegularizationConfig;
 import be.iminds.iot.dianne.nn.learn.processors.config.SGDConfig;
-import be.iminds.iot.dianne.nn.learn.sampling.RandomSamplingStrategy;
-import be.iminds.iot.dianne.nn.learn.sampling.SequentialSamplingStrategy;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 
-public class LearnerUtil {
-
-	public static GradientProcessor createGradientProcessor(LearnerConfig.Method method, NeuralNetwork nn,
-			Map<String, String> config,DataLogger logger){
-		return addMomentum(addRegularization(createSGDProcessor(method, nn, config, logger), config), config);
-	}
-	
-	public static GradientProcessor createSGDProcessor(LearnerConfig.Method method, NeuralNetwork nn,
-			Map<String, String> config, DataLogger logger){
-		
-		GradientProcessor p = null;
-		
-		switch(method) {
-		case ADADELTA:
-			p = new AdadeltaProcessor(nn, logger, DianneConfigHandler.getConfig(config, AdadeltaConfig.class));
-			break;
-		case ADAGRAD:
-			p = new AdagradProcessor(nn, logger, DianneConfigHandler.getConfig(config, AdagradConfig.class));
-			break;
-		case RMSPROP:
-			p = new RMSpropProcessor(nn, logger, DianneConfigHandler.getConfig(config, RMSpropConfig.class));
-			break;	
-		default:
-			p = new StochasticGradientDescentProcessor(nn, logger, DianneConfigHandler.getConfig(config, SGDConfig.class));
-			break;
-		}
-
-		return p;
-	}
-	
-	public static GradientProcessor addRegularization(GradientProcessor p, Map<String, String> config){
-		if(config.containsKey("l2")) {
-			RegularizationProcessor r = new RegularizationProcessor(p, DianneConfigHandler.getConfig(config, RegularizationConfig.class));
-			return r;
-		} else {
-			return p;
-		}
-	}
-	
-	public static GradientProcessor addMomentum(GradientProcessor p, Map<String, String> config){
-		if(config.containsKey("momentum")) {
-			GradientProcessor m = new MomentumProcessor(p, DianneConfigHandler.getConfig(config, MomentumConfig.class));
-			return m;
-		} else if(config.containsKey("nesterov")) {
-			GradientProcessor m = new NesterovMomentumProcessor(p, DianneConfigHandler.getConfig(config, NesterovConfig.class));
-			return m;
-		} else {
-			return p;
-		}
-	}
-	
-	public static Criterion createCriterion(LearnerConfig.Criterion c){
-		Criterion criterion = null;
-		
-		switch(c) {
-		case ABS :
-			criterion = new AbsCriterion();
-			break;
-		case NLL :
-			criterion = new NLLCriterion();
-			break;
-		default:
-			criterion = new MSECriterion();
-			break;
-		}
-		
-		return criterion;
-	}
+public class SamplingFactory {
 	
 	public static SamplingStrategy createSamplingStrategy(LearnerConfig.Sampling strategy, Dataset d, Map<String, String> config){
 		SamplingStrategy sampling = null;

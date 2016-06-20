@@ -25,10 +25,10 @@ public class EvaluationJob extends AbstractJob<EvaluationResult> {
 		super(coord, Type.EVALUATE, nn, d, c);
 		
 		// TODO when to use MSE category?!
-		if(coord.platform.isClassificationDatset(d)){
+		if(coord.platform.isClassificationDatset(d) && !c.containsKey("criterion")){
 			category = EvaluationCategory.CLASSIFICATION;
 		} else {
-			category = EvaluationCategory.REGRESSION;
+			category = EvaluationCategory.CRITERION;
 		}
 	}
 	

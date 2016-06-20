@@ -20,34 +20,28 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.nn.eval;
+package be.iminds.iot.dianne.nn.learn.criterion;
 
-import org.osgi.service.component.annotations.Component;
+import be.iminds.iot.dianne.api.nn.learn.Criterion;
+import be.iminds.iot.dianne.nn.learn.config.LearnerConfig;
 
-import be.iminds.iot.dianne.api.nn.eval.Evaluator;
-import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorOps;
-
-@Component(
-		service={Evaluator.class},
-		property={"aiolos.unique=true",
-		"dianne.evaluator.category=REGRESSION"})
-public class RegressionEvaluator extends AbstractEvaluator {
+public class CriterionFactory {
 	
-	private Tensor err;
-	private Tensor sqerr;
-	
-	protected void evalOutput(int index, Tensor out, Tensor expected){
+	public static Criterion createCriterion(LearnerConfig.Criterion c){
+		Criterion criterion = null;
 		
-		// for now fixed MSE error ... TODO allow different metrics (use Criterion?)
-		err = TensorOps.sub(err, out, expected);
-		sqerr = TensorOps.cmul(sqerr, err, err);
-		error = error + TensorOps.sum(sqerr)*0.5f;
-		
-		if(this.config.trace){
-			System.out.println("Sample "+index+" was "+expected+", should be "+out);
+		switch(c) {
+		case ABS :
+			criterion = new AbsCriterion();
+			break;
+		case NLL :
+			criterion = new NLLCriterion();
+			break;
+		default:
+			criterion = new MSECriterion();
+			break;
 		}
+		
+		return criterion;
 	}
-
 }
-

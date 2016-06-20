@@ -34,24 +34,15 @@ import be.iminds.iot.dianne.tensor.Tensor;
  */
 public class Evaluation {
 
-	protected long total;
-	protected float error;
+	public long total;
+	public float error;
 	
 	// the actual outputs 
-	protected List<Tensor> outputs;
+	public List<Tensor> outputs;
 	// time to run the full evaluation
-	protected long evaluationTime;
+	public long evaluationTime;
 	// average forward time
-	protected float forwardTime;
-	
-	public Evaluation(long total, float error, List<Tensor> outputs, long evaluationTime, float forwardTime){
-		this.total = total;
-		this.error = error;
-		
-		this.outputs = outputs;
-		this.evaluationTime = evaluationTime;
-		this.forwardTime = forwardTime;
-	}
+	public float forwardTime;
 	
 	@Override
 	public String toString(){

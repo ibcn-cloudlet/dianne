@@ -24,9 +24,12 @@ package be.iminds.iot.dianne.nn.eval;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
 
+import be.iminds.iot.dianne.api.nn.eval.ClassificationEvaluation;
+import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.eval.Evaluator;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
@@ -37,17 +40,28 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 		"dianne.evaluator.category=CLASSIFICATION"})
 public class ClassificationEvaluator extends AbstractEvaluator {
 	
-	protected void evalOutput(int index, Tensor out, Tensor expected){
+	protected Tensor confusion;
+	protected int[] rankings;
+	
+	protected void init(Map<String, String> config){
+		// reset
+		rankings = new int[total];
+		confusion = null;
+	}
+	
+	protected float evalOutput(int index, Tensor out, Tensor expected){
 		if(confusion==null){
 			int outputSize = out.size();
 			confusion = new Tensor(outputSize, outputSize);
 			confusion.fill(0.0f);
 		}
 		
+		float error = 0.0f;
+		
 		int predicted = TensorOps.argmax(out);
 		int real = TensorOps.argmax(expected);
 		if(real!=predicted)
-			error= error+1.0f;
+			error = 1.0f;
 		
 		if(this.config.trace){
 			System.out.println("Sample "+index+" was "+predicted+", should be "+real);
@@ -76,6 +90,15 @@ public class ClassificationEvaluator extends AbstractEvaluator {
 			ranking++;
 		}
 		rankings[index] = ranking;
+		
+		return error;
+	}
+	
+	protected Evaluation finish(){
+		ClassificationEvaluation eval = new ClassificationEvaluation();
+		eval.rankings = rankings;
+		eval.confusionMatrix = confusion;
+		return eval;
 	}
 }
 

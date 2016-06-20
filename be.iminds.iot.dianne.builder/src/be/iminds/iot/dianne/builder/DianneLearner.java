@@ -243,7 +243,7 @@ public class DianneLearner extends HttpServlet {
 					Map<String, String> config = new HashMap<>();
 					config.put("range", ""+start+","+end);
 					
-					String type = "REGRESSION";
+					String type = "CRITERION";
 					if(platform.isClassificationDatset(dataset)){
 						type = "CLASSIFICATION";
 					}

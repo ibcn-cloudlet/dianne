@@ -44,7 +44,6 @@ import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
-import be.iminds.iot.dianne.api.nn.eval.ClassificationEvaluation;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.eval.EvaluationProgress;
 import be.iminds.iot.dianne.api.nn.eval.Evaluator;
@@ -81,10 +80,8 @@ public abstract class AbstractEvaluator implements Evaluator {
 	protected volatile boolean evaluating = false;
 	
 	protected int index = 0;
-	protected float error = 0;
-	protected int total = 0;
-	protected Tensor confusion;
-	protected int[] rankings;
+	protected int total;
+	protected float error;
 	protected List<Tensor> outputs;
 	protected long tStart, tEnd, tForward;
 	
@@ -113,9 +110,9 @@ public abstract class AbstractEvaluator implements Evaluator {
 			if(d==null){
 				throw new Exception("Dataset "+dataset+" not available");
 			}
-			
 			total = d.size();
-			error = 0;
+			error = 0.0f;
+			init(config);
 			
 			NeuralNetwork nn = null;
 			try {
@@ -136,8 +133,6 @@ public abstract class AbstractEvaluator implements Evaluator {
 				System.out.println("No parameters loaded for this evaluation - network is not yet trained?");
 			}
 		
-			confusion = null;
-			rankings = new int[total];
 			outputs = this.config.includeOutputs ? new ArrayList<Tensor>() : null;
 			tStart = System.currentTimeMillis(); tForward = 0;
 			
@@ -152,7 +147,7 @@ public abstract class AbstractEvaluator implements Evaluator {
 				if(outputs!=null)
 					outputs.add(out.copyInto(null));
 				
-				evalOutput(index, out, sample.target);
+				error += evalOutput(index, out, sample.target);
 				
 				if(index % 1000 == 0){
 					listenerExecutor.execute(()->{
@@ -171,11 +166,15 @@ public abstract class AbstractEvaluator implements Evaluator {
 			
 			long evaluationTime = tEnd-tStart;
 			float forwardTime =  (tForward/1000000f)/total;
-			if(confusion == null){
-				return new Evaluation(total, error/(float)total, outputs, evaluationTime, forwardTime);
-			} else {
-				return new ClassificationEvaluation(total, error/(float)total, outputs, evaluationTime, forwardTime, confusion, rankings);
-			}
+			
+			Evaluation eval = finish();
+			eval.total = total;
+			eval.error = error/total;
+			eval.forwardTime = forwardTime;
+			eval.evaluationTime = evaluationTime;
+			eval.outputs = outputs;
+			
+			return eval;
 		} catch(Throwable t){
 			System.err.println("Error during evaluation");
 			List<EvaluatorListener> copy = new ArrayList<>();
@@ -202,7 +201,11 @@ public abstract class AbstractEvaluator implements Evaluator {
 		}
 	}
 	
-	protected abstract void evalOutput(int index, Tensor out, Tensor expected);
+	protected abstract void init(Map<String, String> config);
+	
+	protected abstract float evalOutput(int index, Tensor out, Tensor expected);
+	
+	protected abstract Evaluation finish();
 	
 	public EvaluationProgress getProgress(){
 		if(!evaluating)
@@ -255,26 +258,6 @@ public abstract class AbstractEvaluator implements Evaluator {
 	
 	protected void removeListener(EvaluatorListener listener, Map<String, Object> properties){
 		this.listeners.remove(listener);
-	}
-	
-	private int[] parseRange(String range){
-		ArrayList<Integer> list = new ArrayList<>();
-		String[] subranges = range.split(",");
-		for(String subrange : subranges){
-			String[] s = subrange.split(":");
-			if(s.length==2){
-				for(int i=Integer.parseInt(s[0]);i<Integer.parseInt(s[1]);i++){
-					list.add(i);
-				}
-			} else {
-				list.add(Integer.parseInt(s[0]));
-			}
-		}
-		int[] array = new int[list.size()];
-		for(int i=0;i<list.size();i++){
-			array[i] = list.get(i);
-		}
-		return array;
 	}
 
 }

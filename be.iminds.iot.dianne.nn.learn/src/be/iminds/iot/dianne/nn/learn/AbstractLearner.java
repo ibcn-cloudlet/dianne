@@ -54,6 +54,9 @@ import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.nn.learn.config.LearnerConfig;
+import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory;
+import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory;
+import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.tensor.Tensor;
 
@@ -147,10 +150,10 @@ public abstract class AbstractLearner implements Learner {
 			initializeParameters();
 			
 			// setup criterion, sampling strategy and gradient processor
-			sampling = LearnerUtil.createSamplingStrategy(this.config.sampling, dataset, config);
+			sampling = SamplingFactory.createSamplingStrategy(this.config.sampling, dataset, config);
 
-			criterion = LearnerUtil.createCriterion(this.config.criterion);
-			gradientProcessor = LearnerUtil.createGradientProcessor(this.config.method, nn, config, logger);
+			criterion = CriterionFactory.createCriterion(this.config.criterion);
+			gradientProcessor = ProcessorFactory.createGradientProcessor(this.config.method, nn, config, logger);
 			
 			learnerThread = new Thread(() -> {
 				try {
@@ -318,7 +321,13 @@ public abstract class AbstractLearner implements Learner {
 	 * Run any preprocessing procedures before the actual learning starts
 	 */
 	protected void preprocess(String d, Map<String, String> c){
-		// preprocess on the train set without 
+		if(!nn.getPreprocessors().values().stream()
+			.filter(p -> !p.isPreprocessed())
+			.findFirst().isPresent())
+			return;
+		
+		// preprocess on the train set without
+		System.out.println("Preprocess!");
 		HashMap<String, String> trainSetConfig = new HashMap<>();
 		if(c.containsKey("range"))
 			trainSetConfig.put("range", c.get("range"));

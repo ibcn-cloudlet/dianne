@@ -22,7 +22,7 @@ public class Job {
 	
 	public enum EvaluationCategory implements Category {
 		CLASSIFICATION,
-		REGRESSION
+		CRITERION
 	}
 	
 	public final UUID id;
