@@ -24,8 +24,8 @@ aiolos.version='latest'
 	be.iminds.iot.dianne.rl.exp;version=latest,\
 	be.iminds.iot.dianne.builder;version=latest,\
 	be.iminds.iot.dianne.command;version=latest,\
-	be.iminds.iot.dianne.coordinator;version=latest,\
 	be.iminds.iot.dianne.jsonrpc;version=latest,\
+	be.iminds.iot.dianne.coordinator;version=latest,\
 	be.iminds.iot.dianne.dashboard;version=latest
 	
 -runproperties.coordinator:\
