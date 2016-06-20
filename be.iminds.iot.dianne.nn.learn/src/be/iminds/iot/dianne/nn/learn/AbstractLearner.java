@@ -154,7 +154,7 @@ public abstract class AbstractLearner implements Learner {
 			
 			learnerThread = new Thread(() -> {
 				try {
-					preprocess();
+					preprocess(d, config);
 					
 					for(i = 0; learning; i++) {
 						// Process training sample(s) for this iteration
@@ -317,15 +317,26 @@ public abstract class AbstractLearner implements Learner {
 	/**
 	 * Run any preprocessing procedures before the actual learning starts
 	 */
-	protected void preprocess(){
-		// TODO first get parameters for preprocessing?
-		nn.getPreprocessors().values().stream()
-			.filter(p -> !p.isPreprocessed())
-			.forEach(p -> p.preprocess(dataset));
+	protected void preprocess(String d, Map<String, String> c){
+		// preprocess on the train set without 
+		HashMap<String, String> trainSetConfig = new HashMap<>();
+		if(c.containsKey("range"))
+			trainSetConfig.put("range", c.get("range"));
 		
-		Map<UUID, Tensor> preprocessorParameters = new HashMap<>();
-		nn.getPreprocessors().entrySet().stream().forEach(e -> preprocessorParameters.put(e.getKey(), e.getValue().getParameters()));
-		nn.storeParameters(preprocessorParameters, config.tag);
+		Dataset preprocessSet = datasets.configureDataset(d, trainSetConfig);
+		
+		try {
+			// TODO first get parameters for preprocessing?
+			nn.getPreprocessors().values().stream()
+				.filter(p -> !p.isPreprocessed())
+				.forEach(p -> p.preprocess(preprocessSet));
+			
+			Map<UUID, Tensor> preprocessorParameters = new HashMap<>();
+			nn.getPreprocessors().entrySet().stream().forEach(e -> preprocessorParameters.put(e.getKey(), e.getValue().getParameters()));
+			nn.storeParameters(preprocessorParameters, config.tag);
+		} finally {
+			datasets.releaseDataset(preprocessSet);
+		}
 	}
 	
 	/**
