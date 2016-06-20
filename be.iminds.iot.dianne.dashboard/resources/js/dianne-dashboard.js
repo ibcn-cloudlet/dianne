@@ -336,11 +336,11 @@ eventsource.onmessage = function(event){
     	if(data.q!==undefined){
     		y = Number(data.q);
     	} else {
-    		y = Number(data.error);
+    		y = Number(data.miniBatchError);
     	}
 		Highcharts.charts[index].series[0].addPoint([x, y], true, true, false);
-		if(data.validation !== undefined){
-			var v = Number(data.validation);
+		if(data.validationError !== undefined){
+			var v = Number(data.validationError);
 			Highcharts.charts[index].series[1].addPoint([x, v], true, true, false);
 		}
 	}

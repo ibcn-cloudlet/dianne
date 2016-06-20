@@ -109,14 +109,14 @@ public class DianneCoordinatorWriter {
 			writer.beginObject();
 			writer.name("iteration");
 			writer.value(p.iteration);
-			writer.name("error");
+			writer.name("miniBatchError");
 			writer.value(p.error);
 			if(p instanceof QLearnProgress){
 				writer.name("q");
 				writer.value(((QLearnProgress)p).q);
 			}
 			if(val != null){
-				writer.name("validation");
+				writer.name("validationError");
 				writer.value(val.error());
 			}
 			writer.endObject();

@@ -99,22 +99,22 @@ function createResultChart(container, job, scale){
      	} else { 
      		// else plot error value
 			DIANNE.learnResult(job.id).then(function(learnprogress){
-				 var error = [];
-				 var validation = [];
+				 var miniBatchError = [];
+				 var validationError = [];
 				 $.each(learnprogress, function(i) {
 					 var progress = learnprogress[i];
-					 error.push({
+					 miniBatchError.push({
 						 x: progress.iteration,
-	                     y: progress.error
+	                     y: progress.miniBatchError
 	                 });
-					 if(progress.validation !== undefined){
-						 validation.push({
+					 if(progress.validationError !== undefined){
+						 validationError.push({
 							 x: progress.iteration,
-							 y: progress.validation
+							 y: progress.validationError
 				 	 	});
 					 }
 				 });
-				 createErrorChart(container, scale, error, validation);
+				 createErrorChart(container, scale, miniBatchError, validationError);
 			});
      	}
 	} else if(job.type==="EVALUATE"){
@@ -154,16 +154,16 @@ function createResultChart(container, job, scale){
 	}
 }
 
-function createErrorChart(container, scale, error, validation){
-	createLineChart(container, 'Iterations', 'Error', scale, error, validation);
+function createErrorChart(container, scale, miniBatchError, validationError){
+	createLineChart(container, 'Iterations', 'Error', scale, 'minibatch error', miniBatchError, 'validation error', validationError);
 }
 
 function createQChart(container, scale, q){
-	createLineChart(container, 'Iterations', 'Q', scale, q);
+	createLineChart(container, 'Iterations', 'Q', scale, 'Q', q);
 }
 
 // generic line chart
-function createLineChart(container, xAxis, yAxis, scale, data, data2) {
+function createLineChart(container, xAxis, yAxis, scale, title, data, title2, data2) {
 	// if no data specified, initialize empty
 	data = initializeLineData(data);
 	data2 = initializeLineData(data2);
@@ -209,11 +209,11 @@ function createLineChart(container, xAxis, yAxis, scale, data, data2) {
             enabled: false
         },
         series: [{
-            name: yAxis,
+            name: title,
             data: data
         },
         {
-            name: yAxis,
+            name: title2,
             data: data2
         }]
     });
