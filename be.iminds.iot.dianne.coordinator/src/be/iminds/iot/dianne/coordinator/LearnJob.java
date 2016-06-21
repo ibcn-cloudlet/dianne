@@ -194,7 +194,8 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 			coordinator.platform.undeployNeuralNetwork(nni);
 		}
 		
-		coordinator.platform.undeployNeuralNetwork(validationNni);
+		if(validationNni != null)
+			coordinator.platform.undeployNeuralNetwork(validationNni);
 	}
 
 	@Override
