@@ -112,13 +112,13 @@
 				   <div class="form-group">
 				    <label class="control-label col-sm-2" for="nn">Name:</label>
 				    <div class="col-sm-10">
-				      <input name="name" type="text" class="form-control" placeholder="Insert a human readable job name..."/>
+				      <input id="submit-name" name="name" type="text" class="form-control" placeholder="Insert a human readable job name..."/>
 				    </div>
 				   </div>
 				   <div class="form-group">
 				    <label class="control-label col-sm-2" for="type">Type:</label>
 				    <div class="col-sm-10">
-				      <select name="type" class="form-control">
+				      <select id="submit-type" name="type" class="form-control">
 					    <option>LEARN</option>
 					    <option>EVALUATE</option>
 					    <option>ACT</option>
@@ -128,21 +128,21 @@
 				   <div class="form-group">
 				    <label class="control-label col-sm-2" for="nn">Neural Network:</label>
 				    <div class="col-sm-10">
-				      <select id="nn" name="nn" type="text" class="form-control" placeholder="Choose neural network...">
+				      <select id="submit-nn" name="nn" type="text" class="form-control" placeholder="Choose neural network...">
 				      </select>
 				    </div>
 				   </div>
 				   <div class="form-group">
 				    <label class="control-label col-sm-2" for="dataset">Dataset:</label>
 				    <div class="col-sm-10">
-				      <select id="dataset" name="dataset" type="text" class="form-control" placeholder="Select dataset...">
+				      <select id="submit-dataset" name="dataset" type="text" class="form-control" placeholder="Select dataset...">
 				      </select>
 				    </div>
 				   </div>
 				   <div class="form-group">
 				    <label class="control-label col-sm-2" for="config">Options:</label>
 				    <div class="col-sm-10">
-				      <textarea name="config" class="form-control" rows="5" placeholder="Options in the form of key1=value1 key2=value2 ..."></textarea>
+				      <textarea id="submit-config" name="config" class="form-control" rows="5" placeholder="Options in the form of key1=value1 key2=value2 ..."></textarea>
 				    </div>
 				   </div>
 				</form>
@@ -276,7 +276,7 @@
 		   <div class="modal-footer">
 		      	<button class="cancel btn btn-danger pull-left" data-dismiss="modal" onclick="stopJob('{{id}}')">Cancel Job</button>
 		      	<button class="resubmit btn btn-default pull-left" data-dismiss="modal" onclick="resubmitJob('{{id}}')">Resubmit Job</button>
-  				<div class="resubmit checkbox pull-left">
+  				<div class="resubmit checkbox pull-left clean">
     				<label>
       					<input id="clean" type="checkbox" checked>clean
     				</label>

@@ -62,13 +62,19 @@ function resubmitJob(jobId){
 			job.config['clean'] = $('#clean').is(':checked');
 		}
 		
-	    if(job.type==="LEARN"){
-	    	DIANNE.learn(job.nn, job.dataset, job.config);
-	    } else if(job.type==="EVALUATE"){
-	    	DIANNE.eval(job.nn, job.dataset, job.config);
-	    } else if(job.type==="ACT"){
-	    	DIANNE.act(job.nn, job.dataset, job.config);
-	    }
+		$("#submit-name").val(job.name);
+		$("#submit-type").val(job.type);
+		$("#submit-nn").val(job.nn);
+		$("#submit-dataset").val(job.dataset);
+		var config = "";
+		$.each(job.config, function(k, v) {
+			if(k !== "name") // exclude name here
+				config += k + "=" + v + " ";
+		});
+		$("#submit-config").val(config);
+
+		
+		$('#submit-modal').modal('show');
 	});
 }
 
@@ -211,6 +217,11 @@ function showDetails(jobId){
 			dialog.find('.cancel').show();
 			dialog.find('.resubmit').hide();
 		}
+		if(job.type !== "LEARN"){
+			dialog.find('.clean').hide();
+		} else {
+			dialog.find('.clean').show();
+		}
 		if(job.started !== 0){
 			createResultChart($('#'+job.id+"-result"), job, 1.5);
 		}
@@ -259,14 +270,14 @@ $(function () {
      	// TODO set each time the dialog is shown?
      	// nn options in submission dialog
      	DIANNE.nns().then(function(data){
-     		var options = $("#nn");
+     		var options = $("#submit-nn");
      	    $.each(data, function(i) {
      	        options.append($("<option />").val(data[i]).text(data[i]));
      	    });
      	});
      	// dataset options in submission dialog
      	DIANNE.datasets().then(function(data){
-     		var options = $("#dataset");
+     		var options = $("#submit-dataset");
      	    $.each(data, function(i) {
      	        options.append($("<option />").val(data[i]).text(data[i]));
      	    });
