@@ -19,6 +19,10 @@ NVCC_FLAGS := -DCUDA -Xcompiler -fPIC
 CUDA_SRC := $(wildcard *.cu)
 CUDA_OBJECTS := $(CUDA_SRC:.cu=.o)
 
+ifneq ($(strip $(OS))-$(strip $(ARCH)),$(uname -s)-$(uname -m))
+	CMAKE_FLAGS += -DCMAKE_SYSTEM_NAME=$(OS) -DCMAKE_SYSTEM_PROCESSOR=$(ARCH)
+endif
+
 .PHONY: install
 install: $(DEPLOY_DIR)/$(LIB)
 
@@ -36,11 +40,11 @@ $(LIB): cutorch/lib/THC/build/libTHC.a cunn/lib/THCUNN/build/libTHCUNN.a $(OBJEC
 	$(NVCC) $(CFLAGS) $(NVCC_FLAGS) $(INCLUDES) -c $<
 
 cutorch/lib/THC/build/libTHC.a:
-	cmake -Hcutorch/lib/THC -Bcutorch/lib/THC/build
+	cmake -Hcutorch/lib/THC -Bcutorch/lib/THC/build $(CMAKE_FLAGS)
 	$(MAKE) -C cutorch/lib/THC/build
 
 cunn/lib/THCUNN/build/libTHCUNN.a:
-	cmake -Hcunn/lib/THCUNN -Bcunn/lib/THCUNN/build
+	cmake -Hcunn/lib/THCUNN -Bcunn/lib/THCUNN/build $(CMAKE_FLAGS)
 	$(MAKE) -C cunn/lib/THCUNN/build
 
 .PHONY: clean
