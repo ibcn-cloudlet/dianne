@@ -355,7 +355,7 @@ eventsource.onmessage = function(event){
  */
 
 function configStringToObject(string){
-	var configArray = string.split(' ');
+	var configArray = string.trim().split(' ');
 	var configJson = {};
 	$.each(configArray, function(){
 		var n = this.indexOf("=");
