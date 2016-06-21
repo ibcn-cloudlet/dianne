@@ -13,7 +13,6 @@ import be.iminds.iot.dianne.api.coordinator.Job.EvaluationCategory;
 import be.iminds.iot.dianne.api.coordinator.Job.LearnCategory;
 import be.iminds.iot.dianne.api.coordinator.Job.Type;
 import be.iminds.iot.dianne.api.coordinator.LearnResult;
-import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.eval.Evaluator;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
@@ -26,7 +25,7 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 
 	private ServiceRegistration reg;
 	
-	private long maxIterations = 10000;
+	private long maxIterations = -1;
 	
 	private LearnResult result = new LearnResult();
 	
@@ -36,6 +35,9 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 	private Map<UUID, NeuralNetworkInstanceDTO> nnis2 = new HashMap<>();
 	private NeuralNetworkInstanceDTO validationNni;
 	private float bestValidationError = Float.MAX_VALUE;
+	private float miniBatchErrorThreshold = -Float.MAX_VALUE;
+	private float validationErrorThreshold = -Float.MAX_VALUE;
+	private int errorThresholdWindow = 10;
 	
 	public LearnJob(DianneCoordinatorImpl coord, 
 			NeuralNetworkDTO nn,
@@ -49,6 +51,18 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 			category = LearnCategory.RNN;
 		} else {
 			category = LearnCategory.FF;
+		}
+		
+		if(c.containsKey("miniBatchErrorThreshold")){
+			miniBatchErrorThreshold = Float.parseFloat(c.get("miniBatchErrorThreshold"));
+		}
+		
+		if(c.containsKey("validationErrorThreshold")){
+			validationErrorThreshold = Float.parseFloat(c.get("validationErrorThreshold"));
+		}
+		
+		if(c.containsKey("errorThresholdWindow")){
+			errorThresholdWindow = Integer.parseInt(c.get("errorThresholdWindow"));
 		}
 	}
 		
@@ -99,6 +113,9 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 		System.out.println("* nn: "+nn.name);
 		System.out.println("* dataset: "+dataset);
 		System.out.println("* maxIterations: "+maxIterations);
+		System.out.println("* miniBatchErrorThreshold: "+(miniBatchErrorThreshold==-Float.MAX_VALUE ? "N\\A" : miniBatchErrorThreshold));
+		System.out.println("* validationErrorThreshold: "+(validationErrorThreshold==-Float.MAX_VALUE ? "N\\A" : validationErrorThreshold));
+		System.out.println("* errorThresholdWindow: "+errorThresholdWindow);
 		System.out.println("---");
 		
 		// start learning on each learner
@@ -150,14 +167,29 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 		
 		// maxIterations stop condition
 		// what in case of multiple learners?!
-		boolean stop = progress.iteration >= maxIterations;
-				
-		// TODO other stop conditions
-		// - check error rate evolution (on train and/or validationSet)
-		// - stop at a certain error rate
-		// - stop after certain time
-		// ...
-				
+		boolean stop = maxIterations > 0 && progress.iteration >= maxIterations;
+			
+		// threshold on delta minibatch error
+		// if less 'progress' than this, stop
+		if(result.progress.size() > errorThresholdWindow){
+			int last = result.progress.size() - 1;
+			int prev = last - errorThresholdWindow;
+			float deltaMiniBatchError = result.progress.get(prev).error - result.progress.get(last).error;
+			if(deltaMiniBatchError < miniBatchErrorThreshold){
+				stop = true;
+			}
+		}
+		
+		// threshold on validation threshold
+		if(result.validations.size() > errorThresholdWindow){
+			int last = result.validations.size()-1;
+			int prev = last - errorThresholdWindow;
+			float deltaValidationError = result.validations.get(prev).error - result.validations.get(last).error;
+			if(deltaValidationError < validationErrorThreshold){
+				stop = true;
+			}
+		}
+		
 		// if stop ... assemble result object and resolve
 		if(stop){
 			for(Learner learner : learners.values()){
