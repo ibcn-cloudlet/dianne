@@ -38,6 +38,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
+import be.iminds.iot.dianne.api.dataset.Batch;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.DianneDatasets;
 import be.iminds.iot.dianne.api.dataset.Sample;
@@ -137,17 +138,56 @@ public abstract class AbstractEvaluator implements Evaluator {
 			tStart = System.currentTimeMillis(); tForward = 0;
 			
 			Sample sample = null;
+			Batch batch = null;
+			int[] indices = null;
+			boolean batchMode = false;
+			if(this.config.batchSize > 0 && d.inputDims() != null){
+				batchMode = true;
+				indices = new int[this.config.batchSize];
+			}
+			
 			for(index=0;index<total;index++){
-				sample = d.getSample(sample, index);
+				Tensor out;
+				if(batchMode){
+					for(int i=0;i<indices.length;i++){
+						indices[i] = index++;
+					}
+					index--; // dont count one too much
+					batch = d.getBatch(batch, indices);
+					
+					long t = System.nanoTime();
+					out = nn.forward(batch.input);
+					tForward += System.nanoTime() - t;
+					
+					if(outputs!=null){
+						for(int i=0;i<this.config.batchSize;i++)
+							outputs.add(out.select(0, i).copyInto(null));
+					}
+					
+					float err = evalOutput(out, batch.target);
+					if(this.config.trace){
+						System.out.println("Batch "+index/this.config.batchSize+" has avg error "+err/this.config.batchSize);
+					}
+					error += err;
+
+				} else {
+					sample = d.getSample(sample, index);
+					
+					long t = System.nanoTime();
+					out = nn.forward(sample.input);
+					tForward += System.nanoTime() - t;
+					
+					if(outputs!=null)
+						outputs.add(out.copyInto(null));
+
+					float err = evalOutput(out, sample.target);
+					error += err;
+
+					if(this.config.trace){
+						System.out.println("Sample "+index+" has error "+err);
+					}
+				}
 				
-				long t = System.nanoTime();
-				Tensor out = nn.forward(sample.input);
-				tForward += System.nanoTime() - t;
-				
-				if(outputs!=null)
-					outputs.add(out.copyInto(null));
-				
-				error += evalOutput(index, out, sample.target);
 				
 				if(index % 1000 == 0){
 					listenerExecutor.execute(()->{
@@ -207,7 +247,7 @@ public abstract class AbstractEvaluator implements Evaluator {
 	
 	protected abstract void init(Map<String, String> config);
 	
-	protected abstract float evalOutput(int index, Tensor out, Tensor expected);
+	protected abstract float evalOutput(Tensor out, Tensor expected);
 	
 	protected abstract Evaluation finish();
 	

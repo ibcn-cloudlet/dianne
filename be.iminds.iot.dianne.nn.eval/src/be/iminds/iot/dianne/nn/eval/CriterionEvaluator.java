@@ -48,14 +48,8 @@ public class CriterionEvaluator extends AbstractEvaluator {
 		criterion = CriterionFactory.createCriterion(c.criterion);
 	}
 
-	protected float evalOutput(int index, Tensor out, Tensor expected){
-		
+	protected float evalOutput(Tensor out, Tensor expected){
 		Tensor error = criterion.error(out, expected);
-		
-		if(this.config.trace){
-			System.out.println("Sample "+index+" error is "+error.get(0));
-		}
-		
 		return error.get(0);
 	}
 

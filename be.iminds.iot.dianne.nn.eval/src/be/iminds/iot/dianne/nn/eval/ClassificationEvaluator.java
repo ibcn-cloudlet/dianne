@@ -43,29 +43,45 @@ public class ClassificationEvaluator extends AbstractEvaluator {
 	protected Tensor confusion;
 	protected int[] rankings;
 	
+	private int count;
+	
 	protected void init(Map<String, String> config){
 		// reset
 		rankings = new int[total];
 		confusion = null;
+		count = 0;
 	}
 	
-	protected float evalOutput(int index, Tensor out, Tensor expected){
+	protected float evalOutput(Tensor out, Tensor expected){
 		if(confusion==null){
-			int outputSize = out.size();
-			confusion = new Tensor(outputSize, outputSize);
+			int confusionSize = out.size();
+			if(out.dim() == 2){
+				confusionSize = out.size(1);
+			}
+			confusion = new Tensor(confusionSize, confusionSize);
 			confusion.fill(0.0f);
 		}
 		
+		float err = 0;
+		if(out.dim() == 2){
+			// batch
+			for(int i=0;i<out.size(0);i++){
+				err += calculateError(out.select(0, i), expected.select(0, i));
+			}
+		} else {
+			err += calculateError(out, expected); 
+		}
+		
+		return err;
+	}
+	
+	private float calculateError(Tensor out, Tensor expected){
 		float error = 0.0f;
 		
 		int predicted = TensorOps.argmax(out);
 		int real = TensorOps.argmax(expected);
 		if(real!=predicted)
 			error = 1.0f;
-		
-		if(this.config.trace){
-			System.out.println("Sample "+index+" was "+predicted+", should be "+real);
-		}
 		
 		confusion.set(confusion.get(real, predicted)+1, real, predicted);
 		
@@ -89,7 +105,7 @@ public class ClassificationEvaluator extends AbstractEvaluator {
 			}
 			ranking++;
 		}
-		rankings[index] = ranking;
+		rankings[count++] = ranking;
 		
 		return error;
 	}

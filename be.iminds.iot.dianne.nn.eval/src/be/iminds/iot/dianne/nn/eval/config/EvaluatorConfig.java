@@ -40,6 +40,11 @@ public class EvaluatorConfig {
 	public boolean includeOutputs = false;
 
 	/**
+	 * Evaluate in batches
+	 */
+	public int batchSize = 0;
+	
+	/**
 	 * Store NN weights with "best" tag if the evaluation error is less than this value
 	 */
 	public float storeIfBetterThan = -Float.MAX_VALUE;
