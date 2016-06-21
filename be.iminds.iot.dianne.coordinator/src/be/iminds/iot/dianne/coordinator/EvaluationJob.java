@@ -36,7 +36,7 @@ public class EvaluationJob extends AbstractJob<EvaluationResult> {
 	public void execute() throws Exception {
 		
 		Map<String, String> evalConfig = new HashMap<>(config);
-		if(!evalConfig.containsKey("range")){
+		if(!evalConfig.containsKey("range") && config.containsKey("testSet")){
 			evalConfig.put("range", config.get("testSet"));
 		}
 

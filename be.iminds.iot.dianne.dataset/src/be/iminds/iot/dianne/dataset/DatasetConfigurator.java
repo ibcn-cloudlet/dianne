@@ -119,8 +119,8 @@ public class DatasetConfigurator implements DianneDatasets {
 			props.put("aiolos.combine", "*");
 
 			String s = config.get("range");
-			props.put("range", s.split(","));
 			System.out.println("* range = "+s);
+			props.put("range", s.contains(",") ? s.split(",") : s);
 			
 			try {
 				Configuration c = ca.createFactoryConfiguration(pid, null);
