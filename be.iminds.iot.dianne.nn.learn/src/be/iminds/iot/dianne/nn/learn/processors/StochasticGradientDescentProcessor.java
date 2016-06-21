@@ -26,6 +26,7 @@ import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.config.SGDConfig;
+import be.iminds.iot.dianne.nn.learn.processors.config.SGDConfig.DecayType;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
@@ -40,8 +41,22 @@ public class StochasticGradientDescentProcessor extends GradientProcessor {
 	
 	@Override
 	public void updateDelta(long i) {
-		final float rate = (float) (config.minLearningRate + (config.learningRate - config.minLearningRate)*Math.exp(-i * config.decayRate));
+		float learningRate = config.learningRate;
+		if(config.decayRate > 0){
+			if(config.decayType == DecayType.EXPONENTIAL){
+				learningRate = (float) (config.minLearningRate + (config.learningRate - config.minLearningRate)*Math.exp(-i * config.decayRate));
+			} else if(config.decayType == DecayType.LINEAR){
+				learningRate = config.learningRate - config.decayRate*i;
+				if(learningRate < config.minLearningRate){
+					learningRate = config.minLearningRate;
+				}
+			}
+			if(config.trace){
+				System.out.println("Learning rate: "+learningRate);
+			}
+		}
 		
+		final float rate = learningRate;
 		nn.getTrainables().values().stream().forEach(m -> {
 			// Get the gradients
 			Tensor deltaParams = m.getDeltaParameters();

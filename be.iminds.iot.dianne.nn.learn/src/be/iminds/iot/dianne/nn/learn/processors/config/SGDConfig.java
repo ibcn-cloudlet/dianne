@@ -35,8 +35,22 @@ public class SGDConfig {
 	public float minLearningRate = 0.0f;
 	
 	/**
-	 * Rate in which to exponentially decay the learning rate over iterations
+	 * Rate in which to decay the learning rate over iterations
 	 */
 	public float decayRate = 0.0f;
+
+	/**
+	 * Decay type : exponential or linear
+	 */
+	public DecayType decayType = DecayType.EXPONENTIAL;
 	
+	public enum DecayType {
+			EXPONENTIAL,
+			LINEAR
+	}
+	
+	/**
+	 * Log the current learning rate in case of decayRate
+	 */
+	public boolean trace = false;
 }
