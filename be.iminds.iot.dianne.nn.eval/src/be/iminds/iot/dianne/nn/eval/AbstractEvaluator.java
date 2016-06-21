@@ -174,6 +174,10 @@ public abstract class AbstractEvaluator implements Evaluator {
 			eval.evaluationTime = evaluationTime;
 			eval.outputs = outputs;
 			
+			if(eval.error < this.config.storeIfBetterThan){
+				nn.storeParameters(this.config.tag, "best");
+			}
+			
 			return eval;
 		} catch(Throwable t){
 			System.err.println("Error during evaluation");

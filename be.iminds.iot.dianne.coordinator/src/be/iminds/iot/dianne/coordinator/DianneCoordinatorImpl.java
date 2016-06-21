@@ -592,7 +592,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	void setEA(EventAdmin ea){
 		this.ea = ea;
 	}
-	
+
 	@Reference
 	void setDiannePlatform(DiannePlatform platform){
 		this.platform = platform;

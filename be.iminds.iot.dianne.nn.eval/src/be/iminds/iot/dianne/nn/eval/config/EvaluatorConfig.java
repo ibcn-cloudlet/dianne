@@ -38,5 +38,9 @@ public class EvaluatorConfig {
 	 * Include all raw outputs in the evaluation results
 	 */
 	public boolean includeOutputs = false;
-	
+
+	/**
+	 * Store NN weights with "best" tag if the evaluation error is less than this value
+	 */
+	public float storeIfBetterThan = -Float.MAX_VALUE;
 }

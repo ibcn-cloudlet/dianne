@@ -9,11 +9,11 @@ import java.util.stream.Collectors;
 
 import org.osgi.framework.ServiceRegistration;
 
-import be.iminds.iot.dianne.api.coordinator.Job.Category;
 import be.iminds.iot.dianne.api.coordinator.Job.EvaluationCategory;
 import be.iminds.iot.dianne.api.coordinator.Job.LearnCategory;
 import be.iminds.iot.dianne.api.coordinator.Job.Type;
 import be.iminds.iot.dianne.api.coordinator.LearnResult;
+import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.eval.Evaluator;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
@@ -31,10 +31,11 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 	private LearnResult result = new LearnResult();
 	
 	private Map<UUID, Learner> learners = new HashMap<>();
+
 	private Evaluator validator = null;
-	
 	private Map<UUID, NeuralNetworkInstanceDTO> nnis2 = new HashMap<>();
 	private NeuralNetworkInstanceDTO validationNni;
+	private float bestValidationError = Float.MAX_VALUE;
 	
 	public LearnJob(DianneCoordinatorImpl coord, 
 			NeuralNetworkDTO nn,
@@ -78,6 +79,10 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 			maxIterations = Long.parseLong(config.get("maxIterations"));
 		}
 		
+		if(!config.containsKey("tag")){
+			config.put("tag", jobId.toString());
+		}
+		
 		Dictionary<String, Object> props = new Hashtable();
 		String[] t = targets.stream().map(uuid -> uuid.toString()).collect(Collectors.toList()).toArray(new String[targets.size()]);
 		props.put("targets", t);
@@ -86,7 +91,8 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 		
 		// set training set
 		final Map<String, String> learnConfig = new HashMap<>(config);
-		learnConfig.put("range", config.get("trainSet"));
+		if(config.containsKey("trainSet"))
+			learnConfig.put("range", config.get("trainSet"));
 
 		System.out.println("Start Learn Job");
 		System.out.println("===============");
@@ -119,15 +125,22 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 			c.put("range", config.get("validationSet"));
 			if(config.containsKey("tag")){
 				c.put("tag", config.get("tag"));
+			} else {
+				c.put("tag", jobId.toString());
 			}
 			if(config.containsKey("criterion")){
 				c.put("criterion", config.get("criterion"));
 			}
+			c.put("storeIfBetterThan", ""+bestValidationError);
 			
 			try {
 				validation = validator.eval(dataset, c, validationNni);
+				
+				if(validation.error < bestValidationError){
+					bestValidationError = validation.error;
+				}
 			} catch(Exception e){
-				System.err.println("Error running validation");
+				System.err.println("Error running validation: "+e.getMessage());
 			}
 			result.validations.add(validation);
 		}
