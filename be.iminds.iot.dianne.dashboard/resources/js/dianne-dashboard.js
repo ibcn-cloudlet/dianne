@@ -30,13 +30,7 @@ function submitJob(){
     $.each(array, function() {
     	if(this.name === 'config'){
     		// parse out config to json object
-    		var configArray = this.value.split(' ');
-    		var configJson = {};
-    		$.each(configArray, function(){
-    			var n = this.indexOf("=");
-    			configJson[this.substr(0, n)] = this.substr(n+1);
-    		});
-    		job[this.name] = configJson;
+    		job[this.name] = configStringToObject(this.value);
     	} else {
     		job[this.name] = this.value || '';
     	}
@@ -66,12 +60,7 @@ function resubmitJob(jobId){
 		$("#submit-type").val(job.type);
 		$("#submit-nn").val(job.nn);
 		$("#submit-dataset").val(job.dataset);
-		var config = "";
-		$.each(job.config, function(k, v) {
-			if(k !== "name") // exclude name here
-				config += k + "=" + v + " ";
-		});
-		$("#submit-config").val(config);
+		$("#submit-config").val(configObjectToString(job.config));
 
 		
 		$('#submit-modal').modal('show');
@@ -205,6 +194,7 @@ function showDetails(jobId){
 		} else {
 			job.stopTime = moment(job.stopped).format("hh:mm:ss YYYY:MM:DD");
 		}
+		job.config = configObjectToString(job.config);
 		
 		var template = $('#job-details').html();
 		Mustache.parse(template);
@@ -213,14 +203,16 @@ function showDetails(jobId){
 		if(job.stopped !== 0) {
 			dialog.find('.cancel').hide();
 			dialog.find('.resubmit').show();
+			
+			if(job.type !== "LEARN"){
+				dialog.find('.clean').hide();
+			} else {
+				dialog.find('.clean').show();
+			}
+			
 		} else {
 			dialog.find('.cancel').show();
 			dialog.find('.resubmit').hide();
-		}
-		if(job.type !== "LEARN"){
-			dialog.find('.clean').hide();
-		} else {
-			dialog.find('.clean').show();
 		}
 		if(job.started !== 0){
 			createResultChart($('#'+job.id+"-result"), job, 1.5);
@@ -355,6 +347,30 @@ eventsource.onmessage = function(event){
 			Highcharts.charts[index].series[1].addPoint([x, v], true, true, false);
 		}
 	}
+}
+
+
+/**
+ * Config string to object conversions
+ */
+
+function configStringToObject(string){
+	var configArray = string.split(' ');
+	var configJson = {};
+	$.each(configArray, function(){
+		var n = this.indexOf("=");
+		configJson[this.substr(0, n)] = this.substr(n+1);
+	});
+	return configJson;
+}
+
+function configObjectToString(object){
+	var configString = "";
+	$.each(object, function(k, v) {
+		if(k !== "name") // exclude name here
+			configString += k + "=" + v + " ";
+	});
+	return configString;
 }
 
 
