@@ -52,7 +52,7 @@ function submitJob(){
 
 function resubmitJob(jobId){
 	DIANNE.job(jobId).then(function(job){
-		if(clean!==undefined){
+		if(clean!==undefined && job.type==="LEARN"){
 			job.config['clean'] = $('#clean').is(':checked');
 		}
 		
