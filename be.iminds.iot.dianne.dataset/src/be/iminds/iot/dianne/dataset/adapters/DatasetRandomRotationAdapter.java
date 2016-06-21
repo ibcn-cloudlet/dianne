@@ -65,8 +65,8 @@ public class DatasetRandomRotationAdapter extends AbstractDatasetAdapter {
 	protected void configure(Map<String, Object> properties) {
 		Object t = properties.get("rotationTheta");
 		if(t instanceof String[]){
-			minTheta = Integer.parseInt(((String[]) t)[0]);
-			maxTheta = Integer.parseInt(((String[]) t)[1]);
+			minTheta = Float.parseFloat(((String[]) t)[0]);
+			maxTheta = Float.parseFloat(((String[]) t)[1]);
 		} else {
 			minTheta = Integer.parseInt((String) t);
 			maxTheta = minTheta;
