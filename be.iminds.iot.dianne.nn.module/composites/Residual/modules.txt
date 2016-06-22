@@ -43,7 +43,7 @@
       "prev": [
         "015e1346-790f-4204-e20b-bee76032fbd4"
       ],
-      "size": "${inputWidth}*${inputHeight}*${noFilters}",
+      "size": "${noFilters}",
       "name": "BatchNormalization",
       "category": "Regularization",
       "trainable": "true"
@@ -140,7 +140,7 @@
       "prev": [
         "50857d99-74c7-a324-7231-ae0c8ce005f9"
       ],
-      "size": "${inputWidth}*${inputHeight}*${noFilters}",
+      "size": "${noFilters}",
       "name": "BatchNormalization",
       "category": "Regularization",
       "trainable": "true"

@@ -18,7 +18,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 public class ModuleTest {
 	
-	public static final boolean TRACE = false;
+	public static final boolean TRACE = true;
 	
 	@BeforeClass
 	public static void setup() {
@@ -171,8 +171,10 @@ public class ModuleTest {
 				System.out.println("DELTA PARAMS "+m.getDeltaParameters());
 			
 			Assert.assertTrue("Wrong output", expOutput.equals(output, 0.001f));
-			Assert.assertTrue("Wrong grad input", expGradInput.equals(gradInput, 0.001f));
-			Assert.assertTrue("Wrong delta parameters", expDeltaParameters.equals(m.getDeltaParameters(), 0.001f));
+			if(expGradInput!= null)
+				Assert.assertTrue("Wrong grad input", expGradInput.equals(gradInput, 0.001f));
+			if(expDeltaParameters!=null)
+				Assert.assertTrue("Wrong delta parameters", expDeltaParameters.equals(m.getDeltaParameters(), 0.001f));
 			
 		} catch (UnsupportedOperationException ex) {
 			Assume.assumeNoException("Method not implemented yet for current configuration.", ex);

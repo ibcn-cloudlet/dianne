@@ -48,7 +48,7 @@
       "prev": [
         "4c679da6-498c-2c4e-b26a-1ae79edd76f5"
       ],
-      "size": "${inputWidth}*${inputHeight}*${noFilters}",
+      "size": "${noFilters}",
       "name": "BatchNormalization",
       "category": "Regularization",
       "trainable": "true"
@@ -136,7 +136,7 @@
       "prev": [
         "c0a9f90a-30c6-d659-e885-7ee9691ca0c7"
       ],
-      "size": "${inputWidth}*${inputHeight}*${noFilters}",
+      "size": "${noFilters}",
       "name": "BatchNormalization",
       "category": "Regularization",
       "trainable": "true"
@@ -150,7 +150,7 @@
       "prev": [
         "b4e62a78-0f13-a6b7-15e1-aa89632a2992"
       ],
-      "size": "${inputWidth}*${inputHeight}*${noFilters}",
+      "size": "${noFilters}",
       "name": "BatchNormalization",
       "category": "Regularization",
       "trainable": "true"
@@ -164,7 +164,7 @@
       "prev": [
         "a1f3e961-eded-5262-bd2d-65dca17b62d1"
       ],
-      "size": "${inputWidth}*${inputHeight}*${noFilters}",
+      "size": "${noFilters}",
       "name": "BatchNormalization",
       "category": "Regularization",
       "trainable": "true"
@@ -226,7 +226,7 @@
       "prev": [
         "010a3cda-717f-85cb-e250-3f8447af9fbb"
       ],
-      "size": "${inputWidth}*${inputHeight}*${noFilters}",
+      "size": "${noFilters}",
       "name": "BatchNormalization",
       "category": "Regularization",
       "trainable": "true"
@@ -349,7 +349,7 @@
       "prev": [
         "2681951e-f7aa-59e8-417e-21f1d02740c1"
       ],
-      "size": "${inputWidth}*${inputHeight}*${noFilters}",
+      "size": "${noFilters}",
       "name": "BatchNormalization",
       "category": "Regularization",
       "trainable": "true"
@@ -396,7 +396,7 @@
       "prev": [
         "713d9d1c-84d2-39ae-8485-daa2374cd8ae"
       ],
-      "size": "${inputWidth}*${inputHeight}*${noFilters}",
+      "size": "${noFilters}",
       "name": "BatchNormalization",
       "category": "Regularization",
       "trainable": "true"

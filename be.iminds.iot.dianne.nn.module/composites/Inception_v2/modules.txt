@@ -46,7 +46,7 @@
       "prev": [
         "38346778-636b-bbd2-e6f4-31ca49630135"
       ],
-      "size": "${inputWidth}*${inputHeight}*${3x3reduce}",
+      "size": "${3x3reduce}",
       "name": "BatchNormalization",
       "category": "Regularization",
       "trainable": "true"
@@ -113,7 +113,7 @@
       "prev": [
         "45f5ea18-8dcd-2563-39f6-d2cb7a37a991"
       ],
-      "size": "${inputWidth}*${inputHeight}*${5x5reduce}",
+      "size": "${5x5reduce}",
       "name": "BatchNormalization",
       "category": "Regularization",
       "trainable": "true"
@@ -127,7 +127,7 @@
       "prev": [
         "ffbae280-adb4-3652-ec0d-0968e8ea0bd6"
       ],
-      "size": "${inputWidth}*${inputHeight}*${5x5}",
+      "size": "${5x5}",
       "name": "BatchNormalization",
       "category": "Regularization",
       "trainable": "true"
@@ -156,7 +156,7 @@
       "prev": [
         "93964d41-25ab-be58-f41f-14e5770a7bb4"
       ],
-      "size": "${inputWidth}*${inputHeight}*${3x3}",
+      "size": "${3x3}",
       "name": "BatchNormalization",
       "category": "Regularization",
       "trainable": "true"
@@ -203,7 +203,7 @@
       "prev": [
         "d273445a-2056-fb11-5b5b-c465a6fcdc32"
       ],
-      "size": "${inputWidth}*${inputHeight}*${poolproj}",
+      "size": "${poolproj}",
       "name": "BatchNormalization",
       "category": "Regularization",
       "trainable": "true"
@@ -314,7 +314,7 @@
       "prev": [
         "863c1560-9e71-053b-a7f7-634ba0bbaea8"
       ],
-      "size": "${inputWidth}*${inputHeight}*${1x1}",
+      "size": "${1x1}",
       "name": "BatchNormalization",
       "category": "Regularization",
       "trainable": "true"

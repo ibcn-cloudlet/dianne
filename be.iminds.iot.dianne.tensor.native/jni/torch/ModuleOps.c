@@ -1192,7 +1192,12 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_volumetricfull
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_batchnorm
   (JNIEnv * env, jclass c, jobject out, jobject in, jobject w, jobject b, jobject rm, jobject rv, jobject sm, jobject sv, jboolean train){
 	THTensor* input = getTensor(env, in);
-	THTensor* output = getTensor2d(env, out, input->size[0], input->size[1]);
+	THTensor* output;
+	if(input->nDimension == 2)
+		output = getTensor2d(env, out, input->size[0], input->size[1]);
+	else
+		output = getTensor3d(env, out, input->size[0], input->size[1], input->size[2]);
+
 	THTensor* weight = getTensor(env, w);
 	THTensor* bias = getTensor(env, b);
 	THTensor* running_mean = getTensor(env, rm);
@@ -1222,7 +1227,13 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_batchnorm
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_batchnormGradIn
   (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject w, jobject rm, jobject rv, jobject sm, jobject sv, jboolean train){
 	THTensor* gradOutput = getTensor(env, gradOut);
-	THTensor* gradInput = getTensor2d(env, gradIn, gradOutput->size[0], gradOutput->size[1]);
+
+	THTensor* gradInput;
+	if(gradOutput->nDimension == 2)
+		gradInput = getTensor2d(env, gradIn, gradOutput->size[0], gradOutput->size[1]);
+	else
+		gradInput = getTensor3d(env, gradIn, gradOutput->size[0], gradOutput->size[1], gradOutput->size[2]);
+
 	THTensor* input = getTensor(env, in);
 	THTensor* weight = getTensor(env, w);
 	THTensor* running_mean = getTensor(env, rm);

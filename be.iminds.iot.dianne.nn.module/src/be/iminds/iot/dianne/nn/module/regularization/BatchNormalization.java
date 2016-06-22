@@ -28,6 +28,15 @@ import be.iminds.iot.dianne.api.nn.module.AbstractTrainableModule;
 import be.iminds.iot.dianne.tensor.ModuleOps;
 import be.iminds.iot.dianne.tensor.Tensor;
 
+/**
+ * In case BatchNormalization is placed after a Linear, size should be the Linear's output size.
+ * 
+ * In case BatchNormalization is placed after a Convolution, size should be the number of output
+ * feature planes of the Convolution.
+ * 
+ * @author tverbele
+ *
+ */
 public class BatchNormalization extends AbstractTrainableModule{
 	
 	private int size;
@@ -44,11 +53,11 @@ public class BatchNormalization extends AbstractTrainableModule{
 	private Tensor sMean;
 	private Tensor sVar;
 	
-	private int batchSize;
 	private int[] inputDims;
+	private int[] bnDims;
 	
 	// TODO keep train flag for all modules?!
-	private boolean train = false;
+	boolean train = false;
 	
 	public BatchNormalization(int size) {
 		super(new Tensor(4*size));
@@ -101,11 +110,35 @@ public class BatchNormalization extends AbstractTrainableModule{
 	@Override
 	protected void forward() {
 		inputDims = input.dims();
-		batchSize = input.size()/size;
+		if(inputDims.length == 1){
+			// 1D input, single sample
+			bnDims = new int[]{1, inputDims[0]};
+		} else if(inputDims.length == 2){
+			// 1D input, batched
+			// no reshape needed
+			bnDims = inputDims;
+		} else if(inputDims.length == 3){
+			// spatial input, single sample
+			bnDims = new int[]{1, inputDims[0], inputDims[1]*inputDims[2]};
+		} else if(inputDims.length == 4){
+			if(inputDims[1] != size){
+				// treat as volumetric input, single sample
+				// TODO this means that if you have a volumetric single sample with 
+				// depth = noFeatures this will be wongly treated as batched spatial input
+				bnDims = new int[]{1, inputDims[0], inputDims[1]*inputDims[2]*inputDims[3]};
+			} else {
+				// spatial input, batched
+				bnDims = new int[]{inputDims[0], inputDims[1], inputDims[2]*inputDims[3]};
+			}
+ 		} else if(inputDims.length == 5){
+			// volumetric input, batched
+			bnDims = new int[]{inputDims[0], inputDims[1], inputDims[2]*inputDims[3]*inputDims[4]};
+		}
 		
-		input.reshape(batchSize, size);
+		input.reshape(bnDims);
 		output = ModuleOps.batchnorm(output, input, weights, bias, rMean, rVar, sMean, sVar, train);
 		output.reshape(inputDims);
+		input.reshape(inputDims);
 		
 		// set train to false if only forward is called!
 		train = false;
@@ -119,14 +152,21 @@ public class BatchNormalization extends AbstractTrainableModule{
 			initDeltaParameters(null);
 		}
 		
-		gradOutput.reshape(batchSize, size);
+		input.reshape(bnDims);
+		gradOutput.reshape(bnDims);
 		gradInput = ModuleOps.batchnormGradIn(gradInput, gradOutput, input, weights, rMean, rVar, sMean, sVar, train);
 		gradInput.reshape(inputDims);
+		gradOutput.reshape(inputDims);
+		input.reshape(inputDims);
 	}
 
 	@Override
 	public void accGradParameters() {
+		input.reshape(bnDims);
+		gradOutput.reshape(bnDims);
 		ModuleOps.batchnormAccGrad(gradWeights, gradBias, gradOutput, input, weights, rMean, rVar, sMean, sVar, train);
+		gradOutput.reshape(inputDims);
+		input.reshape(inputDims);
 	}
 
 	@Override
