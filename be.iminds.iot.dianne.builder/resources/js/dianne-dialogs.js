@@ -526,7 +526,7 @@ function createRunModuleDialog(id, moduleItem){
 							if(output.time === undefined){
 								$("#dialog-"+module.id).find(".content").find('.time').hide();
 							} else {
-								$("#dialog-"+module.id).find(".content").find('.time').html('<b>Forward time: </b>'+data.time+' ms');
+								$("#dialog-"+module.id).find(".content").find('.time').html('<b>Forward time: </b>'+output.time+' ms');
 								$("#dialog-"+module.id).find(".content").find('.time').show();
 	
 							}
