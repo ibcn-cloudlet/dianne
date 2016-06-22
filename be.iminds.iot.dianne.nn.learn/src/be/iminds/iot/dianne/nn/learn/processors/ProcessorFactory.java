@@ -24,25 +24,18 @@ package be.iminds.iot.dianne.nn.learn.processors;
 
 import java.util.Map;
 
-import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
-import be.iminds.iot.dianne.api.nn.learn.Criterion;
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
-import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 import be.iminds.iot.dianne.nn.learn.config.LearnerConfig;
-import be.iminds.iot.dianne.nn.learn.criterion.AbsCriterion;
-import be.iminds.iot.dianne.nn.learn.criterion.MSECriterion;
-import be.iminds.iot.dianne.nn.learn.criterion.NLLCriterion;
 import be.iminds.iot.dianne.nn.learn.processors.config.AdadeltaConfig;
 import be.iminds.iot.dianne.nn.learn.processors.config.AdagradConfig;
+import be.iminds.iot.dianne.nn.learn.processors.config.AdamConfig;
 import be.iminds.iot.dianne.nn.learn.processors.config.MomentumConfig;
 import be.iminds.iot.dianne.nn.learn.processors.config.NesterovConfig;
 import be.iminds.iot.dianne.nn.learn.processors.config.RMSpropConfig;
 import be.iminds.iot.dianne.nn.learn.processors.config.RegularizationConfig;
 import be.iminds.iot.dianne.nn.learn.processors.config.SGDConfig;
-import be.iminds.iot.dianne.nn.learn.sampling.RandomSamplingStrategy;
-import be.iminds.iot.dianne.nn.learn.sampling.SequentialSamplingStrategy;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 
 public class ProcessorFactory {
@@ -58,6 +51,9 @@ public class ProcessorFactory {
 		GradientProcessor p = null;
 		
 		switch(method) {
+		case ADAM:
+			p = new AdamProcessor(nn, logger, DianneConfigHandler.getConfig(config, AdamConfig.class));
+			break;
 		case ADADELTA:
 			p = new AdadeltaProcessor(nn, logger, DianneConfigHandler.getConfig(config, AdadeltaConfig.class));
 			break;

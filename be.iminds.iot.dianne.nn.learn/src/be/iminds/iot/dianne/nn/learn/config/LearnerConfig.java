@@ -64,7 +64,8 @@ public class LearnerConfig {
 		SGD,
 		ADADELTA,
 		ADAGRAD,
-		RMSPROP
+		RMSPROP,
+		ADAM
 	}
 	
 	/**
