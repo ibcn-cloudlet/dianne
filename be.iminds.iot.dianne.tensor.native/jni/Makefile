@@ -3,7 +3,7 @@
 THIS_FILE := $(lastword $(MAKEFILE_LIST))
 
 # This file builds the native TH Tensor library and the JNI interface
-NATIVE ?= torch
+export NATIVE ?= torch
 
 .PHONY: install
 install:

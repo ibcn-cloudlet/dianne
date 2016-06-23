@@ -1,6 +1,5 @@
 # Determine this makefile's dir.
 SELF_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
-
 OS ?= $(shell uname -s)
 ARCH ?= $(shell uname -m)
 
@@ -17,7 +16,9 @@ INCLUDES := -I$(JAVA_INCLUDE) -I$(JAVA_PLATFORMINCLUDE)
 
 # Compiler config
 CCFLAGS += -O3 -w -fPIC
-DEPLOY_DIR ?= $(abspath $(SELF_DIR)../native/$(NATIVE)/$(OS)/$(ARCH)/)
-
+# hack to remove spaces
+empty :=   
+space += $(empty) $(empty)
+DEPLOY_DIR ?= $(subst $(space),\ ,$(abspath $(SELF_DIR)../native/$(NATIVE)/$(OS)/$(ARCH)/))
 # export all variables: call export without arguments.
 export

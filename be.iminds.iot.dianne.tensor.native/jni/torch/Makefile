@@ -9,8 +9,11 @@ INCLUDES += -Itorch7/lib/TH -Itorch7/lib/TH/build -Inn/lib/THNN -Inn/lib/THNN/bu
 .PHONY: all
 all: $(LIB)
 
-.PHONY: install
-install: $(DEPLOY_DIR)/$(LIB)
+.PHONY: info install
+install: info $(DEPLOY_DIR)/$(LIB)
+
+info:
+	$(info DEPLOY_DIR: $(DEPLOY_DIR)/)
 
 $(DEPLOY_DIR)/$(LIB): $(LIB)
 	mkdir -p $(DEPLOY_DIR)
@@ -23,11 +26,11 @@ $(LIB): OpenBLAS/libopenblas.a torch7/lib/TH/build/libTH.a nn/lib/THNN/build/lib
 	$(CC) $(CFLAGS) $(CCFLAGS) $(INCLUDES) -c $< 
 
 torch7/lib/TH/build/libTH.a: OpenBLAS/libopenblas.a
-	cmake -Htorch7/lib/TH -Btorch7/lib/TH/build -DWITH_BLAS=open -DCMAKE_LIBRARY_PATH="$(abspath OpenBLAS)" -DBUILD_STATIC=1
+	cmake -Htorch7/lib/TH -Btorch7/lib/TH/build -DWITH_BLAS=open -DCMAKE_LIBRARY_PATH=$(subst $(space),\ ,$(abspath OpenBLAS)) -DBUILD_STATIC=1
 	$(MAKE) -C torch7/lib/TH/build
 
 nn/lib/THNN/build/libTHNN.a: torch7/lib/TH/build/libTH.a
-	cmake -Hnn/lib/THNN -Bnn/lib/THNN/build -DCMAKE_MODULE_PATH="$(abspath ../cmake)" -DBUILD_STATIC=1
+	cmake -Hnn/lib/THNN -Bnn/lib/THNN/build -DCMAKE_MODULE_PATH=$(subst $(space),\ ,$(abspath ../cmake)) -DBUILD_STATIC=1
 	$(MAKE) -C nn/lib/THNN/build
 
 OpenBLAS/libopenblas.a:
