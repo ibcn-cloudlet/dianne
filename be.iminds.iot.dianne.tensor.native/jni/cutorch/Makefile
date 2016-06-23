@@ -1,11 +1,31 @@
+include ../Makefile.system
+
 CUDA_HOME ?= /usr/local/cuda
+ifeq ($(strip $(ARCH)),x86_64)
+    CUDA_TARGET:=${CUDA_HOME}/targets/x86_64-linux
+else ifeq ($(findstring arm,$(ARCH)),arm)
+    CUDA_TARGET:=${CUDA_HOME}/targets/armv7-linux-gnueabihf
+else ifeq ($(strip $(ARCH)),aarch64)
+    CUDA_TARGET:=${CUDA_HOME}/targets/aarch64-linux
+else
+    CUDA_TARGET:=${CUDA_HOME}
+endif
+$(info CUDA_TARGET: $(CUDA_TARGET))
+
+ifneq (,$(filter $(ARCH),x86_64 aarch64))
+    TARGET_SIZE := 64
+else ifeq ($(findstring arm,$(ARCH)),arm)
+    TARGET_SIZE := 32
+else
+    $(error ERROR - unsupported value $(ARCH) for ARCH!)
+endif
 
 SRC := $(wildcard ../torch/*.c)
 OBJECTS := $(notdir $(SRC:.c=.o))
 JAVAH := ../../../be.iminds.iot.dianne.tensor/generated/jni-headers
-LINKS := -Lcunn/lib/THCUNN/build -lTHCUNN -Lcutorch/lib/THC/build -lTHC -L../torch/torch7/lib/TH/build -lTH -L$(CUDA_HOME)/lib64 -L$(CUDA_HOME)/lib -lcudart_static -lcublas_static -lstdc++ -lculibos -pthread
+LINKS := -Lcunn/lib/THCUNN/build -lTHCUNN -Lcutorch/lib/THC/build -lTHC -L../torch/torch7/lib/TH/build -lTH -L$(CUDA_TARGET)/lib -lcudart_static -lcublas_static -lstdc++ -lculibos -pthread
 INCLUDES += -I.
-INCLUDES += -I$(CUDA_HOME)/include/
+INCLUDES += -I$(CUDA_TARGET)/include/
 INCLUDES += -Icutorch/lib/THC -Icutorch/lib/THC/build
 INCLUDES += -Icunn/lib/THCUNN -Icunn/lib/THCUNN/build
 INCLUDES += -I../torch/torch7/lib/TH -I../torch/torch7/lib/TH/build
@@ -15,7 +35,7 @@ CCFLAGS += -DCUDA
 
 NVCC=nvcc -ccbin $(CXX)
 export NVCC
-NVCC_FLAGS := -DCUDA -Xcompiler -fPIC
+NVCC_FLAGS := -DCUDA -Xcompiler -fPIC -m${TARGET_SIZE}
 CUDA_SRC := $(wildcard *.cu)
 CUDA_OBJECTS := $(CUDA_SRC:.cu=.o)
 
@@ -30,7 +50,7 @@ $(DEPLOY_DIR)/$(LIB): $(LIB)
 	mkdir -p $(DEPLOY_DIR)
 	cp $(LIB) $(DEPLOY_DIR)/$(LIB)
 
-$(LIB): cutorch/lib/THC/build/libTHC.a cunn/lib/THCUNN/build/libTHCUNN.a $(OBJECTS) $(CUDA_OBJECTS)
+$(LIB): cunn/lib/THCUNN/build/libTHCUNN.a $(OBJECTS) $(CUDA_OBJECTS)
 	$(CC) $(SHARED) $(CFLAGS) $(CCFLAGS) $(OBJECTS) $(CUDA_OBJECTS) $(LINKS) -o $(LIB)
 
 %.o: ../torch/%.c $(JAVAH)
@@ -40,11 +60,11 @@ $(LIB): cutorch/lib/THC/build/libTHC.a cunn/lib/THCUNN/build/libTHCUNN.a $(OBJEC
 	$(NVCC) $(CFLAGS) $(NVCC_FLAGS) $(INCLUDES) -c $<
 
 cutorch/lib/THC/build/libTHC.a:
-	cmake -Hcutorch/lib/THC -Bcutorch/lib/THC/build $(CMAKE_FLAGS)
+	cmake -Hcutorch/lib/THC -Bcutorch/lib/THC/build $(CMAKE_FLAGS) -DCMAKE_MODULE_PATH="$(abspath ../cmake)" -DBUILD_STATIC=1 -Wno-dev
 	$(MAKE) -C cutorch/lib/THC/build
 
-cunn/lib/THCUNN/build/libTHCUNN.a:
-	cmake -Hcunn/lib/THCUNN -Bcunn/lib/THCUNN/build $(CMAKE_FLAGS)
+cunn/lib/THCUNN/build/libTHCUNN.a: cutorch/lib/THC/build/libTHC.a
+	cmake -Hcunn/lib/THCUNN -Bcunn/lib/THCUNN/build $(CMAKE_FLAGS) -DCMAKE_MODULE_PATH="$(abspath ../cmake)" -DBUILD_STATIC=1 -DCUDA=1
 	$(MAKE) -C cunn/lib/THCUNN/build
 
 .PHONY: clean

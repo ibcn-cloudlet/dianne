@@ -1,3 +1,5 @@
+include ../Makefile.system
+
 SRC := $(wildcard *.c)
 OBJECTS=$(SRC:.c=.o)
 JAVAH := ../../../be.iminds.iot.dianne.tensor/generated/jni-headers
@@ -20,16 +22,16 @@ $(LIB): OpenBLAS/libopenblas.a torch7/lib/TH/build/libTH.a nn/lib/THNN/build/lib
 %.o: %.c $(JAVAH)
 	$(CC) $(CFLAGS) $(CCFLAGS) $(INCLUDES) -c $< 
 
-torch7/lib/TH/build/libTH.a:
-	cmake -Htorch7/lib/TH -Btorch7/lib/TH/build -DWITH_BLAS=open -DCMAKE_LIBRARY_PATH="$(abspath OpenBLAS)"
+torch7/lib/TH/build/libTH.a: OpenBLAS/libopenblas.a
+	cmake -Htorch7/lib/TH -Btorch7/lib/TH/build -DWITH_BLAS=open -DCMAKE_LIBRARY_PATH="$(abspath OpenBLAS)" -DBUILD_STATIC=1
 	$(MAKE) -C torch7/lib/TH/build
 
-nn/lib/THNN/build/libTHNN.a:
-	cmake -Hnn/lib/THNN -Bnn/lib/THNN/build
+nn/lib/THNN/build/libTHNN.a: torch7/lib/TH/build/libTH.a
+	cmake -Hnn/lib/THNN -Bnn/lib/THNN/build -DCMAKE_MODULE_PATH="$(abspath ../cmake)" -DBUILD_STATIC=1
 	$(MAKE) -C nn/lib/THNN/build
 
 OpenBLAS/libopenblas.a:
-	$(MAKE) -C OpenBLAS USE_OPENMP=1 NO_SHARED=1
+	$(MAKE) -C OpenBLAS USE_OPENMP=1 NO_SHARED=1 NO_CBLAS=1 NO_LAPACKE=1
 
 .PHONY: clean
 clean:
