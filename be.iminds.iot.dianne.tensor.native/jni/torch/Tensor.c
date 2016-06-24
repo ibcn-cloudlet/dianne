@@ -44,9 +44,9 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_init
 		return (long) tensor;
 	}
 
-	jsize noDims = (*env)->GetArrayLength(env, dims);
+	jsize noDims = env->GetArrayLength(dims);
 
-	jint *d = (*env)->GetIntArrayElements(env, dims, 0);
+	jint *d = env->GetIntArrayElements(dims, 0);
 	if(noDims==1){
 		tensor = THTensor_(newWithSize1d)(
 #ifdef CUDA
@@ -72,11 +72,11 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_init
 #endif
 				d[0], d[1], d[2], d[3]);
 	} // for now only support up to 4D tensors...
-	(*env)->ReleaseIntArrayElements(env, dims, d, 0);
+	env->ReleaseIntArrayElements(dims, d, 0);
 
 	if(data != NULL){
-		jsize len = (*env)->GetArrayLength(env, data);
-		jfloat * floats = (*env)->GetFloatArrayElements(env, data, 0);
+		jsize len = env->GetArrayLength(data);
+		jfloat * floats = env->GetFloatArrayElements(data, 0);
 
 #ifdef CUDA
 		cudaMemcpy(THTensor_(data)(state, tensor), floats, len*sizeof(real), cudaMemcpyHostToDevice);
@@ -90,7 +90,7 @@ JNIEXPORT jlong JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_init
 		}
 #endif
 
-		(*env)->ReleaseFloatArrayElements(env, data, floats, 0);
+		env->ReleaseFloatArrayElements(data, floats, 0);
 	}
 
 	return (long) tensor;
@@ -122,7 +122,7 @@ JNIEXPORT jintArray JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_dims
 
 	int nDim = tensor->nDimension;
 	jintArray result;
-	result = (*env)->NewIntArray(env, nDim);
+	result = env->NewIntArray(nDim);
 	if (result == NULL) {
 	    return NULL;
 	}
@@ -131,7 +131,7 @@ JNIEXPORT jintArray JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_dims
 	for (i = 0; i < nDim; i++) {
 	    dims[i] = *(ptr++);
 	}
-	(*env)->SetIntArrayRegion(env, result, 0, nDim, dims);
+	env->SetIntArrayRegion(result, 0, nDim, dims);
 	return result;
 }
 
@@ -170,13 +170,13 @@ JNIEXPORT jboolean JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_hasDim
  (JNIEnv * env, jobject t, jintArray dims){
 	THTensor* tensor = getTensor(env, t);
 
-	jsize nDim = (*env)->GetArrayLength(env, dims);
+	jsize nDim = env->GetArrayLength(dims);
 
 	if(tensor->nDimension != nDim){
 		return 0;
 	}
 
-	jint *d = (*env)->GetIntArrayElements(env, dims, 0);
+	jint *d = env->GetIntArrayElements(dims, 0);
 	long* ptr = tensor->size;
 	int i;
 	for(i=0; i< nDim ;i++){
@@ -185,7 +185,7 @@ JNIEXPORT jboolean JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_hasDim
 		}
 	}
 
-	(*env)->ReleaseIntArrayElements(env, dims, d, 0);
+	env->ReleaseIntArrayElements(dims, d, 0);
 	return 1;
 }
 
@@ -235,9 +235,9 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_reshape
   (JNIEnv * env, jobject t, jintArray dims){
 	THTensor* tensor = getTensor(env, t);
 
-	jsize noDims = (*env)->GetArrayLength(env, dims);
+	jsize noDims = env->GetArrayLength(dims);
 
-	jint *index = (*env)->GetIntArrayElements(env, dims, 0);
+	jint *index = env->GetIntArrayElements(dims, 0);
 	if(noDims==1){
 		THTensor_(resize1d)(
 #ifdef CUDA
@@ -269,7 +269,7 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_reshape
 #endif
 				tensor, index[0], index[1], index[2], index[3], index[4]);
 	}
-	(*env)->ReleaseIntArrayElements(env, dims, index, 0);
+	env->ReleaseIntArrayElements(dims, index, 0);
 }
 
 
@@ -280,9 +280,9 @@ JNIEXPORT jfloat JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_get___3I
 	float val;
 	THTensor* tensor = getTensor(env, t);
 
-	jsize noDims = (*env)->GetArrayLength(env, d);
+	jsize noDims = env->GetArrayLength(d);
 
-	jint *index = (*env)->GetIntArrayElements(env, d, 0);
+	jint *index = env->GetIntArrayElements(d, 0);
 	if(noDims==1){
 		val = THTensor_(get1d)(
 #ifdef CUDA
@@ -308,7 +308,7 @@ JNIEXPORT jfloat JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_get___3I
 #endif
 				tensor, index[0], index[1], index[2], index[3]);
 	} // for now only support up to 4D tensors...
-	(*env)->ReleaseIntArrayElements(env, d, index, 0);
+	env->ReleaseIntArrayElements(d, index, 0);
 
 	return val;
 }
@@ -330,7 +330,7 @@ JNIEXPORT jfloatArray JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_get__
 
 #ifdef CUDA
 	long bufferSize = (tensor->storage->size-tensor->storageOffset)*sizeof(real);
-	real* buffer = malloc(bufferSize);
+	real* buffer = (real*) malloc(bufferSize);
 	cudaMemcpy(buffer, ptr, bufferSize, cudaMemcpyDeviceToHost);
     THCudaCheck(cudaGetLastError());
 	data = buffer;
@@ -350,7 +350,7 @@ JNIEXPORT jfloatArray JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_get__
 		narrowed = data;
 	} else {
 		// copy right data
-		narrowed = malloc(size*sizeof(real));
+		narrowed = (real*) malloc(size*sizeof(real));
 		real* p = narrowed;
 
 		// generic iterate over n-dim tensor data
@@ -384,11 +384,11 @@ JNIEXPORT jfloatArray JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_get__
 	}
 
 	jfloatArray result;
-	result = (*env)->NewFloatArray(env, size);
+	result = env->NewFloatArray(size);
 	if (result == NULL) {
 	    return NULL;
 	}
-	(*env)->SetFloatArrayRegion(env, result, 0, size, narrowed);
+	env->SetFloatArrayRegion(result, 0, size, narrowed);
 
 
 #ifdef CUDA
@@ -410,9 +410,9 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_set__F_3I
   (JNIEnv * env, jobject t, jfloat val, jintArray d){
 	THTensor* tensor = getTensor(env, t);
 
-	jsize noDims = (*env)->GetArrayLength(env, d);
+	jsize noDims = env->GetArrayLength(d);
 
-	jint *index = (*env)->GetIntArrayElements(env, d, 0);
+	jint *index = env->GetIntArrayElements(d, 0);
 	if(noDims==1){
 		THTensor_(set1d)(
 #ifdef CUDA
@@ -438,7 +438,7 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_set__F_3I
 #endif
 				tensor, index[0], index[1], index[2], index[3], val);
 	} // for now only support up to 4D tensors...
-	(*env)->ReleaseIntArrayElements(env, d, index, 0);
+	env->ReleaseIntArrayElements(d, index, 0);
 }
 
 
@@ -447,8 +447,8 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_set___3F
   (JNIEnv * env, jobject t, jfloatArray data){
 	THTensor* tensor = getTensor(env, t);
 
-	jsize len = (*env)->GetArrayLength(env, data);
-	jfloat * floats = (*env)->GetFloatArrayElements(env, data, 0);
+	jsize len = env->GetArrayLength(data);
+	jfloat * floats = env->GetFloatArrayElements(data, 0);
 
 #ifdef CUDA
 	cudaMemcpy(THTensor_(data)(state, tensor), floats, len*sizeof(real), cudaMemcpyHostToDevice);
@@ -462,7 +462,7 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_set___3F
 	}
 #endif
 
-	(*env)->ReleaseFloatArrayElements(env, data, floats, 0);
+	env->ReleaseFloatArrayElements(data, floats, 0);
 }
 
 
@@ -508,7 +508,7 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_randn
 		generator = THGenerator_new();
 	}
 
-	THTensor_(normal)(tensor, random, 0, 1);
+	THTensor_(normal)(tensor, generator, 0, 1);
 #endif
 }
 

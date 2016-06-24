@@ -26,16 +26,19 @@
 /** Exception handling from torch **/
 
 JavaVM* jvm;
-
+int CURRENT_GPU;
+static jfieldID TENSOR_ADDRESS_FIELD;
+static jmethodID TENSOR_INIT;
+static jclass TENSOR_CLASS;
 static jmethodID SYSTEM_GC;
 static jclass SYSTEM_CLASS;
 static jclass EXCEPTION_CLASS;
 
 static void throwException(const char * msg){
 	JNIEnv* env;
-	(*jvm)->AttachCurrentThread(jvm, (void**)&env, NULL);
-	(*env)->ThrowNew( env, EXCEPTION_CLASS, msg );
-	(*jvm)->DetachCurrentThread(jvm);
+	jvm->AttachCurrentThread((void**)&env, NULL);
+	env->ThrowNew(EXCEPTION_CLASS, msg );
+	jvm->DetachCurrentThread();
 }
 
 static void torchErrorHandlerFunction(const char *msg, void *data){
@@ -49,9 +52,9 @@ static void torchArgErrorHandlerFunction(int argNumber, const char *msg, void *d
 
 static void gcFunction(void *data){
 	JNIEnv* env;
-	(*jvm)->AttachCurrentThread(jvm, (void**)&env, NULL);
-	(*env)->CallStaticVoidMethod(env, SYSTEM_CLASS, SYSTEM_GC);
-	(*jvm)->DetachCurrentThread(jvm);
+	jvm->AttachCurrentThread((void**)&env, NULL);
+	env->CallStaticVoidMethod(SYSTEM_CLASS, SYSTEM_GC);
+	jvm->DetachCurrentThread();
 }
 
 
@@ -62,27 +65,27 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_NativeTensorLoader_init
   (JNIEnv * env, jobject loader, jint device){
 	// cache class, field and method IDs for interacting with Tensor java object
 	jclass tensorClass;
-	char *className = "be/iminds/iot/dianne/tensor/Tensor";
-	tensorClass = (*env)->FindClass(env, className);
+	char *className = (char*)"be/iminds/iot/dianne/tensor/Tensor";
+	tensorClass = env->FindClass(className);
 
 	// jclass must be global reference
-    TENSOR_CLASS = (*env)->NewGlobalRef(env, tensorClass);
-	TENSOR_ADDRESS_FIELD = (*env)->GetFieldID(env, TENSOR_CLASS, "address", "J");
-	TENSOR_INIT = (*env)->GetMethodID(env, TENSOR_CLASS, "<init>", "(J)V");
+    TENSOR_CLASS = (jclass) env->NewGlobalRef(tensorClass);
+	TENSOR_ADDRESS_FIELD = env->GetFieldID(TENSOR_CLASS, "address", "J");
+	TENSOR_INIT = env->GetMethodID(TENSOR_CLASS, "<init>", "(J)V");
 
 	jclass systemClass;
-	char *systemClassName = "java/lang/System";
-	systemClass = (*env)->FindClass(env, systemClassName);
-    SYSTEM_CLASS = (*env)->NewGlobalRef(env, systemClass);
-	SYSTEM_GC = (*env)->GetStaticMethodID(env, SYSTEM_CLASS, "gc", "()V");
+	char *systemClassName = (char*)"java/lang/System";
+	systemClass = env->FindClass(systemClassName);
+    SYSTEM_CLASS = (jclass) env->NewGlobalRef(systemClass);
+	SYSTEM_GC = env->GetStaticMethodID(SYSTEM_CLASS, "gc", "()V");
 
 	jclass exceptionClass;
-	char *exClassName = "java/lang/Exception";
-	exceptionClass = (*env)->FindClass( env, exClassName);
-    EXCEPTION_CLASS = (*env)->NewGlobalRef(env, exceptionClass);
+	char *exClassName = (char*)"java/lang/Exception";
+	exceptionClass = env->FindClass(exClassName);
+    EXCEPTION_CLASS = (jclass) env->NewGlobalRef(exceptionClass);
 
 	// Set Torch error handler functions to throw Exceptions in Java
-	(*env)->GetJavaVM(env, &jvm);
+	env->GetJavaVM(&jvm);
 	THSetErrorHandler(torchErrorHandlerFunction, NULL);
 	THSetArgErrorHandler(torchArgErrorHandlerFunction, NULL);
 
@@ -110,14 +113,14 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_NativeTensorLoader_init
 JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_NativeTensorLoader_cleanup
   (JNIEnv * env, jobject loader){
 	// release global class references
-	(*env)->DeleteGlobalRef(env, TENSOR_CLASS);
-	(*env)->DeleteGlobalRef(env, SYSTEM_CLASS);
-	(*env)->DeleteGlobalRef(env, EXCEPTION_CLASS);
+	env->DeleteGlobalRef(TENSOR_CLASS);
+	env->DeleteGlobalRef(SYSTEM_CLASS);
+	env->DeleteGlobalRef(EXCEPTION_CLASS);
 
 
 	// cleanup CUDA
 #ifdef CUDA
-	THCudaBlas_shutdown(state);
+	THCudaShutdown(state);
 	free(state);
 #endif
 }
@@ -140,7 +143,7 @@ THTensor* getTensor(JNIEnv* env, jobject o){
 				);
 		return t;
 	}
-	jlong address = (*env)->GetLongField(env, o, TENSOR_ADDRESS_FIELD);
+	jlong address = env->GetLongField(o, TENSOR_ADDRESS_FIELD);
 	return (THTensor*) address;
 }
 
@@ -205,7 +208,7 @@ THTensor* getTensor5d(JNIEnv* env, jobject o, int d0, int d1, int d2, int d3, in
 }
 
 jobject createTensorObject(JNIEnv* env, THTensor* t){
-	return (*env)->NewObject(env, TENSOR_CLASS, TENSOR_INIT, (jlong)t);
+	return env->NewObject(TENSOR_CLASS, TENSOR_INIT, (jlong)t);
 }
 
 

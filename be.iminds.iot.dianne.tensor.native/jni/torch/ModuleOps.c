@@ -23,6 +23,12 @@
 #include "be_iminds_iot_dianne_tensor_ModuleOps.h"
 #include "TensorLoader.h"
 
+#ifdef CUDA
+THCState* state;
+#else
+THNNState* state;
+#endif
+
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_tanh
   (JNIEnv * env, jclass c, jobject out, jobject in){
 	THTensor* input = getTensor(env, in);

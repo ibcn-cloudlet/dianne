@@ -23,8 +23,9 @@
 #ifndef CUDATENSOR_H
 #define CUDATENSOR_H
 
-#include "torch7/lib/TH/TH.h"
-#include "../cutorch/cutorch/lib/THC/THC.h"
+#include "TH.h"
+#include "THC.h"
+#include "THCUNN.h"
 
 #ifdef THTensor_
 #undef THTensor_
@@ -53,9 +54,8 @@ typedef THCudaStorage THStorage;
 
 #define THNN_(x) THNN_Cuda##x
 
-THCState* state;
-
-int CURRENT_GPU;
+extern THCState* state;
+extern int CURRENT_GPU;
 void selectGPU(int d);
 
 #endif

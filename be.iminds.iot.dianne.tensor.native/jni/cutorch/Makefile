@@ -23,7 +23,7 @@ SRC := $(wildcard ../torch/*.c)
 OBJECTS := $(notdir $(SRC:.c=.o))
 JAVAH := ../../../be.iminds.iot.dianne.tensor/generated/jni-headers
 LINKS := -Lcunn/lib/THCUNN/build -lTHCUNN -Lcutorch/lib/THC/build -lTHC -L../torch/torch7/lib/TH/build -lTH -L$(CUDA_TARGET)/lib -lcudart_static -lcublas_static -lstdc++ -lculibos -pthread
-INCLUDES += -I.
+INCLUDES += -I. -I../torch
 INCLUDES += -I$(CUDA_TARGET)/include/
 INCLUDES += -Icutorch/lib -Icutorch/lib/THC -Icutorch/lib/THC/build
 INCLUDES += -Icunn/lib/THCUNN -Icunn/lib/THCUNN/build
@@ -53,10 +53,10 @@ $(DEPLOY_DIR)/$(LIB): $(LIB)
 	cp $(LIB) $(DEPLOY_DIR)/$(LIB)
 
 $(LIB): cunn/lib/THCUNN/build/libTHCUNN.a $(OBJECTS) $(CUDA_OBJECTS)
-	$(CC) $(SHARED) $(CFLAGS) $(CCFLAGS) $(OBJECTS) $(CUDA_OBJECTS) $(LINKS) -o $(LIB)
+	$(CXX) $(SHARED) $(CFLAGS) $(CCFLAGS) $(OBJECTS) $(CUDA_OBJECTS) $(LINKS) -o $(LIB)
 
 %.o: ../torch/%.c $(JAVAH)
-	$(CC) $(CFLAGS) $(CCFLAGS) $(INCLUDES) -c $<
+	$(NVCC) -x cu $(CFLAGS) $(NVCC_FLAGS) $(INCLUDES) -c $<
 
 %.o: %.cu $(JAVAH)
 	$(NVCC) $(CFLAGS) $(NVCC_FLAGS) $(INCLUDES) -c $<

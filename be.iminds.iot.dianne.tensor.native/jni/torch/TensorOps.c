@@ -25,6 +25,7 @@
 
 #ifdef CUDA
 #include "CudaTensor.h"
+#include "THCudaTensorOps.h"
 #else
 #include "Tensor.h"
 #endif
@@ -673,8 +674,8 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_scale2D
 	THTensor* t = getTensor(env, tensor);
 	THTensor* r;
 
-	jsize noDims = (*env)->GetArrayLength(env, dims);
-	jint *d = (*env)->GetIntArrayElements(env, dims, 0);
+	jsize noDims = env->GetArrayLength(dims);
+	jint *d = env->GetIntArrayElements(dims, 0);
 
 	if(noDims==2){
 		r = getTensor3d(env, res, 1, d[0], d[1]);
@@ -696,7 +697,7 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_scale2D
 			r, d[0], d[1]);
 	}
 
-	(*env)->ReleaseIntArrayElements(env, dims, d, 0);
+	env->ReleaseIntArrayElements(dims, d, 0);
 
 	return res == NULL ? createTensorObject(env, r) : res;
 }
@@ -706,8 +707,8 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_frame
 	THTensor* t = getTensor(env, tensor);
 	THTensor* r;
 
-	jsize noDims = (*env)->GetArrayLength(env, dims);
-	jint *d = (*env)->GetIntArrayElements(env, dims, 0);
+	jsize noDims = env->GetArrayLength(dims);
+	jint *d = env->GetIntArrayElements(dims, 0);
 
 	int noBatches;
 	if(t->nDimension == noDims + 1){
@@ -866,7 +867,7 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_frame
 		}
 	}
 
-	(*env)->ReleaseIntArrayElements(env, dims, d, 0);
+	env->ReleaseIntArrayElements(dims, d, 0);
 
 	return res == NULL ? createTensorObject(env, r) : res;
 }

@@ -53,6 +53,6 @@ typedef THFloatStorage THStorage;
 #define THStorage_(x) THFloatStorage_##x
 #define Real Float
 
-THNNState* state;
+extern THNNState* state;
 
 #endif

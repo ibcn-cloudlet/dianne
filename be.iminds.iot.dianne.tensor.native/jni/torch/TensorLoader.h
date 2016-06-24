@@ -29,10 +29,6 @@
 #include "Tensor.h"
 #endif
 
-jfieldID TENSOR_ADDRESS_FIELD;
-jmethodID TENSOR_INIT;
-jclass TENSOR_CLASS;
-
 // convert object to a Tensor - create new one if NULL
 THTensor* getTensor(JNIEnv* env, jobject o);
 // convert object to a Tensor - resize to given dims
