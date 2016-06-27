@@ -25,12 +25,10 @@
 #include "curand.h"
 #include "cublas_v2.h"
 // define some additional CUDA operations
-extern "C" {
 #include "THCudaTensorOps.h"
-}
-#include "cutorch/lib/THC/THCApply.cuh"
-#include "cutorch/lib/THC/THCTensorMath.h"
-#include "cutorch/lib/THC/THCBlas.h"
+#include "THCApply.cuh"
+#include "THCTensorMath.h"
+#include "THCBlas.h"
 
 #include <thrust/device_ptr.h>
 #include <thrust/device_vector.h>
@@ -91,7 +89,6 @@ __global__ void scale2d(float *input, float *output,
 	output[c*output_w*output_h + y*output_w + x] = v;
 }
 
-extern "C" {
 
 	
 	int THCudaTensor_argmax(THCState *state, THCudaTensor *t){
@@ -155,4 +152,3 @@ extern "C" {
     	THCudaTensor_free(state, input);
     	
 	}
-}

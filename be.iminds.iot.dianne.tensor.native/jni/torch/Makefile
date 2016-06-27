@@ -1,5 +1,6 @@
 include ../Makefile.system
 
+HEADERS := $(wildcard *.h)
 SRC := $(wildcard *.c)
 OBJECTS=$(SRC:.c=.o)
 JAVAH := ../../../be.iminds.iot.dianne.tensor/generated/jni-headers
@@ -22,7 +23,7 @@ $(DEPLOY_DIR)/$(LIB): $(LIB)
 $(LIB): OpenBLAS/libopenblas.a torch7/lib/TH/build/libTH.a nn/lib/THNN/build/libTHNN.a $(OBJECTS)
 	$(CXX) $(SHARED) $(CFLAGS) $(CCFLAGS) $(OBJECTS) $(LINKS) -o $(LIB)
 
-%.o: %.c $(JAVAH)
+%.o: %.c $(HEADERS) $(JAVAH)
 	$(CXX) $(CFLAGS) $(CCFLAGS) $(INCLUDES) -c $< 
 
 torch7/lib/TH/build/libTH.a: OpenBLAS/libopenblas.a

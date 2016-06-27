@@ -19,6 +19,7 @@ else
     $(error ERROR - unsupported value $(ARCH) for ARCH!)
 endif
 
+HEADERS := $(wildcard ../torch/*.h)
 SRC := $(wildcard ../torch/*.c)
 OBJECTS := $(notdir $(SRC:.c=.o))
 JAVAH := ../../../be.iminds.iot.dianne.tensor/generated/jni-headers
@@ -35,6 +36,7 @@ CCFLAGS += -DCUDA
 NVCC=nvcc -ccbin $(CXX)
 export NVCC
 NVCC_FLAGS := -DCUDA -Xcompiler -fPIC -m${TARGET_SIZE}
+CUDA_HEADERS := $(wildcard *.h)
 CUDA_SRC := $(wildcard *.cu)
 CUDA_OBJECTS := $(CUDA_SRC:.cu=.o)
 
@@ -55,10 +57,10 @@ $(DEPLOY_DIR)/$(LIB): $(LIB)
 $(LIB): cunn/lib/THCUNN/build/libTHCUNN.a $(OBJECTS) $(CUDA_OBJECTS)
 	$(CXX) $(SHARED) $(CFLAGS) $(CCFLAGS) $(OBJECTS) $(CUDA_OBJECTS) $(LINKS) -o $(LIB)
 
-%.o: ../torch/%.c $(JAVAH)
+%.o: ../torch/%.c $(HEADERS) $(JAVAH)
 	$(NVCC) -x cu $(CFLAGS) $(NVCC_FLAGS) $(INCLUDES) -c $<
 
-%.o: %.cu $(JAVAH)
+%.o: %.cu $(CUDA_HEADERS) $(JAVAH)
 	$(NVCC) $(CFLAGS) $(NVCC_FLAGS) $(INCLUDES) -c $<
 
 cutorch/lib/THC/build/libTHC.a:

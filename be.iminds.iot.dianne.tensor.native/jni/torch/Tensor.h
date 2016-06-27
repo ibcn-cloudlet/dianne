@@ -18,13 +18,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Contributors:
- *     Tim Verbelen, Steven Bohez
+ *     Tim Verbelen, Steven Bohez, Elias De Coninck
  *******************************************************************************/
 #ifndef TENSOR_H
 #define TENSOR_H
 
-#include "torch7/lib/TH/TH.h"
-#include "nn/lib/THNN/THNN.h"
+#include "TH.h"
+#include "THNN.h"
 
 
 #ifdef THTensor_

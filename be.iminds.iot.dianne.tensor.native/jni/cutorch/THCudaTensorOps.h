@@ -18,12 +18,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Contributors:
- *     Tim Verbelen, Steven Bohez
+ *     Tim Verbelen, Steven Bohez, Elias De Coninck
  *******************************************************************************/
 #ifndef THTENSOR_CUDA_OPS_H
 #define THTENSOR_CUDA_OPS_H
 
-#include "cutorch/lib/THC/THC.h"
+#include "THC.h"
 // define some additional operations for CUDATensors
 
 int THCudaTensor_argmax(THCState *state, THCudaTensor *t);
