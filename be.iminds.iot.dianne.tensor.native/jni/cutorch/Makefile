@@ -40,11 +40,9 @@ CUDA_HEADERS := $(wildcard *.h)
 CUDA_SRC := $(wildcard *.cu)
 CUDA_OBJECTS := $(CUDA_SRC:.cu=.o)
 
-ifdef ($(BUILD))
-ifneq ($(strip $(OS))-$(strip $(ARCH)),$(uname -s)-$(uname -m))
+ifneq ($(strip $(OS))-$(strip $(ARCH)),$(shell uname -s)-$(shell uname -m))
 #sets CROSS_COMPILATION to TRUE
 	CMAKE_FLAGS += -DCMAKE_SYSTEM_NAME=$(OS) -DCMAKE_SYSTEM_PROCESSOR=$(ARCH)
-endif
 endif
 
 .PHONY: info install
