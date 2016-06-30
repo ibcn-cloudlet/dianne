@@ -40,6 +40,14 @@ CUDA_HEADERS := $(wildcard *.h)
 CUDA_SRC := $(wildcard *.cu)
 CUDA_OBJECTS := $(CUDA_SRC:.cu=.o)
 
+# CUDA code generation flags
+CUDA_ARCHS := 2.0 3.0 3.5 5.0 5.2
+ifneq ($(strip $(CUDA_ARCH_BIN)),)
+    CUDA_ARCHS := $(CUDA_ARCH_BIN)
+endif
+CUDA_ARCHS := $(subst .,,$(CUDA_ARCHS))
+NVCC_FLAGS += $(foreach CUDA_ARCH,$(CUDA_ARCHS), -gencode arch=compute_$(CUDA_ARCH),code=sm_$(CUDA_ARCH))
+
 ifneq ($(strip $(OS))-$(strip $(ARCH)),$(shell uname -s)-$(shell uname -m))
 #sets CROSS_COMPILATION to TRUE
 	CMAKE_FLAGS += -DCMAKE_SYSTEM_NAME=$(OS) -DCMAKE_SYSTEM_PROCESSOR=$(ARCH)
