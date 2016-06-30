@@ -40,8 +40,11 @@ CUDA_HEADERS := $(wildcard *.h)
 CUDA_SRC := $(wildcard *.cu)
 CUDA_OBJECTS := $(CUDA_SRC:.cu=.o)
 
+ifdef ($(BUILD))
 ifneq ($(strip $(OS))-$(strip $(ARCH)),$(uname -s)-$(uname -m))
+#sets CROSS_COMPILATION to TRUE
 	CMAKE_FLAGS += -DCMAKE_SYSTEM_NAME=$(OS) -DCMAKE_SYSTEM_PROCESSOR=$(ARCH)
+endif
 endif
 
 .PHONY: info install
@@ -64,11 +67,11 @@ $(LIB): cunn/lib/THCUNN/build/libTHCUNN.a $(OBJECTS) $(CUDA_OBJECTS)
 	$(NVCC) $(CFLAGS) $(NVCC_FLAGS) $(INCLUDES) -c $<
 
 cutorch/lib/THC/build/libTHC.a:
-	cmake -Hcutorch/lib/THC -Bcutorch/lib/THC/build $(CMAKE_FLAGS) -DCMAKE_MODULE_PATH=$(subst $(space),\ ,$(abspath ../cmake)) -DBUILD_STATIC=1 -Wno-dev
+	cmake -Hcutorch/lib/THC -Bcutorch/lib/THC/build $(CMAKE_FLAGS) -DCMAKE_MODULE_PATH=$(subst $(space),\ ,$(abspath ../cmake)) -DBUILD_STATIC=1 -Wno-dev -DCMAKE_VERBOSE_MAKEFILE=1
 	$(MAKE) -C cutorch/lib/THC/build
 
 cunn/lib/THCUNN/build/libTHCUNN.a: cutorch/lib/THC/build/libTHC.a
-	cmake -Hcunn/lib/THCUNN -Bcunn/lib/THCUNN/build $(CMAKE_FLAGS) -DCMAKE_MODULE_PATH=$(subst $(space),\ ,$(abspath ../cmake)) -DBUILD_STATIC=1 -DCUDA=1
+	cmake -Hcunn/lib/THCUNN -Bcunn/lib/THCUNN/build $(CMAKE_FLAGS) -DCMAKE_MODULE_PATH=$(subst $(space),\ ,$(abspath ../cmake)) -DBUILD_STATIC=1 -DCUDA=1 -DCMAKE_VERBOSE_MAKEFILE=1
 	$(MAKE) -C cunn/lib/THCUNN/build
 
 .PHONY: clean
