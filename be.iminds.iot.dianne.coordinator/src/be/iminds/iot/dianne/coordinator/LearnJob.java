@@ -148,6 +148,10 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 			if(config.containsKey("criterion")){
 				c.put("criterion", config.get("criterion"));
 			}
+			// TODO use separate (bigger?) batchSize here?
+			if(config.containsKey("batchSize")){
+				c.put("batchSize", config.get("batchSize"));
+			}
 			c.put("storeIfBetterThan", ""+bestValidationError);
 			
 			try {
