@@ -157,6 +157,11 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 			try {
 				validation = validator.eval(dataset, c, validationNni);
 				
+				if(Float.isNaN(validation.error)){
+					validation = null;
+					throw new Exception("Validation error became NaN");
+				}
+				
 				if(validation.error < bestValidationError){
 					bestValidationError = validation.error;
 				}
