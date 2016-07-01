@@ -54,8 +54,8 @@ import be.iminds.iot.dianne.tensor.Tensor;
 	configurationPid="be.iminds.iot.dianne.dataset.adapters.RandomRotationAdapter")
 public class DatasetRandomRotationAdapter extends AbstractDatasetAdapter {
 
-	private float minTheta = 0;
-	private float maxTheta = 0;
+	private float minTheta = (float)-Math.PI;
+	private float maxTheta = (float)Math.PI;
 	
 	private int[] center = null;
 	private boolean middle = false;
@@ -63,14 +63,17 @@ public class DatasetRandomRotationAdapter extends AbstractDatasetAdapter {
 	private Random r = new Random(System.currentTimeMillis());
 	
 	protected void configure(Map<String, Object> properties) {
-		Object t = properties.get("rotationTheta");
-		if(t instanceof String[]){
-			minTheta = Float.parseFloat(((String[]) t)[0]);
-			maxTheta = Float.parseFloat(((String[]) t)[1]);
-		} else {
-			minTheta = Integer.parseInt((String) t);
-			maxTheta = minTheta;
+		if(properties.containsKey("rotationTheta")){
+			Object t = properties.get("rotationTheta");
+			if(t instanceof String[]){
+				minTheta = Float.parseFloat(((String[]) t)[0]);
+				maxTheta = Float.parseFloat(((String[]) t)[1]);
+			} else {
+				maxTheta = Float.parseFloat((String) t);
+				minTheta = -maxTheta;
+			}
 		}
+		
 		if(properties.containsKey("rotationCenter")){
 			Object c = properties.get("rotationCenter");
 			// center = [x,y] means : center rotation around x,y
