@@ -155,6 +155,8 @@ public abstract class AbstractLearner implements Learner {
 			criterion = CriterionFactory.createCriterion(this.config.criterion);
 			gradientProcessor = ProcessorFactory.createGradientProcessor(this.config.method, nn, config, logger);
 			
+			nanretry = this.config.NaNretry;
+			
 			learnerThread = new Thread(() -> {
 				try {
 					preprocess(d, config);
