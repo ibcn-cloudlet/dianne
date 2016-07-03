@@ -166,10 +166,11 @@ public abstract class AbstractLearner implements Learner {
 						float err = process(i);
 						
 						if(Float.isNaN(err)){
-							if(nanretry > 0){
+							if(nanretry != 0){
 								System.out.println("Retry after NaN");
 								nn.loadParameters(this.config.tag);
-								nanretry--;
+								if(nanretry > 0)
+									nanretry--;
 								continue;
 							} else {
 								// if error is NaN, trigger something to repo to catch notification
