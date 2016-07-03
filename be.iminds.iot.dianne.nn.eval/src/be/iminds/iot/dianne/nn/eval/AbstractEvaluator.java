@@ -149,6 +149,11 @@ public abstract class AbstractEvaluator implements Evaluator {
 			for(index=0;index<total;index++){
 				Tensor out;
 				if(batchMode){
+					// for last batch, adjust to remaining size
+					if(index+indices.length > total){
+						indices = new int[total-index];
+						batch = null;
+					}
 					for(int i=0;i<indices.length;i++){
 						indices[i] = index++;
 					}
