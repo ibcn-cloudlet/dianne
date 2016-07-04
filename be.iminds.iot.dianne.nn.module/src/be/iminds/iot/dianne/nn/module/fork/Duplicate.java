@@ -41,9 +41,8 @@ public class Duplicate extends Fork {
 	@Override
 	protected void forward() {
 		// just duplicate output
-		// TODO copy needed?
 		for(UUID id : outputs.keySet()){
-			outputs.put(id, input);
+			outputs.put(id, input.copyInto(outputs.get(id)));
 		}
 	}
 
