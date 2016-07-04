@@ -296,6 +296,9 @@ public abstract class AbstractLearner implements Learner {
 				
 			// Fetch update again from repo (could be merged from other learners)
 			loadParameters();
+			
+			// trigger garbage collection to clean up store tensors
+			System.gc();
 		}
 	}
 
