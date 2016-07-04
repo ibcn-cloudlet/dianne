@@ -46,7 +46,7 @@ ifneq ($(strip $(CUDA_ARCH_BIN)),)
     CUDA_ARCHS := $(CUDA_ARCH_BIN)
 endif
 CUDA_ARCHS := $(subst .,,$(CUDA_ARCHS))
-NVCC_FLAGS += $(foreach CUDA_ARCH,$(CUDA_ARCHS), -gencode arch=compute_$(CUDA_ARCH),code=sm_$(CUDA_ARCH))
+GEN_CODES += $(foreach CUDA_ARCH,$(CUDA_ARCHS), -gencode arch=compute_$(CUDA_ARCH),code=sm_$(CUDA_ARCH))
 
 ifneq ($(strip $(OS))-$(strip $(ARCH)),$(shell uname -s)-$(shell uname -m))
 #sets CROSS_COMPILATION to TRUE
@@ -67,10 +67,10 @@ $(LIB): cunn/lib/THCUNN/build/libTHCUNN.a $(OBJECTS) $(CUDA_OBJECTS)
 	$(CXX) $(SHARED) $(CFLAGS) $(CCFLAGS) $(OBJECTS) $(CUDA_OBJECTS) $(LINKS) -o $(LIB)
 
 %.o: ../torch/%.c $(HEADERS) $(JAVAH)
-	$(NVCC) -x cu $(CFLAGS) $(NVCC_FLAGS) $(INCLUDES) -c $<
+	$(NVCC) -x cu $(CFLAGS) $(NVCC_FLAGS) $(GEN_CODES) $(INCLUDES) -c $<
 
 %.o: %.cu $(CUDA_HEADERS) $(JAVAH)
-	$(NVCC) $(CFLAGS) $(NVCC_FLAGS) $(INCLUDES) -c $<
+	$(NVCC) $(CFLAGS) $(NVCC_FLAGS) $(GEN_CODES) $(INCLUDES) -c $<
 
 cutorch/lib/THC/build/libTHC.a:
 	cmake -Hcutorch/lib/THC -Bcutorch/lib/THC/build $(CMAKE_FLAGS) -DCMAKE_MODULE_PATH=$(subst $(space),\ ,$(abspath ../cmake)) -DBUILD_STATIC=1 -Wno-dev -DCMAKE_VERBOSE_MAKEFILE=1
