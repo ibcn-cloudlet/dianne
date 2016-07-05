@@ -1,0 +1,34 @@
+Bundle-Version: 0.5.0.${tstamp}
+Bundle-Name: Dianne Pong Environment
+
+-buildpath: \
+	biz.aQute.junit,\
+	osgi.core;version=5.0,\
+	osgi.enterprise;version=5.0,\
+	org.apache.felix.http.servlet-api,\
+	org.apache.felix.http.api,\
+	org.websocket;version=1.0,\
+	be.iminds.iot.dianne.api;version=latest,\
+	be.iminds.iot.dianne.tensor;version=latest,\
+	be.iminds.iot.dianne.nn.learn;version=latest,\
+	be.iminds.iot.dianne.tensor.util;version=latest,\
+	osgi.promise,\
+	be.iminds.iot.dianne.nn.util;version=latest,\
+	be.iminds.iot.dianne.rl.agent;version=latest
+	
+-includeresource: res=resources
+
+Private-Package: \
+	be.iminds.iot.dianne.rl.environment.pong,\
+	be.iminds.iot.dianne.rl.environment.pong.ui
+Export-Package: \
+	be.iminds.iot.dianne.rl.environment.pong.api,\
+	be.iminds.iot.dianne.rl.environment.pong.config
+Import-Package: \
+	javax.servlet;resolution:=optional,\
+	javax.servlet.http;resolution:=optional,\
+	org.java_websocket;resolution:=optional,\
+	org.java_websocket.handshake;resolution:=optional,\
+	org.java_websocket.server;resolution:=optional,\
+	org.osgi.service.http;resolution:=optional,\
+	*

@@ -1,5 +1,0 @@
--dsannotations: *
-Private-Package: be.iminds.iot.dianne.rl.ale.ui
-Bundle-Name: Dianne ALE UI
-
--includeresource: res=resources/ale

@@ -15,13 +15,12 @@
 	be.iminds.iot.dianne.nn.learn;version=latest,\
 	be.iminds.iot.dianne.nn.eval;version=latest,\
 	be.iminds.iot.dianne.rl.learn;version=latest,\
+	be.iminds.iot.dianne.rl.experience;version=latest,\
 	be.iminds.iot.dianne.rl.agent;version=latest,\
-	be.iminds.iot.dianne.rl.ale;version=latest,\
-	be.iminds.iot.dianne.rl.ale.ui;version=latest,\
-	be.iminds.iot.dianne.rl.pong;version=latest,\
-	be.iminds.iot.dianne.rl.pong.ui;version=latest,\
-	be.iminds.iot.dianne.rl.command;version=latest
-
+	be.iminds.iot.dianne.rl.command;version=latest,\
+	be.iminds.iot.dianne.rl.environment.ale;version=latest,\
+	be.iminds.iot.dianne.rl.environment.pong;version=latest
+	
 -runproperties.rl:\
 	be.iminds.iot.dianne.runtime.name="RL",\
 	be.iminds.iot.dianne.datasets.location="experience",\

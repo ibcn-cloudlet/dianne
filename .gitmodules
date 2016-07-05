@@ -16,3 +16,6 @@
 [submodule "be.iminds.iot.dianne.tensor.native/jni/cutorch/cunn"]
 	path = be.iminds.iot.dianne.tensor.native/jni/cutorch/cunn
 	url = https://github.com/ibcn-cloudlet/cunn.git
+[submodule "be.iminds.iot.dianne.rl.environment.ale/jni/ALE/Arcade-Learning-Environment"]
+	path = be.iminds.iot.dianne.rl.environment.ale/jni/ALE/Arcade-Learning-Environment
+	url = https://github.com/ibcn-cloudlet/Arcade-Learning-Environment.git

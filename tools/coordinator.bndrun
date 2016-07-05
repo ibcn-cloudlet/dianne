@@ -12,7 +12,8 @@
 	be.iminds.aiolos.platformmanager;version=${aiolos.version},\
 	be.iminds.iot.dianne.nn.platform;version=latest,\
 	be.iminds.iot.dianne.repository;version=latest,\
-	be.iminds.iot.dianne.rl.exp;version=latest,\
+	be.iminds.iot.dianne.dataset;version=latest,\
+	be.iminds.iot.dianne.rl.experience;version=latest,\
 	be.iminds.iot.dianne.builder;version=latest,\
 	be.iminds.iot.dianne.command;version=latest,\
 	be.iminds.iot.dianne.jsonrpc;version=latest,\
