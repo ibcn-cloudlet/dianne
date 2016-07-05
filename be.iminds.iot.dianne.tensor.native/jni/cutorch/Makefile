@@ -41,12 +41,13 @@ CUDA_SRC := $(wildcard *.cu)
 CUDA_OBJECTS := $(CUDA_SRC:.cu=.o)
 
 # CUDA code generation flags
-CUDA_ARCHS := 2.0 3.0 3.5 5.0 5.2
+CUDA_ARCHS := 2.0 3.0 3.2 3.5 3.7 5.0 5.2 5.3
 ifneq ($(strip $(CUDA_ARCH_BIN)),)
     CUDA_ARCHS := $(CUDA_ARCH_BIN)
 endif
 CUDA_ARCHS := $(subst .,,$(CUDA_ARCHS))
-GEN_CODES += $(foreach CUDA_ARCH,$(CUDA_ARCHS), -gencode arch=compute_$(CUDA_ARCH),code=sm_$(CUDA_ARCH))
+GEN_CODES += $(foreach CUDA_ARCH,$(CUDA_ARCHS),-gencode arch=compute_$(CUDA_ARCH),code=sm_$(CUDA_ARCH))
+GEN_CODES += -gencode arch=compute_$(lastword $(CUDA_ARCHS)),code=compute_$(lastword $(CUDA_ARCHS))
 
 ifneq ($(strip $(OS))-$(strip $(ARCH)),$(shell uname -s)-$(shell uname -m))
 #sets CROSS_COMPILATION to TRUE
