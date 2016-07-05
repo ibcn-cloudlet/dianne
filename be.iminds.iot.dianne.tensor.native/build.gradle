@@ -20,7 +20,7 @@ task generateFiles(description: "Generate <lib.os.arch>.bnd file for this host. 
 			copy {
 				from "generic.bnd"
 				into projectDir
-				rename { file ->  "${lib}.${os}.${arch}.bnd" }
+				rename { file ->  "${lib}.${os}.${arch}.bnd".toLowerCase() }
 			}
 		}
 	}
