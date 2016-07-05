@@ -16,7 +16,7 @@ ifneq (,$(filter $(ARCH),x86_64 aarch64))
 else ifeq ($(findstring arm,$(ARCH)),arm)
     TARGET_SIZE := 32
 else
-    $(error ERROR - unsupported value $(ARCH) for ARCH!)
+    $(info ERROR - unsupported value $(ARCH) for ARCH!)
 endif
 
 HEADERS := $(wildcard ../torch/*.h)
