@@ -37,7 +37,7 @@ ext {
 	os = System.env.OS ?: runCommand('uname', '-s')
 	arch = System.env.ARCH ?: runCommand('uname', '-m')
 	osgi_os = os.replaceFirst(/^Darwin/, "MacOSX")
-	osgi_arch = arch.replaceFirst(/aarch64|armel|armhf/,"ARM")
+	osgi_arch = arch.replaceFirst(/armel|armhf/,"arm")
 	extension = (os == "Darwin") ? 'dylib' : 'so'
 	lib = System.env.NATIVE ?: "torch"
 	jenkins_build = System.env.BUILD ?: "false"
