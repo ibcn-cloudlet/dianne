@@ -46,7 +46,7 @@ public class NLLCriterion implements Criterion {
 	
 	@Override
 	public Tensor error(final Tensor output, final Tensor target) {
-		if(output.get()[0] < 0){
+		if(output.get()[0] <= 0){
 			log = null;
 			// output comes from LogSoftmax, no log required
 			// this should be numerically more stable
