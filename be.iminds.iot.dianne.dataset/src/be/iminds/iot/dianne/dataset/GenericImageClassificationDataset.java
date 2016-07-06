@@ -38,7 +38,7 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 
 /**
- * A generic ImageDataset that contains a number of numbered .jpg files
+ * A generic ImageClassificationDataset that contains a number of numbered .jpg files
  * in a images/ subdir, together with a labels and outputs file.
  * The labels file contains a label on each line, the outputs file
  * contains an class index on each line.
@@ -49,10 +49,10 @@ import be.iminds.iot.dianne.api.dataset.Dataset;
 @Component(
 		service={Dataset.class},
 		configurationPolicy=ConfigurationPolicy.REQUIRE,
-		configurationPid="be.iminds.iot.dianne.dataset.ImageDataset",
+		configurationPid="be.iminds.iot.dianne.dataset.ImageClassificationDataset",
 		immediate=true, 
 		property={"aiolos.unique=true"})
-public class GenericImageDataset extends ImageDataset {
+public class GenericImageClassificationDataset extends ImageClassificationDataset {
 
 	@Override
 	protected String getImageFile(int index) {

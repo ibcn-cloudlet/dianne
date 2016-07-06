@@ -36,7 +36,7 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
-import be.iminds.iot.dianne.dataset.ImageDataset;
+import be.iminds.iot.dianne.dataset.ImageClassificationDataset;
 
 /**
  * Sample of the Imagenet dataset
@@ -51,7 +51,7 @@ import be.iminds.iot.dianne.dataset.ImageDataset;
 		immediate=true, 
 		configurationPolicy=ConfigurationPolicy.REQUIRE,
 		configurationPid="be.iminds.iot.dianne.dataset.ImageNet")
-public class ImageNetDataset extends ImageDataset {
+public class ImageNetDataset extends ImageClassificationDataset {
 
 	@Override
 	protected void init(Map<String, Object> properties) {

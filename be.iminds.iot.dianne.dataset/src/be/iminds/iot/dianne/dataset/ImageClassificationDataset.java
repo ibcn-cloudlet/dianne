@@ -30,13 +30,14 @@ import be.iminds.iot.dianne.tensor.util.ImageConverter;
 
 /**
  * This provides an abstract class to implement Datasets that have images as input.
+ * Each image has to be classified as one of a discrete set of labeled classes.
  * The images are stored on the filesystem as image files, with a separate file
  * containing an target class index and the labels. 
  *  
  * @author tverbele
  *
  */
-public abstract class ImageDataset extends AbstractDataset {
+public abstract class ImageClassificationDataset extends AbstractDataset {
 
 	protected ImageConverter converter = new ImageConverter();
 
