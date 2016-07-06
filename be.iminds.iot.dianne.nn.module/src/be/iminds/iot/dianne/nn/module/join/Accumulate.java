@@ -40,14 +40,19 @@ public class Accumulate extends Join {
 	
 	@Override
 	protected void forward() {
+		int[] dims = inputs.values().stream().filter(t -> t !=null).findFirst().get().dims();
 		// accumulate inputs
 		if(output==null){
-			output = new Tensor(inputs.values().stream().filter(t -> t !=null).findFirst().get().dims());
+			output = new Tensor(dims);
+		} else {
+			output.reshape(dims);
 		}
+
 		output.fill(0.0f);
 		for(Tensor t : inputs.values()){
-			if(t!=null)
+			if(t!=null) {
 				output = TensorOps.add(output, output, t);
+			}
 		}
 	}
 
