@@ -19,7 +19,9 @@
 	be.iminds.iot.dianne.rl.agent;version=latest,\
 	be.iminds.iot.dianne.rl.command;version=latest,\
 	be.iminds.iot.dianne.rl.environment.ale;version=latest,\
-	be.iminds.iot.dianne.rl.environment.pong;version=latest
+	be.iminds.iot.dianne.rl.environment.pong;version=latest,\
+	jep;version='[3.6.0,3.7.0)',\
+	be.iminds.iot.dianne.rl.environment.gym;version=latest
 	
 -runproperties.rl:\
 	be.iminds.iot.dianne.runtime.name="RL",\
