@@ -350,6 +350,8 @@ public class DatasetConfigurator implements DianneDatasets {
 					pid = "be.iminds.iot.dianne.dataset.SVHN";
 				} else if(name.startsWith("ImageNet")){
 					pid = "be.iminds.iot.dianne.dataset.ImageNet";
+				} else {
+					pid = "be.iminds.iot.dianne.dataset."+name;
 				}
 			}
 			

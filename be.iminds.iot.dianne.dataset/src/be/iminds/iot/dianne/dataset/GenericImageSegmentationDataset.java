@@ -62,9 +62,4 @@ public class GenericImageSegmentationDataset extends ImageSegmentationDataset {
 		this.noSamples = images.list().length;
 	}
 
-	@Override
-	protected void readLabels(String labelsFile) {
-		// no labels in segmentation dataset
-	}
-	
 }

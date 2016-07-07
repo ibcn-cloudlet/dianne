@@ -78,4 +78,8 @@ public abstract class ImageSegmentationDataset extends AbstractDataset {
 		return t;
 	}
 
+	@Override
+	protected void readLabels(String labelsFile) {
+		// no labels in segmentation dataset
+	}
 }

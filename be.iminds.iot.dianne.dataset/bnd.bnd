@@ -12,6 +12,7 @@ Bundle-Description: Expose datasets on the filesystem as OSGi services
 	com.google.gson
 Private-Package: \
 	be.iminds.iot.dianne.dataset.csv,\
+	be.iminds.iot.dianne.dataset.kaggle,\
 	be.iminds.iot.dianne.dataset.svhn,\
 	be.iminds.iot.dianne.dataset,\
 	be.iminds.iot.dianne.dataset.adapters,\
