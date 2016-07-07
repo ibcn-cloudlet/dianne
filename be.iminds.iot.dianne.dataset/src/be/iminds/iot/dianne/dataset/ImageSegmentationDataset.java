@@ -50,11 +50,6 @@ public abstract class ImageSegmentationDataset extends AbstractDataset {
 	protected abstract String getMaskFile(int index);
 
 	@Override
-	public int[] targetDims() {
-		return inputDims;
-	}
-	
-	@Override
 	public Tensor getInputSample(Tensor t, int index) {
 		String file = getImageFile(index);
 		try {

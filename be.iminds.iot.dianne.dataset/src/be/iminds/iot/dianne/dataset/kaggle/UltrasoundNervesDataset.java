@@ -44,6 +44,7 @@ public class UltrasoundNervesDataset extends ImageSegmentationDataset {
 	protected void init(Map<String, Object> properties) {
 		this.name = "UltrasoundNerves";
 		this.inputDims = new int[]{1,420,580};
+		this.targetDims = new int[]{1,420,580};
 		this.noSamples = 47*120;
 	}
 }
