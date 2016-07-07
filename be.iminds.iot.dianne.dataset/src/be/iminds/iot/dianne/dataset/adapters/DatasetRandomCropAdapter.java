@@ -143,27 +143,34 @@ public class DatasetRandomCropAdapter extends AbstractDatasetAdapter {
 		int[] dims = t.dims();
 		int channels = dims.length == 3 ? dims[0] : 1;
 
-		int adaptedWidthOffset = widthOffset < padding ? padding - widthOffset : 0;
-		int adaptedHeightOffset = heightOffset < padding ? padding - heightOffset : 0;
-		int originalWidthOffset = widthOffset >= padding ? widthOffset - padding : widthOffset;
-		int originalHeightOffset = heightOffset >= padding ? heightOffset - padding : heightOffset;
-
-		int cropWidth = originalWidthOffset > adaptedWidthOffset ? width - originalWidthOffset : width - adaptedWidthOffset; 
-		int cropHeight = originalHeightOffset > adaptedHeightOffset ? height - originalHeightOffset : height - adaptedHeightOffset; 
-
-		int[] originalRanges = new int[]{0, channels, originalHeightOffset, cropHeight, originalWidthOffset, cropWidth};
-		int[] adaptedRanges = new int[]{0, channels, adaptedHeightOffset, cropHeight, adaptedWidthOffset, cropWidth};
-		
 		if(res == null){
 			res = new Tensor(channels, height, width);
 		} else {
 			res.reshape(channels, height, width);
 		}
 
-		res.fill(0.0f);
-		Tensor dst = res.narrow(adaptedRanges);
-		Tensor src = t.narrow(originalRanges);
-		src.copyInto(dst);
+		if(padding > 0){
+			res.fill(0.0f);
+			
+			int adaptedWidthOffset = widthOffset < padding ? padding - widthOffset : 0;
+			int adaptedHeightOffset = heightOffset < padding ? padding - heightOffset : 0;
+			int originalWidthOffset = widthOffset >= padding ? widthOffset - padding : widthOffset;
+			int originalHeightOffset = heightOffset >= padding ? heightOffset - padding : heightOffset;
+	
+			int cropWidth = originalWidthOffset > adaptedWidthOffset ? width - originalWidthOffset : width - adaptedWidthOffset; 
+			int cropHeight = originalHeightOffset > adaptedHeightOffset ? height - originalHeightOffset : height - adaptedHeightOffset; 
+	
+			int[] originalRanges = new int[]{0, channels, originalHeightOffset, cropHeight, originalWidthOffset, cropWidth};
+			int[] adaptedRanges = new int[]{0, channels, adaptedHeightOffset, cropHeight, adaptedWidthOffset, cropWidth};
+			
+			Tensor dst = padding > 0 ? res.narrow(adaptedRanges) : res;
+			Tensor src = t.narrow(originalRanges);
+			src.copyInto(dst);
+		
+		} else {
+			Tensor src = t.narrow(0, channels, heightOffset, height, widthOffset, width);
+			src.copyInto(res);
+		}
 		
 		return res;
 	}
