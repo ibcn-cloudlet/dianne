@@ -39,6 +39,7 @@ import javax.imageio.stream.ImageInputStream;
 
 import com.idrsolutions.image.jpeg.JpegDecoder;
 import com.idrsolutions.image.jpeg.JpegEncoder;
+import com.idrsolutions.image.tiff.TiffDecoder;
 
 import be.iminds.iot.dianne.tensor.Tensor;
 
@@ -128,36 +129,49 @@ public class ImageConverter {
 		int width = img.getWidth();
 		int height = img.getHeight();
 		
-		float[] imageData = new float[width*height*3];
+		int c = img.getType() == BufferedImage.TYPE_BYTE_GRAY ? 1 : 3;
 		
-		float[] rgb = new float[3];
+		float[] imageData = new float[width*height*c];
+		
+		float[] rgb = new float[c];
 		int r = 0;
 		int g = width*height;
 		int b = 2*width*height;
 		for(int j=0;j<height;j++){
 			for(int i=0;i<width;i++){
-				rgb = img.getRaster().getPixel(i, j, rgb);
+				rgb = img.getRaster().getPixel(i, j, rgb);	
 				imageData[r++] = rgb[0]/255f;
-				imageData[g++] = rgb[1]/255f;
-				imageData[b++] = rgb[2]/255f;
+				if(c == 3){
+					imageData[g++] = rgb[1]/255f;
+					imageData[b++] = rgb[2]/255f;
+				}
 			}
 		}
 		
 		if(t == null)
-			return new Tensor(imageData, 3, height, width);
+			return new Tensor(imageData, c, height, width);
 		
-		t.reshape(3, height, width);
+		t.reshape(c, height, width);
 		t.set(imageData);
 		return t;
 	}
 	
 	public Tensor readFromFile(String fileName, Tensor t) throws Exception{
-		// jDeli should be faster
-		//BufferedImage img = ImageIO.read(new File(fileName));
+		// Use jDeli instead of ImageIO, should be faster
+		// BufferedImage img = ImageIO.read(new File(fileName));
 
+		
+		BufferedImage img = null;
 		byte[] data = Files.readAllBytes(Paths.get(fileName));
-		JpegDecoder decoder = new JpegDecoder();
-		BufferedImage img = decoder.read(data);
+		String upper = fileName.toUpperCase();
+		if(upper.endsWith(".JPG") || upper.endsWith("JPEG")){
+			JpegDecoder decoder = new JpegDecoder();
+			img = decoder.read(data);
+		} else if(upper.endsWith(".TIF") || upper.endsWith(".TIFF")){
+			TiffDecoder decoder = new TiffDecoder(data);
+			img = decoder.read();
+		}
+
 		return readFromImage(img, t);
 	}
 	
