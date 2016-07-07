@@ -26,16 +26,16 @@ public class UltrasoundNervesDataset extends ImageSegmentationDataset {
 
 	@Override
 	protected String getImageFile(int index) {
-		int i = index / 120;
-		int j = index % 120;
+		int i = index / 120 + 1;
+		int j = index % 120 + 1;
 		return dir+File.separator+ "train" + File.separator
 				 + i +"_"+j+".tif";
 	}
 
 	@Override
 	protected String getMaskFile(int index) {
-		int i = index / 120;
-		int j = index % 120;
+		int i = index / 120 + 1;
+		int j = index % 120 + 1;
 		return dir+File.separator+ "train" + File.separator
 				 + i +"_"+j+"_mask.tif";
 	}
