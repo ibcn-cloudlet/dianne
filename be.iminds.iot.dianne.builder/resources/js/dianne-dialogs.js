@@ -713,7 +713,8 @@ function sample(dataset, input){
 	$.post("/dianne/run", {"dataset":dataset,"input":input, "id": nn.id}, 
 			function( sample ) {
 				render(sample, sampleCanvasCtx);
-				$('.expected').text('Expected output: '+sample.output);
+				if(sample.target !== undefined)
+					$('.expected').text('Expected output: '+sample.target);
 			}
 			, "json");
 }
