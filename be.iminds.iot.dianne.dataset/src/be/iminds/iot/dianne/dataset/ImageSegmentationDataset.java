@@ -67,7 +67,7 @@ public abstract class ImageSegmentationDataset extends AbstractDataset {
 	}
 
 	@Override
-	public Tensor getOutputSample(Tensor t, int index) {
+	public Tensor getTargetSample(Tensor t, int index) {
 		String file = getMaskFile(index);
 		try {
 			t = converter.readFromFile(file, t);

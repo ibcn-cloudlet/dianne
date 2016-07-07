@@ -37,8 +37,7 @@ import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.dataset.FileDataset;
 
 /**
- * The Street View House Numbers dataset, based on the cropped 32x32 images
- * http://ufldl.stanford.edu/housenumbers/
+ * Generic CSV Dataset
  * 
  * @author tverbele
  *

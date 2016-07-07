@@ -39,8 +39,8 @@ import be.iminds.iot.dianne.api.dataset.Dataset;
 
 /**
  * A generic ImageClassificationDataset that contains a number of numbered .jpg files
- * in a images/ subdir, together with a labels and outputs file.
- * The labels file contains a label on each line, the outputs file
+ * in a images/ subdir, together with a labels and targets file.
+ * The labels file contains a label on each line, the targets file
  * contains an class index on each line.
  * 
  * @author tverbele

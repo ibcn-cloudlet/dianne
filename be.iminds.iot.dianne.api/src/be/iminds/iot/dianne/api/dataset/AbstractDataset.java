@@ -65,9 +65,13 @@ public abstract class AbstractDataset implements Dataset {
 			inputSize = -1;
 		}
 		
-		targetSize = 1;
-		for(int i=0;i<targetDims.length;i++){
-			targetSize *= targetDims[i];
+		if(targetDims != null){
+			targetSize = 1;
+			for(int i=0;i<targetDims.length;i++){
+				targetSize *= targetDims[i];
+			}
+		} else {
+			targetSize = -1;
 		}
 		
 		if(labelsFile != null)
