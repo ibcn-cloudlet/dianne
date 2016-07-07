@@ -52,6 +52,10 @@ public class DatasetAutoencoderAdapter extends AbstractDatasetAdapter {
 		return null;
 	}
 
+	@Override
+	public int[] targetDims() {
+		return inputDims();
+	};
 
 	@Override
 	protected void adaptSample(Sample original, Sample adapted) {
