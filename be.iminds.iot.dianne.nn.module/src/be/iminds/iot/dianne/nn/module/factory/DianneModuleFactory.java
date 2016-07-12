@@ -599,20 +599,15 @@ public class DianneModuleFactory implements ModuleFactory {
 		}
 		case "Reshape":
 		{
-			int[] dims;
+			List<Integer> dims = new ArrayList<>();
 			
-			int dim0 = Integer.parseInt(dto.properties.get("dim0"));
-			int dim1 = Integer.parseInt(dto.properties.get("dim1"));
+			int i = 0;
+			do {
+				int dim = Integer.parseInt(dto.properties.get("dim" + i));
+				dims.add(dim);
+			} while(hasProperty(dto.properties, "dim" + ++i));
 			
-			if(hasProperty(dto.properties, "dim2")){
-				int dim2 = Integer.parseInt(dto.properties.get("dim2"));
-				
-				dims = new int[]{dim0, dim1, dim2};
-			} else {
-				dims = new int[]{dim0, dim1};
-			}
-			
-			module = new Reshape(id, dims);
+			module = new Reshape(id, dims.stream().mapToInt(d -> d).toArray());
 			break;
 		}
 		case "Zeropad":
