@@ -71,7 +71,6 @@ public class DeepQLearner extends AbstractLearner {
 		super.loadNNs(nni);
 		
 		target = dianne.getNeuralNetwork(nni[1]).getValue();
-		target.getModules().values().stream().forEach(m -> m.setMode(EnumSet.of(Mode.BLOCKING)));
 	}
 	
 	protected void loadDataset(String d, Map<String, String> config){

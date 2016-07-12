@@ -121,7 +121,6 @@ public abstract class AbstractEvaluator implements Evaluator {
 			} catch (Exception e) {
 				throw new Exception("Neural Network "+nni.id+" not available!");
 			}
-			nn.getModules().values().stream().forEach(m -> m.setMode(EnumSet.of(Mode.BLOCKING)));
 			
 			try {
 				if(this.config.tag==null){

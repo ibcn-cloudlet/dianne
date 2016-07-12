@@ -266,9 +266,6 @@ public abstract class AbstractLearner implements Learner {
 		// Get the reference
 		nn = dianne.getNeuralNetwork(nni[0]).getValue();
 		
-		// Set module mode to blocking
-		nn.getModules().values().stream().forEach(m -> m.setMode(EnumSet.of(Mode.BLOCKING)));
-		
 		// Store the labels if classification dataset
 		String[] labels = dataset.getLabels();
 		if(labels!=null)

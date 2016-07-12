@@ -171,8 +171,6 @@ public class DeepRLAgent implements Agent {
 		if (nn == null)
 			throw new Exception("Network instance " + nni.id + " is not available");
 		
-		nn.getInput().setMode(EnumSet.of(Mode.BLOCKING));
-		
 		env = envs.get(environment);
 		pool = pools.get(experiencePool);
 
