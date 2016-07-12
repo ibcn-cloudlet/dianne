@@ -48,9 +48,9 @@ public class Split extends Fork {
 	protected void forward() {
 		// split in N equal parts in dimension 1
 		int[] inputDims = input.dims();
-		int splitDim = inputDims[inputDims.length-1-dim];
+		int splitDim = inputDims.length-1-dim;
 		if(next!=null){
-			int size = input.size(splitDim)/next.length;
+			int size = inputDims[splitDim]/next.length;
 			for(int i=0;i<next.length;i++){
 				outputs.put(nextIds[i], input.narrow(splitDim, i*size, size));
 			}
