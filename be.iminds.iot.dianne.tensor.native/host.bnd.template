@@ -6,7 +6,7 @@
 # (see constant values: https://www.osgi.org/developer/specifications/reference/)
 #
 
-Fragment-Host: be.iminds.iot.dianne.tensor;bundle-version=\${Bundle-Version}
+Fragment-Host: be.iminds.iot.dianne.tensor
 Provide-Capability: tensor.native;library=be.iminds.iot.dianne.tensor.${lib}
 Bundle-NativeCode: libTensor.${extension};osname=${osgi_os};processor=${osgi_arch}
 -includeresource: native/${lib}/${os}/${arch}/
