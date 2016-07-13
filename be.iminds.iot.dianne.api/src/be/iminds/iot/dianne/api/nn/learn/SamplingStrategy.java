@@ -34,4 +34,16 @@ public interface SamplingStrategy {
 	 * @return next index of the dataset to visit
 	 */
 	int next();
+	
+	/**
+	 * @param count number of indices to generate
+	 * @return count indices of the dataset to visit
+	 */
+	default int[] next(int count){
+		int[] indices = new int[count];
+		for(int i=0;i<count;i++){
+			indices[i] = next();
+		}
+		return indices;
+	}
 }
