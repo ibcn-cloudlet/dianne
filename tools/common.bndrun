@@ -14,6 +14,7 @@
 # The common configuration also configures common runsystempacakges and runproperties
 #
 #
+Bundle-Version: 0.4.0.${tstamp}
 
 aiolos.version='latest'
 
