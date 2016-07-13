@@ -28,6 +28,7 @@ import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
+
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -58,9 +59,15 @@ public class DatasetLabelAdapter extends AbstractDatasetAdapter {
 	
 	// label indices
 	private int[] labelIndices;
+	private int[] targetDims;
 	private String[] labels;
 	// add "other" category
 	private boolean other;
+	
+	@Override
+	public int[] targetDims(){
+		return targetDims;
+	}
 	
 	protected void configure(Map<String, Object> config){
 		// whether or not to aggregate unspecified labels into "other" class
@@ -76,6 +83,7 @@ public class DatasetLabelAdapter extends AbstractDatasetAdapter {
 		for(int i=0;i<labels.length;i++){
 			labelIndices[i] = labelsList.indexOf(labels[i]);
 		}
+		this.targetDims = new int[]{this.labels.length};
 	}
 	
 	@Override
