@@ -93,6 +93,11 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		this.trainables = modules.stream().filter(m -> m instanceof Trainable).map(t -> (Trainable)t).collect(Collectors.toMap(t -> t.getId(), t -> t));
 
 	}
+
+	@Override
+	public UUID getId() {
+		return nn.id;
+	}
 	
 	@Override
 	public NeuralNetworkInstanceDTO getNeuralNetworkInstance() {
@@ -569,4 +574,31 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		return parameters;
 	}
 
+	@Override
+	public void zeroDeltaParameters(){
+		if(!valid){
+			throw new RuntimeException("This neural network object is no longer valid");
+		}
+		
+		trainables.values().stream().forEach(Trainable::zeroDeltaParameters);
+
+	}
+
+	@Override
+	public void updateParameters(){
+		if(!valid){
+			throw new RuntimeException("This neural network object is no longer valid");
+		}
+		
+		trainables.values().stream().forEach(Trainable::updateParameters);
+	}
+	
+	@Override
+	public void accGradParameters(){
+		if(!valid){
+			throw new RuntimeException("This neural network object is no longer valid");
+		}
+		
+		trainables.values().stream().forEach(Trainable::accGradParameters);
+	}
 }

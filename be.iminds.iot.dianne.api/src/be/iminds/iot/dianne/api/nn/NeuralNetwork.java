@@ -46,6 +46,12 @@ import be.iminds.iot.dianne.tensor.Tensor;
 public interface NeuralNetwork {
 
 	/**
+	 * Get the Neural Network Instance UUID
+	 * @return
+	 */
+	UUID getId();
+	
+	/**
 	 * Get the Neural Network Instance DTO 
 	 */
 	NeuralNetworkInstanceDTO getNeuralNetworkInstance();
@@ -226,7 +232,6 @@ public interface NeuralNetwork {
 	 */
 	void storeParameters(String... tag);
 
-	
 	/**
 	 * Store the current parameters into the repository
 	 * @param tag
@@ -246,4 +251,19 @@ public interface NeuralNetwork {
 	 * @throws exection when no parameters found with the given tags
 	 */
 	Map<UUID, Tensor> loadParameters(String... tag) throws Exception;
+	
+	/**
+	 * Reset deltaparameters to zero
+	 */
+	void zeroDeltaParameters();
+	
+	/**
+	 * Add deltaparameters to the parameters
+	 */
+	void updateParameters();
+	
+	/**
+	 * Accumulate the gradients in deltaprameters
+	 */
+	void accGradParameters();
 }
