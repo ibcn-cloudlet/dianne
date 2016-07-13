@@ -25,10 +25,7 @@ package be.iminds.iot.dianne.rl.agent.strategy;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
 
-import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.agent.strategy.config.BoltzmannConfig;
 import be.iminds.iot.dianne.tensor.ModuleOps;
@@ -41,17 +38,7 @@ public class BoltzmannStrategy implements ActionStrategy {
 	
 	private BoltzmannConfig config;
 	
-	private DataLogger logger = null;
 	private String[] loglabels = new String[]{"Q0", "Q1", "Q2", "temperature"};
-	
-	@Reference(cardinality = ReferenceCardinality.OPTIONAL)
-	void setDataLogger(DataLogger l){
-		this.logger = l;
-		this.logger.setAlpha("temperature", 1f);
-		this.logger.setAlpha("Q0", 1f);
-		this.logger.setAlpha("Q1", 1f);
-		this.logger.setAlpha("Q2", 1f);
-	}
 	
 	@Override
 	public Tensor selectActionFromOutput(Tensor output, long i) {
@@ -60,10 +47,6 @@ public class BoltzmannStrategy implements ActionStrategy {
 		action.fill(-1);
 		
 		double temperature = config.temperatureMin + (config.temperatureMax - config.temperatureMin) * Math.exp(-i * config.temperatureDecay);
-		
-		if(logger!=null){
-			logger.log("AGENT", loglabels, output.get(0), output.get(1), output.get(2), (float) temperature);
-		}
 		
 		TensorOps.div(output, output, (float) temperature);
 		ModuleOps.softmax(output, output);

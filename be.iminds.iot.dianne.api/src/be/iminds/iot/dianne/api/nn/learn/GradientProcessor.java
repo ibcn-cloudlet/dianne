@@ -22,7 +22,6 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.nn.learn;
 
-import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 
 /**
@@ -39,19 +38,15 @@ public abstract class GradientProcessor {
 	private final GradientProcessor decorated;
 	
 	protected final NeuralNetwork nn;
-	protected final DataLogger logger;
 	
-	public GradientProcessor( NeuralNetwork nn,
-			DataLogger logger){
+	public GradientProcessor( NeuralNetwork nn){
 		this.nn = nn;
-		this.logger = logger;
 		
 		this.decorated = null;
 	}
 	
 	public GradientProcessor(GradientProcessor decorated){
 		this.nn = decorated.nn;
-		this.logger = decorated.logger;
 		
 		this.decorated = decorated;
 	}

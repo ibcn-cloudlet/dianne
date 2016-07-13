@@ -22,7 +22,6 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.learn.processors;
 
-import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.config.SGDConfig;
@@ -34,8 +33,8 @@ public class StochasticGradientDescentProcessor extends GradientProcessor {
 
 	private final SGDConfig config;
 	
-	public StochasticGradientDescentProcessor(NeuralNetwork nn, DataLogger logger, SGDConfig config) {
-		super(nn, logger);
+	public StochasticGradientDescentProcessor(NeuralNetwork nn, SGDConfig config) {
+		super(nn);
 		this.config = config;
 	}
 	

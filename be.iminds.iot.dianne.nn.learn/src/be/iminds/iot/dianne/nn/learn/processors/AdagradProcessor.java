@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.config.AdagradConfig;
@@ -40,8 +39,8 @@ public class AdagradProcessor extends GradientProcessor {
 	private final Map<UUID, Tensor> accumulatedSquared = new HashMap<>();
 	private Tensor squared = null;
 	
-	public AdagradProcessor(NeuralNetwork nn, DataLogger logger, AdagradConfig config ) {
-		super(nn, logger);
+	public AdagradProcessor(NeuralNetwork nn, AdagradConfig config ) {
+		super(nn);
 		
 		this.config = config;
 	}

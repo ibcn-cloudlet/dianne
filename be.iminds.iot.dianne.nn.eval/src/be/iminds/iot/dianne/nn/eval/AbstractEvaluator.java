@@ -41,7 +41,6 @@ import be.iminds.iot.dianne.api.dataset.Batch;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.DianneDatasets;
 import be.iminds.iot.dianne.api.dataset.Sample;
-import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
@@ -68,8 +67,6 @@ public abstract class AbstractEvaluator implements Evaluator {
 	protected List<EvaluatorListener> listeners = Collections.synchronizedList(new ArrayList<>());
 	
 	protected UUID evaluatorId;
-	
-	protected DataLogger logger;
 	
 	protected Dianne dianne;
 	protected DianneDatasets datasets;
@@ -278,11 +275,6 @@ public abstract class AbstractEvaluator implements Evaluator {
 	@Reference
 	void setDianneDatasets(DianneDatasets d){
 		datasets = d;
-	}
-	
-	@Reference(cardinality = ReferenceCardinality.OPTIONAL)
-	void setDataLogger(DataLogger l){
-		this.logger = l;
 	}
 	
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 

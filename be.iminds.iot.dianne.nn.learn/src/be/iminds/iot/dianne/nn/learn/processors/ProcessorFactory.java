@@ -24,7 +24,6 @@ package be.iminds.iot.dianne.nn.learn.processors;
 
 import java.util.Map;
 
-import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.nn.learn.config.LearnerConfig;
@@ -41,30 +40,30 @@ import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 public class ProcessorFactory {
 
 	public static GradientProcessor createGradientProcessor(LearnerConfig.Method method, NeuralNetwork nn,
-			Map<String, String> config,DataLogger logger){
-		return addMomentum(addRegularization(createSGDProcessor(method, nn, config, logger), config), config);
+			Map<String, String> config){
+		return addMomentum(addRegularization(createSGDProcessor(method, nn, config), config), config);
 	}
 	
 	public static GradientProcessor createSGDProcessor(LearnerConfig.Method method, NeuralNetwork nn,
-			Map<String, String> config, DataLogger logger){
+			Map<String, String> config){
 		
 		GradientProcessor p = null;
 		
 		switch(method) {
 		case ADAM:
-			p = new AdamProcessor(nn, logger, DianneConfigHandler.getConfig(config, AdamConfig.class));
+			p = new AdamProcessor(nn, DianneConfigHandler.getConfig(config, AdamConfig.class));
 			break;
 		case ADADELTA:
-			p = new AdadeltaProcessor(nn, logger, DianneConfigHandler.getConfig(config, AdadeltaConfig.class));
+			p = new AdadeltaProcessor(nn, DianneConfigHandler.getConfig(config, AdadeltaConfig.class));
 			break;
 		case ADAGRAD:
-			p = new AdagradProcessor(nn, logger, DianneConfigHandler.getConfig(config, AdagradConfig.class));
+			p = new AdagradProcessor(nn, DianneConfigHandler.getConfig(config, AdagradConfig.class));
 			break;
 		case RMSPROP:
-			p = new RMSpropProcessor(nn, logger, DianneConfigHandler.getConfig(config, RMSpropConfig.class));
+			p = new RMSpropProcessor(nn, DianneConfigHandler.getConfig(config, RMSpropConfig.class));
 			break;	
 		default:
-			p = new StochasticGradientDescentProcessor(nn, logger, DianneConfigHandler.getConfig(config, SGDConfig.class));
+			p = new StochasticGradientDescentProcessor(nn, DianneConfigHandler.getConfig(config, SGDConfig.class));
 			break;
 		}
 

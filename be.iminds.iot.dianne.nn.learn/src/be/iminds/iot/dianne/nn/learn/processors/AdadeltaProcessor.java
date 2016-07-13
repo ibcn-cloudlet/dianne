@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.config.AdadeltaConfig;
@@ -42,8 +41,8 @@ public class AdadeltaProcessor extends GradientProcessor {
 
 	private Tensor squared = null;
 	
-	public AdadeltaProcessor(NeuralNetwork nn, DataLogger logger, AdadeltaConfig config) {
-		super(nn, logger);
+	public AdadeltaProcessor(NeuralNetwork nn, AdadeltaConfig config) {
+		super(nn);
 		
 		this.config = config;
 	}

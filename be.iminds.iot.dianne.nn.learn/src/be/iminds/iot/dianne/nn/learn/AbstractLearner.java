@@ -41,7 +41,6 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.DianneDatasets;
-import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
@@ -69,7 +68,6 @@ public abstract class AbstractLearner implements Learner {
 	protected UUID learnerId;
 	
 	// References
-	protected DataLogger logger;
 	protected Dianne dianne;
 	protected DianneDatasets datasets;
 	
@@ -151,7 +149,7 @@ public abstract class AbstractLearner implements Learner {
 			sampling = SamplingFactory.createSamplingStrategy(this.config.sampling, dataset, config);
 
 			criterion = CriterionFactory.createCriterion(this.config.criterion);
-			gradientProcessor = ProcessorFactory.createGradientProcessor(this.config.method, nn, config, logger);
+			gradientProcessor = ProcessorFactory.createGradientProcessor(this.config.method, nn, config);
 			
 			nanretry = this.config.NaNretry;
 			
@@ -368,11 +366,6 @@ public abstract class AbstractLearner implements Learner {
 	@Reference
 	protected void setDianneDatasets(DianneDatasets d){
 		datasets = d;
-	}
-	
-	@Reference(cardinality = ReferenceCardinality.OPTIONAL)
-	protected void setDataLogger(DataLogger l){
-		this.logger = l;
 	}
 	
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 

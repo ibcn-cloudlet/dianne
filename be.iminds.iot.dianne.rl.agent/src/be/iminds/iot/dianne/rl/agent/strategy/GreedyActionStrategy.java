@@ -25,10 +25,7 @@ package be.iminds.iot.dianne.rl.agent.strategy;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
 
-import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.agent.api.ExplorationController;
 import be.iminds.iot.dianne.rl.agent.strategy.config.GreedyConfig;
@@ -41,19 +38,12 @@ public class GreedyActionStrategy implements ActionStrategy, ExplorationControll
 	
 	private GreedyConfig config;
 	
-	private DataLogger logger = null;
-	private String[] loglabels = new String[]{"Q0", "Q1", "Q2", "epsilon"};
-	
 	public Tensor selectActionFromOutput(Tensor output, long i) {
 		
 		Tensor action = new Tensor(output.size());
 		action.fill(-1);
 		
 		double epsilon = config.epsilonMin + (config.epsilonMax - config.epsilonMin) * Math.exp(-i * config.epsilonDecay);
-		
-		if(logger!=null){
-			logger.log("AGENT", loglabels, output.get()[0],output.get()[1],output.get()[2], (float)epsilon);
-		}
 		
 		if (Math.random() < epsilon) {
 			action.set(1, (int) (Math.random() * action.size()));
@@ -67,15 +57,6 @@ public class GreedyActionStrategy implements ActionStrategy, ExplorationControll
 	@Override
 	public void configure(Map<String, String> config) {
 		this.config = DianneConfigHandler.getConfig(config, GreedyConfig.class);
-	}
-
-	@Reference(cardinality = ReferenceCardinality.OPTIONAL)
-	void setDataLogger(DataLogger l){
-		this.logger = l;
-		this.logger.setAlpha("epsilon", 1f);
-		this.logger.setAlpha("Q0", 1f);
-		this.logger.setAlpha("Q1", 1f);
-		this.logger.setAlpha("Q2", 1f);
 	}
 
 	@Override

@@ -45,8 +45,6 @@ property={"aiolos.unique=true",
 		  "dianne.learner.category=RL"})
 public class DeepQLearner extends AbstractLearner {
 
-	private final String[] logLabels = new String[]{"Q", "Target Q", "Error"};
-	
 	private NeuralNetwork target;
 	
 	private ExperiencePool pool; 
@@ -147,10 +145,6 @@ public class DeepQLearner extends AbstractLearner {
 		
 			Tensor e = criterion.error(out, targetOut);
 			err += e.get(0);
-			
-			if(logger!=null){
-				logger.log("LEARN", logLabels, Q_sa, targetQ, e.get(0));
-			}
 			
 			Tensor gradOut = criterion.grad(out, targetOut);
 			

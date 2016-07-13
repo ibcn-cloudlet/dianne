@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.config.AdamConfig;
@@ -43,8 +42,8 @@ public class AdamProcessor extends GradientProcessor {
 	private Tensor squared = null;
 	private Tensor root_v = null;
 	
-	public AdamProcessor( NeuralNetwork nn, DataLogger logger, AdamConfig config) {
-		super(nn, logger);
+	public AdamProcessor( NeuralNetwork nn, AdamConfig config) {
+		super(nn);
 		
 		this.config = config;
 	}

@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import be.iminds.iot.dianne.api.log.DataLogger;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.nn.learn.processors.config.RMSpropConfig;
@@ -41,8 +40,8 @@ public class RMSpropProcessor extends GradientProcessor {
 
 	private Tensor squared = null;
 	
-	public RMSpropProcessor( NeuralNetwork nn, DataLogger logger, RMSpropConfig config) {
-		super(nn, logger);
+	public RMSpropProcessor( NeuralNetwork nn, RMSpropConfig config) {
+		super(nn);
 		
 		this.config = config;
 	}
@@ -65,7 +64,7 @@ public class RMSpropProcessor extends GradientProcessor {
 			}
 			meanSquared.put(e.getKey(), mSq);
 
-			// delta params = - learning_rate * dx / np.sqrt(meanSquared + epsiolon)
+			// delta params = - learning_rate * dx / np.sqrt(meanSquared + epsilon)
 			TensorOps.mul(deltaParams, deltaParams, -config.learningRate);
 			
 			// add 1e-8 to avoid div by zero, reuse squared tensor for this
