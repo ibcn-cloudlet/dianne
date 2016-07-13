@@ -46,7 +46,7 @@ public class DianneCoordinatorCommands {
 		try {
 			Map<String, String> config = createConfig(properties);
 			
-			coordinator.learn(nnName, dataset, config).then(p -> {System.out.println("Job done!!! "+ p.getValue()); return null;});
+			coordinator.learn(dataset, config, nnName).then(p -> {System.out.println("Job done!!! "+ p.getValue()); return null;});
 		} catch(Exception e){
 			e.printStackTrace();
 		}

@@ -22,6 +22,7 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.coordinator;
 
+import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -62,55 +63,57 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 	private int errorThresholdWindow = 10;
 	
 	public LearnJob(DianneCoordinatorImpl coord, 
-			NeuralNetworkDTO nn,
-			String d,
-			Map<String, String> c){
-		super(coord, Type.LEARN, nn, d, c);
+			String dataset,
+			Map<String, String> config,
+			NeuralNetworkDTO[] nns){
+		super(coord, Type.LEARN, dataset, config, nns);
 		
-		if(c.containsKey("environment") || coord.isExperiencePool(d)){
-			category = LearnCategory.RL;
-		} else if(coord.isRecurrent(nn)){
-			category = LearnCategory.RNN;
+		if(config.containsKey("category")){
+			category = config.get("category");
+		} else if(config.containsKey("environment") || coord.isExperiencePool(dataset)){
+			category = LearnCategory.RL.toString();
+		} else if(coord.isRecurrent(nns[0])){
+			category = LearnCategory.RNN.toString();
 		} else {
-			category = LearnCategory.FF;
+			category = LearnCategory.FF.toString();
 		}
 		
-		if(c.containsKey("miniBatchErrorThreshold")){
-			miniBatchErrorThreshold = Float.parseFloat(c.get("miniBatchErrorThreshold"));
+		if(config.containsKey("miniBatchErrorThreshold")){
+			miniBatchErrorThreshold = Float.parseFloat(config.get("miniBatchErrorThreshold"));
 		}
 		
-		if(c.containsKey("validationErrorThreshold")){
-			validationErrorThreshold = Float.parseFloat(c.get("validationErrorThreshold"));
+		if(config.containsKey("validationErrorThreshold")){
+			validationErrorThreshold = Float.parseFloat(config.get("validationErrorThreshold"));
 		}
 		
-		if(c.containsKey("errorThresholdWindow")){
-			errorThresholdWindow = Integer.parseInt(c.get("errorThresholdWindow"));
+		if(config.containsKey("errorThresholdWindow")){
+			errorThresholdWindow = Integer.parseInt(config.get("errorThresholdWindow"));
 		}
 	}
 		
 	@Override
 	public void execute() throws Exception {
 		
-		if(coordinator.isExperiencePool(dataset)){
-			// DeepQ learner also requires target nni
-			nnis2 = new HashMap<>();
-			for(UUID target : targets){
-				NeuralNetworkInstanceDTO nni = coordinator.platform.deployNeuralNetwork(nn.name, "Dianne Coordinator LearnJob "+jobId, target);
-				nnis2.put(target, nni);
-			}
-		}
-		
-		// check if we need to do validation - if so get an Evaluator on one of the targets
-		if(config.containsKey("validationSet")){
-			for(UUID target : targets){
-				validator = coordinator.evaluators.get(EvaluationCategory.CRITERION.toString()).get(target);
-				if(validator != null){
-					validationNni = coordinator.platform.deployNeuralNetwork(nn.name, "Dianne Coordinator LearnJob Validaton NN"+jobId, target);
-					break;
-				}
-			}
-		}
-		
+//		if(coordinator.isExperiencePool(dataset)){
+//			// DeepQ learner also requires target nni
+//			nnis2 = new HashMap<>();
+//			for(UUID target : targets){
+//				NeuralNetworkInstanceDTO nni = coordinator.platform.deployNeuralNetwork(nn.name, "Dianne Coordinator LearnJob "+jobId, target);
+//				nnis2.put(target, nni);
+//			}
+//		}
+//		
+//		// check if we need to do validation - if so get an Evaluator on one of the targets
+//		if(config.containsKey("validationSet")){
+//			for(UUID target : targets){
+//				validator = coordinator.evaluators.get(EvaluationCategory.CRITERION.toString()).get(target);
+//				if(validator != null){
+//					validationNni = coordinator.platform.deployNeuralNetwork(nn.name, "Dianne Coordinator LearnJob Validaton NN"+jobId, target);
+//					break;
+//				}
+//			}
+//		}
+//		
 		if(config.containsKey("maxIterations")){
 			maxIterations = Long.parseLong(config.get("maxIterations"));
 		}
@@ -132,7 +135,7 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 
 		System.out.println("Start Learn Job");
 		System.out.println("===============");
-		System.out.println("* nn: "+nn.name);
+		System.out.println("* nn: "+Arrays.toString(nnNames));
 		System.out.println("* dataset: "+dataset);
 		System.out.println("* maxIterations: "+maxIterations);
 		System.out.println("* miniBatchErrorThreshold: "+(miniBatchErrorThreshold==-Float.MAX_VALUE ? "N\\A" : miniBatchErrorThreshold));
@@ -145,7 +148,7 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 			Learner learner = coordinator.learners.get(category.toString()).get(target);
 			learners.put(target, learner);
 			// if nnis2 is unused, this will give null, but doesnt matter?
-			learner.learn(dataset, learnConfig, nnis.get(target), nnis2.get(target));
+			learner.learn(dataset, learnConfig, nnis.get(target));
 		}
 	}
 	
@@ -193,7 +196,8 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 			result.validations.add(validation);
 		}
 
-		coordinator.sendLearnProgress(this.jobId, progress, validation);
+		if(progress.iteration % 1000 == 0)
+			coordinator.sendLearnProgress(this.jobId, progress, validation);
 
 		
 		// maxIterations stop condition

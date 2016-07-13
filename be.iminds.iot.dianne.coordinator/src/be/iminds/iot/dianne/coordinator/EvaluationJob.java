@@ -41,16 +41,18 @@ public class EvaluationJob extends AbstractJob<EvaluationResult> {
 	private Map<UUID, Evaluation> results = new HashMap<>();
 
 	public EvaluationJob(DianneCoordinatorImpl coord,
-			NeuralNetworkDTO nn,
-			String d,
-			Map<String, String> c){
-		super(coord, Type.EVALUATE, nn, d, c);
+			String dataset,
+			Map<String, String> config,
+			NeuralNetworkDTO[] nns){
+		super(coord, Type.EVALUATE, dataset, config, nns);
 		
 		// TODO when to use MSE category?!
-		if(coord.platform.isClassificationDatset(d) && !c.containsKey("criterion")){
-			category = EvaluationCategory.CLASSIFICATION;
+		if(config.containsKey("category")){
+			category = config.get("category");
+		} else if(coord.platform.isClassificationDatset(dataset) && !config.containsKey("criterion")){
+			category = EvaluationCategory.CLASSIFICATION.toString();
 		} else {
-			category = EvaluationCategory.CRITERION;
+			category = EvaluationCategory.CRITERION.toString();
 		}
 	}
 	
@@ -69,7 +71,7 @@ public class EvaluationJob extends AbstractJob<EvaluationResult> {
 				public void run(){
 					try {
 						Evaluator evaluator = coordinator.evaluators.get(category.toString()).get(target);
-						Evaluation e = evaluator.eval(dataset, evalConfig, nnis.get(target));
+						Evaluation e = evaluator.eval(dataset, evalConfig, nnis.get(target)[0]);
 						
 						System.out.println("Evaluation result");
 						System.out.println("---");

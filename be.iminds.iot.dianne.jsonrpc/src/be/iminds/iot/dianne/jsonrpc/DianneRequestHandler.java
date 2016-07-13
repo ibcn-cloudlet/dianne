@@ -190,6 +190,7 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 		case "learn":
 		case "eval":
 		case "act":
+			// TODO should be able to cope with multiple nnNames!
 			String nnName = null;
 			NeuralNetworkDTO nn = null;
 			String dataset;
@@ -216,9 +217,9 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 				// learn
 				Promise<LearnResult> result = null;
 				if(nnName!=null){
-					result= coordinator.learn(nnName, dataset, config);
+					result= coordinator.learn(dataset, config, nnName);
 				} else {
-					result = coordinator.learn(nn, dataset, config);
+					result = coordinator.learn(dataset, config, nn);
 				}
 				try {
 					result.then(p -> {
@@ -234,9 +235,9 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 				// eval
 				Promise<EvaluationResult> result = null;
 				if(nnName!=null){
-					result= coordinator.eval(nnName, dataset, config);
+					result= coordinator.eval(dataset, config, nnName);
 				} else {
-					result = coordinator.eval(nn, dataset, config);
+					result = coordinator.eval(dataset, config, nn);
 				}
 				try {
 					result.then(p -> {
@@ -251,9 +252,9 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 			} else if(method.equals("act")){
 				Promise<AgentResult> result = null;
 				if(nnName!=null){
-					result= coordinator.act(nnName, dataset, config);
+					result= coordinator.act(dataset, config, nnName);
 				} else {
-					result = coordinator.act(nn, dataset, config);
+					result = coordinator.act(dataset, config, nn);
 				}
 				try {
 					result.then(p -> {

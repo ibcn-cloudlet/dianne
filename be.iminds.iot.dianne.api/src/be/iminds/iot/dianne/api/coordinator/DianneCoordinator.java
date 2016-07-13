@@ -34,17 +34,17 @@ public interface DianneCoordinator {
 
 	Status getStatus();
 	
-	Promise<LearnResult> learn(String nnName, String dataset, Map<String, String> config);
+	Promise<LearnResult> learn(String dataset, Map<String, String> config, String... nnName);
 	
-	Promise<LearnResult> learn(NeuralNetworkDTO nn, String dataset, Map<String, String> config);
+	Promise<LearnResult> learn(String dataset, Map<String, String> config, NeuralNetworkDTO... nn);
 
-	Promise<EvaluationResult> eval(String nnName, String dataset, Map<String, String> config);
+	Promise<EvaluationResult> eval(String dataset, Map<String, String> config, String... nnName);
 	
-	Promise<EvaluationResult> eval(NeuralNetworkDTO nn, String dataset, Map<String, String> config);
+	Promise<EvaluationResult> eval(String dataset, Map<String, String> config, NeuralNetworkDTO... nn);
 	
-	Promise<AgentResult> act(String nnName, String dataset, Map<String, String> config);
+	Promise<AgentResult> act(String dataset, Map<String, String> config, String... nnName);
 	
-	Promise<AgentResult> act(NeuralNetworkDTO nn, String dataset, Map<String, String> config);
+	Promise<AgentResult> act(String dataset, Map<String, String> config, NeuralNetworkDTO... nn);
 	
 	LearnResult getLearnResult(UUID jobId); // if still running, this contains partial progress results
 	

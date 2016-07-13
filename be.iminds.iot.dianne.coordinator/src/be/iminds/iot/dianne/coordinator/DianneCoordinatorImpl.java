@@ -135,10 +135,11 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	}
 	
 	@Override
-	public Promise<LearnResult> learn(NeuralNetworkDTO nn, String dataset, Map<String, String> config) {
-		repository.storeNeuralNetwork(nn);
+	public Promise<LearnResult> learn(String dataset, Map<String, String> config, NeuralNetworkDTO... nns) {
+		for(NeuralNetworkDTO nn : nns)
+			repository.storeNeuralNetwork(nn);
 		
-		LearnJob job = new LearnJob(this, nn, dataset, config);
+		LearnJob job = new LearnJob(this, dataset, config, nns);
 		queueLearn.add(job);
 		
 		sendNotification(job.jobId, Level.INFO, "Learn job \""+job.name+"\" submitted.");
@@ -149,19 +150,24 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	}
 
 	@Override
-	public Promise<LearnResult> learn(String nnName, String dataset, Map<String, String> config) {
-		return learn(repository.loadNeuralNetwork(nnName), dataset, config);
+	public Promise<LearnResult> learn(String dataset, Map<String, String> config, String... nnName) {
+		NeuralNetworkDTO[] nns = new NeuralNetworkDTO[nnName.length];
+		for(int i=0;i<nns.length;i++){
+			nns[i] = repository.loadNeuralNetwork(nnName[i]);
+		}
+		return learn(dataset, config, nns);
 	}
 	
 	@Override
-	public Promise<EvaluationResult> eval(NeuralNetworkDTO nn, String dataset, Map<String, String> config) {
+	public Promise<EvaluationResult> eval(String dataset, Map<String, String> config, NeuralNetworkDTO... nns) {
 		try {
-			repository.storeNeuralNetwork(nn);
+			for(NeuralNetworkDTO nn : nns)
+				repository.storeNeuralNetwork(nn);
 		} catch(Exception e){
 			// NN could be locked but still evaluation should be possible
 		}
 		
-		EvaluationJob job = new EvaluationJob(this, nn, dataset, config);
+		EvaluationJob job = new EvaluationJob(this, dataset, config, nns);
 		queueEval.add(job);
 		
 		sendNotification(job.jobId, Level.INFO, "Evaluation job \""+job.name+"\" submitted.");
@@ -172,15 +178,24 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	}
 
 	@Override
-	public Promise<AgentResult> act(String nnName, String dataset, Map<String, String> config) {
-		return act(repository.loadNeuralNetwork(nnName), dataset, config);
+	public Promise<AgentResult> act(String dataset, Map<String, String> config, String... nnName) {
+		NeuralNetworkDTO[] nns = new NeuralNetworkDTO[nnName.length];
+		for(int i=0;i<nns.length;i++){
+			nns[i] = repository.loadNeuralNetwork(nnName[i]);
+		}
+		return act(dataset, config, nns);
 	}
 	
 	@Override
-	public Promise<AgentResult> act(NeuralNetworkDTO nn, String dataset, Map<String, String> config) {
-		repository.storeNeuralNetwork(nn);
+	public Promise<AgentResult> act(String dataset, Map<String, String> config, NeuralNetworkDTO... nns) {
+		try {
+			for(NeuralNetworkDTO nn : nns)
+				repository.storeNeuralNetwork(nn);
+		} catch(Exception e){
+			// NN could be locked but still evaluation should be possible
+		}
 		
-		ActJob job = new ActJob(this, nn, dataset, config);
+		ActJob job = new ActJob(this, dataset, config, nns);
 		queueAct.add(job);
 		
 		sendNotification(job.jobId, Level.INFO, "Act job \""+job.name+"\" submitted.");
@@ -191,8 +206,12 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	}
 
 	@Override
-	public Promise<EvaluationResult> eval(String nnName, String dataset, Map<String, String> config) {
-		return eval(repository.loadNeuralNetwork(nnName), dataset, config);
+	public Promise<EvaluationResult> eval(String dataset, Map<String, String> config, String... nnName) {
+		NeuralNetworkDTO[] nns = new NeuralNetworkDTO[nnName.length];
+		for(int i=0;i<nns.length;i++){
+			nns[i] = repository.loadNeuralNetwork(nnName[i]);
+		}
+		return eval(dataset, config, nns);
 	}
 	
 	@Override

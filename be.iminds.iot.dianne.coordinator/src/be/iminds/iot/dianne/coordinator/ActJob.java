@@ -22,6 +22,7 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.coordinator;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -37,10 +38,10 @@ public class ActJob extends AbstractJob<AgentResult> {
 	private Map<UUID, Agent> agents = new HashMap<>();
 	
 	public ActJob(DianneCoordinatorImpl coord,
-			NeuralNetworkDTO nn,
-			String d,
-			Map<String, String> c){
-		super(coord, Type.ACT, nn, d, c);
+			String dataset,
+			Map<String, String> config,
+			NeuralNetworkDTO[] nns){
+		super(coord, Type.ACT, dataset, config, nns);
 	}
 	
 	@Override
@@ -51,7 +52,7 @@ public class ActJob extends AbstractJob<AgentResult> {
 		// start acting
 		System.out.println("Start Act Job");
 		System.out.println("===============");
-		System.out.println("* nn: "+nn.name);
+		System.out.println("* nn: "+Arrays.toString(nns));
 		System.out.println("* pool: "+dataset);
 		System.out.println("* environment: "+environment);
 		System.out.println("---");
@@ -60,7 +61,7 @@ public class ActJob extends AbstractJob<AgentResult> {
 		for(UUID target : targets){
 			Agent agent = coordinator.agents.get(target);
 			agents.put(target, agent);
-			agent.act(dataset, config, nnis.get(target), environment);
+			agent.act(dataset, config, nnis.get(target)[0], environment);
 		}
 	}
 

@@ -33,7 +33,6 @@ import org.osgi.util.promise.Deferred;
 import org.osgi.util.promise.Promise;
 
 import be.iminds.iot.dianne.api.coordinator.Job;
-import be.iminds.iot.dianne.api.coordinator.Job.Category;
 import be.iminds.iot.dianne.api.coordinator.Job.Type;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
@@ -43,18 +42,19 @@ public abstract class AbstractJob<T> implements Runnable {
 	protected final UUID jobId;
 	protected final String name;
 	protected final Type type;
-	protected Category category;
+	protected String category;
 	
 	protected final DianneCoordinatorImpl coordinator;
 	
-	protected final NeuralNetworkDTO nn;
+	protected final String[] nnNames;
+	protected final NeuralNetworkDTO[] nns;
 	protected final String dataset;
 	protected final Map<String, String> config;
 
 	protected final Deferred<T> deferred = new Deferred<>();
 
 	protected List<UUID> targets = new ArrayList<>();
-	protected Map<UUID, NeuralNetworkInstanceDTO> nnis = new HashMap<>();;
+	protected Map<UUID, NeuralNetworkInstanceDTO[]> nnis = new HashMap<>();;
 	protected Map<UUID, UUID> targetsByNNi = new HashMap<>();
 	
 	protected long submitted = 0;
@@ -63,9 +63,9 @@ public abstract class AbstractJob<T> implements Runnable {
 	
 	public AbstractJob(DianneCoordinatorImpl coord,
 			Type type,
-			NeuralNetworkDTO nn,
 			String d,
-			Map<String, String> c){
+			Map<String, String> c,
+			NeuralNetworkDTO[] nns){
 		this.jobId = UUID.randomUUID();
 		
 		if(c.containsKey("name")){
@@ -78,7 +78,11 @@ public abstract class AbstractJob<T> implements Runnable {
 		
 		this.coordinator = coord;
 		
-		this.nn = nn;
+		this.nns = nns;
+		this.nnNames = new String[nns.length];
+		for(int i=0;i<nns.length;i++){
+			nnNames[i] = nns[i].name;
+		}
 		this.dataset = d;
 		this.config = c;
 		
@@ -88,13 +92,20 @@ public abstract class AbstractJob<T> implements Runnable {
 	public void run(){
 		started = System.currentTimeMillis();
 		try {
-			// deploy neural network on each target instance
+			// deploy each neural network on each target instance
+			// TODO do we indeed need every network on each target?
+			// how to specify custom deployments?
 			nnis = new HashMap<>();
 			targetsByNNi = new HashMap<>();
 			for(UUID target : targets){
-				NeuralNetworkInstanceDTO nni = coordinator.platform.deployNeuralNetwork(nn.name, "Dianne Coordinator LearnJob "+jobId, target);
-				nnis.put(target, nni);
-				targetsByNNi.put(nni.id, target);
+				NeuralNetworkInstanceDTO[] instances = new NeuralNetworkInstanceDTO[nns.length];
+				for(int i=0;i<nns.length;i++){
+					NeuralNetworkDTO nn = nns[i];
+					NeuralNetworkInstanceDTO nni = coordinator.platform.deployNeuralNetwork(nn.name, "Dianne Coordinator LearnJob "+jobId, target);
+					instances[i] = nni;
+					targetsByNNi.put(nni.id, target);
+				}
+				nnis.put(target, instances);
 			}
 			
 			// execute
@@ -138,8 +149,10 @@ public abstract class AbstractJob<T> implements Runnable {
 			cleanup();
 			
 			// undeploy neural networks on target instances here?
-			for(NeuralNetworkInstanceDTO nni : nnis.values()){
-				coordinator.platform.undeployNeuralNetwork(nni);
+			for(NeuralNetworkInstanceDTO[] instances : nnis.values()){
+				for(NeuralNetworkInstanceDTO nni : instances){
+					coordinator.platform.undeployNeuralNetwork(nni);
+				}
 			}
 		
 		} finally {
@@ -172,7 +185,7 @@ public abstract class AbstractJob<T> implements Runnable {
 	}
 	
 	public Job get(){
-		Job job = new Job(jobId, name, type, category, nn.name, dataset, config);
+		Job job = new Job(jobId, name, type, category, dataset, config, nnNames);
 		job.submitted = submitted;
 		job.started = started;
 		job.stopped = stopped;
