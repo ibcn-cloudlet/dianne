@@ -44,13 +44,13 @@ public interface Evaluator {
 	
 	/**
 	 * Evaluate a neural network instance on a (portion of a) dataset
-	 * @param nni neural network instance to evaluate
 	 * @param dataset dataset to evaluate the nni on
 	 * @param config configuration
+	 * @param nni neural network instance(s) to evaluate
 	 * @return Evaluation 
 	 * @throws Exception
 	 */
-	Evaluation eval(String dataset, Map<String, String> config, NeuralNetworkInstanceDTO nni) throws Exception;
+	Evaluation eval(String dataset, Map<String, String> config, NeuralNetworkInstanceDTO... nni) throws Exception;
 
 	/**
 	 * @return the current progress of the Evaluator

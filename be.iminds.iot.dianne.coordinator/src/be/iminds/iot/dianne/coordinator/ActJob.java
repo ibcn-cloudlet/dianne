@@ -61,7 +61,7 @@ public class ActJob extends AbstractJob<AgentResult> {
 		for(UUID target : targets){
 			Agent agent = coordinator.agents.get(target);
 			agents.put(target, agent);
-			agent.act(dataset, config, nnis.get(target)[0], environment);
+			agent.act(environment, dataset, config, nnis.get(target));
 		}
 	}
 

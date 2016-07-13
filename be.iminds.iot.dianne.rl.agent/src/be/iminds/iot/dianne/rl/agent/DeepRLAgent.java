@@ -140,7 +140,7 @@ public class DeepRLAgent implements Agent {
 	}
 	
 	@Override
-	public synchronized void act(String experiencePool, Map<String, String> config, NeuralNetworkInstanceDTO nni, String environment)
+	public synchronized void act(String environment, String experiencePool, Map<String, String> config, NeuralNetworkInstanceDTO... nni)
 			throws Exception {
 		if (acting)
 			throw new Exception("Already running an Agent here");
@@ -164,10 +164,10 @@ public class DeepRLAgent implements Agent {
 		actionStrategy.configure(config);
 		
 		try {
-			nn = dianne.getNeuralNetwork(nni).getValue();
+			nn = dianne.getNeuralNetwork(nni[0]).getValue();
 		} catch(Exception e){}
 		if (nn == null)
-			throw new Exception("Network instance " + nni.id + " is not available");
+			throw new Exception("Network instance " + nni[0].id + " is not available");
 		
 		env = envs.get(environment);
 		pool = pools.get(experiencePool);

@@ -91,7 +91,7 @@ public abstract class AbstractEvaluator implements Evaluator {
 
 	@Override
 	public synchronized Evaluation eval(String dataset,
-			Map<String, String> config, NeuralNetworkInstanceDTO nni) throws Exception {
+			Map<String, String> config, NeuralNetworkInstanceDTO... nni) throws Exception {
 		if(evaluating){
 			throw new Exception("Already running an evaluation session here");
 		}
@@ -115,9 +115,9 @@ public abstract class AbstractEvaluator implements Evaluator {
 			
 			NeuralNetwork nn = null;
 			try {
-				nn = dianne.getNeuralNetwork(nni).getValue();
+				nn = dianne.getNeuralNetwork(nni[0]).getValue();
 			} catch (Exception e) {
-				throw new Exception("Neural Network "+nni.id+" not available!");
+				throw new Exception("Neural Network "+nni[0].id+" not available!");
 			}
 			
 			try {

@@ -47,13 +47,13 @@ public interface Agent {
 	 * select action (e.g. Q-network). Optionally, a pool can be provided to
 	 * which the agent will add experience.
 	 * 
-	 * @param nni the neural network instance to be used by the agent
 	 * @param environment name of the environment that the agent has to interact with
 	 * @param experiencePool name of the pool in which the agent can add experience
 	 * @param config the agent configuration to use
+	 * @param nni the neural network instance(s) to be used by the agent
 	 * @throws Exception if the environment of pool are unknown or the agent is busy
 	 */
-	void act(String experiencePool, Map<String, String> config, NeuralNetworkInstanceDTO nni, String environment) throws Exception;
+	void act(String environment, String experiencePool, Map<String, String> config,NeuralNetworkInstanceDTO... nni) throws Exception;
 
 	/**
 	 * @return the current progress of the Learner

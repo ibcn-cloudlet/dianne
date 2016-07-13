@@ -71,7 +71,7 @@ public class EvaluationJob extends AbstractJob<EvaluationResult> {
 				public void run(){
 					try {
 						Evaluator evaluator = coordinator.evaluators.get(category.toString()).get(target);
-						Evaluation e = evaluator.eval(dataset, evalConfig, nnis.get(target)[0]);
+						Evaluation e = evaluator.eval(dataset, evalConfig, nnis.get(target));
 						
 						System.out.println("Evaluation result");
 						System.out.println("---");
