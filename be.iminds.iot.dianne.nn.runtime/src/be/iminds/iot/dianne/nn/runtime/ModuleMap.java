@@ -99,12 +99,12 @@ public class ModuleMap<T> {
 	    }
 	}
 	
-	public class Entry<T> {
+	public class Entry<S> {
 		public final UUID moduleId;
 		public final UUID nnId;
-		public final T value;
+		public final S value;
 		
-		public Entry(UUID moduleId, UUID nnId, T value){
+		public Entry(UUID moduleId, UUID nnId, S value){
 			this.moduleId = moduleId;
 			this.nnId = nnId;
 			this.value = value;
