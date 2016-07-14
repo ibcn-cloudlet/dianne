@@ -28,7 +28,6 @@ import org.junit.Test;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.nn.module.ModuleTest;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class ActivationTest extends ModuleTest {
 

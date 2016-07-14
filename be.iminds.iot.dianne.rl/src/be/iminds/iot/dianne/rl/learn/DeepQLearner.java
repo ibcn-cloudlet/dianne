@@ -22,7 +22,6 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rl.learn;
 
-import java.util.EnumSet;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -30,7 +29,6 @@ import org.osgi.service.component.annotations.Component;
 
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.Learner;
-import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;

@@ -35,7 +35,6 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
-import be.iminds.iot.dianne.tensor.Tensor;
 
 @Component(
 		service={ExperiencePool.class, Dataset.class},

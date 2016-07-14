@@ -30,16 +30,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.service.component.annotations.Activate;
-
 import be.iminds.iot.dianne.api.dataset.AbstractDataset;
-import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 /**

@@ -25,30 +25,8 @@ package be.iminds.iot.dianne.nn.learn.sampling;
 import java.util.Map;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
-import be.iminds.iot.dianne.api.log.DataLogger;
-import be.iminds.iot.dianne.api.nn.NeuralNetwork;
-import be.iminds.iot.dianne.api.nn.learn.Criterion;
-import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 import be.iminds.iot.dianne.nn.learn.config.LearnerConfig;
-import be.iminds.iot.dianne.nn.learn.criterion.AbsCriterion;
-import be.iminds.iot.dianne.nn.learn.criterion.MSECriterion;
-import be.iminds.iot.dianne.nn.learn.criterion.NLLCriterion;
-import be.iminds.iot.dianne.nn.learn.processors.AdadeltaProcessor;
-import be.iminds.iot.dianne.nn.learn.processors.AdagradProcessor;
-import be.iminds.iot.dianne.nn.learn.processors.MomentumProcessor;
-import be.iminds.iot.dianne.nn.learn.processors.NesterovMomentumProcessor;
-import be.iminds.iot.dianne.nn.learn.processors.RMSpropProcessor;
-import be.iminds.iot.dianne.nn.learn.processors.RegularizationProcessor;
-import be.iminds.iot.dianne.nn.learn.processors.StochasticGradientDescentProcessor;
-import be.iminds.iot.dianne.nn.learn.processors.config.AdadeltaConfig;
-import be.iminds.iot.dianne.nn.learn.processors.config.AdagradConfig;
-import be.iminds.iot.dianne.nn.learn.processors.config.MomentumConfig;
-import be.iminds.iot.dianne.nn.learn.processors.config.NesterovConfig;
-import be.iminds.iot.dianne.nn.learn.processors.config.RMSpropConfig;
-import be.iminds.iot.dianne.nn.learn.processors.config.RegularizationConfig;
-import be.iminds.iot.dianne.nn.learn.processors.config.SGDConfig;
-import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 
 public class SamplingFactory {
 	
