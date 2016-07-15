@@ -20,43 +20,65 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.rnn.learn;
+package be.iminds.iot.dianne.rnn.learn.strategy;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import org.osgi.service.component.annotations.Component;
-
-import be.iminds.iot.dianne.api.nn.learn.Learner;
-import be.iminds.iot.dianne.api.nn.module.Trainable;
+import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.nn.NeuralNetwork;
+import be.iminds.iot.dianne.api.nn.learn.Criterion;
+import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
+import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
+import be.iminds.iot.dianne.api.nn.learn.LearningStrategy;
+import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 import be.iminds.iot.dianne.api.rnn.dataset.SequenceDataset;
-import be.iminds.iot.dianne.nn.learn.AbstractLearner;
+import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory;
+import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory;
+import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
-import be.iminds.iot.dianne.rnn.learn.config.RecurrentLearnerConfig;
+import be.iminds.iot.dianne.rnn.learn.strategy.config.BPTTConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 
-@Component(service=Learner.class, 
-	property={"aiolos.unique=true",
-			  "dianne.learner.category=RNN"})
-public class RecurrentLearner extends AbstractLearner {
-	
-	protected RecurrentLearnerConfig config;
+/**
+ * This LearningStrategy works on SequenceDatasets and trains according to the
+ * Back Propagate Through Time (BPTT) principle.
+ * 
+ * @author tverbele
+ *
+ */
+public class BPTTLearningStrategy implements LearningStrategy {
 
-	protected void loadConfig(Map<String, String> config){
-		super.loadConfig(config);
-		
-		this.config = DianneConfigHandler.getConfig(config, RecurrentLearnerConfig.class);
-	}
+	protected SequenceDataset dataset;
+	protected NeuralNetwork nn;
 	
-	protected float process(long i){
+	protected BPTTConfig config;
+	protected GradientProcessor gradientProcessor;
+	protected Criterion criterion;
+	protected SamplingStrategy sampling;
+	
+	@Override
+	public void setup(Map<String, String> config, Dataset dataset, NeuralNetwork... nns) throws Exception {
+		if(!(dataset instanceof SequenceDataset))
+			throw new RuntimeException("Dataset is no sequence dataset");
+		
+		this.dataset = (SequenceDataset)dataset;
+		this.nn = nns[0];
+		
+		this.config = DianneConfigHandler.getConfig(config, BPTTConfig.class);
+		sampling = SamplingFactory.createSamplingStrategy(this.config.sampling, dataset, config);
+		criterion = CriterionFactory.createCriterion(this.config.criterion);
+		gradientProcessor = ProcessorFactory.createGradientProcessor(this.config.method, nn, config);
+	}
+
+	@Override
+	public LearnProgress processIteration(long i) throws Exception {
 		// clear delta params
-		nn.getTrainables().entrySet().stream().forEach(e -> {
-			e.getValue().zeroDeltaParameters();
-		});
+		nn.zeroDeltaParameters();
 		
 		// calculate grad through sequence
-		float err = 0;
+		float error = 0;
 		int index = sampling.next();
 		if(dataset.size()-index < config.sequenceLength+1){
 			index-=(config.sequenceLength+1);
@@ -65,7 +87,7 @@ public class RecurrentLearner extends AbstractLearner {
 			}
 		}
 		
-		Tensor[] sequence = ((SequenceDataset)dataset).getSequence(index, config.sequenceLength);
+		Tensor[] sequence = dataset.getSequence(index, config.sequenceLength);
 		
 		// keep all memories hidden states
 		Map<UUID, Tensor[]> memories = new HashMap<UUID, Tensor[]>();
@@ -94,13 +116,12 @@ public class RecurrentLearner extends AbstractLearner {
 			outputs[k] = out;
 		}
 		
-		
 		// backward
 		for(int k=config.sequenceLength-1;k>=0;k--){
 			Tensor target = sequence[k+1];
 			float er = criterion.error(outputs[k], target).get(0);
 			if(config.backpropAll || k==config.sequenceLength-1){
-				err+=er;
+				error+=er;
 			}
 			Tensor grad = criterion.grad(outputs[k], target);
 				
@@ -120,18 +141,17 @@ public class RecurrentLearner extends AbstractLearner {
 			nn.backward(grad);
 				
 			// acc grad
-			nn.getTrainables().values().stream().forEach(m -> m.accGradParameters());
+			nn.accGradParameters();
 				
 		}
-		
 		
 		// run gradient processors
 		gradientProcessor.calculateDelta(i);
 		
 		// update parameters
-		nn.getTrainables().values().stream().forEach(Trainable::updateParameters);
+		nn.updateParameters();
 		
-		return err;
+		return new LearnProgress(i, error);
 	}
-	
+
 }

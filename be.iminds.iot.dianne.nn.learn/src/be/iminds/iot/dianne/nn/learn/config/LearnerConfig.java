@@ -52,6 +52,6 @@ public class LearnerConfig {
 	/**
 	 * Sync delta parameters with repository each syncInterval batches
 	 */
-	public int syncInterval = 1000;
+	public int[] syncInterval = new int[]{1000};
 	
 }

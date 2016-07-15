@@ -20,10 +20,13 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.rl.learn.config;
+package be.iminds.iot.dianne.rl.learn.strategy.config;
 
+import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory.CriterionConfig;
+import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory.ProcessorConfig;
+import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory.SamplingConfig;
 
-public class DeepQLearnerConfig {
+public class DeepQConfig {
 
 	/**
 	 * Discount factor
@@ -35,26 +38,35 @@ public class DeepQLearnerConfig {
 	 */
 	public int targetInterval = 1000;
 
-
 	/**
 	 * Size of the batches that are processed by the Learner
 	 */
 	public int batchSize = 10;
-	
+
 	/**
 	 * Minimum samples that should be in the Experience Pool before training starts
 	 */
 	public int minSamples = 1000;
 
+	/**
+	 * The criterion to use to evaluate the error between output and target
+	 */
+	public CriterionConfig criterion = CriterionConfig.MSE;
 	
 	/**
-	 * Interval to store the intermediate weights during training 
+	 * The gradient optimization method to use
+	 *  * SGD - stochastic gradient descent (optionally with (nesterov) momentum and regularization parameters)
+	 *  * Adadelta
+	 *  * Adagrad
+	 *  * RMSprop
 	 */
-	public int storeInterval = -1;
+	public ProcessorConfig method = ProcessorConfig.SGD;
 	
 	/**
-	 * Tag to store the weights with
+	 * The sampling strategy to use to traverse the dataset
+	 *  * Random
+	 *  * Sequential
 	 */
-	public String storeTag;
+	public SamplingConfig sampling = SamplingConfig.RANDOM;
 	
 }

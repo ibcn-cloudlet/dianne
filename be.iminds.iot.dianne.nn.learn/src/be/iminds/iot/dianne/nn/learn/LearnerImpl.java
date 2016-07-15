@@ -24,7 +24,6 @@ package be.iminds.iot.dianne.nn.learn;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +49,6 @@ import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.learn.LearnerListener;
 import be.iminds.iot.dianne.api.nn.learn.LearningStrategy;
 import be.iminds.iot.dianne.api.nn.learn.LearningStrategyFactory;
-import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.nn.learn.config.LearnerConfig;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
@@ -78,7 +76,7 @@ public class LearnerImpl implements Learner {
 	private volatile boolean learning = false;
 	
 	// Network and data
-	private Map<UUID, NeuralNetwork> nns;
+	private NeuralNetwork[] nns;
 	private Dataset dataset;
 
 	// Learning strategy
@@ -112,46 +110,75 @@ public class LearnerImpl implements Learner {
 	
 	@Override
 	public void learn(String d, Map<String, String> config, NeuralNetworkInstanceDTO... nni) throws Exception {
-		if(learning)
-			throw new Exception("Already running a learning session here");
-		
-		learning = true;
+		synchronized(this){
+			if(learning)
+				throw new Exception("Already running a learning session here");
+			
+			learning = true;
+		}
 		
 		try {
 			// Reset
 			previousParameters = new HashMap<>();
-			nns = new HashMap<>();
+			nns = new NeuralNetwork[nni.length];
 			i = 0;
 			
 			// Read config
 			System.out.println("Learner Configuration");
 			System.out.println("=====================");
 			
-			loadConfig(config);
+			this.config = DianneConfigHandler.getConfig(config, LearnerConfig.class);
+			
 			
 			// Fetch the dataset
-			loadDataset(d, config);
+			dataset = datasets.configureDataset(d, config);
+			
+			if(dataset==null)
+				throw new RuntimeException("Dataset "+d+" not available");
+			
 			
 			// Load neural network instance(s)
-			loadNNs(nni);
+			int n = 0;
+			for(NeuralNetworkInstanceDTO dto : nni){
+				if(dto != null){
+					NeuralNetwork nn = dianne.getNeuralNetwork(dto).getValue();
+					nns[n++] = nn;
 
+					// Store the labels if classification dataset
+					// TODO move this to learn strategy?!
+					String[] labels = dataset.getLabels();
+					if(labels!=null)
+						nn.setOutputLabels(labels);
+				}
+			}
+			
 			// Initialize NN parameters
-			for(NeuralNetwork nn : nns.values())
+			for(NeuralNetwork nn : nns)
 				initializeParameters(nn);
 			
-			// TODO create LearnStrategy from factory/config?
+			// Create learning strategy
 			strategy = factory.createLearningStrategy(this.config.strategy);
+			
+			if(strategy == null)
+				throw new RuntimeException("LearningStrategy "+this.config.strategy+" not available");
 			
 			learnerThread = new Thread(() -> {
 				try {
-					strategy.setup(config, dataset, nns.values().toArray(new NeuralNetwork[nns.size()]));
+					// Trigger preprocess on NN instances before the actual training starts
+					for(NeuralNetwork nn : nns){
+						preprocess(nn, d, config);
+					}
 					
+					// Setup LearningStrategy
+					strategy.setup(config, dataset, nns);
+					
+					// Actual training loop
 					for(i = 0; learning; i++) {
 						// Process training sample(s) for this iteration
 						progress = strategy.processIteration(i);
-						
+
+						// Check for NaN
 						if(Float.isNaN(progress.error)){
-							// if error is NaN, trigger something to repo to catch notification
 							throw new Exception("Learner error became NaN");
 						}
 						
@@ -159,9 +186,12 @@ public class LearnerImpl implements Learner {
 							System.out.println("Batch: "+i+"\tError: "+progress.error);
 						
 						// Publish parameters to repository
-						if(this.config.syncInterval > 0 && i % this.config.syncInterval == 0){
-							for(NeuralNetwork nn : nns.values())
-								publishParameters(nn);
+						for(int k=0;k<nns.length;k++){
+							int syncInterval = (k < this.config.syncInterval.length) ? this.config.syncInterval[k] : this.config.syncInterval[0];
+							if(syncInterval > 0 && i % syncInterval == 0){
+								publishParameters(nns[k]);
+							}
+							k++;
 						}
 						
 						// Publish progress
@@ -198,59 +228,54 @@ public class LearnerImpl implements Learner {
 	
 	@Override
 	public void stop() {
-		if(learning){
-			learning = false;
-			
-			try {
-				learnerThread.join();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-	
-	/**
-	 * Fetch configuration parameters for this learner from the configuration map
-	 */
-	protected void loadConfig(Map<String, String> config){
-		this.config = DianneConfigHandler.getConfig(config, LearnerConfig.class);
-	}
-	
-	/**
-	 * Load the Dataset object from the provided dataset name
-	 */
-	protected void loadDataset(String d, Map<String, String> config){
-		dataset = datasets.configureDataset(d, config);
-		
-		if(dataset==null)
-			throw new RuntimeException("Dataset "+d+" not available");
-	}
-
-	/**
-	 * Load NeuralNetwork objects from provided instance dtos
-	 */
-	protected void loadNNs(NeuralNetworkInstanceDTO...nni) throws Exception {
-		// Get the reference
-		for(NeuralNetworkInstanceDTO dto : nni){
-			if(dto != null){
-				NeuralNetwork nn = dianne.getNeuralNetwork(dto).getValue();
-				nns.put(dto.id, nn);
-	
-				// Set module mode to blocking
-				nn.getModules().values().stream().forEach(m -> m.setMode(EnumSet.of(Mode.BLOCKING)));
+		synchronized(this){
+			if(learning){
+				learning = false;
 				
-				// Store the labels if classification dataset
-				String[] labels = dataset.getLabels();
-				if(labels!=null)
-					nn.setOutputLabels(labels);
+				try {
+					learnerThread.join();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}
+	
+	/**
+	 * Trigger preprocess on the NNs preprocess modules 
+	 */
+	private void preprocess(NeuralNetwork nn, String dataset, Map<String, String> c){
+		if(!nn.getPreprocessors().values().stream()
+			.filter(p -> !p.isPreprocessed())
+			.findFirst().isPresent())
+			return;
+		
+		// preprocess on the train set without
+		System.out.println("Preprocess!");
+		HashMap<String, String> trainSetConfig = new HashMap<>();
+		if(c.containsKey("range"))
+			trainSetConfig.put("range", c.get("range"));
+		
+		Dataset preprocessSet = datasets.configureDataset(dataset, trainSetConfig);
+		
+		try {
+			// TODO first get parameters for preprocessing?
+			nn.getPreprocessors().values().stream()
+				.filter(p -> !p.isPreprocessed())
+				.forEach(p -> p.preprocess(preprocessSet));
+			
+			Map<UUID, Tensor> preprocessorParameters = new HashMap<>();
+			nn.getPreprocessors().entrySet().stream().forEach(e -> preprocessorParameters.put(e.getKey(), e.getValue().getParameters()));
+			nn.storeParameters(preprocessorParameters, config.tag);
+		} finally {
+			datasets.releaseDataset(preprocessSet);
+		}
+}
 	
 	/**
 	 * Initialize the parameters for all neural network instances before learning starts
 	 */
-	protected void initializeParameters(NeuralNetwork nn){
+	private void initializeParameters(NeuralNetwork nn){
 		if(config.clean)
 			resetParameters(nn);
 		else
@@ -260,7 +285,7 @@ public class LearnerImpl implements Learner {
 	/**
 	 * Publish parameters (or deltas ) to the repository
 	 */
-	protected void publishParameters(NeuralNetwork nn){
+	private void publishParameters(NeuralNetwork nn){
 		// Publish delta
 		nn.storeDeltaParameters(previousParameters.get(nn.getId()), config.tag);
 				
@@ -271,6 +296,9 @@ public class LearnerImpl implements Learner {
 		System.gc();
 	}
 
+	/**
+	 * Reset Neural Network parameters to random initialization
+	 */
 	private void resetParameters(NeuralNetwork nn){
 		// Randomize parameters
 		nn.randomizeParameters();
@@ -283,6 +311,9 @@ public class LearnerImpl implements Learner {
 				Collectors.toMap(e -> e.getKey(), e -> e.getValue().copyInto(null))));
 	}
 	
+	/**
+	 * Load parameters from the repository and store in previousParameters
+	 */
 	private void loadParameters(NeuralNetwork nn){
 		try {
 			previousParameters.put(nn.getId(), nn.loadParameters(config.tag));
@@ -293,28 +324,28 @@ public class LearnerImpl implements Learner {
 	}
 	
 	@Activate
-	public void activate(BundleContext context){
+	void activate(BundleContext context){
 		this.learnerId = UUID.fromString(context.getProperty(Constants.FRAMEWORK_UUID));
 	}
 	
 	@Reference
-	protected void setDianne(Dianne d){
+	void setDianne(Dianne d){
 		dianne = d;
 	}
 	
 	@Reference
-	protected void setDianneDatasets(DianneDatasets d){
+	void setDianneDatasets(DianneDatasets d){
 		datasets = d;
 	}
 
 	@Reference
-	protected void setLearningStrategyFactory(LearningStrategyFactory f){
+	void setLearningStrategyFactory(LearningStrategyFactory f){
 		factory = f;
 	}
 	
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
-	protected void addListener(LearnerListener listener, Map<String, Object> properties){
+	void addListener(LearnerListener listener, Map<String, Object> properties){
 		String[] targets = (String[])properties.get("targets");
 		if(targets!=null){
 			boolean listen = false;
@@ -329,7 +360,7 @@ public class LearnerImpl implements Learner {
 		this.listeners.add(listener);
 	}
 	
-	protected void removeListener(LearnerListener listener, Map<String, Object> properties){
+	void removeListener(LearnerListener listener, Map<String, Object> properties){
 		this.listeners.remove(listener);
 	}
 	

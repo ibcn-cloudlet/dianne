@@ -20,9 +20,13 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.rnn.learn.config;
+package be.iminds.iot.dianne.rnn.learn.strategy.config;
 
-public class RecurrentLearnerConfig {
+import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory.CriterionConfig;
+import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory.ProcessorConfig;
+import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory.SamplingConfig;
+
+public class BPTTConfig {
 
 	/**
 	 * Length of the sequence to feed into the network before backpropagating 
@@ -34,4 +38,24 @@ public class RecurrentLearnerConfig {
 	 */
 	public boolean backpropAll = false;
 	
+	/**
+	 * The criterion to use to evaluate the error between output and target
+	 */
+	public CriterionConfig criterion = CriterionConfig.MSE;
+	
+	/**
+	 * The gradient optimization method to use
+	 *  * SGD - stochastic gradient descent (optionally with (nesterov) momentum and regularization parameters)
+	 *  * Adadelta
+	 *  * Adagrad
+	 *  * RMSprop
+	 */
+	public ProcessorConfig method = ProcessorConfig.SGD;
+	
+	/**
+	 * The sampling strategy to use to traverse the dataset
+	 *  * Random
+	 *  * Sequential
+	 */
+	public SamplingConfig sampling = SamplingConfig.RANDOM;
 }
