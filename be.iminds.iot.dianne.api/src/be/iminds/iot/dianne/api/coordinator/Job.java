@@ -50,12 +50,12 @@ public class Job {
 	public final UUID id;
 	public final String name;
 	public final Type type;
-	public final String category;
+	public final Category category;
 	public final String[] nn;
 	public final String dataset;
 	public final Map<String, String> config;
 	
-	public Job(UUID id, String name, Type type, String category, String d, Map<String, String> c,  String... nn){
+	public Job(UUID id, String name, Type type, Category category, String d, Map<String, String> c,  String... nn){
 		this.id = id;
 		this.name = name;
 		this.type = type;

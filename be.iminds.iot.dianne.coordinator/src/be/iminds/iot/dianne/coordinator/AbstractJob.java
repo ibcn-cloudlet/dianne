@@ -33,6 +33,7 @@ import org.osgi.util.promise.Deferred;
 import org.osgi.util.promise.Promise;
 
 import be.iminds.iot.dianne.api.coordinator.Job;
+import be.iminds.iot.dianne.api.coordinator.Job.Category;
 import be.iminds.iot.dianne.api.coordinator.Job.Type;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
@@ -42,7 +43,7 @@ public abstract class AbstractJob<T> implements Runnable {
 	protected final UUID jobId;
 	protected final String name;
 	protected final Type type;
-	protected String category;
+	protected Category category;
 	
 	protected final DianneCoordinatorImpl coordinator;
 	

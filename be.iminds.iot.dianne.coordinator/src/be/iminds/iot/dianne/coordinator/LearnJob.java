@@ -55,8 +55,8 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 	private Map<UUID, Learner> learners = new HashMap<>();
 
 	private Evaluator validator = null;
-	private Map<UUID, NeuralNetworkInstanceDTO> nnis2 = new HashMap<>();
 	private NeuralNetworkInstanceDTO validationNni;
+	private int validationInterval = 1000;
 	private float bestValidationError = Float.MAX_VALUE;
 	private float miniBatchErrorThreshold = -Float.MAX_VALUE;
 	private float validationErrorThreshold = -Float.MAX_VALUE;
@@ -68,15 +68,18 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 			NeuralNetworkDTO[] nns){
 		super(coord, Type.LEARN, dataset, config, nns);
 		
-		if(config.containsKey("category")){
-			category = config.get("category");
-		} else if(config.containsKey("environment") || coord.isExperiencePool(dataset)){
-			category = LearnCategory.RL.toString();
+		if(config.containsKey("environment") || coord.isExperiencePool(dataset)){
+			category = LearnCategory.RL;
 		} else if(coord.isRecurrent(nns[0])){
-			category = LearnCategory.RNN.toString();
+			category = LearnCategory.RNN;
 		} else {
-			category = LearnCategory.FF.toString();
+			category = LearnCategory.FF;
 		}
+
+		if(config.containsKey("validationInterval")){
+			validationInterval = Integer.parseInt(config.get("validationInterval"));
+		}
+		
 		
 		if(config.containsKey("miniBatchErrorThreshold")){
 			miniBatchErrorThreshold = Float.parseFloat(config.get("miniBatchErrorThreshold"));
@@ -94,26 +97,18 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 	@Override
 	public void execute() throws Exception {
 		
-//		if(coordinator.isExperiencePool(dataset)){
-//			// DeepQ learner also requires target nni
-//			nnis2 = new HashMap<>();
-//			for(UUID target : targets){
-//				NeuralNetworkInstanceDTO nni = coordinator.platform.deployNeuralNetwork(nn.name, "Dianne Coordinator LearnJob "+jobId, target);
-//				nnis2.put(target, nni);
-//			}
-//		}
-//		
-//		// check if we need to do validation - if so get an Evaluator on one of the targets
-//		if(config.containsKey("validationSet")){
-//			for(UUID target : targets){
-//				validator = coordinator.evaluators.get(EvaluationCategory.CRITERION.toString()).get(target);
-//				if(validator != null){
-//					validationNni = coordinator.platform.deployNeuralNetwork(nn.name, "Dianne Coordinator LearnJob Validaton NN"+jobId, target);
-//					break;
-//				}
-//			}
-//		}
-//		
+		// check if we need to do validation - if so get an Evaluator on one of the targets
+		// TODO what in case of multiple NNs? pass those all to validation Evaluator?
+		if(config.containsKey("validationSet")){
+			for(UUID target : targets){
+				validator = coordinator.evaluators.get(target);
+				if(validator != null){
+					validationNni = coordinator.platform.deployNeuralNetwork(nns[0].name, "Dianne Coordinator LearnJob Validaton NN"+jobId, target);
+					break;
+				}
+			}
+		}
+		
 		if(config.containsKey("maxIterations")){
 			maxIterations = Long.parseLong(config.get("maxIterations"));
 		}
@@ -145,9 +140,8 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 		
 		// start learning on each learner
 		for(UUID target : targets){
-			Learner learner = coordinator.learners.get(category.toString()).get(target);
+			Learner learner = coordinator.learners.get(target);
 			learners.put(target, learner);
-			// if nnis2 is unused, this will give null, but doesnt matter?
 			learner.learn(dataset, learnConfig, nnis.get(target));
 		}
 	}
@@ -162,7 +156,7 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 		
 		// run validation
 		Evaluation validation = null;
-		if(validator != null){
+		if(validator != null && progress.iteration % validationInterval == 0){
 			Map<String, String> c = new HashMap<>();
 			c.put("range", config.get("validationSet"));
 			if(config.containsKey("tag")){
@@ -196,9 +190,9 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 			result.validations.add(validation);
 		}
 
+		// TODO how frequently send out the progress
 		if(progress.iteration % 1000 == 0)
 			coordinator.sendLearnProgress(this.jobId, progress, validation);
-
 		
 		// maxIterations stop condition
 		// what in case of multiple learners?!
@@ -251,15 +245,6 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 		if(reg!=null)
 			reg.unregister();
 
-		for(Learner learner : learners.values()){
-			learner.stop();
-		}
-		
-		// these are used in case of deep q learning
-		for(NeuralNetworkInstanceDTO nni : nnis2.values()){
-			coordinator.platform.undeployNeuralNetwork(nni);
-		}
-		
 		if(validationNni != null)
 			coordinator.platform.undeployNeuralNetwork(validationNni);
 	}
@@ -273,7 +258,9 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 	@Override
 	public void stop() throws Exception{
 		if(started > 0){
-			done(result);
+			for(Learner learner : learners.values()){
+				learner.stop();
+			}		
 		} else {
 			done(new Exception("Job "+this.jobId+" cancelled."));
 		}

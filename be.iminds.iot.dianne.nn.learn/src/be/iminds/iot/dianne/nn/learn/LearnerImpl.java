@@ -407,13 +407,15 @@ public class LearnerImpl implements Learner {
 			}
 		}
 		
-		List<LearnerListener> copy = new ArrayList<>();
-		synchronized(listeners){
-			copy.addAll(listeners);
-		}
-		for(LearnerListener l : copy){
-			l.onException(learnerId, t.getCause()!=null ? t.getCause() : t);
-		}
+		listenerExecutor.submit(()->{
+			List<LearnerListener> copy = new ArrayList<>();
+			synchronized(listeners){
+				copy.addAll(listeners);
+			}
+			for(LearnerListener l : copy){
+				l.onException(learnerId, t.getCause()!=null ? t.getCause() : t);
+			}
+		});
 	}
 	
 	private void publishDone(){
@@ -426,13 +428,15 @@ public class LearnerImpl implements Learner {
 			}
 		}
 		
-		List<LearnerListener> copy = new ArrayList<>();
-		synchronized(listeners){
-			copy.addAll(listeners);
-		}
-		for(LearnerListener l : copy){
-			l.onFinish(learnerId);
-		}
+		listenerExecutor.submit(()->{
+			List<LearnerListener> copy = new ArrayList<>();
+			synchronized(listeners){
+				copy.addAll(listeners);
+			}
+			for(LearnerListener l : copy){
+				l.onFinish(learnerId);
+			}
+		});
 	}
 }
 

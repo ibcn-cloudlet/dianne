@@ -46,13 +46,10 @@ public class EvaluationJob extends AbstractJob<EvaluationResult> {
 			NeuralNetworkDTO[] nns){
 		super(coord, Type.EVALUATE, dataset, config, nns);
 		
-		// TODO when to use MSE category?!
-		if(config.containsKey("category")){
-			category = config.get("category");
-		} else if(coord.platform.isClassificationDatset(dataset) && !config.containsKey("criterion")){
-			category = EvaluationCategory.CLASSIFICATION.toString();
+		if(coord.platform.isClassificationDatset(dataset) && !config.containsKey("criterion")){
+			category = EvaluationCategory.CLASSIFICATION;
 		} else {
-			category = EvaluationCategory.CRITERION.toString();
+			category = EvaluationCategory.CRITERION;
 		}
 	}
 	
@@ -70,7 +67,7 @@ public class EvaluationJob extends AbstractJob<EvaluationResult> {
 			threads[i] = new Thread(new Runnable(){
 				public void run(){
 					try {
-						Evaluator evaluator = coordinator.evaluators.get(category.toString()).get(target);
+						Evaluator evaluator = coordinator.evaluators.get(target);
 						Evaluation e = evaluator.eval(dataset, evalConfig, nnis.get(target));
 						
 						System.out.println("Evaluation result");
@@ -114,7 +111,7 @@ public class EvaluationJob extends AbstractJob<EvaluationResult> {
 				Evaluation eval = results.get(target);
 				p = new EvaluationProgress(eval.getTotal(), eval.getTotal(), eval.error(), eval.evaluationTime(), eval.forwardTime());
 			} else {
-				Evaluator evaluator = coordinator.evaluators.get(category.toString()).get(target);
+				Evaluator evaluator = coordinator.evaluators.get(target);
 				p = evaluator.getProgress();
 			}
 			progresses.put(target, p);
