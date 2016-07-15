@@ -5,6 +5,6 @@
 /lib/
 /resources/
 /datasets/
-/nn/
-/exp/
+/models/
+/experience/
 /jobs/

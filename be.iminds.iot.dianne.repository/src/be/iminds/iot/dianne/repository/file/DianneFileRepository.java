@@ -65,7 +65,7 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 @Component(immediate=true)
 public class DianneFileRepository implements DianneRepository {
 
-	private String dir = "nn";
+	private String dir = "models";
 	
 	private Map<RepositoryListener, List<String>> listeners = Collections.synchronizedMap(new HashMap<RepositoryListener, List<String>>());
 	protected ExecutorService executor = Executors.newSingleThreadExecutor();

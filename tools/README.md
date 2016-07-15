@@ -1,20 +1,20 @@
-#Neural Network configurations
+#Neural Network models
 
-Put your neural network configurations a subfolder here named `nn`
+Put your neural network models in a subfolder named `models`
 
 Each network has its own folder with in it:
 - modules.txt : JSON description of the modules
 - layout.txt : the layout of the modules to show them in the Dianne UI
 - XXX : binary files containing the weights of the module with XXX the module UUID
 
-You can download some examples at http://aiolos.intec.ugent.be/dianne/nn/
+You can download some examples at http://dianne.intec.ugent.be/dianne/models/
 
 
 #Datasets
 
-Put your datasets in a subfolder here named `datasets`
+Put your datasets in a subfolder named `datasets`
 
-You can download some datasets at http://aiolos.intec.ugent.be/dianne/datasets/
+You can download some datasets at http://dianne.intec.ugent.be/dianne/datasets/
 
 Supported datasets:
 
@@ -27,13 +27,23 @@ Provide the following files in the MNIST/ folder
  t10k-labels.idx1-ubyte
  train-images.idx3-ubyte
  train-labels.idx1-ubyte
+ 
+SVHN
+----
+Google StreetView HouseNumbers dataset
+
+Provide the following files in the SVHN/ folder
+ train_images.bin
+ train_labels.bin
+ test_images.bin
+ test_labels.bin
 
 CIFAR-10
 --------
 Image patches of 10 different object classes, 32x32 rgb
 
 Provide the following files in the CIFAR-10/ folder
-batches.meta.txt
+ batches.meta.txt
  data_batch_1.bin
  data_batch_2.bin
  data_batch_3.bin
