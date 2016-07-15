@@ -49,24 +49,24 @@ public class STL10Dataset extends FileDataset {
 	protected void init(Map<String, Object> properties){
 		this.name = "STL-10";
 		this.inputDims = new int[]{3, 96, 96};
-		this.outputDims = new int[]{10};
+		this.targetDims = new int[]{10};
 		this.noSamples = 13000;
 		
 		this.labelsFile = "class_names.txt";
 		this.inputFiles = new String[]{
 				"train_X.bin", "test_X.bin"};
-		this.outputFiles = new String[]{
+		this.targetFiles = new String[]{
 				"train_y.bin","test_y.bin"};
 	}
 	
 	@Override
-	protected void parse(InputStream in, InputStream out) throws Exception {
+	protected void parse(InputStream in, InputStream targ) throws Exception {
 		while(in.available()>0
-				&& out.available()>0){
+				&& targ.available()>0){
 			
-			int i = readUByte(out);
+			int i = readUByte(targ);
 			// categories are from 1..10
-			outputs[count][i-1] = 1;
+			targets[count][i-1] = 1;
 
 			
 			// STL10 is formatted column-major, convert to row-major

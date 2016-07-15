@@ -52,7 +52,7 @@ public class CSVDataset extends FileDataset{
 
 	private String separator = ",";
 	private int inputOffset = 0;
-	private int outputOffset = 0;
+	private int targetOffset = 0;
 	private boolean classification = false;
 	
 	@Override
@@ -72,10 +72,10 @@ public class CSVDataset extends FileDataset{
 			inputOffset = Integer.parseInt(io);
 		}
 		
-		// how many columns to skip before output begins
-		String oo = (String)properties.get("outputOffset");
-		if(oo != null){
-			outputOffset = Integer.parseInt(oo);
+		// how many columns to skip before target begins
+		String to = (String)properties.get("targetOffset");
+		if(to != null){
+			targetOffset = Integer.parseInt(to);
 		}
 		
 		// check whether it is a classification problem or not
@@ -97,7 +97,7 @@ public class CSVDataset extends FileDataset{
 	}
 	
 	@Override
-	protected void parse(InputStream in, InputStream out) throws Exception{
+	protected void parse(InputStream in, InputStream targ) throws Exception{
 		BufferedReader reader = new BufferedReader(new InputStreamReader(in));
 		String s;
 		while ((s = reader.readLine()) != null) {
@@ -106,14 +106,14 @@ public class CSVDataset extends FileDataset{
 			for(;i<inputOffset+inputSize;i++){
 				inputs[count][i] = Float.parseFloat(data[i]);
 			}
-			i += outputOffset-1;
+			i += targetOffset-1;
 			if(classification){
 				// threat as class index?
 				int index = Integer.parseInt(data[i]);
-				outputs[count][index] = 1;
+				targets[count][index] = 1;
 			} else {
-				for(int k=0;k<outputSize;k++){
-					outputs[count][k] = Float.parseFloat(data[i+k]);
+				for(int k=0;k<targetSize;k++){
+					targets[count][k] = Float.parseFloat(data[i+k]);
 				}
 			}
 			count++;

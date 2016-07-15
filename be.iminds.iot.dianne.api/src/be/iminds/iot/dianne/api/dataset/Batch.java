@@ -26,15 +26,15 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
  * A helper class for representing a batch of a dataset, a combination of
- * a (batched) input and output Tensor
+ * a (batched) input and target Tensor
  * 
- * In a batch, the input/output from Sample represents all batches in a single 
+ * In a batch, the input/target from Sample represents all batches in a single 
  * Tensor with dim 0 = batchSize. Separate Tensors per sample are available in 
- * the inputSamples/outputSamples arrays. 
+ * the inputSamples/targetSamples arrays. 
  * 
  * In case the Dataset has variable input dims, a single batched Tensor is 
- * impossible to construct, in which case input/output are null and the inputSamples
- * outputSamples arrays contain separate Tensor objects for each sample in the batch.
+ * impossible to construct, in which case input/target are null and the inputSamples
+ * targetSamples arrays contain separate Tensor objects for each sample in the batch.
  * 
  * @author tverbele
  *

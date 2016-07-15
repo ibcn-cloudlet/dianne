@@ -57,13 +57,13 @@ public class ImageNetDataset extends ImageDataset {
 	protected void init(Map<String, Object> properties) {
 		this.name = "ImageNet";
 		this.inputDims = null;
-		this.outputDims = new int[]{1000};
+		this.targetDims = new int[]{1000};
 
 		File images = new File(properties.get("dir") + File.separator + "images/");
 		noSamples = (int) Arrays.stream(images.listFiles()).filter(f -> !f.isHidden()).count();
 		
 		this.labelsFile = "classes.txt";
-		this.outputsFile = "outputs.txt";
+		this.targetsFile = "outputs.txt";
 	}
 
 	@Override
@@ -100,19 +100,19 @@ public class ImageNetDataset extends ImageDataset {
 	}
 
 	@Override
-	protected void readOutputs(String file) {
+	protected void readTargets(String file) {
 		try {
-			InputStream outputsInput = new FileInputStream(dir + File.separator + file);
+			InputStream targetsInput = new FileInputStream(dir + File.separator + file);
 
 			int i = 0;
 			BufferedReader reader = new BufferedReader(new InputStreamReader(
-					outputsInput));
+					targetsInput));
 			String s;
 			while ((s = reader.readLine()) != null) {
 				int clazz = Integer.parseInt(s) - 1; // in the file this ranges
 														// from 1..1000, convert
 														// to 0..999
-				outputs[i++] = clazz;
+				targets[i++] = clazz;
 			}
 			reader.close();
 		} catch (IOException e) {

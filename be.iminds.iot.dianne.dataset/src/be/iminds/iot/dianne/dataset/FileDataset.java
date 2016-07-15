@@ -40,7 +40,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 /**
  * This provides an abstract class to implement Datasets that read data 
  * from binary input files that contain raw data blobs. Specific Datasets should
- * implement the parse method to correctly parse out the input/output samples
+ * implement the parse method to correctly parse out the input/target samples
  * into a float[][] array in memory.
  * 
  * @author tverbele
@@ -57,10 +57,10 @@ public abstract class FileDataset extends AbstractDataset {
 	
 	// files with custom format
 	protected String[] inputFiles;
-	protected String[] outputFiles;
+	protected String[] targetFiles;
 	
 	protected float[][] inputs;
-	protected float[][] outputs;
+	protected float[][] targets;
 	
 	protected boolean prefetch = false;
 	
@@ -74,8 +74,8 @@ public abstract class FileDataset extends AbstractDataset {
 			inputFiles = (String[])properties.get("files");
 		}
 	
-		if(properties.containsKey("outputFiles"))
-			this.outputFiles = (String[])properties.get("outputFiles");
+		if(properties.containsKey("targetFiles"))
+			this.targetFiles = (String[])properties.get("targetFiles");
 
 		String pf = (String)properties.get("prefetch");
 		if(pf != null){
@@ -90,7 +90,7 @@ public abstract class FileDataset extends AbstractDataset {
 	private void load(){
 		// allocate in float[][]
 		inputs = new float[noSamples][inputSize];
-		outputs = new float[noSamples][outputSize];
+		targets = new float[noSamples][targetSize];
 		
 		// load all files on executor
 		loader = Executors.newSingleThreadExecutor();
@@ -98,16 +98,16 @@ public abstract class FileDataset extends AbstractDataset {
 		for(int i=0;i<inputFiles.length;i++){
 			try {
 				final InputStream ins = new BufferedInputStream(new FileInputStream(new File(dir+File.separator+inputFiles[i])));
-				final InputStream outs;
-				if(outputFiles != null){
-					 outs = new BufferedInputStream(new FileInputStream(new File(dir+File.separator+outputFiles[i])));
+				final InputStream targs;
+				if(targetFiles != null){
+					 targs = new BufferedInputStream(new FileInputStream(new File(dir+File.separator+targetFiles[i])));
 				} else {
-					outs = null;
+					targs = null;
 				}
 				final boolean last = i == inputFiles.length-1;
 				loader.submit(() -> {
 					try {
-						parse(ins, outs);
+						parse(ins, targs);
 						if(last){
 							synchronized(lock){
 								loaded = 1;
@@ -149,12 +149,12 @@ public abstract class FileDataset extends AbstractDataset {
 	
 	@Override
 	protected void readLabels(String file) {
-		labels = new String[outputSize];
+		labels = new String[targetSize];
 		try {
 			InputStream labelInput = new FileInputStream(dir+File.separator+file);
 				
 			BufferedReader reader = new BufferedReader(new InputStreamReader(labelInput));
-			for(int i=0;i<outputSize;i++){
+			for(int i=0;i<targetSize;i++){
 				labels[i] = reader.readLine();
 			}
 			reader.close();
@@ -163,7 +163,7 @@ public abstract class FileDataset extends AbstractDataset {
 		}
 	}
 	
-	protected abstract void parse(InputStream in, InputStream out) throws Exception;
+	protected abstract void parse(InputStream in, InputStream targ) throws Exception;
 				
 	@Override
 	public Tensor getInputSample(Tensor t, int index) {
@@ -177,13 +177,13 @@ public abstract class FileDataset extends AbstractDataset {
 	}
 
 	@Override
-	public Tensor getOutputSample(Tensor t, int index) {
+	public Tensor getTargetSample(Tensor t, int index) {
 		checkLoaded();
 
 		if(t == null)
-			t = new Tensor(outputs[index], outputDims);
+			t = new Tensor(targets[index], targetDims);
 		else 
-			t.set(outputs[index]);
+			t.set(targets[index]);
 		return t;
 	}
 	

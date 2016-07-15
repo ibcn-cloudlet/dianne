@@ -32,7 +32,7 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 
 /**
- * A generic FileDataset that treats input/output as a blob of unsigned bytes
+ * A generic FileDataset that treats input/target as a blob of unsigned bytes
  * 
  * @author tverbele
  *
@@ -47,14 +47,14 @@ public class GenericFileDataset extends FileDataset {
 
 	protected void init(Map<String, Object> properties){}
 	
-	protected void parse(InputStream in, InputStream out) throws Exception{
+	protected void parse(InputStream in, InputStream targ) throws Exception{
 		while(in.available()>0){
-			if(out != null){
-				int i = readUByte(out);
-				outputs[count][i] = 1;
+			if(targ != null){
+				int i = readUByte(targ);
+				targets[count][i] = 1;
 			} else {
 				int i = readUByte(in);
-				outputs[count][i] = 1;
+				targets[count][i] = 1;
 			}
 			
 			for(int j=0;j<inputSize;j++){

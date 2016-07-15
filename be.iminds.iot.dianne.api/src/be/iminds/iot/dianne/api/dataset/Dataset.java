@@ -33,7 +33,7 @@ package be.iminds.iot.dianne.api.dataset;
  * 
  * For regression problems the target tensor can be arbitrary.
  * 
- * Each item from the output tensor corresponds with a human-readable label.
+ * Each item from the target tensor corresponds with a human-readable label.
  * 
  * A Dataset can be used for supervised training of a neural network.
  * 
@@ -114,7 +114,7 @@ public interface Dataset {
 	String getName();
 	
 	/**
-	 * Get human-readable names for the classes represented in an output vector
+	 * Get human-readable names for the classes represented in an target vector
 	 * 
 	 * @return human-readable dataset labels
 	 */

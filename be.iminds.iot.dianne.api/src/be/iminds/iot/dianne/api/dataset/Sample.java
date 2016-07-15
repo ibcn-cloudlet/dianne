@@ -26,7 +26,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
  * A helper class for representing one sample of a dataset, a combination of
- * an input and output Tensor
+ * an input and target Tensor
  * 
  * @author tverbele
  *

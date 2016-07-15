@@ -11,8 +11,8 @@ public abstract class AbstractDataset implements Dataset {
 	protected String name;
 	protected int[] inputDims;
 	protected int inputSize;
-	protected int[] outputDims;
-	protected int outputSize;
+	protected int[] targetDims;
+	protected int targetSize;
 	protected int noSamples;
 	protected String[] labels;
 	protected String labelsFile;
@@ -38,11 +38,11 @@ public abstract class AbstractDataset implements Dataset {
 			}
 		}
 		
-		String[] od = (String[])properties.get("outputDims");
+		String[] od = (String[])properties.get("targetDims");
 		if(od != null){
-			outputDims= new int[od.length];
+			targetDims= new int[od.length];
 			for(int i=0;i<od.length;i++){
-				outputDims[i] = Integer.parseInt(od[i]);
+				targetDims[i] = Integer.parseInt(od[i]);
 			}
 		}
 		
@@ -65,9 +65,9 @@ public abstract class AbstractDataset implements Dataset {
 			inputSize = -1;
 		}
 		
-		outputSize = 1;
-		for(int i=0;i<outputDims.length;i++){
-			outputSize *= outputDims[i];
+		targetSize = 1;
+		for(int i=0;i<targetDims.length;i++){
+			targetSize *= targetDims[i];
 		}
 		
 		if(labelsFile != null)
@@ -81,7 +81,7 @@ public abstract class AbstractDataset implements Dataset {
 
 	protected abstract Tensor getInputSample(Tensor t, int index);
 
-	protected abstract Tensor getOutputSample(Tensor t, int index);
+	protected abstract Tensor getTargetSample(Tensor t, int index);
 	
 	@Override
 	public Sample getSample(Sample s, final int index){
@@ -90,7 +90,7 @@ public abstract class AbstractDataset implements Dataset {
 		}
 		
 		s.input = getInputSample(s.input, index);
-		s.target = getOutputSample(s.target, index);
+		s.target = getTargetSample(s.target, index);
 		
 		return s;
 	}
@@ -107,7 +107,7 @@ public abstract class AbstractDataset implements Dataset {
 	
 	@Override
 	public int[] targetDims(){
-		return outputDims;
+		return targetDims;
 	}
 	
 	@Override

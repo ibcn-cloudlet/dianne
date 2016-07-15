@@ -49,7 +49,7 @@ public class Cifar10Dataset extends FileDataset {
 	protected void init(Map<String, Object> properties){
 		this.name = "CIFAR-10";
 		this.inputDims = new int[]{3, 32, 32};
-		this.outputDims = new int[]{10};
+		this.targetDims = new int[]{10};
 		this.noSamples = 60000;
 		
 		this.labelsFile = "batches.meta.txt";
@@ -60,10 +60,10 @@ public class Cifar10Dataset extends FileDataset {
 	}
 	
 	@Override
-	protected void parse(InputStream in, InputStream out) throws Exception {
+	protected void parse(InputStream in, InputStream targ) throws Exception {
 		while(in.available()>0){
 			int i = readUByte(in);
-			outputs[count][i] = 1;
+			targets[count][i] = 1;
 			
 			for(int j=0;j<inputSize;j++){
 				inputs[count][j] = (float)readUByte(in)/255f;

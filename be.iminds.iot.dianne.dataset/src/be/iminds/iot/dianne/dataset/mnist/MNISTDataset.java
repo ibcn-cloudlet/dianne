@@ -49,33 +49,33 @@ public class MNISTDataset extends FileDataset {
 	protected void init(Map<String, Object> properties){
 		this.name = "MNIST";
 		this.inputDims = new int[]{1, 28, 28};
-		this.outputDims = new int[]{10};
+		this.targetDims = new int[]{10};
 		this.noSamples = 70000;
 		this.labels = new String[]{"0","1","2","3","4","5","6","7","8","9"};
 
 		inputFiles = new String[]{"train-images.idx3-ubyte", "t10k-images.idx3-ubyte"};
-		outputFiles = new String[]{"train-labels.idx1-ubyte", "t10k-labels.idx1-ubyte"};
+		targetFiles = new String[]{"train-labels.idx1-ubyte", "t10k-labels.idx1-ubyte"};
 	}
 	
 	@Override
-	protected void parse(InputStream in, InputStream out) throws Exception {
+	protected void parse(InputStream in, InputStream targ) throws Exception {
 		int magic = readInt(in);
 		assert magic == 2051;
 		int noImages = readInt(in);
 		int noRows = readInt(in);
 		int noColumns = readInt(in);
 				
-		magic = readInt(out);
+		magic = readInt(targ);
 		assert magic == 2049;
-		int noLabels = readInt(out);
+		int noLabels = readInt(targ);
 		
 		for(int read = 0;read<noImages;read++){
 			for(int j=0;j<inputSize;j++){
 				inputs[count][j] = (float)readUByte(in)/255f;
 			}
 			                               
-			int i = readUByte(out);
-			outputs[count][i] = 1;
+			int i = readUByte(targ);
+			targets[count][i] = 1;
 			
 			count++;
 		}

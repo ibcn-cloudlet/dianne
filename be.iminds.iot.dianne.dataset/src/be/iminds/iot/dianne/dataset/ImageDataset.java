@@ -31,7 +31,7 @@ import be.iminds.iot.dianne.tensor.util.ImageConverter;
 /**
  * This provides an abstract class to implement Datasets that have images as input.
  * The images are stored on the filesystem as image files, with a separate file
- * containing an output class index and the labels. 
+ * containing an target class index and the labels. 
  *  
  * @author tverbele
  *
@@ -40,24 +40,24 @@ public abstract class ImageDataset extends AbstractDataset {
 
 	protected ImageConverter converter = new ImageConverter();
 
-	protected String outputsFile;
-	protected int[] outputs;
+	protected String targetsFile;
+	protected int[] targets;
 
 	@Override
 	protected void activate(Map<String, Object> properties) {
 		super.activate(properties);
 
-		if(properties.containsKey("outputsFile")){
-			outputsFile = (String)properties.get("outputsFile");
+		if(properties.containsKey("targetsFile")){
+			targetsFile = (String)properties.get("targetsFile");
 		}
 
-		outputs = new int[noSamples];
-		readOutputs(outputsFile);
+		targets = new int[noSamples];
+		readTargets(targetsFile);
 	}
 
 	protected abstract String getImageFile(int index);
 	
-	protected abstract void readOutputs(String file);
+	protected abstract void readTargets(String file);
 	
 	@Override
 	public Tensor getInputSample(Tensor t, int index) {
@@ -73,11 +73,11 @@ public abstract class ImageDataset extends AbstractDataset {
 	}
 
 	@Override
-	public Tensor getOutputSample(Tensor t, int index) {
+	public Tensor getTargetSample(Tensor t, int index) {
 		if(t == null)
-			t = new Tensor(outputSize);
+			t = new Tensor(targetSize);
 		t.fill(0.0f);
-		t.set(1.0f, outputs[index]);
+		t.set(1.0f, targets[index]);
 		return t;
 	}
 

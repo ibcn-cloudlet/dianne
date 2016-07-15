@@ -49,19 +49,19 @@ public class SVHNDataset extends FileDataset{
 	protected void init(Map<String, Object> properties){
 		this.name = "SVHN";
 		this.inputDims = new int[]{3, 32, 32};
-		this.outputDims = new int[]{10};
+		this.targetDims = new int[]{10};
 		this.noSamples = 73257+26032;
 		this.labels = new String[]{"0","1","2","3","4","5","6","7","8","9"};
 
 		this.inputFiles = new String[]{"train_images.bin", "test_images.bin"};
-		this.outputFiles = new String[]{"train_labels.bin", "test_labels.bin"};
+		this.targetFiles = new String[]{"train_labels.bin", "test_labels.bin"};
 	}
 	
 	@Override
-	protected void parse(InputStream in, InputStream out) throws Exception{
+	protected void parse(InputStream in, InputStream targ) throws Exception{
 		while(in.available()>0){
-			int i = readUByte(out);
-			outputs[count][i] = 1;
+			int i = readUByte(targ);
+			targets[count][i] = 1;
 			
 			for(int j=0;j<inputSize;j++){
 				inputs[count][j] = (float)readUByte(in)/255f;

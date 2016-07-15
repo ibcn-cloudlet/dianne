@@ -60,17 +60,17 @@ public class GenericImageDataset extends ImageDataset {
 	}
 
 	@Override
-	protected void readOutputs(String file) {
+	protected void readTargets(String file) {
 		try {
-			InputStream outputsInput = new FileInputStream(dir + File.separator + file);
+			InputStream targetsInput = new FileInputStream(dir + File.separator + file);
 
 			int i = 0;
 			BufferedReader reader = new BufferedReader(new InputStreamReader(
-					outputsInput));
+					targetsInput));
 			String s;
 			while ((s = reader.readLine()) != null) {
 				int clazz = Integer.parseInt(s);
-				outputs[i++] = clazz;
+				targets[i++] = clazz;
 			}
 			reader.close();
 		} catch (IOException e) {

@@ -29,8 +29,8 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		stateDims = inputDims;
 		stateSize = inputSize;
 	
-		actionDims = outputDims;
-		actionSize = outputSize;
+		actionDims = targetDims;
+		actionSize = targetSize;
 	
 		sampleSize = 2*stateSize+actionSize+1;
 
@@ -57,9 +57,9 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		
 		String[] od = (String[])properties.get("actionDims");
 		if(od!=null){
-			outputDims= new int[od.length];
+			targetDims= new int[od.length];
 			for(int i=0;i<od.length;i++){
-				outputDims[i] = Integer.parseInt(od[i]);
+				targetDims[i] = Integer.parseInt(od[i]);
 			}
 		}
 	}
@@ -80,7 +80,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	}
 
 	@Override
-	protected Tensor getOutputSample(Tensor t, int index) {
+	protected Tensor getTargetSample(Tensor t, int index) {
 		return null;
 	}
 
