@@ -24,6 +24,7 @@ package be.iminds.iot.dianne.nn.learn;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,7 @@ import java.util.stream.Collectors;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
@@ -43,65 +45,56 @@ import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.DianneDatasets;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
-import be.iminds.iot.dianne.api.nn.learn.Criterion;
-import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.learn.LearnerListener;
-import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
+import be.iminds.iot.dianne.api.nn.learn.LearningStrategy;
+import be.iminds.iot.dianne.api.nn.learn.LearningStrategyFactory;
+import be.iminds.iot.dianne.api.nn.module.Module.Mode;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.nn.learn.config.LearnerConfig;
-import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory;
-import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory;
-import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory;
-import be.iminds.iot.dianne.nn.learn.strategy.config.FeedForwardConfig;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.tensor.Tensor;
 
-public abstract class AbstractLearner implements Learner {
+@Component(service=Learner.class, 
+property={"aiolos.unique=true",
+		  "dianne.learner.category=EXPERIMENTAL"})
+public class LearnerImpl implements Learner {
 	
 	// Listeners
-	private static ExecutorService listenerExecutor = Executors.newSingleThreadExecutor(); 
-	protected List<LearnerListener> listeners = Collections.synchronizedList(new ArrayList<>());
-
+	private ExecutorService listenerExecutor = Executors.newSingleThreadExecutor(); 
+	private List<LearnerListener> listeners = Collections.synchronizedList(new ArrayList<>());
+	private volatile boolean wait = false;
 
 	// Identification
-	protected UUID learnerId;
+	private UUID learnerId;
 	
 	// References
-	protected Dianne dianne;
-	protected DianneDatasets datasets;
+	private Dianne dianne;
+	private DianneDatasets datasets;
 	
 	// Threading
-	protected Thread learnerThread;
-	protected volatile boolean learning = false;
-	
-	// Learning procedure
-	protected GradientProcessor gradientProcessor;
-	protected Criterion criterion;
-	protected SamplingStrategy sampling;
+	private Thread learnerThread;
+	private volatile boolean learning = false;
 	
 	// Network and data
-	protected NeuralNetwork nn;
-	protected Dataset dataset;
+	private Map<UUID, NeuralNetwork> nns;
+	private Dataset dataset;
+
+	// Learning strategy
+	private LearningStrategyFactory factory;
+	private LearningStrategy strategy;
 	
-	// Configuration
-	protected LearnerConfig config;
+	// Config
+	private LearnerConfig config;
 	
-	// Initial  parameters
-	protected Map<UUID, Tensor> previousParameters;
+	// Previous  parameters
+	private Map<UUID, Map<UUID, Tensor>> previousParameters;
 	
 	// Training progress
-	protected volatile float error = 0;
-	protected volatile long i = 0;
-	
-	// Fixed properties
-	protected static final float alpha = 1e-2f;
+	private volatile long i = 0;
+	private LearnProgress progress;
 
-	// Retry with previously stored parameters in case of NaN
-	protected int nanretry = 0;
-	
-	
 	@Override
 	public UUID getLearnerId(){
 		return learnerId;
@@ -114,9 +107,7 @@ public abstract class AbstractLearner implements Learner {
 	
 	@Override
 	public LearnProgress getProgress() {
-		if(!learning)
-			return null;
-		return new LearnProgress(i, error);
+		return progress;
 	}
 	
 	@Override
@@ -128,7 +119,8 @@ public abstract class AbstractLearner implements Learner {
 		
 		try {
 			// Reset
-			previousParameters = null;
+			previousParameters = new HashMap<>();
+			nns = new HashMap<>();
 			i = 0;
 			
 			// Read config
@@ -144,51 +136,36 @@ public abstract class AbstractLearner implements Learner {
 			loadNNs(nni);
 
 			// Initialize NN parameters
-			initializeParameters();
+			for(NeuralNetwork nn : nns.values())
+				initializeParameters(nn);
 			
-			
-			FeedForwardConfig ffconfig = DianneConfigHandler.getConfig(config, FeedForwardConfig.class);
-			// setup criterion, sampling strategy and gradient processor
-			sampling = SamplingFactory.createSamplingStrategy(ffconfig.sampling, dataset, config);
-			criterion = CriterionFactory.createCriterion(ffconfig.criterion);
-			gradientProcessor = ProcessorFactory.createGradientProcessor(ffconfig.method, nn, config);
-			
-			nanretry = this.config.NaNretry;
+			// TODO create LearnStrategy from factory/config?
+			strategy = factory.createLearningStrategy(this.config.strategy);
 			
 			learnerThread = new Thread(() -> {
 				try {
-					preprocess(d, config);
+					strategy.setup(config, dataset, nns.values().toArray(new NeuralNetwork[nns.size()]));
 					
 					for(i = 0; learning; i++) {
 						// Process training sample(s) for this iteration
-						float err = process(i);
+						progress = strategy.processIteration(i);
 						
-						if(Float.isNaN(err)){
-							if(nanretry != 0){
-								System.out.println("Retry after NaN");
-								loadParameters();
-								if(nanretry > 0)
-									nanretry--;
-								continue;
-							} else {
-								throw new Exception("Learner error became NaN");
-							}
+						if(Float.isNaN(progress.error)){
+							// if error is NaN, trigger something to repo to catch notification
+							throw new Exception("Learner error became NaN");
 						}
 						
-						// Keep track of error
-						if(i==0)
-							error = err;
-						else
-							error = (1 - alpha) * error + alpha * err;
-	
 						if(this.config.trace)
-							System.out.println("Batch: "+i+"\tError: "+error);
+							System.out.println("Batch: "+i+"\tError: "+progress.error);
 						
 						// Publish parameters to repository
-						publishParameters(i);
+						if(this.config.syncInterval > 0 && i % this.config.syncInterval == 0){
+							for(NeuralNetwork nn : nns.values())
+								publishParameters(nn);
+						}
 						
 						// Publish progress
-						publishProgress(i);
+						publishProgress(progress);
 					}
 				} catch(Throwable t){
 					learning = false;
@@ -196,13 +173,7 @@ public abstract class AbstractLearner implements Learner {
 					System.err.println("Error during learning");
 					t.printStackTrace();
 					
-					List<LearnerListener> copy = new ArrayList<>();
-					synchronized(listeners){
-						copy.addAll(listeners);
-					}
-					for(LearnerListener l : copy){
-						l.onException(learnerId, t.getCause()!=null ? t.getCause() : t);
-					}
+					publishError(t);
 					
 					return;
 				} finally {
@@ -211,13 +182,9 @@ public abstract class AbstractLearner implements Learner {
 				}
 
 				System.out.println("Stopped learning");
-				List<LearnerListener> copy = new ArrayList<>();
-				synchronized(listeners){
-					copy.addAll(listeners);
-				}
-				for(LearnerListener l : copy){
-					l.onFinish(learnerId);
-				}
+				publishDone();
+				
+				progress = null;
 			});
 			learnerThread.start();
 		
@@ -236,7 +203,9 @@ public abstract class AbstractLearner implements Learner {
 			
 			try {
 				learnerThread.join();
-			} catch (InterruptedException e) {}
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -262,41 +231,47 @@ public abstract class AbstractLearner implements Learner {
 	 */
 	protected void loadNNs(NeuralNetworkInstanceDTO...nni) throws Exception {
 		// Get the reference
-		nn = dianne.getNeuralNetwork(nni[0]).getValue();
-		
-		// Store the labels if classification dataset
-		String[] labels = dataset.getLabels();
-		if(labels!=null)
-			nn.setOutputLabels(labels);
+		for(NeuralNetworkInstanceDTO dto : nni){
+			if(dto != null){
+				NeuralNetwork nn = dianne.getNeuralNetwork(dto).getValue();
+				nns.put(dto.id, nn);
+	
+				// Set module mode to blocking
+				nn.getModules().values().stream().forEach(m -> m.setMode(EnumSet.of(Mode.BLOCKING)));
+				
+				// Store the labels if classification dataset
+				String[] labels = dataset.getLabels();
+				if(labels!=null)
+					nn.setOutputLabels(labels);
+			}
+		}
 	}
 	
 	/**
 	 * Initialize the parameters for all neural network instances before learning starts
 	 */
-	protected void initializeParameters(){
+	protected void initializeParameters(NeuralNetwork nn){
 		if(config.clean)
-			resetParameters();
+			resetParameters(nn);
 		else
-			loadParameters();
+			loadParameters(nn);
 	}
 
 	/**
 	 * Publish parameters (or deltas ) to the repository
 	 */
-	protected void publishParameters(long i){
-		if(config.syncInterval > 0 && i % config.syncInterval==0 && i!=0){
-			// Publish delta
-			nn.storeDeltaParameters(previousParameters, config.tag);
+	protected void publishParameters(NeuralNetwork nn){
+		// Publish delta
+		nn.storeDeltaParameters(previousParameters.get(nn.getId()), config.tag);
 				
-			// Fetch update again from repo (could be merged from other learners)
-			loadParameters();
+		// Fetch update again from repo (could be merged from other learners)
+		loadParameters(nn);
 			
-			// trigger garbage collection to clean up store tensors
-			System.gc();
-		}
+		// trigger garbage collection to clean up store tensors
+		System.gc();
 	}
 
-	private void resetParameters(){
+	private void resetParameters(NeuralNetwork nn){
 		// Randomize parameters
 		nn.randomizeParameters();
 		
@@ -304,56 +279,18 @@ public abstract class AbstractLearner implements Learner {
 		nn.storeParameters(config.tag);
 		
 		// Update previous parameters
-		previousParameters = nn.getParameters().entrySet().stream().collect(
-				Collectors.toMap(e -> e.getKey(), e -> e.getValue().copyInto(null)));
+		previousParameters.put(nn.getId(), nn.getParameters().entrySet().stream().collect(
+				Collectors.toMap(e -> e.getKey(), e -> e.getValue().copyInto(null))));
 	}
 	
-	private void loadParameters(){
+	private void loadParameters(NeuralNetwork nn){
 		try {
-			previousParameters = nn.loadParameters(config.tag);
+			previousParameters.put(nn.getId(), nn.loadParameters(config.tag));
 		} catch(Exception ex){
 			System.out.println("Failed to load parameters "+config.tag+", fill with random parameters");
-			resetParameters();
+			resetParameters(nn);
 		}
 	}
-	
-	/**
-	 * Run any preprocessing procedures before the actual learning starts
-	 */
-	protected void preprocess(String d, Map<String, String> c){
-		if(!nn.getPreprocessors().values().stream()
-			.filter(p -> !p.isPreprocessed())
-			.findFirst().isPresent())
-			return;
-		
-		// preprocess on the train set without
-		System.out.println("Preprocess!");
-		HashMap<String, String> trainSetConfig = new HashMap<>();
-		if(c.containsKey("range"))
-			trainSetConfig.put("range", c.get("range"));
-		
-		Dataset preprocessSet = datasets.configureDataset(d, trainSetConfig);
-		
-		try {
-			// TODO first get parameters for preprocessing?
-			nn.getPreprocessors().values().stream()
-				.filter(p -> !p.isPreprocessed())
-				.forEach(p -> p.preprocess(preprocessSet));
-			
-			Map<UUID, Tensor> preprocessorParameters = new HashMap<>();
-			nn.getPreprocessors().entrySet().stream().forEach(e -> preprocessorParameters.put(e.getKey(), e.getValue().getParameters()));
-			nn.storeParameters(preprocessorParameters, config.tag);
-		} finally {
-			datasets.releaseDataset(preprocessSet);
-		}
-	}
-	
-	/**
-	 * Actual training logic.
-	 * 
-	 * Each concrete Learner should update the neural network weights in this method.
-	 */
-	protected abstract float process(long i) throws Exception;
 	
 	@Activate
 	public void activate(BundleContext context){
@@ -368,6 +305,11 @@ public abstract class AbstractLearner implements Learner {
 	@Reference
 	protected void setDianneDatasets(DianneDatasets d){
 		datasets = d;
+	}
+
+	@Reference
+	protected void setLearningStrategyFactory(LearningStrategyFactory f){
+		factory = f;
 	}
 	
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
@@ -394,21 +336,71 @@ public abstract class AbstractLearner implements Learner {
 	/**
 	 * Publish progress on sync interval times
 	 */
-	private void publishProgress(long i){
-		if(config.syncInterval > 0 && i % config.syncInterval == 0){
-			final LearnProgress progress =  getProgress();
-			if(progress == null)
-				return;
+	private void publishProgress(final LearnProgress progress){
+		if(progress == null)
+			return;
+		
+		synchronized(listenerExecutor){
+			if(wait){
+				try {
+					listenerExecutor.wait();
+				} catch (InterruptedException e) {
+				}
+			}
+			wait = true;
+		}
+		
+		listenerExecutor.submit(()->{
+			List<LearnerListener> copy = new ArrayList<>();
+			synchronized(listeners){
+				copy.addAll(listeners);
+			}
+			for(LearnerListener l : copy){
+				l.onProgress(learnerId, progress);
+			}
 			
-			listenerExecutor.submit(()->{
-				List<LearnerListener> copy = new ArrayList<>();
-				synchronized(listeners){
-					copy.addAll(listeners);
+			synchronized(listenerExecutor){
+				wait = false;
+				listenerExecutor.notifyAll();
+			}
+		});
+	}
+	
+	private void publishError(final Throwable t){
+		synchronized(listenerExecutor){
+			if(wait){
+				try {
+					listenerExecutor.wait();
+				} catch (InterruptedException e) {
 				}
-				for(LearnerListener l : copy){
-					l.onProgress(learnerId, progress);
+			}
+		}
+		
+		List<LearnerListener> copy = new ArrayList<>();
+		synchronized(listeners){
+			copy.addAll(listeners);
+		}
+		for(LearnerListener l : copy){
+			l.onException(learnerId, t.getCause()!=null ? t.getCause() : t);
+		}
+	}
+	
+	private void publishDone(){
+		synchronized(listenerExecutor){
+			if(wait){
+				try {
+					listenerExecutor.wait();
+				} catch (InterruptedException e) {
 				}
-			});
+			}
+		}
+		
+		List<LearnerListener> copy = new ArrayList<>();
+		synchronized(listeners){
+			copy.addAll(listeners);
+		}
+		for(LearnerListener l : copy){
+			l.onFinish(learnerId);
 		}
 	}
 }

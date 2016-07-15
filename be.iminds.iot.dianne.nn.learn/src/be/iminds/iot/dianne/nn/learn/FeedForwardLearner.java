@@ -30,7 +30,7 @@ import org.osgi.util.promise.Promise;
 import be.iminds.iot.dianne.api.dataset.Batch;
 import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.module.Trainable;
-import be.iminds.iot.dianne.nn.learn.config.FeedForwardLearnerConfig;
+import be.iminds.iot.dianne.nn.learn.strategy.config.FeedForwardConfig;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
@@ -44,12 +44,12 @@ public class FeedForwardLearner extends AbstractLearner {
 	private Batch batch = null;
 	private Batch nextBatch = null;
 	
-	private FeedForwardLearnerConfig config;
+	private FeedForwardConfig config;
 	
 	protected void loadConfig(Map<String, String> config){
 		super.loadConfig(config);
 		
-		this.config = DianneConfigHandler.getConfig(config, FeedForwardLearnerConfig.class);
+		this.config = DianneConfigHandler.getConfig(config, FeedForwardConfig.class);
 		
 		// Reset next batch
 		batch = null;

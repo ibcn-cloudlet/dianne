@@ -22,13 +22,13 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.eval.config;
 
-import be.iminds.iot.dianne.nn.learn.config.LearnerConfig.Criterion;
+import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory.CriterionConfig;
 
 public class CriterionEvaluatorConfig {
 
 	/**
 	 * The criterion to use to evaluate the error between output and target
 	 */
-	public Criterion criterion = Criterion.MSE;
+	public CriterionConfig criterion = CriterionConfig.MSE;
 	
 }

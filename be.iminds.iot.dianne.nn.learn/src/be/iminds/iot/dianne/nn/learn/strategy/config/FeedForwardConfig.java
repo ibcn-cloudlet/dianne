@@ -20,10 +20,13 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.nn.learn.config;
+package be.iminds.iot.dianne.nn.learn.strategy.config;
 
+import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory.CriterionConfig;
+import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory.ProcessorConfig;
+import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory.SamplingConfig;
 
-public class FeedForwardLearnerConfig {
+public class FeedForwardConfig {
 
 	/**
 	 * Batch size in which samples are processed before updating parameters
@@ -35,4 +38,25 @@ public class FeedForwardLearnerConfig {
 	 */
 	public boolean batchAverage = true;
 	
+	/**
+	 * The criterion to use to evaluate the error between output and target
+	 */
+	public CriterionConfig criterion = CriterionConfig.MSE;
+	
+	/**
+	 * The gradient optimization method to use
+	 *  * SGD - stochastic gradient descent (optionally with (nesterov) momentum and regularization parameters)
+	 *  * Adadelta
+	 *  * Adagrad
+	 *  * RMSprop
+	 */
+	public ProcessorConfig method = ProcessorConfig.SGD;
+	
+	/**
+	 * The sampling strategy to use to traverse the dataset
+	 *  * Random
+	 *  * Sequential
+	 */
+	public SamplingConfig sampling = SamplingConfig.RANDOM;
+
 }

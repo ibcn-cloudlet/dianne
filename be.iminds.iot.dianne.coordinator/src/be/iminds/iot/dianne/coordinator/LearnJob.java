@@ -242,8 +242,7 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 	}
 
 	@Override
-	public void onFinish(UUID learnerId, LearnProgress p) {
-		result.progress.add(p);
+	public void onFinish(UUID learnerId) {
 		done(result);
 	}
 

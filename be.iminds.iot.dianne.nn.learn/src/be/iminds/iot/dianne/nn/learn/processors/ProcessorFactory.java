@@ -26,7 +26,6 @@ import java.util.Map;
 
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
-import be.iminds.iot.dianne.nn.learn.config.LearnerConfig;
 import be.iminds.iot.dianne.nn.learn.processors.config.AdadeltaConfig;
 import be.iminds.iot.dianne.nn.learn.processors.config.AdagradConfig;
 import be.iminds.iot.dianne.nn.learn.processors.config.AdamConfig;
@@ -38,13 +37,21 @@ import be.iminds.iot.dianne.nn.learn.processors.config.SGDConfig;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 
 public class ProcessorFactory {
+	
+	public enum ProcessorConfig {
+		SGD,
+		ADADELTA,
+		ADAGRAD,
+		RMSPROP,
+		ADAM
+	}
 
-	public static GradientProcessor createGradientProcessor(LearnerConfig.Method method, NeuralNetwork nn,
+	public static GradientProcessor createGradientProcessor(ProcessorConfig method, NeuralNetwork nn,
 			Map<String, String> config){
 		return addMomentum(addRegularization(createSGDProcessor(method, nn, config), config), config);
 	}
 	
-	public static GradientProcessor createSGDProcessor(LearnerConfig.Method method, NeuralNetwork nn,
+	public static GradientProcessor createSGDProcessor(ProcessorConfig method, NeuralNetwork nn,
 			Map<String, String> config){
 		
 		GradientProcessor p = null;

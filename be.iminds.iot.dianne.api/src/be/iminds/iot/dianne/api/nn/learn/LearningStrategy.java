@@ -20,31 +20,24 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.nn.learn.sampling;
+package be.iminds.iot.dianne.api.nn.learn;
 
 import java.util.Map;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
-import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
+import be.iminds.iot.dianne.api.nn.NeuralNetwork;
+import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 
-public class SamplingFactory {
-	
-	public enum SamplingConfig {
-		RANDOM,
-		SEQUENTIAL
-	}
-	
-	public static SamplingStrategy createSamplingStrategy(SamplingConfig strategy, Dataset d, Map<String, String> config){
-		SamplingStrategy sampling = null;
+/**
+ * Basic interface to implement a learning routine.
+ * 
+ * @author tverbele
+ *
+ */
+public interface LearningStrategy {
 
-		switch(strategy) {
-		case SEQUENTIAL:
-			sampling = new SequentialSamplingStrategy(d);
-			break;
-		default:
-			sampling = new RandomSamplingStrategy(d);
-		}
-		
-		return sampling;
-	}
+	void setup(Map<String, String> config, Dataset dataset, NeuralNetwork... nns) throws Exception;
+
+	LearnProgress processIteration(long i) throws Exception;
+
 }

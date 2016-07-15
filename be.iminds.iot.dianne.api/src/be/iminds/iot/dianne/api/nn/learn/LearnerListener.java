@@ -30,6 +30,6 @@ public interface LearnerListener {
 	
 	void onException(UUID learnerId, Throwable e);
 	
-	void onFinish(UUID learnerId, LearnProgress p);
+	void onFinish(UUID learnerId);
 	
 }

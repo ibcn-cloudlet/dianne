@@ -380,7 +380,7 @@ public class DianneLearner extends HttpServlet {
 		}
 
 		@Override
-		public void onFinish(UUID learnerId, LearnProgress p) {
+		public void onFinish(UUID learnerId) {
 	
 		}
 		

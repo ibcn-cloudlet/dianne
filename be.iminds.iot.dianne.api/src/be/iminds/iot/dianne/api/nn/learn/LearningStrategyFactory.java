@@ -20,31 +20,15 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.nn.learn.sampling;
+package be.iminds.iot.dianne.api.nn.learn;
 
-import java.util.Map;
+/**
+ * Factory to create LearningStrategy instances
+ * @author tverbele
+ *
+ */
+public interface LearningStrategyFactory {
 
-import be.iminds.iot.dianne.api.dataset.Dataset;
-import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
-
-public class SamplingFactory {
+	LearningStrategy createLearningStrategy(String name);
 	
-	public enum SamplingConfig {
-		RANDOM,
-		SEQUENTIAL
-	}
-	
-	public static SamplingStrategy createSamplingStrategy(SamplingConfig strategy, Dataset d, Map<String, String> config){
-		SamplingStrategy sampling = null;
-
-		switch(strategy) {
-		case SEQUENTIAL:
-			sampling = new SequentialSamplingStrategy(d);
-			break;
-		default:
-			sampling = new RandomSamplingStrategy(d);
-		}
-		
-		return sampling;
-	}
 }

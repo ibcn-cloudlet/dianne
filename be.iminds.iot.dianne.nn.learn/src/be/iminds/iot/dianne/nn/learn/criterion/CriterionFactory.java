@@ -23,11 +23,16 @@
 package be.iminds.iot.dianne.nn.learn.criterion;
 
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
-import be.iminds.iot.dianne.nn.learn.config.LearnerConfig;
 
 public class CriterionFactory {
 	
-	public static Criterion createCriterion(LearnerConfig.Criterion c){
+	public enum CriterionConfig {
+		MSE,
+		NLL,
+		ABS
+	}
+	
+	public static Criterion createCriterion(CriterionConfig c){
 		Criterion criterion = null;
 		
 		switch(c) {

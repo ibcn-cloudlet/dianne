@@ -11,14 +11,16 @@ Bundle-Version: 0.5.0.${tstamp}
 	
 -dsannotations: *
 Bundle-Name: Dianne Learner
-Private-Package: be.iminds.iot.dianne.nn.learn.command
+Private-Package: \
+	be.iminds.iot.dianne.nn.learn.command,\
+	be.iminds.iot.dianne.nn.learn,\
+	be.iminds.iot.dianne.nn.learn.strategy
 Export-Package: \
 	be.iminds.iot.dianne.api.nn.learn,\
 	be.iminds.iot.dianne.nn.learn.config,\
 	be.iminds.iot.dianne.nn.learn.sampling.config,\
+	be.iminds.iot.dianne.nn.learn.strategy.config,\
 	be.iminds.iot.dianne.nn.learn.processors.config,\
-	be.iminds.iot.dianne.nn.learn,\
 	be.iminds.iot.dianne.nn.learn.sampling,\
 	be.iminds.iot.dianne.nn.learn.criterion,\
-	be.iminds.iot.dianne.nn.learn.processors,\
-	be.iminds.iot.dianne.api.log
+	be.iminds.iot.dianne.nn.learn.processors

@@ -45,48 +45,13 @@ public class LearnerConfig {
 	public int NaNretry = 0;
 	
 	/**
+	 * Learning strategy
+	 */
+	public String strategy = "FeedForwardLearningStrategy";
+	
+	/**
 	 * Sync delta parameters with repository each syncInterval batches
 	 */
 	public int syncInterval = 1000;
-	
-	public enum Criterion {
-		MSE,
-		NLL,
-		ABS
-	}
-	
-	/**
-	 * The criterion to use to evaluate the error between output and target
-	 */
-	public Criterion criterion = Criterion.MSE;
-	
-	public enum Method {
-		SGD,
-		ADADELTA,
-		ADAGRAD,
-		RMSPROP,
-		ADAM
-	}
-	
-	/**
-	 * The gradient optimization method to use
-	 *  * SGD - stochastic gradient descent (optionally with (nesterov) momentum and regularization parameters)
-	 *  * Adadelta
-	 *  * Adagrad
-	 *  * RMSprop
-	 */
-	public Method method = Method.SGD;
-	
-	public enum Sampling {
-		RANDOM,
-		SEQUENTIAL
-	}
-	
-	/**
-	 * The sampling strategy to use to traverse the dataset
-	 *  * Random
-	 *  * Sequential
-	 */
-	public Sampling sampling = Sampling.RANDOM;
 	
 }
