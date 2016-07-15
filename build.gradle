@@ -41,6 +41,7 @@ ext {
 	extension = (os == "Darwin") ? 'dylib' : 'so'
 	lib = System.env.NATIVE ?: "torch"
 	jenkins_build = System.env.BUILD ?: "false"
+	download_url = "http://dianne.intec.ugent.be/"
 	println("Configuring workspace with configuration parameters 'OS': '$os', 'ARCH': '$arch', 'osgi_os': '$osgi_os', 'osgi_arch': '$osgi_arch', extension: '$extension' and 'NATIVE' lib: '$lib'")
 }
 
@@ -114,3 +115,47 @@ subprojects {
   }
 }
 getTasksByName('test', true).each{ task -> task.dependsOn(getTasksByName('buildNative', true)) }
+
+task("dataset") {
+	description "Download pre-configured datasets (all available by default)."
+	group 'util'
+	doLast {
+		def ds = project.hasProperty('which') ? project.properties['which'] + "/" : ""
+		def dir = project.properties['directory'] ?: "./tools/datasets/"
+		
+		logger.info "Downloading dataset(s) {} to directory {}", ds , dir
+		
+		directory(dir)
+		download(download_url + "datasets/" + ds, dir)
+	}
+}
+
+task("model") {
+	description "Download neural network models (all available by default)."
+	group 'util'
+	doLast {
+		def mod = project.hasProperty('which') ? project.properties['which'] + "/" : ""
+		def dir = project.properties['directory'] ?: "./tools/models/"
+		
+		logger.info "Downloading model(s) {} to directory {}", mod , dir
+		
+		directory(dir)
+		download(download_url + "models/" + mod, dir)
+	}
+}
+
+def download(String[] args) {
+	def url = args[0]
+	def dir = args[1]
+
+	exec {
+		/* Could be better, but works for now */
+		commandLine "wget", "-r", "-np", "-nH", "--cut-dirs=1", "--reject=index.html*", "-P", dir, url
+	}
+}
+
+def directory(String arg) {
+	exec {
+		commandLine "mkdir", "-p", arg
+	}
+}
