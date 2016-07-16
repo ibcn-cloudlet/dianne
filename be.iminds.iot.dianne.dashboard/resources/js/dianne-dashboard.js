@@ -77,6 +77,7 @@ function refreshJobs(){
  		$("#jobs-queue").empty();
  	    $.each(data, function(i) {
  	        var job = data[i];
+
  	        var template = $('#job-item').html();
      	  	Mustache.parse(template);
      	  	var rendered = Mustache.render(template, job);
@@ -89,6 +90,7 @@ function refreshJobs(){
  	 	$("#jobs-running").empty();
  	    $.each(data, function(i) {
  	        var job = data[i];
+
      	  	job.devices = job.targets.length;
      	  	job.time = moment(job.started).from(moment());
  	        

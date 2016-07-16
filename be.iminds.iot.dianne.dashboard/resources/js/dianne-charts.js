@@ -88,11 +88,14 @@ function createResultChart(container, job, scale){
  	  		DIANNE.learnResult(job.id).then(function(learnprogress){
 				 var q = [];
 				 $.each(learnprogress, function(i) {
-					 var progress = learnprogress[i];
-					 q.push({
-						 x: progress.iteration,
-	                     y: progress.q
-	                 });
+					 // TODO determine how to sample
+					 if(i % 1000 == 0){
+						 var progress = learnprogress[i];
+						 q.push({
+							 x: progress.iteration,
+		                     y: progress.q
+		                 });
+					 }
 				 });
 				 createQChart(container, scale, q);
 			});
@@ -102,16 +105,19 @@ function createResultChart(container, job, scale){
 				 var miniBatchError = [];
 				 var validationError = [];
 				 $.each(learnprogress, function(i) {
-					 var progress = learnprogress[i];
-					 miniBatchError.push({
-						 x: progress.iteration,
-	                     y: progress.miniBatchError
-	                 });
-					 if(progress.validationError !== undefined){
-						 validationError.push({
+					 // TODO determine how to sample
+					 if(i % 1000 == 0){
+						 var progress = learnprogress[i];
+						 miniBatchError.push({
 							 x: progress.iteration,
-							 y: progress.validationError
-				 	 	});
+		                     y: progress.miniBatchError
+		                 });
+						 if(progress.validationError !== undefined){
+							 validationError.push({
+								 x: progress.iteration,
+								 y: progress.validationError
+					 	 	});
+						 }
 					 }
 				 });
 				 createErrorChart(container, scale, miniBatchError, validationError);
@@ -187,6 +193,11 @@ function createLineChart(container, xAxis, yAxis, scale, title, data, title2, da
             title: {
                 text: xAxis
             },
+        },
+        plotOptions:{
+            series:{
+                turboThreshold: 1000000
+            }
         },
         yAxis: {
             title: {

@@ -22,6 +22,7 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.coordinator.util;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.List;
@@ -59,6 +60,10 @@ public class DianneCoordinatorWriter {
 			writeEvaluationResult(writer, (EvaluationResult) o);
 		} else if(o instanceof AgentResult){
 			writeAgentResult(writer, (AgentResult) o);
+		} else if(o.getClass().equals(String.class)
+				|| o.getClass().isEnum()
+				|| o.getClass().equals(UUID.class)){
+			writer.value(o.toString());
 		} else if(o instanceof List){
 			List l = (List)o;
 			writer.beginArray();
@@ -74,10 +79,17 @@ public class DianneCoordinatorWriter {
 				writeObject(writer, m.get(k));
 			}
 			writer.endObject();
-		} else if(o.getClass().equals(String.class)
-				|| o.getClass().isEnum()
-				|| o.getClass().equals(UUID.class)){
-			writer.value(o.toString());
+		}else if(o.getClass().isArray()){ 
+			int length = Array.getLength(o);
+			if(length == 1){
+				writeObject(writer, Array.get(o, 0));
+			} else {
+				writer.beginArray();
+				for (int i = 0; i < length; i++) {
+					writeObject(writer, Array.get(o, i));
+				}
+				writer.endArray();
+			}
 		} else {
 			writer.beginObject();
 			for(Field f : o.getClass().getFields()){
