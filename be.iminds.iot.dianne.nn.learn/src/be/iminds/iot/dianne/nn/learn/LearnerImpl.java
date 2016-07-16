@@ -54,9 +54,7 @@ import be.iminds.iot.dianne.nn.learn.config.LearnerConfig;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.tensor.Tensor;
 
-@Component(service=Learner.class, 
-property={"aiolos.unique=true",
-		  "dianne.learner.category=EXPERIMENTAL"})
+@Component(property={"aiolos.unique=true"})
 public class LearnerImpl implements Learner {
 	
 	// Listeners

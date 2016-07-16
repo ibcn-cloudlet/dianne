@@ -20,25 +20,18 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.nn.eval;
+package be.iminds.iot.dianne.nn.eval.strategy;
 
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Map;
 
-import org.osgi.service.component.annotations.Component;
-
 import be.iminds.iot.dianne.api.nn.eval.ClassificationEvaluation;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
-import be.iminds.iot.dianne.api.nn.eval.Evaluator;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
-@Component(
-		service={Evaluator.class},
-		property={"aiolos.unique=true",
-		"dianne.evaluator.category=CLASSIFICATION"})
-public class ClassificationEvaluator extends AbstractEvaluator {
+public class ClassificationEvaluationStrategy extends AbstractEvaluationStrategy {
 	
 	protected Tensor confusion;
 	protected int[] rankings;
@@ -47,29 +40,29 @@ public class ClassificationEvaluator extends AbstractEvaluator {
 	
 	protected void init(Map<String, String> config){
 		// reset
-		rankings = new int[total];
+		rankings = new int[(int)total];
 		confusion = null;
 		count = 0;
 	}
 	
-	protected float evalOutput(Tensor out, Tensor expected){
+	protected float eval(Tensor output, Tensor target){
 		if(confusion==null){
-			int confusionSize = out.size();
-			if(out.dim() == 2){
-				confusionSize = out.size(1);
+			int confusionSize = output.size();
+			if(output.dim() == 2){
+				confusionSize = output.size(1);
 			}
 			confusion = new Tensor(confusionSize, confusionSize);
 			confusion.fill(0.0f);
 		}
 		
 		float err = 0;
-		if(out.dim() == 2){
+		if(output.dim() == 2){
 			// batch
-			for(int i=0;i<out.size(0);i++){
-				err += calculateError(out.select(0, i), expected.select(0, i));
+			for(int i=0;i<output.size(0);i++){
+				err += calculateError(output.select(0, i), target.select(0, i));
 			}
 		} else {
-			err += calculateError(out, expected); 
+			err += calculateError(output, target); 
 		}
 		
 		return err;

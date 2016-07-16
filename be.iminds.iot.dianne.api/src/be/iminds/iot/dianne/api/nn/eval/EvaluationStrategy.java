@@ -22,24 +22,22 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.nn.eval;
 
+import java.util.Map;
+
+import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.nn.NeuralNetwork;
+
 /**
- * Represents the progress made by an Evaluator
+ * Basic interface to implement a learning routine.
  * 
  * @author tverbele
  *
  */
-public class EvaluationProgress extends Evaluation {
+public interface EvaluationStrategy {
 
-	/** Number of samples currently processed */
-	public final long processed;
-	
-	public EvaluationProgress(long processed, long total, float error){
-		this.error = error;
-		this.processed = processed;
-		this.total = total;
-	}
+	void setup(Map<String, String> config, Dataset dataset, NeuralNetwork... nns) throws Exception;
 
-	public long getProcessed(){
-		return processed;
-	}
+	EvaluationProgress processIteration(long i) throws Exception;
+
+	Evaluation getResult();
 }

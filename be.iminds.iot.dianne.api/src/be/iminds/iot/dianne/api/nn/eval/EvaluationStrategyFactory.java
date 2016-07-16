@@ -20,15 +20,15 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.nn.eval.config;
+package be.iminds.iot.dianne.api.nn.eval;
 
-import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory.CriterionConfig;
+/**
+ * Factory to create EvaluationStrategy instances
+ * @author tverbele
+ *
+ */
+public interface EvaluationStrategyFactory {
 
-public class CriterionEvaluatorConfig {
-
-	/**
-	 * The criterion to use to evaluate the error between output and target
-	 */
-	public CriterionConfig criterion = CriterionConfig.MSE;
+	EvaluationStrategy createEvaluationStrategy(String name);
 	
 }

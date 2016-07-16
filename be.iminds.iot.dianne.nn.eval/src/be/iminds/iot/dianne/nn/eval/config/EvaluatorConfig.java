@@ -25,6 +25,11 @@ package be.iminds.iot.dianne.nn.eval.config;
 public class EvaluatorConfig {
 
 	/**
+	 * Evaluation Strategy to use
+	 */
+	public String strategy = "ClassificationEvaluationStrategy";
+	
+	/**
 	 * The tag under which to publish the trained parameters
 	 */
 	public String tag;
@@ -33,16 +38,6 @@ public class EvaluatorConfig {
 	 * Output intermediate results to the console
 	 */
 	public boolean trace = false;
-	
-	/**
-	 * Include all raw outputs in the evaluation results
-	 */
-	public boolean includeOutputs = false;
-
-	/**
-	 * Evaluate in batches
-	 */
-	public int batchSize = 0;
 	
 	/**
 	 * Store NN weights with "best" tag if the evaluation error is less than this value

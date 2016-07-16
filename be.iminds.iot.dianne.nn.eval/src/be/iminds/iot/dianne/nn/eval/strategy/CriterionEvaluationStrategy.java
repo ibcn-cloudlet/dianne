@@ -20,36 +20,26 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.nn.eval;
+package be.iminds.iot.dianne.nn.eval.strategy;
 
 import java.util.Map;
 
-import org.osgi.service.component.annotations.Component;
-
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
-import be.iminds.iot.dianne.api.nn.eval.Evaluator;
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
-import be.iminds.iot.dianne.nn.eval.config.CriterionEvaluatorConfig;
 import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory;
-import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.tensor.Tensor;
 
-@Component(
-		service={Evaluator.class},
-		property={"aiolos.unique=true",
-		"dianne.evaluator.category=CRITERION"})
-public class CriterionEvaluator extends AbstractEvaluator {
+public class CriterionEvaluationStrategy extends AbstractEvaluationStrategy {
 	
 	private Criterion criterion;
 	
 	@Override
 	protected void init(Map<String, String> config) {
-		CriterionEvaluatorConfig c = DianneConfigHandler.getConfig(config, CriterionEvaluatorConfig.class);
-		criterion = CriterionFactory.createCriterion(c.criterion);
+		criterion = CriterionFactory.createCriterion(super.config.criterion);
 	}
 
-	protected float evalOutput(Tensor out, Tensor expected){
-		Tensor error = criterion.error(out, expected);
+	protected float eval(Tensor output, Tensor target){
+		Tensor error = criterion.error(output, target);
 		return error.get(0);
 	}
 

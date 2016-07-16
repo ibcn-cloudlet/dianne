@@ -20,26 +20,25 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.api.nn.eval;
+package be.iminds.iot.dianne.nn.eval.strategy.config;
 
-/**
- * Represents the progress made by an Evaluator
- * 
- * @author tverbele
- *
- */
-public class EvaluationProgress extends Evaluation {
+import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory.CriterionConfig;
 
-	/** Number of samples currently processed */
-	public final long processed;
+public class EvaluationStrategyConfig {
+
+	/**
+	 * Include all raw outputs in the evaluation results
+	 */
+	public boolean includeOutputs = false;
+
+	/**
+	 * Evaluate in batches
+	 */
+	public int batchSize = 1;
 	
-	public EvaluationProgress(long processed, long total, float error){
-		this.error = error;
-		this.processed = processed;
-		this.total = total;
-	}
-
-	public long getProcessed(){
-		return processed;
-	}
+	/**
+	 * The criterion to use to evaluate the error between output and target
+	 */
+	public CriterionConfig criterion = CriterionConfig.MSE;
+	
 }

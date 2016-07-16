@@ -33,24 +33,24 @@ import java.util.concurrent.Executors;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
-import be.iminds.iot.dianne.api.dataset.Batch;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.DianneDatasets;
-import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.eval.EvaluationProgress;
+import be.iminds.iot.dianne.api.nn.eval.EvaluationStrategy;
+import be.iminds.iot.dianne.api.nn.eval.EvaluationStrategyFactory;
 import be.iminds.iot.dianne.api.nn.eval.Evaluator;
 import be.iminds.iot.dianne.api.nn.eval.EvaluatorListener;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.nn.eval.config.EvaluatorConfig;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
-import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
  * The AbstractEvaluator has all mechanics to loop through (part of) a Dataset
@@ -61,25 +61,26 @@ import be.iminds.iot.dianne.tensor.Tensor;
  * @author tverbele
  *
  */
-public abstract class AbstractEvaluator implements Evaluator {
+@Component(property={"aiolos.unique=true"})
+public class EvaluatorImpl implements Evaluator {
 	
-	private static ExecutorService listenerExecutor = Executors.newSingleThreadExecutor(); 
-	protected List<EvaluatorListener> listeners = Collections.synchronizedList(new ArrayList<>());
+	private ExecutorService listenerExecutor = Executors.newSingleThreadExecutor(); 
+	private List<EvaluatorListener> listeners = Collections.synchronizedList(new ArrayList<>());
 	
-	protected UUID evaluatorId;
+	private UUID evaluatorId;
 	
-	protected Dianne dianne;
-	protected DianneDatasets datasets;
+	private Dianne dianne;
+	private DianneDatasets datasets;
 	
-	protected EvaluatorConfig config;
+	private EvaluatorConfig config;
 	
-	protected volatile boolean evaluating = false;
+	private volatile boolean evaluating = false;
+
+	private EvaluationStrategyFactory factory;
+	private EvaluationStrategy strategy;
+	private EvaluationProgress progress;
 	
-	protected int index = 0;
-	protected int total;
-	protected float error;
-	protected List<Tensor> outputs;
-	protected long tStart, tEnd, tForward;
+	private long tStart, tEnd;
 	
 	@Override
 	public UUID getEvaluatorId(){
@@ -103,98 +104,50 @@ public abstract class AbstractEvaluator implements Evaluator {
 
 			// Fetch the dataset
 			d = datasets.configureDataset(dataset, config);
-			if(d==null){
+			if(d==null)
 				throw new Exception("Dataset "+dataset+" not available");
-			}
-			total = d.size();
-			error = 0.0f;
-			init(config);
-			
-			NeuralNetwork nn = null;
-			try {
-				nn = dianne.getNeuralNetwork(nni[0]).getValue();
-			} catch (Exception e) {
-				throw new Exception("Neural Network "+nni[0].id+" not available!");
-			}
-			
-			try {
-				if(this.config.tag==null){
-					nn.loadParameters();
-				} else {
-					nn.loadParameters(this.config.tag);
+
+			// Fetch Neural Network instances and load parameters
+			NeuralNetwork[] nns = new NeuralNetwork[nni.length];
+			int n = 0;
+			for(NeuralNetworkInstanceDTO dto : nni){
+				if(dto != null){
+					NeuralNetwork nn = dianne.getNeuralNetwork(dto).getValue();
+					nns[n++] = nn;
+					
+					try {
+						if(this.config.tag==null){
+							nn.loadParameters();
+						} else {
+							nn.loadParameters(this.config.tag);
+						}
+					} catch(Exception e){
+						// ignore if no parameters found
+						System.out.println("No parameters loaded for this evaluation - network is not yet trained?");
+					}
 				}
-			} catch(Exception e){
-				// ignore if no parameters found
-				System.out.println("No parameters loaded for this evaluation - network is not yet trained?");
 			}
+			
+			// Create evaluation strategy
+			strategy = factory.createEvaluationStrategy(this.config.strategy);
+			if(strategy == null)
+				throw new Exception("Strategy "+this.config.strategy+" not available");
+			
+			strategy.setup(config, d, nns);
+			
 		
-			outputs = this.config.includeOutputs ? new ArrayList<Tensor>() : null;
-			tStart = System.currentTimeMillis(); tForward = 0;
+			tStart = System.currentTimeMillis();
 			
-			Sample sample = null;
-			Batch batch = null;
-			int[] indices = null;
-			boolean batchMode = false;
-			if(this.config.batchSize > 0 && d.inputDims() != null){
-				batchMode = true;
-				indices = new int[this.config.batchSize];
-			}
-			
-			for(index=0;index<total;index++){
-				Tensor out;
-				if(batchMode){
-					// for last batch, adjust to remaining size
-					if(index+indices.length > total){
-						indices = new int[total-index];
-						batch = null;
-					}
-					for(int i=0;i<indices.length;i++){
-						indices[i] = index++;
-					}
-					index--; // dont count one too much
-					batch = d.getBatch(batch, indices);
-					
-					long t = System.nanoTime();
-					out = nn.forward(batch.input);
-					tForward += System.nanoTime() - t;
-					
-					if(outputs!=null){
-						for(int i=0;i<this.config.batchSize;i++)
-							outputs.add(out.select(0, i).copyInto(null));
-					}
-					
-					float err = evalOutput(out, batch.target);
-					if(this.config.trace){
-						System.out.println("Batch "+index/this.config.batchSize+" has avg error "+err/this.config.batchSize);
-					}
-					error += err;
-
-				} else {
-					sample = d.getSample(sample, index);
-					
-					long t = System.nanoTime();
-					out = nn.forward(sample.input);
-					tForward += System.nanoTime() - t;
-					
-					if(outputs!=null)
-						outputs.add(out.copyInto(null));
-
-					float err = evalOutput(out, sample.target);
-					error += err;
-
-					if(this.config.trace){
-						System.out.println("Sample "+index+" has error "+err);
-					}
-				}
+			for(int i=0;i<d.size();i++){
+				progress = strategy.processIteration(i);
 				
-				
-				if(index % 1000 == 0){
+				// TODO how frequently publish progress
+				if(i % 1000 == 0){
 					listenerExecutor.execute(()->{
 						List<EvaluatorListener> copy = new ArrayList<>();
 						synchronized(listeners){
 							copy.addAll(listeners);
 						}
-						EvaluationProgress progress =  getProgress();
 						for(EvaluatorListener l : copy){
 							l.onProgress(evaluatorId, progress);
 						}
@@ -204,17 +157,13 @@ public abstract class AbstractEvaluator implements Evaluator {
 			tEnd = System.currentTimeMillis();
 			
 			long evaluationTime = tEnd-tStart;
-			float forwardTime =  (tForward/1000000f)/total;
 			
-			Evaluation eval = finish();
-			eval.total = total;
-			eval.error = error/total;
-			eval.forwardTime = forwardTime;
+			Evaluation eval = strategy.getResult();
 			eval.evaluationTime = evaluationTime;
-			eval.outputs = outputs;
 			
 			if(eval.error < this.config.storeIfBetterThan){
-				nn.storeParameters(this.config.tag, "best");
+				for(NeuralNetwork nn : nns)
+					nn.storeParameters(this.config.tag, "best");
 			}
 			
 			return eval;
@@ -244,17 +193,10 @@ public abstract class AbstractEvaluator implements Evaluator {
 		}
 	}
 	
-	protected abstract void init(Map<String, String> config);
-	
-	protected abstract float evalOutput(Tensor out, Tensor expected);
-	
-	protected abstract Evaluation finish();
-	
 	public EvaluationProgress getProgress(){
 		if(!evaluating)
 			return null;
 		
-		EvaluationProgress progress = new EvaluationProgress(index, total, error/index, System.currentTimeMillis()-tStart, (tForward/1000000f)/total);
 		return progress;
 	}
 	
@@ -276,10 +218,15 @@ public abstract class AbstractEvaluator implements Evaluator {
 	void setDianneDatasets(DianneDatasets d){
 		datasets = d;
 	}
+
+	@Reference
+	void setEvaluationStrategyFactory(EvaluationStrategyFactory f){
+		factory = f;
+	}
 	
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
-	protected void addListener(EvaluatorListener listener, Map<String, Object> properties){
+	void addListener(EvaluatorListener listener, Map<String, Object> properties){
 		String[] targets = (String[])properties.get("targets");
 		if(targets!=null){
 			boolean listen = false;
@@ -294,7 +241,7 @@ public abstract class AbstractEvaluator implements Evaluator {
 		this.listeners.add(listener);
 	}
 	
-	protected void removeListener(EvaluatorListener listener, Map<String, Object> properties){
+	void removeListener(EvaluatorListener listener, Map<String, Object> properties){
 		this.listeners.remove(listener);
 	}
 
