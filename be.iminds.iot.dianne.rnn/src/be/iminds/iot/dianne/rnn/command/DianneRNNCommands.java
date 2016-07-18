@@ -102,6 +102,7 @@ public class DianneRNNCommands {
 	private Map<String, String> createLearnerConfig(String[] properties){
 		Map<String, String> config = new HashMap<String, String>();
 		// defaults
+		config.put("strategy", "be.iminds.iot.dianne.rnn.learn.strategy.BPTTLearningStrategy");
 		config.put("sequenceLength", "20");
 		config.put("criterion", "MSE");
 		config.put("learningRate", "0.01");
@@ -155,7 +156,7 @@ public class DianneRNNCommands {
 		this.platform = p;
 	}
 	
-	@Reference(target="(dianne.learner.type=recurrent)")
+	@Reference
 	void setLearner(Learner l){
 		this.learner = l;
 	}

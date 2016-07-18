@@ -110,7 +110,7 @@ public class DianneRLCommands {
 		this.agent = agent;
 	}
 	
-	@Reference(target="(dianne.learner.category=RL)")
+	@Reference
 	void setLearner(Learner l){
 		this.learner = l;
 	}

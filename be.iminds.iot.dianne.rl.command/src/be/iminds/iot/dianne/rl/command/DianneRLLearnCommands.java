@@ -64,6 +64,7 @@ public class DianneRLLearnCommands {
 	
 	static Map<String, String> createLearnConfig(String[] properties){
 		Map<String, String> config = new HashMap<String, String>();
+		config.put("strategy", "be.iminds.iot.dianne.rl.learn.strategy.DeepQLearningStrategy");
 		
 		for(String property : properties){
 			String[] p = property.split("=");
@@ -75,7 +76,7 @@ public class DianneRLLearnCommands {
 		return config;
 	}
 
-	@Reference(target="(dianne.learner.category=RL)")
+	@Reference
 	void setLearner(Learner l){
 		this.learner = l;
 	}
