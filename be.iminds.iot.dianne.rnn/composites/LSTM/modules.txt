@@ -14,6 +14,7 @@
         "83b911ff-a309-1664-549b-7de8bfe4823a"
       ],
       "name": "Split",
+      "dim": "0",
       "category": "Fork"
     },
     "bf7784bf-bc77-33f1-9442-37e8e5ed75eb": {
@@ -54,6 +55,7 @@
         "fc742319-8157-0e90-ba9c-ad374477e6ae"
       ],
       "name": "Concat",
+      "dim": "0",
       "category": "Join"
     },
     "38a8ff2a-f6bf-5d6a-d5e4-105e13a1c264": {
