@@ -24,3 +24,4 @@ Export-Package: \
 	be.iminds.iot.dianne.nn.learn.sampling,\
 	be.iminds.iot.dianne.nn.learn.criterion,\
 	be.iminds.iot.dianne.nn.learn.processors
+DynamicImport-Package: *

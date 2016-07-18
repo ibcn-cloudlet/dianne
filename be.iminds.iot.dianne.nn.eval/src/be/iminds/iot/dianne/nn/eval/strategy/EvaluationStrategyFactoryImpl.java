@@ -44,20 +44,27 @@ public class EvaluationStrategyFactoryImpl implements EvaluationStrategyFactory 
 	}
 	
 	public EvaluationStrategy createEvaluationStrategy(String name){
-		List<URL> urls = wiring.findEntries("/", name+".class", BundleWiring.FINDENTRIES_RECURSE);
-		
-		if(urls.size() == 0){
-			System.err.println("EvaluationStrategy "+name+" not found");
-			return null;
-		}
-		
-		String u = urls.get(0).toString().substring(9);
-		u = u.substring(u.indexOf("/")+1, u.length()-6);
-		u = u.replaceAll("/", ".");
-			
 		Class c;
 		try {
-			c = this.getClass().getClassLoader().loadClass(u);
+			if(name.contains(".")){
+				// fully qualified class name, load directly
+				c = wiring.getClassLoader().loadClass(name);
+
+			} else {
+				// search resource in this bundles wiring
+				List<URL> urls = wiring.findEntries("/", name+".class", BundleWiring.FINDENTRIES_RECURSE);
+				
+				if(urls.size() == 0){
+					System.err.println("LearningStrategy "+name+" not found");
+					return null;
+				}
+				
+				String u = urls.get(0).toString().substring(9);
+				u = u.substring(u.indexOf("/")+1, u.length()-6);
+				u = u.replaceAll("/", ".");
+		
+				c = this.getClass().getClassLoader().loadClass(u);
+			}
 			return (EvaluationStrategy) c.newInstance();
 		} catch (Throwable e) {
 			e.printStackTrace();
