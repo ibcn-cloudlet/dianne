@@ -22,6 +22,7 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rl.environment.gym;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -57,12 +58,16 @@ public class GymEnvironment implements Environment {
 	
 	private Jep jep;
 	
-	private Tensor observation = new Tensor(6);
+	private Tensor observation;
 	private boolean end;
+	
+	private int[] actionDims;
+	private boolean discrete = true;
+	
+	private int[] observationDims;
 	
 	@Activate
 	void activate() {
-		observation.fill(0.0f);
 		try {
 			thread.submit(()->{
 				try {
@@ -99,6 +104,16 @@ public class GymEnvironment implements Environment {
 		} catch(Exception e){
 			e.printStackTrace();
 		}
+	}
+	
+	@Override
+	public int[] observationDims() {
+		return observationDims;
+	}
+
+	@Override
+	public int[] actionDims() {
+		return actionDims;
 	}
 	
 	@Override
@@ -199,10 +214,58 @@ public class GymEnvironment implements Environment {
 					// TODO check whether env is succesfully created
 					
 					System.out.println("Observation space:");
-					jep.eval("env.observation_space");
+					jep.eval("os = env.observation_space");
+					String o = (String)jep.getValue("os");
+					System.out.println(o);
+					
+					// TODO We need to also incorporate more meta info, like the ranges etc?
+					// Introduce similar concept as "space" for environments?
+					if(o.startsWith("Box")){
+						String ints = o.substring(4, o.length()-1);
+						String[] split = ints.split(",");
+						int i = 0;
+						for(int k=0;k<split.length;k++){
+							if(split[k].length() > 0)
+								i++;
+						}
+						int[] dims = new int[i];
+						i = 0;
+						for(int k=0;k<split.length;k++){
+							if(split[k].length() > 0)
+								dims[i++] = Integer.parseInt(split[k].trim());
+						}
+						observationDims = dims;
+						if(dims.length == 3){
+							// swap
+							observationDims = new int[dims.length];
+							observationDims[0] = dims[2];
+							observationDims[1] = dims[0];
+							observationDims[2] = dims[1];
+						}
+					} else {
+						System.out.println("Unknown observation space");
+					}
+					System.out.println(Arrays.toString(observationDims));
+					observation = new Tensor(observationDims);
+
 					
 					System.out.println("Action space:");
-					jep.eval("env.action_space");
+					jep.eval("acs = env.action_space");
+					String a = (String)jep.getValue("acs");
+					System.out.println(a);
+					
+					if(a.startsWith("Discrete")){
+						String dim = a.substring(9, a.length()-1);
+						actionDims = new int[]{Integer.parseInt(dim)};
+					} else if(a.startsWith("High-Low")){
+						// TODO is this right?!
+						discrete = false;
+						String dim = a.substring(9, a.indexOf(","));
+						actionDims = new int[]{Integer.parseInt(dim)};
+					} else {
+						System.out.println("Unknown action space");
+					}
+					System.out.println(Arrays.toString(actionDims));
 					
 				} catch(Exception e){
 					e.printStackTrace();
@@ -291,12 +354,17 @@ public class GymEnvironment implements Environment {
 		try {
 			thread.submit(()->{
 				try {
-					// random sample for testing
-					//jep.eval("action = env.action_space.sample()");
-
-					// TODO for now only discrete actions are supported
-					int discreteAction = TensorOps.argmax(action);
-					jep.set("action", discreteAction);
+					// generate random sample for testing
+					// jep.eval("action = env.action_space.sample()");
+					
+					
+					if(discrete){
+						int discreteAction = TensorOps.argmax(action);
+						jep.set("action", discreteAction);
+					} else {
+						NDArray a = new NDArray(action.get());
+						jep.set("action", a);
+					}
 				} catch(Exception e){
 					e.printStackTrace();
 				}
@@ -306,4 +374,5 @@ public class GymEnvironment implements Environment {
 		}
 		
 	}
+
 }

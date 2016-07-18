@@ -37,6 +37,16 @@ import be.iminds.iot.dianne.tensor.Tensor;
 public interface Environment {
 
 	/**
+	 * @return dimensions of an observation
+	 */
+	int[] observationDims();
+	
+	/**
+	 * @return dimensions of an action
+	 */
+	int[] actionDims();
+	
+	/**
 	 * Perform an action on the Environment and receive the associated return
 	 * given the current state.
 	 * 

@@ -73,6 +73,16 @@ public class ArcadeLearningEnvironment implements Environment {
 	private Tensor narrowed;
 	
 	@Override
+	public int[] observationDims() {
+		return new int[]{this.config.observationLength, 84, 84};
+	}
+
+	@Override
+	public int[] actionDims() {
+		return new int[]{getActions()};
+	}
+	
+	@Override
 	public float performAction(Tensor action) {
 		if(!active)
 			throw new RuntimeException("The Environment is not active!");

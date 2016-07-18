@@ -83,6 +83,16 @@ public class Pong implements PongEnvironment, Environment {
 	private int opponentAction = 0;
 	
 	@Override
+	public int[] observationDims() {
+		return new int[]{6};
+	}
+
+	@Override
+	public int[] actionDims() {
+		return new int[]{3};
+	}
+	
+	@Override
 	public float performAction(Tensor action) {
 		if(!active)
 			throw new RuntimeException("The Environment is not active!");
@@ -295,5 +305,4 @@ public class Pong implements PongEnvironment, Environment {
 	public void cleanup() {
 		active = false;
 	}
-	
 }
