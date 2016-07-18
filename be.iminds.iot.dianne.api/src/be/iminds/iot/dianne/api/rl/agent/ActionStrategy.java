@@ -20,15 +20,18 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.rl.agent.strategy;
+package be.iminds.iot.dianne.api.rl.agent;
 
 import java.util.Map;
 
+import be.iminds.iot.dianne.api.nn.NeuralNetwork;
+import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 public interface ActionStrategy {
 
-	Tensor selectActionFromOutput(Tensor output, long i);
+	void setup(Map<String, String> config, Environment env, NeuralNetwork... nns) throws Exception;
 	
-	void configure(Map<String, String> config);
+	AgentProgress processIteration(long i, Tensor state) throws Exception;
+	
 }

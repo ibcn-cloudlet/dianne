@@ -226,7 +226,7 @@ public class DianneCoordinatorWriter {
 		for(AgentProgress p : result.results.values()){
 			writer.beginObject();
 			writer.name("samples");
-			writer.value(p.samples);
+			writer.value(p.iteration);
 			writer.endObject();		
 		}
 		writer.endArray();

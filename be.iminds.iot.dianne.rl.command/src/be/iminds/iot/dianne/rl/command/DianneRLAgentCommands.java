@@ -53,9 +53,14 @@ public class DianneRLAgentCommands {
 	
 	public void act(String nnName, String environment, String experiencePool, String... properties){
 		try {
-			NeuralNetworkInstanceDTO nni = platform.deployNeuralNetwork(nnName);
+			NeuralNetworkInstanceDTO nni = null;
+			if(nnName != null){
+				nni = platform.deployNeuralNetwork(nnName);
+				agent.act(environment, experiencePool, createAgentConfig(properties), nni);
+			} else {
+				agent.act(environment, experiencePool, createAgentConfig(properties));
+			}
 			
-			agent.act(environment, experiencePool, createAgentConfig(properties), nni);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

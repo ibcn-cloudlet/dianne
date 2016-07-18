@@ -25,22 +25,15 @@ package be.iminds.iot.dianne.rl.agent.config;
 
 public class AgentConfig {
 
-	public enum ActionStrategy {
-		GREEDY,
-		BOLTZMANN,
-		MANUAL
-		// TODO add "raw" in case of continuous outputs?
-	}
-	
 	/**
 	 * The strategy with which actions are chosen
 	 */
-	public ActionStrategy strategy = ActionStrategy.GREEDY;
+	public String strategy = "GreedyActionStrategy";
 	
 	/**
 	 * After how many actions to fetch new weights from the Repository
 	 */
-	public int syncInterval = 10000;
+	public int[] syncInterval = new int[]{10000};
 	
 	/**
 	 * Tag of fetched weights

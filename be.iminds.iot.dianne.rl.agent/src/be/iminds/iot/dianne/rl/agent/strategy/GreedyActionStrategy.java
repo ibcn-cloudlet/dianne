@@ -24,24 +24,39 @@ package be.iminds.iot.dianne.rl.agent.strategy;
 
 import java.util.Map;
 
-import org.osgi.service.component.annotations.Component;
-
+import be.iminds.iot.dianne.api.nn.NeuralNetwork;
+import be.iminds.iot.dianne.api.rl.agent.ActionStrategy;
+import be.iminds.iot.dianne.api.rl.agent.AgentProgress;
+import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
-import be.iminds.iot.dianne.rl.agent.api.ExplorationController;
 import be.iminds.iot.dianne.rl.agent.strategy.config.GreedyConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
-@Component(property={"strategy=GREEDY",
-		"aiolos.proxy=false"})
-public class GreedyActionStrategy implements ActionStrategy, ExplorationController {
+/**
+ * Epsilon-greedy action strategy that takes the output of a neural net 
+ * and epsilon-greedy select the (discrete) action with the highest output value.
+ * 
+ * @author tverbele
+ *
+ */
+public class GreedyActionStrategy implements ActionStrategy {
 	
 	private GreedyConfig config;
-	
-	public Tensor selectActionFromOutput(Tensor output, long i) {
+	private NeuralNetwork nn;
+
+	@Override
+	public void setup(Map<String, String> config, Environment env, NeuralNetwork... nns) throws Exception {
+		this.config = DianneConfigHandler.getConfig(config, GreedyConfig.class);
+		this.nn = nns[0];
+	}
+
+	@Override
+	public AgentProgress processIteration(long i, Tensor state) throws Exception {
+		Tensor output = nn.forward(state);
 		
 		Tensor action = new Tensor(output.size());
-		action.fill(-1);
+		action.fill(0);
 		
 		double epsilon = config.epsilonMin + (config.epsilonMax - config.epsilonMin) * Math.exp(-i * config.epsilonDecay);
 		
@@ -51,18 +66,7 @@ public class GreedyActionStrategy implements ActionStrategy, ExplorationControll
 			action.set(1, TensorOps.argmax(output));
 		}
 		
-		return action;
-	}
-	
-	@Override
-	public void configure(Map<String, String> config) {
-		this.config = DianneConfigHandler.getConfig(config, GreedyConfig.class);
-	}
-
-	@Override
-	public void setExploration(float exploration) {
-		this.config.epsilonMax = exploration;
-		this.config.epsilonMin = exploration;
+		return new AgentProgress(i, action);
 	}
 
 }

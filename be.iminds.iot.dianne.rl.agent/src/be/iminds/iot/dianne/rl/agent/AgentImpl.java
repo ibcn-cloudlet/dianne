@@ -40,6 +40,8 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
+import be.iminds.iot.dianne.api.rl.agent.ActionStrategy;
+import be.iminds.iot.dianne.api.rl.agent.ActionStrategyFactory;
 import be.iminds.iot.dianne.api.rl.agent.Agent;
 import be.iminds.iot.dianne.api.rl.agent.AgentProgress;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
@@ -47,11 +49,10 @@ import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
 import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.agent.config.AgentConfig;
-import be.iminds.iot.dianne.rl.agent.strategy.ActionStrategy;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 @Component
-public class DeepRLAgent implements Agent {
+public class AgentImpl implements Agent {
 
 	private UUID agentId;
 	
@@ -60,7 +61,7 @@ public class DeepRLAgent implements Agent {
 	private Map<String, ActionStrategy> strategies = new HashMap<String, ActionStrategy>();
 	private Dianne dianne;
 
-	private NeuralNetwork nn;
+	private NeuralNetwork[] nns;
 	private ExperiencePool pool;
 	private Environment env;
 	
@@ -71,7 +72,9 @@ public class DeepRLAgent implements Agent {
 	private long i = 0;
 	private volatile boolean acting;
 	
-	private ActionStrategy actionStrategy;
+	private ActionStrategy strategy;
+	private ActionStrategyFactory factory;
+	private volatile AgentProgress progress;
 	
 	// separate thread for updating the experience pool
 	private Thread experienceUploadThread;
@@ -107,15 +110,9 @@ public class DeepRLAgent implements Agent {
 		this.envs.remove(name);
 	}
 
-	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
-	void addStrategy(ActionStrategy s, Map<String, Object> properties) {
-		String strategy = (String) properties.get("strategy");
-		this.strategies.put(strategy, s);
-	}
-
-	void removeStrategy(ActionStrategy s, Map<String, Object> properties) {
-		String strategy = (String) properties.get("strategy");
-		this.strategies.remove(strategy);
+	@Reference
+	void setActionFactoryStrategy(ActionStrategyFactory f){
+		this.factory = f;
 	}
 	
 	@Activate
@@ -140,15 +137,18 @@ public class DeepRLAgent implements Agent {
 	}
 	
 	@Override
-	public synchronized void act(String environment, String experiencePool, Map<String, String> config, NeuralNetworkInstanceDTO... nni)
+	public void act(String environment, String experiencePool, Map<String, String> config, NeuralNetworkInstanceDTO... nni)
 			throws Exception {
-		if (acting)
-			throw new Exception("Already running an Agent here");
-		else if (environment == null || !envs.containsKey(environment))
-			throw new Exception("Environment " + environment + " is null or not available");
-		else if (experiencePool != null && !pools.containsKey(experiencePool))
-			throw new Exception("ExperiencePool " + experiencePool + " is not available");
-
+		synchronized(this){
+			if (acting)
+				throw new Exception("Already running an Agent here");
+			else if (environment == null || !envs.containsKey(environment))
+				throw new Exception("Environment " + environment + " is null or not available");
+			else if (experiencePool != null && !pools.containsKey(experiencePool))
+				throw new Exception("ExperiencePool " + experiencePool + " is not available");
+			
+			acting = true;
+		}
 		
 		System.out.println("Agent Configuration");
 		System.out.println("===================");
@@ -156,18 +156,23 @@ public class DeepRLAgent implements Agent {
 		this.config = DianneConfigHandler.getConfig(config, AgentConfig.class);
 		this.properties = config;
 		
-		String strategy = this.config.strategy.toString();
-		actionStrategy = strategies.get(strategy);
-		if(actionStrategy==null)
+		this.strategy = factory.createActionStrategy(this.config.strategy);
+		if(strategy==null)
 			throw new RuntimeException("Invalid strategy selected: "+strategy);
 		
-		actionStrategy.configure(config);
-		
-		try {
-			nn = dianne.getNeuralNetwork(nni[0]).getValue();
-		} catch(Exception e){}
-		if (nn == null)
-			throw new Exception("Network instance " + nni[0].id + " is not available");
+		if(nni == null){
+			// for Agents a null is allowed, e-g when using hard-coded policies
+			nns = new NeuralNetwork[0];
+		} else {
+			int n = 0;
+			nns = new NeuralNetwork[nni.length];
+			for(NeuralNetworkInstanceDTO dto : nni){
+				if(dto != null){
+					NeuralNetwork nn = dianne.getNeuralNetwork(dto).getValue();
+					nns[n++] = nn;
+				}
+			}
+		}
 		
 		env = envs.get(environment);
 		pool = pools.get(experiencePool);
@@ -181,14 +186,13 @@ public class DeepRLAgent implements Agent {
 		
 		actingThread = new Thread(new AgentRunnable());
 		experienceUploadThread = new Thread(new UploadRunnable());
-		acting = true;
 		actingThread.start();
 		experienceUploadThread.start();
 	}
 
 	@Override
 	public AgentProgress getProgress() {
-		return new AgentProgress(i);
+		return progress;
 	}
 	
 	@Override
@@ -203,11 +207,6 @@ public class DeepRLAgent implements Agent {
 		}
 	}
 	
-	private Tensor selectActionFromObservation(Tensor state, long i) {
-		Tensor out = nn.forward(state);
-		return actionStrategy.selectActionFromOutput(out, i);
-	}
-	
 	private class AgentRunnable implements Runnable {
 
 		@Override
@@ -216,22 +215,27 @@ public class DeepRLAgent implements Agent {
 			Tensor next = new Tensor();
 			ExperiencePoolSample s = new ExperiencePoolSample();
 			
-			env.setup(properties);
-			
 			try {
+				// setup environment
+				env.setup(properties);
+				
+				// setup action strategy
+				strategy.setup(properties, env, nns);
+		
 				s.input = env.getObservation(current);
 	
 				for(i = 0; acting; i++) {
-					if(config.syncInterval > 0 && i % config.syncInterval == 0){
-						// sync parameters
-						try {
-							nn.loadParameters(config.tag);
-						} catch(Exception e){
-							System.out.println("Failed to load parameters with tag "+config.tag);
+					// sync parameters
+					for(int k=0;k<nns.length;k++){
+						int syncInterval = (k < config.syncInterval.length) ? config.syncInterval[k] : config.syncInterval[0];
+						if(syncInterval > 0 && i % syncInterval == 0){
+							nns[k].loadParameters(config.tag);
 						}
+						k++;
 					}
 					
-					s.target = selectActionFromObservation(s.input, i);
+					progress = strategy.processIteration(i, s.input);
+					s.target = progress.action;
 	
 					s.reward= env.performAction(s.target);
 					s.nextState = env.getObservation(next);

@@ -20,11 +20,15 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.rl.agent.api;
+package be.iminds.iot.dianne.api.rl.agent;
 
+/**
+ * Factory to create LearningStrategy instances
+ * @author tverbele
+ *
+ */
+public interface ActionStrategyFactory {
 
-public interface ExplorationController {
-
-	public void setExploration(float exploration);
+	ActionStrategy createActionStrategy(String name);
 	
 }

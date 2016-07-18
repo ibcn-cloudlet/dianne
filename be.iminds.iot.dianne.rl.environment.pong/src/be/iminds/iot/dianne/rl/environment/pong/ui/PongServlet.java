@@ -41,15 +41,12 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.http.HttpService;
 
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.api.rl.agent.Agent;
 import be.iminds.iot.dianne.api.rl.environment.EnvironmentListener;
-import be.iminds.iot.dianne.rl.agent.api.ManualActionController;
 import be.iminds.iot.dianne.rl.environment.pong.Pong;
 import be.iminds.iot.dianne.rl.environment.pong.api.PongEnvironment;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -67,7 +64,8 @@ public class PongServlet extends HttpServlet implements EnvironmentListener {
 	private PongWebSocketServer pongWebSocket;
 
 	private Agent agent;
-	private ManualActionController agentAction;
+// TODO find a better solution for the ManualActionController	
+//	private ManualActionController agentAction;
 
 	// for now hard coded
 	private String nn = "DeepQPong";
@@ -154,9 +152,9 @@ public class PongServlet extends HttpServlet implements EnvironmentListener {
 				float a = Integer.parseInt(msg.substring(8));
 				float[] t = new float[] { a == 1 ? 1 : 0, a == 0 ? 1 : 0,
 						a == -1 ? 1 : 0 };
-				if (agentAction != null) {
-					agentAction.setAction(new Tensor(t, 3));
-				}
+//				if (agentAction != null) {
+//					agentAction.setAction(new Tensor(t, 3));
+//				}
 			} else if (msg.startsWith("ai=")) {
 				if (msg.contains("human")) {
 					pongEnvironment.useAI(false);
@@ -232,18 +230,18 @@ public class PongServlet extends HttpServlet implements EnvironmentListener {
 		}
 	}
 
-	@Reference(cardinality = ReferenceCardinality.OPTIONAL, policy = ReferencePolicy.DYNAMIC)
-	void setAgentAction(ManualActionController a) {
-		this.agentAction = a;
-		this.agentAction.setAction(new Tensor(new float[] { 0, 1,
-					0 }, 3));
-	}
-
-	public void unsetAgentAction(ManualActionController a) {
-		if (this.agentAction == a) {
-			this.agentAction = null;
-		}
-	}
+//	@Reference(cardinality = ReferenceCardinality.OPTIONAL, policy = ReferencePolicy.DYNAMIC)
+//	void setAgentAction(ManualActionController a) {
+//		this.agentAction = a;
+//		this.agentAction.setAction(new Tensor(new float[] { 0, 1,
+//					0 }, 3));
+//	}
+//
+//	public void unsetAgentAction(ManualActionController a) {
+//		if (this.agentAction == a) {
+//			this.agentAction = null;
+//		}
+//	}
 
 	@Reference
 	void setAgent(Agent a) {

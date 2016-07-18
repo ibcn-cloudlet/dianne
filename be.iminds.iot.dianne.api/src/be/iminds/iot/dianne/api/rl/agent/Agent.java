@@ -53,7 +53,7 @@ public interface Agent {
 	 * @param nni the neural network instance(s) to be used by the agent
 	 * @throws Exception if the environment of pool are unknown or the agent is busy
 	 */
-	void act(String environment, String experiencePool, Map<String, String> config,NeuralNetworkInstanceDTO... nni) throws Exception;
+	void act(String environment, String experiencePool, Map<String, String> config, NeuralNetworkInstanceDTO... nni) throws Exception;
 
 	/**
 	 * @return the current progress of the Learner

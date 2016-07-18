@@ -24,27 +24,40 @@ package be.iminds.iot.dianne.rl.agent.strategy;
 
 import java.util.Map;
 
-import org.osgi.service.component.annotations.Component;
-
+import be.iminds.iot.dianne.api.nn.NeuralNetwork;
+import be.iminds.iot.dianne.api.rl.agent.ActionStrategy;
+import be.iminds.iot.dianne.api.rl.agent.AgentProgress;
+import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.agent.strategy.config.BoltzmannConfig;
 import be.iminds.iot.dianne.tensor.ModuleOps;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
-@Component(property={"strategy=BOLTZMANN",
-			"aiolos.proxy=false"})
-public class BoltzmannStrategy implements ActionStrategy {
+/**
+ * Epsilon-greedy action strategy that takes the output of a neural net 
+ * and select the (discrete) action using a Boltzman distribution.
+ * 
+ * @author tverbele
+ *
+ */
+public class BoltzmannActionStrategy implements ActionStrategy {
 	
 	private BoltzmannConfig config;
-	
-	private String[] loglabels = new String[]{"Q0", "Q1", "Q2", "temperature"};
+	private NeuralNetwork nn;
 	
 	@Override
-	public Tensor selectActionFromOutput(Tensor output, long i) {
+	public void setup(Map<String, String> config, Environment env, NeuralNetwork... nns) throws Exception {
+		this.config = DianneConfigHandler.getConfig(config, BoltzmannConfig.class);
+		this.nn = nns[0];
+	}
+
+	@Override
+	public AgentProgress processIteration(long i, Tensor state) throws Exception {
+		Tensor output = nn.forward(state);
 		
 		Tensor action = new Tensor(output.size());
-		action.fill(-1);
+		action.fill(0);
 		
 		double temperature = config.temperatureMin + (config.temperatureMax - config.temperatureMin) * Math.exp(-i * config.temperatureDecay);
 		
@@ -59,12 +72,7 @@ public class BoltzmannStrategy implements ActionStrategy {
 		
 		action.set(1, a);
 		
-		return action;
-	}
-
-	@Override
-	public void configure(Map<String, String> config) {
-		this.config = DianneConfigHandler.getConfig(config, BoltzmannConfig.class);
+		return new AgentProgress(i, action);
 	}
 
 }

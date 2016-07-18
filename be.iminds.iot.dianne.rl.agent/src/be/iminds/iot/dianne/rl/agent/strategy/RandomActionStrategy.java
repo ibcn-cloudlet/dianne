@@ -20,12 +20,41 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.rl.agent.api;
+package be.iminds.iot.dianne.rl.agent.strategy;
 
+import java.util.Map;
+import java.util.Random;
+
+import be.iminds.iot.dianne.api.nn.NeuralNetwork;
+import be.iminds.iot.dianne.api.rl.agent.ActionStrategy;
+import be.iminds.iot.dianne.api.rl.agent.AgentProgress;
+import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.tensor.Tensor;
 
-public interface ManualActionController {
+/**
+ * Select a random discrete action.
+ * 
+ * @author tverbele
+ *
+ */
+public class RandomActionStrategy implements ActionStrategy {
 
-	public void setAction(Tensor a);
+	private Tensor action;
+	private Random r = new Random(System.currentTimeMillis());
+	
+	@Override
+	public void setup(Map<String, String> config, Environment env, NeuralNetwork... nns) throws Exception {
+		 action = new Tensor(env.actionDims());
+	}
+
+	@Override
+	public AgentProgress processIteration(long i, Tensor state) throws Exception {
+		action.fill(0f);
+		
+		int index = r.nextInt(action.size());
+		action.set(1.0f, index);
+		
+		return new AgentProgress(i, action);
+	}
 	
 }

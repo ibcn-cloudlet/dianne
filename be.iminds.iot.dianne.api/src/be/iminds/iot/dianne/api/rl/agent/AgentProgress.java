@@ -22,11 +22,16 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.rl.agent;
 
+import be.iminds.iot.dianne.tensor.Tensor;
+
 public class AgentProgress {
 
-	public long samples;
+	public final long iteration;
 	
-	public AgentProgress(long samples){
-		this.samples = samples;
+	public final Tensor action;
+	
+	public AgentProgress(long i, Tensor a){
+		this.iteration = i;
+		this.action = a;
 	}
 }

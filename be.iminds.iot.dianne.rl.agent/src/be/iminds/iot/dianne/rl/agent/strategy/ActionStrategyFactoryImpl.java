@@ -22,32 +22,48 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rl.agent.strategy;
 
-import java.util.Map;
+import java.net.URL;
+import java.util.List;
 
-import be.iminds.iot.dianne.api.nn.NeuralNetwork;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.wiring.BundleWiring;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+
 import be.iminds.iot.dianne.api.rl.agent.ActionStrategy;
-import be.iminds.iot.dianne.api.rl.agent.AgentProgress;
-import be.iminds.iot.dianne.api.rl.environment.Environment;
-import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.api.rl.agent.ActionStrategyFactory;
 
-// TODO ... we need to define a new generic mechanism to bind a "controller" to this 
-// kind of strategy to manually control an agent, e.g. keyboard/gamepad/vr controllers
-// mapping actions for a given environment via the setup?
-public class ManualActionStrategy implements ActionStrategy {
+@Component
+public class ActionStrategyFactoryImpl implements ActionStrategyFactory {
 
-	private Tensor action;
+	private BundleWiring wiring;
 	
-	public void setAction(Tensor a){
-		this.action = a;
+	@Activate
+	void activate(BundleContext context){
+		wiring = context.getBundle().adapt(BundleWiring.class);
 	}
-
-	@Override
-	public void setup(Map<String, String> config, Environment env, NeuralNetwork... nns) throws Exception {
-	}
-
-	@Override
-	public AgentProgress processIteration(long i, Tensor state) throws Exception {
-		return new AgentProgress(i, action);
+	
+	public ActionStrategy createActionStrategy(String name){
+		List<URL> urls = wiring.findEntries("/", name+".class", BundleWiring.FINDENTRIES_RECURSE);
+		
+		if(urls.size() == 0){
+			System.err.println("ActionStrategy "+name+" not found");
+			return null;
+		}
+		
+		String u = urls.get(0).toString().substring(9);
+		u = u.substring(u.indexOf("/")+1, u.length()-6);
+		u = u.replaceAll("/", ".");
+			
+		Class c;
+		try {
+			c = this.getClass().getClassLoader().loadClass(u);
+			return (ActionStrategy) c.newInstance();
+		} catch (Throwable e) {
+			e.printStackTrace();
+		}
+		
+		return null;
 	}
 	
 }
