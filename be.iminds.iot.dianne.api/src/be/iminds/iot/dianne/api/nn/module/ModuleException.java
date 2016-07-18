@@ -30,7 +30,7 @@ public class ModuleException extends Exception {
 	public String type;
 	
 	public ModuleException(UUID moduleId, String type, boolean forward, Exception cause){
-		super("Error in "+(forward ? "forward" : "backward")+" of module "+type+" "+moduleId+": "+cause.getMessage());
+		super("Error in "+(forward ? "forward" : "backward")+" of module "+type+" "+moduleId+": "+cause.getMessage(), cause);
 		this.moduleId = moduleId;
 		this.type = type;
 	}
