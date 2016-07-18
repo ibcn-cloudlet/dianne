@@ -22,6 +22,7 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.util;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.Map;
 
@@ -86,7 +87,21 @@ public class DianneConfigHandler {
 		System.out.println("---");
 		for(Field f : config.getClass().getFields()){
 			try {
-				System.out.println("* "+f.getName()+" = "+f.get(config));
+				if(f.getType().isArray()){
+					String s = "* "+f.getName()+" = [";
+					Object array = f.get(config);
+					int l = Array.getLength(array);
+					for(int i=0;i<l;i++){
+						s+= Array.get(array, i);
+						if(i != l-1){
+							s+= ", ";
+						}
+					}
+					s+="]";
+					System.out.println(s);
+				} else {
+					System.out.println("* "+f.getName()+" = "+f.get(config));
+				}
 			} catch (IllegalArgumentException e) {
 			} catch (IllegalAccessException e) {
 			}
