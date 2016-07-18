@@ -31,7 +31,6 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.AsyncEvent;
@@ -46,8 +45,6 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.osgi.service.component.annotations.ReferencePolicy;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -83,8 +80,8 @@ public class DianneLearner extends HttpServlet {
 	private static final JsonParser parser = new JsonParser();
 	
 	private DiannePlatform platform;
-	private Map<String, Learner> learners = new ConcurrentHashMap<>();
-	private Map<String, Evaluator> evaluators = new ConcurrentHashMap<>();
+	private Learner learner;
+	private Evaluator evaluator;
 
 	private int interval = 10;
 	private AsyncContext sse = null;
@@ -99,32 +96,19 @@ public class DianneLearner extends HttpServlet {
 		this.repository = repo;
 	}
 	
-	
 	@Reference
 	void setDianneDatasets(DianneDatasets d){
 		this.datasets = d;
 	}
 	
-	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
-			policy=ReferencePolicy.DYNAMIC)
-	void addLearner(Map<String, Object> properties, Learner l){
-		String category = (String)properties.get("dianne.learner.category");
-		this.learners.put(category, l);
+	@Reference
+	void setLearner(Learner l){
+		this.learner = l;
 	}
-	
-	void removeLearner(Learner l){
-		this.learners.values().remove(l);
-	}
-	
-	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
-			policy=ReferencePolicy.DYNAMIC)
-	void addEvaluator(Map<String, Object> properties, Evaluator e){
-		String category = (String)properties.get("dianne.evaluator.category");
-		this.evaluators.put(category, e);
-	}
-	
-	void removeEvaluator(Evaluator e){
-		this.evaluators.values().remove(e);
+
+	@Reference
+	void setEvaluator(Evaluator e){
+		this.evaluator = e;
 	}
 	
 	@Reference
@@ -178,7 +162,7 @@ public class DianneLearner extends HttpServlet {
 
 		String action = request.getParameter("action");
 		if(action.equals("stop")){
-			learners.get("FF").stop();
+			learner.stop();
 			return;
 		}
 		
@@ -230,7 +214,7 @@ public class DianneLearner extends HttpServlet {
 							response.getWriter().flush();
 						}
 						
-						learners.get("FF").learn(dataset, config, nni);
+						learner.learn(dataset, config, nni);
 
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -249,7 +233,7 @@ public class DianneLearner extends HttpServlet {
 					}
 					
 					try {
-						Evaluation result = evaluators.get(type).eval(dataset, config, nni);
+						Evaluation result = evaluator.eval(dataset, config, nni);
 
 						JsonObject eval = new JsonObject();
 						
@@ -328,7 +312,7 @@ public class DianneLearner extends HttpServlet {
 	
 		public void register(BundleContext context){
 			Dictionary<String, Object> props = new Hashtable();
-			props.put("targets", new String[]{learners.get("FF").getLearnerId().toString()});
+			props.put("targets", new String[]{learner.getLearnerId().toString()});
 			props.put("aiolos.unique", true);
 			reg = context.registerService(LearnerListener.class, this, props);
 		}
