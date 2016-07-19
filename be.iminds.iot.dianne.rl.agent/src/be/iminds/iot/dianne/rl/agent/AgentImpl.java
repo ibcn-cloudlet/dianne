@@ -37,6 +37,8 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
+import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.DianneDatasets;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
@@ -56,12 +58,12 @@ public class AgentImpl implements Agent {
 
 	private UUID agentId;
 	
-	private Map<String, ExperiencePool> pools = new HashMap<String, ExperiencePool>();
 	private Map<String, Environment> envs = new HashMap<String, Environment>();
-	private Map<String, ActionStrategy> strategies = new HashMap<String, ActionStrategy>();
 	private Dianne dianne;
 
 	private NeuralNetwork[] nns;
+	private DianneDatasets datasets;
+	
 	private ExperiencePool pool;
 	private Environment env;
 	
@@ -88,15 +90,9 @@ public class AgentImpl implements Agent {
 		dianne = d;
 	}
 	
-	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
-	void addExperiencePool(ExperiencePool pool, Map<String, Object> properties) {
-		String name = (String) properties.get("name");
-		this.pools.put(name, pool);
-	}
-
-	void removeExperiencePool(ExperiencePool pool, Map<String, Object> properties) {
-		String name = (String) properties.get("name");
-		this.pools.remove(name);
+	@Reference
+	void setDianneDatasets(DianneDatasets d){
+		datasets = d;
 	}
 
 	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
@@ -142,11 +138,7 @@ public class AgentImpl implements Agent {
 		synchronized(this){
 			if (acting)
 				throw new Exception("Already running an Agent here");
-			else if (environment == null || !envs.containsKey(environment))
-				throw new Exception("Environment " + environment + " is null or not available");
-			else if (experiencePool != null && !pools.containsKey(experiencePool))
-				throw new Exception("ExperiencePool " + experiencePool + " is not available");
-			
+
 			acting = true;
 		}
 		
@@ -157,8 +149,10 @@ public class AgentImpl implements Agent {
 		this.properties = config;
 		
 		this.strategy = factory.createActionStrategy(this.config.strategy);
-		if(strategy==null)
+		if(strategy==null){
+			acting = false;
 			throw new RuntimeException("Invalid strategy selected: "+strategy);
+		}
 		
 		if(nni == null){
 			// for Agents a null is allowed, e-g when using hard-coded policies
@@ -175,7 +169,13 @@ public class AgentImpl implements Agent {
 		}
 		
 		env = envs.get(environment);
-		pool = pools.get(experiencePool);
+		
+		Dataset d = datasets.configureDataset(experiencePool, config);
+		if(d == null || !(d instanceof ExperiencePool)){
+			acting = false;
+			throw new RuntimeException("Invalid experience pool: "+experiencePool);
+		}
+		pool = (ExperiencePool) d;
 
 		buffer = new ArrayList<>(this.config.experienceInterval);
 		upload = new ArrayList<>(this.config.experienceInterval);
@@ -291,11 +291,13 @@ public class AgentImpl implements Agent {
 				}
 			} catch(Exception e){
 				e.printStackTrace();
+			} finally {
+				env.cleanup();
+				
+				datasets.releaseDataset(pool);
+				
+				acting = false;
 			}
-			
-			env.cleanup();
-			
-			acting = false;
 		}
 	}
 	
