@@ -196,6 +196,8 @@ public class LearnerImpl implements Learner {
 						publishProgress(progress);
 						
 					}
+				} catch(InterruptedException e){ 
+					// ignore, just interrupt the thread
 				} catch(Throwable t){
 					learning = false;
 
@@ -401,45 +403,23 @@ public class LearnerImpl implements Learner {
 	}
 	
 	private void publishError(final Throwable t){
-		synchronized(listenerExecutor){
-			if(wait){
-				try {
-					listenerExecutor.wait();
-				} catch (InterruptedException e) {
-				}
-			}
+		List<LearnerListener> copy = new ArrayList<>();
+		synchronized(listeners){
+			copy.addAll(listeners);
 		}
-		
-		listenerExecutor.submit(()->{
-			List<LearnerListener> copy = new ArrayList<>();
-			synchronized(listeners){
-				copy.addAll(listeners);
-			}
-			for(LearnerListener l : copy){
-				l.onException(learnerId, t.getCause()!=null ? t.getCause() : t);
-			}
-		});
+		for(LearnerListener l : copy){
+			l.onException(learnerId, t.getCause()!=null ? t.getCause() : t);
+		}
 	}
 	
 	private void publishDone(){
-		synchronized(listenerExecutor){
-			if(wait){
-				try {
-					listenerExecutor.wait();
-				} catch (InterruptedException e) {
-				}
-			}
+		List<LearnerListener> copy = new ArrayList<>();
+		synchronized(listeners){
+			copy.addAll(listeners);
 		}
-		
-		listenerExecutor.submit(()->{
-			List<LearnerListener> copy = new ArrayList<>();
-			synchronized(listeners){
-				copy.addAll(listeners);
-			}
-			for(LearnerListener l : copy){
-				l.onFinish(learnerId);
-			}
-		});
+		for(LearnerListener l : copy){
+			l.onFinish(learnerId);
+		}
 	}
 }
 
