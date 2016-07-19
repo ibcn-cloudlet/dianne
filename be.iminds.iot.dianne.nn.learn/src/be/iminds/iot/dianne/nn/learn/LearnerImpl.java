@@ -194,6 +194,7 @@ public class LearnerImpl implements Learner {
 						
 						// Publish progress
 						publishProgress(progress);
+						
 					}
 				} catch(Throwable t){
 					learning = false;
@@ -231,6 +232,8 @@ public class LearnerImpl implements Learner {
 				learning = false;
 				
 				try {
+					// interrupt in case of waiting during publish progress
+					learnerThread.interrupt();
 					learnerThread.join();
 				} catch (InterruptedException e) {
 					e.printStackTrace();
@@ -366,7 +369,7 @@ public class LearnerImpl implements Learner {
 	 * Publish progress on sync interval times
 	 */
 	private void publishProgress(final LearnProgress progress){
-		if(progress == null)
+		if(!learning)
 			return;
 		
 		synchronized(listenerExecutor){
@@ -374,6 +377,8 @@ public class LearnerImpl implements Learner {
 				try {
 					listenerExecutor.wait();
 				} catch (InterruptedException e) {
+					wait = false;
+					return;
 				}
 			}
 			wait = true;
