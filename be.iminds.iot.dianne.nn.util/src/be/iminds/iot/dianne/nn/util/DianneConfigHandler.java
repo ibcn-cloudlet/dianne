@@ -100,7 +100,7 @@ public class DianneConfigHandler {
 					s+="]";
 					System.out.println(s);
 				} else {
-					String s = f.get(config).toString();
+					String s = ""+f.get(config);
 					if(s.length() > 100){
 						s = s.substring(0, 100)+"...";
 					}
