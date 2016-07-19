@@ -45,7 +45,6 @@ import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.eval.EvaluationProgress;
 import be.iminds.iot.dianne.api.nn.eval.EvaluationStrategy;
-import be.iminds.iot.dianne.api.nn.eval.EvaluationStrategyFactory;
 import be.iminds.iot.dianne.api.nn.eval.Evaluator;
 import be.iminds.iot.dianne.api.nn.eval.EvaluatorListener;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;

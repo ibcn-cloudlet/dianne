@@ -44,7 +44,6 @@ import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.util.StrategyFactory;
 import be.iminds.iot.dianne.api.rl.agent.ActionStrategy;
-import be.iminds.iot.dianne.api.rl.agent.ActionStrategyFactory;
 import be.iminds.iot.dianne.api.rl.agent.Agent;
 import be.iminds.iot.dianne.api.rl.agent.AgentProgress;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
