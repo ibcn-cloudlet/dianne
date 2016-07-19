@@ -30,7 +30,11 @@ function submitJob(){
     $.each(array, function() {
     	if(this.name === 'config'){
     		// parse out config to json object
-    		job[this.name] = configStringToObject(this.value);
+    		if(this.value !== undefined && this.value !==""){
+    			job.config = configStringToObject(this.value);
+    		} else {
+    			job.config = {};
+    		}
     	} else {
     		job[this.name] = this.value || '';
     	}
@@ -40,7 +44,12 @@ function submitJob(){
     if(job.name!==undefined && job.name!==""){
     	job.config.name = job.name;
 	}
-	
+
+    // insert custom strategy implementation to the config
+    if(job.strategy!==undefined && job.strategy!==""){
+    	job.config.strategy = job.strategy;
+	}
+    
     if(job.type==="LEARN"){
     	DIANNE.learn(job.nn, job.dataset, job.config);
     } else if(job.type==="EVALUATE"){
@@ -369,6 +378,9 @@ function configStringToObject(string){
 function configObjectToString(object){
 	var configString = "";
 	$.each(object, function(k, v) {
+		if(v.length > 50){
+			 v = v.substr(0, 50) + "\u2026";
+		}
 		if(k !== "name") // exclude name here
 			configString += k + "=" + v + " ";
 	});
