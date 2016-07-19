@@ -30,5 +30,5 @@ package be.iminds.iot.dianne.api.nn.learn;
 public interface LearningStrategyFactory {
 
 	LearningStrategy createLearningStrategy(String name);
-	
+
 }
