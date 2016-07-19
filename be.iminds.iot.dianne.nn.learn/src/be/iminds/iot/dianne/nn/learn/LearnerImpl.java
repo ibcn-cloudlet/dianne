@@ -48,8 +48,8 @@ import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.learn.LearnerListener;
 import be.iminds.iot.dianne.api.nn.learn.LearningStrategy;
-import be.iminds.iot.dianne.api.nn.learn.LearningStrategyFactory;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
+import be.iminds.iot.dianne.api.nn.util.StrategyFactory;
 import be.iminds.iot.dianne.nn.learn.config.LearnerConfig;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -78,7 +78,7 @@ public class LearnerImpl implements Learner {
 	private Dataset dataset;
 
 	// Learning strategy
-	private LearningStrategyFactory factory;
+	private StrategyFactory<LearningStrategy> factory;
 	private LearningStrategy strategy;
 	
 	// Config
@@ -155,7 +155,7 @@ public class LearnerImpl implements Learner {
 				initializeParameters(nn);
 			
 			// Create learning strategy
-			strategy = factory.createLearningStrategy(this.config.strategy);
+			strategy = factory.create(this.config.strategy);
 			
 			if(strategy == null)
 				throw new RuntimeException("LearningStrategy "+this.config.strategy+" not available");
@@ -340,7 +340,7 @@ public class LearnerImpl implements Learner {
 	}
 
 	@Reference
-	void setLearningStrategyFactory(LearningStrategyFactory f){
+	void setLearningStrategyFactory(StrategyFactory f){
 		factory = f;
 	}
 	

@@ -1,32 +1,11 @@
-/*******************************************************************************
- * DIANNE  - Framework for distributed artificial neural networks
- * Copyright (C) 2015  iMinds - IBCN - UGent
- *
- * This file is part of DIANNE.
- *
- * DIANNE is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Contributors:
- *     Tim Verbelen, Steven Bohez
- *******************************************************************************/
-package be.iminds.iot.dianne.nn.learn.strategy;
+package be.iminds.iot.dianne.nn.util.strategy;
 
 import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.tools.JavaCompiler;
@@ -34,15 +13,15 @@ import javax.tools.ToolProvider;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.wiring.BundleWire;
 import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 
-import be.iminds.iot.dianne.api.nn.learn.LearningStrategy;
-import be.iminds.iot.dianne.api.nn.learn.LearningStrategyFactory;
+import be.iminds.iot.dianne.api.nn.util.StrategyFactory;
 
-@Component
-public class LearningStrategyFactoryImpl implements LearningStrategyFactory {
+@Component(property={"aiolos.proxy=false"})
+public class StrategyFactoryImpl<T> implements StrategyFactory<T>{
 
 	private BundleContext context;
 	private BundleWiring wiring;
@@ -53,10 +32,11 @@ public class LearningStrategyFactoryImpl implements LearningStrategyFactory {
 		this.wiring = context.getBundle().adapt(BundleWiring.class);
 	}
 	
-	public LearningStrategy createLearningStrategy(String strategy){
+	@Override
+	public T create(String strategy) {
 		if(strategy.contains("class")){
 			try {
-				return createLearningStrategyFromCode(strategy);
+				return createFromSource(strategy);
 			} catch(Exception e){
 				e.printStackTrace();
 				return null;
@@ -71,10 +51,16 @@ public class LearningStrategyFactoryImpl implements LearningStrategyFactory {
 
 			} else {
 				// search resource in this bundles wiring
-				List<URL> urls = wiring.findEntries("/", strategy+".class", BundleWiring.FINDENTRIES_RECURSE);
+				List<URL> urls = new ArrayList<>();
+				
+				urls.addAll(wiring.findEntries("/", strategy+".class", BundleWiring.FINDENTRIES_RECURSE));
+				for(BundleWire w : wiring.getRequiredWires(null)){
+					List<URL> u = w.getProvider().getWiring().findEntries("/", strategy+".class", BundleWiring.FINDENTRIES_RECURSE);
+					urls.addAll(u);
+				}
 				
 				if(urls.size() == 0){
-					System.err.println("LearningStrategy "+strategy+" not found");
+					System.err.println("Strategy "+strategy+" not found");
 					return null;
 				}
 				
@@ -85,15 +71,16 @@ public class LearningStrategyFactoryImpl implements LearningStrategyFactory {
 				c = this.getClass().getClassLoader().loadClass(u);
 			}
 			
-			return (LearningStrategy) c.newInstance();
+			return (T) c.newInstance();
 		} catch (Throwable e) {
 			e.printStackTrace();
 		}
 		
 		return null;
 	}
+
 	
-	public LearningStrategy createLearningStrategyFromCode(String source) throws Exception {
+	private T createFromSource(String source) throws Exception {
 		// fetch package
 		String pkg = "";
 		int pkgStart = source.indexOf("package");
@@ -144,7 +131,7 @@ public class LearningStrategyFactoryImpl implements LearningStrategyFactory {
 		URLClassLoader classLoader = URLClassLoader.newInstance(new URL[] {root.toURI().toURL()}, wiring.getClassLoader());
 		Class c = classLoader.loadClass(fqn);
 		Object instance = c.newInstance();
-		return (LearningStrategy) instance;
+		return (T) instance;
 	}
 	
 }

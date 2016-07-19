@@ -4,6 +4,7 @@ Export-Package: \
 	be.iminds.iot.dianne.api.nn,\
 	be.iminds.iot.dianne.api.nn.runtime,\
 	be.iminds.iot.dianne.api.nn.module,\
+	be.iminds.iot.dianne.api.nn.util,\
 	be.iminds.iot.dianne.api.nn.module.dto,\
 	be.iminds.iot.dianne.api.nn.module.factory,\
 	be.iminds.iot.dianne.api.nn.learn,\

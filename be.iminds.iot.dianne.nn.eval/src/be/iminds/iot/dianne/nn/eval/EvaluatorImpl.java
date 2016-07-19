@@ -49,6 +49,7 @@ import be.iminds.iot.dianne.api.nn.eval.EvaluationStrategyFactory;
 import be.iminds.iot.dianne.api.nn.eval.Evaluator;
 import be.iminds.iot.dianne.api.nn.eval.EvaluatorListener;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
+import be.iminds.iot.dianne.api.nn.util.StrategyFactory;
 import be.iminds.iot.dianne.nn.eval.config.EvaluatorConfig;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 
@@ -76,7 +77,7 @@ public class EvaluatorImpl implements Evaluator {
 	
 	private volatile boolean evaluating = false;
 
-	private EvaluationStrategyFactory factory;
+	private StrategyFactory<EvaluationStrategy> factory;
 	private EvaluationStrategy strategy;
 	private EvaluationProgress progress;
 	
@@ -129,7 +130,7 @@ public class EvaluatorImpl implements Evaluator {
 			}
 			
 			// Create evaluation strategy
-			strategy = factory.createEvaluationStrategy(this.config.strategy);
+			strategy = factory.create(this.config.strategy);
 			if(strategy == null)
 				throw new Exception("Strategy "+this.config.strategy+" not available");
 			
@@ -220,7 +221,7 @@ public class EvaluatorImpl implements Evaluator {
 	}
 
 	@Reference
-	void setEvaluationStrategyFactory(EvaluationStrategyFactory f){
+	void setEvaluationStrategyFactory(StrategyFactory f){
 		factory = f;
 	}
 	

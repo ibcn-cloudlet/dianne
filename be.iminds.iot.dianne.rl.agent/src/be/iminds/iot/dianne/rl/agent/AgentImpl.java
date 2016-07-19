@@ -42,6 +42,7 @@ import be.iminds.iot.dianne.api.dataset.DianneDatasets;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
+import be.iminds.iot.dianne.api.nn.util.StrategyFactory;
 import be.iminds.iot.dianne.api.rl.agent.ActionStrategy;
 import be.iminds.iot.dianne.api.rl.agent.ActionStrategyFactory;
 import be.iminds.iot.dianne.api.rl.agent.Agent;
@@ -75,7 +76,7 @@ public class AgentImpl implements Agent {
 	private volatile boolean acting;
 	
 	private ActionStrategy strategy;
-	private ActionStrategyFactory factory;
+	private StrategyFactory<ActionStrategy> factory;
 	private volatile AgentProgress progress;
 	
 	// separate thread for updating the experience pool
@@ -107,7 +108,7 @@ public class AgentImpl implements Agent {
 	}
 
 	@Reference
-	void setActionFactoryStrategy(ActionStrategyFactory f){
+	void setActionFactoryStrategy(StrategyFactory f){
 		this.factory = f;
 	}
 	
@@ -148,7 +149,7 @@ public class AgentImpl implements Agent {
 		this.config = DianneConfigHandler.getConfig(config, AgentConfig.class);
 		this.properties = config;
 		
-		this.strategy = factory.createActionStrategy(this.config.strategy);
+		this.strategy = factory.create(this.config.strategy);
 		if(strategy==null){
 			acting = false;
 			throw new RuntimeException("Invalid strategy selected: "+strategy);
