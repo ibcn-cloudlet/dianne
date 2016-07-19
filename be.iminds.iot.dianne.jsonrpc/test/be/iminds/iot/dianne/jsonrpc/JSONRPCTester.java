@@ -65,7 +65,14 @@ public class JSONRPCTester {
 			learnProperties.put("momentum", "0.9");
 			learnProperties.put("regularization", "0.0001");
 			learnProperties.put("trainingSet", "0:60000");
-			learnProperties.put("maxIterations", "10000");
+			learnProperties.put("maxIterations", "100");
+			/* strategy source code */
+			//String strategy = new String(Files.readAllBytes(FileSystems.getDefault().getPath("test", "test","TestStrategy.java")));
+			//learnProperties.put("strategy", strategy);
+			/* strategy fully qualified classname */
+			//learnProperties.put("strategy", "be.iminds.iot.dianne.nn.learn.strategy.FeedForwardLearningStrategy");
+			/* known strategy classname */
+			//learnProperties.put("strategy", "FeedForwardLearningStrategy");
 			JsonObject learnRequestJson = DianneJSONRPCRequestFactory.createLearnRequest(1, nn, dataset,
 					learnProperties);
 			byte[] learnRequest = learnRequestJson.toString().getBytes();
