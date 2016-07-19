@@ -100,7 +100,11 @@ public class DianneConfigHandler {
 					s+="]";
 					System.out.println(s);
 				} else {
-					System.out.println("* "+f.getName()+" = "+f.get(config));
+					String s = f.get(config).toString();
+					if(s.length() > 100){
+						s = s.substring(0, 100)+"...";
+					}
+					System.out.println("* "+f.getName()+" = "+s);
 				}
 			} catch (IllegalArgumentException e) {
 			} catch (IllegalAccessException e) {
