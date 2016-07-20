@@ -70,7 +70,7 @@ function resubmitJob(jobId){
 		$("#submit-nn").val(job.nn);
 		$("#submit-dataset").val(job.dataset);
 		$("#submit-config").val(configObjectToString(job.config));
-
+		$("#submit-strategy").val(job.config.strategy);
 		
 		$('#submit-modal').modal('show');
 	});
@@ -381,7 +381,7 @@ function configObjectToString(object){
 		if(v.length > 50){
 			 v = v.substr(0, 50) + "\u2026";
 		}
-		if(k !== "name") // exclude name here
+		if(k !== "name" && k !== "strategy") // exclude name and strategy here
 			configString += k + "=" + v + " ";
 	});
 	return configString;
