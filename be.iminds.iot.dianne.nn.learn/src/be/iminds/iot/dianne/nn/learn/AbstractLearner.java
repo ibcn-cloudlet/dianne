@@ -366,7 +366,7 @@ public abstract class AbstractLearner implements Learner {
 	}
 	
 	@Reference
-	void setDianneDatasets(DianneDatasets d){
+	protected void setDianneDatasets(DianneDatasets d){
 		datasets = d;
 	}
 	
