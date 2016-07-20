@@ -423,6 +423,7 @@ function addModule(moduleItem){
 	// should be on the canvas
 	if(moduleItem.css('left').startsWith('-')){
 		moduleItem.remove();
+		jsPlumb.repaintEverything();
 		return;
 	}
 	
@@ -619,7 +620,7 @@ function addConnection(connection){
  * @param connection to remove
  */
 function removeConnection(connection){
-	console.log("Remove connection " + connection.sourceId + " -> " + connection.targetId);
+	console.log("Remove connection " + connection.sourceId + " -> " + connection.suspendedElementId);
 	// TODO support multiple next/prev
 	if(nn.modules[connection.sourceId]===undefined){
 		if(learning[connection.sourceId]!==undefined){
@@ -628,22 +629,22 @@ function removeConnection(connection){
 			delete running[connection.sourceId].input; 
 			$.post("/dianne/input", {"action" : "unsetinput",
 				"nnId" : nn.id,
-				"inputId" : connection.targetId,
+				"inputId" : connection.suspendedElementId,
 				"input" : running[connection.sourceId].name});
 		}
-	} else if(nn.modules[connection.targetId]===undefined){
-		if(learning[connection.targetId]!==undefined){
-			delete learning[connection.targetId].output; 
+	} else if(nn.modules[connection.suspendedElementId]===undefined){
+		if(learning[connection.suspendedElementId]!==undefined){
+			delete learning[connection.suspendedElementId].output; 
 		} else {
-			delete running[connection.targetId].output;
+			delete running[connection.suspendedElementId].output;
 			$.post("/dianne/output", {"action" : "unsetoutput",
 				"nnId" : nn.id,
 				"outputId" : connection.sourceId,
-				"output" : running[connection.targetId].name});
+				"output" : running[connection.suspendedElementId].name});
 		}
 	} else {
-		removeNext(connection.sourceId, connection.targetId);	
-		removePrevious(connection.targetId, connection.sourceId);
+		removeNext(connection.sourceId, connection.suspendedElementId);	
+		removePrevious(connection.suspendedElementId, connection.sourceId);
 	}
 }
 
