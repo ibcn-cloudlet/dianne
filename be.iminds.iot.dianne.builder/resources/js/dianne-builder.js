@@ -420,7 +420,12 @@ jsPlumb.ready(function() {
  * @param toolboxItem the toolbox DOM element the moduleItem was cloned from
  */
 function addModule(moduleItem){
-
+	// should be on the canvas
+	if(moduleItem.css('left').startsWith('-')){
+		moduleItem.remove();
+		return;
+	}
+	
 	// get type from toolbox item and generate new UUID
 	var name = moduleItem.attr("name");
 	var type = moduleItem.attr("type");
@@ -528,6 +533,11 @@ function setupModule(moduleItem, type, category){
 	{
 		drag: function(){
 		    jsPlumb.repaintEverything();
+		},
+		stop: function(ev){
+			if($(this).css('left').startsWith('-')){
+				removeModule($(this));
+			}
 		}
 	});
 }
