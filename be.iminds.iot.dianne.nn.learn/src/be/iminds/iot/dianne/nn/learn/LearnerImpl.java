@@ -213,9 +213,6 @@ public class LearnerImpl implements Learner {
 				}
 
 				System.out.println("Stopped learning");
-				publishDone();
-				
-				progress = null;
 			});
 			learnerThread.start();
 		
@@ -240,6 +237,9 @@ public class LearnerImpl implements Learner {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
+				
+				publishDone();
+				progress = null;
 			}
 		}
 	}
