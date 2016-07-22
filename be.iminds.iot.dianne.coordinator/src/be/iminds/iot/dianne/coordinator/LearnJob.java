@@ -32,7 +32,6 @@ import java.util.stream.Collectors;
 
 import org.osgi.framework.ServiceRegistration;
 
-import be.iminds.iot.dianne.api.coordinator.Job.EvaluationCategory;
 import be.iminds.iot.dianne.api.coordinator.Job.LearnCategory;
 import be.iminds.iot.dianne.api.coordinator.Job.Type;
 import be.iminds.iot.dianne.api.coordinator.LearnResult;
@@ -55,7 +54,7 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 	private Map<UUID, Learner> learners = new HashMap<>();
 
 	private Evaluator validator = null;
-	private NeuralNetworkInstanceDTO validationNni;
+	private NeuralNetworkInstanceDTO[] validationNns;
 	private int validationInterval = 1000;
 	private float bestValidationError = Float.MAX_VALUE;
 	private float miniBatchErrorThreshold = -Float.MAX_VALUE;
@@ -97,13 +96,14 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 	@Override
 	public void execute() throws Exception {
 		
-		// check if we need to do validation - if so get an Evaluator on one of the targets
-		// TODO what in case of multiple NNs? pass those all to validation Evaluator?
 		if(config.containsKey("validationSet")){
 			for(UUID target : targets){
 				validator = coordinator.evaluators.get(target);
 				if(validator != null){
-					validationNni = coordinator.platform.deployNeuralNetwork(nns[0].name, "Dianne Coordinator LearnJob Validaton NN"+jobId, target);
+					validationNns = new NeuralNetworkInstanceDTO[nns.length];
+					for(int i=0;i<nns.length;i++){
+						validationNns[i] = coordinator.platform.deployNeuralNetwork(nns[i].name, "Dianne Coordinator LearnJob Validaton NN"+jobId, target);
+					}
 					break;
 				}
 			}
@@ -164,6 +164,11 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 			} else {
 				c.put("tag", jobId.toString());
 			}
+			if(config.containsKey("validationStrategy")){
+				c.put("strategy", config.get("validationStrategy"));
+			} else {
+				c.put("strategy", "CriterionEvaluationStrategy");
+			}
 			if(config.containsKey("criterion")){
 				c.put("criterion", config.get("criterion"));
 			}
@@ -174,7 +179,7 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 			c.put("storeIfBetterThan", ""+bestValidationError);
 			
 			try {
-				validation = validator.eval(dataset, c, validationNni);
+				validation = validator.eval(dataset, c, validationNns);
 				
 				if(Float.isNaN(validation.error)){
 					validation = null;
@@ -245,8 +250,10 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 		if(reg!=null)
 			reg.unregister();
 
-		if(validationNni != null)
-			coordinator.platform.undeployNeuralNetwork(validationNni);
+		if(validationNns != null){
+			for(NeuralNetworkInstanceDTO nn : validationNns)
+				coordinator.platform.undeployNeuralNetwork(nn);
+		}
 	}
 
 	@Override
