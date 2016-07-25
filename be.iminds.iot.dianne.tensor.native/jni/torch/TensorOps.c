@@ -613,7 +613,7 @@ void scale2d(THTensor* r, THTensor* t){
 	float s_y = (y_in-1)/(float)(y_out-1);
 	float s_x = (x_in-1)/(float)(x_out-1);
 
-	int channels = r->size[0];
+	int channels = r->size[r->nDimension-3];
 
 	real* src_ptr = THTensor_(data)(t);
 	real* dst_ptr = THTensor_(data)(r);
