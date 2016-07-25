@@ -33,6 +33,12 @@ html, body {
 	padding: 196px 0 90px 0;
 }
 
+/* Toolbox shadow */
+#toolbox {
+	-moz-box-shadow: 15px 0px 5px -7px rgba(0,0,0,0.10);
+	box-shadow: 15px 0px 5px -7px rgba(0,0,0,0.10);
+}
+
 /*
 * fix for scrollbars
 */
