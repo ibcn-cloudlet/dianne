@@ -86,7 +86,10 @@ public class DianneModuleFactory implements ModuleFactory {
 				new ModulePropertyDTO("Size", "size", Integer.class.getName())));
 		
 		addSupportedType( new ModuleTypeDTO("Dropout", "Regularization", true, 
-				new ModulePropertyDTO("Dropout rate", "dropout", Float.class.getName())));
+				new ModulePropertyDTO("Dropout rate", "rate", Float.class.getName())));
+
+		addSupportedType( new ModuleTypeDTO("DropPath", "Regularization", true, 
+				new ModulePropertyDTO("DropPath rate", "rate", Float.class.getName())));
 		
 		addSupportedType( new ModuleTypeDTO("Linear", "Layer", true, 
 					new ModulePropertyDTO("Input size", "input", Integer.class.getName()),
@@ -263,8 +266,14 @@ public class DianneModuleFactory implements ModuleFactory {
 		}
 		case "Dropout":
 		{
-			float dropout = Float.parseFloat(dto.properties.get("dropout"));
-			module = new Dropout(id, dropout);
+			float rate = Float.parseFloat(dto.properties.get("rate"));
+			module = new Dropout(id, rate);
+			break;
+		}
+		case "DropPath":
+		{
+			float rate = Float.parseFloat(dto.properties.get("rate"));
+			module = new Dropout(id, rate);
 			break;
 		}
 		case "Tanh":
