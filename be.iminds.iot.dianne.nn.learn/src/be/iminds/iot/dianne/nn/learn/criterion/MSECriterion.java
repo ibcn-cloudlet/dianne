@@ -34,9 +34,11 @@ import be.iminds.iot.dianne.tensor.TensorOps;
  */
 public class MSECriterion implements Criterion {
 
-	protected Tensor diff;
-	protected Tensor error;
-	protected Tensor grad;
+	private Tensor diff;
+	private Tensor error;
+	private Tensor grad;
+	
+	private float div = 1;
 	
 	public MSECriterion() {
 		this.error = new Tensor(1);
@@ -45,13 +47,27 @@ public class MSECriterion implements Criterion {
 	@Override
 	public Tensor error(final Tensor output, final Tensor target) {
 		diff = TensorOps.sub(diff, output, target);
-		error.set(TensorOps.dot(diff, diff) / (output.dim() == 2 ? output.size(1) : output.size(0)), 0);
+		
+		// to determine if it is batch or not ... use following rule of thumb
+		// 1d = no batch, 2d = batched 1d, 3d = no batch image, 4d = batched image, 5d = batched volumetric
+		int[] dims = output.dims();
+		int d = dims.length;
+		if(d == 2){
+			div = dims[1];
+		} else if(d == 4){
+			div = dims[1]*dims[2]*dims[3];
+		} else if(d == 5){
+			div = dims[1]*dims[2]*dims[3]*dims[4];
+		} else {
+			div = output.size();
+		}
+		error.set(TensorOps.dot(diff, diff) / div, 0);		
 		return error;
 	}
 
 	@Override
 	public Tensor grad(final Tensor output, final Tensor target) {
-		grad = TensorOps.mul(grad, diff, 2.0f / (output.dim() == 2 ? output.size(1) : output.size(0)));
+		grad = TensorOps.mul(grad, diff, 2.0f / div);
 		return grad;
 	}
 
