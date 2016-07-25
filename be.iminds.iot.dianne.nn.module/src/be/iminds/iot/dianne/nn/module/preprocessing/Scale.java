@@ -32,7 +32,7 @@ public class Scale extends AbstractModule {
 
 	// dims of the scaled tensor
 	private int[] targetDims;
-	private float[] scaleFactors = null;
+	private double[] scaleFactors = null;
 	
 	private int[] inputDims;
 	private int batchSize = 0;
@@ -47,12 +47,12 @@ public class Scale extends AbstractModule {
 		this.targetDims = dims;
 	}
 	
-	public Scale(final float... factors){
+	public Scale(final double... factors){
 		super();
 		this.scaleFactors = factors;
 	}
 
-	public Scale(UUID id, final float... factors){
+	public Scale(UUID id, final double... factors){
 		super(id);
 		this.scaleFactors = factors;
 	}

@@ -576,60 +576,41 @@ public class DianneModuleFactory implements ModuleFactory {
 		case "Scale":
 		{
 			if(hasProperty(dto.properties, "dim0")){
-				int dim0 = Integer.parseInt(dto.properties.get("dim0"));
+				List<Integer> dims = new ArrayList<>();
 				
-				if(!hasProperty(dto.properties, "dim2")){
-					module = new Scale(id, dim0);
-					break;
-				}
+				int i = 0;
+				do {
+					int dim = Integer.parseInt(dto.properties.get("dim" + i));
+					dims.add(dim);
+				} while(hasProperty(dto.properties, "dim" + ++i));
 				
-				int dim1 = Integer.parseInt(dto.properties.get("dim1"));
-
-				if(!hasProperty(dto.properties, "dim2")){
-					module = new Scale(id, dim0, dim1);
-					break;
-				}
-					
-				int dim2 = Integer.parseInt(dto.properties.get("dim2"));
-				module = new Scale(id, dim0, dim1, dim2);
+				module = new Scale(id, dims.stream().mapToInt(d -> d).toArray());
 				break;
 				
 			} else if(hasProperty(dto.properties, "factor0")){
-				float factor0 = Float.parseFloat(dto.properties.get("factor0"));
+				List<Float> factors = new ArrayList<>();
 				
-				if(!hasProperty(dto.properties, "factor1")){
-					module = new Scale(id, factor0);
-					break;
-				}
+				int i = 0;
+				do {
+					float factor = Float.parseFloat(dto.properties.get("factor" + i));
+					factors.add(factor);
+				} while(hasProperty(dto.properties, "factor" + ++i));
 				
-				float factor1 = Float.parseFloat(dto.properties.get("factor1"));
-
-				if(!hasProperty(dto.properties, "factor2")){
-					module = new Scale(id, factor0, factor1);
-					break;
-				}
-					
-				float factor2 = Float.parseFloat(dto.properties.get("factor2"));
-				module = new Scale(id, factor0, factor1, factor2);
+				module = new Scale(id, factors.stream().mapToDouble(f -> f).toArray());
 				break;
 			}	 			
 		}
 		case "Frame":
 		{
-			int[] dims;
+			List<Integer> dims = new ArrayList<>();
 			
-			int dim0 = Integer.parseInt(dto.properties.get("dim0"));
-			int dim1 = Integer.parseInt(dto.properties.get("dim1"));
+			int i = 0;
+			do {
+				int dim = Integer.parseInt(dto.properties.get("dim" + i));
+				dims.add(dim);
+			} while(hasProperty(dto.properties, "dim" + ++i));
 			
-			if(hasProperty(dto.properties, "dim2")){
-				int dim2 = Integer.parseInt(dto.properties.get("dim2"));
-				
-				dims = new int[]{dim0, dim1, dim2};
-			} else {
-				dims = new int[]{dim0, dim1};
-			}
-			
-			module = new Frame(id, dims);
+			module = new Frame(id, dims.stream().mapToInt(d -> d).toArray());
 			break;
 		}
 		case "Reshape":
@@ -647,20 +628,15 @@ public class DianneModuleFactory implements ModuleFactory {
 		}
 		case "Zeropad":
 		{
-			int[] dims;
+			List<Integer> dims = new ArrayList<>();
 			
-			int dim0 = Integer.parseInt(dto.properties.get("dim0"));
-			int dim1 = Integer.parseInt(dto.properties.get("dim1"));
+			int i = 0;
+			do {
+				int dim = Integer.parseInt(dto.properties.get("dim" + i));
+				dims.add(dim);
+			} while(hasProperty(dto.properties, "dim" + ++i));
 			
-			if(hasProperty(dto.properties, "dim2")){
-				int dim2 = Integer.parseInt(dto.properties.get("dim2"));
-				
-				dims = new int[]{dim0, dim1, dim2};
-			} else {
-				dims = new int[]{dim0, dim1};
-			}
-			
-			module = new Zeropad(id, dims);
+			module = new Zeropad(id, dims.stream().mapToInt(d -> d).toArray());
 			break;
 		}
 		case "Masked MaxPooling":
