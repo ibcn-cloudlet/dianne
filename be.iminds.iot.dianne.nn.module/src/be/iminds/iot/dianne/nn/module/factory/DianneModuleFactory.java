@@ -199,7 +199,10 @@ public class DianneModuleFactory implements ModuleFactory {
 		addSupportedType(new ModuleTypeDTO("Scale", "Preprocessing", false, 
 				new ModulePropertyDTO("Dim 0", "dim0", Integer.class.getName()),
 				new ModulePropertyDTO("Dim 1", "dim1", Integer.class.getName()),
-				new ModulePropertyDTO("Dim 2", "dim2", Integer.class.getName())));
+				new ModulePropertyDTO("Dim 2", "dim2", Integer.class.getName()),
+				new ModulePropertyDTO("Factor 0", "factor0", Float.class.getName()),
+				new ModulePropertyDTO("Factor 1", "factor1", Float.class.getName()),
+				new ModulePropertyDTO("Factor 2", "factor2", Float.class.getName())));
 		
 		addSupportedType(new ModuleTypeDTO("Frame", "Preprocessing", false, 
 				new ModulePropertyDTO("Dim 0", "dim0", Integer.class.getName()),
@@ -572,21 +575,44 @@ public class DianneModuleFactory implements ModuleFactory {
 		}
 		case "Scale":
 		{
-			int[] dims;
-			
-			int dim0 = Integer.parseInt(dto.properties.get("dim0"));
-			int dim1 = Integer.parseInt(dto.properties.get("dim1"));
-			
-			if(hasProperty(dto.properties, "dim2")){
-				int dim2 = Integer.parseInt(dto.properties.get("dim2"));
+			if(hasProperty(dto.properties, "dim0")){
+				int dim0 = Integer.parseInt(dto.properties.get("dim0"));
 				
-				dims = new int[]{dim0, dim1, dim2};
-			} else {
-				dims = new int[]{dim0, dim1};
-			}
-			
-			module = new Scale(id, dims);
-			break;
+				if(!hasProperty(dto.properties, "dim2")){
+					module = new Scale(id, dim0);
+					break;
+				}
+				
+				int dim1 = Integer.parseInt(dto.properties.get("dim1"));
+
+				if(!hasProperty(dto.properties, "dim2")){
+					module = new Scale(id, dim0, dim1);
+					break;
+				}
+					
+				int dim2 = Integer.parseInt(dto.properties.get("dim2"));
+				module = new Scale(id, dim0, dim1, dim2);
+				break;
+				
+			} else if(hasProperty(dto.properties, "factor0")){
+				float factor0 = Float.parseFloat(dto.properties.get("factor0"));
+				
+				if(!hasProperty(dto.properties, "factor1")){
+					module = new Scale(id, factor0);
+					break;
+				}
+				
+				float factor1 = Float.parseFloat(dto.properties.get("factor1"));
+
+				if(!hasProperty(dto.properties, "factor2")){
+					module = new Scale(id, factor0, factor1);
+					break;
+				}
+					
+				float factor2 = Float.parseFloat(dto.properties.get("factor2"));
+				module = new Scale(id, factor0, factor1, factor2);
+				break;
+			}	 			
 		}
 		case "Frame":
 		{

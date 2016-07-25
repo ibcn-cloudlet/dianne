@@ -25,12 +25,17 @@ package be.iminds.iot.dianne.nn.module.preprocessing;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
+import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class Scale extends AbstractModule {
 
 	// dims of the scaled tensor
-	private final int[] targetDims;
+	private int[] targetDims;
+	private float[] scaleFactors = null;
+	
+	private int[] inputDims;
+	private int batchSize = 0;
 	
 	public Scale(final int... dims){
 		super();
@@ -41,15 +46,68 @@ public class Scale extends AbstractModule {
 		super(id);
 		this.targetDims = dims;
 	}
+	
+	public Scale(final float... factors){
+		super();
+		this.scaleFactors = factors;
+	}
 
-	@Override
-	protected void forward() {
-		output = TensorOps.scale2D(output, input, targetDims);
+	public Scale(UUID id, final float... factors){
+		super(id);
+		this.scaleFactors = factors;
 	}
 
 	@Override
+	protected void forward() {
+		inputDims = input.dims();
+	
+		if(scaleFactors != null){
+			targetDims = new int[scaleFactors.length];
+			for(int i=0;i<scaleFactors.length;i++){
+				targetDims[targetDims.length-1-i] = (int)(inputDims[inputDims.length-1-i]*scaleFactors[scaleFactors.length-1-i]);
+			}
+		}
+			
+		if(inputDims.length == targetDims.length+1){
+			batchSize = inputDims[0];
+		} else {
+			batchSize = 0;
+		}
+		
+		// TODO handle batchSize in native code?
+		if(batchSize > 0 ){
+			if(output == null){
+				output = new Tensor(batchSize, targetDims);
+		}
+	
+		for(int i=0;i<batchSize;i++){
+			TensorOps.scale2D(output.select(0, i), input.select(0, i), targetDims);
+		}
+		} else {
+			output = TensorOps.scale2D(output, input, targetDims);
+		}
+	}
+	
+	@Override
 	protected void backward() {
-		// not implemented
+		// backward: scale the gradOutput back?
+		// TODO handle batchSize in native code?
+		if(batchSize > 0 ){
+			if(gradInput == null){
+				gradInput = new Tensor(inputDims);
+			}
+
+			int[] scaleDims = new int[inputDims.length-1];
+			for(int k=0;k<scaleDims.length;k++){
+				scaleDims[scaleDims.length-1-k] = inputDims[inputDims.length-1-k];
+			}
+	
+			for(int i=0;i<batchSize;i++){
+				TensorOps.scale2D(gradInput.select(0, i), gradOutput.select(0, i), scaleDims);
+			}
+		} else {
+			gradInput = TensorOps.scale2D(gradInput, gradOutput, inputDims);
+		}
 	}
 
 }
