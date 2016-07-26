@@ -1,0 +1,73 @@
+{
+  "name": "ConvLayer",
+  "modules": {
+    "bc6531db-14e3-7cbc-23ca-5083ad161b4e": {
+      "id": "bc6531db-14e3-7cbc-23ca-5083ad161b4e",
+      "type": "Output",
+      "prev": [
+        "da3995ca-3fc0-3e5f-fc90-568c8ccf487f"
+      ],
+      "name": "Output",
+      "category": "Input-Output"
+    },
+    "da3995ca-3fc0-3e5f-fc90-568c8ccf487f": {
+      "id": "da3995ca-3fc0-3e5f-fc90-568c8ccf487f",
+      "type": "${activation}",
+      "next": [
+        "bc6531db-14e3-7cbc-23ca-5083ad161b4e"
+      ],
+      "prev": [
+        "c871f226-772f-3b96-bd4e-6537ff345132"
+      ],
+      "name": "Activation",
+      "category": "Activation"
+    },
+    "c871f226-772f-3b96-bd4e-6537ff345132": {
+      "id": "c871f226-772f-3b96-bd4e-6537ff345132",
+      "type": "BatchNormalization",
+      "next": [
+        "da3995ca-3fc0-3e5f-fc90-568c8ccf487f"
+      ],
+      "prev": [
+        "a4745ffd-401c-96d8-9e1a-1b8baa457060"
+      ],
+      "size": "${noOutputPlanes}",
+      "name": "BatchNormalization",
+      "category": "Regularization",
+      "trainable": "true"
+    },
+    "1c79f52b-beea-9d55-8f87-274b03934a35": {
+      "id": "1c79f52b-beea-9d55-8f87-274b03934a35",
+      "type": "Input",
+      "next": [
+        "a4745ffd-401c-96d8-9e1a-1b8baa457060"
+      ],
+      "name": "Input",
+      "category": "Input-Output"
+    },
+    "a4745ffd-401c-96d8-9e1a-1b8baa457060": {
+      "id": "a4745ffd-401c-96d8-9e1a-1b8baa457060",
+      "type": "Convolution",
+      "next": [
+        "c871f226-772f-3b96-bd4e-6537ff345132"
+      ],
+      "prev": [
+        "1c79f52b-beea-9d55-8f87-274b03934a35"
+      ],
+      "noInputPlanes": "${noInputPlanes}",
+      "strideX": "${strideX}",
+      "kernelWidth": "${kernelWidth}",
+      "trainable": "true",
+      "kernelHeight": "${kernelHeight}",
+      "padX": "${padX}",
+      "noOutputPlanes": "${noOutputPlanes}",
+      "padY": "${padY}",
+      "padZ": "${padZ}",
+      "strideY": "${strideY}",
+      "strideZ": "${strideZ}",
+      "name": "Convolution",
+      "category": "Layer",
+      "kernelDepth": "${kernelDepth}"
+    }
+  }
+}

@@ -1,0 +1,12 @@
+Activation,activation,java.lang.String
+Input Planes,noInputPlanes,java.lang.Integer
+Output Planes,noOutputPlanes,java.lang.Integer
+Kernel width,kernelWidth,java.lang.Integer
+Kernel height,kernelHeight,java.lang.Integer
+Kernel depth,kernelDepth,java.lang.Integer
+Stride X,strideX,java.lang.Integer
+Stride Y,strideY,java.lang.Integer
+Stride Z,strideZ,java.lang.Integer
+Pad X,padX,java.lang.Integer
+Pad Y,padY,java.lang.Integer
+Pad Z,padZ,java.lang.Integer
