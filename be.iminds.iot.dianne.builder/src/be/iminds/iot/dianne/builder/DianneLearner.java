@@ -326,7 +326,7 @@ public class DianneLearner extends HttpServlet {
 			try {
 				JsonObject data = new JsonObject();
 				data.add("sample", new JsonPrimitive(progress.iteration));
-				data.add("error", new JsonPrimitive(progress.error));
+				data.add("error", new JsonPrimitive(progress.miniBatchError));
 				StringBuilder builder = new StringBuilder();
 				builder.append("data: ").append(data.toString()).append("\n\n");
 				

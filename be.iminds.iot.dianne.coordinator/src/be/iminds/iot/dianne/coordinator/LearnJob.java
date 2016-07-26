@@ -192,7 +192,7 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 			} catch(Exception e){
 				System.err.println("Error running validation: "+e.getMessage());
 			}
-			result.validations.add(validation);
+			result.validations.put(progress.iteration, validation);
 		}
 
 		// TODO how frequently send out the progress
@@ -208,17 +208,17 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 		if(result.progress.size() > errorThresholdWindow){
 			int last = result.progress.size() - 1;
 			int prev = last - errorThresholdWindow;
-			float deltaMiniBatchError = result.progress.get(prev).error - result.progress.get(last).error;
+			float deltaMiniBatchError = result.progress.get(prev).miniBatchError - result.progress.get(last).miniBatchError;
 			if(deltaMiniBatchError < miniBatchErrorThreshold){
 				stop = true;
 			}
 		}
 		
 		// threshold on validation threshold
-		if(result.validations.size() > errorThresholdWindow){
-			int last = result.validations.size()-1;
-			int prev = last - errorThresholdWindow;
-			float deltaValidationError = result.validations.get(prev).error - result.validations.get(last).error;
+		Evaluation last = result.validations.get(progress.iteration);
+		Evaluation prev = result.validations.get(progress.iteration - errorThresholdWindow*validationInterval);
+		if(last != null & prev != null){
+			float deltaValidationError = prev.error - last.error;
 			if(deltaValidationError < validationErrorThreshold){
 				stop = true;
 			}

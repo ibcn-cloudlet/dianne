@@ -33,11 +33,11 @@ public class LearnProgress {
 	/** The number of iterations (=number of batches) processed */
 	public final long iteration;
 	
-	/** The current (avg) error perceived by the Learner */
-	public final float error;
+	/** The current minibatch error perceived by the Learner */
+	public final float miniBatchError;
 	
 	public LearnProgress(long iteration, float error){
 		this.iteration = iteration;
-		this.error = error;
+		this.miniBatchError = error;
 	}
 }

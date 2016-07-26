@@ -92,39 +92,43 @@ public class DianneCoordinatorWriter {
 			}
 		} else {
 			writer.beginObject();
-			for(Field f : o.getClass().getFields()){
-				if(Modifier.isPublic(f.getModifiers())){
-					writer.name(f.getName());
-					if(f.getType().isPrimitive()){ 
-						switch(f.getType().getName()){
-						case "long":
-							writer.value(f.getLong(o));
-							break;
-						case "int":
-							writer.value(f.getInt(o));
-							break;
-						case "float":
-							writer.value(f.getFloat(o));
-							break;
-						case "double":
-							writer.value(f.getDouble(o));
-							break;
-						case "boolean":
-							writer.value(f.getBoolean(o));
-							break;
-						case "short": 
-							writer.value(f.getShort(o));
-							break;
-						case "byte":
-							writer.value(f.getByte(o));
-							break;
-						}
-					} else {
-						writeObject(writer, f.get(o));
+			writeFields(writer, o);
+			writer.endObject();
+		}
+	}
+	
+	public static void writeFields(JsonWriter writer, Object o) throws Exception {
+		for(Field f : o.getClass().getFields()){
+			if(Modifier.isPublic(f.getModifiers())){
+				writer.name(f.getName());
+				if(f.getType().isPrimitive()){ 
+					switch(f.getType().getName()){
+					case "long":
+						writer.value(f.getLong(o));
+						break;
+					case "int":
+						writer.value(f.getInt(o));
+						break;
+					case "float":
+						writer.value(f.getFloat(o));
+						break;
+					case "double":
+						writer.value(f.getDouble(o));
+						break;
+					case "boolean":
+						writer.value(f.getBoolean(o));
+						break;
+					case "short": 
+						writer.value(f.getShort(o));
+						break;
+					case "byte":
+						writer.value(f.getByte(o));
+						break;
 					}
+				} else {
+					writeObject(writer, f.get(o));
 				}
 			}
-			writer.endObject();
 		}
 	}
 	
@@ -135,20 +139,13 @@ public class DianneCoordinatorWriter {
 	
 	public static void writeLearnResult(JsonWriter writer, LearnResult result) throws Exception {
 		writer.beginArray();
-		// merge (q) progress and validation in single object 
+		// merge progress and validation in single object 
 		for(int i =0;i<result.progress.size();i++){
 			LearnProgress p = result.progress.get(i);
-			Evaluation val = result.validations.size() > i ? result.validations.get(i) : null;
+			Evaluation val = result.validations.get(p.iteration);
 			
 			writer.beginObject();
-			writer.name("iteration");
-			writer.value(p.iteration);
-			writer.name("miniBatchError");
-			writer.value(p.error);
-			if(p instanceof QLearnProgress){
-				writer.name("q");
-				writer.value(((QLearnProgress)p).q);
-			}
+			writeFields(writer, p);
 			if(val != null){
 				writer.name("validationError");
 				writer.value(val.error());

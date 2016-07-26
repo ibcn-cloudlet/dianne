@@ -23,7 +23,9 @@
 package be.iminds.iot.dianne.api.coordinator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
@@ -35,19 +37,16 @@ import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
  */
 public class LearnResult {
 
-	public List<LearnProgress> progress;
-	public List<Evaluation> validations;
+	public List<LearnProgress> progress = new ArrayList<>();
+	public Map<Long, Evaluation> validations = new HashMap<>();
 	
-	public LearnResult(){
-		this.progress = new ArrayList<>();
-		this.validations = new ArrayList<>();
-	}
+	public LearnResult(){}
 	
 	public LearnResult(ArrayList<LearnProgress> p){
 		this.progress = p;
 	}
 	
-	public LearnResult(ArrayList<LearnProgress> p, ArrayList<Evaluation> v){
+	public LearnResult(ArrayList<LearnProgress> p, Map<Long, Evaluation> v){
 		this.progress = p;
 		this.validations = v;
 	}
@@ -57,6 +56,6 @@ public class LearnResult {
 	}
 	
 	public float getError(){
-		return progress.get(progress.size()-1).error;
+		return progress.get(progress.size()-1).miniBatchError;
 	}
 }

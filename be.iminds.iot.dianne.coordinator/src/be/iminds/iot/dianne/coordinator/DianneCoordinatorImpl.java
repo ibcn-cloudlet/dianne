@@ -567,7 +567,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		Map<String, Object> properties = new HashMap<>();
 		properties.put("jobId", jobId.toString());
 		properties.put("iteration", progress.iteration);
-		properties.put("miniBatchError", progress.error);
+		properties.put("miniBatchError", progress.miniBatchError);
 		
 		if(validation!=null)
 			properties.put("validationError", validation.error());

@@ -176,12 +176,12 @@ public class LearnerImpl implements Learner {
 						progress = strategy.processIteration(i);
 
 						// Check for NaN
-						if(Float.isNaN(progress.error)){
+						if(Float.isNaN(progress.miniBatchError)){
 							throw new Exception("Learner error became NaN");
 						}
 						
 						if(this.config.trace)
-							System.out.println("Batch: "+i+"\tError: "+progress.error);
+							System.out.println("Batch: "+i+"\tError: "+progress.miniBatchError);
 						
 						// Publish parameters to repository
 						for(int k=0;k<nns.length;k++){
