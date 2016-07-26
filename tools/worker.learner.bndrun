@@ -6,7 +6,7 @@
 #
 #
 
--include: worker.bndrun
+-include: evaluator.bndrun
 
 -runbundles.worker.learner: \
 	be.iminds.iot.dianne.nn.learn;version=latest,\
