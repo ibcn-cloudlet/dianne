@@ -22,32 +22,32 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.learn.sampling;
 
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 
-public class SamplingFactory {
-	
-	public enum SamplingConfig {
-		RANDOM,
-		SEQUENTIAL,
-		PERMUTATION
-	}
-	
-	public static SamplingStrategy createSamplingStrategy(SamplingConfig strategy, Dataset d, Map<String, String> config){
-		SamplingStrategy sampling = null;
+public class PermutationSamplingStrategy implements SamplingStrategy{
 
-		switch(strategy) {
-		case SEQUENTIAL:
-			sampling = new SequentialSamplingStrategy(d);
-			break;
-		case PERMUTATION:
-			sampling = new PermutationSamplingStrategy(d);
-		default:
-			sampling = new RandomSamplingStrategy(d);
+	private List<Integer> indices = new ArrayList<>();
+	private int current = 0;
+	
+	public PermutationSamplingStrategy(Dataset dataset) {
+		for(int i=0;i<dataset.size();i++){
+			indices.add(i);
 		}
-		
-		return sampling;
+		Collections.shuffle(indices);
 	}
+	
+	@Override
+	public int next() {
+		if(current == indices.size()){
+			current = 0;
+			Collections.shuffle(indices);
+		}
+		return indices.get(current++);
+	}
+
 }
