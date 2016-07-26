@@ -178,7 +178,7 @@ function createDeployModuleDialog(id, moduleItem){
 		$.post("/dianne/deployer", {"action" : "targets"}, 
 				function( data ) {
 					$.each(data, function(index, target){
-						dialog.find('.options').append("<option value="+target+">"+target+"</option>")
+						dialog.find('.options').append("<option value="+target.id+">"+target.name+"</option>")
 					});
 				}
 				, "json");
