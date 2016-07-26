@@ -39,7 +39,7 @@ public class ModuleDTO {
 	// Type of this Module
 	//  this maps to a ModuleTypeDTO, is used by a factory 
 	//  to create an instance of this Module
-	public final String type;
+	public String type;
 	
 	// UUID(s) of the next Modules in the neural network
 	public UUID[] next;

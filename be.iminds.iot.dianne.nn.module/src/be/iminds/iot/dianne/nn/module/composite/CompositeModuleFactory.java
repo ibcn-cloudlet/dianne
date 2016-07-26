@@ -436,6 +436,9 @@ public class CompositeModuleFactory implements ModuleFactory {
 			// find any composite properties defined as ${property key} and replace
 			ModuleTypeDTO compositeType = composite.type;
 			for(ModuleDTO m : nnDescription.modules.values()){
+				for(ModulePropertyDTO p : compositeType.properties){
+					m.type = m.type.replace("${"+p.id+"}", dto.properties.get(p.id));
+				}
 				m.properties.replaceAll((key, value) -> {
 					if(!value.contains("$")){
 						return value;
