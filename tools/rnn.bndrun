@@ -2,20 +2,36 @@
 #
 # DIANNE RNN bndrun 
 #
-# adds RNN support to the builder.bndrun
+# launches single RL runtime with RNN learner
 #
 #
 
--include: builder.bndrun
+-include: common.bndrun
 
 -runbundles.rnn: \
+	be.iminds.iot.dianne.tensor;version=latest,\
+	be.iminds.iot.dianne.tensor.native.generic;version=latest,\
+	be.iminds.iot.dianne.tensor.util;version=latest,\
+	be.iminds.iot.dianne.api;version=latest,\
+	be.iminds.iot.dianne.nn.util;version=latest,\
+	be.iminds.iot.dianne.nn.module;version=latest,\
+	be.iminds.iot.dianne.nn;version=latest,\
+	be.iminds.iot.dianne.nn.runtime;version=latest,\
+	be.iminds.iot.dianne.nn.platform;version=latest,\
+	be.iminds.iot.dianne.repository;version=latest,\
+	be.iminds.iot.dianne.dataset;version=latest,\
+	be.iminds.iot.dianne.builder;version=latest,\
+	be.iminds.iot.dianne.command;version=latest,\
+	be.iminds.iot.dianne.log;version=latest,\
+	be.iminds.iot.dianne.nn.learn;version=latest,\
+	be.iminds.iot.dianne.nn.eval;version=latest,\
 	be.iminds.iot.dianne.rnn.module;version=latest,\
 	be.iminds.iot.dianne.rnn.learn;version=latest,\
 	be.iminds.iot.dianne.rnn.dataset.chars;version=latest,\
 	be.iminds.iot.dianne.rnn.command;version=latest
-	
-	
+
 -runproperties.rnn:\
 	be.iminds.iot.dianne.runtime.name="RNN",\
-	be.iminds.iot.dianne.dataset.chars.location="../be.iminds.iot.dianne.rnn/input.txt"
-	
+	be.iminds.iot.dianne.datasets.location="datasets",\
+	be.iminds.iot.dianne.storage="models",\
+	be.iminds.iot.dianne.dataset.chars.location="../be.iminds.iot.dianne.rnn/input.txt"	

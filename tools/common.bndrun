@@ -43,7 +43,7 @@ aiolos.version='[0.6.0,0.7.0)'
 	be.iminds.aiolos.nodemonitor;version=${aiolos.version},\
 	be.iminds.aiolos.topologymanager;version=${aiolos.version},\
 	be.iminds.aiolos.proxymanager;version=${aiolos.version}
-	
+
 -runsystempackages.common: \
 	javax.naming,\
 	javax.net,\
@@ -63,9 +63,8 @@ aiolos.version='[0.6.0,0.7.0)'
 	javax.imageio,\
 	javax.imageio.stream,\
 	javax.imageio.plugins.jpeg
-	
+
 -runproperties.common:\
 	org.osgi.service.http.port=8080,\
 	org.apache.felix.http.jetty.maxFormSize=999999999,\
-	rsa.timeout=10000000,\
-	be.iminds.iot.dianne.storage="models"
+	rsa.timeout=10000000

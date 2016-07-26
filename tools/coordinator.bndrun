@@ -8,8 +8,6 @@
 
 -include common.bndrun
 
-aiolos.version='latest'
-
 -runbundles.coordinator: \
 	be.iminds.aiolos.platformmanager;version=${aiolos.version},\
 	be.iminds.iot.dianne.tensor;version=latest,\
@@ -27,8 +25,8 @@ aiolos.version='latest'
 	be.iminds.iot.dianne.jsonrpc;version=latest,\
 	be.iminds.iot.dianne.coordinator;version=latest,\
 	be.iminds.iot.dianne.dashboard;version=latest
-	
+
 -runproperties.coordinator:\
+	be.iminds.iot.dianne.runtime.name="Coordinator",\
 	be.iminds.iot.dianne.datasets.location="datasets",\
-	be.iminds.iot.dianne.runtime.name="Coordinator"
-	
+	be.iminds.iot.dianne.storage="models"

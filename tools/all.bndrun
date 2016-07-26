@@ -1,6 +1,6 @@
 ##
 #
-# DIANNE dashboard bndrun 
+# DIANNE all bndrun 
 #
 # extends the coordinator with a learner an evaluator on same node
 #
@@ -10,13 +10,11 @@
 
 aiolos.version='latest'
 
--runbundles.dashboard: \
+-runbundles.all: \
 	be.iminds.iot.dianne.nn.module;version=latest,\
 	be.iminds.iot.dianne.nn.runtime;version=latest,\
 	be.iminds.iot.dianne.nn.learn;version=latest,\
 	be.iminds.iot.dianne.nn.eval;version=latest
 
--runproperties.dashboard:\
-	rsa.timeout=10000000,\
+-runproperties.all:\
 	be.iminds.iot.dianne.runtime.name="Dashboard"
-	

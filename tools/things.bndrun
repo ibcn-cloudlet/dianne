@@ -5,7 +5,7 @@
 # adds support for direct I/O from/to Things via DYAMAND
 #
 
--include: builder.bndrun
+-include: all.bndrun
 
 -runbundles.things: \
 	osgi.enroute.dto.bndlib.provider;version='[1.0.0,1.0.1)',\
@@ -25,5 +25,3 @@
 	
 -runproperties.things:\
 	org.osgi.framework.bootdelegation="sun.*"
-
-
