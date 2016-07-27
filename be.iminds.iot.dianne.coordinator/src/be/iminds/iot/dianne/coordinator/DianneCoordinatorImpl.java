@@ -179,6 +179,10 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 
 	@Override
 	public Promise<AgentResult> act(String dataset, Map<String, String> config, String... nnName) {
+		if(nnName == null){
+			return act(dataset, config, (NeuralNetworkDTO[])null);
+		}
+		
 		NeuralNetworkDTO[] nns = new NeuralNetworkDTO[nnName.length];
 		for(int i=0;i<nns.length;i++){
 			nns[i] = repository.loadNeuralNetwork(nnName[i]);
@@ -188,11 +192,13 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	
 	@Override
 	public Promise<AgentResult> act(String dataset, Map<String, String> config, NeuralNetworkDTO... nns) {
-		try {
-			for(NeuralNetworkDTO nn : nns)
-				repository.storeNeuralNetwork(nn);
-		} catch(Exception e){
-			// NN could be locked but still evaluation should be possible
+		if(nns !=null){
+			try {
+				for(NeuralNetworkDTO nn : nns)
+					repository.storeNeuralNetwork(nn);
+			} catch(Exception e){
+				// NN could be locked but still evaluation should be possible
+			}
 		}
 		
 		ActJob job = new ActJob(this, dataset, config, nns);
@@ -475,15 +481,20 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		}
 		String filter = (String)job.config.get("targetFilter");
 		
+		boolean forceFree = false;
+		if(job.config.containsKey("forceFree")){
+			forceFree = Boolean.parseBoolean("forceFree");
+		}
+		
 		try {
 			if(targets!=null){
-				targets = findTargets(targets, filter, count);
+				targets = findTargets(type, targets, filter, count, forceFree);
 			} else if(type==Type.EVALUATE){
-				targets = findTargets(evaluators.keySet(), filter, count);
+				targets = findTargets(type, evaluators.keySet(), filter, count, forceFree);
 			} else if(type==Type.LEARN){
-				targets = findTargets(learners.keySet(), filter, count);
+				targets = findTargets(type, learners.keySet(), filter, count, forceFree);
 			} else if(type==Type.ACT){
-				targets = findTargets(agents.keySet(), filter, count);
+				targets = findTargets(type, agents.keySet(), filter, count, forceFree);
 			}
 		} catch(Exception e){
 			
@@ -509,7 +520,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 
 	}
 	
-	List<UUID> findTargets(Collection<UUID> ids, String filter, int count) throws Exception {
+	List<UUID> findTargets(Type type, Collection<UUID> ids, String filter, int count, boolean forceFree) throws Exception {
 		List<UUID> targets = ids.stream()
 					.map(uuid -> devices.get(uuid))
 					.filter( device -> {	// match device filter
@@ -534,10 +545,18 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 			throw new Exception("Insufficient infrastructure to meet the requirements of this Job");
 		
 		// check if the possible devices are currently available
-		targets = targets.stream()
-			.filter(uuid -> deviceUsage.get(uuid)==-1) // search for free nodes only
-			.limit(count)
-			.collect(Collectors.toList());
+		if(forceFree){
+			targets = targets.stream()
+				.filter(uuid -> deviceUsage.get(uuid)==-1) // search for free nodes only
+				.limit(count)
+				.collect(Collectors.toList());
+		} else {
+			targets = targets.stream()
+					.filter(uuid -> deviceUsage.get(uuid)!=type.ordinal()) // search for nodes not already 
+																			// running this job type
+					.limit(count)
+					.collect(Collectors.toList());
+		}
 
 		if(targets.size() != count){
 			return null;

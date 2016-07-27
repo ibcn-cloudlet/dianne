@@ -170,12 +170,14 @@ public class AgentImpl implements Agent {
 		
 		env = envs.get(environment);
 		
-		Dataset d = datasets.configureDataset(experiencePool, config);
-		if(d == null || !(d instanceof ExperiencePool)){
-			acting = false;
-			throw new RuntimeException("Invalid experience pool: "+experiencePool);
+		if(experiencePool != null){
+			Dataset d = datasets.configureDataset(experiencePool, config);
+			if(d == null || !(d instanceof ExperiencePool)){
+				acting = false;
+				throw new RuntimeException("Invalid experience pool: "+experiencePool);
+			}
+			pool = (ExperiencePool) d;
 		}
-		pool = (ExperiencePool) d;
 
 		buffer = new ArrayList<>(this.config.experienceInterval);
 		upload = new ArrayList<>(this.config.experienceInterval);
@@ -245,41 +247,43 @@ public class AgentImpl implements Agent {
 						s.isTerminal = false;
 					}
 	
-					// upload in batch
-					ExperiencePoolSample b = buffer.get((int)(i % config.experienceInterval));
-					b.input = s.input.copyInto(b.input);
-					b.target = s.target.copyInto(b.target);
-					b.reward = s.reward;
-					b.isTerminal = s.isTerminal;
-					if(!s.isTerminal){
-						b.nextState = s.nextState.copyInto(b.nextState);
-					}
 					
-					if(i > 0 && (i+1) % config.experienceInterval == 0){
-						// buffer full, switch to upload
-						// check if upload finished
-						// if still uploading ... wait now
-						if(uploading){
-							synchronized(upload){
-								if(uploading){
-									try {
-										upload.wait();
-									} catch (InterruptedException e) {
+					// upload in batch
+					if(pool != null) {
+						ExperiencePoolSample b = buffer.get((int)(i % config.experienceInterval));
+						b.input = s.input.copyInto(b.input);
+						b.target = s.target.copyInto(b.target);
+						b.reward = s.reward;
+						b.isTerminal = s.isTerminal;
+						if(!s.isTerminal){
+							b.nextState = s.nextState.copyInto(b.nextState);
+						}
+						
+						if(i > 0 && (i+1) % config.experienceInterval == 0){
+							// buffer full, switch to upload
+							// check if upload finished
+							// if still uploading ... wait now
+							if(uploading){
+								synchronized(upload){
+									if(uploading){
+										try {
+											upload.wait();
+										} catch (InterruptedException e) {
+										}
 									}
 								}
 							}
-						}
-						List<ExperiencePoolSample> temp = upload;
-						upload = buffer;
-						buffer = temp;
-						bufferReady = true;
-						if(!uploading){
-							synchronized(upload){
-								upload.notifyAll();
+							List<ExperiencePoolSample> temp = upload;
+							upload = buffer;
+							buffer = temp;
+							bufferReady = true;
+							if(!uploading){
+								synchronized(upload){
+									upload.notifyAll();
+								}
 							}
 						}
 					}
-					
 	
 					// if nextObservation was null, this is a terminal state - reset environment and start over
 					if(s.nextState == null){
@@ -289,8 +293,12 @@ public class AgentImpl implements Agent {
 						s.input = next.copyInto(current);
 					}
 				}
-			} catch(Exception e){
-				e.printStackTrace();
+			} catch(Throwable t){
+				if(t.getCause() != null && t.getCause() instanceof InterruptedException){
+					return;
+				}
+				
+				t.printStackTrace();
 			} finally {
 				env.cleanup();
 				

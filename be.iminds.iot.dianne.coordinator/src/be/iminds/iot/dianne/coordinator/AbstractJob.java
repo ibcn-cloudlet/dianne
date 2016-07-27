@@ -80,9 +80,13 @@ public abstract class AbstractJob<T> implements Runnable {
 		this.coordinator = coord;
 		
 		this.nns = nns;
-		this.nnNames = new String[nns.length];
-		for(int i=0;i<nns.length;i++){
-			nnNames[i] = nns[i].name;
+		if(nns!=null){
+			this.nnNames = new String[nns.length];
+			for(int i=0;i<nns.length;i++){
+				nnNames[i] = nns[i].name;
+			}
+		} else {
+			this.nnNames = null;
 		}
 		this.dataset = d;
 		this.config = c;
@@ -96,17 +100,19 @@ public abstract class AbstractJob<T> implements Runnable {
 			// deploy each neural network on each target instance
 			// TODO do we indeed need every network on each target?
 			// how to specify custom deployments?
-			nnis = new HashMap<>();
-			targetsByNNi = new HashMap<>();
-			for(UUID target : targets){
-				NeuralNetworkInstanceDTO[] instances = new NeuralNetworkInstanceDTO[nns.length];
-				for(int i=0;i<nns.length;i++){
-					NeuralNetworkDTO nn = nns[i];
-					NeuralNetworkInstanceDTO nni = coordinator.platform.deployNeuralNetwork(nn.name, "Dianne Coordinator LearnJob "+jobId, target);
-					instances[i] = nni;
-					targetsByNNi.put(nni.id, target);
+			if(nns != null){
+				nnis = new HashMap<>();
+				targetsByNNi = new HashMap<>();
+				for(UUID target : targets){
+					NeuralNetworkInstanceDTO[] instances = new NeuralNetworkInstanceDTO[nns.length];
+					for(int i=0;i<nns.length;i++){
+						NeuralNetworkDTO nn = nns[i];
+						NeuralNetworkInstanceDTO nni = coordinator.platform.deployNeuralNetwork(nn.name, "Dianne Coordinator LearnJob "+jobId, target);
+						instances[i] = nni;
+						targetsByNNi.put(nni.id, target);
+					}
+					nnis.put(target, instances);
 				}
-				nnis.put(target, instances);
 			}
 			
 			// execute

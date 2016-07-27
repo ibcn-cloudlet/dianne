@@ -52,7 +52,7 @@ public class ActJob extends AbstractJob<AgentResult> {
 		// start acting
 		System.out.println("Start Act Job");
 		System.out.println("===============");
-		System.out.println("* nn: "+Arrays.toString(nns));
+		System.out.println("* nn: "+Arrays.toString(nnNames));
 		System.out.println("* pool: "+dataset);
 		System.out.println("* environment: "+environment);
 		System.out.println("---");
