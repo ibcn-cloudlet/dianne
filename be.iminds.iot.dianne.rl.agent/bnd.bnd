@@ -16,4 +16,5 @@ Private-Package: \
 Export-Package: \
 	be.iminds.iot.dianne.rl.agent.api,\
 	be.iminds.iot.dianne.rl.agent.config,\
+	be.iminds.iot.dianne.rl.agent.strategy,\
 	be.iminds.iot.dianne.rl.agent.strategy.config
