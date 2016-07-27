@@ -66,7 +66,7 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 				  "osgi.command.function=sample",
 				  "osgi.command.function=gc"},
 		immediate=true)
-public class DianneCommands {
+public class DiannePlatformCommands {
 
 	private static Random rand = new Random(System.currentTimeMillis());
 	
