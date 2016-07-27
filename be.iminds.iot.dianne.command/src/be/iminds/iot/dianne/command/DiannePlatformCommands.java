@@ -85,12 +85,12 @@ public class DiannePlatformCommands {
 		this.context = context;
 	}
 	
-	@Descriptor("Trigger JVM garbage collection")
+	@Descriptor("Trigger JVM garbage collection.")
 	public void gc(){
 		System.gc();
 	}
 
-	@Descriptor("List available datasets")
+	@Descriptor("List available datasets.")
 	public void datasets(){
 		List<DatasetDTO> ds = datasets.getDatasets();
 		
@@ -106,7 +106,7 @@ public class DiannePlatformCommands {
 		}
 	}
 	
-	@Descriptor("List available runtimes to deploy modules on")
+	@Descriptor("List available runtimes to deploy modules on.")
 	public void runtimes(){
 		if(platform.getRuntimes().size()==0){
 			System.out.println("No runtimes available");
@@ -121,7 +121,7 @@ public class DiannePlatformCommands {
 		}
 	}
 	
-	@Descriptor("List the available models in the repository")
+	@Descriptor("List the available models in the repository.")
 	public void models(){
 		List<String> nns = platform.getAvailableNeuralNetworks();
 		if(nns.size()==0){
@@ -136,7 +136,7 @@ public class DiannePlatformCommands {
 		}
 	}
 	
-	@Descriptor("List all deployed neural networks")
+	@Descriptor("List all deployed neural networks.")
 	public void list(){
 		List<NeuralNetworkInstanceDTO> nns = platform.getNeuralNetworkInstances();
 		if(nns.size()==0){
@@ -152,7 +152,7 @@ public class DiannePlatformCommands {
 		
 	}
 	
-	@Descriptor("Print details of a neural network instance")
+	@Descriptor("Print details of a neural network instance.")
 	public void info(
 			@Descriptor("index of the neural network instance (from the list command output)")
 			int index){
@@ -165,7 +165,7 @@ public class DiannePlatformCommands {
 		printNN(nn);
 	}
 	
-	@Descriptor("Print details of a neural network instance")
+	@Descriptor("Print details of a neural network instance.")
 	public void info(
 			@Descriptor("uuid of the neural network instance")
 			String id){
@@ -184,14 +184,14 @@ public class DiannePlatformCommands {
 		}
 	}
 	
-	@Descriptor("Deploy a neural network on the default runtime")
+	@Descriptor("Deploy a neural network on the default runtime.")
 	public void deploy(
 			@Descriptor("name of the neural network")
 			String name){
 		deploy(name, platform.getRuntimes().keySet().iterator().next());
 	}
 	
-	@Descriptor("Deploy a neural network on a runtime")
+	@Descriptor("Deploy a neural network on a runtime.")
 	public void deploy(
 			@Descriptor("name of the neural network")
 			String name, 
@@ -200,7 +200,7 @@ public class DiannePlatformCommands {
 		deploy(name, UUID.fromString(id));
 	}
 	
-	@Descriptor("Deploy a neural network on a runtime")
+	@Descriptor("Deploy a neural network on a runtime.")
 	public void deploy(
 			@Descriptor("name of the neural network")
 			String name, 
@@ -210,7 +210,7 @@ public class DiannePlatformCommands {
 		deploy(name, runtimes.get(index));
 	}
 	
-	@Descriptor("Deploy a neural network on a runtime and load weights with specific tag")
+	@Descriptor("Deploy a neural network on a runtime and load weights with specific tag.")
 	public void deploy(
 			@Descriptor("name of the neural network")
 			String name, 
@@ -227,7 +227,7 @@ public class DiannePlatformCommands {
 		addRepositoryListener(nn, tag);
 	}
 	
-	@Descriptor("Deploy a neural network on a runtime and load weights with specific tag")
+	@Descriptor("Deploy a neural network on a runtime and load weights with specific tag.")
 	public void deploy(
 			@Descriptor("name of the neural network")
 			String name, 
@@ -258,7 +258,7 @@ public class DiannePlatformCommands {
 		return null;
 	}
 	
-	@Descriptor("Undeploy a neural network")
+	@Descriptor("Undeploy a neural network.")
 	public void undeploy(
 			@Descriptor("uuid of the neural network instance")
 			String nnId){
@@ -270,7 +270,7 @@ public class DiannePlatformCommands {
 		undeploy(nn);
 	}
 	
-	@Descriptor("Undeploy a neural network")
+	@Descriptor("Undeploy a neural network.")
 	public void undeploy(
 			@Descriptor("index of the neural network instance (from the list command output)")
 			int index){
@@ -292,7 +292,7 @@ public class DiannePlatformCommands {
 		}
 	}
 	
-	@Descriptor("Forward a dataset sample through a neural network instance")
+	@Descriptor("Forward a dataset sample through a neural network instance.")
 	public void sample(
 			@Descriptor("dataset name to fetch a sample from")
 			String dataset, 
@@ -355,7 +355,7 @@ public class DiannePlatformCommands {
 		} 
 	}
 	
-	@Descriptor("Forward a random dataset sample through a neural network instance")
+	@Descriptor("Forward a random dataset sample through a neural network instance.")
 	public void sample(
 			@Descriptor("dataset name to fetch a sample from")
 			String dataset, 
@@ -366,7 +366,7 @@ public class DiannePlatformCommands {
 		sample(dataset, nnId, -1, tags);
 	}
 
-	@Descriptor("Forward a dataset sample through a neural network instance")
+	@Descriptor("Forward a dataset sample through a neural network instance.")
 	public void sample(
 			@Descriptor("dataset name to fetch a sample from")
 			String dataset, 
@@ -386,7 +386,7 @@ public class DiannePlatformCommands {
 		sample(dataset, id, sample, tags);
 	}
 	
-	@Descriptor("Forward a random dataset sample through a neural network instance")
+	@Descriptor("Forward a random dataset sample through a neural network instance.")
 	public void sample(
 			@Descriptor("dataset name to fetch a sample from")
 			String dataset, 

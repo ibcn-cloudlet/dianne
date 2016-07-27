@@ -58,7 +58,7 @@ public class DianneCoordinatorCommands {
 
 	private DianneCoordinator coordinator;
 	
-	@Descriptor("List running jobs")
+	@Descriptor("List running jobs.")
 	public void running(){
 		System.out.println("Running Jobs:");
 		coordinator.runningJobs().stream().forEach(job -> {
@@ -66,7 +66,7 @@ public class DianneCoordinatorCommands {
 		});
 	}
 	
-	@Descriptor("List queued jobs")
+	@Descriptor("List queued jobs.")
 	public void queued(){
 		System.out.println("Queued Jobs:");
 		coordinator.queuedJobs().stream().forEach(job -> {
@@ -74,7 +74,7 @@ public class DianneCoordinatorCommands {
 		});
 	}
 	
-	@Descriptor("List (latest) finished jobs")
+	@Descriptor("List (latest) finished jobs.")
 	public void finished(){
 		System.out.println("Finished Jobs:");
 		coordinator.finishedJobs().stream().forEach(job -> {
@@ -82,7 +82,7 @@ public class DianneCoordinatorCommands {
 		});
 	}
 	
-	@Descriptor("Stop/cancel a job")
+	@Descriptor("Stop/cancel a job.")
 	public void stop(
 			@Descriptor("job uuid")
 			String id){
@@ -93,7 +93,7 @@ public class DianneCoordinatorCommands {
 		}
 	}
 	
-	@Descriptor("Stop all running jobs")
+	@Descriptor("Stop all running jobs.")
 	public void stop(){
 		List<Job> running = coordinator.runningJobs();
 		for(Job job : running){
@@ -103,7 +103,7 @@ public class DianneCoordinatorCommands {
 		}
 	}
 	
-	@Descriptor("Print job information")
+	@Descriptor("Print job information.")
 	public void job(
 			@Descriptor("job uuid")
 			String id){
@@ -180,8 +180,8 @@ public class DianneCoordinatorCommands {
 		}
 	}
 	
-	@Descriptor("Start acting on an environment using a NN as agent. Push the generated "
-			+ "samples to an experience pool. Uses an epsilon-greedy action selection strategy by default")
+	@Descriptor("Start acting on an environment using a NN as agent. Push the generated samples to an experience pool. \n"
+			+ "Uses an epsilon-greedy action selection strategy by default.")
 	public void act(
 			@Descriptor("Neural network name (use comma-separated list if multiple instances are required, e.g. for RL)")
 			String nnName, 
@@ -209,11 +209,17 @@ public class DianneCoordinatorCommands {
 		}
 	}
 	
-	@Descriptor("Start acting on an environment using a NN as agent, "
-			+ "pushing samples to an experience pool. At the same time, "
-			+ "start training the NN using the generated samples in the "
-			+ "experience pool. The learner uses a DQN strategy by default.")
-	public void rl(String nnName, String environment, String experiencePool, String... properties){
+	@Descriptor("Start acting on an environment using a NN as agent, pushing samples to an experience pool. At the same time, \n"
+			+ "start training the NN using the generated samples in the experience pool. The learner uses a DQN strategy by default.")
+	public void rl(
+			@Descriptor("Neural network name (use comma-separated list if multiple instances are required, e.g. for RL)")
+			String nnName, 
+			@Descriptor("Environment to act on")
+			String environment, 
+			@Descriptor("Experiencepool to use")
+			String experiencePool,
+			@Descriptor("Additional properties, specified as key1=value1 key2=value2 ...")
+			String... properties){
 		act(nnName, environment, experiencePool, properties);
 		rlearn(nnName, experiencePool, properties);
 	}
