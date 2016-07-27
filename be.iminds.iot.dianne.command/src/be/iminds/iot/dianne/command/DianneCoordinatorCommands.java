@@ -61,25 +61,23 @@ public class DianneCoordinatorCommands {
 	@Descriptor("List running jobs.")
 	public void running(){
 		System.out.println("Running Jobs:");
-		coordinator.runningJobs().stream().forEach(job -> {
-			System.out.println(job.name+" ("+job.id+") - NNs: "+Arrays.toString(job.nn)+" - Dataset: "+job.dataset);
-		});
+		coordinator.runningJobs().stream().forEach(job -> printJob(job));
 	}
 	
 	@Descriptor("List queued jobs.")
 	public void queued(){
 		System.out.println("Queued Jobs:");
-		coordinator.queuedJobs().stream().forEach(job -> {
-			System.out.println(job.name+" ("+job.id+") - NNs: "+Arrays.toString(job.nn)+" - Dataset: "+job.dataset);
-		});
+		coordinator.queuedJobs().stream().forEach(job -> printJob(job));
 	}
 	
 	@Descriptor("List (latest) finished jobs.")
 	public void finished(){
 		System.out.println("Finished Jobs:");
-		coordinator.finishedJobs().stream().forEach(job -> {
-			System.out.println(job.name+" ("+job.id+") - NNs: "+Arrays.toString(job.nn)+" - Dataset: "+job.dataset);
-		});
+		coordinator.finishedJobs().stream().forEach(job -> printJob(job));
+	}
+	
+	private void printJob(Job job){
+		System.out.println(job.name+(job.name.equals(job.id.toString()) ? " " :" ("+job.id+") ")+"- Type: "+job.type+" - NNs: "+Arrays.toString(job.nn)+" - Dataset: "+job.dataset);
 	}
 	
 	@Descriptor("Stop/cancel a job.")
@@ -144,6 +142,7 @@ public class DianneCoordinatorCommands {
 				return null;
 			}, p -> {
 				System.out.println("Learn Job failed: "+p.getFailure().getMessage());
+				p.getFailure().printStackTrace();
 			});
 		} catch(Exception e){
 			e.printStackTrace();
@@ -174,6 +173,7 @@ public class DianneCoordinatorCommands {
 				return null;
 			}, p -> {
 				System.out.println("Evaluation Job failed: "+p.getFailure().getMessage());
+				p.getFailure().printStackTrace();
 			});
 		} catch(Exception e){
 			e.printStackTrace();
@@ -198,11 +198,12 @@ public class DianneCoordinatorCommands {
 			
 			Map<String, String> config = createConfig(defaults, properties);
 		
-			coordinator.act(experiencePool, config, nnName.split(",")).then(p -> {
+			coordinator.act(experiencePool, config, nnName==null ? null : nnName.split(",")).then(p -> {
 				System.out.println("Act Job done!");
 				return null;
 			}, p -> {
 				System.out.println("Act Job failed: "+p.getFailure().getMessage());
+				p.getFailure().printStackTrace();
 			});
 		} catch(Exception e){
 			e.printStackTrace();

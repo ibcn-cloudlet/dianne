@@ -178,9 +178,9 @@ public class DiannePlatformCommands {
 	}
 	
 	private void printNN(NeuralNetworkInstanceDTO nn){
-		System.out.println(nn.id.toString()+" ("+nn.name+")");
+		System.out.println(nn.name+" ("+nn.id.toString()+")");
 		for(ModuleInstanceDTO m: nn.modules.values()){
-			System.out.println("* "+m.moduleId+" deployed at "+m.runtimeId);
+			System.out.println("* "+m.module.type+" ("+m.moduleId+") "+" deployed at "+m.runtimeId);
 		}
 	}
 	
@@ -214,7 +214,7 @@ public class DiannePlatformCommands {
 	public void deploy(
 			@Descriptor("name of the neural network")
 			String name, 
-			@Descriptor("uuid of the target network")
+			@Descriptor("uuid of the target runtime")
 			String id, 
 			@Descriptor("tag of the weights to load")
 			String tag){
