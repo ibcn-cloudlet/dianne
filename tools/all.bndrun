@@ -8,8 +8,6 @@
 
 -include: coordinator.bndrun
 
-aiolos.version='latest'
-
 -runbundles.all: \
 	be.iminds.iot.dianne.nn.module;version=latest,\
 	be.iminds.iot.dianne.nn.runtime;version=latest,\
