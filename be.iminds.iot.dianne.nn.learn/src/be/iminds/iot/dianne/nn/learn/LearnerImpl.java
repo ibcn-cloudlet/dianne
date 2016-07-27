@@ -199,6 +199,11 @@ public class LearnerImpl implements Learner {
 				} catch(InterruptedException e){ 
 					// ignore, just interrupt the thread
 				} catch(Throwable t){
+					if(t.getCause() != null & t.getCause() instanceof InterruptedException){
+						// ignore if this cause is from interrupt
+						return;
+					}
+					
 					learning = false;
 
 					System.err.println("Error during learning");
