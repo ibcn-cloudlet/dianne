@@ -1,14 +1,14 @@
 ##
 #
-# DIANNE worker bndrun 
+# DIANNE core bndrun 
 #
-# launches a node with DIANNE runtime
+# core DIANNE bundles
 #
 #
 
 -include: common.bndrun
 
--runbundles.worker: \
+-runbundles.core: \
 	be.iminds.iot.dianne.tensor;version=latest,\
 	be.iminds.iot.dianne.tensor.native.generic;version=latest,\
 	be.iminds.iot.dianne.tensor.util;version=latest,\
@@ -16,10 +16,7 @@
 	be.iminds.iot.dianne.nn.util;version=latest,\
 	be.iminds.iot.dianne.nn.module;version=latest,\
 	be.iminds.iot.dianne.nn;version=latest,\
-	be.iminds.iot.dianne.nn.runtime;version=latest,\
 	be.iminds.iot.dianne.dataset;version=latest
 
--runproperties.worker:\
-	be.iminds.iot.dianne.runtime.name="Worker",\
-	be.iminds.iot.dianne.datasets.location="datasets",\
-	org.osgi.service.http.port=8081
+-runproperties.core:\
+	be.iminds.iot.dianne.datasets.location="datasets"

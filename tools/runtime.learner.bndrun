@@ -6,11 +6,11 @@
 #
 #
 
--include: worker.evaluator.bndrun
+-include: runtime.evaluator.bndrun
 
--runbundles.worker.learner: \
+-runbundles.runtime.learner: \
 	be.iminds.iot.dianne.nn.learn;version=latest,\
 	be.iminds.iot.dianne.rl.learn;version=latest
 
--runproperties.worker.learner:\
+-runproperties.runtime.learner:\
 	be.iminds.iot.dianne.runtime.name="Learner"

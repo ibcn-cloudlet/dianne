@@ -6,9 +6,9 @@
 #
 #
 
--include: worker.bndrun
+-include: runtime.bndrun
 
--runbundles.worker.agent: \
+-runbundles.runtime.agent: \
 	org.websocket;version='[1.0,1.1)',\
 	be.iminds.iot.dianne.rl.agent;version=latest,\
 	be.iminds.iot.dianne.rl.ale;version=latest,\
@@ -16,7 +16,7 @@
 	be.iminds.iot.dianne.rl.pong;version=latest,\
 	be.iminds.iot.dianne.rl.pong.ui;version=latest
 
--runproperties.worker.agent:\
+-runproperties.runtime.agent:\
 	be.iminds.iot.dianne.runtime.name="Agent",\
 	be.iminds.iot.dianne.rl.ale.rom="roms/pong.bin",\
 	be.iminds.iot.dianne.rl.ale.skip=4

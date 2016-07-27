@@ -1,0 +1,16 @@
+##
+#
+# DIANNE worker bndrun 
+#
+# launches a node with DIANNE runtime
+#
+#
+
+-include: core.bndrun
+
+-runbundles.runtime: \
+	be.iminds.iot.dianne.nn.runtime;version=latest
+
+-runproperties.runtime:\
+	be.iminds.iot.dianne.runtime.name="Runtime",\
+	org.osgi.service.http.port=8081

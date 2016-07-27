@@ -6,10 +6,10 @@
 #
 #
 
--include: worker.bndrun
+-include: runtime.bndrun
 
--runbundles.worker.evaluator: \
+-runbundles.runtime.evaluator: \
 	be.iminds.iot.dianne.nn.eval;version=latest
 
--runproperties.worker.evaluator:\
+-runproperties.runtime.evaluator:\
 	be.iminds.iot.dianne.runtime.name="Evaluator"
