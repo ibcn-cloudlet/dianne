@@ -34,6 +34,7 @@ import java.util.Map.Entry;
 import java.util.Random;
 import java.util.UUID;
 
+import org.apache.felix.service.command.Descriptor;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
@@ -57,10 +58,11 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 		property={"osgi.command.scope=dianne",
 				  "osgi.command.function=datasets",
 				  "osgi.command.function=runtimes",
-				  "osgi.command.function=nn",
-				  "osgi.command.function=nnAvailable",
-				  "osgi.command.function=nnDeploy",
-				  "osgi.command.function=nnUndeploy",
+				  "osgi.command.function=list",
+				  "osgi.command.function=info",
+				  "osgi.command.function=models",
+				  "osgi.command.function=deploy",
+				  "osgi.command.function=undeploy",
 				  "osgi.command.function=sample",
 				  "osgi.command.function=gc"},
 		immediate=true)
@@ -83,10 +85,12 @@ public class DianneCommands {
 		this.context = context;
 	}
 	
+	@Descriptor("Trigger JVM garbage collection")
 	public void gc(){
 		System.gc();
 	}
-	
+
+	@Descriptor("List available datasets")
 	public void datasets(){
 		List<DatasetDTO> ds = datasets.getDatasets();
 		
@@ -102,6 +106,7 @@ public class DianneCommands {
 		}
 	}
 	
+	@Descriptor("List available runtimes to deploy modules on")
 	public void runtimes(){
 		if(platform.getRuntimes().size()==0){
 			System.out.println("No runtimes available");
@@ -116,7 +121,8 @@ public class DianneCommands {
 		}
 	}
 	
-	public void nnAvailable(){
+	@Descriptor("List the available models in the repository")
+	public void models(){
 		List<String> nns = platform.getAvailableNeuralNetworks();
 		if(nns.size()==0){
 			System.out.println("No neural networks available");
@@ -130,7 +136,8 @@ public class DianneCommands {
 		}
 	}
 	
-	public void nn(){
+	@Descriptor("List all deployed neural networks")
+	public void list(){
 		List<NeuralNetworkInstanceDTO> nns = platform.getNeuralNetworkInstances();
 		if(nns.size()==0){
 			System.out.println("No neural networks deployed");
@@ -145,7 +152,10 @@ public class DianneCommands {
 		
 	}
 	
-	public void nn(int index){
+	@Descriptor("Print details of a neural network instance")
+	public void info(
+			@Descriptor("index of the neural network instance (from the list command output)")
+			int index){
 		List<NeuralNetworkInstanceDTO> nns = platform.getNeuralNetworkInstances();
 		if(index >= nns.size()){
 			System.out.println("No neural network deployed with index "+index);
@@ -155,7 +165,10 @@ public class DianneCommands {
 		printNN(nn);
 	}
 	
-	public void nn(String id){
+	@Descriptor("Print details of a neural network instance")
+	public void info(
+			@Descriptor("uuid of the neural network instance")
+			String id){
 		NeuralNetworkInstanceDTO nn = platform.getNeuralNetworkInstance(UUID.fromString(id));
 		if(nn==null){
 			System.out.println("No neural network deployed with id "+id);
@@ -171,20 +184,40 @@ public class DianneCommands {
 		}
 	}
 	
-	public void nnDeploy(String name){
+	@Descriptor("Deploy a neural network on the default runtime")
+	public void deploy(
+			@Descriptor("name of the neural network")
+			String name){
 		deploy(name, platform.getRuntimes().keySet().iterator().next());
 	}
 	
-	public void nnDeploy(String name, String id){
+	@Descriptor("Deploy a neural network on a runtime")
+	public void deploy(
+			@Descriptor("name of the neural network")
+			String name, 
+			@Descriptor("uuid of the target runtime")
+			String id){
 		deploy(name, UUID.fromString(id));
 	}
 	
-	public void nnDeploy(String name, int index){
+	@Descriptor("Deploy a neural network on a runtime")
+	public void deploy(
+			@Descriptor("name of the neural network")
+			String name, 
+			@Descriptor("index of the target runtime (from the runtimes command output)")
+			int index){
 		List<UUID> runtimes = new ArrayList<UUID>(platform.getRuntimes().keySet());
 		deploy(name, runtimes.get(index));
 	}
 	
-	public void nnDeploy(String name, String id, String tag){
+	@Descriptor("Deploy a neural network on a runtime and load weights with specific tag")
+	public void deploy(
+			@Descriptor("name of the neural network")
+			String name, 
+			@Descriptor("uuid of the target network")
+			String id, 
+			@Descriptor("tag of the weights to load")
+			String tag){
 		NeuralNetworkInstanceDTO nn = deploy(name, UUID.fromString(id));
 		
 		// load parameters with tag
@@ -194,7 +227,14 @@ public class DianneCommands {
 		addRepositoryListener(nn, tag);
 	}
 	
-	public void nnDeploy(String name, int index, String tag){
+	@Descriptor("Deploy a neural network on a runtime and load weights with specific tag")
+	public void deploy(
+			@Descriptor("name of the neural network")
+			String name, 
+			@Descriptor("index of the target runtime (from the runtimes command output)")
+			int index, 
+			@Descriptor("tag of the weights to load")
+			String tag){
 		List<UUID> runtimes = new ArrayList<UUID>(platform.getRuntimes().keySet());
 		NeuralNetworkInstanceDTO nn = deploy(name, runtimes.get(index));
 		
@@ -218,7 +258,10 @@ public class DianneCommands {
 		return null;
 	}
 	
-	public void nnUndeploy(String nnId){
+	@Descriptor("Undeploy a neural network")
+	public void undeploy(
+			@Descriptor("uuid of the neural network instance")
+			String nnId){
 		NeuralNetworkInstanceDTO nn = platform.getNeuralNetworkInstance(UUID.fromString(nnId));
 		if(nn==null){
 			System.out.println("No neural network deployed with id "+nnId);
@@ -227,7 +270,10 @@ public class DianneCommands {
 		undeploy(nn);
 	}
 	
-	public void nnUndeploy(int index){
+	@Descriptor("Undeploy a neural network")
+	public void undeploy(
+			@Descriptor("index of the neural network instance (from the list command output)")
+			int index){
 		List<NeuralNetworkInstanceDTO> nns = platform.getNeuralNetworkInstances();
 		if(index >= nns.size()){
 			System.out.println("No neural network with index "+index);
@@ -246,7 +292,16 @@ public class DianneCommands {
 		}
 	}
 	
-	public void sample(String dataset, String nnId, int sample, String...tags){
+	@Descriptor("Forward a dataset sample through a neural network instance")
+	public void sample(
+			@Descriptor("dataset name to fetch a sample from")
+			String dataset, 
+			@Descriptor("uuid of the neural network instance")
+			String nnId, 
+			@Descriptor("index of dataset sample")
+			int sample, 
+			@Descriptor("(optional) tags to attach to the forward call ")
+			String...tags){
 
 		Dataset d = datasets.getDataset(dataset);
 		if(d==null){
@@ -300,10 +355,48 @@ public class DianneCommands {
 		} 
 	}
 	
-	public void sample(String dataset, String nnId, String...tags){
+	@Descriptor("Forward a random dataset sample through a neural network instance")
+	public void sample(
+			@Descriptor("dataset name to fetch a sample from")
+			String dataset, 
+			@Descriptor("uuid of the neural network instance")
+			String nnId,
+			@Descriptor("(optional) tags to attach to the forward call ")
+			String...tags){
 		sample(dataset, nnId, -1, tags);
 	}
 
+	@Descriptor("Forward a dataset sample through a neural network instance")
+	public void sample(
+			@Descriptor("dataset name to fetch a sample from")
+			String dataset, 
+			@Descriptor("index of the neural network instance (from the list command output)")
+			int index, 
+			@Descriptor("index of dataset sample")
+			int sample, 
+			@Descriptor("(optional) tags to attach to the forward call ")
+			String... tags){
+		List<NeuralNetworkInstanceDTO> nns = platform.getNeuralNetworkInstances();
+		if(index >= nns.size()){
+			System.out.println("No neural network deployed with index "+index);
+			return;
+		}
+		String id = nns.get(index).id.toString();
+		
+		sample(dataset, id, sample, tags);
+	}
+	
+	@Descriptor("Forward a random dataset sample through a neural network instance")
+	public void sample(
+			@Descriptor("dataset name to fetch a sample from")
+			String dataset, 
+			@Descriptor("index of the neural network instance (from the list command output)")
+			int index, 
+			@Descriptor("(optional) tags to attach to the forward call ")
+			String... tags){
+		sample(dataset, index, -1, tags);
+	}
+	
 	private void loadParameters(NeuralNetworkInstanceDTO nni, String tag){
 		NeuralNetwork nn = null;
 		try {
