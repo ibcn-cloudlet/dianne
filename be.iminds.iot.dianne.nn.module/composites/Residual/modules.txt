@@ -43,7 +43,7 @@
       "prev": [
         "015e1346-790f-4204-e20b-bee76032fbd4"
       ],
-      "size": "${noFilters}",
+      "size": "${noOutputPlanes}",
       "name": "BatchNormalization",
       "category": "Regularization",
       "trainable": "true"
@@ -66,13 +66,13 @@
       "prev": [
         "253ad817-451d-6b01-2246-90845e2cc9df"
       ],
-      "noInputPlanes": "${noFilters}",
+      "noInputPlanes": "${noOutputPlanes}",
       "strideX": "1",
       "kernelWidth": "3",
       "trainable": "true",
       "kernelHeight": "3",
       "padX": "1",
-      "noOutputPlanes": "${noFilters}",
+      "noOutputPlanes": "${noOutputPlanes}",
       "padY": "1",
       "padZ": "",
       "strideY": "1",
@@ -96,7 +96,7 @@
       "trainable": "true",
       "kernelHeight": "3",
       "padX": "1",
-      "noOutputPlanes": "${noFilters}",
+      "noOutputPlanes": "${noOutputPlanes}",
       "padY": "1",
       "padZ": "",
       "strideY": "1",
@@ -140,7 +140,7 @@
       "prev": [
         "50857d99-74c7-a324-7231-ae0c8ce005f9"
       ],
-      "size": "${noFilters}",
+      "size": "${noOutputPlanes}",
       "name": "BatchNormalization",
       "category": "Regularization",
       "trainable": "true"
@@ -156,7 +156,7 @@
       ],
       "dim2": "0",
       "dim1": "0",
-      "dim0": "(${noFilters}-${noInputPlanes})/2",
+      "dim0": "(${noOutputPlanes}-${noInputPlanes})/2",
       "name": "Zeropad",
       "category": "Layer"
     }
