@@ -169,6 +169,7 @@ public class DianneCoordinatorCommands {
 				EvaluationResult result = p.getValue();
 				for(Evaluation eval : result.evaluations.values()){
 					System.out.println("Error: "+eval.error());
+					System.out.println("Forward time: "+eval.forwardTime()+" ms");
 				}
 				return null;
 			}, p -> {
