@@ -295,6 +295,12 @@ $(function () {
      	refreshJobs();
      	
      	setInterval(tick, 60000);
+     	
+     	// allow to pass a jobId as query string for immediate details display 
+    	var queryString = window.location.search;
+    	if(queryString !== ""){
+    		showDetails(queryString.substring(1));
+    	}
     });
 });
 
