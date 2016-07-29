@@ -88,10 +88,19 @@ public class DatasetRangeAdapter extends AbstractDatasetAdapter {
 
 	@Override
 	public Sample getSample(Sample s, int index){
+		Sample result = null;
 		if(indices != null){
-			return data.getSample(indices[index]);
+			result = data.getSample(s, indices[index]);
+		} else {
+			result = data.getSample(s, start+index);
 		}
-		return data.getSample(s, start+index);
+		// in case dataset is remote, we need to make sure we copy here...
+		if(s == null){
+			s = new Sample();
+		}
+		s.input = result.input.copyInto(s.input);
+		s.target = result.target.copyInto(s.target);
+		return s;
 	}
 
 	@Override
