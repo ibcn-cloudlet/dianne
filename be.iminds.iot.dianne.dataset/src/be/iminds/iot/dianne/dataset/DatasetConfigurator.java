@@ -59,7 +59,7 @@ public class DatasetConfigurator implements DianneDatasets {
 
 	private ConfigurationAdmin ca;
 	
-	private String path = "datasets";
+	private String path = null;
 	
 	protected Map<String, Dataset> datasets = new HashMap<String, Dataset>();
 	protected Map<String, DatasetDTO> dtos = new HashMap<String, DatasetDTO>(); 
@@ -73,9 +73,11 @@ public class DatasetConfigurator implements DianneDatasets {
 			path = d;
 		}
 		
-		final File dir = new File(path);
-		Thread t = new Thread(() -> searchDirectory(dir, true));
-		t.start();
+		if(path != null){
+			final File dir = new File(path);
+			Thread t = new Thread(() -> searchDirectory(dir, true));
+			t.start();
+		}
 	}
 	
 	@Override
@@ -117,6 +119,7 @@ public class DatasetConfigurator implements DianneDatasets {
 			props.put("name", adapter);
 			props.put("aiolos.instance.id", adapter);
 			props.put("aiolos.combine", "*");
+			props.put("aiolos.export", "false");
 
 			String s = config.get("range");
 			System.out.println("* range = "+s);
@@ -138,6 +141,7 @@ public class DatasetConfigurator implements DianneDatasets {
 			props.put("name", adapter);
 			props.put("aiolos.instance.id", adapter);
 			props.put("aiolos.combine", "*");
+			props.put("aiolos.export", "false");
 
 			if(config.containsKey("vflip")){
 				String s = config.get("vflip");
@@ -167,6 +171,7 @@ public class DatasetConfigurator implements DianneDatasets {
 			props.put("name", adapter);
 			props.put("aiolos.instance.id", adapter);
 			props.put("aiolos.combine", "*");
+			props.put("aiolos.export", "false");
 
 			if(config.containsKey("rotationTheta")){
 				String s = config.get("rotationTheta");
@@ -203,6 +208,7 @@ public class DatasetConfigurator implements DianneDatasets {
 			props.put("name", adapter);
 			props.put("aiolos.instance.id", adapter);
 			props.put("aiolos.combine", "*");
+			props.put("aiolos.export", "false");
 
 			if(config.containsKey("cropWidth")){
 				String s = config.get("cropWidth");
@@ -244,6 +250,7 @@ public class DatasetConfigurator implements DianneDatasets {
 			props.put("name", adapter);
 			props.put("aiolos.instance.id", adapter);
 			props.put("aiolos.combine", "*");
+			props.put("aiolos.export", "false");
 
 			if(config.containsKey("frame")){
 				String s = config.get("frame");
