@@ -120,10 +120,18 @@ public class StrategyFactoryImpl<T> implements StrategyFactory<T>{
 		
 		// compile source file
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-		// put all bundles on the compiler classpath
+
+		// build classpath
 		String classpath = "";
+		// also put all bundles on the compiler classpath
 		for(Bundle b : context.getBundles()){
 			classpath+= b.getLocation()+":";
+			// TODO this fails when running from runnable jar :-(
+			// we hack around it for now by finding where Concierge stores its jars
+			// won't work on any OSGi framework though :'-(
+			// TODO best way would probably be connecting to the repo and fetching api from there?
+			if(b.getDataFile("")!=null)
+				classpath+=b.getDataFile("").getParentFile().getAbsolutePath()+"/bundle0:";
 		}
 		compiler.run(null, null, null, "-classpath", classpath, sourceFile.getPath());
 		
