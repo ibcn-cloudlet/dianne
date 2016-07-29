@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -114,8 +115,8 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	ExecutorService pool = Executors.newCachedThreadPool();
 
 	Map<UUID, Device> devices = new ConcurrentHashMap<>();
-	// keeps which device is doing what (-1 is idle)
-	Map<UUID, Integer> deviceUsage = new ConcurrentHashMap<>(); 
+	// keeps which device is doing what
+	Map<UUID, BitSet> deviceUsage = new ConcurrentHashMap<>(); 
 	
 	Queue<Notification> notifications = new CircularBlockingQueue<>(20);
 	
@@ -123,10 +124,10 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	
 	@Override
 	public Status getStatus(){
-		int idle = deviceUsage.values().stream().mapToInt(t -> (t==-1) ? 1 : 0).sum();
-		int learn = deviceUsage.values().stream().mapToInt(t -> (t==Type.LEARN.ordinal()) ? 1 : 0).sum();
-		int eval = deviceUsage.values().stream().mapToInt(t -> (t==Type.EVALUATE.ordinal()) ? 1 : 0).sum();
-		int act = deviceUsage.values().stream().mapToInt(t -> (t==Type.ACT.ordinal()) ? 1 : 0).sum();
+		int idle = deviceUsage.values().stream().mapToInt(t -> t.isEmpty() ? 1 : 0).sum();
+		int learn = deviceUsage.values().stream().mapToInt(t -> t.get(Type.LEARN.ordinal()) ? 1 : 0).sum();
+		int eval = deviceUsage.values().stream().mapToInt(t -> t.get(Type.EVALUATE.ordinal()) ? 1 : 0).sum();
+		int act = deviceUsage.values().stream().mapToInt(t -> t.get(Type.ACT.ordinal()) ? 1 : 0).sum();
 
 		
 		long spaceLeft = repository.spaceLeft();
@@ -357,10 +358,10 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	}
 	
 	// called when a job is done
-	void done(AbstractJob job) {
+	void done(final AbstractJob job) {
 		// remove from running list
 		if(running.remove(job)){
-			job.targets.stream().forEach(uuid -> deviceUsage.put((UUID) uuid, -1));
+			job.targets.stream().forEach(uuid -> deviceUsage.get((UUID) uuid).set(job.type.ordinal(), false));
 			
 			try {
 				Throwable error = job.getPromise().getFailure();
@@ -510,7 +511,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		}
 			
 		for(UUID target : targets){
-			deviceUsage.put(target, job.type.ordinal());
+			deviceUsage.get(target).set(job.type.ordinal());
 		}
 		job = queue.poll();
 		job.start(targets, pool);
@@ -521,7 +522,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	}
 	
 	List<UUID> findTargets(Type type, Collection<UUID> ids, String filter, int count, boolean forceFree) throws Exception {
-		List<UUID> targets = ids.stream()
+		List<UUID> candidates = ids.stream()
 					.map(uuid -> devices.get(uuid))
 					.filter( device -> {	// match device filter
 						if(device==null)
@@ -541,19 +542,20 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 					.map(device -> device.id)
 					.collect(Collectors.toList());
 		// check if this is possible
-		if(targets.size() < count)
+		if(candidates.size() < count)
 			throw new Exception("Insufficient infrastructure to meet the requirements of this Job");
 		
 		// check if the possible devices are currently available
-		if(forceFree){
-			targets = targets.stream()
-				.filter(uuid -> deviceUsage.get(uuid)==-1) // search for free nodes only
-				.limit(count)
-				.collect(Collectors.toList());
-		} else {
-			targets = targets.stream()
-					.filter(uuid -> deviceUsage.get(uuid)!=type.ordinal()) // search for nodes not already 
-																			// running this job type
+		List<UUID> targets = candidates.stream()
+			.filter(uuid -> deviceUsage.get(uuid).isEmpty()) // search for free nodes only
+			.limit(count)
+			.collect(Collectors.toList());
+		
+		// no free devices
+		// search for devices not already running this job type and co-locate? 
+		if(targets.size() != count && !forceFree){
+			targets = candidates.stream()
+					.filter(uuid -> !deviceUsage.get(uuid).get(type.ordinal())) 
 					.limit(count)
 					.collect(Collectors.toList());
 		}
@@ -638,7 +640,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	Device addDevice(UUID id){
 		Device device = devices.get(id);
 		if(device == null){
-			deviceUsage.put(id, -1);
+			deviceUsage.put(id, new BitSet(Type.values().length));
 
 			String name = id.toString();
 			String arch = "unknown";
