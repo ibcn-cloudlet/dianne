@@ -22,10 +22,12 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.coordinator;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -154,7 +156,11 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 			return;
 		}
 		
-		result.progress.add(progress);
+		if(result.progress.get(learnerId)==null){
+			List<LearnProgress> p = new ArrayList<>();
+			result.progress.put(learnerId, p);
+		}
+		result.progress.get(learnerId).add(progress);
 		
 		// run validation
 		Evaluation validation = null;
@@ -213,7 +219,7 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 		if(result.progress.size() > errorThresholdWindow){
 			int last = result.progress.size() - 1;
 			int prev = last - errorThresholdWindow;
-			float deltaMiniBatchError = result.progress.get(prev).miniBatchError - result.progress.get(last).miniBatchError;
+			float deltaMiniBatchError = result.progress.get(learnerId).get(prev).miniBatchError - result.progress.get(learnerId).get(last).miniBatchError;
 			if(deltaMiniBatchError < miniBatchErrorThreshold){
 				stop = true;
 			}

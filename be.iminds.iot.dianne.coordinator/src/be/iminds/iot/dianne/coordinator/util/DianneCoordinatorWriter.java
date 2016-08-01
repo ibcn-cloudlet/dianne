@@ -139,9 +139,11 @@ public class DianneCoordinatorWriter {
 	
 	public static void writeLearnResult(JsonWriter writer, LearnResult result) throws Exception {
 		writer.beginArray();
-		// merge progress and validation in single object 
-		for(int i =0;i<result.progress.size();i++){
-			LearnProgress p = result.progress.get(i);
+		// merge progress and validation in single object
+		// TODO for now select one learners minibatch error as progress?
+		List<LearnProgress> select = result.progress.values().iterator().next();
+		for(int i =0;i<select.size();i++){
+			LearnProgress p = select.get(i);
 			Evaluation val = result.validations.get(p.iteration);
 			
 			writer.beginObject();
