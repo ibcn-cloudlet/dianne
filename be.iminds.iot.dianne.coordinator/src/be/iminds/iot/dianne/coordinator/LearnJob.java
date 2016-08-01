@@ -53,7 +53,7 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 	
 	private Map<UUID, Learner> learners = new HashMap<>();
 
-	private Evaluator validator = null;
+	private Map<UUID, Evaluator> validator = null;
 	private NeuralNetworkInstanceDTO[] validationNns;
 	private int validationInterval = 1000;
 	private float bestValidationError = Float.MAX_VALUE;
@@ -98,8 +98,10 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 		
 		if(config.containsKey("validationSet")){
 			for(UUID target : targets){
-				validator = coordinator.evaluators.get(target);
-				if(validator != null){
+				Evaluator v = coordinator.evaluators.get(target);
+				if(v != null){
+					validator = new HashMap<>();
+					validator.put(target, v);
 					validationNns = new NeuralNetworkInstanceDTO[nns.length];
 					for(int i=0;i<nns.length;i++){
 						validationNns[i] = coordinator.platform.deployNeuralNetwork(nns[i].name, "Dianne Coordinator LearnJob Validaton NN"+jobId, target);
@@ -156,7 +158,8 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 		
 		// run validation
 		Evaluation validation = null;
-		if(validator != null && progress.iteration % validationInterval == 0){
+		if(validator != null && validator.containsKey(learnerId) 
+				&& progress.iteration % validationInterval == 0){
 			Map<String, String> c = new HashMap<>();
 			c.put("range", config.get("validationSet"));
 			if(config.containsKey("tag")){
@@ -179,7 +182,7 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 			c.put("storeIfBetterThan", ""+bestValidationError);
 			
 			try {
-				validation = validator.eval(dataset, c, validationNns);
+				validation = validator.get(learnerId).eval(dataset, c, validationNns);
 				
 				if(Float.isNaN(validation.error)){
 					validation = null;
@@ -191,6 +194,8 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 				}
 			} catch(Exception e){
 				System.err.println("Error running validation: "+e.getMessage());
+				onException(learnerId, e);
+				return;
 			}
 			result.validations.put(progress.iteration, validation);
 		}
@@ -242,6 +247,10 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 
 	@Override
 	public void onFinish(UUID learnerId) {
+		// TODO wait for all learners to finish here?!
+		if(deferred.getPromise().isDone()){
+			return;
+		}
 		done(result);
 	}
 
@@ -250,6 +259,11 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 		if(reg!=null)
 			reg.unregister();
 
+		// just to be sure all are stopped in case of errors
+		for(Learner learner : learners.values()){
+			learner.stop();
+		}
+		
 		if(validationNns != null){
 			for(NeuralNetworkInstanceDTO nn : validationNns)
 				coordinator.platform.undeployNeuralNetwork(nn);
