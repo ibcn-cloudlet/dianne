@@ -483,7 +483,7 @@ public class CompositeModuleFactory implements ModuleFactory {
 		this.repository = r;
 	}
 	
-	@Reference
+	@Reference(target="(aiolos.proxy.local=true)")
 	void setDianneRuntime(DianneRuntime r){
 		this.runtime = r;
 	}
