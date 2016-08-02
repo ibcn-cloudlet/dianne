@@ -186,7 +186,7 @@ public class LearnerImpl implements Learner {
 						// Publish parameters to repository
 						for(int k=0;k<nns.length;k++){
 							int syncInterval = (k < this.config.syncInterval.length) ? this.config.syncInterval[k] : this.config.syncInterval[0];
-							if(syncInterval > 0 && i % syncInterval == 0){
+							if(syncInterval > 0 && i > 0 && i % syncInterval == 0){
 								publishParameters(nns[k]);
 							}
 							k++;
