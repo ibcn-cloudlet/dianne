@@ -53,12 +53,17 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 	
 	private LearnResult result = new LearnResult();
 	
+	// in case of multiple learners, one is assigned "master" 
+	// running (optional) validation and checking stop condition
+	private UUID master = null;
 	private Map<UUID, Learner> learners = new HashMap<>();
 
-	private Map<UUID, Evaluator> validator = null;
+	private Evaluator validator = null;
 	private NeuralNetworkInstanceDTO[] validationNns;
 	private int validationInterval = 1000;
 	private float bestValidationError = Float.MAX_VALUE;
+	
+	
 	private float miniBatchErrorThreshold = -Float.MAX_VALUE;
 	private float validationErrorThreshold = -Float.MAX_VALUE;
 	private int errorThresholdWindow = 10;
@@ -98,12 +103,14 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 	@Override
 	public void execute() throws Exception {
 		
+		master = targets.get(0);
 		if(config.containsKey("validationSet")){
 			for(UUID target : targets){
 				Evaluator v = coordinator.evaluators.get(target);
 				if(v != null){
-					validator = new HashMap<>();
-					validator.put(target, v);
+					validator = v;
+					// validator becomes master
+					master = target;
 					validationNns = new NeuralNetworkInstanceDTO[nns.length];
 					for(int i=0;i<nns.length;i++){
 						validationNns[i] = coordinator.platform.deployNeuralNetwork(nns[i].name, "Dianne Coordinator LearnJob Validaton NN"+jobId, target);
@@ -161,84 +168,88 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 			result.progress.put(learnerId, p);
 		}
 		result.progress.get(learnerId).add(progress);
-		
-		// run validation
-		Evaluation validation = null;
-		if(validator != null && validator.containsKey(learnerId) 
-				&& progress.iteration % validationInterval == 0){
-			Map<String, String> c = new HashMap<>();
-			c.put("range", config.get("validationSet"));
-			if(config.containsKey("tag")){
-				c.put("tag", config.get("tag"));
-			} else {
-				c.put("tag", jobId.toString());
-			}
-			if(config.containsKey("validationStrategy")){
-				c.put("strategy", config.get("validationStrategy"));
-			} else {
-				c.put("strategy", "CriterionEvaluationStrategy");
-			}
-			if(config.containsKey("criterion")){
-				c.put("criterion", config.get("criterion"));
-			}
-			// TODO use separate (bigger?) batchSize here?
-			if(config.containsKey("batchSize")){
-				c.put("batchSize", config.get("batchSize"));
-			}
-			c.put("storeIfBetterThan", ""+bestValidationError);
-			
-			try {
-				validation = validator.get(learnerId).eval(dataset, c, validationNns);
-				
-				if(Float.isNaN(validation.error)){
-					validation = null;
-					throw new Exception("Validation error became NaN");
-				}
-				
-				if(validation.error < bestValidationError){
-					bestValidationError = validation.error;
-				}
-			} catch(Exception e){
-				System.err.println("Error running validation: "+e.getMessage());
-				onException(learnerId, e);
-				return;
-			}
-			result.validations.put(progress.iteration, validation);
-		}
 
-		// TODO how frequently send out the progress
-		if(progress.iteration % 1000 == 0)
-			coordinator.sendLearnProgress(this.jobId, progress, validation);
-		
-		// maxIterations stop condition
-		// what in case of multiple learners?!
-		boolean stop = maxIterations > 0 && progress.iteration >= maxIterations;
+		// run validations / publish progress and check stop condition on
+		// elected 'master' node
+		if(learnerId.equals(master)){
+			// run validation
+			Evaluation validation = null;
+			if(validator != null
+					&& progress.iteration % validationInterval == 0){
+				Map<String, String> c = new HashMap<>();
+				c.put("range", config.get("validationSet"));
+				if(config.containsKey("tag")){
+					c.put("tag", config.get("tag"));
+				} else {
+					c.put("tag", jobId.toString());
+				}
+				if(config.containsKey("validationStrategy")){
+					c.put("strategy", config.get("validationStrategy"));
+				} else {
+					c.put("strategy", "CriterionEvaluationStrategy");
+				}
+				if(config.containsKey("criterion")){
+					c.put("criterion", config.get("criterion"));
+				}
+				// TODO use separate (bigger?) batchSize here?
+				if(config.containsKey("batchSize")){
+					c.put("batchSize", config.get("batchSize"));
+				}
+				c.put("storeIfBetterThan", ""+bestValidationError);
+				
+				try {
+					validation = validator.eval(dataset, c, validationNns);
+					
+					if(Float.isNaN(validation.error)){
+						validation = null;
+						throw new Exception("Validation error became NaN");
+					}
+					
+					if(validation.error < bestValidationError){
+						bestValidationError = validation.error;
+					}
+				} catch(Exception e){
+					System.err.println("Error running validation: "+e.getMessage());
+					onException(learnerId, e);
+					return;
+				}
+				result.validations.put(progress.iteration, validation);
+			}
+
+			// TODO how frequently send out the progress
+			if(progress.iteration % 1000 == 0)
+				coordinator.sendLearnProgress(this.jobId, progress, validation);
 			
-		// threshold on delta minibatch error
-		// if less 'progress' than this, stop
-		if(result.progress.size() > errorThresholdWindow){
-			int last = result.progress.size() - 1;
-			int prev = last - errorThresholdWindow;
-			float deltaMiniBatchError = result.progress.get(learnerId).get(prev).miniBatchError - result.progress.get(learnerId).get(last).miniBatchError;
-			if(deltaMiniBatchError < miniBatchErrorThreshold){
-				stop = true;
+			// maxIterations stop condition
+			// what in case of multiple learners?!
+			boolean stop = maxIterations > 0 && progress.iteration >= maxIterations;
+				
+			// threshold on delta minibatch error
+			// if less 'progress' than this, stop
+			if(result.progress.size() > errorThresholdWindow){
+				int last = result.progress.size() - 1;
+				int prev = last - errorThresholdWindow;
+				float deltaMiniBatchError = result.progress.get(learnerId).get(prev).miniBatchError - result.progress.get(learnerId).get(last).miniBatchError;
+				if(deltaMiniBatchError < miniBatchErrorThreshold){
+					stop = true;
+				}
 			}
-		}
-		
-		// threshold on validation threshold
-		Evaluation last = result.validations.get(progress.iteration);
-		Evaluation prev = result.validations.get(progress.iteration - errorThresholdWindow*validationInterval);
-		if(last != null & prev != null){
-			float deltaValidationError = prev.error - last.error;
-			if(deltaValidationError < validationErrorThreshold){
-				stop = true;
+			
+			// threshold on validation threshold
+			Evaluation last = result.validations.get(progress.iteration);
+			Evaluation prev = result.validations.get(progress.iteration - errorThresholdWindow*validationInterval);
+			if(last != null & prev != null){
+				float deltaValidationError = prev.error - last.error;
+				if(deltaValidationError < validationErrorThreshold){
+					stop = true;
+				}
 			}
-		}
-		
-		// if stop ... assemble result object and resolve
-		if(stop){
-			for(Learner learner : learners.values()){
-				learner.stop();
+			
+			// if stop ... assemble result object and resolve
+			if(stop){
+				for(Learner learner : learners.values()){
+					learner.stop();
+				}
 			}
 		}
 	}
@@ -253,7 +264,6 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 
 	@Override
 	public void onFinish(UUID learnerId) {
-		// TODO wait for all learners to finish here?!
 		if(deferred.getPromise().isDone()){
 			return;
 		}
@@ -267,7 +277,9 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 
 		// just to be sure all are stopped in case of errors
 		for(Learner learner : learners.values()){
-			learner.stop();
+			try {
+				learner.stop();
+			} catch(Exception e){}
 		}
 		
 		if(validationNns != null){
@@ -285,8 +297,11 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 	@Override
 	public void stop() throws Exception{
 		if(started > 0){
+			// just stop the learners to get intermediate results
 			for(Learner learner : learners.values()){
-				learner.stop();
+				try {
+					learner.stop();
+				} catch(Exception e){}
 			}		
 		} else {
 			done(new Exception("Job "+this.jobId+" cancelled."));
