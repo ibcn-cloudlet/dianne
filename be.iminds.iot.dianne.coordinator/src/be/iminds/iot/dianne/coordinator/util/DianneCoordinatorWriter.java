@@ -40,7 +40,6 @@ import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.eval.EvaluationProgress;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.rl.agent.AgentProgress;
-import be.iminds.iot.dianne.api.rl.learn.QLearnProgress;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
@@ -141,18 +140,20 @@ public class DianneCoordinatorWriter {
 		writer.beginArray();
 		// merge progress and validation in single object
 		// TODO for now select one learners minibatch error as progress?
-		List<LearnProgress> select = result.progress.values().iterator().next();
-		for(int i =0;i<select.size();i++){
-			LearnProgress p = select.get(i);
-			Evaluation val = result.validations.get(p.iteration);
-			
-			writer.beginObject();
-			writeFields(writer, p);
-			if(val != null){
-				writer.name("validationError");
-				writer.value(val.error());
+		if(result.progress.size() > 0){
+			List<LearnProgress> select = result.progress.values().iterator().next();
+			for(int i =0;i<select.size();i++){
+				LearnProgress p = select.get(i);
+				Evaluation val = result.validations.get(p.iteration);
+				
+				writer.beginObject();
+				writeFields(writer, p);
+				if(val != null){
+					writer.name("validationError");
+					writer.value(val.error());
+				}
+				writer.endObject();
 			}
-			writer.endObject();
 		}
 		writer.endArray();
 	}
