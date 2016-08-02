@@ -231,6 +231,9 @@ public class LearnerImpl implements Learner {
 	
 	@Override
 	public void stop() {
+		if(!learning)
+			return;
+		
 		synchronized(this){
 			if(learning){
 				learning = false;
