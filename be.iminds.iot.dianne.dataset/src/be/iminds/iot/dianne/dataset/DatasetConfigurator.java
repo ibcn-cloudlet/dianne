@@ -271,16 +271,28 @@ public class DatasetConfigurator implements DianneDatasets {
 		// now wait for the adapter dataset to come online
 		d = getDataset(adapter);
 		if(d == null){
-			// TODO do something more intelligent here?!
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
+			// TODO how long before timeout here?
+			long t = System.currentTimeMillis();
+			while(d == null && System.currentTimeMillis()-t < 10000){
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+				}
+				d = getDataset(adapter);
 			}
-			d = getDataset(adapter);
 		}
 
-		if(d != null)
+		if(d != null){
 			adapters.put(d, adapterConfigurations);
+		} else {
+			// cleanup configurations if dataset didn't came online for some reason
+			for(Configuration c : adapterConfigurations){
+				try {
+					c.delete();
+				} catch (IOException e) {
+				}
+			}
+		}
 		
 		return d;
 	}
