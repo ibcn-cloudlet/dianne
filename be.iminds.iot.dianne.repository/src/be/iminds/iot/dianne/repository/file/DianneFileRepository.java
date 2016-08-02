@@ -69,7 +69,8 @@ public class DianneFileRepository implements DianneRepository {
 	
 	private Map<RepositoryListener, List<String>> listeners = Collections.synchronizedMap(new HashMap<RepositoryListener, List<String>>());
 	protected ExecutorService executor = Executors.newSingleThreadExecutor();
-
+	
+	private final DianneRepositoryLock lock = new DianneRepositoryLock();
 	
 	@Activate
 	public void activate(BundleContext context){
@@ -151,12 +152,12 @@ public class DianneFileRepository implements DianneRepository {
 	}
 	
 	@Override
-	public synchronized Tensor loadParameters(UUID moduleId, String... tag) {
+	public Tensor loadParameters(UUID moduleId, String... tag) {
 		return load(moduleId, tag);
 	}
 
 	@Override
-	public synchronized Map<UUID, Tensor> loadParameters(Collection<UUID> moduleIds,
+	public Map<UUID, Tensor> loadParameters(Collection<UUID> moduleIds,
 			String... tag) {
 		return moduleIds.stream().collect(
 				Collectors.toMap(moduleId -> moduleId, moduleId -> loadParameters(moduleId, tag)));
@@ -181,8 +182,49 @@ public class DianneFileRepository implements DianneRepository {
 		return parameters;
 	}
 	
+	@Override
+	public void storeParameters(UUID nnId, UUID moduleId, Tensor parameters, String... tag) {
+		store(moduleId, parameters, tag);
+		
+		notifyListeners(nnId, Collections.singleton(moduleId), tag);
+	}
+	
+	@Override
+	public void storeParameters(UUID nnId, Map<UUID, Tensor> parameters, String... tag) {
+		parameters.entrySet().stream().forEach(e -> store(e.getKey(), e.getValue(), tag));
+		
+		List<UUID> uuids = new ArrayList<UUID>();
+		uuids.addAll(parameters.keySet());
+		notifyListeners(nnId, uuids, tag);
+	}
+	
+	@Override
+	public void accParameters(UUID nnId, UUID moduleId, Tensor accParameters, String... tag){
+		acc(moduleId, accParameters, tag);
+		
+		notifyListeners(nnId, Collections.singleton(moduleId), tag);
+	}
+
+	@Override
+	public void accParameters(UUID nnId, Map<UUID, Tensor> accParameters, String... tag) {
+		accParameters.entrySet().stream().forEach(e -> acc(e.getKey(), e.getValue(), tag));
+		
+		List<UUID> uuids = new ArrayList<UUID>();
+		uuids.addAll(accParameters.keySet());
+		notifyListeners(nnId, uuids, tag);
+
+	}
+	
+	@Override
+	public long spaceLeft() {
+		File d = new File(dir);
+		return d.getUsableSpace();
+	}
+	
 	private Tensor load(UUID moduleId, String... tag){
 		try {
+			lock.read(moduleId);
+			
 			// first check weights, next check all other nn dirs
 			File f = new File(dir+"/weights/"+parametersId(moduleId, tag));
 			if(!f.exists()){
@@ -202,99 +244,84 @@ public class DianneFileRepository implements DianneRepository {
 				// but reduces memory usage a lot for big tensors
 				int bufferSize = 10000;
 				float[] data = new float[bufferSize];
-				DataInputStream is = new DataInputStream(new BufferedInputStream(new FileInputStream(f)));
-				int length = is.readInt();
-				Tensor t = new Tensor(length);
-				int index = 0;
-				while(length > 0){
-					if(length<bufferSize){
-						bufferSize = length;
-						data = new float[bufferSize];
+				try (
+					DataInputStream is = new DataInputStream(
+							new BufferedInputStream(new FileInputStream(f)));
+				){
+					int length = is.readInt();
+					Tensor t = new Tensor(length);
+					int index = 0;
+					while(length > 0){
+						if(length<bufferSize){
+							bufferSize = length;
+							data = new float[bufferSize];
+						}
+						
+						for(int i=0;i<bufferSize;i++){
+							data[i] = is.readFloat();
+						}
+						
+						t.narrow(0, index, bufferSize).set(data);;
+						
+						length -= bufferSize;
+						index+= bufferSize;
 					}
-					for(int i=0;i<bufferSize;i++){
-						data[i] = is.readFloat();
-					}
-					
-					t.narrow(0, index, bufferSize).set(data);;
-					
-					length -= bufferSize;
-					index+= bufferSize;
-				}
-				is.close();
-				return t;
+					return t;
+				} catch(IOException e){
+					e.printStackTrace();
+					throw e;
+				} 
 			}
 			throw new FileNotFoundException();
 		} catch(Exception e){
 			throw new RuntimeException("Failed to load parameters for module "+moduleId+" with tags "+Arrays.toString(tag), e);
+		} finally {
+			lock.free(moduleId);
 		}
-	}
-	
-	@Override
-	public synchronized void storeParameters(UUID nnId, UUID moduleId, Tensor parameters, String... tag) {
-		store(moduleId, parameters, tag);
-		
-		notifyListeners(nnId, Collections.singleton(moduleId), tag);
-	}
-	
-	@Override
-	public synchronized void storeParameters(UUID nnId, Map<UUID, Tensor> parameters, String... tag) {
-		parameters.entrySet().stream().forEach(e -> store(e.getKey(), e.getValue(), tag));
-		
-		List<UUID> uuids = new ArrayList<UUID>();
-		uuids.addAll(parameters.keySet());
-		notifyListeners(nnId, uuids, tag);
-	}
-	
-	@Override
-	public synchronized void accParameters(UUID nnId, UUID moduleId, Tensor accParameters, String... tag){
-		acc(moduleId, accParameters, tag);
-		
-		notifyListeners(nnId, Collections.singleton(moduleId), tag);
-	}
-
-	@Override
-	public synchronized void accParameters(UUID nnId, Map<UUID, Tensor> accParameters, String... tag) {
-		accParameters.entrySet().stream().forEach(e -> acc(e.getKey(), e.getValue(), tag));
-		
-		List<UUID> uuids = new ArrayList<UUID>();
-		uuids.addAll(accParameters.keySet());
-		notifyListeners(nnId, uuids, tag);
-
-	}
-	
-	@Override
-	public long spaceLeft() {
-		File d = new File(dir);
-		return d.getUsableSpace();
 	}
 	
 	private void store(UUID moduleId, Tensor parameters, String... tag){
-		File f = new File(dir+"/weights/"+parametersId(moduleId, tag));
-
-		try(DataOutputStream os = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(f)))) {
-			float[] data = parameters.get();
-			os.writeInt(data.length);
-			for(int i=0;i<data.length;i++){
-				os.writeFloat(data[i]);
+		try {
+			lock.write(moduleId);
+			
+			File f = new File(dir+"/weights/"+parametersId(moduleId, tag));
+	
+			try(DataOutputStream os = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(f)))) {
+				float[] data = parameters.get();
+				os.writeInt(data.length);
+				for(int i=0;i<data.length;i++){
+					os.writeFloat(data[i]);
+				}
+				os.flush();
+				os.close();
+			} catch(IOException e){
+				e.printStackTrace();
 			}
-			os.flush();
-			os.close();
-		} catch(IOException e){
-			e.printStackTrace();
+		} catch(InterruptedException e){
+			// ignore?
+		} finally {
+			lock.free(moduleId);
 		}
 	}
 	
-	private void acc(UUID moduleId, Tensor accParameters, String... tag){
-		Tensor parameters = accParameters;
+	private  void acc(UUID moduleId, Tensor accParameters, String... tag){
 		try {
-			parameters = load(moduleId, tag);
-			
-			TensorOps.add(parameters, parameters, accParameters);
-		} catch(Exception e){
-			System.out.println("Failed to load parameters for "+moduleId+" "+Arrays.toString(tag)+", store as new");
+			lock.write(moduleId);
+			Tensor parameters = accParameters;
+			try {
+				parameters = load(moduleId, tag);
+				
+				TensorOps.add(parameters, parameters, accParameters);
+			} catch(Exception e){
+				System.out.println("Failed to load parameters for "+moduleId+" "+Arrays.toString(tag)+", store as new");
+			}
+		
+			store(moduleId, parameters, tag);
+		} catch(InterruptedException e){
+			// ignore?
+		} finally {
+			lock.free(moduleId);
 		}
-	
-		store(moduleId, parameters, tag);
 	}
 	
 	private String parametersId(UUID id, String[] tag){
