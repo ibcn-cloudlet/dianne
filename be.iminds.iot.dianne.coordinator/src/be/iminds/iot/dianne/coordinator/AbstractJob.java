@@ -155,7 +155,7 @@ public abstract class AbstractJob<T> implements Runnable {
 		try {
 			cleanup();
 			
-			// undeploy neural networks on target instances here?
+			// undeploy neural networks on target instances
 			for(NeuralNetworkInstanceDTO[] instances : nnis.values()){
 				for(NeuralNetworkInstanceDTO nni : instances){
 					coordinator.platform.undeployNeuralNetwork(nni);

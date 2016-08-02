@@ -23,7 +23,10 @@
 package be.iminds.iot.dianne.coordinator;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -364,25 +367,31 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 			job.targets.stream().forEach(uuid -> deviceUsage.get((UUID) uuid).set(job.type.ordinal(), false));
 			
 			try {
+				// safe results to disc
+				File dir = new File(storageDir+File.separator+job.jobId.toString());
+				dir.mkdirs();
+				
+				File jobFile = new File(dir.getAbsolutePath()+File.separator+"job.json");
+				
+				try(JsonWriter writer = new JsonWriter(new FileWriter(jobFile))){
+					writer.setLenient(true);
+					writer.setIndent("  ");
+					DianneCoordinatorWriter.writeJob(writer, job.get());
+					writer.flush();
+				} catch(Exception e){
+					System.err.println("Failed to write job.json for Job "+job.jobId);
+				}
+				
 				Throwable error = job.getPromise().getFailure();
 				if(error !=null){
-					sendNotification(job.jobId, Level.DANGER, "Job \""+job.name+"\" failed: "+error.getMessage());
-				} else {
-					// safe results to disc
-					File dir = new File(storageDir+File.separator+job.jobId.toString());
-					dir.mkdirs();
-					
-					File jobFile = new File(dir.getAbsolutePath()+File.separator+"job.json");
-					
-					try(JsonWriter writer = new JsonWriter(new FileWriter(jobFile))){
-						writer.setLenient(true);
-						writer.setIndent("  ");
-						DianneCoordinatorWriter.writeJob(writer, job.get());
-						writer.flush();
-					} catch(Exception e){
-						System.err.println("Failed to write job.json for Job "+job.jobId);
+					File errorFile = new File(dir.getAbsolutePath()+File.separator+"error");
+					try {
+						error.printStackTrace(new PrintStream(new FileOutputStream(errorFile)));
+					} catch (FileNotFoundException e) {
 					}
 					
+					sendNotification(job.jobId, Level.DANGER, "Job \""+job.name+"\" failed: "+error.getMessage());
+				} else {
 					File resultFile = new File(dir.getAbsolutePath()+File.separator+"result.json");
 					try(JsonWriter writer = new JsonWriter(new FileWriter(resultFile))){
 						writer.setLenient(true);
