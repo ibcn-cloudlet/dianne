@@ -172,6 +172,9 @@ public class CompositeModuleFactory implements ModuleFactory {
 	@Override
 	public Module createModule(ModuleDTO dto, Tensor parameters)
 			throws InstantiationException {
+		if(runtime == null){
+			throw new InstantiationException("Cannot create composite module if no runtime is present");
+		}
 
 		AbstractModule module = null;
 		
@@ -483,9 +486,15 @@ public class CompositeModuleFactory implements ModuleFactory {
 		this.repository = r;
 	}
 	
-	@Reference(target="(aiolos.proxy.local=true)")
+	@Reference(cardinality=ReferenceCardinality.OPTIONAL, 
+			policy=ReferencePolicy.DYNAMIC,
+			target="(aiolos.proxy.local=true)")
 	void setDianneRuntime(DianneRuntime r){
 		this.runtime = r;
+	}
+	
+	void unsetDianneRuntime(DianneRuntime r){
+		this.runtime = null;
 	}
 	
 	@Reference
