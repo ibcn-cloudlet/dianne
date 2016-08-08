@@ -268,7 +268,9 @@
 		   <div class="modal-body">
 			 <div class="row">
 			 	<div class="col-md-6">
-	  				<p><b>NN</b>: {{nn}}</p> 
+	  				<p><b>NN</b>: {{#nn}}
+									<a href="/dianne/download?nn={{.}}&tag={{job.tag}}" target="_blank">{{.}}</a> 
+								   {{/nn}}</p> 
 					<p><b>Dataset</b>: {{dataset}}</p>
 	  				<br />
 				</div>

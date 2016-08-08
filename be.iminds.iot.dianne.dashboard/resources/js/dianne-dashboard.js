@@ -205,6 +205,7 @@ function showDetails(jobId){
 		} else {
 			job.stopTime = moment(job.stopped).format("hh:mm:ss YYYY:MM:DD");
 		}
+		job.tag = job.config.tag;
 		job.config = configObjectToString(job.config);
 		
 		var template = $('#job-details').html();

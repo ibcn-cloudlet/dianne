@@ -80,15 +80,11 @@ public class DianneCoordinatorWriter {
 			writer.endObject();
 		}else if(o.getClass().isArray()){ 
 			int length = Array.getLength(o);
-			if(length == 1){
-				writeObject(writer, Array.get(o, 0));
-			} else {
-				writer.beginArray();
-				for (int i = 0; i < length; i++) {
-					writeObject(writer, Array.get(o, i));
-				}
-				writer.endArray();
+			writer.beginArray();
+			for (int i = 0; i < length; i++) {
+				writeObject(writer, Array.get(o, i));
 			}
+			writer.endArray();
 		} else {
 			writer.beginObject();
 			writeFields(writer, o);
