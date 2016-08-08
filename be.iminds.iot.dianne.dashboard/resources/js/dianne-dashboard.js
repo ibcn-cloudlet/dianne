@@ -23,6 +23,7 @@
 
 var currentMode;
 
+
 function submitJob(){
 	var array =  $("#submit-form").serializeArray();
 	
@@ -39,6 +40,11 @@ function submitJob(){
     		job[this.name] = this.value || '';
     	}
     });
+    
+    // check if it is an upload nn
+    if(job.nn == uploadNN.name){
+    	job.nn = uploadNN;
+    }
     
     // insert name attribute to the config
     if(job.name!==undefined && job.name!==""){
@@ -58,6 +64,24 @@ function submitJob(){
     	DIANNE.act(job.nn, job.dataset, job.config);
     }
 }
+
+// also allow to upload a nn modules.txt file from your filesystem
+var uploadNN = undefined;
+function upload(evt){
+    var f = evt.target.files[0]; 
+    if (f && f.name==="modules.txt") {
+    	var r = new FileReader();
+    	r.onload = function(e) { 
+    		var contents = e.target.result;
+    		uploadNN = JSON.parse(contents);
+    		$('#submit-nn').val(uploadNN.name);
+    	}
+    	r.readAsText(f);
+    } else {
+    	alert("You should upload a modules.txt file defining the neural network.");
+    }
+}
+document.getElementById('fileinput').addEventListener('change', upload, false);
 
 function resubmitJob(jobId){
 	DIANNE.job(jobId).then(function(job){
@@ -108,8 +132,6 @@ function refreshJobs(){
      	  	Mustache.parse(template);
      	  	var rendered = Mustache.render(template, job);
      	  	$(rendered).appendTo($("#jobs-running"));
-     	  	
-
      	  	
      	  	// if new running job, add jobs details (hidden)
      	  	if(!$("#"+job.id).length){
