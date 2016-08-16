@@ -42,7 +42,7 @@ function submitJob(){
     });
     
     // check if it is an upload nn
-    if(job.nn == uploadNN.name){
+    if(uploadNN !== undefined && job.nn == uploadNN.name){
     	job.nn = uploadNN;
     }
     
