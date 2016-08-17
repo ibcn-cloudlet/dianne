@@ -150,7 +150,7 @@ def download(String[] args) {
 
 	exec {
 		/* Could be better, but works for now */
-		commandLine "wget", "-r", "-np", "-nH", "--cut-dirs=1", "--reject=index.html*", "-P", dir, url
+		commandLine "wget", "-nv", "-r", "-np", "-nH", "--cut-dirs=1", "--reject=index.html*", "-P", dir, url
 	}
 }
 
