@@ -15,6 +15,7 @@ task generateFiles(description: "Generate ale.bnd files for this host. This beha
 		}
 	}
 }
+compileJava.dependsOn(generateFiles)
 processResources.dependsOn(generateFiles)
 
 task javah(type:Exec, description: "Generate jni header files used by native builds", group: "build", dependsOn: classes) {

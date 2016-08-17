@@ -25,6 +25,8 @@ task generateFiles(description: "Generate <lib.os.arch>.bnd file for this host. 
 		}
 	}
 }
-cleanAll.dependsOn(cleanGenerateFiles)
+compileJava.dependsOn(generateFiles)
 processResources.dependsOn(generateFiles)
+
+cleanAll.dependsOn(cleanGenerateFiles)
 assemble.dependsOn(jar)
