@@ -60,60 +60,59 @@ public class ParseSamWeights {
 			String file = files[i];
 
 			File w = new File(dir + file + "_W");
-			BufferedReader r = new BufferedReader(
-					new InputStreamReader(new FileInputStream(w)));
+			
 			String line;
 			int count = 0;
 			int noRows = 0;
 			int noCols = 0;
-			while ((line = r.readLine()) != null) {
-				noRows++;
-				if(noCols == 0)
-					noCols = line.split(";").length;
+			try (BufferedReader r = new BufferedReader(
+					new InputStreamReader(new FileInputStream(w)))) {
+				while ((line = r.readLine()) != null) {
+					noRows++;
+					if(noCols == 0)
+						noCols = line.split(";").length;
+				}
 			}
-			
 			System.out.println(noRows+" "+noCols);
 			float[][] weights = new float[noRows][noCols];
 			
-	
-			r = new BufferedReader(
-					new InputStreamReader(new FileInputStream(w)));
 			int k=0;
-			while ((line = r.readLine()) != null) {
-				String[] split = line.split(";");
-				for(int l=0;l<noCols;l++){
-					weights[k][l] = Float.parseFloat(split[l]);
-					count++;
+			try (BufferedReader r = new BufferedReader(
+					new InputStreamReader(new FileInputStream(w)))) {
+				while ((line = r.readLine()) != null) {
+					String[] split = line.split(";");
+					for(int l=0;l<noCols;l++){
+						weights[k][l] = Float.parseFloat(split[l]);
+						count++;
+					}
+					k++;
 				}
-				k++;
-				
 			}
-			r.close();
 			
 			float[] bias = new float[noCols];
 			File b = new File(dir + file + "_b");
-			r = new BufferedReader(new InputStreamReader(
-					new FileInputStream(b)));
-			k = 0;
-			while ((line = r.readLine()) != null) {
-				bias[k] = Float.parseFloat(line);
-				k++;
-				count++;
-			}
-			r.close();
-
-			
-			DataOutputStream out = new DataOutputStream(new FileOutputStream(new File(linears[i])));
-			out.writeInt(noRows*noCols+noCols);
-			for(int y=0;y<noCols;y++){
-				for(int x=0;x<noRows;x++){
-					out.writeFloat(weights[x][y]);
+			try (BufferedReader r = new BufferedReader(new InputStreamReader(
+					new FileInputStream(b)))) {
+				k = 0;
+				while ((line = r.readLine()) != null) {
+					bias[k] = Float.parseFloat(line);
+					k++;
+					count++;
 				}
 			}
-			for(int y=0;y<noCols;y++){
-				out.writeFloat(bias[y]);
+
+			
+			try (DataOutputStream out = new DataOutputStream(new FileOutputStream(new File(linears[i])))) {
+				out.writeInt(noRows*noCols+noCols);
+				for(int y=0;y<noCols;y++){
+					for(int x=0;x<noRows;x++){
+						out.writeFloat(weights[x][y]);
+					}
+				}
+				for(int y=0;y<noCols;y++){
+					out.writeFloat(bias[y]);
+				}
 			}
-			out.close();
 			
 			System.out.println(count);
 					

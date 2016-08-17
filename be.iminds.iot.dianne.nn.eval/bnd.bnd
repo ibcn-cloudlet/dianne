@@ -12,9 +12,7 @@ Bundle-Version: 0.5.0.${tstamp}
 	
 -dsannotations: *
 Bundle-Name: Dianne Evaluator
-Private-Package: \
-	be.iminds.iot.dianne.nn.eval.command,\
-	be.iminds.iot.dianne.nn.eval
+Private-Package: be.iminds.iot.dianne.nn.eval
 Export-Package: \
 	be.iminds.iot.dianne.api.nn.eval,\
 	be.iminds.iot.dianne.api.nn.learn,\
