@@ -38,7 +38,10 @@
           <ul class="nav navbar-nav">
             <li class="active"><a href="#home">Home</a></li>
             <li><a href="#dianne">Learn more</a></li>
-            <li><a href="#tutorial">Getting started</a></li>
+            <li><a href="#gettingstarted">Getting started</a></li>
+            <li><a href="#builder">Builder</a></li>
+            <li><a href="#dashboard">Dashboard</a></li>
+            <li><a href="#development">Development</a></li>
             <li><a href="https://github.com/ibcn-cloudlet/dianne" target="_blank">Source</a></li>
             <li><a href="#about">About</a></li>
           </ul>
@@ -61,13 +64,13 @@
 	        	</div>
 	        </div>
 	        <br/>
-	        <p>DIANNE is a modular software framework for designing, evaluating and training artificial neural networks. 
+	        <p>DIANNE is a modular software framework for designing, training and evaluating artificial neural networks. 
 	        It is built on top of <a href="http://www.osgi.org" target="_blank">OSGi</a> and <a href="http://aiolos.intec.ugent.be" target="_blank">AIOLOS</a> and can transparently
-	        deploy and redeploy (parts of) a neural network on multiple machines.</p>
+	        deploy and redeploy (parts of) a neural network on multiple machines, as well as scale up training on a compute cluster.</p>
 	        
 	        <img src="images/modules.png" class="img-responsive"/>
 	        
-	        <p><a class="btn btn-dianne btn-lg" role="button" href="#tutorial">Get started &raquo;</a></p>
+	        <p><a class="btn btn-dianne btn-lg" role="button" href="#gettingstarted">Get started &raquo;</a></p>
 	      </div>
 	    </div>
 	
@@ -90,12 +93,12 @@
 	        <div class="col-md-6">
 	         <h2>Flexible inputs</h2>
 	          <p>
-	          DIANNE provides various inputs for your neural network. It supports various popular image datasets such as ImageNet, MNIST, CIFAR-10/100, etc. 
+	          DIANNE provides various inputs for your neural network. It supports various popular image datasets such as ImageNet, MNIST, CIFAR-10/100, etc., and you can easily add your own. 
 	          </p>
 	          <a href="images/screenshot-datasets.png"><img src="images/screenshot-datasets.png" class="img-responsive"/></a>
 	          <br/>
 	          <p>
-	          Besides input from datasets, you can also configure your webcam to forward input directly to your neural network.
+	          Besides input from datasets, you can also configure other data sources such as your webcam to forward input directly to your neural network.
 	          </p>
 	       </div>
 	      </div>
@@ -108,21 +111,17 @@
 	          <a href="images/screenshot-deploy.png"><img src="images/screenshot-deploy.png" class="img-responsive"/></a>
 	          <br/>
 	          <p>
-	          This gives you fine grained control on which module to execute on which device, allowing to stretch your neural network accross the compute
+	          This gives you fine grained control on which module to execute on which device, allowing to stretch your neural network across the compute
 	          capabilities of multiple (embedded) devices.</p>
 	        </div>
 	        <div class="col-md-6">
-	          <h2>Parallel training</h2>
+	          <h2>Distributed training</h2>
 	          <p>
-	          DIANNE provides basic algorithms for training your neural network. At the moment only stochastic gradient descent is implemented, but more features will follow.
+	          DIANNE provides a number of well-known optimization routines for training your neural network, ranging from vanilla SGD to Adam. You can scale up your training using the DIANNE dashboard UI, which allows you to submit and track learning jobs on a compute cluster.
 	          </p>
-	          <br/>
+	          <a href="images/screenshot-dashboard.png"><img src="images/screenshot-dashboard.png" class="img-responsive"/></a>
 	          <p>
-	          Thanks to the distributed nature of DIANNE, it is also possible to set up parallel training configurations, for example exploiting model parallelism or data parallelism.
-	          </p>
-	          <br/>
-	          <p>
-	          DIANNE can also be used for deep Q-learning, providing APIs for generating learning environments, experience pools, agents, etc. 
+	          Thanks to the distributed nature of DIANNE, it is also possible to set up distributed training configurations, for example exploiting model parallelism or data parallelism.
 	          </p>
 	       </div>
 	      </div>
@@ -136,8 +135,20 @@
 		  
 	      <hr>  
 		  
-		  <div id="tutorial" class="anchor"></div>
+		  <div id="gettingstarted" class="anchor"></div>
 	  
+	  	  <hr>
+	  	  
+	  	  <div id="builder" class="anchor"></div>
+	  
+	  	  <hr>
+	  	  
+	  	  <div id="dashboard" class="anchor"></div>
+	  
+	  	  <hr>
+	  	  
+	  	  <div id="development" class="anchor"></div>
+	  	  
 	  	  <hr>
 	  	  
 	  	  <div id="about" class="anchor container">
@@ -188,7 +199,7 @@
 	  	  		<div class="col-md-4">
 	  	  			<b>Steven Bohez</b> is working on a Ph.D. at Ghent University - iMinds and is focussing on advanced mobile cloud
 	  	  			applications that are distributed between mobile devices and the cloud. He is using DIANNE to deploy neural networks
-	  	  			on mobile robots that are trained in the cloud using distributed deep Q learning.	  	  			
+	  	  			on mobile robots that are trained in the cloud using distributed deep reinforcement learning.	  	  			
 	  	  		</div>
 	  	  	</div>
 	  	  	<div class="row team">
@@ -236,12 +247,36 @@
       });
 		    	
 	  $.ajax({
-		    url: 'doc/tutorial.md',
+		    url: 'doc/gettingstarted.md',
 		    type: 'GET',
 		    success: function(markdown) {
-		    	showMarkdown(markdown, 'tutorial');
+		    	showMarkdown(markdown, 'gettingstarted');
 		    }
        });
+	  
+	  $.ajax({
+		    url: 'doc/builder.md',
+		    type: 'GET',
+		    success: function(markdown) {
+		    	showMarkdown(markdown, 'builder');
+		    }
+     });
+	  
+	  $.ajax({
+		    url: 'doc/dashboard.md',
+		    type: 'GET',
+		    success: function(markdown) {
+		    	showMarkdown(markdown, 'dashboard');
+		    }
+      });
+	  
+	  $.ajax({
+		    url: 'doc/development.md',
+		    type: 'GET',
+		    success: function(markdown) {
+		    	showMarkdown(markdown, 'development');
+		    }
+     });
 	  
 	  $('body').scrollspy({ target: '.navbar-scrollable' })
  	</script>
