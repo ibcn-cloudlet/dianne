@@ -93,7 +93,7 @@ Once you have DIANNE up and running, it's a good idea to check if everything is 
 	./gradlew dataset -Pwhich=MNIST
 	./gradlew model -Pwhich=tutorial_1
 	
-This will download the MNIST dataset along with the necessary configuration file (for more information on datasets and adapters in DIANNE, see the [documentation on GitHub](https://github.com/ibcn-cloudlet/dianne/blob/v0.4.0/doc/datasets.md)), as well as a simple MLP model structure and trained weights.
+This will download the MNIST dataset along with the necessary configuration file (for more information on datasets and adapters in DIANNE, see the [documentation on GitHub](datasets.md)), as well as a simple MLP model structure and trained weights.
 
 Once the DIANNE runtime is started, direct your browser to:
 
