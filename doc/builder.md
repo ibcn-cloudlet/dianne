@@ -46,7 +46,7 @@ To convince yourself even further, you can go ahead to the `Run` tab and see the
 Available modules
 -----------------
 
-In this example, only a handful of the available neural network modules were used, but many more are readily available in the DIANNE platform or will be added in the future. Besides modules implementing algebraic or element-wise operations, there are also *fork* and *join* modules, which allow your model to branch off and contain multiple paths. Moreover, there are *composite* modules, which allow other neural networks to be used as buildings blocks in a new model. ResNets, for example, can be constructed in this way. For more information on all the modules available in DIANNE, as well as there configuration parameters, please refer to the [module catalog on GitHub](modules.md).
+In this example, only a handful of the available neural network modules were used, but many more are readily available in the DIANNE platform or will be added in the future. Besides modules implementing algebraic or element-wise operations, there are also *fork* and *join* modules, which allow your model to branch off and contain multiple paths. Moreover, there are *composite* modules, which allow other neural networks to be used as buildings blocks in a new model. ResNets, for example, can be constructed in this way. For more information on all the modules available in DIANNE, as well as there configuration parameters, please refer to the [module catalog on GitHub](https://github.com/ibcn-cloudlet/dianne/blob/v0.4.0/doc/modules.md).
 
 Preconfigured datasets & models
 -------------------------------
@@ -61,4 +61,4 @@ Besides the MNIST dataset and example model in the previous section, a number of
 Add your own datasets
 ---------------------
 
-For some dataset structures and file types, it is possible to add your own dataset with a simple configuration file, no additional coding required. For more information regarding datasets, see the [dataset documentation on GitHub](datasets.md).
+For some dataset structures and file types, it is possible to add your own dataset with a simple configuration file, no additional coding required. For more information regarding datasets, see the [dataset documentation on GitHub](https://github.com/ibcn-cloudlet/dianne/blob/v0.4.0/doc/datasets.md).
