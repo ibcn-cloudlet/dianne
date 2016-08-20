@@ -11,11 +11,11 @@ Once you have setup the cluster, you can access the Dashboard by pointing your b
 
 You should be greeted by the summary dashboard. On this page you get an overview of the infrastructure, queued, running and finished jobs as well a list of notifications, e.g. when jobs have started or finished:
 
-![Dashboard interface](figures/dashboard_1.tiff)
+![Dashboard interface](figures/dashboard_1.png)
 
 On the top left you can see the "Submit job" button. When you click on it, a pop-up window appears were you can configure the job:
 
-![Submitting a job](figures/dashboard_2.tiff)
+![Submitting a job](figures/dashboard_2.png)
 
 In order to submit a job you need to enter the following details:
 
@@ -30,14 +30,14 @@ In order to submit a job you need to enter the following details:
 
 Once you have set all the required details, just click the `Submit` button and your job will be submitted to the job queue. If the necessary requirements for the job are met (i.e. there is an idle `Learner` service for a learning job), the job will be started. When the job is finished, you can click on it to view the result:
 
-![Job result](figures/dashboard_3.tiff)
+![Job result](figures/dashboard_3.png)
 
 Depending on the job, you get a different visualization of the job. For training jobs, for example, you get a plot with the error as a function of the number of iterations (updates). You can also see the time the job was submitted, started and finished as well as resubmit the job.
 
 When you have multiple jobs running simultaneously, you can check their progress on the `Running jobs` tab. Here you get a grid which shows the progress for every running job.
 
-![Tracking running jobs](figures/dashboard_4.tiff)
+![Tracking running jobs](figures/dashboard_4.png)
 
 Finally, on the `Infrastructure` tab, you get an overview of the system load on all your connected machines, showing real-time information such as CPU and memory usage:
 
-![Infrastructure monitoring](figures/dashboard_5.tiff)
+![Infrastructure monitoring](figures/dashboard_5.png)

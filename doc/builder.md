@@ -7,39 +7,39 @@ The DIANNE Builder allows you to design and train your own neural network models
 
 Or use `http://localhost:8080/dianne` for short. This should bring up the builder interface, consisting of a menu bar, a canvas and a toolbox with neural network building blocks, a.k.a. modules, on the left:
 
-![Builder interface](figures/builder_1.tiff)
+![Builder interface](figures/builder_1.png)
 
 Designing your model is a two-step process. We will now recreate the MNIST classification network used in the [Getting started](http://dianne.intec.ugent.be/#gettingstarted) section. First, drag and drop the required modules from the toolbox onto the canvas. You can scroll down the toolbox list, and you can (un)collapse categories by clicking on the category title. Connect the modules together such that you start with an `Input` module and end with an `Output` module. In this case, we need two `Linear` modules, a `Sigmoid` module and a `LogSoftMax` module:
 
-![The example MNIST neural network](figures/builder_2.tiff)
+![The example MNIST neural network](figures/builder_2.png)
 
 Next, we need to configure some of the modules in order to set their internal parameters correctly. You can configure modules by double clicking on them. Both `Linear` modules need to be configured with an input and output size. Since we are working on the MNIST dataset, which consists of 28x28 single channel images, the input of the first `Linear` should be 28 x 28 = 784. The output is the number of hidden neurons we would like, for example 50.
 
-![Configure first Linear](figures/builder_3.tiff)
+![Configure first Linear](figures/builder_3.png)
 
 The second `Linear` module will then take 50 inputs, and the output will be the number of output classes, in the case of MNIST this is 10. Now deploy this neural network. When hitting the `Deploy` menu item, you will first be asked to save this neural network. Just give it a name you like:
 
-![Save your neural network](figures/builder_4.tiff)
+![Save your neural network](figures/builder_4.png)
 
 Once your network is deployed, click the `Learn` menu item to train your neural network. In this view, the module toolbox has been replaced by a learning toolbox, consisting off a `Trainer`, `Evaluator` and various datasets.
 
-![Learning tab](figures/builder_5.tiff)
+![Learning tab](figures/builder_5.png)
 
 Start by adding an `MNIST` dataset and connecting this to your `Input`. In case the MNIST dataset is not showing up, please run `.\gradlew dataset -Pwhich=MNIST` to download it. Double clicking the dataset allows you to select how many samples will be used for training and how many will be used for testing.
 
-![Dataset configuration](figures/builder_6.tiff)
+![Dataset configuration](figures/builder_6.png)
 
 To convince yourself that the neural network is actually not trained at all, connect an `Evaluator`, double click on it and click `evaluate`. This will evaluate the classification accuracy on the test set you just configured. From the confusion matrix you can see that the neural network is not yet trained.
 
-![Untrained network](figures/builder_7.tiff)
+![Untrained network](figures/builder_7.png)
 
 Now also connect an `SGD Trainer` block to the `Output` and open the training dialog by double clicking on it. As we are doing classification, change the `Loss` option to `Negative Log Likelihood`. The other parameters' default values should suffice for this example, so then just click `Train`. Now the training procedure should start and you should see how the error decreases as training proceeds. 
 
-![Training your neural network](figures/builder_8.tiff)
+![Training your neural network](figures/builder_8.png)
 
 Click `Stop` when you are satisfied with the training. You can check the progress by running the `Evaluator` again. After a few minutes of training, your network should be able to reach over 90 percent accuracy. The confusion matrix should now highlight the diagonal meaning that the neural network performs as it is supposed to.
 
-![Evaluating the trained network](figures/builder_9.tiff)
+![Evaluating the trained network](figures/builder_9.png)
 
 To convince yourself even further, you can go ahead to the `Run` tab and see the outputs for individual samples. You can download a pretrained version of this model form the DIANNE website using `./gradlew model -Pwhich=tutorial_1`.
 

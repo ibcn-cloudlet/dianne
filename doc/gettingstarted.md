@@ -101,32 +101,32 @@ Once the DIANNE runtime is started, direct your browser to:
 		
 The DIANNE web UI should show up:
 
-![DIANNE web UI](figures/gettingstarted_1.tiff)
+![DIANNE web UI](figures/gettingstarted_1.png)
 
 We will now load the example model we just downloaded by clicking the `Load` menu item. Choose the `tutorial_1` neural network and hit the `Load` button in the dialog.
 
-![Loading the example model](figures/gettingstarted_2.tiff)
+![Loading the example model](figures/gettingstarted_2.png)
 
 Now a simple fully connected neural network with one hidden layer and sigmoid activation function is shown.
 
-![Structure of the example model](figures/gettingstarted_3.tiff)
+![Structure of the example model](figures/gettingstarted_3.png)
 
 To deploy this neural network, go to the deploy mode by clicking the `Deploy` menu item top right. Now, instead of neural network building blocks, you will see all connected DIANNE runtimes.
 
-![Not-yet deployed example model](figures/gettingstarted_4.tiff)
+![Not-yet deployed example model](figures/gettingstarted_4.png)
 
 Right now this is only one, your local environment, which in his case is called `Coordinator`. To deploy the neural network modules, click on the `Coordinator` runtime box, and next click `Deploy All`. You can also click the `Coordinator` runtime box, and then click on each of the modules separately. 
 
-![Deployed example model](figures/gettingstarted_5.tiff)
+![Deployed example model](figures/gettingstarted_5.png)
 
 Congratulations, you have just deployed your first neural network on DIANNE!
 
 Now to see this neural network in action, click the `Run` menu item in the top right. You can skip the `Learn` tab for now since we already trained this neural network for you and we are just checking if everything works OK. In the `Run` tab, drag the `MNIST` dataset on the canvas and connect it to the `Input` module. Similarly select an `Output probabilities` block and connect the `Output` module to it:
 
-![Run tab](figures/gettingstarted_6.tiff)
+![Run tab](figures/gettingstarted_6.png)
 
 Now you are set to forward your first sample through the neural network. Double click on both the `MNIST` module and `Output probabilities` blocks you added to the canvas. Two dialogs will pop up. Click the `Sample` button to randomly select a sample of the dataset and forward it through the network. The output probabilities should be visualized in the other dialog.
 
-![Forward your first sample](figures/gettingstarted_7.tiff)
+![Forward your first sample](figures/gettingstarted_7.png)
 
 You can now go ahead and build and train your own neural network. To clear the canvas, just refresh the browser.
