@@ -1,0 +1,19 @@
+Bundle-Version: 0.5.0.${tstamp}
+Bundle-Name: Dianne Kuka Environments
+
+-buildpath: \
+	biz.aQute.junit,\
+	osgi.core;version=5.0,\
+	osgi.enterprise;version=5.0,\
+	be.iminds.iot.dianne.api;version=latest,\
+	be.iminds.iot.dianne.tensor;version=latest,\
+	be.iminds.iot.dianne.tensor.util;version=latest,\
+	osgi.promise,\
+	be.iminds.iot.dianne.nn.util;version=latest,\
+	be.iminds.iot.dianne.rl.agent;version=latest,\
+	be.iminds.iot.robot.api,\
+	be.iminds.iot.sensor.api,\
+	be.iminds.iot.simulator.api
+	
+Private-Package: be.iminds.iot.dianne.rl.environment.kuka
+Export-Package: be.iminds.iot.dianne.api.rl.environment
