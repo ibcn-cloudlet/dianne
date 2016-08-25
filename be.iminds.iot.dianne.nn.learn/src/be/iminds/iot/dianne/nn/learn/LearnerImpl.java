@@ -194,6 +194,14 @@ public class LearnerImpl implements Learner {
 						// Publish progress
 						publishProgress(progress);
 						
+						// Store intermediate parameters
+						for(int k=0;k<nns.length;k++){
+							int storeInterval = (k < this.config.storeInterval.length) ? this.config.storeInterval[k] : this.config.storeInterval[0];
+							if(storeInterval > 0 && i > 0 && i % storeInterval == 0){
+								nns[k].storeParameters(this.config.tag, ""+i);
+							}
+						}
+						
 					}
 				} catch(InterruptedException e){ 
 					// ignore, just interrupt the thread

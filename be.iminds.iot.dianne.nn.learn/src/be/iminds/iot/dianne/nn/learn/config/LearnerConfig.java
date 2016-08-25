@@ -54,4 +54,9 @@ public class LearnerConfig {
 	 */
 	public int[] syncInterval = new int[]{1000};
 	
+	/**
+	 * Interval to store nn parameters
+	 */
+	public int[] storeInterval = new int[]{0};
+	
 }
