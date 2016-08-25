@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
@@ -130,33 +129,38 @@ public class FetchCanEnvironment implements Environment {
 	
 	
 	private void executeAction(int action){
-		// TODO send command to robot
-		System.out.println("DO ACTION "+action+" "+kukaArm+" "+kukaPlatform);
+
 		switch(action){
 		case 0:
-			kukaPlatform.move(0f, 0.01f, 0f);
+			kukaPlatform.move(0f, 0.2f, 0f);
 			break;
 		case 1:
-			kukaPlatform.move(0f, -0.01f, 0f);
+			kukaPlatform.move(0f, -0.2f, 0f);
 			break;
 		case 2:
-			kukaPlatform.move(0.01f, 0f, 0f);
+			kukaPlatform.move(0.2f, 0f, 0f);
 			break;
 		case 3:
-			kukaPlatform.move(-0.01f, 0f, 0f);
+			kukaPlatform.move(-0.2f, 0f, 0f);
 			break;
 		case 4:
 			kukaPlatform.move(0f, 0.f, 0f);
 			break;
 		case 5:
-			kukaPlatform.move(0f, 0.f, 0.02f);
+			kukaPlatform.move(0f, 0.f, 0.4f);
 			break;
 		case 6:
-			kukaPlatform.move(0f, 0.f, -0.02f);
+			kukaPlatform.move(0f, 0.f, -0.4f);
 			break;	
 		case 7:
-			System.out.println("GRIP!");
 			kukaPlatform.stop();	
+
+			// stop early when we are nowhere near the pick location (further than 10cm)
+			Position d = simulator.getPosition("Can1", "youBot");
+			if(Math.abs(d.y) > 0.1 || Math.abs(d.z - 0.58) > 0.1){
+				return;
+			}
+			
 			kukaArm.openGripper()
 				.then(p -> kukaArm.setPosition(0, 2.92f))
 				.then(p -> kukaArm.setPosition(4, 2.875f))
@@ -171,27 +175,49 @@ public class FetchCanEnvironment implements Environment {
 			// keep on ticking to let the action complete
 			for(int i=0;i<300;i++){
 				simulator.tick();
+				
+				// stop when colliding
+				if(simulator.checkCollisions("Border")){
+					return;
+				}
 			}
-			
-			break;
+			return;
 		}
 		
-		// simulate an iterations further
+		// simulate an iteration further
 		simulator.tick();	
 	
 	}
 	
 	private float calculateReward(){
-		// TODO calculate reward based on distance / succesful grip action
-		float reward = 0.0f;
+		// in case of collision, reward -1
+		// in case of succesful grip, reward 1, insuccesful grip, -1
+		// else, reward between 0 and 0.5 as one gets closer to the optimal grip point
+		if(simulator.checkCollisions("Border")){
+			return -1.0f;
+		}
+
+		Position d = simulator.getPosition("Can1", "youBot");
+		// if terminal, check for grip success
+		if(terminal){
+			if(d.x > 0){
+				// can is lifted, reward 1
+				return  1.0f;
+			} else {
+				// else failed, -1
+				return -1.0f;
+			}
+		}
+
+		float dx = d.y;
+		float dy = d.z - 0.58f;
+
+		// dy should come close to 0.58 for succesful grip
+		// dx should come close to 0
+		float d2 = dx*dx + dy*dy;
 		
-		Position p1 = simulator.getPosition("youBot");
-		Position p2 = simulator.getPosition("Can0");
-		
-		double dx = p2.x - p1.x;
-		double dy = p2.y - p1.y;
-		
-		System.out.println("REWARD IS "+reward+" "+dx+" "+dy);
+		// get reward of up to 0.5 when within meter range of grip position
+		float reward = (float)(1 - Math.sqrt(d2))/2;
 		return reward;
 	}
 	
@@ -201,13 +227,17 @@ public class FetchCanEnvironment implements Environment {
 	}
 	
 	private void init(){
+		// TODO also random init for youbot position and orientation?
+		
+		// always start the youbot in 0,0 for now
 		Position p = simulator.getPosition("youBot");
 		simulator.setPosition("youBot", new Position(0, 0, p.z));
 		
-		// set random can position
+		// set random can position, right now in front of the youbot
 		p = simulator.getPosition("Can1");
-		float x = r.nextFloat()-0.5f;
-		float y = r.nextFloat()+0.5f;
+		float x = (r.nextFloat()-0.5f)*0.55f;
+		x = x > 0 ? x + 0.25f : x - 0.25f; 
+		float y = r.nextFloat()*0.9f+0.4f;
 		simulator.setPosition("Can1", new Position(x, y, p.z));
 		
 		simulator.start(true);

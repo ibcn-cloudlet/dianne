@@ -38,7 +38,8 @@
 	coppelia;version=latest,\
 	be.iminds.iot.simulator.vrep;version=latest,\
 	be.iminds.iot.sensor.range.ros;version=latest,\
-	be.iminds.iot.robot.youbot.ros;version=latest
+	be.iminds.iot.robot.youbot.ros;version=latest,\
+	be.iminds.iot.robot.input;version=latest
 
 
 -runproperties.xkuka: \
