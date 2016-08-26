@@ -95,10 +95,6 @@ public class DatasetConfigurator implements DianneDatasets {
 	
 	@Override
 	public Dataset configureDataset(String name, Map<String, String> config) {
-		Dataset d = getDataset(name);
-		if(d == null)
-			return null;
-		
 		System.out.println("Dataset");
 		System.out.println("---");
 		System.out.println("* dataset = "+name);
@@ -106,6 +102,52 @@ public class DatasetConfigurator implements DianneDatasets {
 		
 		List<Configuration> adapterConfigurations = new ArrayList<>();
 
+		Dataset d = getDataset(name);
+		if(d == null){
+			// check if this is an ExperiencePool, in this case we can try to create it
+			if(config.get("environment")!=null){
+				Hashtable<String, Object> props = new Hashtable<>();
+				
+				String pid = "be.iminds.iot.dianne.dataset.ExperiencePool";
+				if(config.containsKey("type")){
+					String type = config.get("type");
+					pid = "be.iminds.iot.dianne.dataset."+type;
+					
+					if(type.equals("FileExperiencePool")){
+						File dir = new File(path+"/"+name);
+						dir.mkdirs();
+						props.put("dir", dir.getAbsolutePath());
+					}
+				}
+				
+				props.put("name", name);
+				props.put("aiolos.combine", "*");
+				props.put("aiolos.instance.id", name);
+
+				props.put("stateDims", config.get("stateDims").split(","));
+				props.put("actionDims", config.get("actionDims").split(","));
+				if(config.containsKey("maxSize")){
+					props.put("maxSize", config.get("maxSize"));
+				} else {
+					props.put("maxSize", "1000000");
+				}
+				
+				// TODO also store a json description in the dir to reload the xp pool later?
+				
+				try {
+					Configuration c = ca.createFactoryConfiguration(pid, null);
+					c.update(props);
+					adapterConfigurations.add(c);
+				} catch(Exception e){
+					e.printStackTrace();
+				}
+				
+			} else {
+				return null;
+			}
+		}
+		
+		
 		// TODO type safe creation of dataset adapter configurations?
 		// flip -> rotate -> crop -> frame?
 		String adapter = name;

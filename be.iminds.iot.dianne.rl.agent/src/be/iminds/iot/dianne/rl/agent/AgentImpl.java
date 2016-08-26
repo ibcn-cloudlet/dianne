@@ -23,6 +23,7 @@
 package be.iminds.iot.dianne.rl.agent;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -171,6 +172,17 @@ public class AgentImpl implements Agent {
 		env = envs.get(environment);
 		
 		if(experiencePool != null){
+			// add env state/actionDims in case we need to construct xp pool
+			if(!config.containsKey("stateDims")){
+				int[] stateDims = env.observationDims();
+				String sd = Arrays.toString(stateDims);
+				config.put("stateDims", sd.substring(1, sd.length()-1));
+			}
+			if(!config.containsKey("actionDims")){
+				int[] actionDims = env.actionDims();
+				String ad = Arrays.toString(actionDims);
+				config.put("actionDims", ad.substring(1, ad.length()-1));
+			}
 			Dataset d = datasets.configureDataset(experiencePool, config);
 			if(d == null || !(d instanceof ExperiencePool)){
 				acting = false;
