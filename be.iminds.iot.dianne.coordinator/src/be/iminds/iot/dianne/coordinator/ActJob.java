@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.coordinator.AgentResult;
+import be.iminds.iot.dianne.api.coordinator.Job.LearnCategory;
 import be.iminds.iot.dianne.api.coordinator.Job.Type;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.rl.agent.Agent;
@@ -42,6 +43,8 @@ public class ActJob extends AbstractJob<AgentResult> {
 			Map<String, String> config,
 			NeuralNetworkDTO[] nns){
 		super(coord, Type.ACT, dataset, config, nns);
+		
+		category = LearnCategory.RL;
 	}
 	
 	@Override
