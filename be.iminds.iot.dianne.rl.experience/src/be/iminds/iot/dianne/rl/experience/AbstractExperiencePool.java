@@ -85,12 +85,6 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 			}
 		}
 	}
-	
-	// return max size in case of experience pool
-	@Override
-	public int size(){
-		return maxSize;
-	}
 
 	@Override
 	protected void readLabels(String labelsFile) {}
@@ -98,12 +92,14 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	// obsolete for ExperiencePool?
 	@Override
 	protected Tensor getInputSample(Tensor t, int index) {
-		return null;
+		ExperiencePoolSample s = getSample(null, index);
+		return s.input.copyInto(t);
 	}
 
 	@Override
 	protected Tensor getTargetSample(Tensor t, int index) {
-		return null;
+		ExperiencePoolSample s = getSample(null, index);
+		return s.target.copyInto(t);
 	}
 
 	

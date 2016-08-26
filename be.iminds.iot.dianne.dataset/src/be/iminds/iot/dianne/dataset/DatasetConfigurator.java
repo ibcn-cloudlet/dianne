@@ -62,7 +62,6 @@ public class DatasetConfigurator implements DianneDatasets {
 	private String path = null;
 	
 	protected Map<String, Dataset> datasets = new HashMap<String, Dataset>();
-	protected Map<String, DatasetDTO> dtos = new HashMap<String, DatasetDTO>(); 
 
 	protected Map<Dataset, List<Configuration>> adapters = new HashMap<Dataset, List<Configuration>>();
 	
@@ -82,7 +81,15 @@ public class DatasetConfigurator implements DianneDatasets {
 	
 	@Override
 	public List<DatasetDTO> getDatasets() {
-		return dtos.values().stream().collect(Collectors.toList());
+		return datasets.values().stream().map(dataset -> {
+				DatasetDTO dto = new DatasetDTO();
+				dto.name = dataset.getName();
+				dto.inputDims = dataset.inputDims();
+				dto.targetDims = dataset.targetDims();
+				dto.size = dataset.size();
+				dto.labels = dataset.getLabels();
+				return dto;
+			}).collect(Collectors.toList());
 	}
 
 	@Override
@@ -504,20 +511,12 @@ public class DatasetConfigurator implements DianneDatasets {
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
 	void addDataset(Dataset dataset, Map<String, Object> properties){
-		DatasetDTO dto = new DatasetDTO();
-		dto.name = dataset.getName();
-		dto.inputDims = dataset.inputDims();
-		dto.targetDims = dataset.targetDims();
-		dto.size = dataset.size();
-		dto.labels = dataset.getLabels();
-		
-		this.datasets.put(dto.name, dataset);
-		this.dtos.put(dto.name, dto);
+		String name = (String) properties.get("name");
+		this.datasets.put(name, dataset);
 	}
 	
 	void removeDataset(Dataset dataset, Map<String, Object> properties){
 		String name = (String) properties.get("name");
 		this.datasets.remove(name);
-		this.dtos.remove(name);
 	}
 }
