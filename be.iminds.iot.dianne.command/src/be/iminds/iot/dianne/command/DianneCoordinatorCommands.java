@@ -52,6 +52,7 @@ import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 				  "osgi.command.function=queued",
 				  "osgi.command.function=finished",
 				  "osgi.command.function=job",
+				  "osgi.command.function=jobs",
 				  "osgi.command.function=stop"},
 		immediate=true)
 public class DianneCoordinatorCommands {
@@ -74,6 +75,13 @@ public class DianneCoordinatorCommands {
 	public void finished(){
 		System.out.println("Finished Jobs:");
 		coordinator.finishedJobs().stream().forEach(job -> printJob(job));
+	}
+	
+	@Descriptor("List all jobs.")
+	public void jobs(){
+		queued();
+		running();
+		finished();
 	}
 	
 	private void printJob(Job job){
@@ -222,6 +230,10 @@ public class DianneCoordinatorCommands {
 			@Descriptor("Additional properties, specified as key1=value1 key2=value2 ...")
 			String... properties){
 		act(nnName, environment, experiencePool, properties);
+		// wait a bit so the agent can configure the xp pool if required
+		try {
+			Thread.sleep(2000);
+		} catch(Exception e){}
 		rlearn(nnName, experiencePool, properties);
 	}
 	
