@@ -229,23 +229,29 @@ public class DianneCoordinatorCommands {
 			String experiencePool,
 			@Descriptor("Additional properties, specified as key1=value1 key2=value2 ...")
 			String... properties){
-		act(nnName, environment, experiencePool, properties);
-		// wait a bit so the agent can configure the xp pool if required
-		try {
-			Thread.sleep(2000);
-		} catch(Exception e){}
-		rlearn(nnName, experiencePool, properties);
-	}
-	
-	// placeholder for default DQN learn job
-	private void rlearn(String nnName, String experiencePool, String... properties){
 		try {
 			Map<String, String> defaults = new HashMap<>();
-			defaults.put("strategy", "be.iminds.iot.dianne.rl.learn.strategy.DeepQLearningStrategy");
+			defaults.put("tag", UUID.randomUUID().toString()); // make sure a shared tag is specified
+			defaults.put("strategy", "GreedyActionStrategy");
+			defaults.put("environment", environment);
 			
-			Map<String, String> config = createConfig(defaults, properties);
+			Map<String, String> agentConfig = createConfig(defaults, properties);
+			coordinator.act(experiencePool, agentConfig, nnName==null ? null : nnName.split(",")).then(p -> {
+				System.out.println("Act Job done!");
+				return null;
+			}, p -> {
+				System.out.println("Act Job failed: "+p.getFailure().getMessage());
+				p.getFailure().printStackTrace();
+			});
+			
+			// wait a bit so the agent can configure the xp pool if required
+			Thread.sleep(2000);
+			
+			// learn job
+			defaults.put("strategy", "be.iminds.iot.dianne.rl.learn.strategy.DeepQLearningStrategy");
+			Map<String, String> learnConfig = createConfig(defaults, properties);
 		
-			coordinator.learn(experiencePool, config, nnName.split(",")).then(p -> {
+			coordinator.learn(experiencePool, learnConfig, nnName.split(",")).then(p -> {
 				System.out.println("RL Learn Job done!");
 				LearnResult result = p.getValue();
 				System.out.println("Iterations: "+result.getIterations());
@@ -254,6 +260,7 @@ public class DianneCoordinatorCommands {
 			}, p -> {
 				System.out.println("Learn Job failed: "+p.getFailure().getMessage());
 			});
+			
 		} catch(Exception e){
 			e.printStackTrace();
 		}
