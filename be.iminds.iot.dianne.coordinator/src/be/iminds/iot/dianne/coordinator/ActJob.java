@@ -72,7 +72,9 @@ public class ActJob extends AbstractJob<AgentResult> {
 	public AgentResult getProgress() {
 		Map<UUID, AgentProgress> results = new HashMap<>();
 		for(Agent a : agents.values()){
-			results.put(a.getAgentId(), a.getProgress());
+			AgentProgress p = a.getProgress();
+			if(p!=null)
+				results.put(a.getAgentId(), a.getProgress());
 		}
 		return new AgentResult(results);
 	}
