@@ -66,7 +66,7 @@ public class FetchCanEnvironment implements Environment {
 	
 	@Override
 	public int[] observationDims() {
-		return new int[]{511};
+		return new int[]{512};
 	}
 
 	@Override
