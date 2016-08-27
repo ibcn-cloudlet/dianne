@@ -243,7 +243,11 @@ public class AgentImpl implements Agent {
 					for(int k=0;k<nns.length;k++){
 						int syncInterval = (k < config.syncInterval.length) ? config.syncInterval[k] : config.syncInterval[0];
 						if(syncInterval > 0 && i % syncInterval == 0){
-							nns[k].loadParameters(config.tag);
+							try {
+								nns[k].loadParameters(config.tag);
+							} catch(Exception e){
+								System.out.println("Failed loading parameters for nn "+nns[k].getId());
+							}
 						}
 						k++;
 					}
