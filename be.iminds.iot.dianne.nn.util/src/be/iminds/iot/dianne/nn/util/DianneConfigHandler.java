@@ -54,7 +54,7 @@ public class DianneConfigHandler {
 							f.setBoolean(instance, Boolean.parseBoolean(value));
 						}
 					} else if(f.getType().isEnum()){
-						f.set(instance, Enum.valueOf((Class<Enum>) f.getType(), value));
+						f.set(instance, Enum.valueOf((Class<Enum>) f.getType(), value.toUpperCase()));
 					} else if(f.getType().isArray()){
 						String[] array = value.split(",");
 						if(f.getType().getComponentType().equals(Integer.TYPE)){
