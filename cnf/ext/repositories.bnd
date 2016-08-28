@@ -18,6 +18,8 @@ repourl="http://aiolos.intec.ugent.be/repositories"
 	aQute.bnd.deployer.repository.FixedIndexedRepo; name=Firefly; locations=${repourl}/be.iminds.iot.firefly/index.xml,\
 	aQute.bnd.deployer.repository.FixedIndexedRepo; name=enRoute; locations=https://raw.githubusercontent.com/osgi/osgi.enroute/master/cnf/distro/index.xml,\
 	aQute.bnd.deployer.repository.FixedIndexedRepo; name=Launch; locations=${repourl}/launch/index.xml,\
+	aQute.bnd.deployer.repository.FixedIndexedRepo; name=Robot; locations=${repourl}/be.iminds.iot.robot/index.xml
+	
 	
 
 

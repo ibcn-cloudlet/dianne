@@ -11,9 +11,9 @@ Bundle-Name: Dianne Kuka Environments
 	osgi.promise,\
 	be.iminds.iot.dianne.nn.util;version=latest,\
 	be.iminds.iot.dianne.rl.agent;version=latest,\
-	be.iminds.iot.robot.api,\
-	be.iminds.iot.sensor.api,\
-	be.iminds.iot.simulator.api
+	be.iminds.iot.robot.api;version=0.2,\
+	be.iminds.iot.sensor.api;version=0.2,\
+	be.iminds.iot.simulator.api;version=0.2
 	
 Private-Package: be.iminds.iot.dianne.rl.environment.kuka
 Export-Package: be.iminds.iot.dianne.api.rl.environment
