@@ -11,7 +11,6 @@
 -runbundles.rl:  \
 	org.websocket;version='[1.0,1.1)',\
 	be.iminds.iot.dianne.nn.runtime;version=latest,\
-	be.iminds.iot.dianne.log;version=latest,\
 	be.iminds.iot.dianne.nn.learn;version=latest,\
 	be.iminds.iot.dianne.nn.eval;version=latest,\
 	be.iminds.iot.dianne.repository;version=latest,\
@@ -21,7 +20,6 @@
 	be.iminds.iot.dianne.rl.learn;version=latest,\
 	be.iminds.iot.dianne.rl.experience;version=latest,\
 	be.iminds.iot.dianne.rl.agent;version=latest,\
-	be.iminds.iot.dianne.rl.command;version=latest,\
 	be.iminds.iot.dianne.rl.environment.ale;version=latest,\
 	be.iminds.iot.dianne.rl.environment.pong;version=latest,\
 	jep;version='[3.6.0,3.7.0)',\

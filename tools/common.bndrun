@@ -49,10 +49,16 @@ aiolos.version='[0.6.0,0.7.0)'
 	javax.net,\
 	javax.net.ssl,\
 	javax.sql,\
+	javax.xml,\
 	javax.xml.parsers,\
-	org.xml.sax,\
-	org.xml.sax.helpers,\
+	javax.xml.namespace,\
 	javax.xml.bind,\
+	javax.crypto,\
+	javax.crypto.spec,\
+	org.xml.sax,\
+	org.xml.sax.ext,\
+	org.xml.sax.helpers,\
+	org.w3c.dom,\
 	javax.annotation,\
 	javax.annotation.meta,\
 	javax.management,\
