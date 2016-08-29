@@ -48,7 +48,7 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 	"labels":["1"]
 	}
  * 
- * @author tverbele
+ * @author tverbele, ejodconi
  *
  */
 @Component(
@@ -101,6 +101,11 @@ public class DatasetLabelAdapter extends AbstractDatasetAdapter {
 				adapted.target.set(1.0f, labels.length-1);
 			}
 		}
+	}
+	
+	@Override
+	public String[] getLabels(){
+		return this.labels;
 	}
 	
 }
