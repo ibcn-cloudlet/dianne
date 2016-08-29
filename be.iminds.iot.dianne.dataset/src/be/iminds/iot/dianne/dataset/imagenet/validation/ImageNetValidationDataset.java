@@ -18,9 +18,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Contributors:
- *     Tim Verbelen, Steven Bohez
+ *     Tim Verbelen, Steven Bohez, Elias De Coninck
  *******************************************************************************/
-package be.iminds.iot.dianne.dataset.imagenet;
+package be.iminds.iot.dianne.dataset.imagenet.validation;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -43,19 +43,19 @@ import be.iminds.iot.dianne.dataset.ImageClassificationDataset;
  * 
  * Currently based on the ILSVRC 2012 validation set
  * 
- * @author tverbele
+ * @author tverbele, ejodconi
  *
  */
 @Component(
 		service={Dataset.class},
 		immediate=true, 
 		configurationPolicy=ConfigurationPolicy.REQUIRE,
-		configurationPid="be.iminds.iot.dianne.dataset.ImageNet")
-public class ImageNetDataset extends ImageClassificationDataset {
+		configurationPid="be.iminds.iot.dianne.dataset.ImageNet.validation")
+public class ImageNetValidationDataset extends ImageClassificationDataset {
 
 	@Override
 	protected void init(Map<String, Object> properties) {
-		this.name = "ImageNet";
+		this.name = "ImageNetValidation";
 		this.inputDims = null;
 		this.targetDims = new int[]{1000};
 

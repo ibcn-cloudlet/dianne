@@ -348,7 +348,7 @@ public class DatasetConfigurator implements DianneDatasets {
 			
 			if(json.has("adapter")){
 				String adapter = json.get("adapter").getAsString();
-				pid = "be.iminds.iot.dianne.dataset.adapters."+adapter;
+				pid = adapter.contains(".") ? adapter : "be.iminds.iot.dianne.dataset.adapters."+adapter;
 				// in case of adapter, set Dataset target: the dataset it is adapting
 				String dataset = json.get("dataset").getAsString();
 				props.put("Dataset.target", "(name="+dataset+")");
@@ -367,8 +367,10 @@ public class DatasetConfigurator implements DianneDatasets {
 					pid = "be.iminds.iot.dianne.dataset.STL10";
 				} else if(name.startsWith("SVHN")){
 					pid = "be.iminds.iot.dianne.dataset.SVHN";
-				} else if(name.startsWith("ImageNet")){
-					pid = "be.iminds.iot.dianne.dataset.ImageNet";
+				} else if(name.equalsIgnoreCase("ImageNetValidation")){
+					pid = "be.iminds.iot.dianne.dataset.ImageNet.validation";
+				} else if(name.equalsIgnoreCase("ImageNetTraining")){
+					pid = "be.iminds.iot.dianne.dataset.ImageNet.training";
 				} else {
 					pid = "be.iminds.iot.dianne.dataset."+name;
 				}

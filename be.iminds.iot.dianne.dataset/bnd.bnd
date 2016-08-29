@@ -18,7 +18,8 @@ Private-Package: \
 	be.iminds.iot.dianne.dataset.adapters,\
 	be.iminds.iot.dianne.dataset.cifar10,\
 	be.iminds.iot.dianne.dataset.cifar100,\
-	be.iminds.iot.dianne.dataset.imagenet,\
+	be.iminds.iot.dianne.dataset.imagenet.validation,\
+	be.iminds.iot.dianne.dataset.imagenet.training,\
 	be.iminds.iot.dianne.dataset.mnist,\
 	be.iminds.iot.dianne.dataset.stl10
 Export-Package: be.iminds.iot.dianne.api.dataset
