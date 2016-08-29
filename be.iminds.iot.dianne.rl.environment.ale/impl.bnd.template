@@ -1,0 +1,18 @@
+Bundle-SymbolicName: be.iminds.iot.dianne.rl.environment.ale
+
+Private-Package: \
+	be.iminds.iot.dianne.rl.environment.ale,\
+	be.iminds.iot.dianne.rl.environment.ale.ui
+Export-Package: be.iminds.iot.dianne.rl.environment.ale.config
+
+Import-Package: \
+	javax.imageio;resolution:=optional,\
+	javax.imageio.stream;resolution:=optional,\
+	javax.servlet;resolution:=optional,\
+	javax.servlet.http;resolution:=optional,\
+	org.osgi.framework;resolution:=optional,\
+	org.osgi.service.http;resolution:=optional,\
+	*
+
+Bundle-NativeCode: libALE.${extension};osname=${osgi_os};processor=${osgi_arch}
+-includeresource: res=resources,native/${os}/${arch}/

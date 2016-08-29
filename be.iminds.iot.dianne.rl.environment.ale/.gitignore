@@ -6,4 +6,5 @@
 /jni/ALE/*.a
 /jni/ALE/*_*.h
 /jni/ALE/*.dylib
-bnd.bnd
+!bnd.bnd
+*.bnd

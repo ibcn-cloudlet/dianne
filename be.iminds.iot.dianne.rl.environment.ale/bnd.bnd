@@ -1,5 +1,18 @@
-# placeholder for generated content from template file.
-# this file is required on the repository to let gradle see this project as a bnd project.
-# changes to this file should not be pushed to the repository.
-# to untrack generated content use the following command:
-# $ git update-index --skip-worktree <file>
+Bundle-Version: 0.5.0.${tstamp}
+Bundle-Name: Dianne Arcade Learning Environments (ALE)
+
+-buildpath: \
+	biz.aQute.junit,\
+	osgi.core;version=5.0,\
+	osgi.enterprise;version=5.0,\
+	org.apache.felix.http.servlet-api,\
+	org.apache.felix.http.api,\
+	org.websocket;version=1.0,\
+	be.iminds.iot.dianne.api;version=latest,\
+	be.iminds.iot.dianne.tensor;version=latest,\
+	be.iminds.iot.dianne.nn.learn;version=latest,\
+	be.iminds.iot.dianne.tensor.util;version=latest,\
+	osgi.promise,\
+	be.iminds.iot.dianne.nn.util;version=latest
+
+-sub: *.bnd
