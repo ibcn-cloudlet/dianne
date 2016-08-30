@@ -194,6 +194,8 @@ public class FetchCanEnvironment implements Environment {
 	
 	}
 	
+	private float previousDistance = 0.0f;
+	
 	private float calculateReward(){
 		// in case of collision, reward -1
 		// in case of succesful grip, reward 1, insuccesful grip, -1
@@ -220,9 +222,13 @@ public class FetchCanEnvironment implements Environment {
 		// dy should come close to 0.58 for succesful grip
 		// dx should come close to 0
 		float d2 = dx*dx + dy*dy;
+		float distance = (float)Math.sqrt(d2);
 		
-		// get reward of up to 0.5 when within meter range of grip position
-		float reward = (float)(1 - Math.sqrt(d2))/2;
+		// give reward based on whether one gets closer/further from target
+		// rescale to get values (approx) between -0.25..0.25 
+		float reward = (previousDistance-distance)*10;
+		
+		previousDistance = distance;
 		return reward;
 	}
 	
@@ -267,6 +273,9 @@ public class FetchCanEnvironment implements Environment {
 				throw new Exception("Failed to initialize youbot/laserscanner in environment");
 			}
 		}
+		
+		// calculate reward here to initialize previousDistance
+		calculateReward();
 	}
 	
 	private void deinit(){
