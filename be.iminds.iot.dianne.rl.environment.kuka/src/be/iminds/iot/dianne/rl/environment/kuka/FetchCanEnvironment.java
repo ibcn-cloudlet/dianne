@@ -118,9 +118,14 @@ public class FetchCanEnvironment implements Environment {
 		
 		terminal = false;
 		
-		deinit();
+		// TODO handle failure here?
+		try {
+			deinit();
 
-		init();
+			init();
+		} catch(Exception e){
+			throw new RuntimeException("Failed to initialize the environment ...", e);
+		}
 		
 		updateObservation();
 		
@@ -226,7 +231,7 @@ public class FetchCanEnvironment implements Environment {
 		observation = new Tensor(data, data.length);
 	}
 	
-	private void init(){
+	private void init() throws Exception {
 		// TODO also random init for youbot position and orientation?
 		
 		// always start the youbot in 0,0 for now
@@ -242,16 +247,24 @@ public class FetchCanEnvironment implements Environment {
 		
 		simulator.start(true);
 		
-		// TODO we try here until we get a rangeSensor ref? should be better
+		// TODO there might be an issue with range sensor not coming online at all
+		// should be fixed in robot project..
 		simulator.tick();
+		long start = System.currentTimeMillis();
 		while(rangeSensor==null
 				|| kukaArm == null 
 				|| kukaPlatform == null){
 			try {
 				Thread.sleep(100);
+				simulator.tick();
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+			}
+			
+			if(System.currentTimeMillis()-start > 30000){
+				System.out.println("Failed to initialize youbot/laserscanner in environment... Try again");
+				throw new Exception("Failed to initialize youbot/laserscanner in environment");
 			}
 		}
 	}
