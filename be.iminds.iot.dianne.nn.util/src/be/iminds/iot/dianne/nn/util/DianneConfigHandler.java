@@ -63,6 +63,12 @@ public class DianneConfigHandler {
 								intarray[i] = Integer.parseInt(array[i]);
 							}
 							f.set(instance, intarray);
+						} else if(f.getType().getComponentType().equals(Double.TYPE)){
+							double[] doublearray = new double[array.length];
+							for(int i=0;i<doublearray.length;i++){
+								doublearray[i] = Double.parseDouble(array[i]);
+							}
+							f.set(instance, doublearray);
 						} else {
 							f.set(instance, array);
 						}

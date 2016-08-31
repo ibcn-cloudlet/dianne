@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Contributors:
- *     Tim Verbelen, Steven Bohez
+ *     Tim Verbelen, Steven Bohez, Elias De Coninck
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.learn.sampling;
 
@@ -26,11 +26,14 @@ import java.util.Map;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
+import be.iminds.iot.dianne.nn.learn.sampling.config.WeightedUniformConfig;
+import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 
 public class SamplingFactory {
 	
 	public enum SamplingConfig {
-		RANDOM,
+		UNIFORM,
+		WEIGHTED,
 		SEQUENTIAL,
 		PERMUTATION
 	}
@@ -44,8 +47,11 @@ public class SamplingFactory {
 			break;
 		case PERMUTATION:
 			sampling = new PermutationSamplingStrategy(d);
+			break;
+		case WEIGHTED:
+			sampling = new WeightedUniformSamplingStrategy(d, DianneConfigHandler.getConfig(config, WeightedUniformConfig.class));
 		default:
-			sampling = new RandomSamplingStrategy(d);
+			sampling = new UniformSamplingStrategy(d);
 		}
 		
 		return sampling;

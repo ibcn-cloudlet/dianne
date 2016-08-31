@@ -57,6 +57,6 @@ public class FeedForwardConfig {
 	 *  * Random
 	 *  * Sequential
 	 */
-	public SamplingConfig sampling = SamplingConfig.RANDOM;
+	public SamplingConfig sampling = SamplingConfig.UNIFORM;
 
 }

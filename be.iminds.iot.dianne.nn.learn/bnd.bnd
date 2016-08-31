@@ -7,7 +7,8 @@ Bundle-Version: 0.5.0.${tstamp}
 	be.iminds.iot.dianne.tensor;version=latest,\
 	be.iminds.iot.dianne.api;version=latest,\
 	osgi.promise,\
-	be.iminds.iot.dianne.nn.util;version=latest
+	be.iminds.iot.dianne.nn.util;version=latest,\
+	org.mockito.mockito-all
 	
 -dsannotations: *
 Bundle-Name: Dianne Learner

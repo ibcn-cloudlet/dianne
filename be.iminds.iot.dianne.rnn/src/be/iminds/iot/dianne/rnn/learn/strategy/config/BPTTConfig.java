@@ -57,5 +57,5 @@ public class BPTTConfig {
 	 *  * Random
 	 *  * Sequential
 	 */
-	public SamplingConfig sampling = SamplingConfig.RANDOM;
+	public SamplingConfig sampling = SamplingConfig.UNIFORM;
 }

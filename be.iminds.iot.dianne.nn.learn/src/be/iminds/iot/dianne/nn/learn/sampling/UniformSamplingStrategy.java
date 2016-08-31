@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Contributors:
- *     Tim Verbelen, Steven Bohez
+ *     Tim Verbelen, Steven Bohez, Elias De Coninck
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.learn.sampling;
 
@@ -27,13 +27,13 @@ import java.util.Random;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 
-public class RandomSamplingStrategy implements SamplingStrategy{
+public class UniformSamplingStrategy implements SamplingStrategy{
 
 	private Random random = new Random(System.currentTimeMillis());
 	
 	private final Dataset dataset;
 	
-	public RandomSamplingStrategy(Dataset dataset) {
+	public UniformSamplingStrategy(Dataset dataset) {
 		this.dataset = dataset;
 	}
 	
