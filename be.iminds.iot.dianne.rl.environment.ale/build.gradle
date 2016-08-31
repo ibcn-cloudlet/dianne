@@ -1,9 +1,13 @@
 task generateFiles(description: "Generate ale.bnd files for this host. This behaviour can be adjusted with environment variables (OS, ARCH, LIB, ...)", group: "build") {
+	def inputTemplates = "*.template"
+	inputs.files fileTree(dir: projectDir, include: inputTemplates)
+	outputs.files fileTree(dir: projectDir, include: "*.bnd", exclude: "bnd.bnd")
+	outputs.upToDateWhen { false }
 	doLast {
 		copy {
 			from projectDir
 			into projectDir
-			include "*.template"
+			include inputTemplates
 			rename { file -> file.replace('.template', '') }
 			expand(project.properties)
     		filter { String line ->
