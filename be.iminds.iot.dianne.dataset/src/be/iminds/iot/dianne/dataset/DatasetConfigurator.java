@@ -243,7 +243,7 @@ public class DatasetConfigurator implements DianneDatasets {
 			}
 		}
 		if(config.containsKey("frame")){
-			String pid = "be.iminds.iot.dianne.dataset.adapters.RandomCropAdapter";
+			String pid = "be.iminds.iot.dianne.dataset.adapters.FrameAdapter";
 			Hashtable<String, Object> props = new Hashtable<>();
 			props.put("Dataset.target", "(name="+adapter+")");
 			adapter = name+"-"+UUID.randomUUID();
