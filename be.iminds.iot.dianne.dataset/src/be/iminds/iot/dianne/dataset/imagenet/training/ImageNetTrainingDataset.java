@@ -32,6 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,15 +53,48 @@ import be.iminds.iot.dianne.tensor.Tensor;
  *
  */
 @Component(
-		service={Dataset.class},
+		service={Dataset.class, Ranges.class},
 		immediate=true, 
 		configurationPolicy=ConfigurationPolicy.REQUIRE,
-		configurationPid="be.iminds.iot.dianne.dataset.ImageNet.training")
-public class ImageNetTrainingDataset extends ImageClassificationDataset {
+		configurationPid="be.iminds.iot.dianne.dataset.ImageNet.training",
+		property={"osgi.command.scope=imagenet",
+				  "osgi.command.function=ranges"})
+public class ImageNetTrainingDataset extends ImageClassificationDataset implements Ranges {
 
 	private int[] noSamplesNodeId;
 	private String[] nodeIds;
 
+	/*
+	 * @see be.iminds.iot.dianne.dataset.imagenet.training.Ranges#ranges(java.lang.String[])
+	 */
+	public void ranges(String...nodeIds) {
+		System.out.println("Ranges:");
+		int[] nodeIndexes;
+		if (nodeIds.length==0) {
+			nodeIndexes = new int[this.nodeIds.length];
+			nodeIds = this.nodeIds;
+		}
+		else
+			nodeIndexes = new int[nodeIds.length];
+		
+		int j=0;
+		List<String> list = Arrays.asList(nodeIds);
+		for (int i=0;i<this.nodeIds.length; i++) {
+			if (list.contains(this.nodeIds[i]))
+				nodeIndexes[j++]=i;
+		}
+		
+		for (int nodeIndex : nodeIndexes) {
+			if (this.nodeIds[nodeIndex]!=null) {
+				int start=0;
+				if (nodeIndex>0)
+					start=noSamplesNodeId[nodeIndex-1];
+				int end=noSamplesNodeId[nodeIndex]-1;
+				System.out.printf("\t%s: %d - %d\t(#samples=%d)\n",this.nodeIds[nodeIndex], start, end, end-start+1);
+			}
+		}
+	}
+	
 	private int processImageDir(Path dir) {
 		int count = 0;
 		try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
