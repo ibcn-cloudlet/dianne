@@ -266,6 +266,30 @@ public class DatasetConfigurator implements DianneDatasets {
 				e.printStackTrace();
 			}
 		}
+		if(config.containsKey("binarize")){
+			String pid = "be.iminds.iot.dianne.dataset.adapters.BinarizeAdapter";
+			Hashtable<String, Object> props = new Hashtable<>();
+			props.put("Dataset.target", "(name="+adapter+")");
+			adapter = name+"-"+UUID.randomUUID();
+			props.put("name", adapter);
+			props.put("aiolos.instance.id", adapter);
+			props.put("aiolos.combine", "*");
+			props.put("aiolos.export", "false");
+
+			if(config.containsKey("binarize")){
+				String s = config.get("binarize");
+				props.put("frame", s);
+				System.out.println("* binarize = "+s);
+			}
+			
+			try {
+				Configuration c = ca.createFactoryConfiguration(pid, null);
+				c.update(props);
+				adapterConfigurations.add(c);
+			} catch(Exception e){
+				e.printStackTrace();
+			}
+		}
 		System.out.println("---");
 		
 		// now wait for the adapter dataset to come online
