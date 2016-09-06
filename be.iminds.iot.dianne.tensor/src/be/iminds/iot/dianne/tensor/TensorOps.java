@@ -153,6 +153,11 @@ public class TensorOps {
 	public static native Tensor addmm(Tensor res, final Tensor mat, final Tensor mat1, final Tensor mat2);
 	
 	/**
+	 * Calculates element-wise power function
+	 */
+	public static native Tensor pow(Tensor res, final Tensor tensor, final float value);
+	
+	/**
 	 * Calculates element-wise exp function
 	 */
 	public static native Tensor exp(Tensor res, final Tensor tensor);
@@ -176,6 +181,11 @@ public class TensorOps {
 	 * Calculate element-wise sign
 	 */
 	public static native Tensor sign(Tensor res, final Tensor tensor);
+	
+	/**
+	 * Rounds the elements to the nearest integer
+	 */
+	public static native Tensor round(Tensor res, final Tensor tensor);
 	
 	/**
 	 * Return the sum of all elements

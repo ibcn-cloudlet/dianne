@@ -399,6 +399,25 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_addmm
 
 
 
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_pow
+  (JNIEnv * env, jclass c, jobject res, jobject tensor, jfloat val){
+	THTensor* r = getTensor(env, res);
+	THTensor* t = getTensor(env, tensor);
+	THTensor_(resizeAs)(
+#ifdef CUDA
+			state,
+#endif
+			r, t);
+	THTensor_(pow)(
+#ifdef CUDA
+			state,
+#endif
+			r, t, val);
+	return res == NULL ? createTensorObject(env, r) : res;
+}
+
+
+
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_exp
   (JNIEnv * env, jclass c, jobject res, jobject tensor){
 	THTensor* r = getTensor(env, res);
@@ -480,19 +499,39 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_abs
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_sign
   (JNIEnv * env, jclass c, jobject res, jobject tensor){
 	THTensor* r = getTensor(env, res);
-		THTensor* t = getTensor(env, tensor);
-		THTensor_(resizeAs)(
-	#ifdef CUDA
-				state,
-	#endif
-				r, t);
+	THTensor* t = getTensor(env, tensor);
+	THTensor_(resizeAs)(
+#ifdef CUDA
+			state,
+#endif
+			r, t);
 
-		THTensor_(sign)(
-	#ifdef CUDA
-				state,
-	#endif
-				r, t);
-		return res == NULL ? createTensorObject(env, r) : res;
+	THTensor_(sign)(
+#ifdef CUDA
+			state,
+#endif
+			r, t);
+	return res == NULL ? createTensorObject(env, r) : res;
+}
+
+
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_round
+  (JNIEnv * env, jclass c, jobject res, jobject tensor){
+	THTensor* r = getTensor(env, res);
+	THTensor* t = getTensor(env, tensor);
+	THTensor_(resizeAs)(
+#ifdef CUDA
+			state,
+#endif
+			r, t);
+
+	THTensor_(round)(
+#ifdef CUDA
+			state,
+#endif
+			r, t);
+	return res == NULL ? createTensorObject(env, r) : res;
 }
 
 
