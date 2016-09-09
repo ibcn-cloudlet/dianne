@@ -40,4 +40,9 @@ public class LearnProgress {
 		this.iteration = iteration;
 		this.miniBatchError = error;
 	}
+	
+	@Override
+	public String toString(){
+		return "[LEARNER] Batch: "+iteration+" Error: "+miniBatchError;
+	}
 }

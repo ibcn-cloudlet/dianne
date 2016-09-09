@@ -30,8 +30,15 @@ public class AgentProgress {
 	
 	public final Tensor action;
 	
+	public float reward;
+	
 	public AgentProgress(long i, Tensor a){
 		this.iteration = i;
 		this.action = a;
+	}
+	
+	@Override
+	public String toString(){
+		return "[AGENT] Iteration: "+iteration+" Action: "+action.toString().replace("\n", " ")+" Reward: "+reward;
 	}
 }

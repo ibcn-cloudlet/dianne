@@ -60,6 +60,10 @@ public class GreedyActionStrategy implements ActionStrategy {
 		
 		double epsilon = config.epsilonMin + (config.epsilonMax - config.epsilonMin) * Math.exp(-i * config.epsilonDecay);
 		
+		if(config.trace){
+			System.out.println("Epsilon: "+epsilon);
+		}
+		
 		if (Math.random() < epsilon) {
 			action.set(1, (int) (Math.random() * action.size()));
 		} else {

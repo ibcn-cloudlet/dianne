@@ -181,7 +181,7 @@ public class LearnerImpl implements Learner {
 						}
 						
 						if(this.config.trace)
-							System.out.println("Batch: "+i+"\tError: "+progress.miniBatchError);
+							System.out.println(progress);
 						
 						// Publish parameters to repository
 						for(int k=0;k<nns.length;k++){

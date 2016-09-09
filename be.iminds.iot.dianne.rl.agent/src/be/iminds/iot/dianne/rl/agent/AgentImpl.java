@@ -256,6 +256,8 @@ public class AgentImpl implements Agent {
 					s.target = progress.action;
 	
 					s.reward= env.performAction(s.target);
+					progress.reward = s.reward;
+					
 					s.nextState = env.getObservation(next);
 					if(s.nextState == null){
 						s.isTerminal = true;
@@ -263,6 +265,9 @@ public class AgentImpl implements Agent {
 						s.isTerminal = false;
 					}
 	
+					if(config.trace){
+						System.out.println(progress);
+					}
 					
 					// upload in batch
 					if(pool != null) {

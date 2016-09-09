@@ -29,4 +29,5 @@ public class GreedyConfig {
 	public double epsilonMin = 0;
 	public double epsilonDecay = 1e-6;
 
+	public boolean trace = false;
 }

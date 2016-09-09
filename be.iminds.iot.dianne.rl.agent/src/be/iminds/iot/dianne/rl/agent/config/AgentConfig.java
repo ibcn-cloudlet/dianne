@@ -50,5 +50,9 @@ public class AgentConfig {
 	 */
 	public boolean clean = false;
 
+	/**
+	 * Output intermediate results to the console
+	 */
+	public boolean trace = false;
 
 }

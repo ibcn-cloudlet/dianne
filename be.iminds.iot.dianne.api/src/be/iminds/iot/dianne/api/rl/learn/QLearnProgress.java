@@ -40,4 +40,9 @@ public class QLearnProgress extends LearnProgress{
 		super(iteration, error);
 		this.q = q;
 	}
+	
+	@Override
+	public String toString(){
+		return "[LEARNER] Batch: "+iteration+" Error: "+miniBatchError+" Q: "+q;
+	}
 }
