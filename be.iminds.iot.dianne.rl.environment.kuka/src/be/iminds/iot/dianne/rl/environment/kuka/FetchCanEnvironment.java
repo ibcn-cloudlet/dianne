@@ -40,6 +40,7 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 import be.iminds.iot.robot.api.Arm;
 import be.iminds.iot.robot.api.OmniDirectional;
 import be.iminds.iot.sensor.api.LaserScanner;
+import be.iminds.iot.simulator.api.Orientation;
 import be.iminds.iot.simulator.api.Position;
 import be.iminds.iot.simulator.api.Simulator;
 
@@ -71,7 +72,7 @@ public class FetchCanEnvironment implements Environment {
 
 	@Override
 	public int[] actionDims() {
-		return new int[]{8};
+		return new int[]{7};
 	}
 	
 	@Override
@@ -83,10 +84,6 @@ public class FetchCanEnvironment implements Environment {
 		// execute action and calculate reward
 		int a = TensorOps.argmax(action);
 
-		if(a==7){
-			terminal=true;
-		}
-		
 		executeAction(a);
 		
 		float reward = calculateReward();
@@ -149,15 +146,14 @@ public class FetchCanEnvironment implements Environment {
 			kukaPlatform.move(-0.2f, 0f, 0f);
 			break;
 		case 4:
-			kukaPlatform.move(0f, 0.f, 0f);
-			break;
-		case 5:
 			kukaPlatform.move(0f, 0.f, 0.4f);
 			break;
-		case 6:
+		case 5:
 			kukaPlatform.move(0f, 0.f, -0.4f);
 			break;	
-		case 7:
+		case 6:
+			terminal = true;
+			
 			kukaPlatform.stop();	
 
 			// stop early when we are nowhere near the pick location (further than 10cm)
@@ -201,6 +197,7 @@ public class FetchCanEnvironment implements Environment {
 		// in case of succesful grip, reward 1, insuccesful grip, -1
 		// else, reward between 0 and 0.5 as one gets closer to the optimal grip point
 		if(simulator.checkCollisions("Border")){
+			terminal = true;
 			return -1.0f;
 		}
 
@@ -211,8 +208,8 @@ public class FetchCanEnvironment implements Environment {
 				// can is lifted, reward 1
 				return  1.0f;
 			} else {
-				// else failed, -1
-				return -1.0f;
+				// else failed, no reward
+				return 0.0f;
 			}
 		}
 
@@ -249,7 +246,8 @@ public class FetchCanEnvironment implements Environment {
 		float x = (r.nextFloat()-0.5f)*0.55f;
 		x = x > 0 ? x + 0.25f : x - 0.25f; 
 		float y = r.nextFloat()*0.9f+0.4f;
-		simulator.setPosition("Can1", new Position(x, y, p.z));
+		simulator.setPosition("Can1", new Position(x, y, 0.06f));
+		simulator.setOrientation("Can1", new Orientation(0, 0 ,1.6230719f));
 		
 		simulator.start(true);
 		
@@ -270,7 +268,8 @@ public class FetchCanEnvironment implements Environment {
 			
 			if(System.currentTimeMillis()-start > 30000){
 				System.out.println("Failed to initialize youbot/laserscanner in environment... Try again");
-				throw new Exception("Failed to initialize youbot/laserscanner in environment");
+				System.out.println("BLOCKED?!");
+				//throw new Exception("Failed to initialize youbot/laserscanner in environment");
 			}
 		}
 		
@@ -312,7 +311,8 @@ public class FetchCanEnvironment implements Environment {
 	}
 	
 	void unsetPlatform(OmniDirectional o){
-		this.kukaPlatform = null;
+		if(this.kukaPlatform==o)
+			this.kukaPlatform = null;
 	}
 	
 	@Reference(cardinality=ReferenceCardinality.OPTIONAL, policy=ReferencePolicy.DYNAMIC)
@@ -321,7 +321,8 @@ public class FetchCanEnvironment implements Environment {
 	}
 	
 	void unsetLaserScanner(LaserScanner l){
-		this.rangeSensor = null;
+		if(l == this.rangeSensor)
+			this.rangeSensor = null;
 	}
 	
 	@Reference
