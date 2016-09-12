@@ -270,6 +270,12 @@ public class FetchCanEnvironment implements Environment {
 				System.out.println("Failed to initialize youbot/laserscanner in environment... Try again");
 				System.out.println("BLOCKED?!");
 				//throw new Exception("Failed to initialize youbot/laserscanner in environment");
+				
+				// try again?
+				simulator.stop();
+				Thread.sleep(1000);
+				simulator.start(true);
+				start = System.currentTimeMillis();
 			}
 		}
 		
