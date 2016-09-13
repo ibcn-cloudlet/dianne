@@ -231,6 +231,9 @@ public class AgentImpl implements Agent {
 	
 	@Override
 	public synchronized void stop() {
+		if(!acting)
+			return;
+		
 		try {
 			if (actingThread != null && actingThread.isAlive()) {
 				acting = false;
@@ -354,6 +357,8 @@ public class AgentImpl implements Agent {
 				if(t.getCause() != null && t.getCause() instanceof InterruptedException){
 					return;
 				}
+				
+				acting = false;
 				
 				System.out.println("Error during acting");
 				t.printStackTrace();
