@@ -202,6 +202,10 @@ public class DianneCoordinatorCommands {
 		try {
 			Map<String, String> defaults = new HashMap<>();
 			defaults.put("strategy", "GreedyActionStrategy");
+			if(nnName == null){
+				defaults.put("strategy", "RandomActionStrategy");
+			}
+			
 			defaults.put("environment", environment);
 			
 			Map<String, String> config = createConfig(defaults, properties);
