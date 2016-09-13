@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.TimeoutException;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -84,7 +85,11 @@ public class FetchCanEnvironment implements Environment {
 		// execute action and calculate reward
 		int a = TensorOps.argmax(action);
 
-		executeAction(a);
+		try {
+			executeAction(a);
+		} catch (Exception e) {
+			throw new RuntimeException("Failed executing action "+a);
+		}
 		
 		float reward = calculateReward();
 		
@@ -130,7 +135,7 @@ public class FetchCanEnvironment implements Environment {
 	}
 	
 	
-	private void executeAction(int action){
+	private void executeAction(int action) throws Exception {
 
 		switch(action){
 		case 0:
@@ -253,24 +258,25 @@ public class FetchCanEnvironment implements Environment {
 		
 		// TODO there might be an issue with range sensor not coming online at all
 		// should be fixed in robot project..
-		simulator.tick();
 		long start = System.currentTimeMillis();
+		int tries = 0;
 		while(rangeSensor==null
 				|| kukaArm == null 
 				|| kukaPlatform == null){
 			try {
 				Thread.sleep(100);
 				simulator.tick();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			} catch (InterruptedException|TimeoutException e) {
 			}
 			
-			if(System.currentTimeMillis()-start > 30000){
-				System.out.println("Failed to initialize youbot/laserscanner in environment... Try again");
-				System.out.println("BLOCKED?!");
-				//throw new Exception("Failed to initialize youbot/laserscanner in environment");
+			if(System.currentTimeMillis()-start > 20000){
+				tries++;
+				if(tries >= 3){
+					throw new Exception("Failed to initialize Kuka environment");
+				}
 				
+				System.out.println("Failed to initialize youbot/laserscanner in environment... Try again");
+
 				// try again?
 				simulator.stop();
 				Thread.sleep(1000);
