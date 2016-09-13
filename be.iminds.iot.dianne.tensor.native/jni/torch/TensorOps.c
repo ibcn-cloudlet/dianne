@@ -178,6 +178,22 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_cmul
 
 
 
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_addcmul
+  (JNIEnv * env, jclass c, jobject res, jobject tensor1, jfloat val, jobject tensor2, jobject tensor3){
+	THTensor* r = getTensor(env, res);
+	THTensor* t1 = getTensor(env, tensor1);
+	THTensor* t2 = getTensor(env, tensor2);
+	THTensor* t3 = getTensor(env, tensor3);
+	THTensor_(addcmul)(
+#ifdef CUDA
+			state,
+#endif
+			r, t1, val, t2, t3);
+	return res == NULL ? createTensorObject(env, r) : res;
+}
+
+
+
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_div
   (JNIEnv * env, jclass c, jobject res, jobject tensor, jfloat val){
 	THTensor* r = getTensor(env, res);
@@ -202,6 +218,22 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_cdiv
 			state,
 #endif
 			r, t, d);
+	return res == NULL ? createTensorObject(env, r) : res;
+}
+
+
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_addcdiv
+  (JNIEnv * env, jclass c, jobject res, jobject tensor1, jfloat val, jobject tensor2, jobject tensor3){
+	THTensor* r = getTensor(env, res);
+	THTensor* t1 = getTensor(env, tensor1);
+	THTensor* t2 = getTensor(env, tensor2);
+	THTensor* t3 = getTensor(env, tensor3);
+	THTensor_(addcdiv)(
+#ifdef CUDA
+			state,
+#endif
+			r, t1, val, t2, t3);
 	return res == NULL ? createTensorObject(env, r) : res;
 }
 

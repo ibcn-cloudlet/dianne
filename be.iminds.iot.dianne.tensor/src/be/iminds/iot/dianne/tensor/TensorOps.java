@@ -79,6 +79,12 @@ public class TensorOps {
 	public static native Tensor cmul(Tensor res, final Tensor tensor1, final Tensor tensor2);
 
 	/**
+	 * Elementwise multiplication of tensor2 by tensor3, multiply by value and add to tensor1.
+	 * The number of elements must match, but sizes do not matter.
+	 */
+	public static native Tensor addcmul(Tensor res, final Tensor tensor1, final float value, final Tensor tensor2, final Tensor tensor3);
+
+	/**
 	 * Divide all elements in the T by the given value.
 	 */
 	public static native Tensor div(Tensor res, final Tensor tensor1, final float value);
@@ -88,13 +94,19 @@ public class TensorOps {
 	 * The number of elements must match, but sizes do not matter.
 	 */
 	public static native Tensor cdiv(Tensor res, final Tensor tensor1, final Tensor tensor2);
-	
+
+	/**
+	 * Elementwise division of tensor2 by tensor3, multiply by value and add to tensor1.
+	 * The number of elements must match, but sizes do not matter.
+	 */
+	public static native Tensor addcdiv(Tensor res, final Tensor tensor1, final float value, final Tensor tensor2, final Tensor tensor3);
+
 	/**
 	 * Performs the dot product between vec1 and vec2. 
 	 * The number of elements must match: both Ts are seen as a 1D vector.
 	 */
 	public static native float dot(final Tensor vec1, final Tensor vec2);
-	
+
 	/**
 	 * Performs the matrix product between vec1 and vec2
 	 * @param res placeholder
