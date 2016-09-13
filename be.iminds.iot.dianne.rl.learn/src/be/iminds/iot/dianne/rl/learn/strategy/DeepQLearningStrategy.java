@@ -92,6 +92,7 @@ public class DeepQLearningStrategy implements LearningStrategy {
 				try {
 					Thread.sleep(5000);
 				} catch (InterruptedException e) {
+					return;
 				}
 			}
 		}
