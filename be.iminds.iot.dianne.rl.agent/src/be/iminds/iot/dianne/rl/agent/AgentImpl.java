@@ -24,8 +24,11 @@ package be.iminds.iot.dianne.rl.agent;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -34,6 +37,7 @@ import java.util.concurrent.Executors;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -45,10 +49,9 @@ import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.DianneDatasets;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
-import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
-import be.iminds.iot.dianne.api.nn.learn.LearnerListener;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.util.StrategyFactory;
+import be.iminds.iot.dianne.api.repository.RepositoryListener;
 import be.iminds.iot.dianne.api.rl.agent.ActionStrategy;
 import be.iminds.iot.dianne.api.rl.agent.Agent;
 import be.iminds.iot.dianne.api.rl.agent.AgentListener;
@@ -96,6 +99,12 @@ public class AgentImpl implements Agent {
 	private volatile boolean bufferReady = false;
 	private volatile boolean uploading = false;
 	
+	// repository listener to sync with repo
+	private BundleContext context;
+	private ServiceRegistration<RepositoryListener> reg;
+	private volatile boolean sync = false;
+	
+	
 	@Reference
 	void setDianne(Dianne d){
 		dianne = d;
@@ -124,6 +133,7 @@ public class AgentImpl implements Agent {
 	
 	@Activate
 	public void activate(BundleContext context){
+		this.context = context;
 		this.agentId = UUID.fromString(context.getProperty(Constants.FRAMEWORK_UUID));
 	}
 	
@@ -240,6 +250,21 @@ public class AgentImpl implements Agent {
 			ExperiencePoolSample s = new ExperiencePoolSample();
 			
 			try {
+				// setup repo listener
+				Dictionary<String, Object> props = new Hashtable();
+				String[] t = new String[]{":"+config.tag};
+				props.put("targets", t);
+				props.put("aiolos.unique", true);
+				reg = context.registerService(RepositoryListener.class, new RepositoryListener() {
+					@Override
+					public void onParametersUpdate(UUID nnId, Collection<UUID> moduleIds, String... tag) {
+						sync = true;
+					}
+				}, props);
+				
+				// make sure to sync initially
+				sync = true;
+				
 				// setup environment
 				env.setup(properties);
 				
@@ -250,16 +275,15 @@ public class AgentImpl implements Agent {
 	
 				for(i = 0; acting; i++) {
 					// sync parameters
-					for(int k=0;k<nns.length;k++){
-						int syncInterval = (k < config.syncInterval.length) ? config.syncInterval[k] : config.syncInterval[0];
-						if(syncInterval > 0 && i % syncInterval == 0){
+					if(sync){
+						for(int k=0;k<nns.length;k++){
 							try {
 								nns[k].loadParameters(config.tag);
 							} catch(Exception e){
 								System.out.println("Failed loading parameters for nn "+nns[k].getId());
 							}
 						}
-						k++;
+						sync = false;
 					}
 					
 					progress = strategy.processIteration(i, s.input);
@@ -331,6 +355,7 @@ public class AgentImpl implements Agent {
 					return;
 				}
 				
+				System.out.println("Error during acting");
 				t.printStackTrace();
 				
 				publishError(t);
@@ -338,6 +363,10 @@ public class AgentImpl implements Agent {
 				env.cleanup();
 				
 				datasets.releaseDataset(pool);
+				
+				if(reg != null){
+					reg.unregister();
+				}
 				
 				acting = false;
 				
