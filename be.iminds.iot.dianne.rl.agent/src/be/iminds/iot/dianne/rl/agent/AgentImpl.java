@@ -24,10 +24,13 @@ package be.iminds.iot.dianne.rl.agent;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -42,10 +45,13 @@ import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.DianneDatasets;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
+import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
+import be.iminds.iot.dianne.api.nn.learn.LearnerListener;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.util.StrategyFactory;
 import be.iminds.iot.dianne.api.rl.agent.ActionStrategy;
 import be.iminds.iot.dianne.api.rl.agent.Agent;
+import be.iminds.iot.dianne.api.rl.agent.AgentListener;
 import be.iminds.iot.dianne.api.rl.agent.AgentProgress;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
@@ -58,6 +64,10 @@ import be.iminds.iot.dianne.tensor.Tensor;
 public class AgentImpl implements Agent {
 
 	private UUID agentId;
+	
+	private ExecutorService listenerExecutor = Executors.newSingleThreadExecutor(); 
+	private List<AgentListener> listeners = Collections.synchronizedList(new ArrayList<>());
+	private volatile boolean wait = false;
 	
 	private Map<String, Environment> envs = new HashMap<String, Environment>();
 	private Dianne dianne;
@@ -313,6 +323,8 @@ public class AgentImpl implements Agent {
 					} else {
 						s.input = next.copyInto(current);
 					}
+					
+					publishProgress(progress);
 				}
 			} catch(Throwable t){
 				if(t.getCause() != null && t.getCause() instanceof InterruptedException){
@@ -320,12 +332,16 @@ public class AgentImpl implements Agent {
 				}
 				
 				t.printStackTrace();
+				
+				publishError(t);
 			} finally {
 				env.cleanup();
 				
 				datasets.releaseDataset(pool);
 				
 				acting = false;
+				
+				publishDone();
 			}
 		}
 	}
@@ -368,5 +384,78 @@ public class AgentImpl implements Agent {
 			}
 		}
 		
+	}
+	
+	private void publishProgress(final AgentProgress progress){
+		if(!acting)
+			return;
+		
+		synchronized(listenerExecutor){
+			if(wait){
+				try {
+					listenerExecutor.wait();
+				} catch (InterruptedException e) {
+					wait = false;
+					return;
+				}
+			}
+			wait = true;
+		}
+		
+		listenerExecutor.submit(()->{
+			List<AgentListener> copy = new ArrayList<>();
+			synchronized(listeners){
+				copy.addAll(listeners);
+			}
+			for(AgentListener l : copy){
+				l.onProgress(agentId, progress);
+			}
+			
+			synchronized(listenerExecutor){
+				wait = false;
+				listenerExecutor.notifyAll();
+			}
+		});
+	}
+	
+	private void publishError(final Throwable t){
+		List<AgentListener> copy = new ArrayList<>();
+		synchronized(listeners){
+			copy.addAll(listeners);
+		}
+		for(AgentListener l : copy){
+			l.onException(agentId, t.getCause()!=null ? t.getCause() : t);
+		}
+	}
+	
+	private void publishDone(){
+		List<AgentListener> copy = new ArrayList<>();
+		synchronized(listeners){
+			copy.addAll(listeners);
+		}
+		for(AgentListener l : copy){
+			l.onFinish(agentId);
+		}
+	}
+	
+	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
+			policy=ReferencePolicy.DYNAMIC)
+	void addListener(AgentListener listener, Map<String, Object> properties){
+		String[] targets = (String[])properties.get("targets");
+		if(targets!=null){
+			boolean listen = false;
+			for(String target : targets){
+				if(agentId.toString().equals(target)){
+					listen  = true;
+				}
+			}
+			if(!listen)
+				return;	
+		}
+		this.listeners.add(listener);
+	}
+	
+	void removeListener(AgentListener listener, Map<String, Object> properties){
+		this.listeners.remove(listener);
 	}
 }

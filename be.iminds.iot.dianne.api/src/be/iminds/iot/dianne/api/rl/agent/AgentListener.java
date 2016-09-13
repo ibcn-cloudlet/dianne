@@ -20,18 +20,16 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.api.coordinator;
+package be.iminds.iot.dianne.api.rl.agent;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
-import be.iminds.iot.dianne.api.rl.agent.AgentProgress;
+public interface AgentListener {
 
-public class AgentResult {
+	void onProgress(UUID agentId, AgentProgress p);
 	
-	public Map<UUID, List<AgentProgress>> progress = new HashMap<>();
+	void onException(UUID agentId, Throwable e);
+	
+	void onFinish(UUID agentId);
 	
 }
-

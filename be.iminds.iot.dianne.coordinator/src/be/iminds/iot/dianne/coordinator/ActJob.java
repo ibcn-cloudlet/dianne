@@ -22,21 +22,33 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.coordinator;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.osgi.framework.ServiceRegistration;
 
 import be.iminds.iot.dianne.api.coordinator.AgentResult;
 import be.iminds.iot.dianne.api.coordinator.Job.LearnCategory;
 import be.iminds.iot.dianne.api.coordinator.Job.Type;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.rl.agent.Agent;
+import be.iminds.iot.dianne.api.rl.agent.AgentListener;
 import be.iminds.iot.dianne.api.rl.agent.AgentProgress;
 
-public class ActJob extends AbstractJob<AgentResult> {
+public class ActJob extends AbstractJob<AgentResult> implements AgentListener {
 
+	private ServiceRegistration<AgentListener> reg;
+	
 	private Map<UUID, Agent> agents = new HashMap<>();
+	
+	private AgentResult result = new AgentResult();
 	
 	public ActJob(DianneCoordinatorImpl coord,
 			String dataset,
@@ -52,7 +64,6 @@ public class ActJob extends AbstractJob<AgentResult> {
 		
 		String environment = config.get("environment");
 		
-		// start acting
 		System.out.println("Start Act Job");
 		System.out.println("===============");
 		System.out.println("* nn: "+Arrays.toString(nnNames));
@@ -60,7 +71,14 @@ public class ActJob extends AbstractJob<AgentResult> {
 		System.out.println("* environment: "+environment);
 		System.out.println("---");
 		
-		// start learning on each learner
+		
+		Dictionary<String, Object> props = new Hashtable();
+		String[] t = targets.stream().map(uuid -> uuid.toString()).collect(Collectors.toList()).toArray(new String[targets.size()]);
+		props.put("targets", t);
+		props.put("aiolos.unique", true);
+		reg = coordinator.context.registerService(AgentListener.class, this, props);
+		
+		// start acting on each agent
 		for(UUID target : targets){
 			Agent agent = coordinator.agents.get(target);
 			agents.put(target, agent);
@@ -70,17 +88,14 @@ public class ActJob extends AbstractJob<AgentResult> {
 
 	@Override
 	public AgentResult getProgress() {
-		Map<UUID, AgentProgress> results = new HashMap<>();
-		for(Agent a : agents.values()){
-			AgentProgress p = a.getProgress();
-			if(p!=null)
-				results.put(a.getAgentId(), a.getProgress());
-		}
-		return new AgentResult(results);
+		return result;
 	}
 	
 	@Override
 	public void cleanup() {
+		if(reg!=null)
+			reg.unregister();
+		
 		for(Agent a : agents.values()){
 			a.stop();
 		}
@@ -93,5 +108,34 @@ public class ActJob extends AbstractJob<AgentResult> {
 		} else {
 			done(new Exception("Job "+this.jobId+" cancelled."));
 		}
+	}
+
+	@Override
+	public void onProgress(UUID agentId, AgentProgress progress) {
+		if(deferred.getPromise().isDone()){
+			return;
+		}
+		
+		if(result.progress.get(agentId)==null){
+			List<AgentProgress> p = new ArrayList<>();
+			result.progress.put(agentId, p);
+		}
+		result.progress.get(agentId).add(progress);
+	}
+
+	@Override
+	public void onException(UUID agentId, Throwable e) {
+		if(deferred.getPromise().isDone()){
+			return;
+		}
+		done(e);
+	}
+
+	@Override
+	public void onFinish(UUID agentId) {
+		if(deferred.getPromise().isDone()){
+			return;
+		}
+		done(result);
 	}
 }

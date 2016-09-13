@@ -47,7 +47,7 @@ import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 
 public class LearnJob extends AbstractJob<LearnResult> implements LearnerListener {
 
-	private ServiceRegistration reg;
+	private ServiceRegistration<LearnerListener> reg;
 	
 	private long maxIterations = -1;
 	

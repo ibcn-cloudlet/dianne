@@ -383,7 +383,7 @@ public class LearnerImpl implements Learner {
 	}
 	
 	/**
-	 * Publish progress on sync interval times
+	 * Publish progress
 	 */
 	private void publishProgress(final LearnProgress progress){
 		if(!learning)
