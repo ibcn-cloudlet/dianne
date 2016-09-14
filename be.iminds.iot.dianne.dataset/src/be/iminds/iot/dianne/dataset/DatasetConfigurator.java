@@ -278,8 +278,32 @@ public class DatasetConfigurator implements DianneDatasets {
 
 			if(config.containsKey("binarize")){
 				String s = config.get("binarize");
-				props.put("frame", s);
+				props.put("binarize", s);
 				System.out.println("* binarize = "+s);
+			}
+			
+			try {
+				Configuration c = ca.createFactoryConfiguration(pid, null);
+				c.update(props);
+				adapterConfigurations.add(c);
+			} catch(Exception e){
+				e.printStackTrace();
+			}
+		}
+		if(config.containsKey("autoencode")){
+			String pid = "be.iminds.iot.dianne.dataset.adapters.AutoencoderAdapter";
+			Hashtable<String, Object> props = new Hashtable<>();
+			props.put("Dataset.target", "(name="+adapter+")");
+			adapter = name+"-"+UUID.randomUUID();
+			props.put("name", adapter);
+			props.put("aiolos.instance.id", adapter);
+			props.put("aiolos.combine", "*");
+			props.put("aiolos.export", "false");
+
+			if(config.containsKey("autoencode")){
+				String s = config.get("autoencode");
+				props.put("autoencode", s);
+				System.out.println("* autoencode = "+s);
 			}
 			
 			try {

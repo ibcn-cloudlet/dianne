@@ -22,7 +22,7 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 		service={Dataset.class},
 		configurationPolicy=ConfigurationPolicy.REQUIRE,
 		configurationPid="be.iminds.iot.dianne.dataset.adapters.BinarizeAdapter")
-public class BinarizeAdapter extends AbstractDatasetAdapter {
+public class DatasetBinarizeAdapter extends AbstractDatasetAdapter {
 	
 	// Threshold
 	private float threshold = 0.5f;
