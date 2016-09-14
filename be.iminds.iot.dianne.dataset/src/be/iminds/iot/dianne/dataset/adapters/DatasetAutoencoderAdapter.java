@@ -60,7 +60,7 @@ public class DatasetAutoencoderAdapter extends AbstractDatasetAdapter {
 	@Override
 	protected void adaptSample(Sample original, Sample adapted) {
 		adapted.input = original.input.copyInto(adapted.input);
-		adapted.target = original.target.copyInto(adapted.target);
+		adapted.target = original.input.copyInto(adapted.target);
 	}
 
 }
