@@ -24,7 +24,7 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 
 /**
  * Strategy for learning Variational Auto Encoders (VAEs). Assumes factorized Gaussian-distributed latent variables and Benoulli-distributed data ([0,1]).
- * Also assumes 1D encoder & decoder output (2D for batches)
+ * Also assumes 1D encoder output (2D for batches).
  * 
  * @author smbohez
  *
@@ -116,8 +116,8 @@ public class VariationalAutoEncoderLearningStrategy implements LearningStrategy 
 			
 			// Reconstruction error & gradient on decoder (outputParams => reconstructionError,reconstructionGrad)
 			// Note: scaling here is easier than outside this loop
-			reconstructionError += reconCriterion.error(outputParams, batch.input).get(0)/sampleSize;
-			Tensor reconstructionGrad = reconCriterion.grad(outputParams, batch.input);
+			reconstructionError += reconCriterion.error(outputParams, batch.target).get(0)/sampleSize;
+			Tensor reconstructionGrad = reconCriterion.grad(outputParams, batch.target);
 			TensorOps.div(reconstructionGrad, reconstructionGrad, sampleSize);
 			
 			// Get gradient on latent variables (decoder backward)
@@ -145,22 +145,8 @@ public class VariationalAutoEncoderLearningStrategy implements LearningStrategy 
 		
 		if(config.batchAverage) {
 			// Divide by batchSize in order to have learning rate independent of batchSize
-			encoder.getTrainables().values().stream().forEach(m -> {
-				Tensor deltaParams = m.getDeltaParameters();
-				
-				TensorOps.div(deltaParams, deltaParams, config.batchSize);
-				
-				// Set DeltaParameters to be sure in case of remote module instance
-				m.setDeltaParameters(deltaParams);
-			});
-			decoder.getTrainables().values().stream().forEach(m -> {
-				Tensor deltaParams = m.getDeltaParameters();
-				
-				TensorOps.div(deltaParams, deltaParams, config.batchSize);
-				
-				// Set DeltaParameters to be sure in case of remote module instance
-				m.setDeltaParameters(deltaParams);
-			});
+			batchAverage(encoder, config.batchSize);
+			batchAverage(decoder, config.batchSize);
 			
 			reconstructionError /= config.batchSize;
 			regularizationError /= config.batchSize;
@@ -195,5 +181,16 @@ public class VariationalAutoEncoderLearningStrategy implements LearningStrategy 
 		
 		TensorOps.add(gradMeans, gradMeans, latentGrad);
 		TensorOps.addcmul(gradStdevs, gradStdevs, 1, latentGrad, random);
+	}
+	
+	private static void batchAverage(NeuralNetwork nn, int batchSize) {
+		nn.getTrainables().values().stream().forEach(m -> {
+			Tensor deltaParams = m.getDeltaParameters();
+			
+			TensorOps.div(deltaParams, deltaParams, batchSize);
+			
+			// Set DeltaParameters to be sure in case of remote module instance
+			m.setDeltaParameters(deltaParams);
+		});
 	}
 }
