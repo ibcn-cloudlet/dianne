@@ -77,19 +77,20 @@ public class VariationalAutoEncoderLearningStrategy implements LearningStrategy 
 		this.encoderProcessor = ProcessorFactory.createGradientProcessor(this.config.method, this.encoder, config);
 		this.decoderProcessor = ProcessorFactory.createGradientProcessor(this.config.method, this.decoder, config);
 		
-		// TODO: set criterions based on modeled distributions
+		// Set criteria
+		// TODO: set criteria based on modeled distributions
 		this.reconCriterion = new BCECriterion();
 		this.regulCriterion = new GaussianKLDivCriterion(this.latentDims);
-		
-		// Preallocate some Tensors for simplicity
-		this.random = new Tensor(this.config.batchSize, this.latentDims);
-		this.latent = new Tensor(this.config.batchSize, this.latentDims);
-		this.latentParamsGrad = new Tensor(this.config.batchSize, 2*this.latentDims);
 		
 		// Set prior distribution parameters = standard normal
 		this.prior = new Tensor(this.config.batchSize, 2*this.latentDims);
 		this.prior.narrow(1, 0, this.latentDims).fill(0);
 		this.prior.narrow(1, this.latentDims, this.latentDims).fill(1);
+		
+		// Preallocate some Tensors for efficiency
+		this.random = new Tensor(this.config.batchSize, this.latentDims);
+		this.latent = new Tensor(this.config.batchSize, this.latentDims);
+		this.latentParamsGrad = new Tensor(this.config.batchSize, 2*this.latentDims);
 	}
 	
 	@Override
@@ -106,9 +107,10 @@ public class VariationalAutoEncoderLearningStrategy implements LearningStrategy 
 		latentParams = encoder.forward(batch.input);
 		
 		// For a number of latent samples...
+		// TODO: unfold loop over samples into single batch
 		float reconstructionError = 0;
 		for(int s = 0; s < sampleSize; s++) {
-			// Sample latent variables (latentParams => latentVars)
+			// Sample latent variables (latentParams => latent)
 			sampleLatentVariables();
 			
 			// Get output distribution parameters (decoder forward)
@@ -158,17 +160,17 @@ public class VariationalAutoEncoderLearningStrategy implements LearningStrategy 
 		
 		// Update parameters
 		encoder.updateParameters();
-		encoder.updateParameters();
-		
+		decoder.updateParameters();
+
 		return new LearnProgress(i, reconstructionError+regularizationError);
 	}
 	
 	private void sampleLatentVariables() {
-		// latentParam => latentVars
-		random.randn();
-		
+		// latentParam => latent
 		Tensor means = latentParams.narrow(1, 0, latentDims);
 		Tensor stdevs = latentParams.narrow(1, latentDims, latentDims);
+		
+		random.randn();
 		
 		TensorOps.cmul(latent, random, stdevs);
 		TensorOps.add(latent, latent, means);
