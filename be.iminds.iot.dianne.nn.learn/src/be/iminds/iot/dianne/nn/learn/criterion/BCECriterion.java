@@ -5,9 +5,17 @@ import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class BCECriterion implements Criterion {
+	
+	protected static final float EPS = 1e-12f;
+	
+	protected Tensor output;
+	protected Tensor target;
 
 	protected Tensor invOut;
 	protected Tensor invTar;
+	
+	protected Tensor epsOut;
+	protected Tensor epsInvOut;
 	
 	protected Tensor logOut;
 	protected Tensor logInvOut;
@@ -17,13 +25,19 @@ public class BCECriterion implements Criterion {
 	
 	@Override
 	public Tensor error(Tensor output, Tensor target) {
+		this.output = output;
+		this.target = target;
+		
 		invOut = TensorOps.mul(invOut, output, -1);
 		TensorOps.add(invOut, invOut, 1);
 		invTar = TensorOps.mul(invTar, target, -1);
 		TensorOps.add(invTar, invTar, 1);
 		
-		logOut = TensorOps.log(logOut, output);
-		logInvOut = TensorOps.log(logInvOut, invOut);
+		epsOut = TensorOps.add(epsOut, output, EPS);
+		epsInvOut = TensorOps.add(epsInvOut, invOut, EPS);
+		
+		logOut = TensorOps.log(logOut, epsOut);
+		logInvOut = TensorOps.log(logInvOut, epsInvOut);
 		
 		error = TensorOps.cmul(error, target, logOut);
 		TensorOps.addcmul(error, error, 1, invTar, logInvOut);
@@ -33,13 +47,18 @@ public class BCECriterion implements Criterion {
 
 	@Override
 	public Tensor grad(Tensor output, Tensor target) {
-		invOut = TensorOps.mul(invOut, output, -1);
-		TensorOps.add(invOut, invOut, 1);
+		if(!output.equals(this.output) || !target.equals(this.target)) {
+			invOut = TensorOps.mul(invOut, output, -1);
+			TensorOps.add(invOut, invOut, 1);
+			
+			epsOut = TensorOps.add(epsOut, output, EPS);
+			epsInvOut = TensorOps.add(epsInvOut, invOut, EPS);
+		}
 		
 		grad = TensorOps.sub(grad, output, target);
 		
-		TensorOps.cdiv(grad, grad, output);
-		TensorOps.cdiv(grad, grad, invOut);
+		TensorOps.cdiv(grad, grad, epsOut);
+		TensorOps.cdiv(grad, grad, epsInvOut);
 		
 		return grad;
 	}
