@@ -35,17 +35,21 @@
 	org.ros.rosjava_messages.sensor_msgs;version='[1.11.7,1.11.8)',\
 	org.ros.rosjava_messages.brics_actuator;version='[0.7,0.8)',\
 	be.iminds.iot.ros.core;version=latest,\
-	coppelia;version=latest,\
-	be.iminds.iot.simulator.vrep;version=latest,\
-	be.iminds.iot.sensor.range.ros;version=latest,\
+	be.iminds.iot.ros.configurator;version=latest,\
+	be.iminds.iot.ros.youbot;version=latest,\
 	be.iminds.iot.robot.youbot.ros;version=latest,\
-	be.iminds.iot.robot.input;version=latest
+	be.iminds.iot.ros.range;version=latest,\
+	be.iminds.iot.sensor.range.ros;version=latest,\
+	be.iminds.iot.robot.input;version=latest,\
+	be.iminds.iot.dianne.tensor.native.cutorch.linux.aarch64;version=latest
+	
+
 
 -runproperties.xkuka: \
 	ros.core.native=true,\
 	vrep.dir=/opt/vrep-3.3.1,\
 	aiolos.proxy.ignore.extra="be.iminds.iot.ros.*,org.ros.*",\
-	be.iminds.iot.dianne.storage="../tools/models",\
-	be.iminds.iot.dianne.datasets.location="../tools/experience"
+	be.iminds.iot.dianne.storage="models",\
+	be.iminds.iot.dianne.datasets.location="experience"
 	
 	
