@@ -16,4 +16,7 @@ Bundle-Name: Dianne Kuka Environments
 	be.iminds.iot.simulator.api;version=0.2
 	
 Private-Package: be.iminds.iot.dianne.rl.environment.kuka
-Export-Package: be.iminds.iot.dianne.api.rl.environment
+Export-Package: \
+	be.iminds.iot.dianne.api.rl.environment,\
+	be.iminds.iot.dianne.rl.environment.kuka.api,\
+	be.iminds.iot.simulator.api
