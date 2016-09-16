@@ -187,11 +187,7 @@ public class Tensor {
 		if(!(other instanceof Tensor)){
 			return false;
 		} 
-		Tensor o = (Tensor) other;
-		if(o.address == address){
-			return true;
-		}
-		return equals(o);
+		return equals((Tensor) other);
 	}
 	
 	/**
@@ -200,6 +196,9 @@ public class Tensor {
 	 * @return true if the other object represents an equal tensor
 	 */
 	public boolean equals(Tensor other){
+		if(other.address == this.address){
+			return true;
+		}
 		return equals(other, 0.0f);
 	}
 	
