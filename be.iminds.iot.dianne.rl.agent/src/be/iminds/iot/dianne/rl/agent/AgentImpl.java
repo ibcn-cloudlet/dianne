@@ -237,6 +237,7 @@ public class AgentImpl implements Agent {
 		try {
 			if (actingThread != null && actingThread.isAlive()) {
 				acting = false;
+				actingThread.interrupt();
 				actingThread.join();
 			}
 		} catch (InterruptedException e) {
