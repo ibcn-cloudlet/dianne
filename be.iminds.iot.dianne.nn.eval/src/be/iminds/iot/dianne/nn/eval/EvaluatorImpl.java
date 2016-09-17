@@ -137,22 +137,21 @@ public class EvaluatorImpl implements Evaluator {
 			
 		
 			tStart = System.currentTimeMillis();
-			
-			for(int i=0;i<d.size();i++){
+			for(long i=0; i<d.size();){
 				progress = strategy.processIteration(i);
 				
+				i = progress.processed;
+				
 				// TODO how frequently publish progress
-				if(i % 1000 == 0){
-					listenerExecutor.execute(()->{
-						List<EvaluatorListener> copy = new ArrayList<>();
-						synchronized(listeners){
-							copy.addAll(listeners);
-						}
-						for(EvaluatorListener l : copy){
-							l.onProgress(evaluatorId, progress);
-						}
-					});
-				}
+				listenerExecutor.execute(()->{
+					List<EvaluatorListener> copy = new ArrayList<>();
+					synchronized(listeners){
+						copy.addAll(listeners);
+					}
+					for(EvaluatorListener l : copy){
+						l.onProgress(evaluatorId, progress);
+					}
+				});
 			}
 			tEnd = System.currentTimeMillis();
 			
