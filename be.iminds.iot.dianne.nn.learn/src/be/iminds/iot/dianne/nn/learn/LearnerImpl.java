@@ -189,7 +189,6 @@ public class LearnerImpl implements Learner {
 							if(syncInterval > 0 && i > 0 && i % syncInterval == 0){
 								publishParameters(nns[k]);
 							}
-							k++;
 						}
 						
 						// Publish progress
