@@ -184,10 +184,12 @@ public class Tensor {
 	public native Tensor diag(Tensor res);
 	
 	public boolean equals(Object other){
-		if(!(other instanceof Tensor)){
+		if(other == null)
 			return false;
-		} 
-		return equals((Tensor) other);
+		else if(!(other instanceof Tensor))
+			return false;
+		else
+			return equals((Tensor) other);
 	}
 	
 	/**
@@ -196,10 +198,12 @@ public class Tensor {
 	 * @return true if the other object represents an equal tensor
 	 */
 	public boolean equals(Tensor other){
-		if(other.address == this.address){
+		if(other == null)
+			return false;
+		else if(other.address == this.address)
 			return true;
-		}
-		return equals(other, 0.0f);
+		else
+			return equals(other, 0.0f);
 	}
 	
 	/**
@@ -208,10 +212,10 @@ public class Tensor {
 	 * @return true if the other object represents an equal tensor with values within threshold range
 	 */
 	public boolean equals(Tensor other, float threshold){
-		if(!this.sameDim(other)){
+		if(!this.sameDim(other))
 			return false;
-		}
-		return equalsData(other, threshold);
+		else
+			return equalsData(other, threshold);
 	}
 	
 	@Override
