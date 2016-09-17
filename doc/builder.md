@@ -25,7 +25,7 @@ Once your network is deployed, click the `Learn` menu item to train your neural 
 
 ![Learning tab](figures/builder_5.png)
 
-Start by adding an `MNIST` dataset and connecting this to your `Input`. In case the MNIST dataset is not showing up, please run `.\gradlew dataset -Pwhich=MNIST` to download it. Double clicking the dataset allows you to select how many samples will be used for training and how many will be used for testing.
+Start by adding an `MNIST` dataset and connecting this to your `Input`. In case the MNIST dataset is not showing up, please run `.\gradlew datasets -Pwhich=MNIST` to download it. Double clicking the dataset allows you to select how many samples will be used for training and how many will be used for testing.
 
 ![Dataset configuration](figures/builder_6.png)
 
@@ -41,7 +41,7 @@ Click `Stop` when you are satisfied with the training. You can check the progres
 
 ![Evaluating the trained network](figures/builder_9.png)
 
-To convince yourself even further, you can go ahead to the `Run` tab and see the outputs for individual samples. You can download a pretrained version of this model form the DIANNE website using `./gradlew model -Pwhich=tutorial_1`.
+To convince yourself even further, you can go ahead to the `Run` tab and see the outputs for individual samples. You can download a pretrained version of this model form the DIANNE website using `./gradlew models -Pwhich=tutorial_1`.
 
 Available modules
 -----------------
@@ -53,8 +53,8 @@ Preconfigured datasets & models
 
 Besides the MNIST dataset and example model in the previous section, a number of other preconfigured datasets and models are available on the DIANNE [datasets page](http://dianne.intec.ugent.be/datasets/) and [models page](http://dianne.intec.ugent.be/models/) respectively. We will be adding more datasets and models from time to time. You can download these using the build tool:
 
-	./gradlew dataset -Pwhich=<name>
-	./gradlew model -Pwhich=<name>
+	./gradlew datasets -Pwhich=<name>
+	./gradlew models -Pwhich=<name>
 
 **Note**: If you leave out the `which` option, all available datasets or models will be downloaded. Be aware this might take some time!
 

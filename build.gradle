@@ -116,7 +116,7 @@ subprojects {
 }
 getTasksByName('test', true).each{ task -> task.dependsOn(getTasksByName('buildNative', true)) }
 
-task("dataset") {
+task("datasets") {
 	description "Download pre-configured datasets (all available by default)."
 	group 'util'
 	doLast {
@@ -130,7 +130,7 @@ task("dataset") {
 	}
 }
 
-task("model") {
+task("models") {
 	description "Download neural network models (all available by default)."
 	group 'util'
 	doLast {

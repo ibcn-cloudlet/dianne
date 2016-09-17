@@ -90,8 +90,8 @@ Deploy your first neural network
 
 Once you have DIANNE up and running, it's a good idea to check if everything is working accordingly by deploying a model and evaluating it on some data. The easiest way to do this is by downloading a preconfigured dataset & neural network model using the `gradle` tool:
 
-	./gradlew dataset -Pwhich=MNIST
-	./gradlew model -Pwhich=tutorial_1
+	./gradlew datasets -Pwhich=MNIST
+	./gradlew models -Pwhich=tutorial_1
 	
 This will download the MNIST dataset along with the necessary configuration file (for more information on datasets and adapters in DIANNE, see the [documentation on GitHub](https://github.com/ibcn-cloudlet/dianne/blob/v0.4.0/doc/datasets.md)), as well as a simple MLP model structure and trained weights.
 
