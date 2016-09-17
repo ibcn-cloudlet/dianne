@@ -29,7 +29,9 @@ public class CriterionFactory {
 	public enum CriterionConfig {
 		MSE,
 		NLL,
-		ABS
+		ABS,
+		BCE,
+		GKL
 	}
 	
 	public static Criterion createCriterion(CriterionConfig c){
@@ -41,6 +43,12 @@ public class CriterionFactory {
 			break;
 		case NLL :
 			criterion = new NLLCriterion();
+			break;
+		case BCE :
+			criterion = new BCECriterion();
+			break;
+		case GKL :
+			criterion = new GaussianKLDivCriterion();
 			break;
 		default:
 			criterion = new MSECriterion();

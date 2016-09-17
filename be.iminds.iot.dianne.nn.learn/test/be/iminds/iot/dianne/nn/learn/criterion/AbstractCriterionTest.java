@@ -28,7 +28,7 @@ public abstract class AbstractCriterionTest {
 	@Test
 	public void testLoss() {
 		for(int i = 0; i < out.length; i++) {
-			Criterion c = newCriterion(out[i].length);
+			Criterion c = newCriterion();
 			
 			float l = c.error(
 					new Tensor(out[i],out[i].length),
@@ -41,7 +41,7 @@ public abstract class AbstractCriterionTest {
 	@Test
 	public void testGrad() {
 		for(int i = 0; i < out.length; i++) {
-			Criterion c = newCriterion(out[i].length);
+			Criterion c = newCriterion();
 			
 			Tensor g = c.grad(
 					new Tensor(out[i],out[i].length),
@@ -52,5 +52,5 @@ public abstract class AbstractCriterionTest {
 		}
 	}
 	
-	protected abstract Criterion newCriterion(int outSize);
+	protected abstract Criterion newCriterion();
 }

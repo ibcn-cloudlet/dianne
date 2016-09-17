@@ -13,7 +13,7 @@ import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.learn.LearningStrategy;
 import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
-import be.iminds.iot.dianne.nn.learn.criterion.BCECriterion;
+import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory;
 import be.iminds.iot.dianne.nn.learn.criterion.GaussianKLDivCriterion;
 import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory;
 import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory;
@@ -23,7 +23,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
 /**
- * Strategy for learning Variational Auto Encoders (VAEs). Assumes factorized Gaussian-distributed latent variables and Benoulli-distributed data ([0,1]).
+ * Strategy for learning Variational Auto Encoders (VAEs). Assumes factorized Gaussian-distributed latent variables.
  * Also assumes 1D encoder output (2D for batches).
  * 
  * @author smbohez
@@ -78,9 +78,9 @@ public class VariationalAutoEncoderLearningStrategy implements LearningStrategy 
 		this.decoderProcessor = ProcessorFactory.createGradientProcessor(this.config.method, this.decoder, config);
 		
 		// Set criteria
-		// TODO: set criteria based on modeled distributions
-		this.reconCriterion = new BCECriterion();
-		this.regulCriterion = new GaussianKLDivCriterion(this.latentDims);
+		// TODO: set regularization criterion based on modeled distributions
+		this.reconCriterion = CriterionFactory.createCriterion(this.config.criterion);
+		this.regulCriterion = new GaussianKLDivCriterion();
 		
 		// Set prior distribution parameters = standard normal
 		this.prior = new Tensor(this.config.batchSize, 2*this.latentDims);

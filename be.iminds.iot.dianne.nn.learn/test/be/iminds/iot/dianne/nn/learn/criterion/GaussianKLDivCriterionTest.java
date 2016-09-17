@@ -14,8 +14,8 @@ public class GaussianKLDivCriterionTest extends AbstractCriterionTest {
 	}
 	
 	@Override
-	protected Criterion newCriterion(int outSize) {
-		return new GaussianKLDivCriterion(outSize/2);
+	protected Criterion newCriterion() {
+		return new GaussianKLDivCriterion();
 	}
 	
 }

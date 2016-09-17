@@ -6,8 +6,6 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class GaussianKLDivCriterion implements Criterion {
 	
-	protected final int size;
-	
 	protected Tensor meanDiff;
 	protected Tensor stdevRatio;
 	protected Tensor logStdevRatio;
@@ -18,14 +16,10 @@ public class GaussianKLDivCriterion implements Criterion {
 	protected Tensor error;
 	protected Tensor grad;
 
-	public GaussianKLDivCriterion(int size) {
-		super();
-		this.size = size;
-	}
-
 	@Override
 	public Tensor error(Tensor output, Tensor target) {
 		int dim = output.dim()-1;
+		int size = output.size(dim)/2;
 		
 		Tensor outMean = output.narrow(dim, 0, size);
 		Tensor outStdev = output.narrow(dim, size, size);
@@ -52,6 +46,7 @@ public class GaussianKLDivCriterion implements Criterion {
 	@Override
 	public Tensor grad(Tensor output, Tensor target) {
 		int dim = output.dim()-1;
+		int size = output.size(dim)/2;
 		
 		grad = output.copyInto(grad);
 		

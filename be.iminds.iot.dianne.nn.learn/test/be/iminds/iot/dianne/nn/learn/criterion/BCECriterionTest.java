@@ -14,7 +14,7 @@ public class BCECriterionTest extends AbstractCriterionTest {
 	}
 	
 	@Override
-	protected Criterion newCriterion(int outSize) {
+	protected Criterion newCriterion() {
 		return new BCECriterion();
 	}
 	
