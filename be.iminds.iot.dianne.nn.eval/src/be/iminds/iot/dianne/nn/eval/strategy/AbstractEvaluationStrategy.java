@@ -84,19 +84,19 @@ public abstract class AbstractEvaluationStrategy implements EvaluationStrategy {
 				indices = new int[(int)(total-i)];
 				batch = null;
 			}
-			for(int k=0;k<indices.length;k++){
-				indices[k] = (int)(i++);
-			}
+			
+			for(int b=0;b<indices.length;b++)
+				indices[b] = (int)(i+b);
+			
 			batch = dataset.getBatch(batch, indices);
 			
 			long t = System.nanoTime();
 			out = nn.forward(batch.input);
 			tForward += System.nanoTime() - t;
 			
-			if(outputs!=null){
+			if(outputs!=null)
 				for(int k=0;k<this.config.batchSize;k++)
 					outputs.add(out.select(0, k).copyInto(null));
-			}
 			
 			float err = eval(out, batch.target);
 			
@@ -116,7 +116,7 @@ public abstract class AbstractEvaluationStrategy implements EvaluationStrategy {
 			error += err;
 		}
 
-		return new EvaluationProgress(i+config.batchSize, total, error/(i+config.batchSize));
+		return progress = new EvaluationProgress(i+config.batchSize, total, error/(i+config.batchSize));
 	}
 
 	@Override
@@ -124,7 +124,6 @@ public abstract class AbstractEvaluationStrategy implements EvaluationStrategy {
 		Evaluation eval = finish();
 		eval.total = total;
 		eval.error = error/total;
-		eval.outputs = outputs;
 		eval.forwardTime = (tForward/1000000f)/total;
 		eval.outputs = outputs;
 		return eval;
