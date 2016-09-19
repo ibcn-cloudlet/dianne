@@ -80,7 +80,7 @@ public class Reshape extends AbstractModule {
 	@Override
 	protected void backward() {
 		gradInput = gradOutput.copyInto(gradInput);
-		gradOutput.reshape(inputDims);
+		gradInput.reshape(inputDims);
 	}
 
 }
