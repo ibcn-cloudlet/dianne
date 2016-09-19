@@ -50,6 +50,7 @@ public class SamplingFactory {
 			break;
 		case WEIGHTED:
 			sampling = new WeightedUniformSamplingStrategy(d, DianneConfigHandler.getConfig(config, WeightedUniformConfig.class));
+			break;
 		default:
 			sampling = new UniformSamplingStrategy(d);
 		}
