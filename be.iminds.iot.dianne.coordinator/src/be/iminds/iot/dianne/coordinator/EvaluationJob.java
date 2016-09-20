@@ -73,6 +73,7 @@ public class EvaluationJob extends AbstractJob<EvaluationResult> {
 						System.out.println("Evaluation result");
 						System.out.println("---");
 						System.out.println("Error: "+e.error());
+						System.out.println("Forward time: "+e.forwardTime());
 						if(e instanceof ClassificationEvaluation){
 							ClassificationEvaluation ce = (ClassificationEvaluation)e;
 							System.out.println("Accuracy: "+ce.accuracy());
