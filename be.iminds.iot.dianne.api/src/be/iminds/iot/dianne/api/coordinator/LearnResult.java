@@ -48,10 +48,12 @@ public class LearnResult {
 	}
 	
 	public long getIterations(){
-		return progress.values().iterator().next().get(progress.size()-1).iteration;
+		List<LearnProgress> p = progress.values().iterator().next();
+		return p.get(p.size()-1).iteration;
 	}
 	
 	public float getError(){
-		return progress.values().iterator().next().get(progress.size()-1).miniBatchError;
+		List<LearnProgress> p = progress.values().iterator().next();
+		return p.get(p.size()-1).miniBatchError;
 	}
 }
