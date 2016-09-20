@@ -74,7 +74,12 @@ function upload(evt){
     	r.onload = function(e) { 
     		var contents = e.target.result;
     		uploadNN = JSON.parse(contents);
-    		$('#submit-nn').val(uploadNN.name);
+    		
+    		if($("#submit-nn option[value='uploadNN.name']").length == 0){
+    			$("#submit-nn").append('<option value="'+uploadNN.name+'">'+uploadNN.name+'</option>');
+    		}
+			$('#submit-nn').val(uploadNN.name);
+    		
     	}
     	r.readAsText(f);
     } else {
