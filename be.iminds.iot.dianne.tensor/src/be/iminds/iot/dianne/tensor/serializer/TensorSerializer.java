@@ -22,6 +22,8 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.tensor.serializer;
 
+import java.util.Arrays;
+
 import org.osgi.service.component.annotations.Component;
 
 import com.esotericsoftware.kryo.Kryo;
@@ -48,10 +50,15 @@ public class TensorSerializer extends Serializer<Tensor> {
 
 	@Override
 	public void write(Kryo kryo, Output output, Tensor tensor) {
+		try {
 		output.writeInt(tensor.dims().length);
 		output.writeInts(tensor.dims());
 		output.writeInt(tensor.size());
 		output.writeFloats(tensor.get());
+		} catch(Throwable t){
+			System.out.println("ERROR SERIALIZING "+(tensor == null ? "null" : Arrays.toString(tensor.dims())));
+			throw t;
+		}
 	}
 
 }

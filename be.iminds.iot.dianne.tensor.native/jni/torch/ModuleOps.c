@@ -1292,11 +1292,12 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_batchnormAccGr
 
 
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_linear
-  (JNIEnv * env, jclass c, jobject out, jobject in, jobject w, jobject b){
+  (JNIEnv * env, jclass c, jobject out, jobject in, jobject w, jobject b, jobject o){
 	THTensor* input = getTensor(env, in);
 	THTensor* output = getTensor(env, out);
 	THTensor* weight = getTensor(env, w);
 	THTensor* bias = getTensor(env, b);
+	THTensor* ones = getTensor(env, o);
 
 	if(input->nDimension % 2 == 1){
 		// 1d or 3d tensor, treat as one input by default
@@ -1331,47 +1332,30 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_linear
 			input->size[0], weight->size[0]);
 
 
-		THTensor* addBuffer = THTensor_(newWithSize1d)(
+		THTensor_(transpose)(
 #ifdef CUDA
 			state,
 #endif
-			input->size[0]);
-
-		THTensor_(fill)(
-#ifdef CUDA
-			state,
-#endif
-			addBuffer, 1.0f);
-
-		THTensor* transpose = THTensor_(newTranspose)(
-#ifdef CUDA
-			state,
-#endif
-			weight, 0, 1);
+			weight, NULL, 0, 1);
 
 		THTensor_(addmm)(
 #ifdef CUDA
 			state,
 #endif
-			output, 0.0f, output, 1.0f, input, transpose);
+			output, 0.0f, output, 1.0f, input, weight);
 
 		THTensor_(addr)(
 #ifdef CUDA
 			state,
 #endif
-			output, 1.0f, output, 1.0f, addBuffer, bias);
+			output, 1.0f, output, 1.0f, ones, bias);
 
-		THTensor_(free)(
+		THTensor_(transpose)(
 #ifdef CUDA
 			state,
 #endif
-			addBuffer);
+			weight, NULL, 0, 1);
 
-		THTensor_(free)(
-#ifdef CUDA
-			state,
-#endif
-			transpose);
 	}
 	return out == NULL ? createTensorObject(env, output) : out;
 }
@@ -1391,23 +1375,23 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_linearGradI
 
 	if(input->nDimension % 2 == 1){
 		// treat as vector input
-		THTensor* transpose = THTensor_(newTranspose)(
+		THTensor_(transpose)(
 #ifdef CUDA
 			state,
 #endif
-			weight, 0, 1);
+			weight, NULL, 0, 1);
 
 		THTensor_(addmv)(
 #ifdef CUDA
 			state,
 #endif
-			gradInput, 0.0f, gradInput, 1.0f, transpose, gradOutput);
+			gradInput, 0.0f, gradInput, 1.0f, weight, gradOutput);
 
-		THTensor_(free)(
+		THTensor_(transpose)(
 #ifdef CUDA
 			state,
 #endif
-			transpose);
+			weight, NULL, 0, 1);
 	} else{
 		// treat as batch input
 
@@ -1422,11 +1406,12 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_linearGradI
 }
 
 JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_linearAccGrad
-  (JNIEnv * env, jclass c, jobject gradW, jobject gradB, jobject gradOut, jobject in){
+  (JNIEnv * env, jclass c, jobject gradW, jobject gradB, jobject gradOut, jobject in, jobject o){
 	THTensor* gradWeight = getTensor(env, gradW);
 	THTensor* gradBias = getTensor(env, gradB);
 	THTensor* gradOutput = getTensor(env, gradOut);
 	THTensor* input = getTensor(env, in);
+	THTensor* ones = getTensor(env, o);
 
 	if(input->nDimension % 2 == 1){
 		THTensor_(addr)(
@@ -1443,49 +1428,30 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_linearAccGrad
 	} else {
 		// batched input
 		// gradWeight
-		THTensor* transpose = THTensor_(newTranspose)(
+		THTensor_(transpose)(
 #ifdef CUDA
 			state,
 #endif
-			gradOutput, 0, 1);
+			gradOutput, NULL, 0, 1);
 
 		THTensor_(addmm)(
 #ifdef CUDA
 			state,
 #endif
-			gradWeight, 1.0f, gradWeight, 1.0f, transpose, input);
-
+			gradWeight, 1.0f, gradWeight, 1.0f, gradOutput, input);
 
 		// gradBias
-		THTensor* addBuffer = THTensor_(newWithSize1d)(
-#ifdef CUDA
-			state,
-#endif
-			input->size[0]);
-
-		THTensor_(fill)(
-#ifdef CUDA
-			state,
-#endif
-			addBuffer, 1.0f);
-
 		THTensor_(addmv)(
 #ifdef CUDA
 			state,
 #endif
-			gradBias, 1.0f, gradBias, 1.0f, transpose, addBuffer);
+			gradBias, 1.0f, gradBias, 1.0f, gradOutput, ones);
 
-		THTensor_(free)(
+		THTensor_(transpose)(
 #ifdef CUDA
 			state,
 #endif
-			addBuffer);
-
-		THTensor_(free)(
-#ifdef CUDA
-			state,
-#endif
-			transpose);
+			gradOutput, NULL, 0, 1);
 
 	}
 

@@ -35,10 +35,9 @@ public class Linear extends AbstractTrainableModule {
 	private int outSize;
 	
 	private Tensor weights;
-	private Tensor weightsT;
 	private Tensor bias;
 	
-	private Tensor batchedBias = new Tensor();
+	private Tensor ones = new Tensor(1);
 	
 	private Tensor deltaWeights;
 	private Tensor deltaBias;
@@ -73,7 +72,6 @@ public class Linear extends AbstractTrainableModule {
 		
 		weights = parameters.narrow(0, 0, outSize*inSize);
 		weights.reshape(outSize, inSize);
-		weightsT = weights.transpose(null, 0, 1);
 		bias = parameters.narrow(0, outSize*inSize, outSize);
 		bias.reshape(outSize);
 	}
@@ -106,7 +104,11 @@ public class Linear extends AbstractTrainableModule {
 	@Override
 	protected void forward() {
 		inputDims = input.dims();
-		output = ModuleOps.linear(output, input, weights, bias);
+		if(ones.size(0) != inputDims[0]){
+			ones.reshape(inputDims[0]);
+			ones.fill(1.0f);
+		}
+		output = ModuleOps.linear(output, input, weights, bias, ones);
 	}
 
 	@Override
@@ -120,7 +122,7 @@ public class Linear extends AbstractTrainableModule {
 
 	@Override
 	public void accGradParameters() {
-		ModuleOps.linearAccGrad(deltaWeights, deltaBias, gradOutput, input);
+		ModuleOps.linearAccGrad(deltaWeights, deltaBias, gradOutput, input, ones);
 		input.reshape(inputDims);
 	}
 

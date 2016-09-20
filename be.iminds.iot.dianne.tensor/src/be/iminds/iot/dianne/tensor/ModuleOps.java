@@ -180,10 +180,10 @@ public class ModuleOps {
 	public static native void batchnormAccGrad(final Tensor gradWeights, final Tensor gradBias, final Tensor gradOutput, final Tensor input, final Tensor weights, final Tensor rMean, final Tensor rVar, final Tensor sMean, final Tensor sVar, boolean train);
 
 	
-	public static native Tensor linear(Tensor output, final Tensor input, final Tensor weights, final Tensor bias);
+	public static native Tensor linear(Tensor output, final Tensor input, final Tensor weights, final Tensor bias, final Tensor ones);
 	
 	public static native Tensor linearGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor weights, final Tensor input);
 	
-	public static native void linearAccGrad(final Tensor gradWeigths, final Tensor gradBias, final Tensor gradOutput, final Tensor input);
+	public static native void linearAccGrad(final Tensor gradWeigths, final Tensor gradBias, final Tensor gradOutput, final Tensor input, final Tensor ones);
 
 }
