@@ -12,7 +12,7 @@ install:
 .PHONY: cudnn
 cudnn:
 	$(MAKE) -C torch;
-#	$(MAKE) -C cutorch;
+	$(MAKE) -C cutorch;
 	$(MAKE) -C cudnn install;
 
 .PHONY: cutorch

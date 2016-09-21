@@ -2,6 +2,9 @@
 /bin_test/
 /generated/
 /native/
+/jni/cudnn/*.o
+/jni/cudnn/*.so
+/jni/cudnn/symbols
 /jni/torch/*.o
 /jni/torch/*.so
 /jni/torch/*.a
