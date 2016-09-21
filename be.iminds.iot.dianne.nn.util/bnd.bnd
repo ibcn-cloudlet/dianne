@@ -11,6 +11,7 @@ Bundle-Version: 0.5.0.${tstamp}
 Bundle-Name: Dianne Utilities
 Export-Package: \
 	be.iminds.iot.dianne.nn.util,\
+	be.iminds.iot.dianne.api.nn.util,\
 	be.iminds.iot.dianne.nn.util.random,\
 	be.iminds.iot.dianne.nn.util.random.distributions,\
 	be.iminds.iot.dianne.api.nn.module.dto
