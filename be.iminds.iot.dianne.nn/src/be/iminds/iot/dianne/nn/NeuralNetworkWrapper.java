@@ -106,26 +106,18 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 
 	@Override
 	public Promise<NeuralNetworkResult> forward(UUID inputId, UUID outputId, Tensor in, String... tags){
-		if(!valid){
+		if(!valid)
 			throw new RuntimeException("This neural network object is no longer valid");
-		}
 		
 		String tag = getTag();
 		
 		// first trigger all memories
 		memories.values().forEach(m -> m.triggerForward(addTag(tags, tag)));
 		
-		Input input = null;
-		if(inputId!=null){
-			input = inputs.get(inputId);
-		}
-		if(input==null){
-			input = inputs.values().iterator().next();
-		}
+		Input input = inputId!=null ? inputs.get(inputId) : inputs.values().iterator().next();
 		
-		if(outputId!=null){
+		if(outputId!=null)
 			interestedModules.put(tag, outputId);
-		}
 		
 		Deferred<NeuralNetworkResult> d = new Deferred<>();
 		inProgress.put(tag, d);
@@ -137,26 +129,18 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	
 	@Override
 	public Promise<NeuralNetworkResult> backward(UUID outputId, UUID inputId, Tensor gradOut, String... tags){
-		if(!valid){
+		if(!valid)
 			throw new RuntimeException("This neural network object is no longer valid");
-		}
 		
 		String tag = getTag();
 
 		// first trigger all memories
 		memories.values().forEach(m -> m.triggerBackward(addTag(tags, tag)));
 		
-		Output output = null;
-		if(outputId!=null){
-			output = outputs.get(outputId);
-		}
-		if(output==null){
-			output = outputs.values().iterator().next();
-		}
+		Output output = outputId!=null ? outputs.get(outputId) : outputs.values().iterator().next();
 		
-		if(outputId!=null){
-			interestedModules.put(tag, outputId);
-		}
+		if(inputId!=null)
+			interestedModules.put(tag, inputId);
 		
 		Deferred<NeuralNetworkResult> d = new Deferred<>();
 		inProgress.put(tag, d);
