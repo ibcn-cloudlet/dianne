@@ -9,6 +9,12 @@ export NATIVE ?= torch
 install:
 	@$(MAKE) -f $(THIS_FILE) $(NATIVE);
 
+.PHONY: cudnn
+cudnn:
+	$(MAKE) -C torch;
+#	$(MAKE) -C cutorch;
+	$(MAKE) -C cudnn install;
+
 .PHONY: cutorch
 cutorch:
 	$(MAKE) -C torch;
