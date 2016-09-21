@@ -31,6 +31,7 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.DianneDatasets;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.Input;
@@ -48,6 +49,7 @@ public class DianneTest extends TestCase {
     
     protected DiannePlatform platform;
     protected Dianne dianne;
+    protected DianneDatasets datasets;
 
     protected NeuralNetworkInstanceDTO nni = null;
 	
@@ -57,6 +59,9 @@ public class DianneTest extends TestCase {
     	
     	ServiceReference rd =  context.getServiceReference(Dianne.class.getName());
     	dianne = (Dianne) context.getService(rd);
+    	
+    	ServiceReference dd =  context.getServiceReference(DianneDatasets.class.getName());
+    	datasets = (DianneDatasets) context.getService(dd);
     }
     
     public void tearDown(){
@@ -71,13 +76,7 @@ public class DianneTest extends TestCase {
     }
     
     protected Dataset getDataset(String name) throws Exception {
-    	ServiceReference[] rds = context.getAllServiceReferences(Dataset.class.getName(), null);
-    	for(ServiceReference rd : rds){
-    		if(name.equals(rd.getProperty("name"))){
-    			return (Dataset) context.getService(rd);
-    		} 
-    	}
-    	return null;
+    	return datasets.getDataset(name);
     }
     
     protected Input getInput(){
