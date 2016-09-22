@@ -9,6 +9,7 @@
 
 .gradle
 build/
+testdir/
 
 # Ignore Gradle GUI config
 gradle-app.setting
