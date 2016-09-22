@@ -112,17 +112,14 @@ public class DianneBenchmarkCommands {
 		Tensor input = new Tensor(dims);
 		input.rand();
 		
-		List<Long> timings = new ArrayList<Long>();
+		List<Double> timings = new ArrayList<Double>();
 		try {
 			for(int i=0;i<warmup;i++){
 				run(nn, input, times, backward);
 			}
 			
 			for(int i=0;i<runs;i++){
-				long t1 = System.currentTimeMillis();
-				run(nn, input, times, backward);
-				long t2 = System.currentTimeMillis();
-				timings.add(t2-t1);
+				timings.add(run(nn, input, times, backward));
 			}
 		
 		} catch(Exception e){
@@ -134,7 +131,7 @@ public class DianneBenchmarkCommands {
 		
 		System.out.println("Benchmark "+nnName+" ("+times+" times - "+runs+" runs):");
 		if(runs > 1){
-			double avg = timings.stream().mapToLong(t -> t).sum()/timings.size();
+			double avg = timings.stream().mapToDouble(t -> t).sum()/timings.size();
 			double s = timings.stream().mapToDouble(t -> t).map(t -> (t-avg)).map(t->t*t).sum();
 			
 			System.out.println("Average run time: "+df.format(avg)+" ms");
@@ -177,17 +174,18 @@ public class DianneBenchmarkCommands {
 		benchmark(nnName, inputDims, runs, times, 10, false);
 	}
 	
-	private void run(NeuralNetwork nn, Tensor input, int times, boolean backward) throws Exception {
+	private double run(NeuralNetwork nn, Tensor input, int times, boolean backward) throws Exception {
+		long t1 = System.nanoTime();
 		for(int i=0;i<times;i++)
 			nn.forward(null, null, input).then(
 				p -> {
-					Tensor out = p.getValue().tensor;
-					// TODO also evaluate criterion here?
-					out.rand();
-					if(backward)
+					if(backward){
+						Tensor out = p.getValue().tensor;
+						//out.rand();
 						return nn.backward(null, null, out);
-					else 
+					} else {
 						return p;
+					}
 				}).then(
 				p -> {	
 					// acc grad
@@ -195,6 +193,8 @@ public class DianneBenchmarkCommands {
 						nn.getTrainables().values().stream().forEach(m -> m.accGradParameters());
 					return p;
 				}).getValue();
+		long t2 = System.nanoTime();
+		return (t2-t1)/1000000;
 	}
 	
 	@Reference
