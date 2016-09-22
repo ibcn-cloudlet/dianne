@@ -50,5 +50,5 @@ Test-Cases: \
 	be.iminds.iot.dianne.nn.test;version=latest
 	
 -runproperties.test:\
-	be.iminds.iot.dianne.storage="../tools/models",\
-	be.iminds.iot.dianne.datasets.location="../tools/datasets"
+	be.iminds.iot.dianne.storage="models",\
+	be.iminds.iot.dianne.datasets.location="datasets"
