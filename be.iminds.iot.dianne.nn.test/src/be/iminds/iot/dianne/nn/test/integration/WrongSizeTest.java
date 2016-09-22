@@ -22,9 +22,6 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.test.integration;
 
-import org.osgi.framework.ServiceReference;
-
-import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.nn.test.DianneTest;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -32,29 +29,13 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 public class WrongSizeTest extends DianneTest {
 
-	private Dataset mnist;
-	
-	public void setUp() throws Exception {
-    	super.setUp();
-    	
-    	ServiceReference[] rds = context.getAllServiceReferences(Dataset.class.getName(), null);
-    	for(ServiceReference rd : rds){
-    		Dataset d = (Dataset) context.getService(rd);
-    		if(d.getName().equals("MNIST")){
-    			mnist = d;
-    		}
-    	}
-    }
-	
 	public void testWrongInputSize() throws Exception {
 		NeuralNetwork nn = deployNN("mnist-20");
-		
-		final Tensor sample = new Tensor(100);
-		
+		Tensor sample = new Tensor(100);		
 		try {
-			Tensor result = nn.forward(sample);
-			fail();
-		} catch(Exception e){
+			nn.forward(sample);
+			fail("Excpected RuntimeException.");
+		} catch(RuntimeException e){
 			// expect exception
 		}
 	}
