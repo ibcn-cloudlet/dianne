@@ -213,12 +213,12 @@ public class DianneBenchmarkCommands {
 	
 	private double run(NeuralNetwork nn, Tensor input, int times, boolean backward) throws Exception {
 		long t1 = System.nanoTime();
+		Tensor result = null;
 		for(int i=0;i<times;i++)
-			nn.forward(null, null, input).then(
+			result = nn.forward(null, null, input).then(
 				p -> {
 					if(backward){
 						Tensor out = p.getValue().tensor;
-						//out.rand();
 						return nn.backward(null, null, out);
 					} else {
 						return p;
@@ -229,8 +229,11 @@ public class DianneBenchmarkCommands {
 					if(backward)
 						nn.getTrainables().values().stream().forEach(m -> m.accGradParameters());
 					return p;
-				}).getValue();
+				}).getValue().tensor;
 		long t2 = System.nanoTime();
+		if(result == null){
+			throw new Exception("Null result?!");
+		}
 		return (t2-t1)/1e6;
 	}
 	
