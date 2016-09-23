@@ -34,7 +34,7 @@ static jmethodID SYSTEM_GC;
 static jclass SYSTEM_CLASS;
 static jclass EXCEPTION_CLASS;
 
-static void throwException(const char * msg){
+void throwException(const char * msg){
 	JNIEnv* env;
 	jvm->AttachCurrentThread((void**)&env, NULL);
 	env->ThrowNew(EXCEPTION_CLASS, msg );

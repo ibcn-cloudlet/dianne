@@ -39,4 +39,6 @@ THTensor* getTensor4d(JNIEnv* env, jobject o, int d0, int d1, int d2, int d3);
 
 jobject createTensorObject(JNIEnv* env, THTensor* t);
 
+void throwException(const char * msg);
+
 #endif

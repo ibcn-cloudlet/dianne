@@ -33,6 +33,8 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialconv
 
 	printf("Spatial convolve forward in CUDNN! \n");
 
+	throwException("Not yet implemented");
+
 	return out == NULL ? createTensorObject(env, output) : out;
 }
 
@@ -47,6 +49,8 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialconv
 
 	printf("Spatial convolve backward in CUDNN! \n");
 
+	throwException("Not yet implemented");
+
 	return gradIn == NULL ? createTensorObject(env, gradInput) : gradIn;
 }
 
@@ -60,6 +64,8 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialconvolv
 	THTensor* temp2 = getTensor(env, t2);
 
 	printf("Spatial convolve accgrad in CUDNN! \n");
+
+	throwException("Not yet implemented");
 
 }
 
