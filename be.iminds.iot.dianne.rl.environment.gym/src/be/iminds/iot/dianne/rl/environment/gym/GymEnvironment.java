@@ -254,13 +254,17 @@ public class GymEnvironment implements Environment {
 					String a = (String)jep.getValue("acs");
 					System.out.println(a);
 					
-					if(a.startsWith("Discrete")){
+					if(a.startsWith("Discrete")) {
 						String dim = a.substring(9, a.length()-1);
 						actionDims = new int[]{Integer.parseInt(dim)};
-					} else if(a.startsWith("High-Low")){
+					} else if(a.startsWith("High-Low")) {
 						// TODO is this right?!
 						discrete = false;
 						String dim = a.substring(9, a.indexOf(","));
+						actionDims = new int[]{Integer.parseInt(dim)};
+					} else if(a.startsWith("Box")) {
+						discrete = false;
+						String dim = a.substring(4, a.indexOf(","));
 						actionDims = new int[]{Integer.parseInt(dim)};
 					} else {
 						System.out.println("Unknown action space");
