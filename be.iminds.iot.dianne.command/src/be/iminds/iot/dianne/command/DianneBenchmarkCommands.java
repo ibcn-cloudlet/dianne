@@ -35,6 +35,7 @@ import org.osgi.service.component.annotations.Reference;
 import be.iminds.iot.dianne.api.dataset.DianneDatasets;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
+import be.iminds.iot.dianne.api.nn.module.AbstractModule;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -42,7 +43,8 @@ import be.iminds.iot.dianne.tensor.Tensor;
 @Component(
 		service=Object.class,
 		property={"osgi.command.scope=dianne",
-				  "osgi.command.function=benchmark"},
+				  "osgi.command.function=benchmark",
+				  "osgi.command.function=trace"},
 		immediate=true)
 public class DianneBenchmarkCommands {
 
@@ -172,6 +174,41 @@ public class DianneBenchmarkCommands {
 			@Descriptor("times to forward in one run")
 			int times){
 		benchmark(nnName, inputDims, runs, times, 10, false);
+	}
+	
+	@Descriptor("Set module tracing on/off.")
+	public void trace(
+			@Descriptor("set trace on/off")
+			boolean on){
+		AbstractModule.TRACE = on;
+	}
+	
+	@Descriptor("Trace a neural network.")
+	public void trace(
+			@Descriptor("neural network to benchmark")
+			String nnName, 
+			@Descriptor("input dims (comma separated e.g. 10,28,28)")
+			String inputDims,
+			@Descriptor("also include a backward pass")
+			boolean backward
+			){
+		boolean trace = AbstractModule.TRACE;
+		AbstractModule.TRACE = true;
+		
+		benchmark(nnName, inputDims, 1, 1, 0, backward);
+		
+		AbstractModule.TRACE = trace;
+	}
+	
+
+	@Descriptor("Trace a neural network.")
+	public void trace(
+			@Descriptor("neural network to benchmark")
+			String nnName, 
+			@Descriptor("input dims (comma separated e.g. 10,28,28)")
+			String inputDims
+			){
+		trace(nnName, inputDims, false);
 	}
 	
 	private double run(NeuralNetwork nn, Tensor input, int times, boolean backward) throws Exception {
