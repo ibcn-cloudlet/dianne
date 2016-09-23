@@ -112,7 +112,7 @@ public class DianneBenchmarkCommands {
 		Tensor input = new Tensor(dims);
 		input.rand();
 		
-		List<Double> timings = new ArrayList<Double>();
+		List<Double> timings = new ArrayList<>();
 		try {
 			for(int i=0;i<warmup;i++){
 				run(nn, input, times, backward);
@@ -135,7 +135,7 @@ public class DianneBenchmarkCommands {
 			double s = timings.stream().mapToDouble(t -> t).map(t -> (t-avg)).map(t->t*t).sum();
 			
 			System.out.println("Average run time: "+df.format(avg)+" ms");
-			System.out.println("Standard deviation: "+df.format(Math.sqrt(s/(timings.size()-1))));
+			System.out.println("Standard deviation: "+df.format(Math.sqrt(s/(timings.size()-1)))+" ms");
 		} else {
 			System.out.println("Run time: "+df.format(timings.get(0))+" ms");
 		}
@@ -194,7 +194,7 @@ public class DianneBenchmarkCommands {
 					return p;
 				}).getValue();
 		long t2 = System.nanoTime();
-		return (t2-t1)/1000000;
+		return (t2-t1)/1e6;
 	}
 	
 	@Reference
