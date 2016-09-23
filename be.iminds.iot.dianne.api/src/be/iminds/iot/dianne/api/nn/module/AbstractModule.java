@@ -45,7 +45,9 @@ import be.iminds.iot.dianne.tensor.Tensor;
  */
 public abstract class AbstractModule implements Module {
 
-	protected final static boolean TRACE = false;
+	// trace output for debugging
+	public static boolean TRACE = false;
+	private long t1,t2;
 	
 	// the UUID of this module
 	protected final UUID id;
@@ -142,6 +144,7 @@ public abstract class AbstractModule implements Module {
 	protected synchronized void forward(final UUID moduleId, final ModuleException ex, final Tensor input, final String... tags) {
 		if(TRACE){
 			System.out.println("FORWARD "+this.id+" ("+this.getClass().getName()+")  FROM "+moduleId+" "+(input==null?"null":Arrays.toString(input.dims()))+" "+Arrays.toString(tags));
+			t1 = System.nanoTime();
 		}
 		// skip or block when next is not ready processing previous output of this module
 		synchronized(nextBusy){
@@ -187,6 +190,11 @@ public abstract class AbstractModule implements Module {
 		if(fwdListeners.size()>0)
 			notifyForwardListeners();
 		
+		if(TRACE){
+			t2 = System.nanoTime();
+			System.out.println("FORWARD "+this.id+" ("+this.getClass().getName()+") DONE in "+(t2-t1)+" ns");
+		}
+		
 		// dispatch to next
 		if(next!=null)
 			callNext();
@@ -206,6 +214,7 @@ public abstract class AbstractModule implements Module {
 	protected synchronized void backward(final UUID moduleId, final ModuleException ex, final Tensor gradOutput, final String... tags) {
 		if(TRACE){
 			System.out.println("BACKWARD "+this.id+" ("+this.getClass().getName()+")  FROM "+moduleId+" "+(gradOutput == null ? "null":Arrays.toString(gradOutput.dims()))+" "+Arrays.toString(tags));
+			t1 = System.nanoTime();
 		}
 		
 		this.gradOutput = gradOutput;
@@ -224,6 +233,11 @@ public abstract class AbstractModule implements Module {
 		// notify listeners
 		if(bwListeners.size()>0)
 			notifyBackwardListeners();
+		
+		if(TRACE){
+			t2 = System.nanoTime();
+			System.out.println("BACKWARD "+this.id+" ("+this.getClass().getName()+") DONE in "+(t2-t1)+" ns");
+		}
 		
 		// dispatch to previous
 		if(prev!=null)
