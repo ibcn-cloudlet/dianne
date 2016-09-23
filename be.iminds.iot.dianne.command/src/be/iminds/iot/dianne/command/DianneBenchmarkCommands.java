@@ -25,6 +25,7 @@ package be.iminds.iot.dianne.command;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import org.apache.felix.service.command.Descriptor;
 import org.osgi.framework.BundleContext;
@@ -32,6 +33,7 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
+import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.DianneDatasets;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
@@ -50,6 +52,8 @@ public class DianneBenchmarkCommands {
 
 	private static DecimalFormat df = new DecimalFormat("0.###");
 	
+	Random random = new Random(System.currentTimeMillis());
+	
 	BundleContext context;
 	
 	// Dianne components
@@ -67,8 +71,8 @@ public class DianneBenchmarkCommands {
 	public void benchmark(
 			@Descriptor("neural network to benchmark")
 			String nnName, 
-			@Descriptor("input dims (comma separated e.g. 10,28,28)")
-			String inputDims,
+			@Descriptor("neural network input, either dims (comma separated e.g. 10,28,28) or dataset (datasetName[:sample,batchSize])")
+			String input,
 			@Descriptor("number of runs to execute")
 			int runs,
 			@Descriptor("times to forward in one run")
@@ -79,19 +83,57 @@ public class DianneBenchmarkCommands {
 			boolean backward
 		){
 
-		// parse the input dimensions
-		int[] dims = null;
-		try {
-			String[] d = inputDims.split(",");
-			dims = new int[d.length];
-			for(int i=0;i<d.length;i++){
-				dims[i] = Integer.parseInt(d[i]);
-			}
-		} catch(Exception e){
-			System.out.println("Incorrect dimensions provided...");
-			return;
+		// parse the input
+		Tensor in = null;
+		
+		String datasetName = input;
+		String sample = null;
+		if(input.contains(":")){
+			int split = input.lastIndexOf(":");
+			datasetName = input.substring(0, split);
+			sample = input.substring(split + 1);
 		}
 		
+		Dataset dataset = datasets.getDataset(datasetName);
+		if(dataset != null){
+			if(sample == null){
+				in = dataset.getSample(random.nextInt(dataset.size())).input;
+			} else {
+				if( sample.contains(",")){
+					String[] is = sample.split(",");
+					int start = Integer.parseInt(is[0]);
+					int count = Integer.parseInt(is[1]);
+					int[] indices = new int[count];
+					for(int i=0;i<count;i++){
+						indices[i] = start++;
+					}
+					in = dataset.getBatch(indices).input;
+				} else {
+					in = dataset.getSample(Integer.parseInt(sample)).input;
+				}
+			}
+		} else {
+			// input dims are given
+			int[] dims = null;
+			try {
+				String[] d = input.split(",");
+				dims = new int[d.length];
+				for(int i=0;i<d.length;i++){
+					dims[i] = Integer.parseInt(d[i]);
+				}
+			} catch(Exception e){
+				System.out.println("Incorrect dimensions provided...");
+				return;
+			}
+			
+			in = new Tensor(dims);
+			in.rand();
+		}
+		
+		if(in == null){
+			System.out.println("No valid input provided...");
+			return;
+		}
 		
 		// deploy the NN
 		NeuralNetworkInstanceDTO nni = null;
@@ -99,6 +141,7 @@ public class DianneBenchmarkCommands {
 			nni = platform.deployNeuralNetwork(nnName);
 		} catch (InstantiationException e1) {
 			System.out.println("Neural network "+nnName+" could not be deployed...");
+			return;
 		}
 		NeuralNetwork nn = null;
 		try {
@@ -111,17 +154,14 @@ public class DianneBenchmarkCommands {
 			return;
 		}
 		
-		Tensor input = new Tensor(dims);
-		input.rand();
-		
 		List<Double> timings = new ArrayList<>();
 		try {
 			for(int i=0;i<warmup;i++){
-				run(nn, input, times, backward);
+				run(nn, in, times, backward);
 			}
 			
 			for(int i=0;i<runs;i++){
-				timings.add(run(nn, input, times, backward));
+				timings.add(run(nn, in, times, backward));
 			}
 		
 		} catch(Exception e){
@@ -147,33 +187,33 @@ public class DianneBenchmarkCommands {
 	public void benchmark(
 			@Descriptor("neural network to benchmark")
 			String nnName, 
-			@Descriptor("input dims (comma separated e.g. 10,28,28)")
-			String inputDims){
-		benchmark(nnName, inputDims, 30, 1, 10, false);
+			@Descriptor("neural network input, either dims (comma separated e.g. 10,28,28) or dataset (datasetName[:sample,batchSize])")
+			String input){
+		benchmark(nnName, input, 30, 1, 10, false);
 	}
 
 	@Descriptor("Benchmark a neural network.")
 	public void benchmark(
 			@Descriptor("neural network to benchmark")
 			String nnName, 
-			@Descriptor("input dims (comma separated e.g. 10,28,28)")
-			String inputDims,
+			@Descriptor("neural network input, either dims (comma separated e.g. 10,28,28) or dataset (datasetName[:sample,batchSize])")
+			String input,
 			@Descriptor("number of runs to execute")
 			int runs){
-		benchmark(nnName, inputDims, runs, 1, 10, false);
+		benchmark(nnName, input, runs, 1, 10, false);
 	}
 
 	@Descriptor("Benchmark a neural network.")
 	public void benchmark(
 			@Descriptor("neural network to benchmark")
 			String nnName, 
-			@Descriptor("input dims (comma separated e.g. 10,28,28)")
-			String inputDims,
+			@Descriptor("neural network input, either dims (comma separated e.g. 10,28,28) or dataset (datasetName[:sample,batchSize])")
+			String input,
 			@Descriptor("number of runs to execute")
 			int runs,
 			@Descriptor("times to forward in one run")
 			int times){
-		benchmark(nnName, inputDims, runs, times, 10, false);
+		benchmark(nnName, input, runs, times, 10, false);
 	}
 	
 	@Descriptor("Set module tracing on/off.")
@@ -187,15 +227,15 @@ public class DianneBenchmarkCommands {
 	public void trace(
 			@Descriptor("neural network to benchmark")
 			String nnName, 
-			@Descriptor("input dims (comma separated e.g. 10,28,28)")
-			String inputDims,
+			@Descriptor("neural network input, either dims (comma separated e.g. 10,28,28) or dataset (datasetName[:sample,batchSize])")
+			String input,
 			@Descriptor("also include a backward pass")
 			boolean backward
 			){
 		boolean trace = AbstractModule.TRACE;
 		AbstractModule.TRACE = true;
 		
-		benchmark(nnName, inputDims, 1, 1, 0, backward);
+		benchmark(nnName, input, 1, 1, 0, backward);
 		
 		AbstractModule.TRACE = trace;
 	}
@@ -205,10 +245,10 @@ public class DianneBenchmarkCommands {
 	public void trace(
 			@Descriptor("neural network to benchmark")
 			String nnName, 
-			@Descriptor("input dims (comma separated e.g. 10,28,28)")
-			String inputDims
+			@Descriptor("neural network input, either dims (comma separated e.g. 10,28,28) or dataset (datasetName[:sample,batchSize])")
+			String input
 			){
-		trace(nnName, inputDims, false);
+		trace(nnName, input, false);
 	}
 	
 	private double run(NeuralNetwork nn, Tensor input, int times, boolean backward) throws Exception {
