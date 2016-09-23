@@ -189,7 +189,9 @@ public class AgentImpl implements Agent {
 			}
 		}
 		
+		// setup environment
 		env = envs.get(environment);
+		env.setup(properties);
 		
 		if(experiencePool != null){
 			// add env state/actionDims in case we need to construct xp pool
@@ -268,9 +270,6 @@ public class AgentImpl implements Agent {
 				
 				// make sure to sync initially
 				sync = true;
-				
-				// setup environment
-				env.setup(properties);
 				
 				// setup action strategy
 				strategy.setup(properties, env, nns);
