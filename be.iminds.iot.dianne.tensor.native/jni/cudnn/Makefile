@@ -24,7 +24,7 @@ SRC := $(wildcard *.c)
 OBJECTS_CUTORCH := $(wildcard ../cutorch/*.o)
 OBJECTS=$(SRC:.c=.o)
 JAVAH := ../../../be.iminds.iot.dianne.tensor/generated/jni-headers
-LINKS := -L../cutorch/cunn/lib/THCUNN/build -lTHCUNN -L../cutorch/cutorch/lib/THC/build -lTHC -L../torch/torch7/lib/TH/build -lTH -L$(CUDA_TARGET)/lib -lcudart_static -lcublas_static -lstdc++ -lculibos -pthread
+LINKS := -L../cutorch/cunn/lib/THCUNN/build -lTHCUNN -L../cutorch/cutorch/lib/THC/build -lTHC -L../torch/torch7/lib/TH/build -lTH -L$(CUDA_TARGET)/lib -lcudnn -lcudart_static -lcublas_static -lstdc++ -lculibos -pthread
 INCLUDES += -I$(CUDA_TARGET)/include/
 INCLUDES += -I../cutorch/cutorch/lib -I../cutorch/cutorch/lib/THC -I../cutorch/cutorch/lib/THC/build
 INCLUDES += -I../cutorch/cunn/lib/THCUNN -I../cutorch/cunn/lib/THCUNN/build
@@ -67,8 +67,10 @@ $(LIB): symbolcleanup
 
 ## erase all Java_... methods implemented in CUDNNModuleOps from the torch ModuleOps
 symbolcleanup: $(OBJECTS) $(OBJECTS_TORCH)
-	nm CUDNNModuleOps.o | grep -o "Java_.*" > symbols
+	nm CudnnModuleOps.o | grep -o "Java_.*" > symbols
 	objcopy --strip-symbols=symbols ../cutorch/ModuleOps.o ../cutorch/ModuleOps.o
+	nm CudnnTensorLoader.o | grep -o "Java_.*" > symbols
+	objcopy --strip-symbols=symbols ../cutorch/TensorLoader.o ../cutorch/TensorLoader.o
 
 $(OBJECTS_TORCH):
 	$(MAKE) -C ../torch

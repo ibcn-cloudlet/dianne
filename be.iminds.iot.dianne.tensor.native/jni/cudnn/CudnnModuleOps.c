@@ -23,6 +23,9 @@
 #include "be_iminds_iot_dianne_tensor_ModuleOps.h"
 #include "TensorLoader.h"
 
+#include "CudnnTensor.h"
+
+cudnnHandle_t cudnnHandle;
 
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialconvolve
   (JNIEnv * env, jclass c, jobject out, jobject in, jobject ker, jobject b, jobject t1, jobject t2, jint kW, jint kH, jint dW, jint dH, jint pW, jint pH){

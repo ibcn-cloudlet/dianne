@@ -58,11 +58,7 @@ static void gcFunction(void *data){
 }
 
 
-
-/** Initialize and cleanup **/
-
-JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_NativeTensorLoader_init
-  (JNIEnv * env, jobject loader, jint device){
+void initTH(JNIEnv* env, int device){
 	// cache class, field and method IDs for interacting with Tensor java object
 	jclass tensorClass;
 	char *className = (char*)"be/iminds/iot/dianne/tensor/Tensor";
@@ -107,11 +103,10 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_NativeTensorLoader_init
 	}
 	THCudaCheck(cudaGetLastError());
 #endif
+
 }
 
-
-JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_NativeTensorLoader_cleanup
-  (JNIEnv * env, jobject loader){
+void cleanupTH(JNIEnv* env){
 	// release global class references
 	env->DeleteGlobalRef(TENSOR_CLASS);
 	env->DeleteGlobalRef(SYSTEM_CLASS);
@@ -123,6 +118,20 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_NativeTensorLoader_clean
 	THCudaShutdown(state);
 	free(state);
 #endif
+}
+
+
+/** Initialize and cleanup **/
+
+JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_NativeTensorLoader_init
+  (JNIEnv * env, jobject loader, jint device){
+	initTH(env, device);
+}
+
+
+JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_NativeTensorLoader_cleanup
+  (JNIEnv * env, jobject loader){
+	cleanupTH(env);
 }
 
 

@@ -18,35 +18,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Contributors:
- *     Tim Verbelen, Steven Bohez
+ *     Tim Verbelen, Steven Bohez, Elias De Coninck
  *******************************************************************************/
-#ifndef TENSOR_LOADER_H
-#define TENSOR_LOADER_H
+#ifndef CUDNNTENSOR_H
+#define CUDNNTENSOR_H
 
-#include <jni.h>
+#include <cudnn.h>
 
-#ifdef CUDA
-#include "CudaTensor.h"
-#else
-#include "Tensor.h"
-#endif
+#define checkCUDNN(status) do {                                        \
+    if (status != CUDNN_STATUS_SUCCESS) {                              \
+      throwException(cudnnGetErrorString(status));  			       \
+    }                                                                  \
+} while(0)
 
-// convert object to a Tensor - create new one if NULL
-THTensor* getTensor(JNIEnv* env, jobject o);
-// convert object to a Tensor - resize to given dims
-THTensor* getTensor1d(JNIEnv* env, jobject o, int d0);
-THTensor* getTensor2d(JNIEnv* env, jobject o, int d0, int d1);
-THTensor* getTensor3d(JNIEnv* env, jobject o, int d0, int d1, int d2);
-THTensor* getTensor4d(JNIEnv* env, jobject o, int d0, int d1, int d2, int d3);
-
-jobject createTensorObject(JNIEnv* env, THTensor* t);
-
-// throw an exception to Java
-void throwException(const char * msg);
-
-// init / cleanup TH tensors
-void initTH(JNIEnv* env, int device);
-
-void cleanupTH(JNIEnv* env);
+extern cudnnHandle_t cudnnHandle;
 
 #endif
