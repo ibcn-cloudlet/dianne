@@ -32,6 +32,57 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 public class SpatialConvolutionTest extends ModuleTest{
 
 	@Test
+	public void simpleTest() throws InterruptedException {
+		System.out.println("SIMPLE CONVOLUTION TEST");
+		
+		int noInputPlanes = 1;
+		int noOutputPlanes = 1;
+		int kernelWidth = 3;
+		int kernelHeight = 3;
+		int stride = 1;
+		int padding = 0;
+		Convolution sc = new Convolution(noInputPlanes, noOutputPlanes, kernelWidth, kernelHeight, stride, stride, padding, padding);
+		
+		float[] inputData = new float[]{
+				1.0f, 1.0f, 1.0f,
+				1.0f, 1.0f, 1.0f,
+				1.0f, 1.0f, 1.0f
+		};
+		Tensor input = new Tensor(inputData, 1,3,3);
+		
+		float[] gradOutputData = new float[]{0.0f};
+		Tensor gradOutput = new Tensor(gradOutputData, 1,1,1);
+		
+		float[] paramsData = new float[]{
+				1.0f, 1.0f, 1.0f,
+				1.0f, 1.0f, 1.0f,
+				1.0f, 1.0f, 1.0f,
+				5.0f
+		};
+		Tensor params = new Tensor(paramsData, paramsData.length);
+		
+		float[] expOutputData = new float[]{14f};
+		Tensor expOutput = new Tensor(expOutputData, 1, 1, 1);
+		
+		float[] expGradInputData = new float[]{
+				0.0f, 0.0f, 0.0f,
+				0.0f, 0.0f, 0.0f,
+				0.0f, 0.0f, 0.0f,
+		};
+		Tensor expGradInput = new Tensor(expGradInputData, 1, 3, 3);
+		
+		float[] expDeltaData = new float[]{
+				0.0f, 0.0f, 0.0f,
+				0.0f, 0.0f, 0.0f,
+				0.0f, 0.0f, 0.0f,
+				0.0f
+		};
+		Tensor expDelta = new Tensor(expDeltaData, expDeltaData.length);
+		
+		testModule(sc, params, input, expOutput, gradOutput, expGradInput, expDelta);
+	}
+	
+	@Test
 	public void testSpatialConvolution1() throws InterruptedException {
 		int noInputPlanes = 2;
 		int noOutputPlanes = 2;

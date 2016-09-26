@@ -31,6 +31,7 @@
     }                                                                  \
 } while(0)
 
+
 extern cudnnHandle_t cudnnHandle;
 
 #endif

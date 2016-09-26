@@ -20,4 +20,5 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_NativeTensorLoader_clean
 
 	// cleanup cudnn
 	checkCUDNN(cudnnDestroy(cudnnHandle));
+
 }
