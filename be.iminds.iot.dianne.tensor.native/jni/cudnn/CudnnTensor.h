@@ -35,7 +35,10 @@
 
 extern cudnnHandle_t cudnnHandle;
 
-extern int conv;
+extern int convFwAlg;
+extern int convBwAlg;
+extern int convAgAlg;
+
 extern int workspaceLimit;
 extern int shareWorkspace;
 extern size_t workspaceSize;

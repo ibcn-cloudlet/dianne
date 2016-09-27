@@ -47,10 +47,18 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_NativeTensorLoader_optio
 		workspaceLimit = atoi(value);
 
 		printf("Configure %s %d \n", key, workspaceLimit);
-	} else if(strcmp(key, "conv")==0){
-		conv = atoi(value);
+	} else if(strcmp(key, "convFwAlg")==0){
+		convFwAlg = atoi(value);
 
-		printf("Configure %s %d \n", key, conv);
+		printf("Configure %s %d \n", key, convFwAlg);
+	} else if(strcmp(key, "convBwAlg")==0){
+		convBwAlg = atoi(value);
+
+		printf("Configure %s %d \n", key, convBwAlg);
+	} else if(strcmp(key, "convAgAlg")==0){
+		convAgAlg = atoi(value);
+
+		printf("Configure %s %d \n", key, convAgAlg);
 	}
 
 	env->ReleaseStringUTFChars(keyString, key);
