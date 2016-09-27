@@ -3,6 +3,8 @@
 
 #include "CudnnTensor.h"
 
+#include <string.h>
+
 JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_NativeTensorLoader_init
   (JNIEnv * env, jobject loader, jint device){
 	// initialize TH Tensors
@@ -20,5 +22,38 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_NativeTensorLoader_clean
 
 	// cleanup cudnn
 	checkCUDNN(cudnnDestroy(cudnnHandle));
+
+	if(workspaceSize > 0){
+		THCudaCheck(cudaFree(workspace));
+	}
+}
+
+
+JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_NativeTensorLoader_option
+  (JNIEnv * env, jobject loader, jstring keyString, jstring valueString){
+
+	const char* key = env->GetStringUTFChars(keyString, 0);
+	const char* value = env->GetStringUTFChars(valueString, 0);
+
+	if(strcmp(key, "shareWorkspace")==0){
+		if(strcmp(value, "true")==0){
+			shareWorkspace = 1;
+		} else {
+			shareWorkspace = 0;
+		}
+		printf("Configure %s %d \n", key, shareWorkspace);
+
+	} else if(strcmp(key, "workspaceLimit")==0){
+		workspaceLimit = atoi(value);
+
+		printf("Configure %s %d \n", key, workspaceLimit);
+	} else if(strcmp(key, "conv")==0){
+		conv = atoi(value);
+
+		printf("Configure %s %d \n", key, conv);
+	}
+
+	env->ReleaseStringUTFChars(keyString, key);
+	env->ReleaseStringUTFChars(valueString, value);
 
 }

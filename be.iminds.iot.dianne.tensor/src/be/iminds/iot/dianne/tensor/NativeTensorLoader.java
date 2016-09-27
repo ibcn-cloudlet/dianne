@@ -27,7 +27,11 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 
-@Component(immediate=true)
+@Component(
+		service=Object.class,
+		property={"osgi.command.scope=tensor",
+				  "osgi.command.function=option"},
+		immediate=true)
 public class NativeTensorLoader {
 
 	static {
@@ -55,6 +59,16 @@ public class NativeTensorLoader {
 	@Deactivate()
 	public void deactivate(){
 		cleanup();
+	}
+	
+	// set a backend-specific option
+	public native void option(String key, String value);
+	
+	public void option(String keyval){
+		String[] split = keyval.split("=");
+		if(split.length==2){
+			option(split[0],split[1]);
+		}
 	}
 	
 	// set GPU device id in case of multiple GPUs on machine!

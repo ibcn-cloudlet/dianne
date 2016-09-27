@@ -32,6 +32,14 @@ double cpu_time_used;
 
 cudnnHandle_t cudnnHandle;
 
+int conv = -1;
+// to be used when we use a shared workspace
+int workspaceLimit = -1;
+int shareWorkspace = 0;
+size_t workspaceSize = 0;
+void* workspace;
+
+
 float alpha = 1.0f, beta = 0.0f;
 
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialconvolve
@@ -40,8 +48,6 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialconv
 	THTensor* output = getTensor(env, out);
 	THTensor* weight = getTensor(env, ker);
 	THTensor* bias = getTensor(env, b);
-
-	THTensor* workspace = getTensor(env, t1);
 
 
 //start = clock();
@@ -115,14 +121,22 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialconv
                                                   n, c,
 												  h, w));
 
-    checkCUDNN(cudnnGetConvolutionForwardAlgorithm(cudnnHandle,
+    if(conv == -1){
+    	checkCUDNN(cudnnGetConvolutionForwardAlgorithm(cudnnHandle,
                                                    inputTensor,
                                                    filterDescriptor,
                                                    convDescriptor,
                                                    outputTensor,
-                                                   CUDNN_CONVOLUTION_FWD_PREFER_FASTEST,
-                                                   0,
+                                                   workspaceLimit == -1 ? CUDNN_CONVOLUTION_FWD_PREFER_FASTEST :
+                                                		   workspaceLimit == 0 ? CUDNN_CONVOLUTION_FWD_NO_WORKSPACE :
+                                                				   CUDNN_CONVOLUTION_FWD_SPECIFY_WORKSPACE_LIMIT
+												   ,
+                                                   workspaceLimit,
 												   &convAlgo));
+    } else {
+    	convAlgo = static_cast<cudnnConvolutionFwdAlgo_t>(conv);;
+    }
+
 	size_t size = 0;
     checkCUDNN(cudnnGetConvolutionForwardWorkspaceSize(cudnnHandle,
                                                        inputTensor,
@@ -132,10 +146,28 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialconv
                                                        convAlgo,
 													   &size));
 
-    THTensor_(resize1d)(
-    	state,
-		workspace, size);
+//    printf("CONV ALGORITHM %d - WORKSPACE SIZE %d \n", convAlgo, size);
 
+    void* ws;
+    if(shareWorkspace > 0){
+		// resize shared workspace if required
+		if(size > workspaceSize){
+			THCudaCheck(cudaFree(workspace));
+			THCudaCheck(cudaMalloc(&workspace, size));
+			workspaceSize = size;
+		}
+
+		ws = workspace;
+    } else {
+    	// use temp tensor to act as local workspace for this op
+		THTensor* workspace = getTensor(env, t1);
+
+		THTensor_(resize1d)(
+			state,
+			workspace, size);
+
+		ws = THTensor_(data)(state, workspace);
+    }
 
 //end = clock();
 //cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
@@ -145,8 +177,9 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialconv
 	checkCUDNN(cudnnConvolutionForward(cudnnHandle, &alpha, inputTensor, THTensor_(data)(state, input),
 											   filterDescriptor, THTensor_(data)(state, weight),
 											   convDescriptor, convAlgo,
-											   THTensor_(data)(state, workspace), size, &beta,
+											   ws, size, &beta,
 	                                           outputTensor, THTensor_(data)(state, output)));
+
 	checkCUDNN(cudnnAddTensor(cudnnHandle, &alpha, biasTensor, THTensor_(data)(state, bias),
 								&alpha, outputTensor, THTensor_(data)(state, output)));
 

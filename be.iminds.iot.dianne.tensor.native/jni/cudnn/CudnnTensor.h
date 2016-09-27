@@ -27,11 +27,19 @@
 
 #define checkCUDNN(status) do {                                        \
     if (status != CUDNN_STATUS_SUCCESS) {                              \
+      printf("%s %s:%d \n", cudnnGetErrorString(status), __FILE__, __LINE__); \
       throwException(cudnnGetErrorString(status));  			       \
     }                                                                  \
 } while(0)
 
 
 extern cudnnHandle_t cudnnHandle;
+
+extern int conv;
+extern int workspaceLimit;
+extern int shareWorkspace;
+extern size_t workspaceSize;
+extern void* workspace;
+
 
 #endif

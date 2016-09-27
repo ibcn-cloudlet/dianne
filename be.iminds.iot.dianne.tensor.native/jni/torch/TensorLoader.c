@@ -135,6 +135,11 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_NativeTensorLoader_clean
 }
 
 
+JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_NativeTensorLoader_option
+  (JNIEnv * env, jobject loader, jstring key, jstring value){
+	// no options here
+}
+
 /** Tensor creation **/
 
 THTensor* getTensor(JNIEnv* env, jobject o){
