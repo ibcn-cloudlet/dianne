@@ -51,9 +51,7 @@ public class Threshold extends AbstractModule {
 
 	@Override
 	protected void backward() {
-		//gradInput = TensorOps.cmul(gradInput, gradOutput, 
-		//		TensorOps.dthresh(gradInput, input, thresh, 0));
-		gradInput = ModuleOps.thresholdGradIn(gradInput, gradOutput, input, threshold);
+		gradInput = ModuleOps.thresholdGradIn(gradInput, gradOutput, input, output, threshold);
 	}
 
 }

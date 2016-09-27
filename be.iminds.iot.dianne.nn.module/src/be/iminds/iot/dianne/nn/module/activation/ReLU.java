@@ -24,14 +24,27 @@ package be.iminds.iot.dianne.nn.module.activation;
 
 import java.util.UUID;
 
-public class ReLU extends Threshold {
+import be.iminds.iot.dianne.api.nn.module.AbstractModule;
+import be.iminds.iot.dianne.tensor.ModuleOps;
+
+public class ReLU extends AbstractModule {
 
 	public ReLU() {
-		super(0f, 0f);
+		super();
 	}
 
 	public ReLU(UUID id) {
-		super(id, 0f, 0f);
+		super(id);
+	}
+
+	@Override
+	protected void forward() {
+		output = ModuleOps.relu(output, input);
+	}
+
+	@Override
+	protected void backward() {
+		gradInput = ModuleOps.reluGradIn(gradInput, gradOutput, input, output);
 	}
 	
 }

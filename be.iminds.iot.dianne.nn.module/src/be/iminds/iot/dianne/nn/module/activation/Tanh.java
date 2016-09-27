@@ -44,7 +44,7 @@ public class Tanh extends AbstractModule {
 
 	@Override
 	protected void backward() {
-		gradInput = ModuleOps.tanhGradIn(gradInput, gradOutput, output);
+		gradInput = ModuleOps.tanhGradIn(gradInput, gradOutput, input, output);
 	}
 
 }

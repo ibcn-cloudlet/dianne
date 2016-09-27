@@ -73,14 +73,12 @@ public class PReLU extends AbstractTrainableModule{
 			initDeltaParameters(null);
 		}
 		
-		gradInput = ModuleOps.preluGradIn(gradInput, gradOutput, input, parameters, 0);
+		gradInput = ModuleOps.preluGradIn(gradInput, gradOutput, input, output, parameters, 0);
 	}
 
-	private Tensor temp;
-	
 	@Override
 	public void accGradParameters() {
-		ModuleOps.preluAccGrad(deltaParameters, gradOutput, input, parameters, 0);
+		ModuleOps.preluAccGrad(deltaParameters, gradOutput, input, output, parameters, 0);
 	}
 
 	@Override

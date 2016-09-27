@@ -43,7 +43,7 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_tanh
 }
 
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_tanhGradIn
-  (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject out){
+  (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject out){
 	THTensor* gradInput = getTensor(env, gradIn);
 	THTensor* gradOutput = getTensor(env, gradOut);
 	THTensor* output = getTensor(env, out);
@@ -74,7 +74,7 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_sigmoid
 }
 
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_sigmoidGradIn
-  (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject out){
+  (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject out){
 	THTensor* gradInput = getTensor(env, gradIn);
 	THTensor* gradOutput = getTensor(env, gradOut);
 	THTensor* output = getTensor(env, out);
@@ -108,7 +108,7 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_threshold
 }
 
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_thresholdGradIn
-  (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jfloat threshold){
+  (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject out, jfloat threshold){
 	THTensor* gradInput = getTensor(env, gradIn);
 	THTensor* gradOutput = getTensor(env, gradOut);
 	THTensor* input = getTensor(env, in);
@@ -124,6 +124,39 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_thresholdGr
 	return gradIn == NULL ? createTensorObject(env, gradInput) : gradIn;
 }
 
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_relu
+  (JNIEnv * env, jclass c, jobject out, jobject in){
+	THTensor* input = getTensor(env, in);
+	THTensor* output = getTensor(env, out);
+
+	THNN_(Threshold_updateOutput)(
+	          state,
+	          input,
+	          output,
+			  0,
+			  0,
+			  0);
+
+	return out == NULL ? createTensorObject(env, output) : out;
+}
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_reluGradIn
+  (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject out){
+	THTensor* gradInput = getTensor(env, gradIn);
+	THTensor* gradOutput = getTensor(env, gradOut);
+	THTensor* input = getTensor(env, in);
+
+	THNN_(Threshold_updateGradInput)(
+	          state,
+	          input,
+	          gradOutput,
+	          gradInput,
+	          0,
+			  0);
+
+	return gradIn == NULL ? createTensorObject(env, gradInput) : gradIn;
+}
 
 
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_prelu
@@ -143,7 +176,7 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_prelu
 }
 
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_preluGradIn
-  (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject w, jint nOutputPlane){
+  (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject out, jobject w, jint nOutputPlane){
 	THTensor* gradInput = getTensor(env, gradIn);
 	THTensor* gradOutput = getTensor(env, gradOut);
 	THTensor* input = getTensor(env, in);
@@ -161,7 +194,7 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_preluGradIn
 }
 
 JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_preluAccGrad
-  (JNIEnv * env, jclass c, jobject gradW, jobject gradOut, jobject in, jobject w, jint nOutputPlane){
+  (JNIEnv * env, jclass c, jobject gradW, jobject gradOut, jobject in, jobject out, jobject w, jint nOutputPlane){
 	THTensor* gradWeight = getTensor(env, gradW);
 	THTensor* gradOutput = getTensor(env, gradOut);
 	THTensor* input = getTensor(env, in);

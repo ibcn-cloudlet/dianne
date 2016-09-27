@@ -44,7 +44,7 @@ public class Sigmoid extends AbstractModule {
 
 	@Override
 	protected void backward() {
-		gradInput = ModuleOps.sigmoidGradIn(gradInput, gradOutput, output);
+		gradInput = ModuleOps.sigmoidGradIn(gradInput, gradOutput, input, output);
 	}
 
 }

@@ -26,26 +26,31 @@ public class ModuleOps {
 	
 	public static native Tensor tanh(Tensor output, final Tensor input);
 
-	public static native Tensor tanhGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor output);
+	public static native Tensor tanhGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor input, final Tensor output);
 
 	
 	public static native Tensor sigmoid(Tensor output, final Tensor input);
 
-	public static native Tensor sigmoidGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor output);
+	public static native Tensor sigmoidGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor input, final Tensor output);
 	
 	
 	public static native Tensor threshold(Tensor output, final Tensor input, 
 			final float threshold, final float val);
 
-	public static native Tensor thresholdGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor input, final float threshold);
+	public static native Tensor thresholdGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor input, final Tensor output, final float threshold);
+	
+	
+	public static native Tensor relu(Tensor output, final Tensor input);
+
+	public static native Tensor reluGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor input, final Tensor output);
 	
 	
 	public static native Tensor prelu(Tensor output, final Tensor input, 
 			final Tensor weight, final int noOutputPlanes);
 
-	public static native Tensor preluGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor input, final Tensor weight, final int noOutputPlanes);
+	public static native Tensor preluGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor input, final Tensor output, final Tensor weight, final int noOutputPlanes);
 	
-	public static native void preluAccGrad(final Tensor gradWeight, final Tensor gradOutput, final Tensor input, final Tensor weight, final int noOutputPlanes);
+	public static native void preluAccGrad(final Tensor gradWeight, final Tensor gradOutput, final Tensor input, final Tensor output, final Tensor weight, final int noOutputPlanes);
 	
 
 	public static native Tensor softmax(Tensor output, final Tensor input);
