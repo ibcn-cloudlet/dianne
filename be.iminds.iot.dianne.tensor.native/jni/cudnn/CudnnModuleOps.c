@@ -47,6 +47,142 @@ void* workspace;
 
 float alpha = 1.0f, beta = 0.0f;
 
+// convert a tensor to a cudnn tensor descriptor
+cudnnTensorDescriptor_t cudnn_create_tensor_descriptor(THTensor* t){
+	cudnnTensorDescriptor_t tensor;
+
+	checkCUDNN(cudnnCreateTensorDescriptor(&tensor));
+
+	int dim = t->nDimension > 3 ? t->nDimension : 4;
+
+	int size[dim];
+	int stride[dim];
+
+	int i;
+	if(t->nDimension==1){
+		for(i = 0; i< dim; i++){
+			size[i] = 1;
+			stride[i] = 1;
+		}
+		size[3] = (int)(t->size[0]);
+	} else {
+		for(i = 0; i< dim; i++){
+			size[i] = i < t->nDimension ? (int)(t->size[i]) : 1;
+			stride[i] = i < t->nDimension ? (int)(t->stride[i]) : 1;
+		}
+	}
+
+	checkCUDNN(cudnnSetTensorNdDescriptor(tensor, CUDNN_DATA_FLOAT,
+				dim, size, stride));
+
+	return tensor;
+}
+
+// forward/backward methods for all activations
+jobject cudnn_activation_forward(JNIEnv * env, jobject out, jobject in, cudnnActivationMode_t act){
+	THTensor* input = getTensor(env, in);
+	THTensor* output = getTensor(env, out);
+	THTensor_(resizeAs)(state, output, input);
+
+	// create cudnn tensor descriptors
+	cudnnTensorDescriptor_t inputTensor = cudnn_create_tensor_descriptor(input);
+	cudnnTensorDescriptor_t outputTensor = cudnn_create_tensor_descriptor(output);
+
+	// activation descriptor
+	cudnnActivationDescriptor_t activation;
+	checkCUDNN(cudnnCreateActivationDescriptor(&activation));
+
+	// set activation descriptor
+	checkCUDNN(cudnnSetActivationDescriptor(activation,
+							act,
+							CUDNN_PROPAGATE_NAN, 0.0));
+
+	// do activation
+	checkCUDNN(cudnnActivationForward(cudnnHandle, activation,
+				&alpha, inputTensor, THTensor_(data)(state, input),
+				&beta, outputTensor, THTensor_(data)(state, output)));
+
+	// cleanup cudnn descriptors
+	checkCUDNN(cudnnDestroyTensorDescriptor(inputTensor));
+	checkCUDNN(cudnnDestroyTensorDescriptor(outputTensor));
+	checkCUDNN(cudnnDestroyActivationDescriptor(activation));
+
+	return out == NULL ? createTensorObject(env, output) : out;
+}
+
+
+jobject cudnn_activation_backward(JNIEnv * env, jobject gradIn, jobject gradOut, jobject in, jobject out, cudnnActivationMode_t act){
+	THTensor* gradInput = getTensor(env, gradIn);
+	THTensor* gradOutput = getTensor(env, gradOut);
+	THTensor* input = getTensor(env, in);
+	THTensor* output = getTensor(env, out);
+	THTensor_(resizeAs)(state, gradInput, gradOutput);
+
+	// create cudnn tensor descriptors
+	cudnnTensorDescriptor_t inputTensor = cudnn_create_tensor_descriptor(input);
+	cudnnTensorDescriptor_t outputTensor = cudnn_create_tensor_descriptor(output);
+	cudnnTensorDescriptor_t gradInputTensor = cudnn_create_tensor_descriptor(gradInput);
+	cudnnTensorDescriptor_t gradOutputTensor = cudnn_create_tensor_descriptor(gradOutput);
+
+	// activation descriptor
+	cudnnActivationDescriptor_t activation;
+	checkCUDNN(cudnnCreateActivationDescriptor(&activation));
+
+	// set activation descriptor
+	checkCUDNN(cudnnSetActivationDescriptor(activation,
+							act,
+							CUDNN_PROPAGATE_NAN, 0.0));
+
+	// do activation
+	checkCUDNN(cudnnActivationBackward(cudnnHandle, activation,
+				&alpha, outputTensor, THTensor_(data)(state, output),
+				gradOutputTensor, THTensor_(data)(state, gradOutput),
+				inputTensor, THTensor_(data)(state, input),
+				&beta, gradInputTensor, THTensor_(data)(state, gradInput)));
+
+	// cleanup cudnn descriptors
+	checkCUDNN(cudnnDestroyTensorDescriptor(inputTensor));
+	checkCUDNN(cudnnDestroyTensorDescriptor(outputTensor));
+	checkCUDNN(cudnnDestroyTensorDescriptor(gradInputTensor));
+	checkCUDNN(cudnnDestroyTensorDescriptor(gradOutputTensor));
+	checkCUDNN(cudnnDestroyActivationDescriptor(activation));
+
+	return gradIn == NULL ? createTensorObject(env, gradInput) : gradIn;
+}
+
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_tanh
+  (JNIEnv * env, jclass c, jobject out, jobject in){
+	return cudnn_activation_forward(env, out, in, CUDNN_ACTIVATION_TANH);
+}
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_tanhGradIn
+  (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject out){
+	return cudnn_activation_backward(env, gradIn, gradOut, in, out, CUDNN_ACTIVATION_TANH);
+}
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_sigmoid
+  (JNIEnv * env, jclass c, jobject out, jobject in){
+	return cudnn_activation_forward(env, out, in, CUDNN_ACTIVATION_SIGMOID);
+}
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_sigmoidGradIn
+  (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject out){
+	return cudnn_activation_backward(env, gradIn, gradOut, in, out, CUDNN_ACTIVATION_SIGMOID);
+}
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_relu
+  (JNIEnv * env, jclass c, jobject out, jobject in){
+	return cudnn_activation_forward(env, out, in, CUDNN_ACTIVATION_RELU);
+}
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_reluGradIn
+  (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject out){
+	return cudnn_activation_backward(env, gradIn, gradOut, in, out, CUDNN_ACTIVATION_RELU);
+}
+
+
+// convolutions...
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialconvolve
   (JNIEnv * env, jclass cl, jobject out, jobject in, jobject ker, jobject b, jobject t1, jobject t2, jint kW, jint kH, jint dW, jint dH, jint pW, jint pH){
 	THTensor* input = getTensor(env, in);
