@@ -65,6 +65,14 @@ cudnnTensorDescriptor_t cudnn_create_tensor_descriptor(THTensor* t){
 			stride[i] = 1;
 		}
 		size[3] = (int)(t->size[0]);
+	} else if(t->nDimension==3){
+		// in case of 3d tensor, treat as 3d image of batch 1
+		size[0] = 1;
+		stride[0] = (int)(t->stride[2]*t->size[2]);
+		for(i = 0; i< t->nDimension; i++){
+			size[i+1] = (int)(t->size[i]);
+			stride[i+1] = (int)(t->stride[i]);
+		}
 	} else {
 		for(i = 0; i< dim; i++){
 			size[i] = i < t->nDimension ? (int)(t->size[i]) : 1;
@@ -179,6 +187,79 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_relu
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_reluGradIn
   (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject out){
 	return cudnn_activation_backward(env, gradIn, gradOut, in, out, CUDNN_ACTIVATION_RELU);
+}
+
+
+// softmax
+
+jobject cudnn_softmax_forward(JNIEnv * env, jobject out, jobject in, cudnnSoftmaxAlgorithm_t sma){
+	THTensor* input = getTensor(env, in);
+	THTensor* output = getTensor(env, out);
+	THTensor_(resizeAs)(state, output, input);
+
+	// create cudnn tensor descriptors
+	cudnnTensorDescriptor_t inputTensor = cudnn_create_tensor_descriptor(input);
+	cudnnTensorDescriptor_t outputTensor = cudnn_create_tensor_descriptor(output);
+
+	// do softmax
+	checkCUDNN(cudnnSoftmaxForward(cudnnHandle, sma,
+			input->nDimension > 2 ? CUDNN_SOFTMAX_MODE_CHANNEL : CUDNN_SOFTMAX_MODE_INSTANCE,
+			&alpha, inputTensor, THTensor_(data)(state, input),
+			&beta, outputTensor, THTensor_(data)(state, output)));
+
+	// cleanup cudnn descriptors
+	checkCUDNN(cudnnDestroyTensorDescriptor(inputTensor));
+	checkCUDNN(cudnnDestroyTensorDescriptor(outputTensor));
+
+	return out == NULL ? createTensorObject(env, output) : out;
+}
+
+
+jobject cudnn_softmax_backward(JNIEnv * env, jobject gradIn, jobject gradOut, jobject out, cudnnSoftmaxAlgorithm_t sma){
+	THTensor* gradInput = getTensor(env, gradIn);
+	THTensor* gradOutput = getTensor(env, gradOut);
+	THTensor* output = getTensor(env, out);
+	THTensor_(resizeAs)(state, gradInput, gradOutput);
+
+	// create cudnn tensor descriptors
+	cudnnTensorDescriptor_t outputTensor = cudnn_create_tensor_descriptor(output);
+	cudnnTensorDescriptor_t gradInputTensor = cudnn_create_tensor_descriptor(gradInput);
+	cudnnTensorDescriptor_t gradOutputTensor = cudnn_create_tensor_descriptor(gradOutput);
+
+	// do softmax
+	checkCUDNN(cudnnSoftmaxBackward(cudnnHandle, sma,
+				output->nDimension > 2 ? CUDNN_SOFTMAX_MODE_CHANNEL : CUDNN_SOFTMAX_MODE_INSTANCE,
+				&alpha, outputTensor, THTensor_(data)(state, output),
+				gradOutputTensor, THTensor_(data)(state, gradOutput),
+				&beta, gradInputTensor, THTensor_(data)(state, gradInput)));
+
+	// cleanup cudnn descriptors
+	checkCUDNN(cudnnDestroyTensorDescriptor(outputTensor));
+	checkCUDNN(cudnnDestroyTensorDescriptor(gradInputTensor));
+	checkCUDNN(cudnnDestroyTensorDescriptor(gradOutputTensor));
+
+	return gradIn == NULL ? createTensorObject(env, gradInput) : gradIn;
+}
+
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_softmax
+  (JNIEnv * env, jclass c, jobject out, jobject in){
+	return cudnn_softmax_forward(env, out, in, CUDNN_SOFTMAX_ACCURATE);
+}
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_softmaxGradIn
+(JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject out){
+	return cudnn_softmax_backward(env, gradIn, gradOut, out, CUDNN_SOFTMAX_ACCURATE);
+}
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_logsoftmax
+  (JNIEnv * env, jclass c, jobject out, jobject in){
+	return cudnn_softmax_forward(env, out, in, CUDNN_SOFTMAX_LOG);
+}
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_logsoftmaxGradIn
+(JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject out){
+	return cudnn_softmax_backward(env, gradIn, gradOut, out, CUDNN_SOFTMAX_LOG);
 }
 
 
