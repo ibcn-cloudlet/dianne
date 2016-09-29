@@ -143,14 +143,14 @@ public class AvgPooling extends AbstractModule {
 		switch(type){
 		case TEMPORAL:
 			// 1D as 2d with height = 1
-			gradInput = ModuleOps.spatialavgpoolGradIn(gradInput, gradOutput, input, width, 1, strideX, 1, padX, 0, ceil, include_pad);
+			gradInput = ModuleOps.spatialavgpoolGradIn(gradInput, gradOutput, input, output, width, 1, strideX, 1, padX, 0, ceil, include_pad);
 			gradInput.reshape(inputDims);
 			break;
 		case SPATIAL:
-			gradInput = ModuleOps.spatialavgpoolGradIn(gradInput, gradOutput, input, width, height, strideX, strideY, padX, padY, ceil, include_pad);
+			gradInput = ModuleOps.spatialavgpoolGradIn(gradInput, gradOutput, input, output, width, height, strideX, strideY, padX, padY, ceil, include_pad);
 			break;
 		case VOLUMETRIC:
-			gradInput = ModuleOps.volumetricavgpoolGradIn(gradInput, gradOutput, input, width, height, depth, strideX, strideY, strideZ);
+			gradInput = ModuleOps.volumetricavgpoolGradIn(gradInput, gradOutput, input, output, width, height, depth, strideX, strideY, strideZ);
 			break;
 		}
 	}

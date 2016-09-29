@@ -263,6 +263,140 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_logsoftmaxG
 }
 
 
+// pooling
+jobject cudnn_forward_spatial_pool(JNIEnv* env, jobject out, jobject in, jint kW, jint kH, jint dW, jint dH, jint pW, jint pH, cudnnPoolingMode_t mode){
+	THTensor* input = getTensor(env, in);
+	THTensor* output = getTensor(env, out);
+
+	// create cudnn tensor descriptors
+	int n = input->nDimension == 4 ? input->size[0] : 1;
+	int c = input->nDimension == 4 ? input->size[1] : input->size[0];
+	int h = input->nDimension == 4 ? input->size[2] : input->size[1];
+	int w =  input->nDimension == 4 ? input->size[3] : input->size[2];
+
+	// declare all cudnn descriptors
+	cudnnTensorDescriptor_t inputTensor;
+	cudnnTensorDescriptor_t outputTensor;
+
+	checkCUDNN(cudnnCreateTensorDescriptor(&inputTensor));
+	checkCUDNN(cudnnCreateTensorDescriptor(&outputTensor));
+
+    // set tensor descriptors
+    checkCUDNN(cudnnSetTensor4dDescriptor(inputTensor,
+                                          CUDNN_TENSOR_NCHW,
+                                          CUDNN_DATA_FLOAT,
+                                          n, c, h, w));
+
+	// create pooling descriptor
+	cudnnPoolingDescriptor_t poolDescriptor;
+	checkCUDNN(cudnnCreatePoolingDescriptor(&poolDescriptor));
+
+	checkCUDNN(cudnnSetPooling2dDescriptor(poolDescriptor,
+	           	mode,
+	            CUDNN_PROPAGATE_NAN,
+	            kH, kW,
+	            pH, pW,
+				dH, dW));
+
+	// set output size
+	checkCUDNN(cudnnGetPooling2dForwardOutputDim(poolDescriptor,
+	           	inputTensor, &n, &c, &h, &w));
+
+    checkCUDNN(cudnnSetTensor4dDescriptor(outputTensor,
+                                          CUDNN_TENSOR_NCHW,
+                                          CUDNN_DATA_FLOAT,
+                                          n, c, h, w));
+
+    if(input->nDimension == 3 && n == 1){
+		THTensor_(resize3d)(
+			state,
+			output, c, h, w);
+    } else {
+		THTensor_(resize4d)(
+			state,
+			output, n, c, h, w);
+    }
+
+	// run pooling
+	checkCUDNN(cudnnPoolingForward(cudnnHandle, poolDescriptor,
+			&alpha, inputTensor, THTensor_(data)(state, input),
+			&beta, outputTensor, THTensor_(data)(state, output)));
+
+	// cleanup
+	checkCUDNN(cudnnDestroyTensorDescriptor(inputTensor));
+	checkCUDNN(cudnnDestroyTensorDescriptor(outputTensor));
+	checkCUDNN(cudnnDestroyPoolingDescriptor(poolDescriptor));
+
+	return out == NULL ? createTensorObject(env, output) : out;
+}
+
+jobject cudnn_backward_spatial_pool(JNIEnv* env, jobject gradIn, jobject gradOut, jobject in, jobject out, jint kW, jint kH, jint dW, jint dH, jint pW, jint pH, cudnnPoolingMode_t mode){
+	THTensor* gradInput = getTensor(env, gradIn);
+	THTensor* gradOutput = getTensor(env, gradOut);
+	THTensor* input = getTensor(env, in);
+	THTensor* output = getTensor(env, out);
+	THTensor_(resizeAs)(state, gradInput, input);
+
+	// create cudnn tensor descriptors
+	cudnnTensorDescriptor_t inputTensor = cudnn_create_tensor_descriptor(input);
+	cudnnTensorDescriptor_t outputTensor = cudnn_create_tensor_descriptor(output);
+	cudnnTensorDescriptor_t gradInputTensor = cudnn_create_tensor_descriptor(gradInput);
+	cudnnTensorDescriptor_t gradOutputTensor = cudnn_create_tensor_descriptor(gradOutput);
+
+	// create pooling descriptor
+	cudnnPoolingDescriptor_t poolDescriptor;
+	checkCUDNN(cudnnCreatePoolingDescriptor(&poolDescriptor));
+
+	checkCUDNN(cudnnSetPooling2dDescriptor(poolDescriptor,
+	           	mode,
+	            CUDNN_PROPAGATE_NAN,
+	            kH, kW,
+	            pH, pW,
+				dH, dW));
+
+	// run pooling
+	checkCUDNN(cudnnPoolingBackward(cudnnHandle, poolDescriptor,
+			&alpha, outputTensor, THTensor_(data)(state, output),
+			gradOutputTensor, THTensor_(data)(state, gradOutput),
+			inputTensor, THTensor_(data)(state, input),
+			&beta, gradInputTensor, THTensor_(data)(state, gradInput)));
+
+	// cleanup
+	checkCUDNN(cudnnDestroyTensorDescriptor(inputTensor));
+	checkCUDNN(cudnnDestroyTensorDescriptor(outputTensor));
+	checkCUDNN(cudnnDestroyTensorDescriptor(gradInputTensor));
+	checkCUDNN(cudnnDestroyTensorDescriptor(gradOutputTensor));
+	checkCUDNN(cudnnDestroyPoolingDescriptor(poolDescriptor));
+
+	return gradIn == NULL ? createTensorObject(env, gradInput) : gradIn;
+}
+
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialmaxpool
+  (JNIEnv * env, jclass c, jobject out, jobject in, jobject ind, jint kW, jint kH, jint dW, jint dH, jint pW, jint pH){
+	return cudnn_forward_spatial_pool(env, out, in, kW, kH, dW, dH, pW, pH, CUDNN_POOLING_MAX);
+}
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialmaxpoolGradIn
+  (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject out, jobject ind,
+		  jint kW, jint kH, jint dW, jint dH, jint pW, jint pH){
+	return cudnn_backward_spatial_pool(env, gradIn, gradOut, in, out, kW, kH, dW, dH, pW, pH, CUDNN_POOLING_MAX);
+}
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialavgpool
+  (JNIEnv * env, jclass c, jobject out, jobject in, jint kW, jint kH, jint dW, jint dH, jint pW, jint pH, jboolean ceil, jboolean count_pad){
+	return cudnn_forward_spatial_pool(env, out, in, kW, kH, dW, dH, pW, pH,
+			count_pad ? CUDNN_POOLING_AVERAGE_COUNT_INCLUDE_PADDING : CUDNN_POOLING_AVERAGE_COUNT_EXCLUDE_PADDING);
+}
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialavgpoolGradIn
+  (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject out,
+		  jint kW, jint kH, jint dW, jint dH, jint pW, jint pH, jboolean ceil, jboolean count_pad){
+	return cudnn_backward_spatial_pool(env, gradIn, gradOut, in, out, kW, kH, dW, dH, pW, pH,
+			count_pad ? CUDNN_POOLING_AVERAGE_COUNT_INCLUDE_PADDING : CUDNN_POOLING_AVERAGE_COUNT_EXCLUDE_PADDING);
+}
+
+
 // convolutions...
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialconvolve
   (JNIEnv * env, jclass cl, jobject out, jobject in, jobject ker, jobject b, jobject t1, jobject t2, jint kW, jint kH, jint dW, jint dH, jint pW, jint pH){

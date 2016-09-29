@@ -294,7 +294,7 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_temporalmax
 }
 
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_temporalmaxpoolGradIn
-  (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject ind, jint kW, jint dW){
+  (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject out, jobject ind, jint kW, jint dW){
 	THTensor* gradInput = getTensor(env, gradIn);
 	THTensor* gradOutput = getTensor(env, gradOut);
 	THTensor* input = getTensor(env, in);
@@ -333,7 +333,7 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialmaxp
 }
 
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialmaxpoolGradIn
-  (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject ind, jint kW, jint kH, jint dW, jint dH, jint pW, jint pH){
+  (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject out, jobject ind, jint kW, jint kH, jint dW, jint dH, jint pW, jint pH){
 	THTensor* gradInput = getTensor(env, gradIn);
 	THTensor* gradOutput = getTensor(env, gradOut);
 	THTensor* input = getTensor(env, in);
@@ -375,7 +375,7 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_volumetricm
 }
 
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_volumetricmaxpoolGradIn
-  (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject ind,
+  (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject out, jobject ind,
 		  jint kW, jint kH, jint kD, jint dW, jint dH, jint dD, jint pW, jint pH, jint pD){
 	THTensor* gradInput = getTensor(env, gradIn);
 	THTensor* gradOutput = getTensor(env, gradOut);
@@ -560,7 +560,7 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialavgp
 }
 
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_spatialavgpoolGradIn
-  (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jint kW, jint kH, jint dW, jint dH, jint pW, jint pH, jboolean ceil, jboolean count_pad){
+  (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject out, jint kW, jint kH, jint dW, jint dH, jint pW, jint pH, jboolean ceil, jboolean count_pad){
 	THTensor* gradInput = getTensor(env, gradIn);
 	THTensor* gradOutput = getTensor(env, gradOut);
 	THTensor* input = getTensor(env, in);
@@ -596,7 +596,7 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_volumetrica
 }
 
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_volumetricavgpoolGradIn
-  (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jint kW, jint kH, jint kD, jint dW, jint dH, jint dD){
+  (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject out, jint kW, jint kH, jint kD, jint dW, jint dH, jint dD){
 	THTensor* gradInput = getTensor(env, gradIn);
 	THTensor* gradOutput = getTensor(env, gradOut);
 	THTensor* input = getTensor(env, in);

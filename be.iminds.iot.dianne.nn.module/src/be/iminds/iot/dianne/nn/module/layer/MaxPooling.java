@@ -148,13 +148,13 @@ public class MaxPooling extends Fork {
 
 		switch(type){
 		case TEMPORAL:
-			gradInput = ModuleOps.temporalmaxpoolGradIn(gradInput, gradOutput, input, indices, width, strideX);
+			gradInput = ModuleOps.temporalmaxpoolGradIn(gradInput, gradOutput, input, output, indices, width, strideX);
 			break;
 		case SPATIAL:
-			gradInput = ModuleOps.spatialmaxpoolGradIn(gradInput, gradOutput, input, indices, width, height, strideX, strideY, 0, 0);
+			gradInput = ModuleOps.spatialmaxpoolGradIn(gradInput, gradOutput, input, output, indices, width, height, strideX, strideY, 0, 0);
 			break;
 		case VOLUMETRIC:
-			gradInput = ModuleOps.volumetricmaxpoolGradIn(gradInput, gradOutput, input, indices,
+			gradInput = ModuleOps.volumetricmaxpoolGradIn(gradInput, gradOutput, input, output, indices,
 					width, height, depth, strideX, strideY, strideZ, padX, padY, padZ);
 			break;
 		}

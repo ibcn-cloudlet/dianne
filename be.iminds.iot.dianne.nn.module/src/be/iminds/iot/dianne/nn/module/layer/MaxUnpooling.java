@@ -117,6 +117,10 @@ public class MaxUnpooling extends Join {
 		
 		input = inputs.get(prevIds[0]);
 		indices = inputs.get(prevIds[1]);
+		System.out.println(indices.size());
+		if(indices.size() == 0){
+			throw new RuntimeException("Invalid indices tensor provided");
+		}
 		
 		switch(type){
 		case TEMPORAL:
