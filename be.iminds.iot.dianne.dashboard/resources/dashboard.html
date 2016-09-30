@@ -133,7 +133,7 @@
 				    </div>
 				    <div class="col-sm-2">
 				    	<label class="btn btn-default btn-file">
-						    Upload ... <input id="fileinput" type="file" accept=".txt" style="display: none;">
+						    Upload NN <input id="nn-file-input" type="file" accept=".txt" style="display: none;">
 						</label>
 				    </div>
 				   </div>
@@ -150,12 +150,21 @@
 				      <textarea id="submit-config" name="config" class="form-control" rows="5" placeholder="Options in the form of key1=value1 key2=value2 ..."></textarea>
 				    </div>
 				   </div>
-				   <div class="form-group collapse" id="advanced">
-				    <label class="control-label col-sm-2" for="strategy">Strategy:</label>
-				    <div class="col-sm-10">
-				      <textarea id="submit-strategy" name="strategy" class="form-control" rows="10" placeholder="A custom strategy implementation..."></textarea>
-				    </div>
-				   </div>				   
+				   <div class ="collapse" id="advanced">
+					  <div class="form-group">
+					    <label class="control-label col-sm-2" for="strategy">Strategy:</label>
+					    <div class="col-sm-10">
+					      <textarea id="submit-strategy" name="strategy" class="form-control" rows="10" placeholder="A custom strategy implementation..."></textarea>
+					    </div>
+					  </div>
+					  <div class="form-group">
+					    <div class="col-sm-2" style="float:right">
+					    	<label class="btn btn-default btn-file">
+							    Upload Strategy <input id="strategy-file-input" type="file" accept=".java" style="display: none;">
+							</label>
+					    </div>	
+					 </div>	
+					</div> 
 				</form>
 		      </div>
 		      <div class="modal-footer">

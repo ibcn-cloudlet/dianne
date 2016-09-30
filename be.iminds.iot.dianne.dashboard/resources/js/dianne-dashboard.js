@@ -65,28 +65,36 @@ function submitJob(){
     }
 }
 
-// also allow to upload a nn modules.txt file from your filesystem
+// also allow to upload a nn modules.txt or strategy .java file from your filesystem
 var uploadNN = undefined;
 function upload(evt){
     var f = evt.target.files[0]; 
-    if (f && f.name==="modules.txt") {
+    if (f) {
     	var r = new FileReader();
     	r.onload = function(e) { 
     		var contents = e.target.result;
-    		uploadNN = JSON.parse(contents);
     		
-    		if($("#submit-nn option[value='uploadNN.name']").length == 0){
-    			$("#submit-nn").append('<option value="'+uploadNN.name+'">'+uploadNN.name+'</option>');
+    		if(f.name==="modules.txt"){
+    			// nn uploaded
+	    		uploadNN = JSON.parse(contents);
+	    		
+	    		if($("#submit-nn option[value='uploadNN.name']").length == 0){
+	    			$("#submit-nn").append('<option value="'+uploadNN.name+'">'+uploadNN.name+'</option>');
+	    		}
+				$('#submit-nn').val(uploadNN.name);
+    		} else if(f.name.endsWith(".java")){
+    			// strategy uploaded
+    			$('#submit-strategy').val(contents);
     		}
-			$('#submit-nn').val(uploadNN.name);
-    		
     	}
     	r.readAsText(f);
     } else {
     	alert("You should upload a modules.txt file defining the neural network.");
     }
 }
-document.getElementById('fileinput').addEventListener('change', upload, false);
+document.getElementById('nn-file-input').addEventListener('change', upload, false);
+document.getElementById('strategy-file-input').addEventListener('change', upload, false);
+
 
 function resubmitJob(jobId){
 	DIANNE.job(jobId).then(function(job){
