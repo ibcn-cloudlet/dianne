@@ -263,6 +263,237 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_logsoftmaxG
 }
 
 
+// batch norm
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_batchnorm
+  (JNIEnv * env, jclass c, jobject out, jobject in, jobject w, jobject b, jobject rm, jobject rv, jobject sm, jobject sv, jboolean train){
+	THTensor* input = getTensor(env, in);
+	THTensor* output;
+	if(input->nDimension == 2)
+		output = getTensor2d(env, out, input->size[0], input->size[1]);
+	else
+		output = getTensor3d(env, out, input->size[0], input->size[1], input->size[2]);
+
+	THTensor* weight = getTensor(env, w);
+	THTensor* bias = getTensor(env, b);
+	THTensor* running_mean = getTensor(env, rm);
+	THTensor* running_std = getTensor(env, rv);
+	THTensor* save_mean = getTensor(env, sm);
+	THTensor* save_std = getTensor(env, sv);
+
+
+	// create cudnn tensor descriptors
+	cudnnTensorDescriptor_t inputTensor;
+	cudnnTensorDescriptor_t outputTensor;
+	checkCUDNN(cudnnCreateTensorDescriptor(&inputTensor));
+	checkCUDNN(cudnnCreateTensorDescriptor(&outputTensor));
+
+	// our BN tensors are all setup as nBatches,nFeatures,nData
+	// so here 3d to 4d should mean adding a 1 at the back
+	int dim = 4;
+	int size[dim];
+	int stride[dim];
+	int i;
+	for(i = 0; i< dim; i++){
+		size[i] = i < input->nDimension ? (int)(input->size[i]) : 1;
+		stride[i] = i < input->nDimension ? (int)(input->stride[i]) : 1;
+	}
+	checkCUDNN(cudnnSetTensorNdDescriptor(inputTensor, CUDNN_DATA_FLOAT,
+				dim, size, stride));
+	checkCUDNN(cudnnSetTensorNdDescriptor(outputTensor, CUDNN_DATA_FLOAT,
+					dim, size, stride));
+
+	cudnnTensorDescriptor_t scaleBiasMeanVarTensor;
+	checkCUDNN(cudnnCreateTensorDescriptor(&scaleBiasMeanVarTensor));
+	checkCUDNN(cudnnSetTensor4dDescriptor(scaleBiasMeanVarTensor,
+	                                      CUDNN_TENSOR_NCHW,
+	                                      CUDNN_DATA_FLOAT,
+	                                      1, running_mean->size[0], 1, 1));
+
+	if(train){
+		checkCUDNN(cudnnBatchNormalizationForwardTraining(cudnnHandle,
+				input->nDimension > 2 ? CUDNN_BATCHNORM_SPATIAL : CUDNN_BATCHNORM_PER_ACTIVATION,
+				&alpha, &beta,
+				inputTensor, THTensor_(data)(state, input),
+				outputTensor, THTensor_(data)(state, output),
+				scaleBiasMeanVarTensor,
+				THTensor_(data)(state, weight),
+				THTensor_(data)(state, bias),
+				0.1,
+				THTensor_(data)(state, running_mean),
+				THTensor_(data)(state, running_std),
+				1e-5,
+				THTensor_(data)(state, save_mean),
+				THTensor_(data)(state, save_std)));
+	} else {
+		checkCUDNN(cudnnBatchNormalizationForwardInference(cudnnHandle,
+				input->nDimension > 2 ? CUDNN_BATCHNORM_SPATIAL : CUDNN_BATCHNORM_PER_ACTIVATION,
+				&alpha, &beta,
+				inputTensor, THTensor_(data)(state, input),
+				outputTensor, THTensor_(data)(state, output),
+				scaleBiasMeanVarTensor,
+				THTensor_(data)(state, weight),
+				THTensor_(data)(state, bias),
+				THTensor_(data)(state, running_mean),
+				THTensor_(data)(state, running_std),
+				1e-5));
+	}
+
+
+	// cleanup cudnn descriptors
+	checkCUDNN(cudnnDestroyTensorDescriptor(inputTensor));
+	checkCUDNN(cudnnDestroyTensorDescriptor(outputTensor));
+	checkCUDNN(cudnnDestroyTensorDescriptor(scaleBiasMeanVarTensor));
+
+
+	return out == NULL ? createTensorObject(env, output) : out;
+}
+
+
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_batchnormGradIn
+  (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject w, jobject rm, jobject rv, jobject sm, jobject sv, jboolean train){
+	THTensor* gradOutput = getTensor(env, gradOut);
+
+	THTensor* gradInput;
+	if(gradOutput->nDimension == 2)
+		gradInput = getTensor2d(env, gradIn, gradOutput->size[0], gradOutput->size[1]);
+	else
+		gradInput = getTensor3d(env, gradIn, gradOutput->size[0], gradOutput->size[1], gradOutput->size[2]);
+
+	THTensor* input = getTensor(env, in);
+	THTensor* weight = getTensor(env, w);
+	THTensor* running_mean = getTensor(env, rm);
+	THTensor* running_var = getTensor(env, rv);
+	THTensor* save_mean = getTensor(env, sm);
+	THTensor* save_std = getTensor(env, sv);
+
+	// create cudnn tensor descriptors
+	cudnnTensorDescriptor_t inputTensor;
+	cudnnTensorDescriptor_t gradInputTensor;
+	cudnnTensorDescriptor_t gradOutputTensor;
+	checkCUDNN(cudnnCreateTensorDescriptor(&inputTensor));
+	checkCUDNN(cudnnCreateTensorDescriptor(&gradInputTensor));
+	checkCUDNN(cudnnCreateTensorDescriptor(&gradOutputTensor));
+
+	// our BN tensors are all setup as nBatches,nFeatures,nData
+	// so here 3d to 4d should mean adding a 1 at the back
+	int dim = 4;
+	int size[dim];
+	int stride[dim];
+	int i;
+	for(i = 0; i< dim; i++){
+		size[i] = i < input->nDimension ? (int)(input->size[i]) : 1;
+		stride[i] = i < input->nDimension ? (int)(input->stride[i]) : 1;
+	}
+	checkCUDNN(cudnnSetTensorNdDescriptor(inputTensor, CUDNN_DATA_FLOAT,
+				dim, size, stride));
+	checkCUDNN(cudnnSetTensorNdDescriptor(gradInputTensor, CUDNN_DATA_FLOAT,
+					dim, size, stride));
+	checkCUDNN(cudnnSetTensorNdDescriptor(gradOutputTensor, CUDNN_DATA_FLOAT,
+					dim, size, stride));
+
+	cudnnTensorDescriptor_t scaleBiasMeanVarTensor;
+	checkCUDNN(cudnnCreateTensorDescriptor(&scaleBiasMeanVarTensor));
+	checkCUDNN(cudnnSetTensor4dDescriptor(scaleBiasMeanVarTensor,
+	                                      CUDNN_TENSOR_NCHW,
+	                                      CUDNN_DATA_FLOAT,
+	                                      1, running_mean->size[0], 1, 1));
+
+	// backward - don't update grad weights here
+	checkCUDNN(cudnnBatchNormalizationBackward(cudnnHandle,
+			input->nDimension > 2 ? CUDNN_BATCHNORM_SPATIAL : CUDNN_BATCHNORM_PER_ACTIVATION,
+			&alpha, &beta, // update input grad
+			&beta, &alpha, // dont update weight grad
+			inputTensor, THTensor_(data)(state, input),
+			gradOutputTensor, THTensor_(data)(state, gradOutput),
+			gradInputTensor, THTensor_(data)(state, gradInput),
+			scaleBiasMeanVarTensor,
+			THTensor_(data)(state, weight),
+			THTensor_(data)(state, weight), // should not be altered
+			THTensor_(data)(state, weight), // should not be altered
+			1e-5,
+			THTensor_(data)(state, save_mean),
+			THTensor_(data)(state, save_std)));
+
+	// cleanup cudnn descriptors
+	checkCUDNN(cudnnDestroyTensorDescriptor(inputTensor));
+	checkCUDNN(cudnnDestroyTensorDescriptor(gradOutputTensor));
+	checkCUDNN(cudnnDestroyTensorDescriptor(gradInputTensor));
+	checkCUDNN(cudnnDestroyTensorDescriptor(scaleBiasMeanVarTensor));
+
+
+	return gradIn == NULL ? createTensorObject(env, gradInput) : gradIn;
+}
+
+JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_batchnormAccGrad
+  (JNIEnv * env, jclass c, jobject gradW, jobject gradB, jobject gradOut, jobject in, jobject w, jobject rm, jobject rv, jobject sm, jobject sv, jboolean train){
+	THTensor* gradOutput = getTensor(env, gradOut);
+	THTensor* input = getTensor(env, in);
+	THTensor* weight = getTensor(env, w);
+	THTensor* gradWeight = getTensor(env, gradW);
+	THTensor* gradBias = getTensor(env, gradB);
+	THTensor* running_mean = getTensor(env, rm);
+	THTensor* running_var = getTensor(env, rv);
+	THTensor* save_mean = getTensor(env, sm);
+	THTensor* save_std = getTensor(env, sv);
+
+	// create cudnn tensor descriptors
+	cudnnTensorDescriptor_t inputTensor;
+	cudnnTensorDescriptor_t gradInputTensor;
+	cudnnTensorDescriptor_t gradOutputTensor;
+	checkCUDNN(cudnnCreateTensorDescriptor(&inputTensor));
+	checkCUDNN(cudnnCreateTensorDescriptor(&gradInputTensor));
+	checkCUDNN(cudnnCreateTensorDescriptor(&gradOutputTensor));
+
+	// our BN tensors are all setup as nBatches,nFeatures,nData
+	// so here 3d to 4d should mean adding a 1 at the back
+	int dim = 4;
+	int size[dim];
+	int stride[dim];
+	int i;
+	for(i = 0; i< dim; i++){
+		size[i] = i < input->nDimension ? (int)(input->size[i]) : 1;
+		stride[i] = i < input->nDimension ? (int)(input->stride[i]) : 1;
+	}
+	checkCUDNN(cudnnSetTensorNdDescriptor(inputTensor, CUDNN_DATA_FLOAT,
+				dim, size, stride));
+	checkCUDNN(cudnnSetTensorNdDescriptor(gradInputTensor, CUDNN_DATA_FLOAT,
+					dim, size, stride));
+	checkCUDNN(cudnnSetTensorNdDescriptor(gradOutputTensor, CUDNN_DATA_FLOAT,
+					dim, size, stride));
+
+	cudnnTensorDescriptor_t scaleBiasMeanVarTensor;
+	checkCUDNN(cudnnCreateTensorDescriptor(&scaleBiasMeanVarTensor));
+	checkCUDNN(cudnnSetTensor4dDescriptor(scaleBiasMeanVarTensor,
+	                                      CUDNN_TENSOR_NCHW,
+	                                      CUDNN_DATA_FLOAT,
+	                                      1, running_mean->size[0], 1, 1));
+
+	// backward - don't update input grads
+	checkCUDNN(cudnnBatchNormalizationBackward(cudnnHandle,
+			input->nDimension > 2 ? CUDNN_BATCHNORM_SPATIAL : CUDNN_BATCHNORM_PER_ACTIVATION,
+			&beta, &alpha, // dont update input grad
+			&alpha, &beta, // update weight grad
+			inputTensor, THTensor_(data)(state, input),
+			gradOutputTensor, THTensor_(data)(state, gradOutput),
+			gradOutputTensor, THTensor_(data)(state, gradOutput), // should not be altered
+			scaleBiasMeanVarTensor,
+			THTensor_(data)(state, weight),
+			THTensor_(data)(state, gradWeight),
+			THTensor_(data)(state, gradBias),
+			1e-5,
+			THTensor_(data)(state, save_mean),
+			THTensor_(data)(state, save_std)));
+
+	// cleanup cudnn descriptors
+	checkCUDNN(cudnnDestroyTensorDescriptor(inputTensor));
+	checkCUDNN(cudnnDestroyTensorDescriptor(gradOutputTensor));
+	checkCUDNN(cudnnDestroyTensorDescriptor(scaleBiasMeanVarTensor));
+
+}
+
+
+
 // pooling
 jobject cudnn_forward_spatial_pool(JNIEnv* env, jobject out, jobject in, jint kW, jint kH, jint dW, jint dH, jint pW, jint pH, cudnnPoolingMode_t mode){
 	THTensor* input = getTensor(env, in);
