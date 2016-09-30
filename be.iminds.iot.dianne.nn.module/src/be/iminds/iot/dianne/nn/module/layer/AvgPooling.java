@@ -114,9 +114,10 @@ public class AvgPooling extends AbstractModule {
 	protected void forward() {
 		switch(type){
 		case TEMPORAL:
-			// temporal avg pooling as spatial pooling in height dim?
+			// temporal avg pooling as spatial pooling in height dim
+			// this is confusing, but temporal width maps to spatial height...
 			inputDims = input.dims();
-			if(input.dim()==2){
+			if(inputDims.length == 2){
 				input.reshape(1, inputDims[0], inputDims[1]);
 			}
 			output = ModuleOps.spatialavgpool(output, input, 1, width, 1, strideX, 0, padX, ceil, include_pad);
@@ -142,8 +143,11 @@ public class AvgPooling extends AbstractModule {
 
 		switch(type){
 		case TEMPORAL:
-			// 1D as 2d with height = 1
-			gradInput = ModuleOps.spatialavgpoolGradIn(gradInput, gradOutput, input, output, width, 1, strideX, 1, padX, 0, ceil, include_pad);
+			int[] gradOutputDims = gradOutput.dims();
+			if(gradOutputDims.length == 2){
+				gradOutput.reshape(1, gradOutputDims[0], gradOutputDims[1]);
+			}
+			gradInput = ModuleOps.spatialavgpoolGradIn(gradInput, gradOutput, input, output, 1, width, 1, strideX, 0, padX, ceil, include_pad);
 			gradInput.reshape(inputDims);
 			break;
 		case SPATIAL:

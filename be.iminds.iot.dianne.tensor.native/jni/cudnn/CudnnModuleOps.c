@@ -68,7 +68,7 @@ cudnnTensorDescriptor_t cudnn_create_tensor_descriptor(THTensor* t){
 	} else if(t->nDimension==3){
 		// in case of 3d tensor, treat as 3d image of batch 1
 		size[0] = 1;
-		stride[0] = (int)(t->stride[2]*t->size[2]);
+		stride[0] = (int)(t->stride[0]);
 		for(i = 0; i< t->nDimension; i++){
 			size[i+1] = (int)(t->size[i]);
 			stride[i+1] = (int)(t->stride[i]);
@@ -337,11 +337,47 @@ jobject cudnn_backward_spatial_pool(JNIEnv* env, jobject gradIn, jobject gradOut
 	THTensor* output = getTensor(env, out);
 	THTensor_(resizeAs)(state, gradInput, input);
 
+
 	// create cudnn tensor descriptors
-	cudnnTensorDescriptor_t inputTensor = cudnn_create_tensor_descriptor(input);
-	cudnnTensorDescriptor_t outputTensor = cudnn_create_tensor_descriptor(output);
-	cudnnTensorDescriptor_t gradInputTensor = cudnn_create_tensor_descriptor(gradInput);
-	cudnnTensorDescriptor_t gradOutputTensor = cudnn_create_tensor_descriptor(gradOutput);
+	cudnnTensorDescriptor_t inputTensor;
+	cudnnTensorDescriptor_t outputTensor;
+	cudnnTensorDescriptor_t gradInputTensor;
+	cudnnTensorDescriptor_t gradOutputTensor;
+
+	checkCUDNN(cudnnCreateTensorDescriptor(&inputTensor));
+	checkCUDNN(cudnnCreateTensorDescriptor(&outputTensor));
+	checkCUDNN(cudnnCreateTensorDescriptor(&gradInputTensor));
+	checkCUDNN(cudnnCreateTensorDescriptor(&gradOutputTensor));
+
+	int n = input->nDimension == 4 ? input->size[0] : 1;
+	int c = input->nDimension == 4 ? input->size[1] : input->size[0];
+	int h = input->nDimension == 4 ? input->size[2] : input->size[1];
+	int w =  input->nDimension == 4 ? input->size[3] : input->size[2];
+
+    checkCUDNN(cudnnSetTensor4dDescriptor(inputTensor,
+                                          CUDNN_TENSOR_NCHW,
+                                          CUDNN_DATA_FLOAT,
+                                          n, c, h, w));
+
+    checkCUDNN(cudnnSetTensor4dDescriptor(gradInputTensor,
+                                          CUDNN_TENSOR_NCHW,
+                                          CUDNN_DATA_FLOAT,
+                                          n, c, h, w));
+
+	n = gradOutput->nDimension == 4 ? gradOutput->size[0] : 1;
+	c = gradOutput->nDimension == 4 ? gradOutput->size[1] : gradOutput->size[0];
+	h = gradOutput->nDimension == 4 ? gradOutput->size[2] : gradOutput->size[1];
+	w =  gradOutput->nDimension == 4 ? gradOutput->size[3] : gradOutput->size[2];
+
+    checkCUDNN(cudnnSetTensor4dDescriptor(outputTensor,
+                                          CUDNN_TENSOR_NCHW,
+                                          CUDNN_DATA_FLOAT,
+                                          n, c, h, w));
+
+    checkCUDNN(cudnnSetTensor4dDescriptor(gradOutputTensor,
+                                          CUDNN_TENSOR_NCHW,
+                                          CUDNN_DATA_FLOAT,
+                                          n, c, h, w));
 
 	// create pooling descriptor
 	cudnnPoolingDescriptor_t poolDescriptor;
