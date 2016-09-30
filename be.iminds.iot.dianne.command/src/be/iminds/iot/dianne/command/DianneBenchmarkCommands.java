@@ -83,6 +83,8 @@ public class DianneBenchmarkCommands {
 			boolean backward
 		){
 
+		System.gc();
+		
 		// parse the input
 		Tensor in = null;
 		
@@ -181,6 +183,8 @@ public class DianneBenchmarkCommands {
 		} else {
 			System.out.println("Run time: "+df.format(timings.get(0))+" ms");
 		}
+		
+		System.gc();
 	}
 	
 	@Descriptor("Benchmark a neural network.")
@@ -189,7 +193,7 @@ public class DianneBenchmarkCommands {
 			String nnName, 
 			@Descriptor("neural network input, either dims (comma separated e.g. 10,28,28) or dataset (datasetName[:sample,batchSize])")
 			String input){
-		benchmark(nnName, input, 30, 1, 10, false);
+		benchmark(nnName, input, 100, 1, 100, false);
 	}
 
 	@Descriptor("Benchmark a neural network.")
@@ -200,7 +204,7 @@ public class DianneBenchmarkCommands {
 			String input,
 			@Descriptor("number of runs to execute")
 			int runs){
-		benchmark(nnName, input, runs, 1, 10, false);
+		benchmark(nnName, input, runs, 1, 100, false);
 	}
 
 	@Descriptor("Benchmark a neural network.")
@@ -213,7 +217,7 @@ public class DianneBenchmarkCommands {
 			int runs,
 			@Descriptor("times to forward in one run")
 			int times){
-		benchmark(nnName, input, runs, times, 10, false);
+		benchmark(nnName, input, runs, times, 100, false);
 	}
 	
 	@Descriptor("Set module tracing on/off.")
