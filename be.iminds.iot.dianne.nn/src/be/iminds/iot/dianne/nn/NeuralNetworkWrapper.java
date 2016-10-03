@@ -22,11 +22,13 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -74,8 +76,8 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	private ServiceRegistration<BackwardListener> backwardListenerReg;
 
 	
-	private Map<String, Deferred<NeuralNetworkResult>> inProgress = Collections.synchronizedMap(new HashMap<String, Deferred<NeuralNetworkResult>>());
-	private Map<String, UUID> interestedModules = Collections.synchronizedMap(new HashMap<String, UUID>());
+	private Map<String, Progress> inProgress = Collections.synchronizedMap(new HashMap<String, Progress>());
+	private Map<String, List<UUID>> interestedModules = Collections.synchronizedMap(new HashMap<String, List<UUID>>());
 	
 	private boolean valid = true;
 	
@@ -110,25 +112,26 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 			throw new RuntimeException("This neural network object is no longer valid");
 		
 		String tag = getTag();
+		String[] t = addTag(tags, tag);
 		
 		// first trigger all memories
-		memories.values().forEach(m -> m.triggerForward(addTag(tags, tag)));
+		memories.values().forEach(m -> m.triggerForward(t));
 		
 		Input input = inputId!=null ? inputs.get(inputId) : inputs.values().iterator().next();
 		
 		if(outputId!=null) {
-			interestedModules.put(tag, outputId);
+			addInterest(outputId, tag);
 		} else {
 			// just mark all outputs as interested
-			nn.modules.values().stream().filter(m -> m.module.type.equals("Output")).map(m -> m.moduleId).forEach(id -> interestedModules.put(tag, id));
+			nn.modules.values().stream().filter(m -> m.module.type.equals("Output")).map(m -> m.moduleId).forEach(id -> addInterest(id, tag));
 		}
 		
-		Deferred<NeuralNetworkResult> d = new Deferred<>();
-		inProgress.put(tag, d);
+		Progress p = new Progress(outputId);
+		inProgress.put(tag, p);
 		
-		input.input(in, addTag(tags, tag));
+		input.input(in, t);
 		
-		return d.getPromise();
+		return p.getPromise();
 	}
 	
 	@Override
@@ -137,28 +140,99 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 			throw new RuntimeException("This neural network object is no longer valid");
 		
 		String tag = getTag();
+		String[] t = addTag(tags, tag);
 
 		// first trigger all memories
-		memories.values().forEach(m -> m.triggerBackward(addTag(tags, tag)));
+		memories.values().forEach(m -> m.triggerBackward(t));
 		
 		Output output = outputId!=null ? outputs.get(outputId) : outputs.values().iterator().next();
 		
 		if(inputId!=null) {
-			interestedModules.put(tag, inputId);
+			addInterest(inputId, tag);
 		} else {
 			// just mark all inputs as interested
-			nn.modules.values().stream().filter(m -> m.module.type.equals("Input")).map(m -> m.moduleId).forEach(id -> interestedModules.put(tag, id));
+			nn.modules.values().stream().filter(m -> m.module.type.equals("Input")).map(m -> m.moduleId).forEach(id -> addInterest(id, tag));
 		}
 		
-		Deferred<NeuralNetworkResult> d = new Deferred<>();
-		inProgress.put(tag, d);
+		Progress p = new Progress(inputId);
+		inProgress.put(tag, p);
 		
-		output.backpropagate(gradOut, addTag(tags, tag));
+		output.backpropagate(gradOut, t);
 		
-		return d.getPromise();
+		return p.getPromise();
 	}
 	
+	@Override
+	public Promise<NeuralNetworkResult> forward(UUID[] inputIds, UUID[] outputIds, Tensor[] ins, String... tags){
+		if(!valid)
+			throw new RuntimeException("This neural network object is no longer valid");
+		
+		String tag = getTag();
+		String[] t = addTag(tags, tag);
+		
+		// first trigger all memories
+		memories.values().forEach(m -> m.triggerForward(t));
+		
+		if(outputIds!=null) {
+			for(UUID outputId : outputIds)
+				addInterest(outputId, tag);
+		} else {
+			// just mark all outputs as interested
+			nn.modules.values().stream().filter(m -> m.module.type.equals("Output")).map(m -> m.moduleId).forEach(id -> addInterest(id, tag));
+		}
+		
+		Progress p = new Progress(outputIds);
+		inProgress.put(tag, p);
+		
+		
+		if(inputIds == null){
+			Input input = inputs.values().iterator().next();
+			input.input(ins[0], t);
+		} else {
+			for(int i=0;i<ins.length;i++){
+				Input input = inputs.get(inputIds[i]);
+				input.input(ins[i], t);
+			}
+		}
+		
+		return p.getPromise();
+	}
 	
+	@Override
+	public Promise<NeuralNetworkResult> backward(UUID[] outputIds, UUID[] inputIds, Tensor[] gradOuts, String... tags){
+		if(!valid)
+			throw new RuntimeException("This neural network object is no longer valid");
+		
+		String tag = getTag();
+		String[] t = addTag(tags, tag);
+
+		// first trigger all memories
+		memories.values().forEach(m -> m.triggerBackward(t));
+		
+		if(inputIds!=null) {
+			for(UUID inputId : inputIds){
+				addInterest(inputId, tag);
+			}
+		} else {
+			// just mark all inputs as interested
+			nn.modules.values().stream().filter(m -> m.module.type.equals("Input")).map(m -> m.moduleId).forEach(id -> addInterest(id, tag));
+		}
+		
+		Progress p = new Progress(inputIds);
+		inProgress.put(tag, p);
+		
+		if(outputIds==null){
+			Output output = outputs.values().iterator().next();
+			output.backpropagate(gradOuts[0], t);
+		} else {
+			for(int i=0;i<gradOuts.length;i++){
+				Output output = outputs.get(outputIds[i]);
+				output.backpropagate(gradOuts[i], t);
+			}
+		}
+		
+		return p.getPromise();
+	}
 
 	// let all tags added by NN wrapper precede by "_"
 	private String getTag(){
@@ -210,6 +284,38 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		return t;
 	}
 	
+	void addInterest(UUID moduleId, String tag){
+		List<UUID> m = interestedModules.get(tag);
+		if(m == null){
+			m = new ArrayList<>(1);
+			interestedModules.put(tag, m);
+		}
+		m.add(moduleId);
+	}
+	
+	boolean isInterested(UUID moduleId, String tag){
+		List<UUID> m = interestedModules.get(tag);
+		if(m == null){
+			return false;
+		}
+		for(UUID id : m){
+			if(id.equals(moduleId))
+				return true;
+		}
+		return false;
+	}
+	
+	void removeInterest(UUID moduleId, String tag){
+		List<UUID> m = interestedModules.get(tag);
+		if(m == null){
+			return;
+		}
+		m.remove(moduleId);
+		if(m.size()==0){
+			interestedModules.remove(tag);
+		}
+	}
+	
 	
 	void register(){
 		Dictionary<String, Object> propertiesFw = new Hashtable<String, Object>();
@@ -227,21 +333,19 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 						continue;
 					}
 					
-					if(!interestedModules.containsKey(tag)){
+					if(!isInterested(moduleId, tag)){
 						continue;
 					}
 					
-					if(!moduleId.equals(interestedModules.get(tag))){
-						continue;
-					}
-					
-					interestedModules.remove(tag);
-					Deferred<NeuralNetworkResult> d = inProgress.remove(tag);
-					if(d!=null){
-						NeuralNetworkResult r = new NeuralNetworkResult(output, removeTags(tags));
-						d.resolve(r);
+					removeInterest(moduleId, tag);
+					Progress p = inProgress.get(tag);
+					if(p!=null){
+						boolean remove = p.resolve(moduleId, output, removeTags(tags));
+						if(remove){
+							inProgress.remove(tag);
+						}
 					} else {
-						System.err.println("No deferred for tag "+tag+" ?!");
+						System.err.println("No progress for tag "+tag+" ?!");
 					}
 				}
 			}
@@ -256,20 +360,16 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 						continue;
 					}
 					
-					if(!interestedModules.containsKey(tag)){
+					if(!isInterested(moduleId, tag)){
 						continue;
 					}
 					
-					if(!moduleId.equals(interestedModules.get(tag))){
-						continue;
-					}
-					
-					interestedModules.remove(tag);
-					Deferred<NeuralNetworkResult> d = inProgress.remove(tag);
-					if(d!=null){
-						d.fail(e);
+					removeInterest(moduleId, tag);
+					Progress p = inProgress.remove(tag);
+					if(p!=null){
+						p.fail(e);
 					} else {
-						System.err.println("No deferred for tag "+tag+" ?!");
+						System.err.println("No progress for tag "+tag+" ?!");
 					}
 				}
 			}
@@ -291,21 +391,19 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 						continue;
 					}
 				
-					if(!interestedModules.containsKey(tag)){
+					if(!isInterested(moduleId, tag)){
 						continue;
 					}
 					
-					if(!moduleId.equals(interestedModules.get(tag))){
-						continue;
-					}
-					
-					interestedModules.remove(tag);
-					Deferred<NeuralNetworkResult> d = inProgress.remove(tag);
-					if(d!=null){
-						NeuralNetworkResult r = new NeuralNetworkResult(gradInput, removeTags(tags));
-						d.resolve(r);
+					removeInterest(moduleId, tag);
+					Progress p = inProgress.get(tag);
+					if(p!=null){
+						boolean remove = p.resolve(moduleId, gradInput, removeTags(tags));
+						if(remove){
+							inProgress.remove(tag);
+						}
 					} else {
-						System.err.println("No deferred for tag "+tag+" ?!");
+						System.err.println("No progress for tag "+tag+" ?!");
 					}
 				}
 			}
@@ -321,20 +419,16 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 						continue;
 					}
 				
-					if(!interestedModules.containsKey(tag)){
+					if(!isInterested(moduleId, tag)){
 						continue;
 					}
 					
-					if(!moduleId.equals(interestedModules.get(tag))){
-						continue;
-					}
-					
-					interestedModules.remove(tag);
-					Deferred<NeuralNetworkResult> d = inProgress.remove(tag);
-					if(d!=null){
-						d.fail(e);
+					removeInterest(moduleId, tag);
+					Progress p = inProgress.remove(tag);
+					if(p!=null){
+						p.fail(e);
 					} else {
-						System.err.println("No deferred for tag "+tag+" ?!");
+						System.err.println("No progress for tag "+tag+" ?!");
 					}
 				}
 			}
@@ -628,4 +722,63 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		
 		trainables.values().stream().forEach(Trainable::accGradParameters);
 	}
+	
+	private class Progress {
+		
+		private final Deferred<NeuralNetworkResult> deferred = new Deferred<>();
+		private final UUID[] resultIds;
+		private final Map<UUID, Tensor> results = new HashMap<>();
+
+		public Progress(UUID resultId){
+			if(resultId == null){
+				resultIds = null;
+			} else {
+				this.resultIds = new UUID[]{resultId};
+			}
+		}
+		
+		public Progress(UUID[] resultIds){
+			this.resultIds = resultIds;
+		}
+		
+		public synchronized boolean resolve(UUID moduleId, Tensor tensor, String... tags){
+			boolean requested = false;
+			if(resultIds == null){
+				requested = true;
+			} else {
+				for(UUID id : resultIds){
+					if(moduleId.equals(id)){
+						requested = true;
+					}
+				}
+			}
+			
+			if(requested) {
+				results.put(moduleId, tensor);
+			}
+			
+			if(resultIds==null || results.size() == resultIds.length){
+				NeuralNetworkResult r;
+				
+				if(resultIds==null || resultIds.length == 1)
+					r = new NeuralNetworkResult(moduleId, tensor, tags);
+				else
+					r = new NeuralNetworkResult(results, tags);
+				
+				deferred.resolve(r);
+				return true;
+			}
+			
+			return false;
+		}
+		
+		public synchronized void fail(Throwable t){
+			deferred.fail(t);
+		}
+		
+		public Promise<NeuralNetworkResult> getPromise(){
+			return deferred.getPromise();
+		}
+	}
+	
 }

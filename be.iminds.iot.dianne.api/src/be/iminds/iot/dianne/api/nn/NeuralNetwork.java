@@ -65,6 +65,16 @@ public interface NeuralNetwork {
 	 * @return result
 	 */
 	Promise<NeuralNetworkResult> forward(UUID inputId, UUID outputId, Tensor input, String... tags);
+	
+	/**
+	 * Forward inputs through the neural network
+	 * @param inputIds ids of the Input modules to forward the inputs to
+	 * @param outputIds ids of the Output modules to get the outputs from
+	 * @param inputs the input tensors
+	 * @param tags optional array of tags
+	 * @return result
+	 */
+	Promise<NeuralNetworkResult> forward(UUID[] inputId, UUID[] outputId, Tensor[] input, String... tags);
 
 	/**
 	 * Blocking call that returns the output Tensor after forwarding input.
@@ -91,7 +101,7 @@ public interface NeuralNetwork {
 	}
 
 	/**
-	 * Backward gradOutput through the neural network
+	 * Backward gradOutputs through the neural network
 	 * @param outputId id of the Output module to backpropagate the gradOutput 
 	 * @param inputId id of the Input module to gather the gradInput
 	 * @param gradOutput the gradOutput tensor
@@ -99,6 +109,16 @@ public interface NeuralNetwork {
 	 * @return
 	 */
 	Promise<NeuralNetworkResult> backward(UUID outputId, UUID inputId, Tensor gradOutput, String... tags);
+	
+	/**
+	 * Backward gradOutput through the neural network
+	 * @param outputIds ids of the Output modules to backpropagate the gradOutputs 
+	 * @param inputIds ids of the Input modules to gather the gradInputs
+	 * @param gradOutputs the gradOutput tensors
+	 * @param tags optional array of tags
+	 * @return
+	 */
+	Promise<NeuralNetworkResult> backward(UUID[] outputIds, UUID[] inputIds, Tensor[] gradOutputs, String... tags);
 
 	/**
 	 * Blocking call that returns the gradInput Tensor after back propagating gradOutput.

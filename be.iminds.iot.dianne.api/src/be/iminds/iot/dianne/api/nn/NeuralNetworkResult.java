@@ -22,6 +22,10 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.nn;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
@@ -32,11 +36,19 @@ import be.iminds.iot.dianne.tensor.Tensor;
  */
 public class NeuralNetworkResult {
 
+	public Map<UUID, Tensor> tensors;
 	public Tensor tensor;
 	public String[] tags;
 	
-	public NeuralNetworkResult(Tensor tensor, String... tags){
+	public NeuralNetworkResult(UUID moduleId, Tensor tensor, String... tags){
+		this.tensors = new HashMap<>(1);
+		this.tensors.put(moduleId, tensor);
 		this.tensor = tensor;
+		this.tags = tags;
+	}
+	
+	public NeuralNetworkResult(Map<UUID, Tensor> tensors, String... tags){
+		this.tensors = tensors;
 		this.tags = tags;
 	}
 }
