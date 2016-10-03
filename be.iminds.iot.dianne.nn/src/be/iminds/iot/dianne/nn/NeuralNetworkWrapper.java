@@ -116,8 +116,12 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		
 		Input input = inputId!=null ? inputs.get(inputId) : inputs.values().iterator().next();
 		
-		if(outputId!=null)
+		if(outputId!=null) {
 			interestedModules.put(tag, outputId);
+		} else {
+			// just mark all outputs as interested
+			nn.modules.values().stream().filter(m -> m.module.type.equals("Output")).map(m -> m.moduleId).forEach(id -> interestedModules.put(tag, id));
+		}
 		
 		Deferred<NeuralNetworkResult> d = new Deferred<>();
 		inProgress.put(tag, d);
@@ -139,8 +143,12 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		
 		Output output = outputId!=null ? outputs.get(outputId) : outputs.values().iterator().next();
 		
-		if(inputId!=null)
+		if(inputId!=null) {
 			interestedModules.put(tag, inputId);
+		} else {
+			// just mark all inputs as interested
+			nn.modules.values().stream().filter(m -> m.module.type.equals("Input")).map(m -> m.moduleId).forEach(id -> interestedModules.put(tag, id));
+		}
 		
 		Deferred<NeuralNetworkResult> d = new Deferred<>();
 		inProgress.put(tag, d);
@@ -152,13 +160,12 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	
 	
 
+	// let all tags added by NN wrapper precede by "_"
 	private String getTag(){
 		synchronized(this){
-			return ""+count++;
+			return "_"+count++;
 		}
 	}
-	
-	
 	
 	private String[] addTag(String[] tags, String tag){
 		if(tags==null){
@@ -176,15 +183,27 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		return t;
 	}
 	
-	private String[] removeTag(String[] tags, String tag){
+	// remove hidden tags (starting with _")
+	private String[] removeTags(String[] tags){
 		int l = tags.length;
 		if(l <= 1){
 			return new String[0];
 		}
-		String[] t = new String[l-1];
+		
+		int size = 0;
+		for(String s : tags){
+			if(!s.startsWith("_")){
+				size++;
+			}
+		}
+		if(size == 0){
+			return new String[0];
+		}
+		
+		String[] t = new String[size];
 		int i = 0;
 		for(String s : tags){
-			if(!s.equals(tag)){
+			if(!s.startsWith("_")){
 				t[i++] = s;
 			}
 		}
@@ -203,21 +222,27 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 				if(tags==null || tags.length==0)
 					return;
 				
-				String tag = tags[0];
-				
-				if(interestedModules.containsKey(tag)){
-					if(!moduleId.equals(interestedModules.get(tag))){
-						return;
+				for(String tag : tags){
+					if(!tag.startsWith("_")){
+						continue;
 					}
-				}
-				
-				interestedModules.remove(tag);
-				Deferred<NeuralNetworkResult> d = inProgress.remove(tag);
-				if(d!=null){
-					NeuralNetworkResult r = new NeuralNetworkResult(output, removeTag(tags, tag));
-					d.resolve(r);
-				} else {
-					System.err.println("No deferred for tag "+tag+" ?!");
+					
+					if(!interestedModules.containsKey(tag)){
+						continue;
+					}
+					
+					if(!moduleId.equals(interestedModules.get(tag))){
+						continue;
+					}
+					
+					interestedModules.remove(tag);
+					Deferred<NeuralNetworkResult> d = inProgress.remove(tag);
+					if(d!=null){
+						NeuralNetworkResult r = new NeuralNetworkResult(output, removeTags(tags));
+						d.resolve(r);
+					} else {
+						System.err.println("No deferred for tag "+tag+" ?!");
+					}
 				}
 			}
 
@@ -226,20 +251,26 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 				if(tags==null || tags.length==0)
 					return;
 				
-				String tag = tags[0];
-				
-				if(interestedModules.containsKey(tag)){
-					if(!moduleId.equals(interestedModules.get(tag))){
-						return;
+				for(String tag : tags){
+					if(!tag.startsWith("_")){
+						continue;
 					}
-				}
-				
-				interestedModules.remove(tag);
-				Deferred<NeuralNetworkResult> d = inProgress.remove(tag);
-				if(d!=null){
-					d.fail(e);
-				} else {
-					System.err.println("No deferred for tag "+tag+" ?!");
+					
+					if(!interestedModules.containsKey(tag)){
+						continue;
+					}
+					
+					if(!moduleId.equals(interestedModules.get(tag))){
+						continue;
+					}
+					
+					interestedModules.remove(tag);
+					Deferred<NeuralNetworkResult> d = inProgress.remove(tag);
+					if(d!=null){
+						d.fail(e);
+					} else {
+						System.err.println("No deferred for tag "+tag+" ?!");
+					}
 				}
 			}
 		}, propertiesFw);
@@ -255,21 +286,27 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 					return;
 				}
 				
-				String tag = tags[0];
-				
-				if(interestedModules.containsKey(tag)){
-					if(!moduleId.equals(interestedModules.get(tag))){
-						return;
+				for(String tag : tags){
+					if(!tag.startsWith("_")){
+						continue;
 					}
-				}
 				
-				interestedModules.remove(tag);
-				Deferred<NeuralNetworkResult> d = inProgress.remove(tag);
-				if(d!=null){
-					NeuralNetworkResult r = new NeuralNetworkResult(gradInput, removeTag(tags, tag));
-					d.resolve(r);
-				} else {
-					System.err.println("No deferred for tag "+tag+" ?!");
+					if(!interestedModules.containsKey(tag)){
+						continue;
+					}
+					
+					if(!moduleId.equals(interestedModules.get(tag))){
+						continue;
+					}
+					
+					interestedModules.remove(tag);
+					Deferred<NeuralNetworkResult> d = inProgress.remove(tag);
+					if(d!=null){
+						NeuralNetworkResult r = new NeuralNetworkResult(gradInput, removeTags(tags));
+						d.resolve(r);
+					} else {
+						System.err.println("No deferred for tag "+tag+" ?!");
+					}
 				}
 			}
 
@@ -279,20 +316,26 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 					return;
 				}
 				
-				String tag = tags[0];
-				
-				if(interestedModules.containsKey(tag)){
-					if(!moduleId.equals(interestedModules.get(tag))){
-						return;
+				for(String tag : tags){
+					if(!tag.startsWith("_")){
+						continue;
 					}
-				}
 				
-				interestedModules.remove(tag);
-				Deferred<NeuralNetworkResult> d = inProgress.remove(tag);
-				if(d!=null){
-					d.fail(e);
-				} else {
-					System.err.println("No deferred for tag "+tag+" ?!");
+					if(!interestedModules.containsKey(tag)){
+						continue;
+					}
+					
+					if(!moduleId.equals(interestedModules.get(tag))){
+						continue;
+					}
+					
+					interestedModules.remove(tag);
+					Deferred<NeuralNetworkResult> d = inProgress.remove(tag);
+					if(d!=null){
+						d.fail(e);
+					} else {
+						System.err.println("No deferred for tag "+tag+" ?!");
+					}
 				}
 			}
 		}, propertiesBw);	

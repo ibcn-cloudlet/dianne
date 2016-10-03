@@ -24,6 +24,7 @@ package be.iminds.iot.dianne.nn.module.join;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -36,6 +37,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 public abstract class Join extends AbstractModule {
 
 	protected Map<UUID, Tensor> inputs = new HashMap<UUID, Tensor>();
+	protected Map<UUID, String[]> inputTags = new HashMap<UUID, String[]>();
 	protected Map<UUID, Tensor> gradInputs = new HashMap<UUID, Tensor>();
 	
 	// this will make sure that one will wait until all prev have given input before forwarding 
@@ -53,6 +55,24 @@ public abstract class Join extends AbstractModule {
 		super(id);
 	}
 	
+	@Override
+	protected void callNext(){
+		// merge tags
+		HashSet<String> mergedTags = new HashSet<>();
+		for(int i=0; i< prev.length;i++){
+			UUID id = prevIds[i];
+			String[] t = inputTags.get(id);
+			if(t != null){
+				for(String tag : t){
+					mergedTags.add(tag);
+				}
+			}
+		}
+		this.tags = mergedTags.toArray(new String[mergedTags.size()]);
+		super.callNext();
+	}
+		
+	@Override
 	protected void callPrevious(){
 		// call all previous
 		for(int i=0; i< prev.length;i++){
@@ -64,6 +84,7 @@ public abstract class Join extends AbstractModule {
 		}
 	}
 	
+	@Override
 	protected synchronized void forward(final UUID moduleId, final ModuleException ex, final Tensor input, final String... tags) {
 		if(TRACE){
 			System.out.println("JOIN "+this.id+" ("+this.getClass().getName()+")  FROM "+moduleId+" "+Arrays.toString(input.dims())+" "+Arrays.toString(tags));
@@ -86,7 +107,7 @@ public abstract class Join extends AbstractModule {
 		}
 		
 		this.inputs.put(moduleId, input);
-		this.tags = tags;
+		this.inputTags.put(moduleId, tags);
 		this.exception = ex;
 		
 		if(this.exception==null){

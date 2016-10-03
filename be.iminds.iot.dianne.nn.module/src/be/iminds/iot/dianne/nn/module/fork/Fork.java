@@ -24,6 +24,7 @@ package be.iminds.iot.dianne.nn.module.fork;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -36,6 +37,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 public abstract class Fork extends AbstractModule {
 
 	protected Map<UUID, Tensor> outputs = new HashMap<UUID, Tensor>();
+	protected Map<UUID, String[]> outputTags = new HashMap<UUID, String[]>();
 	protected Map<UUID, Tensor> gradOutputs = new HashMap<UUID, Tensor>();
 	
 	// this will make sure that one will wait until all prev have given input before forwarding
@@ -75,8 +77,24 @@ public abstract class Fork extends AbstractModule {
 		}
 	}
 	
-	
-	
+	@Override
+	protected void callPrevious(){
+		// merge tags
+		HashSet<String> mergedTags = new HashSet<>();
+		for(int i=0; i< prev.length;i++){
+			UUID id = nextIds[i];
+			String[] t = outputTags.get(id);
+			if(t != null){
+				for(String tag : t){
+					mergedTags.add(tag);
+				}
+			}
+		}
+		this.tags = mergedTags.toArray(new String[mergedTags.size()]);
+		super.callPrevious();
+	}
+		
+	@Override
 	protected synchronized void forward(final UUID moduleId, final ModuleException ex, final Tensor input, final String... tags) {
 		if(TRACE){
 			System.out.println("FORK "+this.id+" ("+this.getClass().getName()+")  FROM "+moduleId+" "+Arrays.toString(input.dims())+" "+Arrays.toString(tags));
@@ -130,12 +148,13 @@ public abstract class Fork extends AbstractModule {
 		
 	}
 	
+	@Override
 	protected void backward(final UUID moduleId, final ModuleException ex, final Tensor gradOutput, final String... tags) {
 		if(TRACE){
 			System.out.println("BACKWARD FORK "+this.id+" ("+this.getClass().getName()+")  FROM "+moduleId+" "+Arrays.toString(input.dims())+" "+Arrays.toString(tags));
 		}
 		
-		this.tags = tags;
+		this.outputTags.put(moduleId, tags);
 		this.gradOutputs.put(moduleId, gradOutput);
 		this.exception = ex;
 		
