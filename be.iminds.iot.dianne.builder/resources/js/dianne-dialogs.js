@@ -86,7 +86,7 @@ function createNNModuleDialog(module, title, submit, cancel){
 	// add module div to dialog to show which module to configure
 	renderTemplate("module",
 			{	
-				name: module.type,
+				name: module.name,
 				type: module.type, 
 				category: module.category
 			}, 
@@ -106,6 +106,13 @@ function createBuildModuleDialog(id, moduleItem){
 	// then fill in properties
 	$.post("/dianne/builder", {"action" : "module-properties","type" : module.type}, 
 			function( data ) {
+				renderTemplate('form-item',
+					{
+						name: 'Name',
+						id: 'name',
+						value: module.name
+					}, dialog.find('.form-items'));
+				
 				$.each(data, function(index, property){
 					// Render toolbox item
 					renderTemplate('form-item',
@@ -138,6 +145,11 @@ function createBuildModuleDialog(id, moduleItem){
 					module[item.name] = item.value;
 				}
 			});
+			
+			// update name
+			var moduleItem = $('#'+id);
+			moduleItem.attr('name', module.name);
+			moduleItem.html('<strong>'+module.name+'</strong>');
 			
 			$(this).closest(".modal").modal('hide');
 		});

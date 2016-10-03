@@ -929,7 +929,7 @@ function redrawElement(id, posX, posY){
 
 	var moduleItem = renderTemplate("module",
 			{	
-				name: module.type,
+				name: module.name,
 				type: module.type, 
 				category: module.category,
 				mode: "build"
