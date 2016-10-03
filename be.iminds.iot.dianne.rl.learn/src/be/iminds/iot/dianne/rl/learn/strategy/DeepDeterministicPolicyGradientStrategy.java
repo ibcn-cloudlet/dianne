@@ -2,11 +2,9 @@ package be.iminds.iot.dianne.rl.learn.strategy;
 
 import java.util.Map;
 import java.util.UUID;
-import org.osgi.util.promise.Promise;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
-import be.iminds.iot.dianne.api.nn.NeuralNetworkResult;
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
@@ -75,9 +73,9 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 			ModuleInstanceDTO mdto = nndto.modules.get(iid);
 			String mname = mdto.module.properties.get("name");
 			
-			if(mname.equals("state"))
+			if(mname.equalsIgnoreCase("state"))
 				this.stateIn = iid;
-			else if(mname.equals("action"))
+			else if(mname.equalsIgnoreCase("action"))
 				this.actionIn = iid;
 		}
 		this.valueOut = this.critic.getOutput().getId();
@@ -115,32 +113,26 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 			Tensor action = interaction.getAction();
 			Tensor nextState = interaction.getNextState();
 			float reward = interaction.getReward();
+
+			UUID[] inputIds = new UUID[]{stateIn, actionIn};
+			UUID[] outputIds = new UUID[]{valueOut};
 			
 			targetValue.fill(reward);
 			
 			if(!interaction.isTerminal) {
 				Tensor nextAction = targetActor.forward(nextState);
 				
-				Promise<NeuralNetworkResult> p1 = targetCritic.forward(stateIn, valueOut, nextState);
-				Promise<NeuralNetworkResult> p2 = targetCritic.forward(actionIn, valueOut, nextAction);
-				p1.getValue();
-				TensorOps.add(targetValue, targetValue, config.discount, p2.getValue().tensor);
+				Tensor nextValue = targetCritic.forward(inputIds, outputIds, new Tensor[]{nextState, nextAction}).getValue().tensor;
+				TensorOps.add(targetValue, targetValue, config.discount, nextValue);
 			}
 			
-			Promise<NeuralNetworkResult> p1 = critic.forward(stateIn, valueOut, state);
-			Promise<NeuralNetworkResult> p2 = critic.forward(actionIn, valueOut, action);
-			p1.getValue();
-			Tensor currentValue = p2.getValue().tensor;
+			Tensor currentValue = critic.forward(inputIds, outputIds, new Tensor[]{state, action}).getValue().tensor;
 			
 			value += currentValue.get(0);
 			error += criterion.error(currentValue, targetValue).get(0);
 			Tensor criticGrad = criterion.error(currentValue, targetValue);
 			
-			p1 = critic.backward(valueOut, stateIn, criticGrad);
-			p2 = critic.backward(valueOut, actionIn, criticGrad);
-			p1.getValue();
-			p2.getValue();
-			
+			critic.backward(outputIds, inputIds, new Tensor[]{criticGrad}).getValue();
 			critic.accGradParameters();
 			
 			action = actor.forward(state);
@@ -155,18 +147,10 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 //			Tensor actorGrad = p2.getValue().tensor;
 			
 			// ... unfortunately we currently still need to forward the state part of the critic as well.
-			p1 = critic.forward(stateIn, valueOut, state);
-			p2 = critic.forward(actionIn, valueOut, action);
-			p1.getValue();
-			p2.getValue();
 			
+			critic.forward(inputIds, outputIds, new Tensor[]{state, action}).getValue();
 			criticGrad.fill(-1);
-			
-			p1 = critic.backward(valueOut, stateIn, criticGrad);
-			p2 = critic.backward(valueOut, actionIn, criticGrad);
-			p1.getValue();
-			Tensor actorGrad = p2.getValue().tensor;
-			
+			Tensor actorGrad = critic.backward(outputIds, inputIds, new Tensor[]{criticGrad}).getValue().tensors.get(actionIn);
 			actor.backward(actorGrad);
 			
 			actor.accGradParameters();
