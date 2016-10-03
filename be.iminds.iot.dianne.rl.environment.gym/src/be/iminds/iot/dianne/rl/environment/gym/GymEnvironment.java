@@ -25,6 +25,7 @@ package be.iminds.iot.dianne.rl.environment.gym;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -86,7 +87,9 @@ public class GymEnvironment implements Environment {
 					e.printStackTrace();
 				}
 			}).get();
-		} catch(Exception e){
+		} catch(InterruptedException e){
+			// ignore interrupted exceptions
+		} catch(ExecutionException e){
 			e.printStackTrace();
 		}
 	}
@@ -101,7 +104,9 @@ public class GymEnvironment implements Environment {
 					e.printStackTrace();
 				}
 			}).get();
-		} catch(Exception e){
+		} catch(InterruptedException e){
+			// ignore interrupted exceptions
+		} catch(ExecutionException e){
 			e.printStackTrace();
 		}
 	}
@@ -162,7 +167,9 @@ public class GymEnvironment implements Environment {
 				}
 				return 0.0f;
 			}).get();
-		} catch(Exception e){
+		} catch(InterruptedException e){
+			// ignore interrupted exceptions
+		} catch(ExecutionException e){
 			e.printStackTrace();
 		}
 		return 0;
@@ -192,7 +199,9 @@ public class GymEnvironment implements Environment {
 					e.printStackTrace();
 				}					
 			}).get();
-		} catch(Exception e){
+		} catch(InterruptedException e){
+			// ignore interrupted exceptions
+		} catch(ExecutionException e){
 			e.printStackTrace();
 		}
 	}
@@ -275,7 +284,9 @@ public class GymEnvironment implements Environment {
 					e.printStackTrace();
 				}
 			}).get();
-		} catch(Exception e){
+		} catch(InterruptedException e){
+			// ignore interrupted exceptions
+		} catch(ExecutionException e){
 			e.printStackTrace();
 		}
 		
@@ -373,7 +384,9 @@ public class GymEnvironment implements Environment {
 					e.printStackTrace();
 				}
 			}).get();
-		} catch(Exception e){
+		} catch(InterruptedException e){
+			// ignore interrupted exceptions
+		} catch(ExecutionException e){
 			e.printStackTrace();
 		}
 		
