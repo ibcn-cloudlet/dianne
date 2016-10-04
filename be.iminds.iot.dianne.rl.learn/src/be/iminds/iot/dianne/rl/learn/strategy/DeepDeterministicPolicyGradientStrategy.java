@@ -124,7 +124,7 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 				Promise<NeuralNetworkResult> p1 = targetCritic.forward(stateIn, valueOut, nextState);
 				Promise<NeuralNetworkResult> p2 = targetCritic.forward(actionIn, valueOut, nextAction);
 				p1.getValue();
-				TensorOps.add(targetValue, targetValue, p2.getValue().tensor);
+				TensorOps.add(targetValue, targetValue, config.discount, p2.getValue().tensor);
 			}
 			
 			Promise<NeuralNetworkResult> p1 = critic.forward(stateIn, valueOut, state);
