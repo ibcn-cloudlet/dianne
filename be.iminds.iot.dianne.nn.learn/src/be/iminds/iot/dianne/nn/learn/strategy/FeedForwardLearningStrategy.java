@@ -22,6 +22,7 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.learn.strategy;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import org.osgi.util.promise.Promise;
@@ -66,6 +67,11 @@ public class FeedForwardLearningStrategy implements LearningStrategy {
 	public void setup(Map<String, String> config, Dataset dataset, NeuralNetwork... nns) throws Exception {
 		this.dataset = dataset;
 		this.nn = nns[0];
+		
+		// Store the labels if classification dataset
+		String[] labels = dataset.getLabels();
+		if(labels!=null)
+			nn.setOutputLabels(labels);
 		
 		this.config = DianneConfigHandler.getConfig(config, FeedForwardConfig.class);
 		sampling = SamplingFactory.createSamplingStrategy(this.config.sampling, dataset, config);

@@ -141,12 +141,6 @@ public class LearnerImpl implements Learner {
 				if(dto != null){
 					NeuralNetwork nn = dianne.getNeuralNetwork(dto).getValue();
 					nns[n++] = nn;
-
-					// Store the labels if classification dataset
-					// TODO move this to learn strategy?!
-					String[] labels = dataset.getLabels();
-					if(labels!=null)
-						nn.setOutputLabels(labels);
 				}
 			}
 			
