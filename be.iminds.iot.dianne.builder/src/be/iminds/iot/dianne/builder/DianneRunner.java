@@ -181,12 +181,28 @@ public class DianneRunner extends HttpServlet {
 			String inputId = request.getParameter("input");
 			
 			JsonObject sample = parser.parse(request.getParameter("forward")).getAsJsonObject();
-			int channels = sample.get("channels").getAsInt();
-			int width = sample.get("width").getAsInt();
-			int height = sample.get("height").getAsInt();
-
-			float[] data = parseInput(sample.get("data").getAsJsonArray().toString());
-			Tensor t = new Tensor(data, channels, height, width);
+			JsonArray d = sample.get("dims").getAsJsonArray();
+			int[] dims = new int[d.size()];
+			for(int i=0;i<dims.length;i++){
+				dims[i] = d.get(i).getAsInt();
+			}
+			 
+			Tensor t = null;
+			
+			JsonArray dd = sample.get("data").getAsJsonArray();
+			if(dd==null || dd.size() == 0){
+				// fill random data
+				t = new Tensor(dims);
+				t.randn();
+			} else {
+				float[] data = parseInput(dd.toString());
+				if(data.length == 1){
+					t = new Tensor(dims);
+					t.fill(data[0]);
+				} else {
+					t = new Tensor(data, dims);
+				}
+			}
 			
 			start = System.currentTimeMillis();
 			nn.forward(UUID.fromString(inputId), null, t, "ui");

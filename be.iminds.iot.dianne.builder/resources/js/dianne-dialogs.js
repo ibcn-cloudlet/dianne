@@ -452,6 +452,19 @@ function createRunModuleDialog(id, moduleItem){
 		inputCanvas.addEventListener('touchend', upListener, false);
 		
 		
+	} else if(module.type==="RawInput"){
+		dialog = renderTemplate("dialog", {
+			id : id,
+			type: "canvas",
+			title : "Provide raw input data",
+			submit: "",
+			cancel: "Delete"
+		}, $(document.body));
+		
+		dialog.find(".content").append("<textarea class=\"rawinput\" rows=\"5\" cols=\"65\">{\"dims\":[x,y,z],\"data\":[0.0,0.0,...]}</textarea><br/><br/>");
+		
+		dialog.find(".content").append("<button class='btn' onclick='forwardRawInput(this, \""+module.input+"\")' style=\"margin-left:10px\">Submit</button>");
+		
 	} else if(module.category ==="Visualize"){
 		if(module.type ==="ProbabilityOutput"){		
 			dialog = renderTemplate("dialog", {
@@ -680,10 +693,7 @@ function forwardCanvasInput(input){
     
     // TODO hard coded for MNIST right now
     var sample = {};
-    sample.width = 28;
-    sample.height = 28;
-    sample.channels = 1;
-
+    sample.dims = [1, 28, 28];
 	for (var y = 0; y < 224; y+=8) {
         for (var x = 0; x < 224; x+=8) {
         	// collect alpha values
@@ -693,6 +703,15 @@ function forwardCanvasInput(input){
 	sample.data = array;
 	
 	$.post("/dianne/run", {"forward":JSON.stringify(sample), "input":input, "id":nn.id}, 
+			function( data ) {
+			}
+			, "json");
+}
+
+function forwardRawInput(btn, input){
+	var tensor = $(btn).closest(".modal").find(".rawinput").val();
+
+	$.post("/dianne/run", {"forward":tensor, "input":input, "id":nn.id}, 
 			function( data ) {
 			}
 			, "json");
