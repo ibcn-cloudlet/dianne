@@ -21,8 +21,11 @@ endif
 
 HEADERS := $(wildcard *.h)
 SRC := $(wildcard *.c)
-OBJECTS_CUTORCH := $(wildcard ../cutorch/*.o)
 OBJECTS=$(SRC:.c=.o)
+SRC_TORCH := $(wildcard ../torch/*.c)
+SRC_CUTORCH := $(wildcard ../cutorch/*.cu)
+OBJECTS_CUTORCH := $(SRC_CUTORCH:.cu=.o)
+OBJECTS_CUTORCH += $(addprefix ../cutorch/, $(notdir $(SRC_TORCH:.c=.o)))
 JAVAH := ../../../be.iminds.iot.dianne.tensor/generated/jni-headers
 LINKS := -L../cutorch/cunn/lib/THCUNN/build -lTHCUNN -L../cutorch/cutorch/lib/THC/build -lTHC -L../torch/torch7/lib/TH/build -lTH -L$(CUDA_TARGET)/lib -lcudnn -lcudart_static -lcublas_static -lstdc++ -lculibos -pthread
 INCLUDES += -I$(CUDA_TARGET)/include/
@@ -62,18 +65,15 @@ $(DEPLOY_DIR)/$(LIB): $(LIB)
 	mkdir -p $(DEPLOY_DIR)
 	cp $(LIB) $(DEPLOY_DIR)/$(LIB)	
 
-$(LIB): symbolcleanup
+$(LIB): symbolcleanup $(OBJECTS) $(OBJECTS_CUTORCH)
 	$(CXX) $(SHARED) $(CFLAGS) $(CCFLAGS) $(OBJECTS) $(OBJECTS_CUTORCH) $(LINKS) -o $(LIB)
 
 ## erase all Java_... methods implemented in CUDNNModuleOps from the torch ModuleOps
-symbolcleanup: $(OBJECTS) $(OBJECTS_TORCH)
+symbolcleanup: $(OBJECTS) $(OBJECTS_CUTORCH)
 	nm CudnnModuleOps.o | grep -o "Java_.*" > symbols
 	objcopy --strip-symbols=symbols ../cutorch/ModuleOps.o ../cutorch/ModuleOps.o
 	nm CudnnTensorLoader.o | grep -o "Java_.*" > symbols
 	objcopy --strip-symbols=symbols ../cutorch/TensorLoader.o ../cutorch/TensorLoader.o
-
-$(OBJECTS_TORCH):
-	$(MAKE) -C ../torch
 	
 %.o: %.c $(HEADERS) $(JAVAH)
 	$(NVCC) -x cu $(CFLAGS) $(NVCC_FLAGS) $(GEN_CODES) $(INCLUDES) -c $<
@@ -81,4 +81,8 @@ $(OBJECTS_TORCH):
 .PHONY: clean
 clean:
 	rm -f symbols
-	rm -f $(OBJECTS) $(LIB) 	
+	rm -f $(OBJECTS) $(LIB) $(DEPLOY_DIR)/$(LIB)
+	
+.PHONY: cleanall
+cleanall: clean
+	

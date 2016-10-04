@@ -28,3 +28,4 @@ torch:
 clean cleanall:
 	$(MAKE) -C torch $(MAKECMDGOALS);
 	$(MAKE) -C cutorch $(MAKECMDGOALS);
+	$(MAKE) -C cudnn $(MAKECMDGOALS);
