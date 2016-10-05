@@ -78,6 +78,11 @@ public abstract class AbstractModule implements Module {
 	// The prev module references
 	protected Module[] prev;
 	
+	// flag to indicate whether this module is currently used in training (set to true after backward is called)
+	// public visibility to be able to set this in junit test
+	// TODO use a get/setMethod instead that is controlled from learner?
+	public boolean train = false;
+	
 	// Boolean that indicates whether the next Module is still busy processing this module output
 	// Can be used to either skip or block here
 	protected AtomicBoolean nextBusy = new AtomicBoolean();
@@ -194,11 +199,14 @@ public abstract class AbstractModule implements Module {
 			t2 = System.nanoTime();
 			System.out.println("FORWARD "+this.id+" ("+this.getClass().getName()+") DONE in "+(t2-t1)+" ns");
 		}
+
+		// set train to false if only forward is called!
+		train = false;
 		
 		// dispatch to next
 		if(next!=null)
 			callNext();
-	
+
 	}
 	
 	protected abstract void forward();
@@ -216,6 +224,9 @@ public abstract class AbstractModule implements Module {
 			System.out.println("BACKWARD "+this.id+" ("+this.getClass().getName()+")  FROM "+moduleId+" "+(gradOutput == null ? "null":Arrays.toString(gradOutput.dims()))+" "+Arrays.toString(tags));
 			t1 = System.nanoTime();
 		}
+		
+		// backward is called, mark train true
+		this.train = true;
 		
 		this.gradOutput = gradOutput;
 		this.tags = tags;

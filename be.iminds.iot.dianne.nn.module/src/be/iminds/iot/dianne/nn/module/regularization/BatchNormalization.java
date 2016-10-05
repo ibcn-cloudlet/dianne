@@ -56,9 +56,6 @@ public class BatchNormalization extends AbstractTrainableModule{
 	private int[] inputDims;
 	private int[] bnDims;
 	
-	// TODO keep train flag for all modules?!
-	boolean train = false;
-	
 	public BatchNormalization(int size) {
 		super(new Tensor(4*size));
 		this.size = size;
@@ -139,15 +136,10 @@ public class BatchNormalization extends AbstractTrainableModule{
 		output = ModuleOps.batchnorm(output, input, weights, bias, rMean, rVar, sMean, sVar, train);
 		output.reshape(inputDims);
 		input.reshape(inputDims);
-		
-		// set train to false if only forward is called!
-		train = false;
 	}
 
 	@Override
 	protected void backward() {
-		train = true;
-		
 		if(deltaParameters==null){
 			initDeltaParameters(null);
 		}
