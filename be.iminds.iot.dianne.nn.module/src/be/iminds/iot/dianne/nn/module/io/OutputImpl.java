@@ -63,7 +63,7 @@ public class OutputImpl extends AbstractModule implements Output {
 
 	@Override
 	protected void backward() {
-		gradInput = gradOutput;
+		gradInput = gradOutput.copyInto(gradInput);
 	}
 	
 	@Override

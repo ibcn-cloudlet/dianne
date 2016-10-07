@@ -41,12 +41,12 @@ public class InputImpl extends AbstractModule implements Input {
 	
 	@Override
 	public void input(final Tensor input, final String... tags){
-		runExecutor.execute(()->forward(this.id, input, tags));
+		forward(this.id, input, tags);
 	}
 	
 	@Override
 	protected void forward() {
-		output = input;
+		output = input.copyInto(output);
 	}
 
 	@Override
