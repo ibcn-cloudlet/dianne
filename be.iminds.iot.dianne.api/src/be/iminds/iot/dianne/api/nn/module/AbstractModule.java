@@ -96,6 +96,7 @@ public abstract class AbstractModule implements Module {
 	// Listeners
 	protected Set<ForwardListener> fwdListeners = Collections.synchronizedSet(new HashSet<ForwardListener>());
 	protected Set<BackwardListener> bwListeners = Collections.synchronizedSet(new HashSet<BackwardListener>());
+	
 	// Avoid overload of Tensor creations for the listeners, keep one copy only
 	private Tensor outputListenersCopy;
 	private Tensor gradInputListenersCopy;
@@ -312,10 +313,14 @@ public abstract class AbstractModule implements Module {
 				});
 			} else {
 				outputListenersCopy = output.copyInto(outputListenersCopy);
+				final int[] dims = output.dims();
 				
 				listenerExecutor.execute(()->{
 					fwdListenersCopy.stream().forEach(
-							f -> f.onForward(id, outputListenersCopy, tagsCopy));
+							f -> {
+								outputListenersCopy.reshape(dims);
+								f.onForward(id, outputListenersCopy, tagsCopy);
+							});
 					
 					synchronized(fwdListeners){
 						forwardListenersBusy = false;
@@ -364,10 +369,14 @@ public abstract class AbstractModule implements Module {
 				});
 			} else {
 				gradInputListenersCopy = (gradInput==null ? null : gradInput.copyInto(gradInputListenersCopy));
+				final int[] dims = gradInput.dims();
 				
 				listenerExecutor.execute(()->{
 					bwListenersCopy.stream().forEach(
-							b->b.onBackward(id, gradInputListenersCopy, tagsCopy));
+							b-> {
+								gradInputListenersCopy.reshape(dims);
+								b.onBackward(id, gradInputListenersCopy, tagsCopy);
+							});
 					
 					synchronized(bwListeners){
 						backwardListenersBusy = false;
