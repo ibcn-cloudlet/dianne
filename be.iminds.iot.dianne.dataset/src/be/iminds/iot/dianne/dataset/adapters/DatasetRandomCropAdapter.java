@@ -93,15 +93,21 @@ public class DatasetRandomCropAdapter extends AbstractDatasetAdapter {
 		if(minWidth != maxWidth || minHeight != maxHeight)
 			return null;
 		
+		int[] dims = null;
 		int[] originalDims = data.inputDims();
-		int[] dims = new int[originalDims.length];
-		if(originalDims.length == 3){
-			dims[0] = originalDims[0];
-			dims[1] = maxHeight;
-			dims[2] = maxWidth;
+		if(originalDims == null){
+			// assume 3d images
+			dims = new int[]{3, maxHeight, maxWidth};
 		} else {
-			dims[0] = maxHeight;
-			dims[1] = maxWidth;
+			dims = new int[originalDims.length];
+			if(originalDims.length == 3){
+				dims[0] = originalDims[0];
+				dims[1] = maxHeight;
+				dims[2] = maxWidth;
+			} else {
+				dims[0] = maxHeight;
+				dims[1] = maxWidth;
+			}
 		}
 		
 		return dims;
