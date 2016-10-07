@@ -99,9 +99,12 @@ public class GenerativeAdverserialLearningStrategy implements LearningStrategy {
 		target.fill(0.85f);
 		
 		Tensor output = discriminator.forward(batch.input);
-		float error = criterion.error(output, target).get(0);
+		float d_error_positive = criterion.error(output, target).get(0);
 		Tensor gradOutput = criterion.grad(output, target);
 		discriminator.backward(gradOutput);
+		
+		// Keep gradients to the parameters
+		discriminator.accGradParameters();
 		
 		// Now sample a minibatch of generated data
 		random.randn();
@@ -109,10 +112,9 @@ public class GenerativeAdverserialLearningStrategy implements LearningStrategy {
 		target.fill(0.15f);
 		Tensor generated = generator.forward(random);
 		output = discriminator.forward(generated);
-		error += criterion.error(output, target).get(0);
+		float d_error_negative = criterion.error(output, target).get(0);
 		gradOutput = criterion.grad(output, target);
 		discriminator.backward(gradOutput);
-		
 		
 		// Update discriminator weights
 		discriminator.accGradParameters();
@@ -131,8 +133,9 @@ public class GenerativeAdverserialLearningStrategy implements LearningStrategy {
 				// Set DeltaParameters to be sure in case of remote module instance
 				m.setDeltaParameters(deltaParams);
 			});
-			
-			error /= config.batchSize;
+		
+			d_error_positive /= config.batchSize;
+			d_error_negative /= config.batchSize;
 		}
 		
 		discriminator.updateParameters();
@@ -140,17 +143,16 @@ public class GenerativeAdverserialLearningStrategy implements LearningStrategy {
 		
 		
 		// Now update the generator
-		// TODO do we need to do a new generation here?
 		random.randn();
-		// these should be classified as incorrect by discriminator
-		target.fill(0.15f);
+		// This should be classified correct by discriminator to get the gradient improving the generator
+		target.fill(0.85f);
 		generated = generator.forward(random);
 		output = discriminator.forward(generated);
-		float error2 = criterion.error(output, target).get(0);
+		
+		float g_error = criterion.error(output, target).get(0);
 		gradOutput = criterion.grad(output, target);
 		Tensor gradInput = discriminator.backward(gradOutput);
 		generator.backward(gradInput);
-		
 		
 		// Update generator weights
 		generator.accGradParameters();
@@ -170,14 +172,14 @@ public class GenerativeAdverserialLearningStrategy implements LearningStrategy {
 				m.setDeltaParameters(deltaParams);
 			});
 			
-			error2 /= config.batchSize;
+			g_error /= config.batchSize;
 		}
 		
 		// Update parameters
 		generator.updateParameters();
 		
 		
-		return new LearnProgress(i, error);
+		return new GenerativeAdverserialLearnProgress(i, d_error_positive, d_error_negative, g_error);
 	}
 
 }
