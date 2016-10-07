@@ -50,15 +50,26 @@ public class Dropout extends AbstractModule {
 			mask = new Tensor(input.dims());
 		}
 		
-		mask.bernoulli(p);
-		TensorOps.div(mask, mask, p);
+		if(p < 1 && train) {
 		
-		output = TensorOps.cmul(output, input, mask);
+			mask.bernoulli(p);
+			TensorOps.div(mask, mask, p);
+		
+			output = TensorOps.cmul(output, input, mask);
+		
+		} else {
+			// just forward
+			output = input;
+		}
 	}
 
 	@Override
 	protected void backward() {
-		gradInput = TensorOps.cmul(gradInput, gradOutput, mask);
+		if(p < 1 ){
+			gradInput = TensorOps.cmul(gradInput, gradOutput, mask);
+		} else {
+			gradInput = gradOutput;
+		}
 	}
 
 }
