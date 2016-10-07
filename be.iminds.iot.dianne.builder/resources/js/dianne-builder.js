@@ -148,7 +148,7 @@ function checkKeyReleased(e) {
 $( document ).ready(function() {
 	// show correct mode
 	setModus(currentMode);
-	$("#toolbox").mCustomScrollbar({ theme: "minimal" });
+	$("#toolbox").mCustomScrollbar({ theme:"minimal" });
 	$("#spinnerwrap").hide();
 });
 
@@ -243,7 +243,7 @@ function addToolboxItem(name, type, category, mode){
 	var panel = $('#toolbox').find('.'+category);
 	if(panel.length===0){
 		$("<div>"  +
-			"<h4 data-toggle=\"collapse\" data-target=\"."+category+"\">"+category+"</h4>"+	
+			"<h3 href=\"#\" data-toggle=\"collapse\" data-target=\"."+category+"\">" + category+"</h3>"+	
 			"<div class=\""+category+" collapse in row\"></div>" +
 		  "</div>").appendTo($('#toolbox .mCSB_container'));
 		panel = $('#toolbox').find('.'+category);
