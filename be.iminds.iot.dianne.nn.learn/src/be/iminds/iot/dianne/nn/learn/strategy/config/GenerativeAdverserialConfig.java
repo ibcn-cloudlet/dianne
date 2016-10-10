@@ -22,7 +22,6 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.learn.strategy.config;
 
-import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory.CriterionConfig;
 import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory.ProcessorConfig;
 import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory.SamplingConfig;
 
@@ -32,11 +31,6 @@ public class GenerativeAdverserialConfig {
 	 * Batch size in which samples are processed before updating parameters
 	 */
 	public int batchSize = 10;
-	
-	/**
-	 * Average the accumulated gradients and error over the batch (divide by batchSize)
-	 */
-	public boolean batchAverage = true;
 	
 	/**
 	 * The gradient optimization method to use

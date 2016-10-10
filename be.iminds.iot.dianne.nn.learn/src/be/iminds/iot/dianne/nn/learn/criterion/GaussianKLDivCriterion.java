@@ -1,6 +1,7 @@
 package be.iminds.iot.dianne.nn.learn.criterion;
 
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
+import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory.BatchConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
@@ -13,9 +14,15 @@ public class GaussianKLDivCriterion implements Criterion {
 	protected Tensor sqTarStdev;
 	protected Tensor invOutStdev;
 	
-	protected Tensor error;
+	protected Tensor loss;
 	protected Tensor grad;
 
+	protected BatchConfig b;
+	
+	public GaussianKLDivCriterion(BatchConfig b) {
+		this.b = b;
+	}
+	
 	@Override
 	public Tensor loss(Tensor output, Tensor target) {
 		int dim = output.dim()-1;
@@ -27,20 +34,24 @@ public class GaussianKLDivCriterion implements Criterion {
 		Tensor tarStdev = target.narrow(dim, size, size);
 		
 		meanDiff = TensorOps.sub(meanDiff, tarMean, outMean);
-		error = TensorOps.cdiv(error, meanDiff, tarStdev);
-		TensorOps.cmul(error, error, error);
+		loss = TensorOps.cdiv(loss, meanDiff, tarStdev);
+		TensorOps.cmul(loss, loss, loss);
 		
 		stdevRatio = TensorOps.cdiv(stdevRatio, outStdev, tarStdev);
 		TensorOps.cmul(stdevRatio, stdevRatio, stdevRatio);
-		TensorOps.add(error, error, stdevRatio);
+		TensorOps.add(loss, loss, stdevRatio);
 		
 		logStdevRatio = TensorOps.log(logStdevRatio, stdevRatio);
-		TensorOps.sub(error, error, logStdevRatio);
+		TensorOps.sub(loss, loss, logStdevRatio);
 		
-		TensorOps.sub(error, error, 1);
-		TensorOps.div(error, error, 2);
+		TensorOps.sub(loss, loss, 1);
+		TensorOps.div(loss, loss, 2);
 		
-		return new Tensor(new float[]{TensorOps.sum(error)} , 1);
+		if(b.batchSize > 1 && b.batchAverage){
+			return new Tensor(new float[]{TensorOps.sum(loss)/b.batchSize}, 1);
+		} else {
+			return new Tensor(new float[]{TensorOps.sum(loss)}, 1);
+		}
 	}
 
 	@Override
@@ -65,6 +76,10 @@ public class GaussianKLDivCriterion implements Criterion {
 		TensorOps.cdiv(gradStdev, gradStdev, sqTarStdev);
 		TensorOps.sub(gradStdev, gradStdev, invOutStdev);
 		
+		if(b.batchSize > 1 && b.batchAverage){
+			TensorOps.div(grad, grad, b.batchSize);
+		}
+			
 		return grad;
 	}
 

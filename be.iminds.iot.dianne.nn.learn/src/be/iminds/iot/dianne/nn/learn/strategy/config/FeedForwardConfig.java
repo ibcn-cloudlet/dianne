@@ -34,12 +34,7 @@ public class FeedForwardConfig {
 	public int batchSize = 10;
 	
 	/**
-	 * Average the accumulated gradients and error over the batch (divide by batchSize)
-	 */
-	public boolean batchAverage = true;
-	
-	/**
-	 * The criterion to use to evaluate the error between output and target
+	 * The criterion to use to evaluate the loss between output and target
 	 */
 	public CriterionConfig criterion = CriterionConfig.MSE;
 	

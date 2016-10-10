@@ -1,6 +1,7 @@
 package be.iminds.iot.dianne.nn.learn.criterion;
 
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
+import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory.BatchConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
@@ -20,8 +21,14 @@ public class BCECriterion implements Criterion {
 	protected Tensor logOut;
 	protected Tensor logInvOut;
 	
-	protected Tensor error;
+	protected Tensor loss;
 	protected Tensor grad;
+	
+	protected BatchConfig b;
+	
+	public BCECriterion(BatchConfig b) {
+		this.b = b;
+	}
 	
 	@Override
 	public Tensor loss(Tensor output, Tensor target) {
@@ -39,10 +46,14 @@ public class BCECriterion implements Criterion {
 		logOut = TensorOps.log(logOut, epsOut);
 		logInvOut = TensorOps.log(logInvOut, epsInvOut);
 		
-		error = TensorOps.cmul(error, target, logOut);
-		TensorOps.addcmul(error, error, 1, invTar, logInvOut);
+		loss = TensorOps.cmul(loss, target, logOut);
+		TensorOps.addcmul(loss, loss, 1, invTar, logInvOut);
 		
-		return new Tensor(new float[]{-TensorOps.sum(error)}, 1);
+		if(b.batchSize > 1 && b.batchAverage){
+			return new Tensor(new float[]{-TensorOps.sum(loss)/b.batchSize}, 1);
+		} else {
+			return new Tensor(new float[]{-TensorOps.sum(loss)}, 1);
+		}
 	}
 
 	@Override
@@ -59,6 +70,10 @@ public class BCECriterion implements Criterion {
 		
 		TensorOps.cdiv(grad, grad, epsOut);
 		TensorOps.cdiv(grad, grad, epsInvOut);
+		
+		if(b.batchSize > 1 && b.batchAverage){
+			TensorOps.div(grad, grad, b.batchSize);
+		}
 		
 		return grad;
 	}

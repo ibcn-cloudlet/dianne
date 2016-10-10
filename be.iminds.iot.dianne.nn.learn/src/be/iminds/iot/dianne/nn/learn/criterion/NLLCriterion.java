@@ -23,6 +23,7 @@
 package be.iminds.iot.dianne.nn.learn.criterion;
 
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
+import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory.BatchConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
@@ -36,12 +37,15 @@ import be.iminds.iot.dianne.tensor.TensorOps;
  */
 public class NLLCriterion implements Criterion {
 
-	protected Tensor gradInput;
-	protected Tensor nll;
+	protected Tensor grad;
+	protected Tensor loss;
 	protected Tensor log = null;
 	
-	public NLLCriterion() {
-		this.nll = new Tensor(1);
+	protected BatchConfig b;
+	
+	public NLLCriterion(BatchConfig b) {
+		this.b = b;
+		this.loss = new Tensor(1);
 	}
 	
 	@Override
@@ -51,25 +55,34 @@ public class NLLCriterion implements Criterion {
 			// output comes from LogSoftmax, no log required
 			// this should be numerically more stable
 			float ll = TensorOps.dot(output, target);
-			nll.set(-ll, 0);
+			loss.set(-ll, 0);
 		} else {
 			// calculate negative log 
 			log = TensorOps.log(log, output);
 			float ll = TensorOps.dot(log, target);
-			nll.set(-ll, 0);
+			loss.set(-ll, 0);
 		}
 	
-		return nll;
+		if(b.batchSize > 1 && b.batchAverage){
+			TensorOps.div(loss, loss, b.batchSize);
+		}
+		
+		return loss;
 	}
 
 	@Override
 	public Tensor grad(final Tensor output, final Tensor target) {
 		if(log != null){
-			gradInput = TensorOps.cdiv(gradInput, target, output);
-			gradInput = TensorOps.mul(gradInput, gradInput, -1.0f);
+			grad = TensorOps.cdiv(grad, target, output);
+			grad = TensorOps.mul(grad, grad, -1.0f);
 		} else {
-			gradInput = TensorOps.mul(gradInput, target, -1.0f);
+			grad = TensorOps.mul(grad, target, -1.0f);
 		}
-		return gradInput;
+		
+		if(b.batchSize > 1 && b.batchAverage){
+			TensorOps.div(grad, grad, b.batchSize);
+		}
+		
+		return grad;
 	}
 }

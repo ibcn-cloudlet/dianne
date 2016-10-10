@@ -31,7 +31,7 @@ import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 
 public class SamplingFactory {
 	
-	public enum SamplingConfig {
+	public static enum SamplingConfig {
 		UNIFORM,
 		WEIGHTED,
 		SEQUENTIAL,

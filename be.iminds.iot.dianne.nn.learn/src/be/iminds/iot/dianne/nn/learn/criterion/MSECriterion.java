@@ -23,6 +23,7 @@
 package be.iminds.iot.dianne.nn.learn.criterion;
 
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
+import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory.BatchConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
@@ -35,13 +36,16 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 public class MSECriterion implements Criterion {
 
 	private Tensor diff;
-	private Tensor error;
+	private Tensor loss;
 	private Tensor grad;
 	
 	private float div = 1;
 	
-	public MSECriterion() {
-		this.error = new Tensor(1);
+	protected BatchConfig b;
+	
+	public MSECriterion(BatchConfig b) {
+		this.b = b;
+		this.loss = new Tensor(1);
 	}
 	
 	@Override
@@ -61,13 +65,23 @@ public class MSECriterion implements Criterion {
 		} else {
 			div = output.size();
 		}
-		error.set(TensorOps.dot(diff, diff) / div, 0);		
-		return error;
+		loss.set(TensorOps.dot(diff, diff) / div, 0);	
+		
+		if(b.batchSize > 1 && b.batchAverage){
+			TensorOps.div(loss, loss, b.batchSize);
+		}
+		
+		return loss;
 	}
 
 	@Override
 	public Tensor grad(final Tensor output, final Tensor target) {
 		grad = TensorOps.mul(grad, diff, 2.0f / div);
+		
+		if(b.batchSize > 1 && b.batchAverage){
+			TensorOps.div(grad, grad, b.batchSize);
+		}
+		
 		return grad;
 	}
 

@@ -15,6 +15,7 @@ import be.iminds.iot.dianne.api.nn.learn.LearningStrategy;
 import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory;
 import be.iminds.iot.dianne.nn.learn.criterion.GaussianKLDivCriterion;
+import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory.BatchConfig;
 import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory;
 import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory;
 import be.iminds.iot.dianne.nn.learn.strategy.config.FeedForwardConfig;
@@ -79,8 +80,8 @@ public class VariationalAutoEncoderLearningStrategy implements LearningStrategy 
 		
 		// Set criteria
 		// TODO: set regularization criterion based on modeled distributions
-		this.reconCriterion = CriterionFactory.createCriterion(this.config.criterion);
-		this.regulCriterion = new GaussianKLDivCriterion();
+		this.reconCriterion = CriterionFactory.createCriterion(this.config.criterion, config);
+		this.regulCriterion = new GaussianKLDivCriterion(DianneConfigHandler.getConfig(config, BatchConfig.class));
 		
 		// Set prior distribution parameters = standard normal
 		this.prior = new Tensor(this.config.batchSize, 2*this.latentDims);
@@ -144,16 +145,7 @@ public class VariationalAutoEncoderLearningStrategy implements LearningStrategy 
 		
 		// Accumulate gradients in delta params
 		encoder.accGradParameters();
-		
-		if(config.batchAverage) {
-			// Divide by batchSize in order to have learning rate independent of batchSize
-			batchAverage(encoder, config.batchSize);
-			batchAverage(decoder, config.batchSize);
-			
-			reconstructionError /= config.batchSize;
-			regularizationError /= config.batchSize;
-		}
-		
+
 		// Run gradient processors
 		encoderProcessor.calculateDelta(i);
 		decoderProcessor.calculateDelta(i);
@@ -185,14 +177,4 @@ public class VariationalAutoEncoderLearningStrategy implements LearningStrategy 
 		TensorOps.addcmul(gradStdevs, gradStdevs, 1, latentGrad, random);
 	}
 	
-	private static void batchAverage(NeuralNetwork nn, int batchSize) {
-		nn.getTrainables().values().stream().forEach(m -> {
-			Tensor deltaParams = m.getDeltaParameters();
-			
-			TensorOps.div(deltaParams, deltaParams, batchSize);
-			
-			// Set DeltaParameters to be sure in case of remote module instance
-			m.setDeltaParameters(deltaParams);
-		});
-	}
 }

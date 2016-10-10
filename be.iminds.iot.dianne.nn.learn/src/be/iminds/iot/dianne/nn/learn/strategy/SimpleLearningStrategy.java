@@ -58,7 +58,7 @@ public class SimpleLearningStrategy implements LearningStrategy {
 		
 		this.config = DianneConfigHandler.getConfig(config, FeedForwardConfig.class);
 		sampling = SamplingFactory.createSamplingStrategy(this.config.sampling, dataset, config);
-		criterion = CriterionFactory.createCriterion(this.config.criterion);
+		criterion = CriterionFactory.createCriterion(this.config.criterion, config);
 		gradientProcessor = ProcessorFactory.createGradientProcessor(this.config.method, nn, config);
 	}
 

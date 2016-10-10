@@ -82,7 +82,7 @@ public class DeepQLearningStrategy implements LearningStrategy {
 		
 		this.config = DianneConfigHandler.getConfig(config, DeepQConfig.class);
 		sampling = SamplingFactory.createSamplingStrategy(this.config.sampling, dataset, config);
-		criterion = CriterionFactory.createCriterion(this.config.criterion);
+		criterion = CriterionFactory.createCriterion(this.config.criterion, config);
 		gradientProcessor = ProcessorFactory.createGradientProcessor(this.config.method, nn, config);
 		
 		// wait until experience pool has a sufficient amount of samples

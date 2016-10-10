@@ -35,7 +35,7 @@ public class CriterionEvaluationStrategy extends AbstractEvaluationStrategy {
 	
 	@Override
 	protected void init(Map<String, String> config) {
-		criterion = CriterionFactory.createCriterion(super.config.criterion);
+		criterion = CriterionFactory.createCriterion(super.config.criterion, config);
 	}
 
 	protected float eval(Tensor output, Tensor target){

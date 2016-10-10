@@ -22,11 +22,14 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.learn.criterion;
 
+import java.util.Map;
+
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
+import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 
 public class CriterionFactory {
 	
-	public enum CriterionConfig {
+	public static enum CriterionConfig {
 		MSE,
 		NLL,
 		ABS,
@@ -34,24 +37,34 @@ public class CriterionFactory {
 		GKL
 	}
 	
-	public static Criterion createCriterion(CriterionConfig c){
+	public static class BatchConfig {
+		
+		public int batchSize = 10;
+		
+		public boolean batchAverage = true;
+		
+	}
+	
+	public static Criterion createCriterion(CriterionConfig c, Map<String, String> config){
 		Criterion criterion = null;
+		
+		BatchConfig b = DianneConfigHandler.getConfig(config, BatchConfig.class);
 		
 		switch(c) {
 		case ABS :
-			criterion = new AbsCriterion();
+			criterion = new AbsCriterion(b);
 			break;
 		case NLL :
-			criterion = new NLLCriterion();
+			criterion = new NLLCriterion(b);
 			break;
 		case BCE :
-			criterion = new BCECriterion();
+			criterion = new BCECriterion(b);
 			break;
 		case GKL :
-			criterion = new GaussianKLDivCriterion();
+			criterion = new GaussianKLDivCriterion(b);
 			break;
 		default:
-			criterion = new MSECriterion();
+			criterion = new MSECriterion(b);
 			break;
 		}
 		

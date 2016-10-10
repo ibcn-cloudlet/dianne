@@ -75,7 +75,7 @@ public class FeedForwardLearningStrategy implements LearningStrategy {
 		
 		this.config = DianneConfigHandler.getConfig(config, FeedForwardConfig.class);
 		sampling = SamplingFactory.createSamplingStrategy(this.config.sampling, dataset, config);
-		criterion = CriterionFactory.createCriterion(this.config.criterion);
+		criterion = CriterionFactory.createCriterion(this.config.criterion, config);
 		gradientProcessor = ProcessorFactory.createGradientProcessor(this.config.method, nn, config);
 	}
 
@@ -158,21 +158,6 @@ public class FeedForwardLearningStrategy implements LearningStrategy {
 			
 			// Load next batch
 			nextBatch = dataset.getBatch(nextBatch, sampling.next(config.batchSize));
-		}
-
-		// Batch done, calculate deltas
-		if(config.batchAverage) {
-			// Divide by batchSize in order to have learning rate independent of batchSize
-			nn.getTrainables().values().stream().forEach(m -> {
-				Tensor deltaParams = m.getDeltaParameters();
-	
-				TensorOps.div(deltaParams, deltaParams, config.batchSize);
-		
-				// Set DeltaParameters to be sure in case of remote module instance
-				m.setDeltaParameters(deltaParams);
-			});
-			
-			error[0] /= config.batchSize;
 		}
 		
 		// Run gradient processors

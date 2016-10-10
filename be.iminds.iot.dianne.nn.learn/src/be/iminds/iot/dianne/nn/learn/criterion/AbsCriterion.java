@@ -23,6 +23,7 @@
 package be.iminds.iot.dianne.nn.learn.criterion;
 
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
+import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory.BatchConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
@@ -36,25 +37,38 @@ public class AbsCriterion implements Criterion {
 	
 	protected Tensor diff;
 	protected Tensor absdiff;
-	protected Tensor error;
+	protected Tensor loss;
 	protected Tensor grad;
 	
-	public AbsCriterion() {
-		this.error = new Tensor(1);
+	protected BatchConfig b;
+	
+	public AbsCriterion(BatchConfig b) {
+		this.b = b;
+		this.loss = new Tensor(1);
 	}
 	
 	@Override
 	public Tensor loss(final Tensor output, final Tensor target) {
 		diff = TensorOps.sub(diff, output, target);
 		absdiff = TensorOps.abs(absdiff, diff);
-		error.set(TensorOps.sum(absdiff) / (output.dim() == 2 ? output.size(1) : output.size(0)), 0);
-		return error;
+		loss.set(TensorOps.sum(absdiff) / (output.dim() == 2 ? output.size(1) : output.size(0)), 0);
+		
+		if(b.batchSize > 1 && b.batchAverage){
+			TensorOps.div(loss, loss, b.batchSize);
+		}
+		
+		return loss;
 	}
 
 	@Override
 	public Tensor grad(final Tensor output, final Tensor target) {
 		grad = TensorOps.sign(grad, diff);
 		grad = TensorOps.mul(grad, grad, 1.0f / (output.dim() == 2 ? output.size(1) : output.size(0)));
+		
+		if(b.batchSize > 1 && b.batchAverage){
+			TensorOps.div(grad, grad, b.batchSize);
+		}
+		
 		return grad;
 	}
 }

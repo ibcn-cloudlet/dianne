@@ -53,7 +53,7 @@ public class VariationalAutoEncoderEvaluationStrategy implements EvaluationStrat
 		this.config = DianneConfigHandler.getConfig(config, EvaluationStrategyConfig.class);
 		
 		this.indices = new int[this.config.batchSize];
-		this.criterion = CriterionFactory.createCriterion(this.config.criterion);
+		this.criterion = CriterionFactory.createCriterion(this.config.criterion, config);
 		
 		if(this.config.includeOutputs)
 			this.params = new ArrayList<Tensor>(dataset.size());

@@ -38,7 +38,7 @@ import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 
 public class ProcessorFactory {
 	
-	public enum ProcessorConfig {
+	public static enum ProcessorConfig {
 		SGD,
 		ADADELTA,
 		ADAGRAD,

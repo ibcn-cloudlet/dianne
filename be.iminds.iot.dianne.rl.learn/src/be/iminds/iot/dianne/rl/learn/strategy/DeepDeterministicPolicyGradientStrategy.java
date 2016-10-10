@@ -69,7 +69,7 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 		
 		this.config = DianneConfigHandler.getConfig(config, DeepQConfig.class);
 		this.sampling = SamplingFactory.createSamplingStrategy(this.config.sampling, dataset, config);
-		this.criterion = CriterionFactory.createCriterion(this.config.criterion);
+		this.criterion = CriterionFactory.createCriterion(this.config.criterion, config);
 		this.actorProcessor = ProcessorFactory.createGradientProcessor(this.config.method, actor, config);
 		this.criticProcessor = ProcessorFactory.createGradientProcessor(this.config.method, critic, config);
 		
@@ -171,12 +171,6 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 		actor.backward(actorGrad);
 		actor.accGradParameters();
 		
-		// Average over the batch
-		error /= config.batchSize;
-		value /= config.batchSize;
-		batchAverage(actor, config.batchSize);
-		batchAverage(critic, config.batchSize);
-		
 		// Call the processors to set the updates
 		actorProcessor.calculateDelta(i);
 		criticProcessor.calculateDelta(i);
@@ -189,14 +183,4 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 		return new QLearnProgress(i, error, value);
 	}
 
-	private static void batchAverage(NeuralNetwork nn, int batchSize) {
-		nn.getTrainables().values().stream().forEach(m -> {
-			Tensor deltaParams = m.getDeltaParameters();
-			
-			TensorOps.div(deltaParams, deltaParams, batchSize);
-			
-			// Set DeltaParameters to be sure in case of remote module instance
-			m.setDeltaParameters(deltaParams);
-		});
-	}
 }

@@ -1,7 +1,9 @@
 package be.iminds.iot.dianne.nn.learn.criterion;
 
 import org.junit.Before;
+
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
+import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory.BatchConfig;
 
 public class GaussianKLDivCriterionTest extends AbstractCriterionTest {
 	
@@ -15,7 +17,9 @@ public class GaussianKLDivCriterionTest extends AbstractCriterionTest {
 	
 	@Override
 	protected Criterion newCriterion() {
-		return new GaussianKLDivCriterion();
+		BatchConfig b = new BatchConfig();
+		b.batchSize = 1;
+		return new GaussianKLDivCriterion(b);
 	}
 	
 }

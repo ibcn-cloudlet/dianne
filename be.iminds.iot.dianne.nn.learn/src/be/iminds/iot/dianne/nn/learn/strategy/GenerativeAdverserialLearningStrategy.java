@@ -77,7 +77,7 @@ public class GenerativeAdverserialLearningStrategy implements LearningStrategy {
 		
 		this.config = DianneConfigHandler.getConfig(config, GenerativeAdverserialConfig.class);
 		sampling = SamplingFactory.createSamplingStrategy(this.config.sampling, dataset, config);
-		criterion = CriterionFactory.createCriterion(CriterionConfig.BCE);
+		criterion = CriterionFactory.createCriterion(CriterionConfig.BCE, config);
 		gradientProcessorG = ProcessorFactory.createGradientProcessor(this.config.method, generator, config);
 		gradientProcessorD = ProcessorFactory.createGradientProcessor(this.config.method, discriminator, config);
 		
@@ -122,25 +122,7 @@ public class GenerativeAdverserialLearningStrategy implements LearningStrategy {
 		// Run gradient processors
 		gradientProcessorD.calculateDelta(i);
 		
-		// Batch done, calculate deltas
-		if(config.batchAverage) {
-			// Divide by batchSize in order to have learning rate independent of batchSize
-			discriminator.getTrainables().values().stream().forEach(m -> {
-				Tensor deltaParams = m.getDeltaParameters();
-	
-				TensorOps.div(deltaParams, deltaParams, config.batchSize);
-		
-				// Set DeltaParameters to be sure in case of remote module instance
-				m.setDeltaParameters(deltaParams);
-			});
-		
-			d_error_positive /= config.batchSize;
-			d_error_negative /= config.batchSize;
-		}
-		
 		discriminator.updateParameters();
-		
-		
 		
 		// Now update the generator
 		random.randn();
@@ -160,24 +142,8 @@ public class GenerativeAdverserialLearningStrategy implements LearningStrategy {
 		// Run gradient processors
 		gradientProcessorG.calculateDelta(i);
 		
-		// Batch done, calculate deltas
-		if(config.batchAverage) {
-			// Divide by batchSize in order to have learning rate independent of batchSize
-			generator.getTrainables().values().stream().forEach(m -> {
-				Tensor deltaParams = m.getDeltaParameters();
-	
-				TensorOps.div(deltaParams, deltaParams, config.batchSize);
-		
-				// Set DeltaParameters to be sure in case of remote module instance
-				m.setDeltaParameters(deltaParams);
-			});
-			
-			g_error /= config.batchSize;
-		}
-		
 		// Update parameters
 		generator.updateParameters();
-		
 		
 		return new GenerativeAdverserialLearnProgress(i, d_error_positive, d_error_negative, g_error);
 	}
