@@ -24,7 +24,7 @@ public class BCECriterion implements Criterion {
 	protected Tensor grad;
 	
 	@Override
-	public Tensor error(Tensor output, Tensor target) {
+	public Tensor loss(Tensor output, Tensor target) {
 		this.output = output;
 		this.target = target;
 		

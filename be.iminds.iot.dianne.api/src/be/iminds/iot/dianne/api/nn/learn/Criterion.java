@@ -35,13 +35,13 @@ import be.iminds.iot.dianne.tensor.Tensor;
 public interface Criterion {
 
 	/**
-	 * Returns the error metric when comparing the actual output with a target output
+	 * Returns the loss when comparing the actual output with a target output
 	 * 
 	 * @param output the neural network output
 	 * @param target the desired target output
-	 * @return an error metric for the output
+	 * @return the loss for the output
 	 */
-	Tensor error(final Tensor output, final Tensor target);
+	Tensor loss(final Tensor output, final Tensor target);
 	
 	/**
 	 * Returns gradient feeding into the Output Module backwards for training

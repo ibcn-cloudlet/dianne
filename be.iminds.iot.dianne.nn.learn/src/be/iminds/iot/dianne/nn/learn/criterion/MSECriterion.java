@@ -45,7 +45,7 @@ public class MSECriterion implements Criterion {
 	}
 	
 	@Override
-	public Tensor error(final Tensor output, final Tensor target) {
+	public Tensor loss(final Tensor output, final Tensor target) {
 		diff = TensorOps.sub(diff, output, target);
 		
 		// to determine if it is batch or not ... use following rule of thumb

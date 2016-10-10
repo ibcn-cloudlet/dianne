@@ -30,7 +30,7 @@ public abstract class AbstractCriterionTest {
 		for(int i = 0; i < out.length; i++) {
 			Criterion c = newCriterion();
 			
-			float l = c.error(
+			float l = c.loss(
 					new Tensor(out[i],out[i].length),
 					new Tensor(tar[i],tar[i].length)).get(0);
 			

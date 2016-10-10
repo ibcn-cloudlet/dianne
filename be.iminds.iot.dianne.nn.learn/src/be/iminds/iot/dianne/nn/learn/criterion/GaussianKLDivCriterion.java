@@ -17,7 +17,7 @@ public class GaussianKLDivCriterion implements Criterion {
 	protected Tensor grad;
 
 	@Override
-	public Tensor error(Tensor output, Tensor target) {
+	public Tensor loss(Tensor output, Tensor target) {
 		int dim = output.dim()-1;
 		int size = output.size(dim)/2;
 		

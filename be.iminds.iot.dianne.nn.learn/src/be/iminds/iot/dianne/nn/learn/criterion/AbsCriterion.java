@@ -44,7 +44,7 @@ public class AbsCriterion implements Criterion {
 	}
 	
 	@Override
-	public Tensor error(final Tensor output, final Tensor target) {
+	public Tensor loss(final Tensor output, final Tensor target) {
 		diff = TensorOps.sub(diff, output, target);
 		absdiff = TensorOps.abs(absdiff, diff);
 		error.set(TensorOps.sum(absdiff) / (output.dim() == 2 ? output.size(1) : output.size(0)), 0);

@@ -88,7 +88,7 @@ public class VariationalAutoEncoderEvaluationStrategy implements EvaluationStrat
 			for(int b=0; b<indices.length; b++)
 				params.add(latentParams.select(0, b).copyInto(null));
 		
-		error += criterion.error(output, batch.target).get(0);
+		error += criterion.loss(output, batch.target).get(0);
 		
 		return progress = new EvaluationProgress(i+indices.length, dataset.size(), (float) (error/(i+indices.length)));
 	}

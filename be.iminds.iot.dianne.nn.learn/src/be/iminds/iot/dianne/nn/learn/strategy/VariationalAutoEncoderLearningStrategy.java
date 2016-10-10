@@ -118,7 +118,7 @@ public class VariationalAutoEncoderLearningStrategy implements LearningStrategy 
 			
 			// Reconstruction error & gradient on decoder (outputParams => reconstructionError,reconstructionGrad)
 			// Note: scaling here is easier than outside this loop
-			reconstructionError += reconCriterion.error(outputParams, batch.target).get(0)/sampleSize;
+			reconstructionError += reconCriterion.loss(outputParams, batch.target).get(0)/sampleSize;
 			Tensor reconstructionGrad = reconCriterion.grad(outputParams, batch.target);
 			TensorOps.div(reconstructionGrad, reconstructionGrad, sampleSize);
 			
@@ -133,7 +133,7 @@ public class VariationalAutoEncoderLearningStrategy implements LearningStrategy 
 		}
 		
 		// Regularization error & gradient (latentParams => regularizationError,regularizationGrad)
-		float regularizationError = regulCriterion.error(latentParams, prior).get(0);
+		float regularizationError = regulCriterion.loss(latentParams, prior).get(0);
 		Tensor regularizationGrad = regulCriterion.grad(latentParams, prior);
 		
 		// Add to latent gradient

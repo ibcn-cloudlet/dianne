@@ -99,7 +99,7 @@ public class GenerativeAdverserialLearningStrategy implements LearningStrategy {
 		target.fill(0.85f);
 		
 		Tensor output = discriminator.forward(batch.input);
-		float d_error_positive = criterion.error(output, target).get(0);
+		float d_error_positive = criterion.loss(output, target).get(0);
 		Tensor gradOutput = criterion.grad(output, target);
 		discriminator.backward(gradOutput);
 		
@@ -112,7 +112,7 @@ public class GenerativeAdverserialLearningStrategy implements LearningStrategy {
 		target.fill(0.15f);
 		Tensor generated = generator.forward(random);
 		output = discriminator.forward(generated);
-		float d_error_negative = criterion.error(output, target).get(0);
+		float d_error_negative = criterion.loss(output, target).get(0);
 		gradOutput = criterion.grad(output, target);
 		discriminator.backward(gradOutput);
 		
@@ -149,7 +149,7 @@ public class GenerativeAdverserialLearningStrategy implements LearningStrategy {
 		generated = generator.forward(random);
 		output = discriminator.forward(generated);
 		
-		float g_error = criterion.error(output, target).get(0);
+		float g_error = criterion.loss(output, target).get(0);
 		gradOutput = criterion.grad(output, target);
 		Tensor gradInput = discriminator.backward(gradOutput);
 		generator.backward(gradInput);
