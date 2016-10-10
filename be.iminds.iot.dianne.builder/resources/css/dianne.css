@@ -31,9 +31,6 @@ html, body {
 	padding: 180px 0 90px 0;
 }
 
-#toolbox {
-}
-
 /*
 * fix for scrollbars
 */
@@ -42,6 +39,8 @@ html, body {
 }
 #toolbox {
 	overflow-y: auto;
+	-webkit-box-shadow: 0 0 20px rgba(0, 0, 0, .3);
+	box-shadow: 0 0 20px rgba(0, 0, 0, .3);
 }
 #toolbox .mCSB_container {
 	padding-top: 10px;
@@ -49,10 +48,7 @@ html, body {
 }
 #canvas {
 	overflow: auto;
-	-webkit-box-shadow: inset 0 0 50px rgba(0, 0, 0, .5);
-	box-shadow: inset 0 0 50px rgba(0, 0, 0, .5);
 }
-
 
 /*
 * end fix scrollbars
@@ -166,8 +162,8 @@ footer {
 
 .footer-image {
 	float: right;
-	margin: 0px 10px 0px 10px;
-	height: 75px;
+	margin: 20px 20px 20px 0px;
+	height: 50px;
 }
 
 /*
@@ -308,13 +304,18 @@ footer {
 	z-index: 999;
 } 
 
+/*
+ * Collapsing of toolbox groups
+ */
+
 #toolbox h3:before {
     /* symbol for "opening" panels */
     font-family: 'Glyphicons Halflings';  /* essential for enabling glyphicon */
     content: "\e114";    /* adjust as needed, taken from bootstrap.css */
     padding-right: 5px;
-    font-size: medium;
+    font-size: 50%;
 }
+
 #toolbox h3.collapsed:before {
     /* symbol for "collapsed" panels */
     content: "\e080";    /* adjust as needed, taken from bootstrap.css */

@@ -360,8 +360,10 @@ public class DianneRunner extends HttpServlet {
 		if(tags!=null){
 			JsonArray ta = new JsonArray();
 			for(String tt : tags){
-				if(!tt.equals("ui")) // ignore the ui tag
-					ta.add(new JsonPrimitive(tt));
+				if(tt.equals("ui") || tt.startsWith("_")) // ignore the ui tag
+					continue;
+				
+				ta.add(new JsonPrimitive(tt));
 			}
 			data.add("tags",ta);
 		}
