@@ -155,7 +155,7 @@ public class DeepQLearningStrategy implements LearningStrategy {
 
 		nn.updateParameters();
 		
-		return new QLearnProgress(i, loss/config.batchSize, q/config.batchSize);
+		return new QLearnProgress(i, loss, q/config.batchSize);
 	}
 
 }

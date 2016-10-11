@@ -45,10 +45,20 @@ public class CriterionFactory {
 		
 	}
 	
+	public static Criterion createCriterion(CriterionConfig c, int batchSize, boolean batchAverage){
+		BatchConfig b = new BatchConfig();
+		b.batchSize = batchSize;
+		b.batchAverage = batchAverage;
+		return createCriterion(c, b);
+	}
+	
 	public static Criterion createCriterion(CriterionConfig c, Map<String, String> config){
-		Criterion criterion = null;
-		
 		BatchConfig b = DianneConfigHandler.getConfig(config, BatchConfig.class);
+		return createCriterion(c, b);
+	}
+	
+	public static Criterion createCriterion(CriterionConfig c, BatchConfig b){
+		Criterion criterion = null;
 		
 		switch(c) {
 		case ABS :
