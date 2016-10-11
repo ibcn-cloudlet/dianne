@@ -24,7 +24,7 @@ public class GaussianKLDivCriterion implements Criterion {
 	}
 	
 	@Override
-	public Tensor loss(Tensor output, Tensor target) {
+	public float loss(Tensor output, Tensor target) {
 		int dim = output.dim()-1;
 		int size = output.size(dim)/2;
 		
@@ -47,10 +47,10 @@ public class GaussianKLDivCriterion implements Criterion {
 		TensorOps.sub(loss, loss, 1);
 		TensorOps.div(loss, loss, 2);
 		
-		if(b.batchSize > 1 && b.batchAverage){
-			return new Tensor(new float[]{TensorOps.sum(loss)/b.batchSize}, 1);
+		if(b.batchAverage){
+			return TensorOps.sum(loss)/b.batchSize;
 		} else {
-			return new Tensor(new float[]{TensorOps.sum(loss)}, 1);
+			return TensorOps.sum(loss);
 		}
 	}
 
@@ -76,7 +76,7 @@ public class GaussianKLDivCriterion implements Criterion {
 		TensorOps.cdiv(gradStdev, gradStdev, sqTarStdev);
 		TensorOps.sub(gradStdev, gradStdev, invOutStdev);
 		
-		if(b.batchSize > 1 && b.batchAverage){
+		if(b.batchAverage){
 			TensorOps.div(grad, grad, b.batchSize);
 		}
 			

@@ -41,7 +41,7 @@ public interface Criterion {
 	 * @param target the desired target output
 	 * @return the loss for the output
 	 */
-	Tensor loss(final Tensor output, final Tensor target);
+	float loss(final Tensor output, final Tensor target);
 	
 	/**
 	 * Returns gradient feeding into the Output Module backwards for training

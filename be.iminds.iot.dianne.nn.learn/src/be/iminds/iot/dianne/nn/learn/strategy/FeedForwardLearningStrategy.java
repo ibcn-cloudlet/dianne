@@ -107,7 +107,7 @@ public class FeedForwardLearningStrategy implements LearningStrategy {
 						Tensor output = p.getValue().tensor;
 						
 						// Loss
-						loss[0] += criterion.loss(output, batch.target).get(0);
+						loss[0] += criterion.loss(output, batch.target);
 	
 						// Gradient
 						Tensor gradOut = criterion.grad(output, batch.target);
@@ -137,7 +137,7 @@ public class FeedForwardLearningStrategy implements LearningStrategy {
 							Tensor output = p.getValue().tensor;
 							
 							// Loss
-							loss[0] += criterion.loss(output, batch.samples[b].target).get(0);
+							loss[0] += criterion.loss(output, batch.samples[b].target);
 		
 							// Gradient
 							Tensor gradOut = criterion.grad(output, batch.samples[b].target);

@@ -36,7 +36,6 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 public class MSECriterion implements Criterion {
 
 	private Tensor diff;
-	private Tensor loss;
 	private Tensor grad;
 	
 	private float div = 1;
@@ -45,11 +44,10 @@ public class MSECriterion implements Criterion {
 	
 	public MSECriterion(BatchConfig b) {
 		this.b = b;
-		this.loss = new Tensor(1);
 	}
 	
 	@Override
-	public Tensor loss(final Tensor output, final Tensor target) {
+	public float loss(final Tensor output, final Tensor target) {
 		diff = TensorOps.sub(diff, output, target);
 		
 		// to determine if it is batch or not ... use following rule of thumb
@@ -65,10 +63,10 @@ public class MSECriterion implements Criterion {
 		} else {
 			div = output.size();
 		}
-		loss.set(TensorOps.dot(diff, diff) / div, 0);	
+		float loss = TensorOps.dot(diff, diff) / div;
 		
-		if(b.batchSize > 1 && b.batchAverage){
-			TensorOps.div(loss, loss, b.batchSize);
+		if(b.batchAverage){
+			loss /= b.batchSize;
 		}
 		
 		return loss;
@@ -78,7 +76,7 @@ public class MSECriterion implements Criterion {
 	public Tensor grad(final Tensor output, final Tensor target) {
 		grad = TensorOps.mul(grad, diff, 2.0f / div);
 		
-		if(b.batchSize > 1 && b.batchAverage){
+		if(b.batchAverage){
 			TensorOps.div(grad, grad, b.batchSize);
 		}
 		

@@ -38,33 +38,30 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 public class NLLCriterion implements Criterion {
 
 	protected Tensor grad;
-	protected Tensor loss;
-	protected Tensor log = null;
+	protected Tensor log;
 	
 	protected BatchConfig b;
 	
 	public NLLCriterion(BatchConfig b) {
 		this.b = b;
-		this.loss = new Tensor(1);
 	}
 	
 	@Override
-	public Tensor loss(final Tensor output, final Tensor target) {
+	public float loss(final Tensor output, final Tensor target) {
+		float loss;
 		if(output.get()[0] <= 0){
 			log = null;
 			// output comes from LogSoftmax, no log required
 			// this should be numerically more stable
-			float ll = TensorOps.dot(output, target);
-			loss.set(-ll, 0);
+			loss = -TensorOps.dot(output, target);
 		} else {
 			// calculate negative log 
 			log = TensorOps.log(log, output);
-			float ll = TensorOps.dot(log, target);
-			loss.set(-ll, 0);
+			loss = -TensorOps.dot(log, target);
 		}
 	
-		if(b.batchSize > 1 && b.batchAverage){
-			TensorOps.div(loss, loss, b.batchSize);
+		if(b.batchAverage){
+			loss /= b.batchSize;
 		}
 		
 		return loss;
@@ -79,7 +76,7 @@ public class NLLCriterion implements Criterion {
 			grad = TensorOps.mul(grad, target, -1.0f);
 		}
 		
-		if(b.batchSize > 1 && b.batchAverage){
+		if(b.batchAverage){
 			TensorOps.div(grad, grad, b.batchSize);
 		}
 		

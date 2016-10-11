@@ -32,7 +32,7 @@ public abstract class AbstractCriterionTest {
 			
 			float l = c.loss(
 					new Tensor(out[i],out[i].length),
-					new Tensor(tar[i],tar[i].length)).get(0);
+					new Tensor(tar[i],tar[i].length));
 			
 			Assert.assertEquals(loss[i], l, eps);
 		}

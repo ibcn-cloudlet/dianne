@@ -139,8 +139,7 @@ public class DeepQLearningStrategy implements LearningStrategy {
 			
 			q += out.get(TensorOps.argmax(action));
 		
-			Tensor l = criterion.loss(out, targetOut);
-			loss += l.get(0);
+			loss += criterion.loss(out, targetOut);
 			
 			Tensor gradOut = criterion.grad(out, targetOut);
 			

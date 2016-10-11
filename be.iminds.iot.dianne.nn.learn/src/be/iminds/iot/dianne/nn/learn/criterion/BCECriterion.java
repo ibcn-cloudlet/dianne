@@ -31,7 +31,7 @@ public class BCECriterion implements Criterion {
 	}
 	
 	@Override
-	public Tensor loss(Tensor output, Tensor target) {
+	public float loss(Tensor output, Tensor target) {
 		this.output = output;
 		this.target = target;
 		
@@ -49,10 +49,10 @@ public class BCECriterion implements Criterion {
 		loss = TensorOps.cmul(loss, target, logOut);
 		TensorOps.addcmul(loss, loss, 1, invTar, logInvOut);
 		
-		if(b.batchSize > 1 && b.batchAverage){
-			return new Tensor(new float[]{-TensorOps.sum(loss)/b.batchSize}, 1);
+		if(b.batchAverage){
+			return -TensorOps.sum(loss)/b.batchSize;
 		} else {
-			return new Tensor(new float[]{-TensorOps.sum(loss)}, 1);
+			return -TensorOps.sum(loss);
 		}
 	}
 
@@ -71,7 +71,7 @@ public class BCECriterion implements Criterion {
 		TensorOps.cdiv(grad, grad, epsOut);
 		TensorOps.cdiv(grad, grad, epsInvOut);
 		
-		if(b.batchSize > 1 && b.batchAverage){
+		if(b.batchAverage){
 			TensorOps.div(grad, grad, b.batchSize);
 		}
 		

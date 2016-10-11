@@ -119,7 +119,7 @@ public class BPTTLearningStrategy implements LearningStrategy {
 		// backward
 		for(int k=config.sequenceLength-1;k>=0;k--){
 			Tensor target = sequence[k+1];
-			float l = criterion.loss(outputs[k], target).get(0);
+			float l = criterion.loss(outputs[k], target);
 			if(config.backpropAll || k==config.sequenceLength-1){
 				loss+=l;
 			}

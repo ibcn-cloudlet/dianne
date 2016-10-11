@@ -39,8 +39,7 @@ public class CriterionEvaluationStrategy extends AbstractEvaluationStrategy {
 	}
 
 	protected float eval(Tensor output, Tensor target){
-		Tensor error = criterion.loss(output, target);
-		return error.get(0);
+		return criterion.loss(output, target);
 	}
 
 	@Override

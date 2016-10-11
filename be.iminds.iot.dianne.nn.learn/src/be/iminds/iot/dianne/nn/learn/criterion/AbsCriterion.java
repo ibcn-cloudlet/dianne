@@ -37,24 +37,22 @@ public class AbsCriterion implements Criterion {
 	
 	protected Tensor diff;
 	protected Tensor absdiff;
-	protected Tensor loss;
 	protected Tensor grad;
 	
 	protected BatchConfig b;
 	
 	public AbsCriterion(BatchConfig b) {
 		this.b = b;
-		this.loss = new Tensor(1);
 	}
 	
 	@Override
-	public Tensor loss(final Tensor output, final Tensor target) {
+	public float loss(final Tensor output, final Tensor target) {
 		diff = TensorOps.sub(diff, output, target);
 		absdiff = TensorOps.abs(absdiff, diff);
-		loss.set(TensorOps.sum(absdiff) / (output.dim() == 2 ? output.size(1) : output.size(0)), 0);
+		float loss = TensorOps.sum(absdiff) / (output.dim() == 2 ? output.size(1) : output.size(0));
 		
-		if(b.batchSize > 1 && b.batchAverage){
-			TensorOps.div(loss, loss, b.batchSize);
+		if(b.batchAverage){
+			loss /= b.batchSize;
 		}
 		
 		return loss;
@@ -65,7 +63,7 @@ public class AbsCriterion implements Criterion {
 		grad = TensorOps.sign(grad, diff);
 		grad = TensorOps.mul(grad, grad, 1.0f / (output.dim() == 2 ? output.size(1) : output.size(0)));
 		
-		if(b.batchSize > 1 && b.batchAverage){
+		if(b.batchAverage){
 			TensorOps.div(grad, grad, b.batchSize);
 		}
 		
