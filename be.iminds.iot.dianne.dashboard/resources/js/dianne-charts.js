@@ -102,25 +102,25 @@ function createResultChart(container, job, scale){
      	} else { 
      		// else plot error value
 			DIANNE.learnResult(job.id).then(function(learnprogress){
-				 var miniBatchError = [];
-				 var validationError = [];
+				 var minibatchLoss = [];
+				 var validationLoss = [];
 				 $.each(learnprogress, function(i) {
 					 // TODO determine how to sample
 					 if(i % 1000 == 0){
 						 var progress = learnprogress[i];
-						 miniBatchError.push({
+						 minibatchLoss.push({
 							 x: progress.iteration,
-		                     y: progress.miniBatchError
+		                     y: progress.minibatchLoss
 		                 });
-						 if(progress.validationError !== undefined){
-							 validationError.push({
+						 if(progress.validationLoss !== undefined){
+							 validationLoss.push({
 								 x: progress.iteration,
-								 y: progress.validationError
+								 y: progress.validationLoss
 					 	 	});
 						 }
 					 }
 				 });
-				 createErrorChart(container, scale, miniBatchError, validationError);
+				 createLossChart(container, scale, minibatchLoss, validationLoss);
 			});
      	}
 	} else if(job.type==="EVALUATE"){
@@ -160,8 +160,8 @@ function createResultChart(container, job, scale){
 	}
 }
 
-function createErrorChart(container, scale, miniBatchError, validationError){
-	createLineChart(container, 'Iterations', 'Error', scale, 'minibatch error', miniBatchError, 'validation error', validationError);
+function createLossChart(container, scale, minibatchLoss, validationLoss){
+	createLineChart(container, 'Iterations', 'Loss', scale, 'minibatch loss', minibatchLoss, 'validation loss', validationLoss);
 }
 
 function createQChart(container, scale, q){

@@ -72,7 +72,7 @@ public class SimpleLearningStrategy implements LearningStrategy {
 		
 		// Forward-backward pass
 		Tensor output = nn.forward(batch.input);
-		float error = criterion.loss(output, batch.target).get(0);
+		float loss = criterion.loss(output, batch.target).get(0);
 		Tensor gradOutput = criterion.grad(output, batch.target);
 		nn.backward(gradOutput);
 		
@@ -85,7 +85,7 @@ public class SimpleLearningStrategy implements LearningStrategy {
 		// Update parameters
 		nn.updateParameters();
 		
-		return new LearnProgress(i, error);
+		return new LearnProgress(i, loss);
 	}
 
 }

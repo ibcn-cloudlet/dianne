@@ -135,7 +135,7 @@ public class DianneCoordinatorWriter {
 	public static void writeLearnResult(JsonWriter writer, LearnResult result) throws Exception {
 		writer.beginArray();
 		// merge progress and validation in single object
-		// TODO for now select one learners minibatch error as progress?
+		// TODO for now select one learners minibatch loss as progress?
 		if(result.progress.size() > 0){
 			List<LearnProgress> select = result.progress.values().iterator().next();
 			for(int i =0;i<select.size();i++){
@@ -145,7 +145,7 @@ public class DianneCoordinatorWriter {
 				writer.beginObject();
 				writeFields(writer, p);
 				if(val != null){
-					writer.name("validationError");
+					writer.name("validationLoss");
 					writer.value(val.error());
 				}
 				writer.endObject();

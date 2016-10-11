@@ -146,7 +146,7 @@ public class DianneCoordinatorCommands {
 				System.out.println("Learn Job done!");
 				LearnResult result = p.getValue();
 				System.out.println("Iterations: "+result.getIterations());
-				System.out.println("Last minibatch Error: "+result.getError());
+				System.out.println("Last minibatch loss: "+result.getLoss());
 				return null;
 			}, p -> {
 				System.out.println("Learn Job failed: "+p.getFailure().getMessage());
@@ -259,7 +259,7 @@ public class DianneCoordinatorCommands {
 				System.out.println("RL Learn Job done!");
 				LearnResult result = p.getValue();
 				System.out.println("Iterations: "+result.getIterations());
-				System.out.println("Last minibatch Error: "+result.getError());
+				System.out.println("Last minibatch loss: "+result.getLoss());
 				return null;
 			}, p -> {
 				System.out.println("Learn Job failed: "+p.getFailure().getMessage());

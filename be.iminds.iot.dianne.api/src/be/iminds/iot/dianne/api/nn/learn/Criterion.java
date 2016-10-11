@@ -27,7 +27,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 /**
  * The optimization Criterion for training a neural network.
  * 
- * The grad call should be preceded by a call to error with same output-target pair
+ * The grad call should be preceded by a call to loss with same output-target pair
  * 
  * @author tverbele
  *

@@ -151,7 +151,7 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 		
 		// Get the total value for logging and calculate the MSE error and gradient with respect to the target value
 		float value = TensorOps.sum(valueBatch);
-		float error = TensorOps.sum(criterion.loss(valueBatch, targetValueBatch));
+		float loss = TensorOps.sum(criterion.loss(valueBatch, targetValueBatch));
 		Tensor criticGrad = criterion.grad(valueBatch, targetValueBatch);
 		
 		// Backward pass of the critic
@@ -180,7 +180,7 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 		actor.updateParameters();
 		critic.updateParameters();
 		
-		return new QLearnProgress(i, error, value);
+		return new QLearnProgress(i, loss, value);
 	}
 
 }

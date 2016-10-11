@@ -33,16 +33,16 @@ public class LearnProgress {
 	/** The number of iterations (=number of batches) processed */
 	public final long iteration;
 	
-	/** The current minibatch error perceived by the Learner */
-	public final float miniBatchError;
+	/** The current minibatch loss perceived by the Learner */
+	public final float minibatchLoss;
 	
-	public LearnProgress(long iteration, float error){
+	public LearnProgress(long iteration, float loss){
 		this.iteration = iteration;
-		this.miniBatchError = error;
+		this.minibatchLoss = loss;
 	}
 	
 	@Override
 	public String toString(){
-		return "[LEARNER] Batch: "+iteration+" Error: "+miniBatchError;
+		return "[LEARNER] Batch: "+iteration+" Loss: "+minibatchLoss;
 	}
 }

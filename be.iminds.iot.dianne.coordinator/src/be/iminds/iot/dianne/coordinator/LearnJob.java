@@ -61,12 +61,12 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 	private Evaluator validator = null;
 	private NeuralNetworkInstanceDTO[] validationNns;
 	private int validationInterval = 1000;
-	private float bestValidationError = Float.MAX_VALUE;
+	private float bestValidationLoss = Float.MAX_VALUE;
 	
 	
-	private float miniBatchErrorThreshold = -Float.MAX_VALUE;
-	private float validationErrorThreshold = -Float.MAX_VALUE;
-	private int errorThresholdWindow = 10;
+	private float minibatchLossThreshold = -Float.MAX_VALUE;
+	private float validationLossThreshold = -Float.MAX_VALUE;
+	private int thresholdWindow = 10;
 	
 	public LearnJob(DianneCoordinatorImpl coord, 
 			String dataset,
@@ -87,16 +87,16 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 		}
 		
 		
-		if(config.containsKey("miniBatchErrorThreshold")){
-			miniBatchErrorThreshold = Float.parseFloat(config.get("miniBatchErrorThreshold"));
+		if(config.containsKey("minibatchLossThreshold")){
+			minibatchLossThreshold = Float.parseFloat(config.get("minibatchLossThreshold"));
 		}
 		
-		if(config.containsKey("validationErrorThreshold")){
-			validationErrorThreshold = Float.parseFloat(config.get("validationErrorThreshold"));
+		if(config.containsKey("validationLossThreshold")){
+			validationLossThreshold = Float.parseFloat(config.get("validationLossThreshold"));
 		}
 		
-		if(config.containsKey("errorThresholdWindow")){
-			errorThresholdWindow = Integer.parseInt(config.get("errorThresholdWindow"));
+		if(config.containsKey("thresholdWindow")){
+			thresholdWindow = Integer.parseInt(config.get("thresholdWindow"));
 		}
 	}
 		
@@ -144,9 +144,9 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 		System.out.println("* nn: "+Arrays.toString(nnNames));
 		System.out.println("* dataset: "+dataset);
 		System.out.println("* maxIterations: "+maxIterations);
-		System.out.println("* miniBatchErrorThreshold: "+(miniBatchErrorThreshold==-Float.MAX_VALUE ? "N\\A" : miniBatchErrorThreshold));
-		System.out.println("* validationErrorThreshold: "+(validationErrorThreshold==-Float.MAX_VALUE ? "N\\A" : validationErrorThreshold));
-		System.out.println("* errorThresholdWindow: "+errorThresholdWindow);
+		System.out.println("* minibatchLossThreshold: "+(minibatchLossThreshold==-Float.MAX_VALUE ? "N\\A" : minibatchLossThreshold));
+		System.out.println("* validationLossThreshold: "+(validationLossThreshold==-Float.MAX_VALUE ? "N\\A" : validationLossThreshold));
+		System.out.println("* thresholdWindow: "+thresholdWindow);
 		System.out.println("---");
 		
 		// start learning on each learner
@@ -195,18 +195,18 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 				if(config.containsKey("batchSize")){
 					c.put("batchSize", config.get("batchSize"));
 				}
-				c.put("storeIfBetterThan", ""+bestValidationError);
+				c.put("storeIfBetterThan", ""+bestValidationLoss);
 				
 				try {
 					validation = validator.eval(dataset, c, validationNns);
 					
 					if(Float.isNaN(validation.error)){
 						validation = null;
-						throw new Exception("Validation error became NaN");
+						throw new Exception("Validation loss became NaN");
 					}
 					
-					if(validation.error < bestValidationError){
-						bestValidationError = validation.error;
+					if(validation.error < bestValidationLoss){
+						bestValidationLoss = validation.error;
 					}
 				} catch(Exception e){
 					System.err.println("Error running validation: "+e.getMessage());
@@ -226,21 +226,21 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 				
 			// threshold on delta minibatch error
 			// if less 'progress' than this, stop
-			if(result.progress.size() > errorThresholdWindow){
+			if(result.progress.size() > thresholdWindow){
 				int last = result.progress.size() - 1;
-				int prev = last - errorThresholdWindow;
-				float deltaMiniBatchError = result.progress.get(learnerId).get(prev).miniBatchError - result.progress.get(learnerId).get(last).miniBatchError;
-				if(deltaMiniBatchError < miniBatchErrorThreshold){
+				int prev = last - thresholdWindow;
+				float deltaMinibatchLoss = result.progress.get(learnerId).get(prev).minibatchLoss - result.progress.get(learnerId).get(last).minibatchLoss;
+				if(deltaMinibatchLoss < minibatchLossThreshold){
 					stop = true;
 				}
 			}
 			
 			// threshold on validation threshold
 			Evaluation last = result.validations.get(progress.iteration);
-			Evaluation prev = result.validations.get(progress.iteration - errorThresholdWindow*validationInterval);
+			Evaluation prev = result.validations.get(progress.iteration - thresholdWindow*validationInterval);
 			if(last != null & prev != null){
-				float deltaValidationError = prev.error - last.error;
-				if(deltaValidationError < validationErrorThreshold){
+				float deltaValidationLoss = prev.error - last.error;
+				if(deltaValidationLoss < validationLossThreshold){
 					stop = true;
 				}
 			}

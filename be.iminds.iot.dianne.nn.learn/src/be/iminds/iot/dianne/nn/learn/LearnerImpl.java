@@ -170,7 +170,7 @@ public class LearnerImpl implements Learner {
 						progress = strategy.processIteration(i);
 
 						// Check for NaN
-						if(Float.isNaN(progress.miniBatchError)){
+						if(Float.isNaN(progress.minibatchLoss)){
 							throw new Exception("Learner error became NaN");
 						}
 						

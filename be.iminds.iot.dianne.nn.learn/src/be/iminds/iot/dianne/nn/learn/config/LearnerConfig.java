@@ -40,7 +40,7 @@ public class LearnerConfig {
 	public boolean trace = false;
 	
 	/**
-	 * Retry NaNretry times with last sync-ed parameters in case of a NaN error
+	 * Retry NaNretry times with last sync-ed parameters in case of a NaN loss
 	 */
 	public int NaNretry = 0;
 	

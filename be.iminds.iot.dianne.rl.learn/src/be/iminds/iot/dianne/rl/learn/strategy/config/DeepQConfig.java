@@ -49,7 +49,7 @@ public class DeepQConfig {
 	public int minSamples = 1000;
 
 	/**
-	 * The criterion to use to evaluate the error between output and target
+	 * The criterion to use to evaluate the loss between output and target
 	 */
 	public CriterionConfig criterion = CriterionConfig.MSE;
 	

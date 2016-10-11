@@ -77,9 +77,9 @@ public class DianneSSEServlet extends HttpServlet implements EventHandler {
 			data.add("type", new JsonPrimitive("progress"));
 			data.add("jobId", new JsonPrimitive(event.getProperty("jobId").toString()));
 			data.add("iteration", new JsonPrimitive((Long)event.getProperty("iteration")));
-			data.add("miniBatchError", new JsonPrimitive((Float)event.getProperty("miniBatchError")));
-			if(event.containsProperty("validationError")){
-				data.add("validationError", new JsonPrimitive((Float)event.getProperty("validationError")));
+			data.add("minibatchLoss", new JsonPrimitive((Float)event.getProperty("minibatchLoss")));
+			if(event.containsProperty("validationLoss")){
+				data.add("validationLoss", new JsonPrimitive((Float)event.getProperty("validationLoss")));
 			}
 			if(event.containsProperty("q")){
 				data.add("q", new JsonPrimitive((Float)event.getProperty("q")));

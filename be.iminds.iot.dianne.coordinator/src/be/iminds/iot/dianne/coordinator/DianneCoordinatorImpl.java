@@ -597,10 +597,10 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		Map<String, Object> properties = new HashMap<>();
 		properties.put("jobId", jobId.toString());
 		properties.put("iteration", progress.iteration);
-		properties.put("miniBatchError", progress.miniBatchError);
+		properties.put("minibatchLoss", progress.minibatchLoss);
 		
 		if(validation!=null)
-			properties.put("validationError", validation.error());
+			properties.put("validationLoss", validation.error());
 		
 		if(progress instanceof QLearnProgress){
 			properties.put("q", ((QLearnProgress)progress).q);

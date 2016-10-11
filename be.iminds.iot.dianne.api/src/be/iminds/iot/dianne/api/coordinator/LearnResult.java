@@ -52,8 +52,8 @@ public class LearnResult {
 		return p.get(p.size()-1).iteration;
 	}
 	
-	public float getError(){
+	public float getLoss(){
 		List<LearnProgress> p = progress.values().iterator().next();
-		return p.get(p.size()-1).miniBatchError;
+		return p.get(p.size()-1).minibatchLoss;
 	}
 }

@@ -104,7 +104,7 @@ public class DeepQLearningStrategy implements LearningStrategy {
 	public LearnProgress processIteration(long i) throws Exception {
 		nn.zeroDeltaParameters();
 
-		float error = 0;
+		float loss = 0;
 		float q = 0;
 			
 		// TODO actually process in batch
@@ -139,8 +139,8 @@ public class DeepQLearningStrategy implements LearningStrategy {
 			
 			q += out.get(TensorOps.argmax(action));
 		
-			Tensor e = criterion.loss(out, targetOut);
-			error += e.get(0);
+			Tensor l = criterion.loss(out, targetOut);
+			loss += l.get(0);
 			
 			Tensor gradOut = criterion.grad(out, targetOut);
 			
@@ -155,7 +155,7 @@ public class DeepQLearningStrategy implements LearningStrategy {
 
 		nn.updateParameters();
 		
-		return new QLearnProgress(i, error/config.batchSize, q/config.batchSize);
+		return new QLearnProgress(i, loss/config.batchSize, q/config.batchSize);
 	}
 
 }

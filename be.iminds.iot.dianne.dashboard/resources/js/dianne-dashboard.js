@@ -392,11 +392,11 @@ eventsource.onmessage = function(event){
     	if(data.q!==undefined){
     		y = Number(data.q);
     	} else {
-    		y = Number(data.miniBatchError);
+    		y = Number(data.minibatchLoss);
     	}
 		Highcharts.charts[index].series[0].addPoint([x, y], true, true, false);
-		if(data.validationError !== undefined){
-			var v = Number(data.validationError);
+		if(data.validationLoss !== undefined){
+			var v = Number(data.validationLoss);
 			Highcharts.charts[index].series[1].addPoint([x, v], true, true, false);
 		}
 	}

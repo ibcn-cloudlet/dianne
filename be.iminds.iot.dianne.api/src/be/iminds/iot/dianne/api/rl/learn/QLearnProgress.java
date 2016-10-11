@@ -36,13 +36,13 @@ public class QLearnProgress extends LearnProgress{
 	public final float q;
 	
 	
-	public QLearnProgress(long iteration, float error, float q){
-		super(iteration, error);
+	public QLearnProgress(long iteration, float loss, float q){
+		super(iteration, loss);
 		this.q = q;
 	}
 	
 	@Override
 	public String toString(){
-		return "[LEARNER] Batch: "+iteration+" Error: "+miniBatchError+" Q: "+q;
+		return "[LEARNER] Batch: "+iteration+" Loss: "+minibatchLoss+" Q: "+q;
 	}
 }

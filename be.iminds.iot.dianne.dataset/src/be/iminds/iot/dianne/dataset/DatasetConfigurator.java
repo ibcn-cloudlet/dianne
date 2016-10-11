@@ -106,7 +106,7 @@ public class DatasetConfigurator implements DianneDatasets {
 		System.out.println("---");
 		System.out.println("* dataset = "+name);
 
-		
+		Configuration xppoolConfiguration = null;
 		List<Configuration> adapterConfigurations = new ArrayList<>();
 
 		Dataset d = getDataset(name);
@@ -144,7 +144,7 @@ public class DatasetConfigurator implements DianneDatasets {
 				try {
 					Configuration c = ca.createFactoryConfiguration(pid, null);
 					c.update(props);
-					adapterConfigurations.add(c);
+					xppoolConfiguration = c;
 				} catch(Exception e){
 					e.printStackTrace();
 				}
@@ -381,11 +381,18 @@ public class DatasetConfigurator implements DianneDatasets {
 
 		if(d != null){
 			adapters.put(d, adapterConfigurations);
+			// TODO should we cleanup the xp pool configuration after done or not?
 		} else {
 			// cleanup configurations if dataset didn't came online for some reason
 			for(Configuration c : adapterConfigurations){
 				try {
 					c.delete();
+				} catch (IOException e) {
+				}
+			}
+			if(xppoolConfiguration != null){
+				try {
+					xppoolConfiguration.delete();
 				} catch (IOException e) {
 				}
 			}

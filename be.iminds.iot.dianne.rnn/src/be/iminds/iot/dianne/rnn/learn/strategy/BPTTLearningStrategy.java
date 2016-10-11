@@ -78,7 +78,7 @@ public class BPTTLearningStrategy implements LearningStrategy {
 		nn.zeroDeltaParameters();
 		
 		// calculate grad through sequence
-		float error = 0;
+		float loss = 0;
 		int index = sampling.next();
 		if(dataset.size()-index < config.sequenceLength+1){
 			index-=(config.sequenceLength+1);
@@ -119,9 +119,9 @@ public class BPTTLearningStrategy implements LearningStrategy {
 		// backward
 		for(int k=config.sequenceLength-1;k>=0;k--){
 			Tensor target = sequence[k+1];
-			float er = criterion.loss(outputs[k], target).get(0);
+			float l = criterion.loss(outputs[k], target).get(0);
 			if(config.backpropAll || k==config.sequenceLength-1){
-				error+=er;
+				loss+=l;
 			}
 			Tensor grad = criterion.grad(outputs[k], target);
 				
@@ -151,7 +151,7 @@ public class BPTTLearningStrategy implements LearningStrategy {
 		// update parameters
 		nn.updateParameters();
 		
-		return new LearnProgress(i, error);
+		return new LearnProgress(i, loss);
 	}
 
 }

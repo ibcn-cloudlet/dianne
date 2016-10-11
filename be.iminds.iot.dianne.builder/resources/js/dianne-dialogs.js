@@ -871,7 +871,7 @@ function color(id, target){
 
 function learn(id){
 	// first create the chart
-	createErrorChart($("#dialog-"+id).find(".content"));
+	createLossChart($("#dialog-"+id).find(".content"));
 
 	eventsource = new EventSource("/dianne/learner?nnId="+nn.id);
 	eventsource.onmessage = function(event){
@@ -882,7 +882,7 @@ function learn(id){
 		} else {
 			var index = Number($("#dialog-"+id).find(".content").attr("data-highcharts-chart"));
     		var x = Number(data.sample);
-        	var y = Number(data.error); 
+        	var y = Number(data.loss); 
 			Highcharts.charts[index].series[0].addPoint([x, y], true, true, false);
 		}
 	};
@@ -979,7 +979,7 @@ function createOutputChart(container) {
 }
 
 
-function createErrorChart(container) {
+function createLossChart(container) {
     container.highcharts({
         chart: {
             type: 'line',
@@ -996,7 +996,7 @@ function createErrorChart(container) {
         },
         yAxis: {
             title: {
-                text: 'Error'
+                text: 'Loss'
             },
             min: 0,
             plotLines: [{

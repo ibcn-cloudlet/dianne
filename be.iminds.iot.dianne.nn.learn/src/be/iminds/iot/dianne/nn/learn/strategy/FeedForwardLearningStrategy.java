@@ -84,8 +84,8 @@ public class FeedForwardLearningStrategy implements LearningStrategy {
 		// Clear delta params
 		nn.zeroDeltaParameters();
 		
-		// Use a placeholder for error
-		final float[] error = new float[1];
+		// Use a placeholder for loss
+		final float[] loss = new float[1];
 		
 		// Load batch for first iteration
 		if(nextBatch==null)
@@ -106,10 +106,10 @@ public class FeedForwardLearningStrategy implements LearningStrategy {
 						// Forward
 						Tensor output = p.getValue().tensor;
 						
-						// Error
-						error[0] += criterion.loss(output, batch.target).get(0);
+						// Loss
+						loss[0] += criterion.loss(output, batch.target).get(0);
 	
-						// Error gradient
+						// Gradient
 						Tensor gradOut = criterion.grad(output, batch.target);
 						
 						// Backward
@@ -136,10 +136,10 @@ public class FeedForwardLearningStrategy implements LearningStrategy {
 							// Forward
 							Tensor output = p.getValue().tensor;
 							
-							// Error
-							error[0] += criterion.loss(output, batch.samples[b].target).get(0);
+							// Loss
+							loss[0] += criterion.loss(output, batch.samples[b].target).get(0);
 		
-							// Error gradient
+							// Gradient
 							Tensor gradOut = criterion.grad(output, batch.samples[b].target);
 							
 							// Backward
@@ -166,7 +166,7 @@ public class FeedForwardLearningStrategy implements LearningStrategy {
 		// Update parameters
 		nn.updateParameters();
 		
-		return new LearnProgress(i, error[0]);		
+		return new LearnProgress(i, loss[0]);		
 	}
 
 }
