@@ -5,4 +5,4 @@ DIANNE is a modular software framework for designing, evaluating and training ar
 
 [DIANNE Framework Overview](doc/dianne.md)
 
-[Get started with DIANNE](doc/tutorial.md)
+[Get started with DIANNE](doc/gettingstarted.md)
