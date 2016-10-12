@@ -61,7 +61,7 @@ public class Split extends Fork {
 	protected void backward() {
 		if(next!=null){
 			int[] dims = gradOutputs.values().iterator().next().dims();
-			int splitDim = dims[dims.length-1-dim];
+			int splitDim = dims.length-1-dim;
 			int size = dims[splitDim];
 			if(gradInput==null){
 				dims[splitDim] = dims[splitDim]*gradOutputs.size();
