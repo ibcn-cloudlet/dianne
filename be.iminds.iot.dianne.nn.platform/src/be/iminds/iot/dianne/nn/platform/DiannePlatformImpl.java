@@ -211,8 +211,10 @@ public class DiannePlatformImpl implements DiannePlatform {
 		}
 		
 		// remove all modules from nni
-		nnis.get(nnId).modules.clear();
-		nnis.remove(nnId);
+		if(nnis.containsKey(nnId)){
+			nnis.get(nnId).modules.clear();
+			nnis.remove(nnId);
+		}
 	}
 	
 	@Override
