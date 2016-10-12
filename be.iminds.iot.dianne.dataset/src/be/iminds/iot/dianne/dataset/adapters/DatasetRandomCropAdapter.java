@@ -22,6 +22,7 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.dataset.adapters;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
 
@@ -31,6 +32,7 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 /**
  * This Dataset adapter extends the Dataset by taking random crops of the image
@@ -133,10 +135,33 @@ public class DatasetRandomCropAdapter extends AbstractDatasetAdapter {
 		int originalHeight = dims.length == 3 ? dims[1] : dims[0];
 		int originalWidth = dims.length == 3 ? dims[2] : dims[1];
 		
+		// if original dims are smaller than requested crop, scale up first
+		float scale = 1;
+		while(originalHeight < height || originalWidth < width){
+			originalHeight*=2;
+			originalWidth*=2;
+			scale *= 2;
+		}
+		
+		if(scale > 1){
+			if(dims.length == 3){
+				dims[1] = originalHeight;
+				dims[2] = originalWidth;
+			} else {
+				dims[0] = originalHeight;
+				dims[1] = originalWidth;
+			}
+			original.input = TensorOps.scale2D(null, original.input, dims);
+		}
+		
+		// calculate random offsets
 		int originalWidthOffset = (int)Math.floor((originalWidth+2*padding - width)*r.nextFloat());
 		int originalHeightOffset = (int)Math.floor((originalHeight+2*padding - height)*r.nextFloat());
-		
+	
+		// crop
 		adapted.input = crop(adapted.input, original.input, width, height, originalWidthOffset, originalHeightOffset);
+		
+		// if target is also image - also crop target
 		if(targetDimsSameAsInput){
 			adapted.target = crop(adapted.target, original.target, width, height, originalWidthOffset, originalHeightOffset);
 		} else {
