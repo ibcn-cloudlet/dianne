@@ -128,7 +128,7 @@ public abstract class AbstractMemory extends AbstractModule implements Memory {
 	
 	protected synchronized void backward(final UUID moduleId, final ModuleException ex, final Tensor gradOutput, final String... tags) {
 		if(TRACE){
-			System.out.println("BACKWARD "+this.id+" ("+this.getClass().getName()+")  FROM "+moduleId+" "+Arrays.toString(gradOutput.dims())+" "+Arrays.toString(tags));
+			System.out.println("BACKWARD "+this.id+" ("+this.getClass().getName()+")  FROM "+moduleId+" "+(gradOutput==null?"null":Arrays.toString(gradOutput.dims()))+" "+Arrays.toString(tags));
 		}
 		
 		this.gradOutput = gradOutput;

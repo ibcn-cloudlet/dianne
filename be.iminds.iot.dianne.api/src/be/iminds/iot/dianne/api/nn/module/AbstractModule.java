@@ -368,13 +368,15 @@ public abstract class AbstractModule implements Module {
 					}
 				});
 			} else {
-				gradInputListenersCopy = (gradInput==null ? null : gradInput.copyInto(gradInputListenersCopy));
-				final int[] dims = gradInput.dims();
+				gradInputListenersCopy = gradInput==null ? null : gradInput.copyInto(gradInputListenersCopy);
+				final int[] dims = gradInput==null ? null : gradInput.dims();
 				
 				listenerExecutor.execute(()->{
 					bwListenersCopy.stream().forEach(
 							b-> {
-								gradInputListenersCopy.reshape(dims);
+								if(dims!=null)
+									gradInputListenersCopy.reshape(dims);
+								
 								b.onBackward(id, gradInputListenersCopy, tagsCopy);
 							});
 					
