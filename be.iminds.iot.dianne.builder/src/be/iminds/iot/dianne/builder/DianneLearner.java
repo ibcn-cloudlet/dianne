@@ -318,7 +318,10 @@ public class DianneLearner extends HttpServlet {
 		}
 		
 		public void unregister(){
-			reg.unregister();
+			if(reg != null){
+				reg.unregister();
+				reg = null;
+			}
 		}
 
 		@Override
