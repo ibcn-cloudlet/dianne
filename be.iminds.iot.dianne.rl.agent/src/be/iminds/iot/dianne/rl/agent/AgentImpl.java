@@ -163,67 +163,78 @@ public class AgentImpl implements Agent {
 			acting = true;
 		}
 		
-		System.out.println("Agent Configuration");
-		System.out.println("===================");
-
-		this.config = DianneConfigHandler.getConfig(config, AgentConfig.class);
-		this.properties = config;
-		
-		this.strategy = factory.create(this.config.strategy);
-		if(strategy==null){
-			acting = false;
-			throw new RuntimeException("Invalid strategy selected: "+strategy);
-		}
-		
-		if(nni == null){
-			// for Agents a null is allowed, e-g when using hard-coded policies
-			nns = new NeuralNetwork[0];
-		} else {
-			int n = 0;
-			nns = new NeuralNetwork[nni.length];
-			for(NeuralNetworkInstanceDTO dto : nni){
-				if(dto != null){
-					NeuralNetwork nn = dianne.getNeuralNetwork(dto).getValue();
-					nns[n++] = nn;
+		try {
+			System.out.println("Agent Configuration");
+			System.out.println("===================");
+	
+			this.config = DianneConfigHandler.getConfig(config, AgentConfig.class);
+			this.properties = config;
+			
+			this.strategy = factory.create(this.config.strategy);
+			if(strategy==null){
+				acting = false;
+				throw new RuntimeException("Invalid strategy selected: "+strategy);
+			}
+			
+			if(nni == null){
+				// for Agents a null is allowed, e-g when using hard-coded policies
+				nns = new NeuralNetwork[0];
+			} else {
+				int n = 0;
+				nns = new NeuralNetwork[nni.length];
+				for(NeuralNetworkInstanceDTO dto : nni){
+					if(dto != null){
+						NeuralNetwork nn = dianne.getNeuralNetwork(dto).getValue();
+						nns[n++] = nn;
+					}
 				}
 			}
-		}
-		
-		// setup environment
-		env = envs.get(environment);
-		env.setup(properties);
-		
-		if(experiencePool != null){
-			// add env state/actionDims in case we need to construct xp pool
-			if(!config.containsKey("stateDims")){
-				int[] stateDims = env.observationDims();
-				String sd = Arrays.toString(stateDims);
-				config.put("stateDims", sd.substring(1, sd.length()-1));
+			
+			// setup environment
+			env = envs.get(environment);
+			if(env==null){
+				throw new RuntimeException("Environment "+environment+" does not exist");
 			}
-			if(!config.containsKey("actionDims")){
-				int[] actionDims = env.actionDims();
-				String ad = Arrays.toString(actionDims);
-				config.put("actionDims", ad.substring(1, ad.length()-1));
+			env.setup(properties);
+			
+			if(experiencePool != null){
+				// add env state/actionDims in case we need to construct xp pool
+				if(!config.containsKey("stateDims")){
+					int[] stateDims = env.observationDims();
+					String sd = Arrays.toString(stateDims);
+					config.put("stateDims", sd.substring(1, sd.length()-1));
+				}
+				if(!config.containsKey("actionDims")){
+					int[] actionDims = env.actionDims();
+					String ad = Arrays.toString(actionDims);
+					config.put("actionDims", ad.substring(1, ad.length()-1));
+				}
+				Dataset d = datasets.configureDataset(experiencePool, config);
+				if(d == null || !(d instanceof ExperiencePool)){
+					acting = false;
+					throw new RuntimeException("Invalid experience pool: "+experiencePool);
+				}
+				pool = (ExperiencePool) d;
 			}
-			Dataset d = datasets.configureDataset(experiencePool, config);
-			if(d == null || !(d instanceof ExperiencePool)){
-				acting = false;
-				throw new RuntimeException("Invalid experience pool: "+experiencePool);
+	
+			buffer = new ArrayList<>(this.config.experienceInterval);
+			upload = new ArrayList<>(this.config.experienceInterval);
+			for(int i=0;i<this.config.experienceInterval;i++){
+				buffer.add(new ExperiencePoolSample());
+				upload.add(new ExperiencePoolSample());
 			}
-			pool = (ExperiencePool) d;
-		}
-
-		buffer = new ArrayList<>(this.config.experienceInterval);
-		upload = new ArrayList<>(this.config.experienceInterval);
-		for(int i=0;i<this.config.experienceInterval;i++){
-			buffer.add(new ExperiencePoolSample());
-			upload.add(new ExperiencePoolSample());
-		}
+			
+			actingThread = new Thread(new AgentRunnable());
+			experienceUploadThread = new Thread(new UploadRunnable());
+			actingThread.start();
+			experienceUploadThread.start();
 		
-		actingThread = new Thread(new AgentRunnable());
-		experienceUploadThread = new Thread(new UploadRunnable());
-		actingThread.start();
-		experienceUploadThread.start();
+		} catch(Exception e){
+			System.err.println("Failed starting agent");
+			e.printStackTrace();
+			acting = false;
+			throw e;
+		}
 	}
 
 	@Override
