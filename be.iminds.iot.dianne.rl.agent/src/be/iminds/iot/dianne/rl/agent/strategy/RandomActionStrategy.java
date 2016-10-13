@@ -23,12 +23,12 @@
 package be.iminds.iot.dianne.rl.agent.strategy;
 
 import java.util.Map;
-import java.util.Random;
 
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.rl.agent.ActionStrategy;
 import be.iminds.iot.dianne.api.rl.agent.AgentProgress;
 import be.iminds.iot.dianne.api.rl.environment.Environment;
+import be.iminds.iot.dianne.tensor.ModuleOps;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
@@ -40,7 +40,6 @@ import be.iminds.iot.dianne.tensor.Tensor;
 public class RandomActionStrategy implements ActionStrategy {
 
 	private Tensor action;
-	private Random r = new Random(System.currentTimeMillis());
 	
 	@Override
 	public void setup(Map<String, String> config, Environment env, NeuralNetwork... nns) throws Exception {
@@ -49,10 +48,8 @@ public class RandomActionStrategy implements ActionStrategy {
 
 	@Override
 	public AgentProgress processIteration(long i, Tensor state) throws Exception {
-		action.fill(0f);
-		
-		int index = r.nextInt(action.size());
-		action.set(1.0f, index);
+		action.randn();
+		ModuleOps.tanh(action, action);
 		
 		return new AgentProgress(i, action);
 	}
