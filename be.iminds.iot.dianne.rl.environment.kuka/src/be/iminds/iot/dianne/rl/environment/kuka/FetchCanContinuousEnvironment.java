@@ -30,25 +30,25 @@ import org.osgi.util.promise.Promise;
 import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.rl.environment.kuka.api.KukaEnvironment;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorOps;
 import be.iminds.iot.robot.api.Arm;
 import be.iminds.iot.simulator.api.Position;
 
 
 @Component(immediate = true,
 	service = {Environment.class, KukaEnvironment.class},
-	property = { "name="+FetchCanEnvironment.NAME, 
+	property = { "name="+FetchCanContinuousEnvironment.NAME, 
 				 "aiolos.unique=true",
 				 "aiolos.combine=*",
 				 "osgi.command.scope=kukaagent",
 				 "osgi.command.function=rest",
 				 "osgi.command.function=go",
 				 "osgi.command.function=reward"})
-public class FetchCanEnvironment extends AbstractFetchCanEnvironment {
+public class FetchCanContinuousEnvironment extends AbstractFetchCanEnvironment {
 	
-	public static final String NAME = "FetchCan";
+	public static final String NAME = "FetchCanContinuous";
 	
-	private float speed = 0.1f;
+	private float STOP_THRESHOLD = 0.01f;
+	private float MAX_SPEED = 0.1f;
 	
 	@Override
 	public String getName(){
@@ -57,33 +57,17 @@ public class FetchCanEnvironment extends AbstractFetchCanEnvironment {
 
 	@Override
 	public int[] actionDims() {
-		return new int[]{7};
+		return new int[]{3};
 	}
 	
 	@Override
 	protected void executeAction(Tensor a) throws Exception {
-		int action = TensorOps.argmax(a);
-		
-		switch(action){
-		case 0:
-			kukaPlatform.move(0f, speed, 0f);
-			break;
-		case 1:
-			kukaPlatform.move(0f, -speed, 0f);
-			break;
-		case 2:
-			kukaPlatform.move(speed, 0f, 0f);
-			break;
-		case 3:
-			kukaPlatform.move(-speed, 0f, 0f);
-			break;
-		case 4:
-			kukaPlatform.move(0f, 0.f, 2*speed);
-			break;
-		case 5:
-			kukaPlatform.move(0f, 0.f, -2*speed);
-			break;	
-		case 6:
+		float[] action = a.get();
+
+		if(  action[0] < STOP_THRESHOLD
+		  && action[1] < STOP_THRESHOLD
+		  && action[2] < STOP_THRESHOLD){
+			
 			terminal = true;
 			
 			kukaPlatform.stop();	
@@ -123,8 +107,9 @@ public class FetchCanEnvironment extends AbstractFetchCanEnvironment {
 				// wait until grip is done
 				result.getValue();
 			}
-			
-			return;
+		} else {
+			kukaPlatform.move(action[0]*MAX_SPEED, action[1]*MAX_SPEED, action[2]*MAX_SPEED*2);
+					
 		}
 		
 		// simulate an iteration further
@@ -137,7 +122,11 @@ public class FetchCanEnvironment extends AbstractFetchCanEnvironment {
 	public void configure(Map<String, String> config) {
 		
 		if(config.containsKey("speed")){
-			this.speed = Float.parseFloat(config.get("speed"));
+			this.MAX_SPEED = Float.parseFloat(config.get("speed"));
+		}
+		
+		if(config.containsKey("stop_threshold")){
+			this.STOP_THRESHOLD = Float.parseFloat(config.get("stop_threshold"));
 		}
 		
 		super.configure(config);
