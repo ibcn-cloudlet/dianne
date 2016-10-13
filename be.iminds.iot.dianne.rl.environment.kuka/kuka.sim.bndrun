@@ -44,6 +44,7 @@
 -runproperties.xkuka: \
 	ros.core.native=true,\
 	vrep.dir=/opt/vrep-3.3.1,\
+	vrep.launch=true,\
 	aiolos.proxy.ignore.extra="be.iminds.iot.ros.*,org.ros.*",\
 	be.iminds.iot.dianne.storage="../tools/models",\
 	be.iminds.iot.dianne.datasets.location="../tools/experience"

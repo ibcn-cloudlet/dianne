@@ -312,8 +312,6 @@ public class FetchCanEnvironment implements Environment, KukaEnvironment {
 	}
 	
 	private void init() throws Exception {
-		// TODO also random init for youbot position and orientation?
-		
 		if(simulator == null) {
 			// automatically pause the environment until the user resumes from CLI
 			pause = true;
@@ -322,18 +320,28 @@ public class FetchCanEnvironment implements Environment, KukaEnvironment {
 			
 		} else {
 			// in simulation we can control the position of the youbot and can
+			float x,y,o;
 			
-			// always start the youbot in 0,0 for now
+			// random init position and orientation of the robot
 			Position p = simulator.getPosition("youBot");
-			simulator.setPosition("youBot", new Position(0, 0, p.z));
+			x = (r.nextFloat()-0.5f);
+			y = (r.nextFloat()-0.5f)*1.8f;
+			o = (r.nextFloat()-0.5f)*6.28f;
+			simulator.setPosition("youBot", new Position(x, y, p.z));
+			simulator.setOrientation("youBot", new Orientation(-1.5707963f, o, -1.5707965f));
 			
-			// set random can position, right now in front of the youbot
-			p = simulator.getPosition("Can1");
-			float x = (r.nextFloat()-0.5f)*0.55f;
-			x = x > 0 ? x + 0.25f : x - 0.25f; 
-			float y = r.nextFloat()*0.9f+0.4f;
-			simulator.setPosition("Can1", new Position(x, y, 0.06f));
-			simulator.setOrientation("Can1", new Orientation(0, 0 ,1.6230719f));
+			// set random can position
+			float s = 0;
+			while(s < 0.15f) { // can should not be colliding with youbot from start
+				p = simulator.getPosition("Can1");
+				x = (r.nextFloat()-0.5f)*1.6f;
+				y = (r.nextFloat()-0.5f)*2.4f;
+				simulator.setPosition("Can1", new Position(x, y, 0.06f));
+				simulator.setOrientation("Can1", new Orientation(0, 0 ,1.6230719f));
+				
+				Position d = simulator.getPosition("Can1", "youBot");
+				s = d.y*d.y+d.z*d.z;
+			} 
 			
 			simulator.start(true);
 			
