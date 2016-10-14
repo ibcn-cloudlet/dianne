@@ -46,7 +46,7 @@ import be.iminds.iot.dianne.dataset.FileDataset;
 		service={Dataset.class},
 		immediate=true, 
 		configurationPolicy=ConfigurationPolicy.REQUIRE,
-		configurationPid="be.iminds.iot.dianne.dataset.CSV")
+		configurationPid="be.iminds.iot.dianne.dataset.CSVDataset")
 public class CSVDataset extends FileDataset{
 
 	private String separator = ",";
