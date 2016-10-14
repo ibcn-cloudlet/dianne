@@ -12,7 +12,7 @@ DIANNE provides a range of different modules to build up your models, such as **
 
 ![Overfeat neural network modeled in DIANNE](figures/overfeat.png)
 
-In DIANNE, the Module is not only a functional block, but also a unit of deployment, meaning that each individual module can be deployed on any device in a distributed computing environment. This allows fine grained distribution of neural network modules, enabling offloading parts of a neural network in case of small and embedded devices, or model parallellism when training large neural network models. For a list of all the available modules in DIANNE, have a look at the [module catalog on GitHub](https://github.com/ibcn-cloudlet/dianne/blob/v0.4.0/doc/modules.md).
+In DIANNE, the Module is not only a functional block, but also a unit of deployment, meaning that each individual module can be deployed on any device in a distributed computing environment. This allows fine grained distribution of neural network modules, enabling offloading parts of a neural network in case of small and embedded devices, or model parallellism when training large neural network models. For a list of all the available modules in DIANNE, have a look at the [module catalog on GitHub](https://github.com/ibcn-cloudlet/dianne/blob/v0.5.0/doc/modules.md).
 
 Tensors
 -------
@@ -36,7 +36,7 @@ During training, the DIANNE repository acts as a parameter server. At the start 
 Datasets
 --------
 
-In order to train and evaluate your neural network, DIANNE provides a **Dataset** interface that offers input samples and optionally corresponding outputs for either supervised or unsupervised learning. Similar to the model repository, datasets are added using JSON descriptor files. DIANNE has built-in adapters for various well-known image datasets, such as MNIST, ImageNet, CIFAR-10/100 and STL-10, for which you can download the configuration files on the [datasets page](http://dianne.intec.ugent.be/datasets/). You can also add your own dataset by simply creating a new descriptor file, see how in the [dataset documentation on GitHub](https://github.com/ibcn-cloudlet/dianne/blob/v0.4.0/doc/datasets.md).
+In order to train and evaluate your neural network, DIANNE provides a **Dataset** interface that offers input samples and optionally corresponding outputs for either supervised or unsupervised learning. Similar to the model repository, datasets are added using JSON descriptor files. DIANNE has built-in adapters for various well-known image datasets, such as MNIST, ImageNet, CIFAR-10/100 and STL-10, for which you can download the configuration files on the [datasets page](http://dianne.intec.ugent.be/datasets/). You can also add your own dataset by simply creating a new descriptor file, see how in the [dataset documentation on GitHub](https://github.com/ibcn-cloudlet/dianne/blob/v0.5.0/doc/datasets.md).
 
 ![DIANNE datasets](figures/datasets.png)
 

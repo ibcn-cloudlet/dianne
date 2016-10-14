@@ -12,7 +12,7 @@ Since DIANNE is built on top of OSGi/AIOLOS, all services that are used internal
 
 - `DianneCoordinator`: is a more high level interface that allows you to submit learn, evaluation and act tasks to DIANNE, without having to deal with all the internals of the framework. This interface can also be exposed via JSON RPC.
 
-For more detailed information, check the [`be.iminds.iot.dianne.api`](https://github.com/ibcn-cloudlet/dianne/tree/v0.4.0/be.iminds.iot.dianne.api) project.
+For more detailed information, check the [`be.iminds.iot.dianne.api`](https://github.com/ibcn-cloudlet/dianne/tree/v0.5.0/be.iminds.iot.dianne.api) project.
 
 Developing for DIANNE
 ---------------------

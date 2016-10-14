@@ -34,10 +34,10 @@ To start building, first clone the repository from GitHub:
 
 	git clone https://github.com/ibcn-cloudlet/dianne.git
 
-Next, it is recommended to check out the latest release and initialize the submodules. At the time of this writing, this is version v0.4.0. Note that in order to avoid any issues, it is recommended to initialize the submodules *after* you checked out the correct version.
+Next, it is recommended to check out the latest release and initialize the submodules. At the time of this writing, this is version v0.5.0. Note that in order to avoid any issues, it is recommended to initialize the submodules *after* you checked out the correct version.
 
 	cd dianne
-	git checkout v0.4.0
+	git checkout v0.5.0
 	git submodule init
 	git submodule update
 	
@@ -81,7 +81,7 @@ Using precompiled binaries
 
 A number of different precompiled binaries are available on the DIANNE [downloads page](http://dianne.intec.ugent.be/downloads/). Currently, only binaries for Linux are provided. Simply run these by executing e.g.:
 
-	java -jar be.iminds.iot.dianne.all-torch-0.4.0.jar
+	java -jar be.iminds.iot.dianne.all-torch-0.5.0.jar
 
 **Note**: These binaries are assembled automatically and provided as is, there is no guarantee these will work flawlessly (let alone optimally) on all systems.
 
@@ -93,7 +93,7 @@ Once you have DIANNE up and running, it's a good idea to check if everything is 
 	./gradlew datasets -Pwhich=MNIST
 	./gradlew models -Pwhich=tutorial_1
 	
-This will download the MNIST dataset along with the necessary configuration file (for more information on datasets and adapters in DIANNE, see the [documentation on GitHub](https://github.com/ibcn-cloudlet/dianne/blob/v0.4.0/doc/datasets.md)), as well as a simple MLP model structure and trained weights.
+This will download the MNIST dataset along with the necessary configuration file (for more information on datasets and adapters in DIANNE, see the [documentation on GitHub](https://github.com/ibcn-cloudlet/dianne/blob/v0.5.0/doc/datasets.md)), as well as a simple MLP model structure and trained weights.
 
 Once the DIANNE runtime is started, direct your browser to:
 
