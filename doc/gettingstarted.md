@@ -7,7 +7,7 @@ Prerequisites
 We currently only support running (and building) DIANNE on Unix-based platforms, i.e. Linux & macOS, as we only have native code builds working for those platforms. Windows is currently not supported. In order to run DIANNE, you strictly speaking only require the following:
 
 - Java JRE (minimum version **1.8**)
-- libgfortran3
+- gfortran3
 
 If you want to use the GPU backend however, you also require:
 
