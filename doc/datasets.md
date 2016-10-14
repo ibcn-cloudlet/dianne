@@ -14,6 +14,7 @@
     * [AutoencoderAdapter](#dataset.AutoencoderAdapter)
     * [LabelAdapter](#dataset.LabelAdapter)
     * [MaskToClassAdapter](#dataset.MaskToClassAdapter)
+    * [BinarizeAdapter](#dataset.BinarizeAdapter)
 
 <a name="dataset.auto"/>
 ## Automatically-configured datasets ##
@@ -112,7 +113,7 @@ This adapters allows you to frame an image dataset to fixed dimensions. Images a
 
 <a name="dataset.AutoencoderAdapter"/>
 ### AutoencoderAdapter ###
-This adapter sets the target of the dataset the same as the input (dropping any labels). This can be used to train auto-encoders, for example. No further options are required.
+This adapter sets the target of the dataset the same as the input (dropping any labels). This can be used to train auto-encoders, for example. No further options are required. This adapter can be activated using the `autoencode=true` option.
 
 <a name="dataset.LabelAdapter"/>
 ### LabelAdapter ###
@@ -127,3 +128,9 @@ Changes a dataset aimed at segmentation (using masks) to binary classification, 
 
   * `center` : Boolean value indicating if we only need to look at the center pixel of the mask or look at the sum over all pixels (default is `false`).
   * `threshold` : Real value indicating the threshold above which the class is 1 instead of 0 (default is 0.5).
+
+<a name="dataset.BinarizeAdapter"/>
+### BinarizeAdapter ###
+Changes the real-valued samples of a dataset to binary values, given a threshold on said values. This can be used to create black & white images from gray-scale images for example. Required options are:
+
+  * `binarize`(*) : Real value indicating the threshold above which values will be set to 1, or 0 otherwise (default is 0.5).
