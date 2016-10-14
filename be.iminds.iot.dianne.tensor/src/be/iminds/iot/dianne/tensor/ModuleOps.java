@@ -37,7 +37,7 @@ public class ModuleOps {
 	public static native Tensor threshold(Tensor output, final Tensor input, 
 			final float threshold, final float val);
 
-	public static native Tensor thresholdGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor input, final Tensor output, final float threshold);
+	public static native Tensor thresholdGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor input, final Tensor output, final float threshold, float val);
 	
 	
 	public static native Tensor relu(Tensor output, final Tensor input);

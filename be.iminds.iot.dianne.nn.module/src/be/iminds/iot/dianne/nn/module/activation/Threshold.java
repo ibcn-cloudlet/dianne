@@ -51,7 +51,7 @@ public class Threshold extends AbstractModule {
 
 	@Override
 	protected void backward() {
-		gradInput = ModuleOps.thresholdGradIn(gradInput, gradOutput, input, output, threshold);
+		gradInput = ModuleOps.thresholdGradIn(gradInput, gradOutput, input, output, threshold, val);
 	}
 
 }
