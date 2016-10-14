@@ -82,8 +82,8 @@ void initTH(JNIEnv* env, int device){
 
 	// Set Torch error handler functions to throw Exceptions in Java
 	env->GetJavaVM(&jvm);
-	THSetErrorHandler(torchErrorHandlerFunction, NULL);
-	THSetArgErrorHandler(torchArgErrorHandlerFunction, NULL);
+	THSetDefaultErrorHandler(torchErrorHandlerFunction, NULL);
+	THSetDefaultArgErrorHandler(torchArgErrorHandlerFunction, NULL);
 
 	// Set Torch GC handler
 	THSetGCHandler(gcFunction, NULL);
