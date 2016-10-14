@@ -10,7 +10,6 @@
 
 -runbundles.rnn: \
 	be.iminds.iot.dianne.nn.runtime;version=latest,\
-	be.iminds.iot.dianne.log;version=latest,\
 	be.iminds.iot.dianne.nn.learn;version=latest,\
 	be.iminds.iot.dianne.nn.eval;version=latest,\
 	be.iminds.iot.dianne.rnn.module;version=latest,\
