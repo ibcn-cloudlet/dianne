@@ -87,6 +87,12 @@ public class Tensor {
 	 */
 	public native void reshape(final int... d);
 	
+	public void reshape(final int[] d, final int df){
+		int[] dn = Arrays.copyOf(d, d.length+1);
+		dn[d.length] = df;
+		reshape(dn);
+	}
+	
 	/** 
 	 * get a value of the tensor
 	 * @param d indices of the element

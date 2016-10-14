@@ -22,6 +22,7 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.module.layer;
 
+import java.util.Arrays;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
@@ -108,23 +109,15 @@ public class AvgPooling extends AbstractModule {
 		type = Type.VOLUMETRIC;
 	}
 
-	private int[] inputDims;
-	
 	@Override
 	protected void forward() {
 		switch(type){
 		case TEMPORAL:
-			// temporal avg pooling as spatial pooling in height dim
-			// this is confusing, but temporal width maps to spatial height...
-			inputDims = input.dims();
-			if(inputDims.length == 2){
-				input.reshape(1, inputDims[0], inputDims[1]);
-			}
+			// temporal avg pooling as spatial pooling with height = 1
+			input.reshape(input.dims(), 1);
 			output = ModuleOps.spatialavgpool(output, input, 1, width, 1, strideX, 0, padX, ceil, include_pad);
-			if(inputDims.length == 2){
-				int[] outputDims = output.dims();
-				output.reshape(outputDims[1], outputDims[2]);
-			}
+			int[] outputDims = output.dims();
+			output.reshape(Arrays.copyOf(outputDims, outputDims.length-1));
 			break;
 		case SPATIAL:
 			output = ModuleOps.spatialavgpool(output, input, width, height, strideX, strideY, padX, padY, ceil, include_pad);
@@ -137,18 +130,13 @@ public class AvgPooling extends AbstractModule {
 
 	@Override
 	protected void backward() {	
-		if(gradInput == null){
-			gradInput = new Tensor(input.dims());
-		} 
-
 		switch(type){
 		case TEMPORAL:
-			int[] gradOutputDims = gradOutput.dims();
-			if(gradOutputDims.length == 2){
-				gradOutput.reshape(1, gradOutputDims[0], gradOutputDims[1]);
-			}
+			// 1D as 2d with height = 1
+			gradOutput.reshape(output.dims(), 1);
 			gradInput = ModuleOps.spatialavgpoolGradIn(gradInput, gradOutput, input, output, 1, width, 1, strideX, 0, padX, ceil, include_pad);
-			gradInput.reshape(inputDims);
+			int[] inputDims = input.dims();
+			gradInput.reshape(Arrays.copyOf(inputDims, inputDims.length-1));
 			break;
 		case SPATIAL:
 			gradInput = ModuleOps.spatialavgpoolGradIn(gradInput, gradOutput, input, output, width, height, strideX, strideY, padX, padY, ceil, include_pad);

@@ -33,21 +33,21 @@ public class TemporalAvgpoolingTest extends ModuleTest{
 	public void testTemporalAvgpooling1() throws InterruptedException {
 		AvgPooling ap = new AvgPooling(2, 2);
 		
-		// temporal has "temporal" dim first and "feature" dim second
-		Tensor input = new Tensor(6,2);
+		// temporal has "feature" dim first and "temporal" dim second
+		Tensor input = new Tensor(2,6);
 		input.fill(1.0f);
-		input.set(2.0f, 1, 0);
-		input.set(3.0f, 4, 1);
+		input.set(2.0f, 0, 1);
+		input.set(3.0f, 1, 4);
 		
-		Tensor gradOutput = new Tensor(3, 2);
+		Tensor gradOutput = new Tensor(2, 3);
 		gradOutput.fill(1.0f);
 		
-		Tensor expOutput = new Tensor(3, 2);
+		Tensor expOutput = new Tensor(2, 3);
 		expOutput.fill(1.0f);
 		expOutput.set(1.5f, 0, 0);
-		expOutput.set(2.0f, 2, 1);
+		expOutput.set(2.0f, 1, 2);
 		
-		Tensor expGradInput = new Tensor(6, 2);
+		Tensor expGradInput = new Tensor(2, 6);
 		expGradInput.fill(0.5f);
 
 		
