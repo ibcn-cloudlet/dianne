@@ -39,6 +39,7 @@
   * [Regularization](#nn.regularization)
     * [BatchNormalization](#nn.BatchNormalization) (trainable)
 	* [Dropout](#nn.Dropout)
+	* [DropPath](#nn.DropPath)
   * [Composite](#nn.composite)
     * [Inception_v1](#nn.Inception_v1) (trainable)
     * [Inception_v2](#nn.Inception_v2) (trainable)
@@ -347,11 +348,17 @@ This is a trainable module.
 ### Dropout ###
 Performs elementwise dropout [4] on the input (output of the preceding module). This module has a single parameter:
 
-  * `dropout` : the dropout rate, i.e. probability of an value being set to zero (in [0,1])
+  * `rate` : the dropout rate, i.e. probability of an value being set to zero (in [0,1])
+
+<a name="nn.DropPath"/>
+### DropPath ###
+Performs tensorwise droppath [7] on the input tensor, i.e. with a certain probability it will set the full input to zero or will pass it unchanged otherwise. This module has a single parameter:
+
+  * `rate` : the droppath rate, a real value in [0,1]
 
 <a name="nn.composite"/>
 ## Composite ##
-Composite modules are combinations of other modules in this catalog, and are in turn building blocks for larger models. When deployed, composite modules are "expanded" into their constituting modules, which can then in turn be individually deployed.
+Composite modules are combinations of other modules in this catalog, and are in turn building blocks for larger models. When deployed, composite modules are "expanded" into their constituting modules, which can then in turn be individually deployed. You can create your own composite modules by adding a `composite.txt` file to a model folder, specifying the configuration options (e.g. number of filters). Have a look at the [`be.iminds.iot.dianne.nn.module`](../be.iminds.iot.dianne.nn.module/composites) project for examples.
 
 <a name="nn.Inception_v1"/>
 ### Inception_v1 ###
