@@ -1,4 +1,7 @@
 /*******************************************************************************
+ * DIANNE  - Framework for distributed artificial neural networks
+ * Copyright (C) 2015  iMinds - IBCN - UGent
+ *
  * This file is part of DIANNE.
  *
  * DIANNE is free software: you can redistribute it and/or modify
