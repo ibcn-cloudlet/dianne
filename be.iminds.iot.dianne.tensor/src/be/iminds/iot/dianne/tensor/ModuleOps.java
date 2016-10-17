@@ -55,11 +55,11 @@ public class ModuleOps {
 
 	public static native Tensor softmax(Tensor output, final Tensor input);
 
-	public static native Tensor softmaxGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor output);
+	public static native Tensor softmaxGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor input, final Tensor output);
 
 	public static native Tensor logsoftmax(Tensor output, final Tensor input);
 
-	public static native Tensor logsoftmaxGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor output);
+	public static native Tensor logsoftmaxGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor input, final Tensor output);
 	
 
 	public static native Tensor temporalmaxpool(Tensor output, final Tensor input, final Tensor indices,

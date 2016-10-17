@@ -44,6 +44,6 @@ public class LogSoftmax extends AbstractModule {
 
 	@Override
 	protected void backward() {
-		gradInput = ModuleOps.logsoftmaxGradIn(gradInput, gradOutput, output);
+		gradInput = ModuleOps.logsoftmaxGradIn(gradInput, gradOutput, input, output);
 	}
 }

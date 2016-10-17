@@ -54,7 +54,7 @@ typedef THCudaStorage THStorage;
 
 #define THNN_(x) THNN_Cuda##x
 
-extern THCState* state;
+extern struct THCState* state;
 extern int CURRENT_GPU;
 void selectGPU(int d);
 

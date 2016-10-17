@@ -91,7 +91,7 @@ void initTH(JNIEnv* env, int device){
 	// initialize CUDA
 #ifdef CUDA
 	if(state == 0){
-		state = (THCState*)malloc(sizeof(THCState));
+		state = THCState_alloc();
 		THCudaInit(state);
 
 		if(device >= 0){
@@ -116,7 +116,7 @@ void cleanupTH(JNIEnv* env){
 	// cleanup CUDA
 #ifdef CUDA
 	THCudaShutdown(state);
-	free(state);
+	THCState_free(state);
 #endif
 }
 
@@ -235,10 +235,5 @@ void selectGPU(int d){
 		return;
 
 	THCudaCheck(cudaSetDevice(d));	
-	THCRandom_setGenerator(state, d);
-
-	/* The stream is per device, so update the stream as well */
-	THCState_setStream(state, d, THCState_getCurrentStreamIndex(state));
-	THCState_setBlasHandle(state, d, THCState_getCurrentBlasHandleIndex(state));
 }
 #endif

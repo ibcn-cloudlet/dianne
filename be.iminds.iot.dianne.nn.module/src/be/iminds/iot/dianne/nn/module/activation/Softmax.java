@@ -44,6 +44,6 @@ public class Softmax extends AbstractModule {
 
 	@Override
 	protected void backward() {
-		gradInput = ModuleOps.softmaxGradIn(gradInput, gradOutput, output);
+		gradInput = ModuleOps.softmaxGradIn(gradInput, gradOutput, input, output);
 	}
 }

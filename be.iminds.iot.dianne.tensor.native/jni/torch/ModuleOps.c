@@ -46,11 +46,12 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_tanhGradIn
   (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject out){
 	THTensor* gradInput = getTensor(env, gradIn);
 	THTensor* gradOutput = getTensor(env, gradOut);
+	THTensor* input = getTensor(env, in);
 	THTensor* output = getTensor(env, out);
 
 	THNN_(Tanh_updateGradInput)(
 	          state,
-	          0,
+	          input,
 	          gradOutput,
 	          gradInput,
 	          output);
@@ -77,11 +78,12 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_sigmoidGrad
   (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject out){
 	THTensor* gradInput = getTensor(env, gradIn);
 	THTensor* gradOutput = getTensor(env, gradOut);
+	THTensor* input = getTensor(env, in);
 	THTensor* output = getTensor(env, out);
 
 	THNN_(Sigmoid_updateGradInput)(
 	          state,
-	          0,
+	          input,
 	          gradOutput,
 	          gradInput,
 	          output);
@@ -154,6 +156,7 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_reluGradIn
 	          gradOutput,
 	          gradInput,
 	          0,
+			  0,
 			  0);
 
 	return gradIn == NULL ? createTensorObject(env, gradInput) : gradIn;
@@ -230,14 +233,15 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_softmax
 }
 
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_softmaxGradIn
-(JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject out){
+(JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject out){
 	THTensor* gradInput = getTensor(env, gradIn);
 	THTensor* gradOutput = getTensor(env, gradOut);
+	THTensor* input = getTensor(env, in);
 	THTensor* output = getTensor(env, out);
 
 	THNN_(SoftMax_updateGradInput)(
 	          state,
-	          0,
+	          input,
 	          gradOutput,
 	          gradInput,
 	          output);
@@ -261,14 +265,15 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_logsoftmax
 }
 
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_logsoftmaxGradIn
-(JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject out){
+(JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject out){
 	THTensor* gradInput = getTensor(env, gradIn);
 	THTensor* gradOutput = getTensor(env, gradOut);
+	THTensor* input = getTensor(env, in);
 	THTensor* output = getTensor(env, out);
 
 	THNN_(LogSoftMax_updateGradInput)(
 	          state,
-	          0,
+	          input,
 	          gradOutput,
 	          gradInput,
 	          output);
