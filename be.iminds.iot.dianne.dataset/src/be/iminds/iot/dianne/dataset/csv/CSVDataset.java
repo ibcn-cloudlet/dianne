@@ -105,7 +105,7 @@ public class CSVDataset extends FileDataset{
 			for(;i<inputOffset+inputSize;i++){
 				inputs[count][i] = Float.parseFloat(data[i]);
 			}
-			i += targetOffset-1;
+			i += targetOffset;
 			if(classification){
 				// threat as class index?
 				int index = Integer.parseInt(data[i]);
