@@ -34,11 +34,6 @@ public class DeepQConfig {
 	public float discount = 0.99f;
 	
 	/**
-	 * Interval to update the target NN
-	 */
-	public int targetInterval = 1000;
-
-	/**
 	 * Size of the batches that are processed by the Learner
 	 */
 	public int batchSize = 10;
@@ -48,6 +43,11 @@ public class DeepQConfig {
 	 */
 	public int minSamples = 1000;
 
+	/**
+	 * Perform double Q learning or not
+	 */
+	public boolean doubleQ = true;
+	
 	/**
 	 * The criterion to use to evaluate the loss between output and target
 	 */

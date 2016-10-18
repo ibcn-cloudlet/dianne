@@ -24,7 +24,6 @@ package be.iminds.iot.dianne.rl.learn.strategy;
 
 import java.util.Map;
 
-import be.iminds.iot.dianne.api.dataset.Batch;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
@@ -56,44 +55,52 @@ import be.iminds.iot.dianne.tensor.TensorOps;
  */
 public class DeepQLearningStrategy implements LearningStrategy {
 
-	protected ExperiencePool pool; 
-	protected NeuralNetwork nn;
-	protected NeuralNetwork target;
-	
 	protected DeepQConfig config;
-	protected GradientProcessor gradientProcessor;
-	protected Criterion criterion;
-	protected SamplingStrategy sampling;
 	
-	protected Batch batch;
+	protected ExperiencePool pool;
+	protected SamplingStrategy sampling;
+	protected ExperiencePoolSample interaction;
+	
+	protected NeuralNetwork valueNetwork;
+	protected NeuralNetwork targetNetwork;
+	
+	protected Criterion criterion;
+	protected GradientProcessor gradientProcessor;
+	
+	protected Tensor stateBatch;
+	protected Tensor actionBatch;
+	protected Tensor targetValueBatch;
 	
 	@Override
 	public void setup(Map<String, String> config, Dataset dataset, NeuralNetwork... nns) throws Exception {
 		if(!(dataset instanceof ExperiencePool))
 			throw new RuntimeException("Dataset is no experience pool");
 		
-		this.pool = (ExperiencePool)dataset;
+		this.pool = (ExperiencePool) dataset;
 		
 		if(nns.length != 2)
-			throw new RuntimeException("Invalid number of NN instances provided: "+nns.length+" ( expected 2 )");
+			throw new RuntimeException("Invalid number of NN instances provided: "+nns.length+" (expected 2)");
 			
-		this.nn = nns[0];
-		this.target = nns[1];
+		this.valueNetwork = nns[0];
+		this.targetNetwork = nns[1];
 		
 		this.config = DianneConfigHandler.getConfig(config, DeepQConfig.class);
-		sampling = SamplingFactory.createSamplingStrategy(this.config.sampling, dataset, config);
-		criterion = CriterionFactory.createCriterion(this.config.criterion, config);
-		gradientProcessor = ProcessorFactory.createGradientProcessor(this.config.method, nn, config);
+		this.sampling = SamplingFactory.createSamplingStrategy(this.config.sampling, dataset, config);
+		this.criterion = CriterionFactory.createCriterion(this.config.criterion, config);
+		this.gradientProcessor = ProcessorFactory.createGradientProcessor(this.config.method, valueNetwork, config);
 		
-		// wait until experience pool has a sufficient amount of samples
-		if(pool.size() < this.config.minSamples){
+		// Pre-allocate tensors for batch operations
+		this.stateBatch = new Tensor(this.config.batchSize, this.pool.stateDims());
+		this.actionBatch = new Tensor(this.config.batchSize, this.pool.actionDims()[0]);
+		this.targetValueBatch = new Tensor(this.config.batchSize, this.pool.actionDims()[0]);
+		
+		// Wait for the pool to contain enough samples
+		while(pool.size() < this.config.minSamples){
 			System.out.println("Experience pool has too few samples, waiting a bit to start learning...");
-			while(pool.size() < this.config.minSamples){
-				try {
-					Thread.sleep(5000);
-				} catch (InterruptedException e) {
-					return;
-				}
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				return;
 			}
 		}
 		
@@ -102,59 +109,72 @@ public class DeepQLearningStrategy implements LearningStrategy {
 
 	@Override
 	public LearnProgress processIteration(long i) throws Exception {
-		nn.zeroDeltaParameters();
-
-		float loss = 0;
-		float q = 0;
-			
-		// TODO actually process in batch
-		for(int k=0;k<config.batchSize;k++){
-			// new sample
-			int index = sampling.next();
-			
-			ExperiencePoolSample sample = pool.getSample(index);
-			
-			Tensor in = sample.input;
-
-			// forward
-			Tensor out = nn.forward(in, ""+index);
-			
-			// evaluate criterion
-			Tensor action = sample.target;
-			float reward = sample.reward;
-			Tensor nextState = sample.nextState;
-			
-			float targetQ = 0;
-			
-			if(sample.isTerminal){
-				// terminal state
-				targetQ = reward;
-			} else {
-				Tensor nextQ = target.forward(nextState, ""+index);
-				targetQ = reward + config.discount * TensorOps.max(nextQ);
-			}
-			
-			Tensor targetOut = out.copyInto(null);
-			targetOut.set(targetQ, TensorOps.argmax(action));
-			
-			q += out.get(TensorOps.argmax(action));
+		// Reset the deltas
+		valueNetwork.zeroDeltaParameters();
 		
-			loss += criterion.loss(out, targetOut);
+		// Reset the action & target value batch
+		// Note: actionBatch is a reverse mask of the action selected
+		actionBatch.fill(1);
+		targetValueBatch.fill(0);
+		
+		// Fill in the batch
+		for(int b = 0; b < config.batchSize; b++) {
+			// Get a sample interaction
+			int index = sampling.next();
+			interaction = pool.getSample(interaction, index);
 			
-			Tensor gradOut = criterion.grad(out, targetOut);
+			// Get the data from the sample
+			// Note: actions are one-hot encoded
+			Tensor state = interaction.getState();
+			int action = TensorOps.argmax(interaction.getAction());
+			Tensor nextState = interaction.getNextState();
+			float reward = interaction.getReward();
 			
-			// backward
-			Tensor gradIn = nn.backward(gradOut, ""+index);
+			// Copy state into batch
+			state.copyInto(stateBatch.select(0, b));
 			
-			// acc gradParameters
-			nn.accGradParameters();
+			// Flag proper action
+			actionBatch.set(0, b, action);
+			
+			// Calculate the target value
+			if(!interaction.isTerminal) {
+				// If the next state is not terminal, get the next value using the target network
+				Tensor nextValue = targetNetwork.forward(nextState);
+				
+				// Determine the next action, depends on whether we are using double Q learning or not
+				int nextAction = TensorOps.argmax(config.doubleQ ? valueNetwork.forward(nextState) : nextValue);
+				
+				// Set the target value using the Bellman equation
+				targetValueBatch.set(reward + config.discount*nextValue.get(nextAction), b, action);
+			} else {
+				// If the next state is terminal, the target value is equal to the reward
+				targetValueBatch.set(reward, b, action);
+			}
 		}
 		
-		gradientProcessor.calculateDelta(i);
-
-		nn.updateParameters();
+		// Forward pass of the value network to get the current value estimate
+		Tensor valueBatch = valueNetwork.forward(stateBatch);
 		
-		return new QLearnProgress(i, loss, q/config.batchSize);
+		// Fill in the missing target values
+		TensorOps.addcmul(targetValueBatch, targetValueBatch, 1, actionBatch, valueBatch);
+		
+		// Get the total value for logging and calculate the MSE error and gradient with respect to the target value
+		float value = TensorOps.sum(valueBatch)/config.batchSize/pool.actionDims()[0];
+		float loss = criterion.loss(valueBatch, targetValueBatch);
+		Tensor grad = criterion.grad(valueBatch, targetValueBatch);
+		
+		// Backward pass of the critic
+		valueNetwork.backward(grad);
+		valueNetwork.accGradParameters();
+		
+		// Call the processos to set the updates
+		gradientProcessor.calculateDelta(i);
+		
+		// Apply the updates
+		// Note: target network gets updated automatically by setting the syncInterval option
+		valueNetwork.updateParameters();
+		
+		return new QLearnProgress(i, loss, value);
 	}
 
 }
