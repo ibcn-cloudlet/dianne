@@ -52,7 +52,7 @@ Reads a single ASCII file for supervised learning. Each line is interpreted as a
   * `file` : The ASCII file to be read.
   * `separator` : The character used to separate the different values. By default this is ",", hence the name.
   * `inputOffset` : The column at which to start reading the input, counting from the start of the line.
-  * `targetOffset` : The colomn at which to start reading the target, counting from the end of the input (so use 0 if consecutive).
+  * `targetOffset` : The column at which to start reading the target, counting from the end of the input (so use 0 if consecutive).
   * `classification` : Boolean value indicating if this dataset is used for classification. If `true`, a single integer target value is read and interpreted as the class index. This is then converted into a one-hot encoding.
   
 **Note**: You can optionally omit the `noSamples` options, as this can be determined automatically by counting the number of lines in the file.
