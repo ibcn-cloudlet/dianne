@@ -30,4 +30,5 @@ public class GreedyConfig {
 	public double epsilonDecay = 1e-6;
 
 	public boolean trace = false;
+	public int traceInterval=1000;
 }

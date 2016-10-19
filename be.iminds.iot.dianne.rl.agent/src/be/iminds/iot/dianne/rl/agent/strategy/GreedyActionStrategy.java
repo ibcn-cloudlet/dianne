@@ -60,7 +60,7 @@ public class GreedyActionStrategy implements ActionStrategy {
 		
 		double epsilon = config.epsilonMin + (config.epsilonMax - config.epsilonMin) * Math.exp(-i * config.epsilonDecay);
 		
-		if(config.trace){
+		if(config.trace && i % config.traceInterval == 0){
 			System.out.println("Epsilon: "+epsilon);
 		}
 		
