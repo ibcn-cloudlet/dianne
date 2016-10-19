@@ -309,7 +309,7 @@ public class AgentImpl implements Agent {
 					s.nextState = env.getObservation(s.nextState);
 					s.isTerminal = s.nextState == null;
 	
-					if(config.trace){
+					if(config.trace && i % config.traceInterval == 0){
 						System.out.println(progress);
 					}
 					

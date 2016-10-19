@@ -40,6 +40,11 @@ public class LearnerConfig {
 	public boolean trace = false;
 	
 	/**
+	 * Interval to output intermediate results to the console
+	 */
+	public int traceInterval = 1000;
+	
+	/**
 	 * Retry NaNretry times with last sync-ed parameters in case of a NaN loss
 	 */
 	public int NaNretry = 0;

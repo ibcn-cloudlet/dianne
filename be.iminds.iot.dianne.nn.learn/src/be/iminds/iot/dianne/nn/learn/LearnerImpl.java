@@ -174,7 +174,7 @@ public class LearnerImpl implements Learner {
 							throw new Exception("Learner error became NaN");
 						}
 						
-						if(this.config.trace)
+						if(this.config.trace && i % this.config.traceInterval == 0)
 							System.out.println(progress);
 						
 						// Publish parameters to repository
@@ -351,7 +351,7 @@ public class LearnerImpl implements Learner {
 	}
 
 	@Reference
-	void setLearningStrategyFactory(StrategyFactory f){
+	void setLearningStrategyFactory(StrategyFactory<LearningStrategy> f){
 		factory = f;
 	}
 	

@@ -54,5 +54,10 @@ public class AgentConfig {
 	 * Output intermediate results to the console
 	 */
 	public boolean trace = false;
+	
+	/**
+	 * Interval to output intermediate results to the console
+	 */
+	public int traceInterval = 1000;
 
 }
