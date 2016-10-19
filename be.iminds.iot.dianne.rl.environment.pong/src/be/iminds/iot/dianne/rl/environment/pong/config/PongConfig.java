@@ -43,6 +43,6 @@ public class PongConfig {
 	/**
 	 * Identify a terminal state when game ends
 	 */
-	public boolean terminalState = false;
+	public boolean terminalState = true;
 
 }

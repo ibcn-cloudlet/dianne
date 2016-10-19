@@ -104,12 +104,7 @@ public class Pong implements PongEnvironment, Environment {
 		
 		float totalReward = 0;
 
-		for(int i=0;i<config.skip;i++){
-			// immediate return if terminal state
-			if(terminal){
-				return totalReward;
-			}
-
+		for(int i = 0; i < config.skip && !terminal; i++){
 			float reward = 0;
 			
 			float d_p = vdef * agentAction;
@@ -203,9 +198,9 @@ public class Pong implements PongEnvironment, Environment {
 		if(!active)
 			throw new RuntimeException("The Environment is not active!");
 		
-		if(terminal){
+		if(terminal)
 			return null;
-		}
+
 		return observation.copyInto(t);
 	}
 
