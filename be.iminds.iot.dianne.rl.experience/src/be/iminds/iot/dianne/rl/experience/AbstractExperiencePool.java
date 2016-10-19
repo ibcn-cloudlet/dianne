@@ -22,6 +22,7 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rl.experience;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
@@ -57,9 +58,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		sampleSize = 2*stateSize+actionSize+1;
 
 		emptyState = new float[stateSize];
-		for(int i=0;i<stateSize;i++){
-			emptyState[i] = -Float.MAX_VALUE;
-		}
+		Arrays.fill(emptyState, Float.NaN);
 		
 		setup();
 	}
@@ -141,9 +140,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 			s.nextState.set(nextStateBuffer);
 		}
 		
-		if(nextStateBuffer[0] == -Float.MAX_VALUE){
-			s.isTerminal = true;
-		}
+		s.isTerminal = Float.isNaN(nextStateBuffer[0]);
 		
 		return s;
 	}
@@ -201,11 +198,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		System.arraycopy(s.input.get(), 0, writeBuffer, 0, stateSize);
 		System.arraycopy(s.target.get(), 0, writeBuffer, stateSize, actionSize);
 		writeBuffer[stateSize+actionSize] = s.reward;
-		if(s.isTerminal){
-			System.arraycopy(emptyState, 0, writeBuffer, stateSize+actionSize+1, stateSize);
-		} else {
-			System.arraycopy(s.nextState.get(), 0, writeBuffer, stateSize+actionSize+1, stateSize);
-		}
+		System.arraycopy(s.isTerminal ? emptyState : s.nextState.get(), 0, writeBuffer, stateSize+actionSize+1, stateSize);
 		writeData(index, writeBuffer);
 	}
 	
