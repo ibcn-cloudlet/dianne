@@ -61,7 +61,6 @@ import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
 import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.agent.config.AgentConfig;
-import be.iminds.iot.dianne.tensor.Tensor;
 
 @Component
 public class AgentImpl implements Agent {
@@ -127,7 +126,7 @@ public class AgentImpl implements Agent {
 	}
 
 	@Reference
-	void setActionFactoryStrategy(StrategyFactory f){
+	void setActionFactoryStrategy(StrategyFactory<ActionStrategy> f){
 		this.factory = f;
 	}
 	
@@ -170,7 +169,7 @@ public class AgentImpl implements Agent {
 			this.config = DianneConfigHandler.getConfig(config, AgentConfig.class);
 			this.properties = config;
 			
-			this.strategy = factory.create(this.config.strategy);
+			strategy = factory.create(this.config.strategy);
 			if(strategy==null){
 				acting = false;
 				throw new RuntimeException("Invalid strategy selected: "+strategy);
@@ -209,6 +208,7 @@ public class AgentImpl implements Agent {
 					String ad = Arrays.toString(actionDims);
 					config.put("actionDims", ad.substring(1, ad.length()-1));
 				}
+				
 				Dataset d = datasets.configureDataset(experiencePool, config);
 				if(d == null || !(d instanceof ExperiencePool)){
 					acting = false;
@@ -252,6 +252,8 @@ public class AgentImpl implements Agent {
 				acting = false;
 				actingThread.interrupt();
 				actingThread.join();
+				experienceUploadThread.interrupt();
+				experienceUploadThread.join();
 			}
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -262,13 +264,11 @@ public class AgentImpl implements Agent {
 
 		@Override
 		public void run() {
-			Tensor current = new Tensor();
-			Tensor next = new Tensor();
 			ExperiencePoolSample s = new ExperiencePoolSample();
 			
 			try {
 				// setup repo listener
-				Dictionary<String, Object> props = new Hashtable();
+				Dictionary<String, Object> props = new Hashtable<>();
 				String[] t = new String[]{":"+config.tag};
 				props.put("targets", t);
 				props.put("aiolos.unique", true);
@@ -285,7 +285,7 @@ public class AgentImpl implements Agent {
 				// setup action strategy
 				strategy.setup(properties, env, nns);
 		
-				s.input = env.getObservation(current);
+				s.input = env.getObservation(s.input);
 	
 				for(i = 0; acting; i++) {
 					// sync parameters
@@ -306,12 +306,8 @@ public class AgentImpl implements Agent {
 					s.reward= env.performAction(s.target);
 					progress.reward = s.reward;
 					
-					s.nextState = env.getObservation(next);
-					if(s.nextState == null){
-						s.isTerminal = true;
-					} else {
-						s.isTerminal = false;
-					}
+					s.nextState = env.getObservation(s.nextState);
+					s.isTerminal = s.nextState == null;
 	
 					if(config.trace){
 						System.out.println(progress);
@@ -324,42 +320,39 @@ public class AgentImpl implements Agent {
 						b.target = s.target.copyInto(b.target);
 						b.reward = s.reward;
 						b.isTerminal = s.isTerminal;
-						if(!s.isTerminal){
-							b.nextState = s.nextState.copyInto(b.nextState);
-						}
+						b.nextState = s.isTerminal ? null : s.nextState.copyInto(b.nextState);
 						
-						if(i > 0 && (i+1) % config.experienceInterval == 0){
+						if((i+1) % config.experienceInterval == 0){
 							// buffer full, switch to upload
 							// check if upload finished
 							// if still uploading ... wait now
-							if(uploading){
-								synchronized(upload){
-									if(uploading){
-										try {
-											upload.wait();
-										} catch (InterruptedException e) {
-										}
+							synchronized(upload){
+								while(uploading){
+									try {
+										upload.wait();
+									} catch (InterruptedException e) {
 									}
 								}
 							}
+							
 							List<ExperiencePoolSample> temp = upload;
 							upload = buffer;
 							buffer = temp;
-							bufferReady = true;
-							if(!uploading){
-								synchronized(upload){
-									upload.notifyAll();
-								}
+							
+							// Need to notify on previous buffer = current upload
+							synchronized(upload){
+								bufferReady = true;
+								upload.notifyAll();
 							}
 						}
 					}
 	
-					// if nextObservation was null, this is a terminal state - reset environment and start over
-					if(s.nextState == null){
+					// if this is a terminal state - reset environment and start over
+					if(s.isTerminal){
 						env.reset();
-						s.input = env.getObservation(current);
+						s.input = env.getObservation(s.input);
 					} else {
-						s.input = next.copyInto(current);
+						s.input = s.nextState.copyInto(s.input);
 					}
 					
 					publishProgress(progress);
@@ -402,27 +395,28 @@ public class AgentImpl implements Agent {
 			
 			while(acting){
 				// wait till new buffer is ready
-				if(!bufferReady){
-					synchronized(buffer){
-						if(!bufferReady){
-							try {
-								buffer.wait();
-							} catch (InterruptedException e) {
+				synchronized(buffer){
+					while(!bufferReady){
+						try {
+							buffer.wait();
+						} catch (InterruptedException e) {
+							if(!acting)
+								return;
+							else
 								e.printStackTrace();
-							}
 						}
 					}
 				}
 
 				bufferReady = false;
 				uploading = true;
+				
 				if(pool!=null){
 					pool.addSamples(upload);
 				}
 				
-				uploading = false;
-				
 				synchronized(upload){
+					uploading = false;
 					upload.notifyAll();
 				}
 				
