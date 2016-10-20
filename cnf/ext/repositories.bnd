@@ -20,6 +20,11 @@ repourl="http://aiolos.intec.ugent.be/repositories"
 	aQute.bnd.deployer.repository.FixedIndexedRepo; name=Launch; locations=${repourl}/launch/index.xml,\
 	aQute.bnd.deployer.repository.FixedIndexedRepo; name=Robot; locations=${repourl}/be.iminds.iot.robot/index.xml
 	
+# if you want to use a local workspace on your filesystem instead, replace the FixedIndexedRepo by a WorkspaceRepository, e.g.:
+#	
+#	be.li.bnd.plugin.workspacerepo.WorkspaceRepository; name=Robot; location=/home/tverbele/Data/code/ros/rososgi
+
+	
 	
 
 
