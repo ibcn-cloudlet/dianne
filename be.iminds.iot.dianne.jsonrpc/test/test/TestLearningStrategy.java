@@ -7,7 +7,7 @@ import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.learn.LearningStrategy;
 
-public class TestStrategy implements LearningStrategy {
+public class TestLearningStrategy implements LearningStrategy {
 
 	@Override
 	public void setup(Map<String, String> config, Dataset dataset, NeuralNetwork... nns) throws Exception {

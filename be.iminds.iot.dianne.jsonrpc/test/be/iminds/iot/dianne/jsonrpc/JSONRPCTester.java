@@ -67,7 +67,7 @@ public class JSONRPCTester {
 			learnProperties.put("trainingSet", "0:60000");
 			learnProperties.put("maxIterations", "100");
 			/* strategy source code */
-			//String strategy = new String(Files.readAllBytes(FileSystems.getDefault().getPath("test", "test","TestStrategy.java")));
+			//String strategy = new String(Files.readAllBytes(FileSystems.getDefault().getPath("test", "test","TestLearningStrategy.java")));
 			//learnProperties.put("strategy", strategy);
 			/* strategy fully qualified classname */
 			//learnProperties.put("strategy", "be.iminds.iot.dianne.nn.learn.strategy.FeedForwardLearningStrategy");
