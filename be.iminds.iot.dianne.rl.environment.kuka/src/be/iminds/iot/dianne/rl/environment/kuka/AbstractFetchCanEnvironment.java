@@ -26,12 +26,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeoutException;
 
-import org.osgi.service.component.annotations.Component;
-import org.osgi.util.promise.Promise;
-
-import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorOps;
-import be.iminds.iot.robot.api.Arm;
 import be.iminds.iot.simulator.api.Orientation;
 import be.iminds.iot.simulator.api.Position;
 
@@ -165,7 +159,7 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 	public void configure(Map<String, String> config) {
 		// configure the simulated environment
 		if(simulator != null)
-			simulator.loadScene("youbot_fetch_can.ttt");
+			simulator.loadScene("scenes/youbot_fetch_can.ttt");
 	}
 	
 	

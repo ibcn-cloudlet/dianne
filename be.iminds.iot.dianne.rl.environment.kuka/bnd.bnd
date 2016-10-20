@@ -20,3 +20,6 @@ Export-Package: \
 	be.iminds.iot.dianne.api.rl.environment,\
 	be.iminds.iot.dianne.rl.environment.kuka.api,\
 	be.iminds.iot.simulator.api
+	
+-includeresource: scenes=scenes	
+	

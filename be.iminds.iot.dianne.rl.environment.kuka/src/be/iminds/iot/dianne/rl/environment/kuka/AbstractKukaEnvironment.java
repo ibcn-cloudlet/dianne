@@ -22,11 +22,19 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rl.environment.kuka;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
@@ -81,6 +89,35 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 	private volatile boolean pause = false;
 	
 	public abstract String getName();
+	
+	@Activate
+	void activate(BundleContext context) {
+		try {
+			// unpack the scenes into the current dir
+			Enumeration<URL> urls = context.getBundle().findEntries("scenes", "*.ttt", true);
+			while(urls.hasMoreElements()){
+				URL url = urls.nextElement();
+				
+				// make scenes directory
+				File dir = new File("scenes");
+				dir.mkdirs();
+				
+				try(InputStream inputStream = url.openStream();
+					OutputStream outputStream =
+							new FileOutputStream(new File(url.getFile().substring(1)));){
+					int read = 0;
+					byte[] bytes = new byte[1024];
+	
+					while ((read = inputStream.read(bytes)) != -1) {
+						outputStream.write(bytes, 0, read);
+					}
+				}
+				
+			}
+		} catch(Exception e){
+			e.printStackTrace();
+		}
+	}
 	
 	@Override
 	public int[] observationDims() {

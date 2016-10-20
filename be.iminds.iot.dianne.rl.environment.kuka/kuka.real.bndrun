@@ -1,5 +1,4 @@
 
-
 -include: ../tools/coordinator.bndrun
 
 -runbundles.xkuka:\
@@ -43,11 +42,8 @@
 	be.iminds.iot.robot.input;version=latest,\
 	be.iminds.iot.dianne.tensor.native.cutorch.linux.aarch64;version=latest
 	
-
-
 -runproperties.xkuka: \
 	ros.core.native=true,\
-	vrep.dir=/opt/vrep-3.3.1,\
 	aiolos.proxy.ignore.extra="be.iminds.iot.ros.*,org.ros.*",\
 	be.iminds.iot.dianne.storage="models",\
 	be.iminds.iot.dianne.datasets.location="experience"
