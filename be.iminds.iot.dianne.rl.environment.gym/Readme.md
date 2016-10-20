@@ -8,6 +8,14 @@ In order for the environments to work, one needs to have installed:
 * OpenAI Gym
 * Additional simulators (e.g. Box2D or Mujoco)
 
+## Install Jep
+
+Jep embeds CPython in Java through JNI and is used to communicate with the Python based OpenAI gym. Install Jep using pip:
+
+```
+pip install jep
+```
+
 ## Installing OpenAI gym
 
 Fetch the gym source and install:
