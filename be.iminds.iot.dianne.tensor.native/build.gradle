@@ -1,5 +1,5 @@
 task generateFiles(description: "Generate <lib.os.arch>.bnd file for this host. This behaviour can be adjusted with environment variables (OS, ARCH, LIB, ...)", group: "build") {
-	def inputTemplate = "host.bnd.template"
+	def inputTemplate = "generic.bnd.template"
 	inputs.file inputTemplate
 	outputs.file fileTree(dir: projectDir, include: "*.bnd", exclude: "bnd.bnd")
 	outputs.upToDateWhen { false }

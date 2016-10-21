@@ -45,6 +45,9 @@ ext {
 	println("Configuring workspace with configuration parameters 'OS': '$os', 'ARCH': '$arch', 'osgi_os': '$osgi_os', 'osgi_arch': '$osgi_arch', extension: '$extension' and 'NATIVE' lib: '$lib'")
 }
 
+// create placeholder of template files so they exist before configuration phase of subprojects
+runCommand('find', '.', '-name', '*.template', '-execdir', 'bash', '-c', 'touch ${0%%\\.template}', '{}', ';') 
+
 /* Configure the subprojects */
 subprojects {
   def bndProject = bndWorkspace.getProject(name)
