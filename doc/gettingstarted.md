@@ -12,7 +12,8 @@ We currently only support running (and building) DIANNE on Unix-based platforms,
 If you want to use the GPU backend however, you also require:
 
 - [CUDA runtime](https://developer.nvidia.com/cuda-zone) (minimum version **6.5**)
-- CUDA-enabled GPU (minimum compute capability **2.0**)
+- CUDA-enabled GPU (minimum compute capability **3.0**)
+- Optionally: [CUDNN](https://developer.nvidia.com/cudnn) (minimum version **5**, requires CUDA **7.5**)
 
 The web UI is tested with the latest Firefox and Chrome browsers. 
 
@@ -28,13 +29,13 @@ or [OpenJDK](http://openjdk.java.net/)
 - [CMake](https://cmake.org/)
 - [Git](http://git-scm.com/)
 
-While the DIANNE build system is based on [Gradle](http://gradle.org/), the correct version will be downloaded automatically when using `gradlew`, so this is recommended. If you want to build the GPU backend, you will also need the [CUDA Toolkit](https://developer.nvidia.com/cuda-zone) (minimum version **6.5**).
+While the DIANNE build system is based on [Gradle](http://gradle.org/), the correct version will be downloaded automatically when using `gradlew`, so this is recommended. If you want to build the GPU backend, you will also need at least the [CUDA Toolkit](https://developer.nvidia.com/cuda-zone) (minimum version **6.5**). We however recommend to also have [CUDNN](https://developer.nvidia.com/cudnn) installed (minimum version **5**, requires CUDA **7.5**), as this increases performance significantly.
 
 To start building, first clone the repository from GitHub:
 
 	git clone https://github.com/ibcn-cloudlet/dianne.git
 
-Next, it is recommended to check out the latest release and initialize the submodules. At the time of this writing, this is version v0.5.0. Note that in order to avoid any issues, it is recommended to initialize the submodules *after* you checked out the correct version.
+Next, it is recommended to first check out the latest release and then initialize the submodules. At the time of this writing, this is version `v0.5.0`. Note that in order to avoid any issues, it is recommended to initialize the submodules *after* you checked out the correct version.
 
 	cd dianne
 	git checkout v0.5.0
@@ -48,7 +49,11 @@ If you run `./gradlew tasks`, you will get a listing of all the build targets al
 
 	./gradlew build
 
-By default, the CPU backend (torch) will be used. If you want to build the GPU backend (cutorch), use:
+By default, the CPU backend (torch) will be used. If you want to build the GPU backend (with CUDNN), use:
+
+	NATIVE=cudnn ./gradlew build
+
+If for any reason you want to build without CUDNN support, use:
 
 	NATIVE=cutorch ./gradlew build
 
@@ -72,7 +77,7 @@ The different run configurations contain different subsets of the DIANNE platfor
 	cd tools/
 	java -jar generated/distributions/executable/all.jar
 
-Another option is to directly launch DIANNE using the build tool by executing:
+You can export all configurations at once using `./gradlew export`. Another option is to directly launch DIANNE using the build tool by executing:
 
 	./gradlew run.all
 	
@@ -88,7 +93,7 @@ A number of different precompiled binaries are available on the DIANNE [download
 Deploy your first neural network
 ----------------------------------
 
-Once you have DIANNE up and running, it's a good idea to check if everything is working accordingly by deploying a model and evaluating it on some data. The easiest way to do this is by downloading a preconfigured dataset & neural network model using the `gradle` tool:
+Once you have DIANNE up and running, it's a good idea to check if everything is working correctly by deploying a model and evaluating it on some data. The easiest way to do this is by downloading a preconfigured dataset & neural network model using the `gradle` tool:
 
 	./gradlew datasets -Pwhich=MNIST
 	./gradlew models -Pwhich=tutorial_1
@@ -107,7 +112,7 @@ We will now load the example model we just downloaded by clicking the `Load` men
 
 ![Loading the example model](figures/gettingstarted_2.png)
 
-Now a simple fully connected neural network with one hidden layer and sigmoid activation function is shown.
+Now a simple fully connected neural network with one hidden layer and a sigmoid activation function is shown.
 
 ![Structure of the example model](figures/gettingstarted_3.png)
 
