@@ -43,19 +43,19 @@ In order to train and evaluate your neural network, DIANNE provides a **Dataset*
 Learners & Evaluators
 ---------------------
 
-In order to train your models, DIANNE provides different **Learner** services. These provide the training routines that will pull data from a dataset, feed it into the network, calculate the gradients and push weight updates to the repository. Various well-known optimization and regularization techniques are readily available, ranging from vanilla Stochastic Gradient Descent to Adam.
+In order to train your models, DIANNE provides **Learner** services. These execute the training routines that will pull data from a dataset, feed it into the network, calculate the gradients and push weight updates to the repository. The training routines themselves are specified in **LearningStrategy** objects that only need to calculate weight updates, while more general tasks such as synchronizing with the repository are handled by the Learner itself. **LearningStrategy** implementations are available out-of-the-box for general feed-forward networks, but also generative models such as VAEs and GANs. Various well-known optimization and regularization techniques are also readily available, ranging from vanilla Stochastic Gradient Descent to Adam. 
 
-The **Evaluator** service allows you to assess the performance of your model, not only in terms of average loss or classification accuracy, but also in terms of system performance, e.g. required computation time. This is useful for scenarios where you want to deploy your model on devices with limited compute power.
+The **Evaluator** service allows you to assess the performance of your model, not only in terms of average loss or classification accuracy, but also in terms of system performance, e.g. required computation time. This is useful for scenarios where you want to deploy your model on devices with limited compute power. Similar to the Learner service, the Evaluator takes an **EvaluationStrategy** object that specifies exactly how a model should be evaluated.
 
 Coordinator
 -----------
 
-Once you start to scale up your training, either to train multiple models at the same time, or to train models that are too large for a single machine, you can use the DIANNE **Coordinator** service to keep things manageable. After connecting multiple DIANNE runtimes to one another, the coordinator allows you to manage learning and evaluation tasks using a job-scheduling system. Once you specify your job as a number of `key=value` configuration options, the coordinator will go to work by checking if suitable Learner and Evaluator services are available, configuring those services, deploying the required modules, starting the training procedure and monitoring the training progress.
+Once you start to scale up your training, either to train multiple models at the same time, or to train models that are too large for a single machine, you can use the DIANNE **Coordinator** service to keep things manageable. After connecting multiple DIANNE runtimes to one another, the coordinator allows you to manage learning and evaluation tasks using a job-scheduling system. Once you specify your job as a number of `key=value` configuration options, the coordinator will go to work by checking if suitable Learner and Evaluator services are available, configuring those services, deploying the required modules, starting the training procedure and monitoring the training progress. You can even submit custom Strategy implementations that automatically get compiled and distributed.
 
 UI
 --
 
-The fastest way to get started with DIANNE is to use the two provided graphical user interfaces, which are available through the browser:
+The quickest way to get started with DIANNE is to use the two provided graphical user interfaces, which are available through the browser:
 
 **Builder**: The Builder allows you to design, deploy, train and evaluate a (single) neural network model. During the build phase modules can be drag-and-dropped onto a canvas to create a neural network. Next, each module can be deployed individually to any connected DIANNE runtime. Once deployed, one can attach a Dataset to train and/or evaluate the neural network. In the run tab, one can connect actual sensor devices (i.e. a camera) to the neural network Input module and visualize the output!
 
@@ -68,4 +68,4 @@ Besides the graphical user interfaces, DIANNE can also be controlled via a comma
 Upcoming
 --------
 
-DIANNE is still very much a project in development, and we are constantly adding new features, ranging from new modules to even faster native backends. We are currently working hard on adding new learning paradigms, such as backpropagation-through-time for recurrent models and reinforcement learning, as well as making it easier for the user to define their own training procedures. Have a look at our [GitHub page](https://github.com/ibcn-cloudlet/dianne) for the latest features!
+DIANNE is still very much a project in development, and we are constantly adding new features, ranging from new modules to even faster native backends. We are currently working hard on adding new learning paradigms, such as backpropagation-through-time for recurrent models and reinforcement learning. Have a look at our [GitHub page](https://github.com/ibcn-cloudlet/dianne) for the latest features!
