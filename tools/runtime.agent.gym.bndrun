@@ -1,0 +1,13 @@
+##
+#
+# DIANNE agent worker bndrun 
+#
+# launches a node with RL agent with OpenAI Gym Environments
+#
+#
+
+-include: runtime.bndrun
+
+-runbundles.gym: \
+	jep;version='[3.6.0,3.7.0)',\
+	be.iminds.iot.dianne.rl.environment.gym;version=latest

@@ -9,14 +9,9 @@
 -include: runtime.bndrun
 
 -runbundles.runtime.agent: \
-	org.websocket;version='[1.0,1.1)',\
-	be.iminds.iot.dianne.rl.agent;version=latest,\
-	be.iminds.iot.dianne.rl.ale;version=latest,\
-	be.iminds.iot.dianne.rl.ale.ui;version=latest,\
-	be.iminds.iot.dianne.rl.pong;version=latest,\
-	be.iminds.iot.dianne.rl.pong.ui;version=latest
+	be.iminds.iot.dianne.rl.agent;version=latest
 
 -runproperties.runtime.agent:\
 	be.iminds.iot.dianne.runtime.name="Agent",\
-	be.iminds.iot.dianne.rl.ale.rom="roms/pong.bin",\
-	be.iminds.iot.dianne.rl.ale.skip=4
+	aiolos.proxy.ignore.extra="be.iminds.iot.dianne.api.rl.environment.*"
+	
