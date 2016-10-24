@@ -6,8 +6,11 @@
 #
 #
 
--include: runtime.bndrun
+-include: runtime.agent.bndrun
 
--runbundles.gym: \
+-runbundles.runtime.agent.gym: \
 	jep;version='[3.6.0,3.7.0)',\
 	be.iminds.iot.dianne.rl.environment.gym;version=latest
+
+-runproperties.runtime.agent.gym:\
+	be.iminds.iot.dianne.runtime.name="Gym"

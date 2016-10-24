@@ -6,9 +6,9 @@
 #
 #
 
--include: runtime.bndrun
+-include: runtime.agent.bndrun
 
--runbundles.kuka: \
+-runbundles.runtime.agent.kuka: \
 	be.iminds.iot.dianne.rl.environment.kuka,\
 	com.google.guava;version='[12.0,13.0)',\
 	org.jboss.netty;version='[3.5,4)',\
@@ -37,7 +37,8 @@
 	be.iminds.iot.robot.youbot.ros;version=latest,\
 	be.iminds.iot.robot.input;version=latest
 	
--runproperties.kuka: \
+-runproperties.runtime.agent.kuka: \
+	be.iminds.iot.dianne.runtime.name="KUKA",\
 	ros.core.native=true,\
 	vrep.dir=/opt/vrep-3.3.2,\
 	vrep.launch=true,\

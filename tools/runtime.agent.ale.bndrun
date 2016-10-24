@@ -6,12 +6,12 @@
 #
 #
 
--include: runtime.bndrun
+-include: runtime.agent.bndrun
 
--runbundles.ale: \
-	org.websocket;version='[1.0,1.1)',\
+-runbundles.runtime.agent.ale: \
 	be.iminds.iot.dianne.rl.ale;version=latest
 
--runproperties.ale:\
+-runproperties.runtime.agent.ale:\
+	be.iminds.iot.dianne.runtime.name="ALE",\
 	be.iminds.iot.dianne.rl.ale.rom="roms/pong.bin",\
 	be.iminds.iot.dianne.rl.ale.skip=4

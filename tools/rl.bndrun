@@ -9,7 +9,6 @@
 -include: coordinator.bndrun
 
 -runbundles.rl:  \
-	org.websocket;version='[1.0,1.1)',\
 	be.iminds.iot.dianne.nn.runtime;version=latest,\
 	be.iminds.iot.dianne.nn.learn;version=latest,\
 	be.iminds.iot.dianne.nn.eval;version=latest,\
@@ -29,6 +28,7 @@
 	be.iminds.iot.dianne.rl.ale.skip=4
 
 -runbundles.pong: \
+	org.websocket;version='[1.0,1.1)',\
 	be.iminds.iot.dianne.rl.environment.pong;version=latest
 	
 -runbundles.gym: \
