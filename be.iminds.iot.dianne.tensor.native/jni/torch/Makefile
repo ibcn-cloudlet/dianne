@@ -35,13 +35,15 @@ nn/lib/THNN/build/libTHNN.a: torch7/lib/TH/build/libTH.a
 	$(MAKE) -C nn/lib/THNN/build
 
 OpenBLAS/libopenblas.a:
-	$(MAKE) -C OpenBLAS USE_OPENMP=1 NO_SHARED=1 NO_CBLAS=1 NO_LAPACKE=1
+	# CBLAS and LAPACKE or C wrappers for BLAS and LAPACK. Torch does not use these wrappers so they should not be compiled (saves build time)
+	# We do not use the shared library
+	$(MAKE) -C OpenBLAS NO_AFFINITY=1 USE_OPENMP=1 NO_SHARED=1 NO_CBLAS=1 NO_LAPACKE=1
 
 .PHONY: clean
 clean:
 	rm -f $(OBJECTS) $(LIB) $(DEPLOY_DIR)/$(LIB)
 
-.PHONY: cleanAll
+.PHONY: cleanall
 cleanall: clean
 	rm -rf torch7/lib/TH/build
 	rm -rf nn/lib/THNN/build
