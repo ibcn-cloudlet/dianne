@@ -10,15 +10,15 @@
 
 -runbundles.coordinator: \
 	be.iminds.aiolos.platformmanager;version=${aiolos.version},\
-	be.iminds.iot.dianne.nn.platform;version=latest,\
-	be.iminds.iot.dianne.repository;version=latest,\
-	be.iminds.iot.dianne.dataset;version=latest,\
-	be.iminds.iot.dianne.rl.experience;version=latest,\
-	be.iminds.iot.dianne.builder;version=latest,\
-	be.iminds.iot.dianne.command;version=latest,\
-	be.iminds.iot.dianne.jsonrpc;version=latest,\
-	be.iminds.iot.dianne.coordinator;version=latest,\
-	be.iminds.iot.dianne.dashboard;version=latest
+	be.iminds.iot.dianne.nn.platform;version=${dianne.version},\
+	be.iminds.iot.dianne.repository;version=${dianne.version},\
+	be.iminds.iot.dianne.dataset;version=${dianne.version},\
+	be.iminds.iot.dianne.rl.experience;version=${dianne.version},\
+	be.iminds.iot.dianne.builder;version=${dianne.version},\
+	be.iminds.iot.dianne.command;version=${dianne.version},\
+	be.iminds.iot.dianne.jsonrpc;version=${dianne.version},\
+	be.iminds.iot.dianne.coordinator;version=${dianne.version},\
+	be.iminds.iot.dianne.dashboard;version=${dianne.version}
 
 -runproperties.coordinator:\
 	be.iminds.iot.dianne.runtime.name="Coordinator",\

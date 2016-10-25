@@ -9,7 +9,7 @@
 -include: runtime.bndrun
 
 -runbundles.runtime.agent: \
-	be.iminds.iot.dianne.rl.agent;version=latest
+	be.iminds.iot.dianne.rl.agent;version=${dianne.version}
 
 -runproperties.runtime.agent:\
 	be.iminds.iot.dianne.runtime.name="Agent",\

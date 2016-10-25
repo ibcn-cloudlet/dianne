@@ -9,8 +9,8 @@
 -include: runtime.evaluator.bndrun
 
 -runbundles.runtime.learner: \
-	be.iminds.iot.dianne.nn.learn;version=latest,\
-	be.iminds.iot.dianne.rl.learn;version=latest
+	be.iminds.iot.dianne.nn.learn;version=${dianne.version},\
+	be.iminds.iot.dianne.rl.learn;version=${dianne.version}
 
 -runproperties.runtime.learner:\
 	be.iminds.iot.dianne.runtime.name="Learner"

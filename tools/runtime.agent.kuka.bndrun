@@ -9,7 +9,7 @@
 -include: runtime.agent.bndrun
 
 -runbundles.runtime.agent.kuka: \
-	be.iminds.iot.dianne.rl.environment.kuka,\
+	be.iminds.iot.dianne.rl.environment.kuka;version=${dianne.version},\
 	com.google.guava;version='[12.0,13.0)',\
 	org.jboss.netty;version='[3.5,4)',\
 	org.apache.commons.logging;version='[1.1,2)',\

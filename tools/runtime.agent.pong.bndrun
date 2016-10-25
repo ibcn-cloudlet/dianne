@@ -10,7 +10,7 @@
 
 -runbundles.runtime.agent.pong: \
 	org.websocket;version='[1.0,1.1)',\
-	be.iminds.iot.dianne.rl.environment.pong;version=latest
+	be.iminds.iot.dianne.rl.environment.pong;version=${dianne.version}
 
 -runproperties.runtime.agent.pong:\
 	be.iminds.iot.dianne.runtime.name="Pong"

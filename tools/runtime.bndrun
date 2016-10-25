@@ -9,7 +9,7 @@
 -include: core.bndrun
 
 -runbundles.runtime: \
-	be.iminds.iot.dianne.nn.runtime;version=latest
+	be.iminds.iot.dianne.nn.runtime;version=${dianne.version}
 
 -runproperties.runtime:\
 	be.iminds.iot.dianne.runtime.name="Runtime",\
