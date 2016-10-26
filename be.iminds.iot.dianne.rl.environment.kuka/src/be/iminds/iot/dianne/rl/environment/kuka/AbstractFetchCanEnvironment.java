@@ -22,6 +22,7 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rl.environment.kuka;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeoutException;
@@ -158,8 +159,13 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 	@Override
 	public void configure(Map<String, String> config) {
 		// configure the simulated environment
-		if(simulator != null)
-			simulator.loadScene("scenes/youbot_fetch_can.ttt");
+		if(simulator != null){
+			Map<String, String> entities = new HashMap<String, String>();
+			entities.put("youBot", "be.iminds.iot.robot.youbot.ros.Youbot");
+			entities.put("hokuyo", "be.iminds.iot.sensor.range.ros.LaserScanner");
+			
+			simulator.loadScene("scenes/youbot_fetch_can.ttt", entities);
+		}
 	}
 	
 	
