@@ -30,4 +30,6 @@ public interface KukaEnvironment {
 	
 	public void reward(float r);
 	
+	public void load();
+	
 }

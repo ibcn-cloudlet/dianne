@@ -22,6 +22,7 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rl.environment.kuka;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
@@ -40,10 +41,11 @@ import be.iminds.iot.simulator.api.Position;
 	property = { "name="+FetchCanEnvironment.NAME, 
 				 "aiolos.unique=true",
 				 "aiolos.combine=*",
-				 "osgi.command.scope=kukaagent",
+				 "osgi.command.scope=fetchcan",
 				 "osgi.command.function=rest",
 				 "osgi.command.function=go",
-				 "osgi.command.function=reward"})
+				 "osgi.command.function=reward",
+				 "osgi.command.function=load"})
 public class FetchCanEnvironment extends AbstractFetchCanEnvironment {
 	
 	public static final String NAME = "FetchCan";
@@ -141,5 +143,10 @@ public class FetchCanEnvironment extends AbstractFetchCanEnvironment {
 		}
 		
 		super.configure(config);
+	}
+	
+	@Override
+	public void load(){
+		configure(new HashMap<>());
 	}
 }

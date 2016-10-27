@@ -22,6 +22,7 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rl.environment.kuka;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
@@ -39,7 +40,7 @@ import be.iminds.iot.simulator.api.Position;
 	property = { "name="+FetchCanContinuousEnvironment.NAME, 
 				 "aiolos.unique=true",
 				 "aiolos.combine=*",
-				 "osgi.command.scope=kukaagent",
+				 "osgi.command.scope=fetchcancont",
 				 "osgi.command.function=rest",
 				 "osgi.command.function=go",
 				 "osgi.command.function=reward"})
@@ -130,5 +131,10 @@ public class FetchCanContinuousEnvironment extends AbstractFetchCanEnvironment {
 		}
 		
 		super.configure(config);
+	}
+	
+	@Override
+	public void load(){
+		configure(new HashMap<>());
 	}
 }
