@@ -31,95 +31,47 @@ import org.osgi.framework.ServiceRegistration;
 
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.util.ImageConverter;
-import be.iminds.iot.things.api.camera.Camera;
-import be.iminds.iot.things.api.camera.Camera.Format;
-import be.iminds.iot.things.api.camera.CameraListener;
+import be.iminds.iot.sensor.api.SensorListener;
+import be.iminds.iot.sensor.api.SensorValue;
 
-public class CameraInput extends ThingInput implements CameraListener {
-
-	private final Camera camera;
-	
-	private ImageConverter converter;
-	private float[] buffer;
+public class LaserScanInput extends ThingInput implements SensorListener {
 
 	private Input input;
-
-	// input frame
-	private int width;
-	private int height;
-	private int channels;
-
+	private Tensor t;
+	
 	private ServiceRegistration registration;
 	
-	public CameraInput(UUID id, String name, Camera camera){
-		super(id, name, "Camera");
-		
-		this.camera = camera;
+	public LaserScanInput(UUID id, String name){
+		super(id, name, "LaserScanner");
 	}
-	
-	
+
 	@Override
-	public void nextFrame(UUID id, Format format, byte[] data) {
-		if(format==Format.MJPEG){
-			try {
-				Tensor in = converter.readFromBytes(data);
-				input.input(in);
-			} catch(Exception e){
-				System.out.println("Failed to read jpeg frame");
-			}
-		} else if(format==Format.RGB){
-			int k = 0;
-			for(int c=0;c<channels;c++){
-				for(int y=0;y<height;y++){
-					for(int x=0;x<width;x++){
-						float val = (data[c*width*height+y*width+x] & 0xFF)/255f;
-						buffer[k++] = val;
-					}
-				}
-			}
-			Tensor in = new Tensor(buffer, channels, height, width);
-			input.input(in);
-		} 
-
+	public void update(SensorValue value) {
+		if(t == null || t.size() != value.data.length){
+			t = new Tensor(value.data.length);
+		}
+		t.set(value.data);
+		input.input(t);
 	}
-
 
 	@Override
 	public void connect(Input input, BundleContext context) {
 		this.input = input;
 		
-		try {
-			camera.setFramerate(15f);
-			camera.start(320, 240, Camera.Format.MJPEG);
-		} catch(Exception e){
-			System.err.println("Error starting camera");
-		}
-		
-		this.width = 320;
-		this.height = 240;
-		this.channels = 3;
-
-		this.converter = new ImageConverter();
-		this.buffer = new float[channels*width*height];
-		
 		Dictionary<String, Object> properties = new Hashtable<String, Object>();
-		properties.put(CameraListener.CAMERA_ID, id.toString());
+		properties.put("target", id.toString());
 		properties.put("aiolos.unique", true);
-		registration = context.registerService(CameraListener.class.getName(), this, properties);
+		registration = context.registerService(SensorListener.class.getName(), this, properties);
 	}
 
 	
 	@Override
 	public void disconnect(){
-		try {
-			camera.stop();
-		} catch(Exception e){}
-		
 		if(registration != null){
 			registration.unregister();
 		}
 		
 		this.input = null;
 	}
+	
 }

@@ -68,8 +68,11 @@
 	ros.core.native=true,\
 	vrep.dir=/opt/vrep-3.3.2,\
 	vrep.launch=true,\
-	aiolos.proxy.ignore.extra="be.iminds.iot.ros.*,org.ros.*"
-	
+	aiolos.proxy.ignore.extra="be.iminds.iot.ros.*,org.ros.*,be.iminds.iot.dianne.api.rl.environment.*"
+
+-runbundles.things: \
+	be.iminds.iot.dianne.io.things;version=${dianne.version}
+		
 -runproperties.rl:\
 	be.iminds.iot.dianne.runtime.name="RL",\
 	be.iminds.iot.dianne.datasets.location="experience",\

@@ -6,10 +6,17 @@ Bundle-Version: 0.6.0.${tstamp}
 	be.iminds.iot.dianne.tensor;version=latest,\
 	be.iminds.iot.dianne.api;version=latest,\
 	be.iminds.iot.things.api,\
-	be.iminds.iot.dianne.tensor.util;version=latest
+	be.iminds.iot.dianne.tensor.util;version=latest,\
+	be.iminds.iot.sensor.api,\
+	be.iminds.iot.robot.api
 -dsannotations: *
 Private-Package: \
 	be.iminds.iot.dianne.things.output,\
 	be.iminds.iot.dianne.things.input
-Export-Package: be.iminds.iot.dianne.api.io
+Export-Package: \
+	be.iminds.iot.dianne.api.io,\
+	be.iminds.iot.sensor.api,\
+	be.iminds.iot.things.api,\
+	be.iminds.iot.things.api.camera,\
+	be.iminds.iot.things.api.lamp
 Bundle-Name: Dianne Thing I/O adapters
