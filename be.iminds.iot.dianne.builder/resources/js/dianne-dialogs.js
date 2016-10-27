@@ -600,17 +600,57 @@ function createRunModuleDialog(id, moduleItem){
 		cameraCanvas = dialog.find('.cameraCanvas')[0];
 		cameraCanvasCtx = cameraCanvas.getContext('2d');
 		
-		if(cameraEventsource===undefined){
-			cameraEventsource = new EventSource("/dianne/input");
-			cameraEventsource.onmessage = function(event){
+		if(inputEventSource===undefined){
+			inputEventSource = new EventSource("/dianne/input");
+			inputEventSource.onmessage = function(event){
 				var data = JSON.parse(event.data);
 				render(data, cameraCanvasCtx);
 			};
 		}
 		
 		dialog.on('hidden.bs.modal', function () {
-		    cameraEventsource.close();
-		    cameraEventsource = undefined;
+		    inputEventSource.close();
+		    inputEventSource = undefined;
+		    $(this).closest(".modal").remove();
+		});
+	} else if(module.type==="LaserScanner"){ 
+		dialog = renderTemplate("dialog", {
+			id : id,
+			type: "laserscanner",
+			title : "LaserScan input from "+module.name,
+			submit: "",
+			cancel: "Delete"
+		}, $(document.body));
+		
+		dialog.find(".content").append("<canvas class='laserCanvas' width='512' height='512' style=\"border:1px solid #000000; margin-left:25px\"></canvas>");
+
+		laserCanvas = dialog.find('.laserCanvas')[0];
+		laserCanvasCtx = laserCanvas.getContext('2d');
+		
+		if(inputEventSource===undefined){
+			inputEventSource = new EventSource("/dianne/input");
+			inputEventSource.onmessage = function(event){
+				var tensor = JSON.parse(event.data);
+				// render laserdata
+				var step = Math.PI/512;
+				var angle = 0;
+				var length;
+				laserCanvasCtx.clearRect(0,0,512,512);
+				laserCanvasCtx.beginPath();
+				for (var i = 0; i < tensor.size; i++) {
+					laserCanvasCtx.moveTo(256, 512);
+					length = tensor.data[i]*256;
+					laserCanvasCtx.lineTo(256+length*Math.cos(angle), 512-length*Math.sin(angle));
+					angle+=step;
+				}
+				laserCanvasCtx.stroke();
+				laserCanvasCtx.endPath();
+			};
+		}
+		
+		dialog.on('hidden.bs.modal', function () {
+		    inputEventSource.close();
+		    inputEventSource = undefined;
 		    $(this).closest(".modal").remove();
 		});
 	} else if(module.type==="URLInput"){
@@ -651,6 +691,9 @@ function createRunModuleDialog(id, moduleItem){
 var inputCanvas;
 var inputCanvasCtx;
 var mousePos = {x: 0, y:0};
+
+var laserCanvas;
+var laserCanvasCtx;
 
 var sampleCanvas;
 var sampleCanvasCtx;
@@ -929,7 +972,7 @@ function evaluate(id){
  * SSE for feedback when training/running
  */
 var eventsource;
-var cameraEventsource
+var inputEventSource
 
 if(typeof(EventSource) === "undefined") {
 	// load polyfill eventsource library

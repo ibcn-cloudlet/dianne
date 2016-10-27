@@ -48,16 +48,16 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
-import be.iminds.iot.dianne.api.io.InputDescription;
-import be.iminds.iot.dianne.api.io.DianneInputs;
-import be.iminds.iot.dianne.api.nn.module.ForwardListener;
-import be.iminds.iot.dianne.api.nn.module.ModuleException;
-import be.iminds.iot.dianne.tensor.Tensor;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+
+import be.iminds.iot.dianne.api.io.DianneInputs;
+import be.iminds.iot.dianne.api.io.InputDescription;
+import be.iminds.iot.dianne.api.nn.module.ForwardListener;
+import be.iminds.iot.dianne.api.nn.module.ModuleException;
+import be.iminds.iot.dianne.tensor.Tensor;
 
 @Component(service = { javax.servlet.Servlet.class }, 
 	property = { "alias:String=/dianne/input",
@@ -75,7 +75,6 @@ public class DianneInput extends HttpServlet {
 	private Map<UUID, ServiceRegistration> inputListeners = Collections.synchronizedMap(new HashMap<UUID, ServiceRegistration>());
 	private JsonParser parser = new JsonParser();
 
-	
 	@Activate 
 	public void activate(BundleContext context){
 		this.context = context;
@@ -140,14 +139,16 @@ public class DianneInput extends HttpServlet {
 							try {
 								JsonObject data = new JsonObject();
 
-								if(output.dims().length==3){
+								if(output.dim()==3){
 									data.add("channels", new JsonPrimitive(output.dims()[0]));
 									data.add("height", new JsonPrimitive(output.dims()[1]));
 									data.add("width", new JsonPrimitive(output.dims()[2]));
-								} else {
+								} else if(output.dim()==2) {
 									data.add("channels", new JsonPrimitive(1));
 									data.add("height", new JsonPrimitive(output.dims()[0]));
 									data.add("width", new JsonPrimitive(output.dims()[1]));
+								} else {
+									data.add("size", new JsonPrimitive(output.size()));
 								}
 								if(tags!=null){
 									JsonArray ta = new JsonArray();
