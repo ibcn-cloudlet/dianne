@@ -27,12 +27,17 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
@@ -89,7 +94,7 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 	// TODO for now limited to 1 youbot, 1 laserscanner
 	protected OmniDirectional kukaPlatform;
 	protected Arm kukaArm;
-	protected LaserScanner rangeSensor;
+	protected SortedMap<String,LaserScanner> rangeSensors;
 	
 	// Environment can be both simulated or on real robot
 	protected Simulator simulator;
@@ -131,7 +136,7 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 	@Override
 	public int[] observationDims() {
 		// observation from laser range scanner
-		return new int[]{512};
+		return this.rangeSensors.size() > 1 ? new int[]{this.rangeSensors.size(), 512} : new int[]{512};
 	}
 
 	@Override
@@ -260,15 +265,31 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 	}
 	
 	private void updateObservation(){
-		float[] data = rangeSensor.getValue().data;
-		observation = new Tensor(data, data.length);
-		
-		if(config.rangeSensorNoise > 0) {
-			if(noise == null)
-				noise = new Tensor(observation.dims());
-			
-			noise.randn();
-			TensorOps.add(observation, observation, config.rangeSensorNoise, noise);
+		int totalLength = 0;
+		synchronized (rangeSensors) {
+			for (LaserScanner ls : rangeSensors.values()) {
+				totalLength += ls.getValue().data.length;
+			}
+			try {
+				Iterator<LaserScanner> it = rangeSensors.values().iterator();
+				float[] data = it.next().getValue().data; // thorws NoSuchElementException on empty list
+				float[] result = Arrays.copyOf(data, totalLength);
+				int offset = data.length;
+				int dimension = data.length;
+				while(it.hasNext()) {
+					data = it.next().getValue().data;
+					System.arraycopy(data, 0, result, offset, data.length);
+				    offset += data.length;
+				}
+				observation = new Tensor(result, rangeSensors.size(), dimension);
+				if(config.rangeSensorNoise > 0) {
+					if(noise == null)
+						noise = new Tensor(observation.dims());
+					
+					noise.randn();
+					TensorOps.add(observation, observation, config.rangeSensorNoise, noise);
+				}
+			} catch (NoSuchElementException ex) {}
 		}
 	}
 	
@@ -325,14 +346,15 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 			this.kukaPlatform = null;
 	}
 	
-	@Reference(cardinality=ReferenceCardinality.OPTIONAL, policy=ReferencePolicy.DYNAMIC)
-	void setLaserScanner(LaserScanner l){
-		this.rangeSensor = l;
+	@Reference(cardinality=ReferenceCardinality.MULTIPLE, policy=ReferencePolicy.DYNAMIC)
+	void bindLaserScanner(LaserScanner l, Map<String,String> config){
+		if (this.rangeSensors == null)
+			rangeSensors = Collections.synchronizedSortedMap(new TreeMap<>());
+		this.rangeSensors.put(config.get("name"), l);
 	}
 	
-	void unsetLaserScanner(LaserScanner l){
-		if(l == this.rangeSensor)
-			this.rangeSensor = null;
+	void unbindLaserScanner(LaserScanner l, Map<String,String> config){
+		this.rangeSensors.remove(config.get("name"));
 	}
 	
 	@Reference(cardinality=ReferenceCardinality.OPTIONAL, policy=ReferencePolicy.DYNAMIC)

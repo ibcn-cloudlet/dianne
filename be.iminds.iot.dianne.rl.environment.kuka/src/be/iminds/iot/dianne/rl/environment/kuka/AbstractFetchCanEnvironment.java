@@ -197,7 +197,8 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 		// should be fixed in robot project..
 		long start = System.currentTimeMillis();
 		int tries = 0;
-		while(rangeSensor==null
+		while(rangeSensors==null
+				|| rangeSensors.isEmpty()
 				|| kukaArm == null 
 				|| kukaPlatform == null){
 			try {
