@@ -69,8 +69,8 @@ public class LaserScanInput extends ThingInput implements SensorListener {
 	public void disconnect(){
 		if(registration != null){
 			registration.unregister();
+			registration = null;
 		}
-		
 		this.input = null;
 	}
 	

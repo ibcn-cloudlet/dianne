@@ -118,6 +118,7 @@ public class CameraInput extends ThingInput implements CameraListener {
 		
 		if(registration != null){
 			registration.unregister();
+			registration = null;
 		}
 		
 		this.input = null;

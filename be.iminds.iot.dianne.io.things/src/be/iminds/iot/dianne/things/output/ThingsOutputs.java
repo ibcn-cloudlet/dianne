@@ -24,15 +24,12 @@ package be.iminds.iot.dianne.things.output;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Dictionary;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -41,7 +38,8 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.io.DianneOutputs;
 import be.iminds.iot.dianne.api.io.OutputDescription;
-import be.iminds.iot.dianne.api.nn.module.ForwardListener;
+import be.iminds.iot.robot.api.Arm;
+import be.iminds.iot.robot.api.OmniDirectional;
 import be.iminds.iot.things.api.Thing;
 import be.iminds.iot.things.api.lamp.Lamp;
 
@@ -51,9 +49,7 @@ public class ThingsOutputs implements DianneOutputs {
 
 	private BundleContext context;
 	
-	private Map<String, Lamp> lamps = Collections.synchronizedMap(new HashMap<String, Lamp>());
-	
-	private Map<UUID, ServiceRegistration> registrations =  Collections.synchronizedMap(new HashMap<UUID, ServiceRegistration>());
+	private Map<UUID, ThingOutput> things = Collections.synchronizedMap(new HashMap<>());
 	
 	private int magicNumber = -1;
 	
@@ -78,23 +74,75 @@ public class ThingsOutputs implements DianneOutputs {
 			service = "Philips Hue";
 		}
 		
-		// TODO only handle local thing services?
-		// TODO use id-service combo?
-		lamps.put(service, l);
+		things.put(id, new LampOutput(id, service, l));
 	}
 	
 	void removeLamp(Lamp l, Map<String, Object> properties){
 		UUID id = UUID.fromString((String)properties.get(Thing.ID));
-		String service = (String) properties.get(Thing.SERVICE);
-		lamps.remove(service);
+		ThingOutput t = things.remove(id);
+		if(t != null){
+			t.disconnect();
+		}
+	}
+	
+	@Reference(
+			cardinality=ReferenceCardinality.MULTIPLE, 
+			policy=ReferencePolicy.DYNAMIC)
+	void addBase(OmniDirectional b, Map<String, Object> properties){
+		String name = (String) properties.get("name");
+		UUID id = UUID.nameUUIDFromBytes(name.getBytes());
+		
+		synchronized(things){
+			ThingOutput t = things.get(id);
+			if(t == null){
+				t = new YoubotOutput(id, name);
+				things.put(id, t);
+			}
+			((YoubotOutput)t).setBase(b);
+		}
+	}
+	
+	void removeBase(OmniDirectional b, Map<String, Object> properties){
+		String name = (String) properties.get("name");
+		UUID id = UUID.nameUUIDFromBytes(name.getBytes());
+		ThingOutput t = things.remove(id);
+		if(t != null){
+			t.disconnect();
+		}
 	}
 
+	@Reference(
+			cardinality=ReferenceCardinality.MULTIPLE, 
+			policy=ReferencePolicy.DYNAMIC)
+	void addArm(Arm a, Map<String, Object> properties){
+		String name = (String) properties.get("name");
+		UUID id = UUID.nameUUIDFromBytes(name.getBytes());
+		
+		synchronized(things){
+			ThingOutput t = things.get(id);
+			if(t == null){
+				t = new YoubotOutput(id, name);
+				things.put(id, t);
+			}
+			((YoubotOutput)t).setArm(a);
+		}
+	}
+	
+	void removeArm(Arm a, Map<String, Object> properties){
+		String name = (String) properties.get("name");
+		UUID id = UUID.nameUUIDFromBytes(name.getBytes());
+		ThingOutput t = things.remove(id);
+		if(t != null){
+			t.disconnect();
+		}
+	}
+	
 	@Override
 	public List<OutputDescription> getAvailableOutputs() {
 		ArrayList<OutputDescription> outputs = new ArrayList<OutputDescription>();
-		synchronized(lamps){
-			for(String id : lamps.keySet()){
-				outputs.add(new OutputDescription(id, "Lamp"));
+		synchronized(things){
+			for(ThingOutput t : things.values()){
+				outputs.add(t.getOutputDescription());
 			}
 		}
 		return outputs;
@@ -102,28 +150,21 @@ public class ThingsOutputs implements DianneOutputs {
 
 	@Override
 	public void setOutput(UUID nnId, UUID outputId, String output) {
-		String id = nnId.toString()+":"+outputId.toString();
-
-		Lamp l = lamps.get(output);
-		if(l!=null){
-			LampOutput o = new LampOutput(l, magicNumber);
-			Dictionary<String, Object> properties = new Hashtable<String, Object>();
-			properties.put("targets", new String[]{id});
-			properties.put("aiolos.unique", true);
-			ServiceRegistration r = context.registerService(ForwardListener.class.getName(), o, properties);
-			// TODO only works if outputId only forwards to one output
-			registrations.put(outputId, r);
+		ThingOutput o = null;
+		synchronized(things){
+			o = things.values().stream().filter(t -> t.name.equals(output)).findFirst().get();
 		}
+		
+		o.connect(nnId, outputId, context);
 	}
 
 	@Override
 	public void unsetOutput(UUID nnId, UUID outputId, String output) {
-		String id = nnId.toString()+":"+outputId.toString();
-
-		ServiceRegistration r = registrations.remove(id);
-		if(r!=null){
-			r.unregister();
+		ThingOutput o = null;
+		synchronized(things){
+			o = things.values().stream().filter(t -> t.name.equals(output)).findFirst().get();
 		}
+		o.disconnect();
 	}
 
 }

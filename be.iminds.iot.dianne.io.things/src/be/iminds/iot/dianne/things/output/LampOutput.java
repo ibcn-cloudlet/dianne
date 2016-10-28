@@ -25,24 +25,25 @@ package be.iminds.iot.dianne.things.output;
 import java.awt.Color;
 import java.util.UUID;
 
-import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 import be.iminds.iot.things.api.lamp.Lamp;
 
-public class LampOutput implements ForwardListener {
+public class LampOutput extends ThingOutput {
 
 	private final Lamp lamp;
 	
 	private int index = -1;
 	
-	public LampOutput(Lamp l){
+	public LampOutput(UUID id, String name, Lamp l){
+		super(id, name, "Lamp");
+		
 		this.lamp = l;
 	}
 	
-	public LampOutput(Lamp l, int index){
-		this(l);
+	public LampOutput(UUID id, String name, Lamp l, int index){
+		this(id, name, l);
 		this.index = index;
 	}
 	
