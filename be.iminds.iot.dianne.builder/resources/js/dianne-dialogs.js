@@ -500,6 +500,9 @@ function createRunModuleDialog(id, moduleItem){
 			createOutputChart(dialog.find(".content"));
 			var index = Number($("#dialog-"+module.id).find(".content").attr("data-highcharts-chart"));
 			Highcharts.charts[index].yAxis[0].setExtremes(-1,1);
+			
+			window.addEventListener("keydown", keyboard, false);
+			window.addEventListener("keyup", keyboard, false);
 		} else {
 			dialog = renderTemplate("dialog", {
 				id : id,
@@ -590,6 +593,9 @@ function createRunModuleDialog(id, moduleItem){
 		    	eventsource = undefined;
 			}
 		    $(this).closest(".modal").remove();
+		    
+		    window.removeEventListener("keydown");
+			window.removeEventListener("keyup");
 		});
 		
 	} else if(module.category==="Dataset"){
@@ -1140,4 +1146,9 @@ function error(message){
 	renderTemplate("error", {
 		'message' : message
 	}, $("#alerts"));
+}
+
+// keyboard control handler
+function keyboard(e) {
+	$.post("/robot/control",{'type':e.type,'key':e.key})
 }
