@@ -477,7 +477,7 @@ function createRunModuleDialog(id, moduleItem){
 		
 		dialog.find(".content").append("<button class='btn' onclick='forwardRawInput(this, \""+module.input+"\")' style=\"margin-left:10px\">Submit</button>");
 		
-	} else if(module.category ==="Visualize"){
+	} else if(module.category ==="Visualize" || module.type==="Youbot"){
 		if(module.type ==="ProbabilityOutput"){		
 			dialog = renderTemplate("dialog", {
 				id : id,
@@ -488,6 +488,18 @@ function createRunModuleDialog(id, moduleItem){
 			}, $(document.body));
 			
 			createOutputChart(dialog.find(".content"));
+		} else if(module.type ==="Youbot"){		
+			dialog = renderTemplate("dialog", {
+				id : id,
+				type: "output",
+				title : "Output values",
+				submit: "",
+				cancel: "Delete"
+			}, $(document.body));
+			
+			createOutputChart(dialog.find(".content"));
+			var index = Number($("#dialog-"+module.id).find(".content").attr("data-highcharts-chart"));
+			Highcharts.charts[index].yAxis[0].setExtremes(-1,1);
 		} else {
 			dialog = renderTemplate("dialog", {
 				id : id,
@@ -512,7 +524,6 @@ function createRunModuleDialog(id, moduleItem){
 						// choose right RunOutput to set the chart of
 						if(module.output===output.id){
 							if(module.type ==="ProbabilityOutput"){
-								// classification plot
 								var attr = $("#dialog-"+module.id).find(".content").attr("data-highcharts-chart");
 								if(attr!==undefined){
 									var index = Number(attr);
@@ -530,6 +541,17 @@ function createRunModuleDialog(id, moduleItem){
 									Highcharts.charts[index].xAxis[0].setCategories(output.labels);
 								}
 								$("#dialog-"+module.id).find(".content").find('.outputviz').hide();
+							} else if(module.type === "Youbot"){
+								var attr = $("#dialog-"+module.id).find(".content").attr("data-highcharts-chart");
+								if(attr!==undefined){
+									var index = Number(attr);
+									Highcharts.charts[index].series[0].setData(output.data, true, true, true);
+									if(output.data.length == 3){
+										Highcharts.charts[index].xAxis[0].setCategories(['vx','vy','va']);
+									} else if(output.data.length == 7){
+										Highcharts.charts[index].xAxis[0].setCategories(['Forward','Backward','Left','Right','Turn Left','Turn Right','Grip']);
+									}
+								}
 							} else {
 								// render raw output
 								if(output.height!==undefined){
@@ -644,7 +666,7 @@ function createRunModuleDialog(id, moduleItem){
 					angle+=step;
 				}
 				laserCanvasCtx.stroke();
-				laserCanvasCtx.endPath();
+				laserCanvasCtx.closePath();
 			};
 		}
 		
@@ -990,7 +1012,7 @@ if(typeof(EventSource) === "undefined") {
  */
 
 function createOutputChart(container) {
-    container.highcharts({
+    return container.highcharts({
         chart: {
             type: 'column',
     		height: 300,
@@ -1023,7 +1045,7 @@ function createOutputChart(container) {
 
 
 function createLossChart(container) {
-    container.highcharts({
+    return container.highcharts({
         chart: {
             type: 'line',
             animation: false, // don't animate in old IE
@@ -1073,7 +1095,7 @@ function createLossChart(container) {
 }
 
 function createConfusionChart(container) {
-    container.highcharts({
+    return container.highcharts({
     	chart: {
             type: 'heatmap',
     		height: 500,
