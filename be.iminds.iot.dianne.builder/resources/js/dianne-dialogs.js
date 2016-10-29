@@ -552,7 +552,7 @@ function createRunModuleDialog(id, moduleItem){
 									if(output.data.length == 3){
 										Highcharts.charts[index].xAxis[0].setCategories(['vx','vy','va']);
 									} else if(output.data.length == 7){
-										Highcharts.charts[index].xAxis[0].setCategories(['Forward','Backward','Left','Right','Turn Left','Turn Right','Grip']);
+										Highcharts.charts[index].xAxis[0].setCategories(['Left','Right','Backward','Forward','Turn Left','Turn Right','Grip']);
 									}
 								}
 							} else {
