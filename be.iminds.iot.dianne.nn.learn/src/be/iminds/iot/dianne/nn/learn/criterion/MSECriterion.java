@@ -38,7 +38,7 @@ public class MSECriterion implements Criterion {
 	private Tensor diff;
 	private Tensor grad;
 	
-	private float div = 1;
+	private int div;
 	
 	protected BatchConfig b;
 	
