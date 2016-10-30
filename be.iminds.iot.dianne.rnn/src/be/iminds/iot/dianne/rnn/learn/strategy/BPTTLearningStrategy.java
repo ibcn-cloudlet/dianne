@@ -66,6 +66,10 @@ public class BPTTLearningStrategy implements LearningStrategy {
 		this.dataset = (SequenceDataset)dataset;
 		this.nn = nns[0];
 		
+		String[] labels = this.dataset.getLabels();
+		if(labels!=null)
+			nn.setOutputLabels(labels);
+		
 		this.config = DianneConfigHandler.getConfig(config, BPTTConfig.class);
 		sampling = SamplingFactory.createSamplingStrategy(this.config.sampling, dataset, config);
 		criterion = CriterionFactory.createCriterion(this.config.criterion, config);
