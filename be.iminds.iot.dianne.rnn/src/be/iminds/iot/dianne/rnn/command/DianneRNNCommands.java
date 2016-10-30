@@ -103,10 +103,6 @@ public class DianneRNNCommands {
 		Map<String, String> config = new HashMap<String, String>();
 		// defaults
 		config.put("strategy", "be.iminds.iot.dianne.rnn.learn.strategy.BPTTLearningStrategy");
-		config.put("sequenceLength", "20");
-		config.put("criterion", "MSE");
-		config.put("learningRate", "0.01");
-		config.put("momentum", "0.9");
 
 		for(String property : properties){
 			String[] p = property.split("=");
