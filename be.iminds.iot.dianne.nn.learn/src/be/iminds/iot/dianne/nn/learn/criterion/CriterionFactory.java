@@ -34,7 +34,8 @@ public class CriterionFactory {
 		NLL,
 		ABS,
 		BCE,
-		GKL
+		GKL,
+		HUB
 	}
 	
 	public static class BatchConfig {
@@ -72,6 +73,9 @@ public class CriterionFactory {
 			break;
 		case GKL :
 			criterion = new GaussianKLDivCriterion(b);
+			break;
+		case HUB :
+			criterion = new PseudoHuberCriterion(b);
 			break;
 		default:
 			criterion = new MSECriterion(b);

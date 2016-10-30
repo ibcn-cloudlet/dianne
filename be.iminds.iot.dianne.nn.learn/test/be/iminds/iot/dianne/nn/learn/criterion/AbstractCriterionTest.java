@@ -52,9 +52,10 @@ public abstract class AbstractCriterionTest {
 		for(int i = 0; i < out.length; i++) {
 			Criterion c = newCriterion();
 			
-			float l = c.loss(
-					new Tensor(out[i],out[i].length),
-					new Tensor(tar[i],tar[i].length));
+			Tensor o = new Tensor(out[i],out[i].length);
+			Tensor t = new Tensor(tar[i],tar[i].length);
+			
+			float l = c.loss(o, t);
 			
 			Assert.assertEquals(loss[i], l, eps);
 		}
@@ -65,9 +66,11 @@ public abstract class AbstractCriterionTest {
 		for(int i = 0; i < out.length; i++) {
 			Criterion c = newCriterion();
 			
-			Tensor g = c.grad(
-					new Tensor(out[i],out[i].length),
-					new Tensor(tar[i],tar[i].length));
+			Tensor o = new Tensor(out[i],out[i].length);
+			Tensor t = new Tensor(tar[i],tar[i].length);
+			
+			c.loss(o, t);
+			Tensor g = c.grad(o, t);
 			
 			for(int j = 0; j < grad[i].length; j++)
 				Assert.assertEquals(grad[i][j], g.get(j), eps);
