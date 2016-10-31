@@ -62,7 +62,7 @@ import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.agent.config.AgentConfig;
 
-@Component
+@Component(property={"aiolos.unique=true"})
 public class AgentImpl implements Agent {
 
 	private UUID agentId;
