@@ -59,19 +59,17 @@ public class DianneBenchmarkCommands {
 	// Dianne components
 	Dianne dianne;
 	DiannePlatform platform;
-	DianneDatasets datasets;
 	
 	@Activate
 	public void activate(BundleContext context){
 		this.context = context;
 	}
 	
-	
 	@Descriptor("Benchmark a neural network.")
 	public void benchmark(
 			@Descriptor("neural network to benchmark")
 			String nnName, 
-			@Descriptor("neural network input, either dims (comma separated e.g. 10,28,28) or dataset (datasetName[:sample,batchSize])")
+			@Descriptor("neural network input dims (comma separated e.g. 10,28,28)")
 			String input,
 			@Descriptor("number of runs to execute")
 			int runs,
@@ -96,41 +94,21 @@ public class DianneBenchmarkCommands {
 			sample = input.substring(split + 1);
 		}
 		
-		Dataset dataset = datasets.getDataset(datasetName);
-		if(dataset != null){
-			if(sample == null){
-				in = dataset.getSample(random.nextInt(dataset.size())).input;
-			} else {
-				if( sample.contains(",")){
-					String[] is = sample.split(",");
-					int start = Integer.parseInt(is[0]);
-					int count = Integer.parseInt(is[1]);
-					int[] indices = new int[count];
-					for(int i=0;i<count;i++){
-						indices[i] = start++;
-					}
-					in = dataset.getBatch(indices).input;
-				} else {
-					in = dataset.getSample(Integer.parseInt(sample)).input;
-				}
+
+		int[] dims = null;
+		try {
+			String[] d = input.split(",");
+			dims = new int[d.length];
+			for(int i=0;i<d.length;i++){
+				dims[i] = Integer.parseInt(d[i]);
 			}
-		} else {
-			// input dims are given
-			int[] dims = null;
-			try {
-				String[] d = input.split(",");
-				dims = new int[d.length];
-				for(int i=0;i<d.length;i++){
-					dims[i] = Integer.parseInt(d[i]);
-				}
-			} catch(Exception e){
-				System.out.println("Incorrect dimensions provided...");
-				return;
-			}
-			
-			in = new Tensor(dims);
-			in.rand();
+		} catch(Exception e){
+			System.out.println("Incorrect dimensions provided...");
+			return;
 		}
+		
+		in = new Tensor(dims);
+		in.rand();
 		
 		if(in == null){
 			System.out.println("No valid input provided...");
@@ -279,11 +257,6 @@ public class DianneBenchmarkCommands {
 			throw new Exception("Null result?!");
 		}
 		return (t2-t1)/1e6;
-	}
-	
-	@Reference
-	void setDianneDatasets(DianneDatasets d){
-		datasets = d;
 	}
 	
 	@Reference

@@ -56,14 +56,12 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 @Component(
 		service=Object.class,
 		property={"osgi.command.scope=dianne",
-				  "osgi.command.function=datasets",
 				  "osgi.command.function=runtimes",
 				  "osgi.command.function=list",
 				  "osgi.command.function=info",
 				  "osgi.command.function=models",
 				  "osgi.command.function=deploy",
 				  "osgi.command.function=undeploy",
-				  "osgi.command.function=sample",
 				  "osgi.command.function=gc"},
 		immediate=true)
 public class DiannePlatformCommands {
@@ -75,7 +73,6 @@ public class DiannePlatformCommands {
 	// Dianne components
 	Dianne dianne;
 	DiannePlatform platform;
-	DianneDatasets datasets;
 	
 	// State
 	Map<UUID, ServiceRegistration> repoListeners = new HashMap<UUID, ServiceRegistration>();
@@ -90,22 +87,6 @@ public class DiannePlatformCommands {
 		System.gc();
 	}
 
-	@Descriptor("List available datasets.")
-	public void datasets(){
-		List<DatasetDTO> ds = datasets.getDatasets();
-		
-		if(ds.size()==0){
-			System.out.println("No datasets available");
-			return;
-		}
-		
-		System.out.println("Available datasets:");
-		int i = 0;
-		for(DatasetDTO dataset : ds){
-			System.out.println("["+(i++)+"] "+dataset.name+"\t"+dataset.size+" samples");
-		}
-	}
-	
 	@Descriptor("List available runtimes to deploy modules on.")
 	public void runtimes(){
 		if(platform.getRuntimes().size()==0){
@@ -292,111 +273,6 @@ public class DiannePlatformCommands {
 		}
 	}
 	
-	@Descriptor("Forward a dataset sample through a neural network instance.")
-	public void sample(
-			@Descriptor("dataset name to fetch a sample from")
-			String dataset, 
-			@Descriptor("uuid of the neural network instance")
-			String nnId, 
-			@Descriptor("index of dataset sample")
-			int sample, 
-			@Descriptor("(optional) tags to attach to the forward call ")
-			String...tags){
-
-		Dataset d = datasets.getDataset(dataset);
-		if(d==null){
-			System.out.println("Dataset "+dataset+" not available");
-			return;
-		}
-		
-		final int index = sample == -1 ? rand.nextInt(d.size()) : sample;
-		
-		NeuralNetworkInstanceDTO nni = platform.getNeuralNetworkInstance(UUID.fromString(nnId));
-		if(nni==null){
-			System.out.println("Neural network instance "+nnId+" not deployed");
-			return;
-		}
-		
-		NeuralNetwork nn = null;
-		try {
-			nn = dianne.getNeuralNetwork(nni).getValue();
-		} catch (Exception e) {
-		}
-		if(nn==null){
-			System.out.println("Neural network instance "+nnId+" not available");
-			return;
-		}
-		
-		final String[] labels = nn.getOutputLabels();
-
-		// get input and forward
-		try {
-			Tensor in = d.getSample(index).input;
-			long t1 = System.currentTimeMillis();
-			nn.forward(null, null, in, tags).then(
-				p -> {
-						long t2 = System.currentTimeMillis();
-
-						Tensor out = p.getValue().tensor;
-						int clazz = TensorOps.argmax(out);
-						float max = TensorOps.max(out);
-						String label = labels[clazz];
-					
-						System.out.println("Sample "+index+" (with tags "+Arrays.toString(tags)+") classified as: "+label+" (probability: "+max+")");
-						System.out.println("Forward time: "+(t2-t1)+" ms");
-						
-						return null;
-					}
-				);
-		
-			
-		} catch(Exception e ){
-			e.printStackTrace();
-		} 
-	}
-	
-	@Descriptor("Forward a random dataset sample through a neural network instance.")
-	public void sample(
-			@Descriptor("dataset name to fetch a sample from")
-			String dataset, 
-			@Descriptor("uuid of the neural network instance")
-			String nnId,
-			@Descriptor("(optional) tags to attach to the forward call ")
-			String...tags){
-		sample(dataset, nnId, -1, tags);
-	}
-
-	@Descriptor("Forward a dataset sample through a neural network instance.")
-	public void sample(
-			@Descriptor("dataset name to fetch a sample from")
-			String dataset, 
-			@Descriptor("index of the neural network instance (from the list command output)")
-			int index, 
-			@Descriptor("index of dataset sample")
-			int sample, 
-			@Descriptor("(optional) tags to attach to the forward call ")
-			String... tags){
-		List<NeuralNetworkInstanceDTO> nns = platform.getNeuralNetworkInstances();
-		if(index >= nns.size()){
-			System.out.println("No neural network deployed with index "+index);
-			return;
-		}
-		String id = nns.get(index).id.toString();
-		
-		sample(dataset, id, sample, tags);
-	}
-	
-	@Descriptor("Forward a random dataset sample through a neural network instance.")
-	public void sample(
-			@Descriptor("dataset name to fetch a sample from")
-			String dataset, 
-			@Descriptor("index of the neural network instance (from the list command output)")
-			int index, 
-			@Descriptor("(optional) tags to attach to the forward call ")
-			String... tags){
-		sample(dataset, index, -1, tags);
-	}
-	
 	private void loadParameters(NeuralNetworkInstanceDTO nni, String tag){
 		NeuralNetwork nn = null;
 		try {
@@ -447,10 +323,6 @@ public class DiannePlatformCommands {
 		}
 	}
 	
-	@Reference
-	void setDianneDatasets(DianneDatasets d){
-		datasets = d;
-	}
 	
 	@Reference
 	void setDiannePlatform(DiannePlatform p){
