@@ -46,7 +46,7 @@ public class EvaluationJob extends AbstractJob<EvaluationResult> {
 			NeuralNetworkDTO[] nns){
 		super(coord, Type.EVALUATE, dataset, config, nns);
 		
-		if(coord.platform.isClassificationDatset(dataset) && !config.containsKey("criterion")){
+		if(coord.datasets.isClassificationDataset(dataset) && !config.containsKey("criterion")){
 			category = EvaluationCategory.CLASSIFICATION;
 		} else {
 			category = EvaluationCategory.CRITERION;

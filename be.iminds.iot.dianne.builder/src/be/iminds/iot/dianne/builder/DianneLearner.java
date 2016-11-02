@@ -228,7 +228,7 @@ public class DianneLearner extends HttpServlet {
 					config.put("range", ""+start+","+end);
 					
 					String type = "CRITERION";
-					if(platform.isClassificationDatset(dataset)){
+					if(datasets.isClassificationDataset(dataset)){
 						type = "CLASSIFICATION";
 					}
 					

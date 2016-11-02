@@ -25,6 +25,8 @@ package be.iminds.iot.dianne.api.dataset;
 import java.util.List;
 import java.util.Map;
 
+import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
+
 /**
  * Interface to configure and manage all Datasets
  *  
@@ -58,5 +60,11 @@ public interface DianneDatasets {
 	 * @param d dataset that is no longer used
 	 */
 	void releaseDataset(Dataset d);
-	
+
+	/**
+	 * Checks whether a dataset has labels to be used for classification
+	 * @param dataset
+	 * @return whether the dataset has labels or not
+	 */
+	boolean isClassificationDataset(String dataset);
 }

@@ -41,8 +41,6 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
-import be.iminds.iot.dianne.api.dataset.Dataset;
-import be.iminds.iot.dianne.api.dataset.DianneDatasets;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
@@ -51,8 +49,6 @@ import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.api.nn.runtime.DianneRuntime;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
-import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
-import be.iminds.iot.dianne.api.rnn.dataset.SequenceDataset;
 
 @Component
 public class DiannePlatformImpl implements DiannePlatform {
@@ -65,8 +61,6 @@ public class DiannePlatformImpl implements DiannePlatform {
 	// available neural networks
 	private Map<UUID, NeuralNetworkInstanceDTO> nnis = new ConcurrentHashMap<UUID, NeuralNetworkInstanceDTO>();
 
-	private DianneDatasets datasets;
-	
 	private UUID frameworkId;
 	private BundleContext context;
 
@@ -346,53 +340,6 @@ public class DiannePlatformImpl implements DiannePlatform {
 	}
 	
 	@Override
-	public List<String> getAvailableDatasets(){
-		return datasets.getDatasets().stream().map(d -> d.name).collect(Collectors.toList());
-	}
-	
-	@Override
-	public List<String> getAvailableExperiencePools(){
-		return datasets.getDatasets().stream().filter(d -> datasets.getDataset(d.name) instanceof ExperiencePool)
-			.map(d -> d.name).collect(Collectors.toList());
-	}
-	
-	@Override
-	public List<String> getAvailableSequenceDatasets() {
-		return datasets.getDatasets().stream().filter(d -> datasets.getDataset(d.name) instanceof SequenceDataset)
-				.map(d -> d.name).collect(Collectors.toList());
-	}
-
-
-	@Override
-	public boolean isExperiencePool(String dataset) {
-		Dataset d = datasets.getDataset(dataset);
-		if(d == null)
-			return false;
-		
-		return d instanceof ExperiencePool;
-	}
-
-
-	@Override
-	public boolean isSequenceDataset(String dataset) {
-		Dataset d = datasets.getDataset(dataset);
-		if(d == null)
-			return false;
-		
-		return d instanceof SequenceDataset;
-	}
-
-
-	@Override
-	public boolean isClassificationDatset(String dataset) {
-		Dataset d = datasets.getDataset(dataset);
-		if(d == null)
-			return false;
-		
-		return d.getLabels() != null;
-	}
-	
-	@Override
 	public Map<UUID, String> getRuntimes() {
 		/* TODO this will invoke a (remote) call to each runtime each time runtimes are fetched
 		 This is not optimal ... should be handled better with for example service property.
@@ -457,9 +404,5 @@ public class DiannePlatformImpl implements DiannePlatform {
 			}
 		}
 	}
-	
-	@Reference
-	void setDianneDatasets(DianneDatasets d){
-		datasets = d;
-	}
+
 }

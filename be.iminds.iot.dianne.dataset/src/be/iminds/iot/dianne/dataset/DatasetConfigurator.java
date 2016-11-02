@@ -51,6 +51,8 @@ import com.google.gson.stream.JsonReader;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.DatasetDTO;
 import be.iminds.iot.dianne.api.dataset.DianneDatasets;
+import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
+import be.iminds.iot.dianne.api.rnn.dataset.SequenceDataset;
 
 
 @Component(
@@ -414,6 +416,17 @@ public class DatasetConfigurator implements DianneDatasets {
 			}
 		}
 	}
+	
+
+	@Override
+	public boolean isClassificationDataset(String dataset) {
+		Dataset d = datasets.get(dataset);
+		if(d == null)
+			return false;
+		
+		return d.getLabels() != null;
+	}
+	
 	
 	private void searchDirectory(File dir, boolean recurse){
 		if(!dir.isDirectory())

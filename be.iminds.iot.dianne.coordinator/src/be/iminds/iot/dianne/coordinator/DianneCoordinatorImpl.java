@@ -76,6 +76,7 @@ import be.iminds.iot.dianne.api.coordinator.LearnResult;
 import be.iminds.iot.dianne.api.coordinator.Notification;
 import be.iminds.iot.dianne.api.coordinator.Notification.Level;
 import be.iminds.iot.dianne.api.coordinator.Status;
+import be.iminds.iot.dianne.api.dataset.DianneDatasets;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.eval.Evaluator;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
@@ -97,6 +98,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 
 	DiannePlatform platform;
 	DianneRepository repository;
+	DianneDatasets datasets;
 	
 	PlatformManager aiolos;
 
@@ -646,6 +648,11 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		this.repository = repository;
 	}
 	
+	@Reference
+	void setDianneDatasets(DianneDatasets datasets){
+		this.datasets = datasets;
+	}
+	
 	Device addDevice(UUID id){
 		Device device = devices.get(id);
 		if(device == null){
@@ -816,9 +823,6 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 			} catch(Exception e){ return 0;}}).sum() > 0;
 	}
 	
-	boolean isExperiencePool(String dataset){
-		return platform.getAvailableExperiencePools().contains(dataset);
-	}
 	
 	// TODO use Object Conversion spec for this...
 	private Map<String, Object> toMap(Object o){

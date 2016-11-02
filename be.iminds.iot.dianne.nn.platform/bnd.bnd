@@ -11,7 +11,3 @@ Bundle-Version: 0.6.0.${tstamp}
 Bundle-Name: Dianne Platform
 Private-Package: be.iminds.iot.dianne.nn.platform
 Export-Package: be.iminds.iot.dianne.api.nn.platform
-Import-Package: \
-	be.iminds.iot.dianne.api.rl.dataset;resolution:=optional,\
-	be.iminds.iot.dianne.api.rnn.dataset;resolution:=optional,\
-	*

@@ -44,6 +44,7 @@ import be.iminds.iot.dianne.api.coordinator.AgentResult;
 import be.iminds.iot.dianne.api.coordinator.DianneCoordinator;
 import be.iminds.iot.dianne.api.coordinator.EvaluationResult;
 import be.iminds.iot.dianne.api.coordinator.LearnResult;
+import be.iminds.iot.dianne.api.dataset.DianneDatasets;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
@@ -59,6 +60,7 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 
 	private DianneCoordinator coordinator;
 	private DiannePlatform platform;
+	private DianneDatasets datasets;
 	private Dianne dianne;
 	
 	@Override
@@ -305,7 +307,7 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 			writeResult(writer, id, platform.getAvailableNeuralNetworks());
 			break;
 		case "availableDatasets":
-			writeResult(writer, id, platform.getAvailableDatasets());
+			writeResult(writer, id, datasets.getDatasets().stream().map(d -> d.name).collect(Collectors.toList()));
 			break;
 		case "queuedJobs":
 			writeResult(writer, id, coordinator.queuedJobs());
@@ -421,6 +423,11 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 	@Reference
 	void setDiannePlatform(DiannePlatform p){
 		this.platform = p;
+	}
+	
+	@Reference
+	void setDianneDatasets(DianneDatasets d){
+		this.datasets = d;
 	}
 	
 	@Reference
