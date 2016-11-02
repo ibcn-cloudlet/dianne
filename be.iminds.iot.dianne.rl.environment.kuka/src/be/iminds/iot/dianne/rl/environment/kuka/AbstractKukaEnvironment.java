@@ -148,7 +148,7 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		
 		// calculate reward
 		try {
-			calculateReward();
+			reward = calculateReward();
 		} catch(Exception e){
 			throw new RuntimeException("Failed calculating reward");
 		}

@@ -40,12 +40,20 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 	
 	public static final String NAME = "Kuka";
 	
+	protected static final float GRIP_DISTANCE = 0.565f;
+	protected static final float MARGIN = 0.005f;
+
+	// stop early when simulating
+	// this will not simulate the grip action, and calculate end reward purely based on end position
+	protected boolean earlyStop = true;
+	
 	protected Random r = new Random(System.currentTimeMillis());
 
 	private float previousDistance = 0.0f;
 	
 	@Override
 	protected float calculateReward() throws Exception {
+		float reward = 0.0f;
 		
 		// calculate reward based on simulator info
 		if(simulator != null){
@@ -61,33 +69,42 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 			Position d = simulator.getPosition("Can1", "youBot");
 			// if terminal, check for grip success
 			if(terminal){
-				if(d.x > 0){
-					// can is lifted, reward 1
-					reward =  1.0f;
+				if(earlyStop){
+					// use position only
+					float dx = d.y;
+					float dy = d.z - GRIP_DISTANCE;
+					
+					if(Math.abs(dx) <= MARGIN
+						&& Math.abs(dy) <= MARGIN){
+						reward = 1.0f;
+					} else {
+						reward = 0.0f;
+					}
 				} else {
-					// else failed, no reward
-					reward = 0.0f;
+					if(d.x > 0){
+						// can is lifted, reward 1
+						reward =  1.0f;
+					} else {
+						// else failed, no reward
+						reward = 0.0f;
+					}
 				}
 			} else {
 				float dx = d.y;
-				float dy = d.z - 0.58f;
+				float dy = d.z - GRIP_DISTANCE;
 		
-				// dy should come close to 0.58 for succesful grip
+				// dy should come close to 0.565 for succesful grip
 				// dx should come close to 0
 				float d2 = dx*dx + dy*dy;
 				float distance = (float)Math.sqrt(d2);
 				
 				// give reward based on whether one gets closer/further from target
-				// rescale to get values (approx) between -0.25..0.25 
+				// rescale to get values (approx) between -1..1 
 				reward = (previousDistance-distance)*10;
 				
 				previousDistance = distance;
 			}
-		} else {
-			// return 0 reward by default ... 
-			// unless one specifies his own reward during pause in waitForResume
-			reward = 0.0f;
-		}
+		} 
 		
 		return reward;
 	}
@@ -165,8 +182,16 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 			entities.put("hokuyo", "be.iminds.iot.sensor.range.ros.LaserScanner");
 			
 			simulator.loadScene("scenes/youbot_fetch_can.ttt", entities);
+			
+			// by default early stop in simulator
+			earlyStop = true;
+		} else {
+			// by default don't stop early in real world
+			earlyStop = false;
+		}
+		
+		if(config.containsKey("earlyStop")){
+			earlyStop = Boolean.parseBoolean(config.get("earlyStop"));
 		}
 	}
-	
-	
 }

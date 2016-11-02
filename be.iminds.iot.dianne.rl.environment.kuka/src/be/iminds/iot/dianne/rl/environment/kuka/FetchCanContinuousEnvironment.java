@@ -32,7 +32,6 @@ import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.rl.environment.kuka.api.KukaEnvironment;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.robot.api.Arm;
-import be.iminds.iot.simulator.api.Position;
 
 
 @Component(immediate = true,
@@ -73,40 +72,33 @@ public class FetchCanContinuousEnvironment extends AbstractFetchCanEnvironment {
 			
 			kukaPlatform.stop();	
 
-			// stop early in simulator when we are nowhere 
-			// near the pick location (further than 10cm)
-			if(simulator != null){
-				Position d = simulator.getPosition("Can1", "youBot");
-				if(Math.abs(d.y) > 0.1 || Math.abs(d.z - 0.58) > 0.1){
-					return;
-				}
-			}
-			
-			Promise<Arm> result = kukaArm.openGripper()
-				.then(p -> kukaArm.setPosition(0, 2.92f))
-				.then(p -> kukaArm.setPosition(4, 2.875f))
-				.then(p -> kukaArm.setPositions(2.92f, 1.76f, -1.37f, 2.55f))
-				.then(p -> kukaArm.closeGripper())
-				.then(p -> kukaArm.setPositions(0.01f, 0.8f))
-				.then(p -> kukaArm.setPositions(0.01f, 0.8f, -1f, 2.9f))
-				.then(p -> kukaArm.openGripper())
-				.then(p -> kukaArm.setPosition(1, -1.3f))
-				.then(p -> kukaArm.reset());
-			
-			
-			// in simulation keep on ticking to let the action complete
-			if(simulator != null){
-				for(int i=0;i<300;i++){
-					simulator.tick();
-					
-					// stop when colliding
-					if(simulator.checkCollisions("Border")){
-						return;
+			if(!earlyStop) {
+				Promise<Arm> result = kukaArm.openGripper()
+					.then(p -> kukaArm.setPositions(2.92f, 0.0f, 0.0f, 0.0f, 2.875f))
+					.then(p -> kukaArm.setPositions(2.92f, 1.76f, -1.37f, 2.55f))
+					.then(p -> kukaArm.closeGripper())
+					.then(p -> kukaArm.setPositions(0.01f, 0.8f))
+					.then(p -> kukaArm.setPositions(0.01f, 0.8f, -1f, 2.9f))
+					.then(p -> kukaArm.openGripper())
+					.then(p -> kukaArm.setPosition(1, -1.3f))
+					.then(p -> kukaArm.reset());
+				
+				
+				// in simulation keep on ticking to let the action complete
+				if(simulator != null){
+					for(int i=0;i<130;i++){
+						simulator.tick();
+						
+						// stop when colliding
+						if(simulator.checkCollisions("Border")){
+							return;
+						}
 					}
+				} else {
+					// wait until grip is done
+					result.getValue();
 				}
-			} else {
-				// wait until grip is done
-				result.getValue();
+			
 			}
 		} else {
 			kukaPlatform.move(action[0]*MAX_SPEED, action[1]*MAX_SPEED, action[2]*MAX_SPEED*2);
