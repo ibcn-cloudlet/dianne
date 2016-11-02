@@ -119,8 +119,7 @@ public class YoubotOutput extends ThingOutput {
 		if(grip){
 			base.stop();	
 			arm.openGripper()
-					.then(p -> arm.setPosition(0, 2.92f))
-					.then(p -> arm.setPosition(4, 2.875f))
+					.then(p -> arm.setPositions(2.92f, 0.0f, 0.0f, 0.0f, 2.875f))
 					.then(p -> arm.setPositions(2.92f, 1.76f, -1.37f, 2.55f))
 					.then(p -> arm.closeGripper())
 					.then(p -> arm.setPositions(0.01f, 0.8f))
