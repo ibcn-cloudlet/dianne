@@ -50,6 +50,7 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -111,7 +112,7 @@ public class DianneRunner extends HttpServlet {
 		platform = p;
 	}
 	
-	@Reference
+	@Reference(cardinality=ReferenceCardinality.OPTIONAL)
 	void setDianneDatasets(DianneDatasets d){
 		datasets = d;
 	}
@@ -234,43 +235,49 @@ public class DianneRunner extends HttpServlet {
 			}
 		} else if(request.getParameter("dataset")!=null){
 			String dataset = request.getParameter("dataset");
-			Dataset d = datasets.getDataset(dataset);
-			
-			if(d!=null){
-				String inputId = request.getParameter("input");
-
-				Sample s = d.getSample(rand.nextInt(d.size()));
-				
-				start = System.currentTimeMillis();
-				nn.forward(UUID.fromString(inputId), null, s.input, "ui");
-				
-				JsonObject sample = new JsonObject();
-				if(s.input.dims().length==3){
-					sample.add("channels", new JsonPrimitive(s.input.dims()[0]));
-					sample.add("height", new JsonPrimitive(s.input.dims()[1]));
-					sample.add("width", new JsonPrimitive(s.input.dims()[2]));
-				} else if(s.input.dims().length==2){
-					sample.add("channels", new JsonPrimitive(1));
-					sample.add("height", new JsonPrimitive(s.input.dims()[0]));
-					sample.add("width", new JsonPrimitive(s.input.dims()[1]));
-				} else if(s.input.dims().length==1){
-					sample.add("channels", new JsonPrimitive(1));
-					sample.add("height", new JsonPrimitive(1));
-					sample.add("width", new JsonPrimitive(s.input.dims()[0]));
-				}
-				sample.add("data", parser.parse(Arrays.toString(s.input.get())));
-				
-				String[] labels = d.getLabels();
-				if(labels != null){
-					sample.add("target", new JsonPrimitive(labels[TensorOps.argmax(s.target)]));
-				} else {
-					if(s.target.size() < 10)
-						sample.add("target", parser.parse(Arrays.toString(s.target.get())));
-				}
-				
-				response.getWriter().println(sample.toString());
-				response.getWriter().flush();
+			if(datasets == null){
+				System.out.println("Datasets service not available");
+				return;
 			}
+			Dataset d = datasets.getDataset(dataset);
+			if(d == null){
+				System.out.println("Dataset "+dataset+" not available");
+				return;
+			}
+			
+			String inputId = request.getParameter("input");
+
+			Sample s = d.getSample(rand.nextInt(d.size()));
+			
+			start = System.currentTimeMillis();
+			nn.forward(UUID.fromString(inputId), null, s.input, "ui");
+			
+			JsonObject sample = new JsonObject();
+			if(s.input.dims().length==3){
+				sample.add("channels", new JsonPrimitive(s.input.dims()[0]));
+				sample.add("height", new JsonPrimitive(s.input.dims()[1]));
+				sample.add("width", new JsonPrimitive(s.input.dims()[2]));
+			} else if(s.input.dims().length==2){
+				sample.add("channels", new JsonPrimitive(1));
+				sample.add("height", new JsonPrimitive(s.input.dims()[0]));
+				sample.add("width", new JsonPrimitive(s.input.dims()[1]));
+			} else if(s.input.dims().length==1){
+				sample.add("channels", new JsonPrimitive(1));
+				sample.add("height", new JsonPrimitive(1));
+				sample.add("width", new JsonPrimitive(s.input.dims()[0]));
+			}
+			sample.add("data", parser.parse(Arrays.toString(s.input.get())));
+			
+			String[] labels = d.getLabels();
+			if(labels != null){
+				sample.add("target", new JsonPrimitive(labels[TensorOps.argmax(s.target)]));
+			} else {
+				if(s.target.size() < 10)
+					sample.add("target", parser.parse(Arrays.toString(s.target.get())));
+			}
+			
+			response.getWriter().println(sample.toString());
+			response.getWriter().flush();
 		} 
 	}
 	
