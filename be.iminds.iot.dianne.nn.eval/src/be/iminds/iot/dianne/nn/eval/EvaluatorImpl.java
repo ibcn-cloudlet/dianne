@@ -108,13 +108,16 @@ public class EvaluatorImpl implements Evaluator {
 				throw new Exception("Dataset "+dataset+" not available");
 
 			// Fetch Neural Network instances and load parameters
+			System.out.println("Neural Network(s)");
+			System.out.println("---");
 			NeuralNetwork[] nns = new NeuralNetwork[nni.length];
 			int n = 0;
 			for(NeuralNetworkInstanceDTO dto : nni){
 				if(dto != null){
 					NeuralNetwork nn = dianne.getNeuralNetwork(dto).getValue();
 					nns[n++] = nn;
-					
+					System.out.println("* "+dto.name);
+
 					try {
 						if(this.config.tag==null){
 							nn.loadParameters();
@@ -127,6 +130,8 @@ public class EvaluatorImpl implements Evaluator {
 					}
 				}
 			}
+			System.out.println("---");
+
 			
 			// Create evaluation strategy
 			strategy = factory.create(this.config.strategy);

@@ -179,14 +179,19 @@ public class AgentImpl implements Agent {
 				// for Agents a null is allowed, e-g when using hard-coded policies
 				nns = new NeuralNetwork[0];
 			} else {
+				System.out.println("Neural Network(s)");
+				System.out.println("---");
+				
 				int n = 0;
 				nns = new NeuralNetwork[nni.length];
 				for(NeuralNetworkInstanceDTO dto : nni){
 					if(dto != null){
 						NeuralNetwork nn = dianne.getNeuralNetwork(dto).getValue();
 						nns[n++] = nn;
+						System.out.println("* "+dto.name);
 					}
 				}
+				System.out.println("---");
 			}
 			
 			// setup environment

@@ -136,14 +136,18 @@ public class LearnerImpl implements Learner {
 			
 			
 			// Load neural network instance(s)
+			System.out.println("Neural Network(s)");
+			System.out.println("---");
 			int n = 0;
 			for(NeuralNetworkInstanceDTO dto : nni){
 				if(dto != null){
 					NeuralNetwork nn = dianne.getNeuralNetwork(dto).getValue();
 					nns[n++] = nn;
+					System.out.println("* "+dto.name);
 				}
 			}
-			
+			System.out.println("---");
+
 			// Initialize NN parameters
 			for(NeuralNetwork nn : nns)
 				initializeParameters(nn);
