@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import org.osgi.framework.BundleContext;
@@ -151,10 +152,13 @@ public class ThingsOutputs implements DianneOutputs {
 	@Override
 	public void setOutput(UUID nnId, UUID outputId, String output) {
 		ThingOutput o = null;
-		synchronized(things){
-			o = things.values().stream().filter(t -> t.name.equals(output)).findFirst().get();
+		try {
+			synchronized(things){
+				o = things.values().stream().filter(t -> t.name.equals(output)).findFirst().get();
+			}
+		} catch(NoSuchElementException e){
+			return;
 		}
-		
 		o.connect(nnId, outputId, context);
 	}
 

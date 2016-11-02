@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import org.osgi.framework.BundleContext;
@@ -131,8 +132,12 @@ public class ThingsInputs implements DianneInputs {
 		String id = nnId.toString()+":"+inputId.toString();
 		Input in = inputs.get(id);
 		ThingInput thing = null;
-		synchronized(things){
-			thing = things.values().stream().filter(t -> t.name.equals(input)).findFirst().get();
+		try {
+			synchronized(things){
+				thing = things.values().stream().filter(t -> t.name.equals(input)).findFirst().get();
+			}
+		} catch(NoSuchElementException e){
+			return;
 		}
 		thing.connect(in, context);
 	}
