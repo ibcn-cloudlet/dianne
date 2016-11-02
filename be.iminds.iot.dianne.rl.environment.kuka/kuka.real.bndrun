@@ -1,18 +1,22 @@
+dianne.version='[0.6.0,0.7.0)'
 
--include: ../tools/coordinator.bndrun
+-include: ../tools/common.bndrun
 
 -runbundles.xkuka:\
-	be.iminds.iot.dianne.nn.runtime;version=latest,\
-	be.iminds.iot.dianne.nn.learn;version=latest,\
-	be.iminds.iot.dianne.nn.eval;version=latest,\
-	be.iminds.iot.dianne.repository;version=latest,\
-	be.iminds.iot.dianne.builder;version=latest,\
-	be.iminds.iot.dianne.command;version=latest,\
-	be.iminds.iot.dianne.dataset;version=latest,\
-	be.iminds.iot.dianne.rl.learn;version=latest,\
-	be.iminds.iot.dianne.rl.experience;version=latest,\
-	be.iminds.iot.dianne.rl.agent;version=latest,\
-	be.iminds.iot.dianne.rl.environment.kuka,\
+	be.iminds.iot.dianne.tensor;version=${dianne.version},\
+	be.iminds.iot.dianne.tensor.native.cutorch.linux.aarch64;version=${dianne.version},\
+	be.iminds.iot.dianne.tensor.util;version=${dianne.version},\
+	be.iminds.iot.dianne.api;version=${dianne.version},\
+	be.iminds.iot.dianne.nn.util;version=${dianne.version},\
+	be.iminds.iot.dianne.nn.module;version=${dianne.version},\
+	be.iminds.iot.dianne.nn;version=${dianne.version},\
+	be.iminds.aiolos.platformmanager;version=${aiolos.version},\
+	be.iminds.iot.dianne.nn.platform;version=${dianne.version},\
+	be.iminds.iot.dianne.nn.runtime;version=${dianne.version},\
+	be.iminds.iot.dianne.repository;version=${dianne.version},\
+	be.iminds.iot.dianne.builder;version=${dianne.version},\
+	be.iminds.iot.dianne.command;version=${dianne.version},\
+	be.iminds.iot.dianne.io.things;version=${dianne.version},\
 	com.google.guava;version='[12.0,13.0)',\
 	org.jboss.netty;version='[3.5,4)',\
 	org.apache.commons.logging;version='[1.1,2)',\
@@ -33,19 +37,20 @@
 	org.ros.rosjava_messages.geometry_msgs;version='[1.11.7,1.11.8)',\
 	org.ros.rosjava_messages.sensor_msgs;version='[1.11.7,1.11.8)',\
 	org.ros.rosjava_messages.brics_actuator;version='[0.7,0.8)',\
-	be.iminds.iot.ros.core;version=latest,\
-	be.iminds.iot.ros.configurator;version=latest,\
-	be.iminds.iot.ros.youbot;version=latest,\
-	be.iminds.iot.robot.youbot.ros;version=latest,\
-	be.iminds.iot.ros.range;version=latest,\
-	be.iminds.iot.sensor.range.ros;version=latest,\
-	be.iminds.iot.robot.input;version=latest,\
-	be.iminds.iot.dianne.tensor.native.cutorch.linux.aarch64;version=latest
-	
+	be.iminds.iot.ros.core;version='[0.2.0,0.3.0)',\
+	be.iminds.iot.ros.configurator;version='[0.2.0,0.3.0)',\
+	be.iminds.iot.ros.youbot;version='[0.2.0,0.3.0)',\
+	be.iminds.iot.ros.range;version='[0.2.0,0.3.0)',\
+	be.iminds.iot.sensor.range.ros;version='[0.2.0,0.3.0)',\
+	be.iminds.iot.robot.youbot.ros;version='[0.2.0,0.3.0)',\
+	be.iminds.iot.robot.input;version='[0.2.0,0.3.0)'
+		
 -runproperties.xkuka: \
 	ros.core.native=true,\
-	aiolos.proxy.ignore.extra="be.iminds.iot.ros.*,org.ros.*",\
-	be.iminds.iot.dianne.storage="models",\
-	be.iminds.iot.dianne.datasets.location="experience"
+	aiolos.proxy.ignore.extra="be.iminds.iot.ros.*,org.ros.*,\
+		be.iminds.iot.dianne.api.rl.environment.*,be.iminds.iot.dianne.rl.environment.*,\
+		be.iminds.iot.simulator.api.*,be.iminds.iot.robot.api.*,be.iminds.iot.sensor.api.*",\
+	be.iminds.iot.dianne.runtime.name="Kuka",\
+	be.iminds.iot.dianne.storage="models"
 	
 	
