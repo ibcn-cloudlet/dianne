@@ -49,7 +49,7 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 	
 	protected Random r = new Random(System.currentTimeMillis());
 
-	private float previousDistance = 0.0f;
+	private float previousLogDistance = 0.0f;
 	
 	@Override
 	protected float calculateReward() throws Exception {
@@ -96,13 +96,12 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 				// dy should come close to 0.565 for succesful grip
 				// dx should come close to 0
 				float d2 = dx*dx + dy*dy;
-				float distance = (float)Math.sqrt(d2);
+				float logDistance = (float)Math.log(Math.sqrt(d2));
 				
-				// give reward based on whether one gets closer/further from target
-				// rescale to get values (approx) between -1..1 
-				reward = (previousDistance-distance)*10;
+				// use difference of log distances as reward
+				reward = (previousLogDistance-logDistance);
 				
-				previousDistance = distance;
+				previousLogDistance = logDistance;
 			}
 		} 
 		
