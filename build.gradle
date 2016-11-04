@@ -118,6 +118,7 @@ subprojects {
   }
 }
 getTasksByName('test', true).each{ task -> task.dependsOn(getTasksByName('buildNative', true)) }
+getAllTasks(true).each{ project -> project.value.each{ task -> if(task.name.startsWith('export.')) { task.dependsOn('clean' + task.name.substring(0,1).toUpperCase() + task.name.substring(1)) } } }
 
 task("datasets") {
 	description "Download pre-configured datasets (all available by default)."
