@@ -24,6 +24,8 @@ package be.iminds.iot.dianne.things.output;
 
 import java.util.UUID;
 
+import org.osgi.framework.BundleContext;
+
 import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
@@ -44,6 +46,7 @@ public class YoubotOutput extends ThingOutput {
 	private boolean grip = false;
 	
 	private volatile boolean skip = false;
+	private volatile boolean stop = false;
 	
 	public YoubotOutput(UUID id, String name){
 		super(id, name, "Youbot");
@@ -64,7 +67,7 @@ public class YoubotOutput extends ThingOutput {
 			return;
 		}
 		
-		if(skip){
+		if(skip || stop){
 			return;
 		}
 		
@@ -137,4 +140,17 @@ public class YoubotOutput extends ThingOutput {
 	public void onError(UUID moduleId, ModuleException e, String... tags) {
 	}
 
+	public void connect(UUID nnId, UUID outputId, BundleContext context){
+		stop = false;
+		super.connect(nnId, outputId, context);
+	}
+	
+	public void disconnect(){
+		// stop youbot on disconnect
+		stop = true;
+		super.disconnect();
+		
+		base.stop();
+		arm.stop();
+	}
 }
