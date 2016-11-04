@@ -13,8 +13,7 @@ Bundle-Name: Dianne Pong Environment
 	be.iminds.iot.dianne.nn.learn;version=latest,\
 	be.iminds.iot.dianne.tensor.util;version=latest,\
 	osgi.promise,\
-	be.iminds.iot.dianne.nn.util;version=latest,\
-	be.iminds.iot.dianne.rl.agent;version=latest
+	be.iminds.iot.dianne.nn.util;version=latest
 	
 -includeresource: res=resources
 
