@@ -32,7 +32,7 @@ import org.osgi.service.component.annotations.Component;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.Sample;
-import be.iminds.iot.dianne.api.rnn.dataset.SequenceDataset;
+import be.iminds.iot.dianne.api.dataset.SequenceDataset;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 

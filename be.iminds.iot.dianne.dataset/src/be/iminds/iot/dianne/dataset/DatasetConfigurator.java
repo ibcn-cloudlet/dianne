@@ -51,8 +51,6 @@ import com.google.gson.stream.JsonReader;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.DatasetDTO;
 import be.iminds.iot.dianne.api.dataset.DianneDatasets;
-import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
-import be.iminds.iot.dianne.api.rnn.dataset.SequenceDataset;
 
 
 @Component(
