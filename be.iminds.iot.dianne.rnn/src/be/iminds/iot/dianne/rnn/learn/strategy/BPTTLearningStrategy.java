@@ -23,10 +23,12 @@
 package be.iminds.iot.dianne.rnn.learn.strategy;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.api.dataset.SequenceDataset;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
@@ -57,6 +59,8 @@ public class BPTTLearningStrategy implements LearningStrategy {
 	protected GradientProcessor gradientProcessor;
 	protected Criterion criterion;
 	protected SamplingStrategy sampling;
+	
+	protected List<Sample> sequence = null;
 	
 	@Override
 	public void setup(Map<String, String> config, Dataset dataset, NeuralNetwork... nns) throws Exception {
@@ -91,7 +95,7 @@ public class BPTTLearningStrategy implements LearningStrategy {
 			}
 		}
 		
-		Tensor[] sequence = dataset.getSequence(index, config.sequenceLength);
+		sequence = dataset.getSequence(sequence, 0, index, config.sequenceLength);
 		
 		// keep all memories hidden states
 		Map<UUID, Tensor[]> memories = new HashMap<UUID, Tensor[]>();
@@ -114,7 +118,7 @@ public class BPTTLearningStrategy implements LearningStrategy {
 			});
 				
 			// forward
-			Tensor out = nn.forward(sequence[k]);
+			Tensor out = nn.forward(sequence.get(k).input);
 				
 			// store output
 			outputs[k] = out;
@@ -122,7 +126,7 @@ public class BPTTLearningStrategy implements LearningStrategy {
 		
 		// backward
 		for(int k=config.sequenceLength-1;k>=0;k--){
-			Tensor target = sequence[k+1];
+			Tensor target = sequence.get(k).target;
 			float l = criterion.loss(outputs[k], target);
 			if(config.backpropAll || k==config.sequenceLength-1){
 				loss+=l;
@@ -134,7 +138,7 @@ public class BPTTLearningStrategy implements LearningStrategy {
 			nn.getMemories().entrySet().forEach(e -> {
 				e.getValue().setMemory(memories.get(e.getKey())[in]);
 			});
-			nn.forward(sequence[k]);
+			nn.forward(sequence.get(k).input);
 				
 			// set grad to zero for all intermediate outputs
 			if(!config.backpropAll){

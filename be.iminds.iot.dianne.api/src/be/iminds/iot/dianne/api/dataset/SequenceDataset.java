@@ -22,13 +22,14 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.dataset;
 
-import be.iminds.iot.dianne.tensor.Tensor;
+import java.util.List;
 
 /**
- * A SequenceDataset is a Dataset consisting out of a long sequence of entries.
+ * A SequenceDataset is a Dataset consisting of sequences of samples.
  * 
- * This dataset is used to train recurrent neural networks, where the goal is to
- * predict the next entry in the sequence from the history.
+ * A sequence can for example be a time-series, used for prediction tasks where one
+ * has to predict samples coming next in the sequence. In this case the target of 
+ * sample s1 will be the input of sample s2 (possibly the same Tensor object).
  * 
  * @author tverbele
  *
@@ -36,31 +37,44 @@ import be.iminds.iot.dianne.tensor.Tensor;
 public interface SequenceDataset extends Dataset {
 	
 	/**
-	 * Returns the number of entries in the dataset
-	 * 
-	 * @return the number of entries in the dataset
+	 * Number of sequences in the dataset
+	 * @return number of sequences in the dataset
 	 */
-	int size();
-
-	/**
-	 * Return a subset of the sequence, i.e. when training on sequences with limited length
-	 * @param index start index of the first input
-	 * @param length number of inputs requested
-	 * @return a sequence of length+1 items: length inputs + 1 corresponding output
-	 */
-	Tensor[] getSequence(final int index, final int length);
+	public int sequences();
 	
 	/**
-	 * A human-readable name for this dataset
-	 * 
-	 * @return dataset name
+	 * Get a (part of) a sequence with start index and length
+	 * @param s provided array to copy the data into, will be created in case of null or elements will be added if s.size() < length
+	 * @param sequence number of the sequence
+	 * @param index start index of the first sample
+	 * @param length number of samples to get (in case sequence is not long enough, elements will be put to NaN)
+	 * @return sequence
 	 */
-	String getName();
+	List<Sample> getSequence(List<Sample> s, final int sequence, final int index, final int length);
+	
+	default List<Sample> getSequence(final int sequence, final int index, final int length){
+		return getSequence(null, sequence, index, length);
+	}
+	
+	default List<Sample> getSequence(final int sequence){
+		return getSequence(null, sequence, 0, -1);
+	}
 	
 	/**
-	 * Get human-readable names for the classes represented in an output vector
-	 * 
-	 * @return human-readable dataset labels
+	 * Get a (part of) sequences in batch with start indices and length
+	 * @param s provided array to copy the data into, will be created in case of null or elements will be added if s.size() < length
+	 * @param sequences sequences to batch
+	 * @param indices start indices of the first samples
+	 * @param length number of samples to get (in case sequence is not long enough, elements will be put to NaN)
+	 * @return sequence
 	 */
-	String[] getLabels();
+	List<Batch> getBatchedSequence(List<Batch> b, final int[] sequences, final int[] indices, final int length);
+	
+	default List<Batch> getBatchedSequence(final int[] sequences, final int[] indices, final int length){
+		return getBatchedSequence(null, sequences, indices, length);
+	}
+	
+	default List<Batch> getBatchedSequence(final int[] sequences){
+		return getBatchedSequence(null, sequences, null, -1);
+	}
 }

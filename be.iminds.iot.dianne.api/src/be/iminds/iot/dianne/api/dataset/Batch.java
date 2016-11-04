@@ -52,6 +52,15 @@ public class Batch extends Sample {
 			this.samples[i] = new Sample(input.select(0, i), target.select(0, i));
 		}
 	}
+	
+	public Batch(Tensor input, Tensor target){
+		super(input, target);
+		int batchSize = input.size(0);
+		this.samples = new Sample[batchSize];
+		for(int i = 0; i< batchSize; i++){
+			this.samples[i] = new Sample(input.select(0, i), target.select(0, i));
+		}
+	}
 
 	public Batch(int batchSize){
 		// fill with empty samples...

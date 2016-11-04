@@ -25,11 +25,14 @@ package be.iminds.iot.dianne.rnn.dataset.chars;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 
+import be.iminds.iot.dianne.api.dataset.Batch;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.api.dataset.SequenceDataset;
@@ -37,7 +40,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
 /**
- * A Character SequenceDataset ... read a text file and treats each character as input/output sample
+ * A Character SequenceDataset ... read a text file as a single sequence
  * 
  * @author tverbele
  *
@@ -96,15 +99,6 @@ public class CharSequenceDataset implements SequenceDataset{
 	}
 
 	@Override
-	public Tensor[] getSequence(int index, int length) {
-		Tensor[] sequence = new Tensor[length+1];
-		for(int i=index;i<index+length+1;i++){
-			sequence[i-index] = asTensor(data.charAt(i), null);
-		}
-		return sequence;
-	}
-
-	@Override
 	public String getName() {
 		return "CharSequence";
 	}
@@ -136,5 +130,120 @@ public class CharSequenceDataset implements SequenceDataset{
 	@Override
 	public int[] targetDims() {
 		return new int[]{chars.length()};
+	}
+
+	@Override
+	public int sequences() {
+		return 1;
+	}
+
+	@Override
+	public List<Sample> getSequence(List<Sample> s, int sequence, int index, int length) {
+		if(s == null){
+			s = new ArrayList<Sample>(length);
+		}
+		
+		if(sequence > 1){
+			throw new RuntimeException("Invalid sequence number");
+		}
+
+		if(index >= data.length()){
+			throw new RuntimeException("Invalid start index: "+index);
+		}
+		
+		if(length == -1){
+			length = data.length();
+		}
+		
+		Sample previous = null;
+		for(int i=0;i<length;i++){
+			Sample sample;
+			if(s.size() <= i){
+				sample = new Sample(previous != null ? previous.target : new Tensor(chars.length()), new Tensor(chars.length()));
+				s.add(sample);
+			} else {
+				sample = s.get(i);
+				if(previous != null){
+					sample.input = previous.target;
+				}
+			}
+			
+			int k = index + i;
+			if(i == 0){
+				char c = data.charAt(k);
+				asTensor(c, sample.input);
+			} 
+			
+			if(k+1 < data.length()){
+				char c = data.charAt(k+1);
+				asTensor(c, sample.target);
+			} else {
+				sample.target.fill(Float.NaN);
+			}
+			
+			previous = sample;
+		}
+		
+		return s;
+	}
+
+	@Override
+	public List<Batch> getBatchedSequence(List<Batch> b, int[] sequences, int[] indices, int length) {
+		if(b == null){
+			b = new ArrayList<Batch>(length);
+		}
+		
+		for(int sequence : sequences){
+			if(sequence > 1){
+				throw new RuntimeException("Invalid sequence number");
+			}
+		}
+
+		if(indices != null){
+			for(int index : indices){
+				if(index >= data.length()){
+					throw new RuntimeException("Invalid start index");
+				}
+			}
+		}
+		
+		if(length == -1){
+			length = data.length();
+		}
+		
+		Batch previous = null;
+		for(int i=0;i<length;i++){
+			Batch batch;
+			if(b.size() <= i){
+				batch = new Batch(previous != null ? previous.target : new Tensor(sequences.length, chars.length()), new Tensor(sequences.length, chars.length()));
+				b.add(batch);
+			} else {
+				batch = b.get(i);
+				if(previous != null){
+					batch.input = previous.target;
+				}
+			}
+			
+			for(int s=0;s<sequences.length;s++){
+				int start = indices == null ? 0 : indices[s];
+				int k = start + i;
+				
+				if(i == 0){
+					char c = data.charAt(k);
+					asTensor(c, batch.getSample(s).input);
+				} 
+				
+				if(k+1 < data.length()){
+					char c = data.charAt(k+1);
+					asTensor(c, batch.getSample(s).target);
+				} else {
+					batch.getSample(s).target.fill(Float.NaN);
+				}
+			}
+			
+			previous = batch;
+		}
+		
+		return b;
 	}
 }
