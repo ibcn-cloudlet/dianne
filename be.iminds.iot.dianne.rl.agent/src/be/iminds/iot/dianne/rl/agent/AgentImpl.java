@@ -349,7 +349,7 @@ public class AgentImpl implements Agent {
 							List<ExperiencePoolSample> temp = uploadBuffer;
 							uploadBuffer = storeBuffer;
 							storeBuffer = temp;
-							upload = uploadBuffer.subList(0, count);
+							upload = new ArrayList<>(uploadBuffer.subList(0, count));
 							
 							
 							count = 0;
