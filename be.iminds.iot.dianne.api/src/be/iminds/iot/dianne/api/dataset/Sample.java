@@ -22,6 +22,8 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.dataset;
 
+import java.util.Arrays;
+
 import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
@@ -49,5 +51,15 @@ public class Sample {
 	
 	public Tensor getTarget(){
 		return target;
+	}
+	
+	@Override
+	public String toString(){
+		StringBuilder b = new StringBuilder();
+		b.append("Input: ")
+		.append(input)
+		.append(" - Target: ")
+		.append(target);
+		return b.toString();
 	}
 }

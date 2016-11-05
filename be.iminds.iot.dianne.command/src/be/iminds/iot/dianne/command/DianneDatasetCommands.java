@@ -23,15 +23,12 @@
 package be.iminds.iot.dianne.command;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
 import org.apache.felix.service.command.Descriptor;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -39,6 +36,7 @@ import org.osgi.service.component.annotations.Reference;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.DatasetDTO;
 import be.iminds.iot.dianne.api.dataset.DianneDatasets;
+import be.iminds.iot.dianne.api.dataset.SequenceDataset;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
@@ -50,7 +48,9 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 		service=Object.class,
 		property={"osgi.command.scope=dianne",
 				  "osgi.command.function=datasets",
-				  "osgi.command.function=sample"},
+				  "osgi.command.function=forward",
+				  "osgi.command.function=sample",
+				  "osgi.command.function=sequence"},
 		immediate=true)
 public class DianneDatasetCommands {
 
@@ -85,7 +85,7 @@ public class DianneDatasetCommands {
 	}
 	
 	@Descriptor("Forward a dataset sample through a neural network instance.")
-	public void sample(
+	public void forward(
 			@Descriptor("dataset name to fetch a sample from")
 			String dataset, 
 			@Descriptor("uuid of the neural network instance")
@@ -148,18 +148,18 @@ public class DianneDatasetCommands {
 	}
 	
 	@Descriptor("Forward a random dataset sample through a neural network instance.")
-	public void sample(
+	public void forward(
 			@Descriptor("dataset name to fetch a sample from")
 			String dataset, 
 			@Descriptor("uuid of the neural network instance")
 			String nnId,
 			@Descriptor("(optional) tags to attach to the forward call ")
 			String...tags){
-		sample(dataset, nnId, -1, tags);
+		forward(dataset, nnId, -1, tags);
 	}
 
 	@Descriptor("Forward a dataset sample through a neural network instance.")
-	public void sample(
+	public void forward(
 			@Descriptor("dataset name to fetch a sample from")
 			String dataset, 
 			@Descriptor("index of the neural network instance (from the list command output)")
@@ -175,18 +175,93 @@ public class DianneDatasetCommands {
 		}
 		String id = nns.get(index).id.toString();
 		
-		sample(dataset, id, sample, tags);
+		forward(dataset, id, sample, tags);
 	}
 	
 	@Descriptor("Forward a random dataset sample through a neural network instance.")
-	public void sample(
+	public void forward(
 			@Descriptor("dataset name to fetch a sample from")
 			String dataset, 
 			@Descriptor("index of the neural network instance (from the list command output)")
 			int index, 
 			@Descriptor("(optional) tags to attach to the forward call ")
 			String... tags){
-		sample(dataset, index, -1, tags);
+		forward(dataset, index, -1, tags);
+	}
+
+	@Descriptor("Print out a random sample of the dataset")
+	public void sample(
+			@Descriptor("dataset name to fetch a sample from")
+			String dataset){ 
+		Dataset d = datasets.getDataset(dataset);
+		if(d==null){
+			System.out.println("Dataset "+dataset+" not available");
+			return;
+		}
+		
+		int index = rand.nextInt(d.size());
+		System.out.println("["+index+"] "+d.getSample(index).toString());
+	}
+
+	@Descriptor("Print out a sample of the dataset")
+	public void sample(
+			@Descriptor("dataset name to fetch a sample from")
+			String dataset,
+			@Descriptor("index to print")
+			int index){ 
+		
+		Dataset d = datasets.getDataset(dataset);
+		if(d==null){
+			System.out.println("Dataset "+dataset+" not available");
+			return;
+		}
+		System.out.println("["+index+"] "+d.getSample(index).toString());
+	}
+	
+	@Descriptor("Print out samples of the dataset")
+	public void sample(
+			@Descriptor("dataset name to fetch a sample from")
+			String dataset,
+			@Descriptor("start index")
+			int start,
+			@Descriptor("end index")
+			int end){ 
+		
+		Dataset d = datasets.getDataset(dataset);
+		if(d==null){
+			System.out.println("Dataset "+dataset+" not available");
+			return;
+		}
+		for(int index=start;index<end;index++)
+			System.out.println("["+index+"] "+d.getSample(index).toString());
+	}
+	
+	@Descriptor("Print out a sequence of the dataset")
+	public void sequence(
+			@Descriptor("dataset name to fetch a sample from")
+			String dataset,
+			@Descriptor("sequence to print")
+			int sequence){ 
+		
+		Dataset d = datasets.getDataset(dataset);
+		if(d==null){
+			System.out.println("Dataset "+dataset+" not available");
+			return;
+		}
+		if(!(d instanceof SequenceDataset)){
+			System.out.println("Dataset "+dataset+" is not a sequence dataset");
+			return;
+		}
+		
+		try {
+		List s = ((SequenceDataset)d).getSequence(sequence);
+		int i = 0;
+		for(Object o : s){
+			System.out.println("["+(i++)+"] "+o.toString());
+		}
+		} catch(Throwable t){
+			t.printStackTrace();
+		}
 	}
 	
 	@Reference

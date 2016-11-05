@@ -22,6 +22,8 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.rl.dataset;
 
+import java.util.Arrays;
+
 import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.tensor.Tensor;
 
@@ -67,5 +69,20 @@ public class ExperiencePoolSample extends Sample {
 	
 	public boolean isTerminal(){
 		return isTerminal;
+	}
+	
+	@Override
+	public String toString(){
+		StringBuilder b = new StringBuilder();
+		b.append("State: ")
+		.append(input)
+		.append(" - Action: ")
+		.append(target)
+		.append(" - Reward: ")
+		.append(reward)
+		.append(" - Next state: ")
+		.append(nextState)
+		.append(" - Terminal: ").append(isTerminal);
+		return b.toString();
 	}
 }

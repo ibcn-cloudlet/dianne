@@ -233,8 +233,15 @@ public class Tensor {
 	public String toString(){
 		StringBuilder b = new StringBuilder();
 		b.append(Arrays.toString(dims()));
-		b.append("\n");
-		b.append(Arrays.toString(get()));
+
+		float[] data = get();
+		if(data.length > 20){
+			b.append(Arrays.toString(Arrays.copyOf(data, 20)));
+			b.insert(b.length()-1, "...");
+		} else {
+			b.append(Arrays.toString(data));
+		}
+		
 		return b.toString();
 	}
 	
