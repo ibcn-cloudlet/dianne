@@ -34,7 +34,7 @@ import java.util.List;
  * @author tverbele
  *
  */
-public interface SequenceDataset extends Dataset {
+public interface SequenceDataset<S, B> extends Dataset {
 	
 	/**
 	 * Number of sequences in the dataset
@@ -50,13 +50,13 @@ public interface SequenceDataset extends Dataset {
 	 * @param length number of samples to get (in case sequence is not long enough, elements will be put to NaN)
 	 * @return sequence
 	 */
-	List<Sample> getSequence(List<Sample> s, final int sequence, final int index, final int length);
+	List<S> getSequence(List<S> s, final int sequence, final int index, final int length);
 	
-	default List<Sample> getSequence(final int sequence, final int index, final int length){
+	default List<S> getSequence(final int sequence, final int index, final int length){
 		return getSequence(null, sequence, index, length);
 	}
 	
-	default List<Sample> getSequence(final int sequence){
+	default List<S> getSequence(final int sequence){
 		return getSequence(null, sequence, 0, -1);
 	}
 	
@@ -68,13 +68,13 @@ public interface SequenceDataset extends Dataset {
 	 * @param length number of samples to get (in case sequence is not long enough, elements will be put to NaN)
 	 * @return sequence
 	 */
-	List<Batch> getBatchedSequence(List<Batch> b, final int[] sequences, final int[] indices, final int length);
+	List<B> getBatchedSequence(List<B> b, final int[] sequences, final int[] indices, final int length);
 	
-	default List<Batch> getBatchedSequence(final int[] sequences, final int[] indices, final int length){
+	default List<B> getBatchedSequence(final int[] sequences, final int[] indices, final int length){
 		return getBatchedSequence(null, sequences, indices, length);
 	}
 	
-	default List<Batch> getBatchedSequence(final int[] sequences){
+	default List<B> getBatchedSequence(final int[] sequences){
 		return getBatchedSequence(null, sequences, null, -1);
 	}
 }

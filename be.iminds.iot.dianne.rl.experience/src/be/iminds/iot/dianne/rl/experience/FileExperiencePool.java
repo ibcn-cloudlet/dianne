@@ -28,7 +28,7 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
@@ -44,28 +44,31 @@ import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
 public class FileExperiencePool extends AbstractExperiencePool {
 
 	private FloatBuffer[] buffers;
-	private int samplesPerBuffer;
-	
-	private ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
+	private int SIZE_PER_BUFFER = Integer.MAX_VALUE;
+	private int FLOATS_PER_BUFFER = Integer.MAX_VALUE/4;
 	
 	@Override
-	protected void setup() {
-		long bufferSize = sampleSize;
-		bufferSize *= maxSize;
-		bufferSize *= 4;
+	protected void setup(Map<String, Object> config) {
+		if(config.containsKey("sizePerBuffer")){
+			SIZE_PER_BUFFER = Integer.parseInt(config.get("sizePerBuffer").toString());
+		}
+		
+		FLOATS_PER_BUFFER = SIZE_PER_BUFFER/4;
+		
+		long bufferSize = maxSize;
 		
 		int noBuffers = 1;
-		samplesPerBuffer = (int)bufferSize;
-		if(bufferSize > Integer.MAX_VALUE){
-			noBuffers = (int) (bufferSize / Integer.MAX_VALUE) + 1;
-			samplesPerBuffer = Integer.MAX_VALUE/(4*sampleSize);
+		if(bufferSize > SIZE_PER_BUFFER){
+			noBuffers = (int) (bufferSize / SIZE_PER_BUFFER);
+			if(bufferSize % SIZE_PER_BUFFER != 0)
+				noBuffers++;
 		}
 		
 		buffers = new FloatBuffer[noBuffers];
 
 		try {
 			for(int i=0;i<buffers.length;i++){
-				buffers[i] = openFileAsFloatBuffer("data"+i+".bin", bufferSize > Integer.MAX_VALUE ? Integer.MAX_VALUE : bufferSize);
+				buffers[i] = openFileAsFloatBuffer("data"+i+".bin", bufferSize > SIZE_PER_BUFFER ? SIZE_PER_BUFFER : bufferSize);
 			}
 		} catch(Exception e){
 			e.printStackTrace();
@@ -75,37 +78,48 @@ public class FileExperiencePool extends AbstractExperiencePool {
 	@Override
 	protected float[] loadData(int index) {
 		float[] data = new float[sampleSize];
-		FloatBuffer buffer = buffers[index / samplesPerBuffer];
-		int i = index % samplesPerBuffer;
-		try {
-			lock.readLock().lock();
-			int position = i*data.length;
-			buffer.position(position);
+				
+		int b = index / FLOATS_PER_BUFFER;
+		FloatBuffer buffer = buffers[b];
+		int i = index % FLOATS_PER_BUFFER;
+
+		if(FLOATS_PER_BUFFER-i < sampleSize){
+			// split in two
+			int half = FLOATS_PER_BUFFER-i;
+			buffer.position(i);
+			buffer.get(data, 0, half);
+			
+			FloatBuffer next = buffers[b+1];
+			next.position(0);
+			next.get(data, half, sampleSize-half);
+		} else {
+			buffer.position(i);
 			buffer.get(data);
-		} catch(Exception e){
-			e.printStackTrace();
-			System.exit(-1);
-		} finally {
-			lock.readLock().unlock();
 		}
+		
 		return data;
 	}
 
 	@Override
 	protected void writeData(int index, float[] data) {
-		FloatBuffer buffer = buffers[index / samplesPerBuffer];
-		int i = index % samplesPerBuffer;
-		try {
-			lock.writeLock().lock();
-			int position = i*data.length;
-			buffer.position(position);
+		int b = index / FLOATS_PER_BUFFER;
+		FloatBuffer buffer = buffers[b];
+		int i = index % FLOATS_PER_BUFFER;
+
+		if(FLOATS_PER_BUFFER-i < data.length){
+			// split in two
+			int half = FLOATS_PER_BUFFER-i;
+			buffer.position(i);
+			buffer.put(data, 0, half);
+			
+			FloatBuffer next = buffers[b+1];
+			next.position(0);
+			next.put(data, half, data.length-half);
+		} else {
+			buffer.position(i);
 			buffer.put(data);
-		} catch(Exception e){
-			e.printStackTrace();
-			System.exit(-1);
-		} finally {
-			lock.writeLock().unlock();
 		}
+		
 	}
 	
 	private FloatBuffer openFileAsFloatBuffer(String fileName, long size) throws Exception {

@@ -47,7 +47,7 @@ import be.iminds.iot.dianne.tensor.TensorOps;
  */
 @Component(immediate=true, service={SequenceDataset.class, Dataset.class},
 	property={"name=CharSequence","aiolos.unique=true","aiolos.combine=*"})
-public class CharSequenceDataset implements SequenceDataset{
+public class CharSequenceDataset implements SequenceDataset<Sample, Batch> {
 
 	private String file = "input.txt";
 	

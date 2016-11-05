@@ -22,14 +22,12 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.rl.dataset;
 
-import java.util.Collection;
+import java.util.List;
 
-import be.iminds.iot.dianne.api.dataset.Batch;
-import be.iminds.iot.dianne.api.dataset.Dataset;
-import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.api.dataset.SequenceDataset;
 
 /**
- * An ExperiencePool is a special kind of Dataset with some extra functionality 
+ * An ExperiencePool is a special kind of SequenceDataset with some extra functionality 
  * specifically for Reinforcement Learning.
  * 
  * Besides the input (= state) and the output (= action) sample, the experience
@@ -39,14 +37,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
  * @author tverbele
  *
  */
-public interface ExperiencePool extends Dataset {
-
-	/**
-	 * Returns the number of samples in the experience pool
-	 * 
-	 * @return the number of samples in the experience pool
-	 */
-	int size();
+public interface ExperiencePool extends SequenceDataset<ExperiencePoolSample, ExperiencePoolBatch> {
 
 	/**
 	 * Returns the dimensions of the state
@@ -78,45 +69,21 @@ public interface ExperiencePool extends Dataset {
 	
 	ExperiencePoolSample getSample(ExperiencePoolSample s, final int index);
 
-	default Batch getBatch(Batch b, final int...indices){
+	default ExperiencePoolBatch getBatch(ExperiencePoolBatch b, final int...indices){
 		throw new UnsupportedOperationException("Batches not (yet) supported for Experience Pools");
 	}
 	
-	/**
-	 * A human-readable name for this experience pool.
-	 * 
-	 * @return dataset name
-	 */
-	String getName();
 	
-	/**
-	 * Get human-readable names for the actions represented in an output vector
-	 * 
-	 * @return human-readable action labels
-	 */
-	String[] getLabels();
-	
+	default List<ExperiencePoolBatch> getBatchedSequence(List<ExperiencePoolBatch> b, final int[] sequences, final int[] indices, final int length){
+		throw new UnsupportedOperationException("Batches not (yet) supported for Experience Pools");
+	}
 
-	
 	/**
-	 * Add a new sample to the experience pool
+	 * Add a new sequence of interactions to the experience pool
 	 * 
-	 * @param state the initial state of the environment
-	 * @param action the action done in state
-	 * @param reward the reward after doing the action in state
-	 * @param nextState the next state of the environment after executing the action
+	 * @param sequence the sequence of samples to add
 	 */
-	void addSample(Tensor state, Tensor action, float reward, Tensor nextState);
-
-	void addSample(ExperiencePoolSample sample);
-
-	
-	/**
-	 * Add a collection of samples to the experience pool
-	 * 
-	 * @param samples
-	 */
-	void addSamples(Collection<ExperiencePoolSample> samples);
+	void addSequence(List<ExperiencePoolSample> sequence);
 	
 	/**
 	 * Remove all samples from the experience pool

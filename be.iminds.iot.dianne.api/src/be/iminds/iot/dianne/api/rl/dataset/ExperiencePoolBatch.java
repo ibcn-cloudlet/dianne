@@ -22,50 +22,14 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.rl.dataset;
 
-import be.iminds.iot.dianne.api.dataset.Sample;
-import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.api.dataset.Batch;
 
 /**
- * A helper class for representing one sample of an experience pool
+ * A helper class for representing a batch of experience pool samples
  * 
  * @author tverbele
  *
  */
-public class ExperiencePoolSample extends Sample {
-
-	public float reward;
-	public Tensor nextState;
-	// terminal states can be marked by the Environment nextState == null or a nextState = -Float.MAX_VALUE
-	// use additional boolean to flag this, which allows the ExperiencePoolSample to be reused
-	// even if nextState is set to null by the env
-	public boolean isTerminal;
-	
-	public ExperiencePoolSample(){}
-	
-	public ExperiencePoolSample(Tensor state, Tensor action, float reward, Tensor nextState){
-		super(state, action);
-		this.reward = reward;
-		this.nextState = nextState;
-		this.isTerminal = nextState == null || Float.isNaN(nextState.get()[0]);
-	}
-	
-	public Tensor getState(){
-		return input;
-	}
-	
-	public Tensor getAction(){
-		return target;
-	}
-	
-	public float getReward(){
-		return reward;
-	}
-	
-	public Tensor getNextState(){
-		return nextState;
-	}
-	
-	public boolean isTerminal(){
-		return isTerminal;
-	}
+public class ExperiencePoolBatch extends Batch {
+	// TODO
 }

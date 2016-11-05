@@ -22,6 +22,9 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rl.experience;
 
+import java.util.Arrays;
+import java.util.Map;
+
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 
@@ -35,25 +38,27 @@ import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
 		configurationPid="be.iminds.iot.dianne.dataset.ExperiencePool")
 public class MemoryExperiencePool extends AbstractExperiencePool {
 
-	private float[][] samples;
+	private float[] samples;
 
 	@Override
-	protected void setup() {
+	protected void setup(Map<String, Object> config) {
 		try {
-			samples = new float[maxSize][sampleSize];
+			samples = new float[(int)(maxSize/4)];
 		} catch(OutOfMemoryError e){
-			System.err.println("Failed to setup Experience Pool "+name+" in memory: failed to allocate "+maxSize*sampleSize*4/1000000+" MB");
+			System.err.println("Failed to setup Experience Pool "+name+" in memory: failed to allocate "+maxSize/1000000+" MB");
 			throw new RuntimeException("Failed to instantiate experience pool, not enough memory");
 		}
 	}
 
 	@Override
 	protected float[] loadData(int index) {
-		return samples[index];
+		float[] buffer = new float[sampleSize];
+		System.arraycopy(samples, index, buffer, 0, sampleSize);
+		return buffer;
 	}
 
 	@Override
 	protected void writeData(int index, float[] data) {
-		System.arraycopy(data, 0, samples[index], 0, data.length);
+		System.arraycopy(data, 0, samples, index, data.length);
 	}
 }
