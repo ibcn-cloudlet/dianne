@@ -93,10 +93,12 @@ public class AgentImpl implements Agent {
 	
 	// separate thread for updating the experience pool
 	private Thread experienceUploadThread;
-	private List<ExperiencePoolSample> buffer;
-	private List<ExperiencePoolSample> upload;
+	private List<ExperiencePoolSample> storeBuffer;
+	private List<ExperiencePoolSample> uploadBuffer;
+	private List<ExperiencePoolSample> upload; 
 	private volatile boolean bufferReady = false;
 	private volatile boolean uploading = false;
+	private int count = 0;
 	
 	// repository listener to sync with repo
 	private BundleContext context;
@@ -222,12 +224,8 @@ public class AgentImpl implements Agent {
 				pool = (ExperiencePool) d;
 			}
 	
-			buffer = new ArrayList<>(this.config.experienceInterval);
-			upload = new ArrayList<>(this.config.experienceInterval);
-			for(int i=0;i<this.config.experienceInterval;i++){
-				buffer.add(new ExperiencePoolSample());
-				upload.add(new ExperiencePoolSample());
-			}
+			storeBuffer = new ArrayList<>();
+			uploadBuffer = new ArrayList<>();
 			
 			actingThread = new Thread(new AgentRunnable());
 			experienceUploadThread = new Thread(new UploadRunnable());
@@ -320,34 +318,46 @@ public class AgentImpl implements Agent {
 					
 					// upload in batch
 					if(pool != null) {
-						ExperiencePoolSample b = buffer.get((int)(i % config.experienceInterval));
+						ExperiencePoolSample b;
+						if(storeBuffer.size() <= count){
+							b = new ExperiencePoolSample();
+							storeBuffer.add(b);
+						} else {
+							b = storeBuffer.get(count);
+						}
 						b.input = s.input.copyInto(b.input);
 						b.target = s.target.copyInto(b.target);
 						b.reward = s.reward;
 						b.isTerminal = s.isTerminal;
 						b.nextState = s.isTerminal ? null : s.nextState.copyInto(b.nextState);
+						count++;
 						
-						if((i+1) % config.experienceInterval == 0){
-							// buffer full, switch to upload
+						if(b.isTerminal || count % config.experienceInterval == 0){
+							System.out.println("PREPARE UPLOAD!");
+							// sequence finished, switch to upload
 							// check if upload finished
 							// if still uploading ... wait now
-							synchronized(upload){
+							synchronized(uploadBuffer){
 								while(uploading){
 									try {
-										upload.wait();
+										uploadBuffer.wait();
 									} catch (InterruptedException e) {
 									}
 								}
 							}
+
+							List<ExperiencePoolSample> temp = uploadBuffer;
+							uploadBuffer = storeBuffer;
+							storeBuffer = temp;
+							upload = uploadBuffer.subList(0, count);
 							
-							List<ExperiencePoolSample> temp = upload;
-							upload = buffer;
-							buffer = temp;
+							
+							count = 0;
 							
 							// Need to notify on previous buffer = current upload
-							synchronized(upload){
+							synchronized(uploadBuffer){
 								bufferReady = true;
-								upload.notifyAll();
+								uploadBuffer.notifyAll();
 							}
 						}
 					}
@@ -400,10 +410,10 @@ public class AgentImpl implements Agent {
 			
 			while(acting){
 				// wait till new buffer is ready
-				synchronized(buffer){
+				synchronized(storeBuffer){
 					while(!bufferReady){
 						try {
-							buffer.wait();
+							storeBuffer.wait();
 						} catch (InterruptedException e) {
 							if(!acting)
 								return;
@@ -416,13 +426,14 @@ public class AgentImpl implements Agent {
 				bufferReady = false;
 				uploading = true;
 				
+				System.out.println("UPLOADING "+upload.size()+" SAMPLES!");
 				if(pool!=null){
-					pool.addSamples(upload);
+					pool.addSequence(upload);
 				}
 				
-				synchronized(upload){
+				synchronized(uploadBuffer){
 					uploading = false;
-					upload.notifyAll();
+					uploadBuffer.notifyAll();
 				}
 				
 			}
