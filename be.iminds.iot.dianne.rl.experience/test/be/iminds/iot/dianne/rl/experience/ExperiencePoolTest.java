@@ -245,4 +245,19 @@ public class ExperiencePoolTest {
 		Assert.assertEquals(3, pool.sequences());
 		
 	}
+	
+	@Test
+	public void testSequenceTooLarge(){
+		Assert.assertEquals(0, pool.size());
+		Assert.assertEquals(0, pool.sequences());
+		
+		List<ExperiencePoolSample> sequence = new ArrayList<>();
+		for(int i=0;i<20;i++)
+			sequence.add(new ExperiencePoolSample(s0, a0, 0, s0));
+		
+		pool.addSequence(sequence);
+		
+		Assert.assertEquals(0, pool.size());
+		Assert.assertEquals(0, pool.sequences());
+	}
 }

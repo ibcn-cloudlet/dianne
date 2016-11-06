@@ -184,10 +184,6 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		return start + (stateSize+actionSize+1)*positionInSequence;
 	}
 
-	private int getBufferLength(int sequenceLength){
-		return sequenceLength*(stateSize+actionSize+1)+stateSize;
-	}
-	
 	private int getBufferStart(){
 		if(sequenceStarts.isEmpty())
 			return 0;
@@ -197,7 +193,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	private int getBufferEnd(){
 		if(sequenceStarts.isEmpty())
 			return 0;
-		return sequenceStarts.getLast()+getBufferLength(sequenceLengths.getLast());
+		return sequenceStarts.getLast()+sequenceLengths.getLast()*(stateSize+actionSize+1)+stateSize;
 	}
 	
 	@Override
@@ -211,8 +207,23 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	}
 
 	@Override
+	public int size() {
+		try {
+			lock.readLock().lock();
+			return noSamples;
+		} finally {
+			lock.readLock().unlock();
+		}
+	}
+	
+	@Override
 	public int sequences(){
-		return sequenceStarts.size();
+		try {
+			lock.readLock().lock();
+			return sequenceStarts.size();
+		} finally {
+			lock.readLock().unlock();
+		}
 	}
 	
 	@Override
@@ -289,18 +300,30 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		ExperiencePoolSample last = sequence.get(size-1);
 		System.arraycopy(last.isTerminal ? emptyState : last.nextState.get(), 0, buffer, offset*(i-1)+stateSize+actionSize+1, stateSize);
 
+		int pos = 0, l = 0;
 		try {
 			lock.writeLock().lock();
 
 			// write the buffer - check whether we have to cycle
-			int pos = getBufferEnd();
-			int l = getBufferLength(size);
+			pos = getBufferEnd();
+			
+			l = buffer.length;
+			if(l >= maxSize/4){
+				// this cannot be stored in this pool
+				System.out.println("Warning, a sequence of length "+size+" cannot be stored in this pool");
+				return;
+			}
+			
 			if(pos + l >= maxSize/4){
 				// cycle
 				pos = 0;
-				int removed = sequenceLengths.removeFirst();
-				noSamples-=removed;
-				sequenceStarts.removeFirst();
+				
+				int first = -1;
+				while(first != 0){
+					int removed = sequenceLengths.removeFirst();
+					noSamples-=removed;
+					first = sequenceStarts.removeFirst();
+				}
 			}
 			
 			while(getBufferStart() > 0 && pos + l > getBufferStart()){
@@ -310,11 +333,14 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 			}
 			
 			writeData(pos, buffer);
+
 			sequenceStarts.addLast(pos);
 			sequenceLengths.addLast(size);
-			
 			noSamples+= size;
 			
+		} catch(Throwable t){ 
+			System.out.println("SHIT "+pos+" "+l+" "+maxSize/4+" "+getBufferStart()+" "+sequenceStarts.size());
+			t.printStackTrace();
 		} finally {
 			lock.writeLock().unlock();
 		}
