@@ -333,7 +333,6 @@ public class AgentImpl implements Agent {
 						count++;
 						
 						if(b.isTerminal || count % config.experienceInterval == 0){
-							System.out.println("PREPARE UPLOAD!");
 							// sequence finished, switch to upload
 							// check if upload finished
 							// if still uploading ... wait now
@@ -426,7 +425,6 @@ public class AgentImpl implements Agent {
 				bufferReady = false;
 				uploading = true;
 				
-				System.out.println("UPLOADING "+upload.size()+" SAMPLES!");
 				if(pool!=null){
 					pool.addSequence(upload);
 				}

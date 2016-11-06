@@ -22,8 +22,6 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.rl.dataset;
 
-import java.util.Arrays;
-
 import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.tensor.Tensor;
 
