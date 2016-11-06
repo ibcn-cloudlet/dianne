@@ -28,6 +28,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import be.iminds.iot.dianne.api.dataset.AbstractDataset;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
@@ -49,6 +50,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	protected LinkedList<Integer> sequenceStarts = new LinkedList<>(); // start position in buffer
 	protected LinkedList<Integer> sequenceLengths = new LinkedList<>(); // number of xp pool samples in sequence
 
+	protected ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
 	
 	@Override
 	public void activate(Map<String, Object> config) {
@@ -108,8 +110,15 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	
 	@Override
 	public ExperiencePoolSample getSample(ExperiencePoolSample s, int index){
-		int pos = getBufferPosition(index);
-		return getSample(s, pos, true);
+		try {
+			lock.readLock().lock();
+			
+			int pos = getBufferPosition(index);
+			s = getSample(s, pos, true);
+		} finally {
+			lock.readLock().unlock();
+		}
+		return s;
 	}
 	
 	private ExperiencePoolSample getSample(ExperiencePoolSample s, int position, boolean loadState){
@@ -215,42 +224,49 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		if(sequence > sequenceLengths.size()){
 			throw new RuntimeException("Invalid sequence number");
 		}
+		
+		try {
+			lock.readLock().lock();
+			
+			int start = sequenceStarts.get(sequence);
+			int l = sequenceLengths.get(sequence);
+			int offset = stateSize+actionSize+1;
 
-		int start = sequenceStarts.get(sequence);
-		int l = sequenceLengths.get(sequence);
-		int offset = stateSize+actionSize+1;
-
-		
-		if(index >= l){
-			throw new RuntimeException("Invalid start index: "+index);
-		}
-		
-		if(length == -1){
-			length = l;
-		}
-		
-		ExperiencePoolSample previous = null;
-		for(int i=0;i<length;i++){
-			ExperiencePoolSample sample = null;
-			if(s.size() <= i){
-				sample = new ExperiencePoolSample(previous == null ? null : previous.nextState, null, 0, null);
-				s.add(sample);
-			} else {
-				sample = s.get(i);
-				if(previous != null){
-					sample.input = previous.nextState;
+			
+			if(index >= l){
+				throw new RuntimeException("Invalid start index: "+index);
+			}
+			
+			if(length == -1){
+				length = l;
+			}
+			
+			ExperiencePoolSample previous = null;
+			for(int i=0;i<length;i++){
+				ExperiencePoolSample sample = null;
+				if(s.size() <= i){
+					sample = new ExperiencePoolSample(previous == null ? null : previous.nextState, null, 0, null);
+					s.add(sample);
+				} else {
+					sample = s.get(i);
+					if(previous != null){
+						sample.input = previous.nextState;
+					}
 				}
+				
+				if(i==0){
+					getSample(sample, start, true);
+				} else {
+					getSample(sample, start+i*offset, false);
+				}
+				
+				previous = sample;
 			}
 			
-			if(i==0){
-				getSample(sample, start, true);
-			} else {
-				getSample(sample, start+i*offset, false);
-			}
-			
-			previous = sample;
+		} finally {
+			lock.readLock().unlock();
 		}
-			
+
 		return s;
 	}
 	
@@ -273,33 +289,48 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		ExperiencePoolSample last = sequence.get(size-1);
 		System.arraycopy(last.isTerminal ? emptyState : last.nextState.get(), 0, buffer, offset*(i-1)+stateSize+actionSize+1, stateSize);
 
-		// write the buffer - check whether we have to cycle
-		int pos = getBufferEnd();
-		int l = getBufferLength(size);
-		if(pos + l >= maxSize/4){
-			// cycle
-			pos = 0;
-			int removed = sequenceLengths.removeFirst();
-			noSamples-=removed;
-			sequenceStarts.removeFirst();
+		try {
+			lock.writeLock().lock();
+
+			// write the buffer - check whether we have to cycle
+			int pos = getBufferEnd();
+			int l = getBufferLength(size);
+			if(pos + l >= maxSize/4){
+				// cycle
+				pos = 0;
+				int removed = sequenceLengths.removeFirst();
+				noSamples-=removed;
+				sequenceStarts.removeFirst();
+			}
+			
+			while(getBufferStart() > 0 && pos + l > getBufferStart()){
+				int removed = sequenceLengths.removeFirst();
+				noSamples-=removed;
+				sequenceStarts.removeFirst();
+			}
+			
+			writeData(pos, buffer);
+			sequenceStarts.addLast(pos);
+			sequenceLengths.addLast(size);
+			
+			noSamples+= size;
+			
+		} finally {
+			lock.writeLock().unlock();
 		}
-		
-		while(getBufferStart() > 0 && pos + l > getBufferStart()){
-			int removed = sequenceLengths.removeFirst();
-			noSamples-=removed;
-			sequenceStarts.removeFirst();
-		}
-		
-		writeData(pos, buffer);
-		sequenceStarts.addLast(pos);
-		sequenceLengths.addLast(size);
-		
-		noSamples+= size;
 	}
 	
 	@Override
 	public void reset() {
-		noSamples = 0;
+		try {
+			noSamples = 0;
+			sequenceLengths.clear();
+			sequenceStarts.clear();
+			lock.writeLock().lock();
+		} finally {
+			lock.writeLock().unlock();
+		}
+		
 	}
 	
 	protected abstract void setup(Map<String, Object> config);
