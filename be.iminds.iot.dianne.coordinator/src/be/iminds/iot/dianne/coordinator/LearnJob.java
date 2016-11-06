@@ -74,7 +74,8 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 			NeuralNetworkDTO[] nns){
 		super(coord, Type.LEARN, dataset, config, nns);
 		
-		if(config.containsKey("environment")){
+		if(config.containsKey("environment")
+				|| coord.datasets.isExperiencePool(dataset)){
 			category = LearnCategory.RL;
 		} else if(coord.isRecurrent(nns[0])){
 			category = LearnCategory.RNN;

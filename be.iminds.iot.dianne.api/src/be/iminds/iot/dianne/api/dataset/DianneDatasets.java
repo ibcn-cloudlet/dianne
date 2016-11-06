@@ -67,4 +67,11 @@ public interface DianneDatasets {
 	 * @return whether the dataset has labels or not
 	 */
 	boolean isClassificationDataset(String dataset);
+	
+	/**
+	 * Checks whether a dataset is an experience pool
+	 * @param dataset
+	 * @return whether the dataset is an experience pool or not
+	 */
+	boolean isExperiencePool(String dataset);
 }

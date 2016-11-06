@@ -425,6 +425,21 @@ public class DatasetConfigurator implements DianneDatasets {
 		return d.getLabels() != null;
 	}
 	
+	@Override
+	public boolean isExperiencePool(String dataset){
+		Dataset d = datasets.get(dataset);
+		if(d == null)
+			return false;
+		
+		// way to check whether it is an XP pool without having to import the interace
+		try {
+			d.getClass().getMethod("stateDims");
+			return true;
+		} catch(NoSuchMethodException e){
+		}
+		return false;
+	}
+
 	
 	private void searchDirectory(File dir, boolean recurse){
 		if(!dir.isDirectory())
