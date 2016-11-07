@@ -32,6 +32,7 @@ import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.learn.LearningStrategy;
 import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
+import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
 import be.iminds.iot.dianne.api.rl.learn.QLearnProgress;
 import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory;
@@ -59,7 +60,7 @@ public class DeepQLearningStrategy implements LearningStrategy {
 	
 	protected ExperiencePool pool;
 	protected SamplingStrategy sampling;
-	protected ExperiencePoolSample interaction;
+	protected ExperiencePoolBatch batch;
 	
 	protected NeuralNetwork valueNetwork;
 	protected NeuralNetwork targetNetwork;
@@ -67,7 +68,6 @@ public class DeepQLearningStrategy implements LearningStrategy {
 	protected Criterion criterion;
 	protected GradientProcessor gradientProcessor;
 	
-	protected Tensor stateBatch;
 	protected Tensor actionBatch;
 	protected Tensor targetValueBatch;
 	
@@ -90,7 +90,6 @@ public class DeepQLearningStrategy implements LearningStrategy {
 		this.gradientProcessor = ProcessorFactory.createGradientProcessor(this.config.method, valueNetwork, config);
 		
 		// Pre-allocate tensors for batch operations
-		this.stateBatch = new Tensor(this.config.batchSize, this.pool.stateDims());
 		this.actionBatch = new Tensor(this.config.batchSize, this.pool.actionDims()[0]);
 		this.targetValueBatch = new Tensor(this.config.batchSize, this.pool.actionDims()[0]);
 		
@@ -118,26 +117,20 @@ public class DeepQLearningStrategy implements LearningStrategy {
 		targetValueBatch.fill(0);
 		
 		// Fill in the batch
+		batch = pool.getBatch(batch, sampling.next(config.batchSize));
+		
 		for(int b = 0; b < config.batchSize; b++) {
-			// Get a sample interaction
-			int index = sampling.next();
-			interaction = pool.getSample(interaction, index);
-			
 			// Get the data from the sample
 			// Note: actions are one-hot encoded
-			Tensor state = interaction.getState();
-			int action = TensorOps.argmax(interaction.getAction());
-			Tensor nextState = interaction.getNextState();
-			float reward = interaction.getScalarReward();
-			
-			// Copy state into batch
-			state.copyInto(stateBatch.select(0, b));
+			int action = TensorOps.argmax(batch.getAction(b));
+			Tensor nextState = batch.getNextState(b);
+			float reward = batch.getScalarReward(b);
 			
 			// Flag proper action
 			actionBatch.set(0, b, action);
 			
 			// Calculate the target value
-			if(!interaction.isTerminal) {
+			if(!batch.isTerminal(b)) {
 				// If the next state is not terminal, get the next value using the target network
 				Tensor nextValue = targetNetwork.forward(nextState);
 				
@@ -153,7 +146,7 @@ public class DeepQLearningStrategy implements LearningStrategy {
 		}
 		
 		// Forward pass of the value network to get the current value estimate
-		Tensor valueBatch = valueNetwork.forward(stateBatch);
+		Tensor valueBatch = valueNetwork.forward(batch.getState());
 		
 		// Fill in the missing target values
 		TensorOps.addcmul(targetValueBatch, targetValueBatch, 1, actionBatch, valueBatch);

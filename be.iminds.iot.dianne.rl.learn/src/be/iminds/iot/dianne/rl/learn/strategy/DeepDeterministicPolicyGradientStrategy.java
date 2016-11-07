@@ -35,7 +35,7 @@ import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
-import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
+import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch;
 import be.iminds.iot.dianne.api.rl.learn.QLearnProgress;
 import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory;
 import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory;
@@ -51,7 +51,7 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 	
 	protected ExperiencePool pool;
 	protected SamplingStrategy sampling;
-	protected ExperiencePoolSample interaction;
+	protected ExperiencePoolBatch batch;
 	
 	protected NeuralNetwork actor;
 	protected NeuralNetwork targetActor;
@@ -70,8 +70,6 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 	protected UUID[] inputIds;
 	protected UUID[] outputIds;
 	
-	protected Tensor stateBatch;
-	protected Tensor actionBatch;
 	protected Tensor targetValueBatch;
 	
 	@Override
@@ -115,8 +113,6 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 		this.outputIds = new UUID[]{this.valueOut};
 		
 		// Pre-allocate tensors for batch operations
-		this.stateBatch = new Tensor(this.config.batchSize, this.pool.stateDims());
-		this.actionBatch = new Tensor(this.config.batchSize, this.pool.actionDims());
 		this.targetValueBatch = new Tensor(this.config.batchSize);
 		
 		// Wait for the pool to contain enough samples
@@ -139,23 +135,15 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 		critic.zeroDeltaParameters();
 		
 		// Fill in the batch
+		batch = pool.getBatch(batch, sampling.next(config.batchSize));
+		
 		for(int b = 0; b < config.batchSize; b++) {
-			// Get a sample interaction
-			int index = sampling.next();
-			interaction = pool.getSample(interaction, index);
-			
 			// Get the data from the sample
-			Tensor state = interaction.getState();
-			Tensor action = interaction.getAction();
-			Tensor nextState = interaction.getNextState();
-			float reward = interaction.getScalarReward();
-			
-			// Copy state & action into there respective batches
-			state.copyInto(stateBatch.select(0, b));
-			action.copyInto(actionBatch.select(0, b));
+			Tensor nextState = batch.getNextState(b);
+			float reward = batch.getScalarReward(b);
 			
 			// Calculate the target value
-			if(!interaction.isTerminal) {
+			if(!batch.isTerminal(b)) {
 				// If the next state is not terminal, get the next value using the target actor and critic
 				Tensor nextAction = targetActor.forward(nextState);
 				Tensor nextValue = targetCritic.forward(inputIds, outputIds, new Tensor[]{nextState, nextAction}).getValue().tensor;
@@ -169,7 +157,7 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 		}
 		
 		// Forward pass of the critic to get the current value estimate
-		Tensor valueBatch = critic.forward(inputIds, outputIds, new Tensor[]{stateBatch, actionBatch}).getValue().tensor;
+		Tensor valueBatch = critic.forward(inputIds, outputIds, new Tensor[]{batch.getState(), batch.getAction()}).getValue().tensor;
 		
 		// Get the total value for logging and calculate the MSE error and gradient with respect to the target value
 		float value = TensorOps.sum(valueBatch)/config.batchSize;
@@ -181,11 +169,11 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 		critic.accGradParameters();
 		
 		// Get the actor action for the current state
-		Tensor actionBatch = actor.forward(stateBatch);
+		Tensor actionBatch = actor.forward(batch.getState());
 		
 		// Get the actor gradient by evaluating the critic and use it's gradient with respect to the action
 		// Note: By default we're doing minimization, so set critic gradient to -1
-		critic.forward(inputIds, outputIds, new Tensor[]{stateBatch, actionBatch}).getValue();
+		critic.forward(inputIds, outputIds, new Tensor[]{batch.getState(), actionBatch}).getValue();
 		criticGrad.fill(-1);
 		Tensor actorGrad = critic.backward(outputIds, inputIds, new Tensor[]{criticGrad}).getValue().tensors.get(actionIn);
 		
