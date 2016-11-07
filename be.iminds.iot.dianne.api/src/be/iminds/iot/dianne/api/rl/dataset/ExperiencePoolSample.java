@@ -99,7 +99,7 @@ public class ExperiencePoolSample extends Sample {
 		.append(" - Action: ")
 		.append(target)
 		.append(" - Reward: ")
-		.append(reward)
+		.append(getScalarReward())
 		.append(" - Next state: ")
 		.append(nextState)
 		.append(" - Terminal: ").append(isTerminal());
