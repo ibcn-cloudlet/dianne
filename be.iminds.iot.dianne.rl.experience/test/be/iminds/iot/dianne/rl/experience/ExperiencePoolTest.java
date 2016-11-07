@@ -94,14 +94,14 @@ public class ExperiencePoolTest {
 		ExperiencePoolSample s = pool.getSample(1);
 		Assert.assertEquals(s1, s.getState());
 		Assert.assertEquals(a1, s.getAction());
-		Assert.assertEquals(0.0f, s.getReward());
+		Assert.assertEquals(0.0f, s.getScalarReward());
 		Assert.assertEquals(s2, s.getNextState());
 		Assert.assertEquals(false, s.isTerminal());
 		
 		ExperiencePoolSample end = pool.getSample(3);
 		Assert.assertEquals(s3, end.getState());
 		Assert.assertEquals(a3, end.getAction());
-		Assert.assertEquals(1.0f, end.getReward());
+		Assert.assertEquals(1.0f, end.getScalarReward());
 		Tensor nan = end.getNextState();
 		for(float n : nan.get()){
 			Assert.assertTrue(Float.isNaN(n));
@@ -125,21 +125,21 @@ public class ExperiencePoolTest {
 		s = pool.getSample(1);
 		Assert.assertEquals(s1, s.getState());
 		Assert.assertEquals(a1, s.getAction());
-		Assert.assertEquals(0.0f, s.getReward());
+		Assert.assertEquals(0.0f, s.getScalarReward());
 		Assert.assertEquals(s2, s.getNextState());
 		Assert.assertEquals(false, s.isTerminal());
 		
 		s = pool.getSample(4);
 		Assert.assertEquals(s0, s.getState());
 		Assert.assertEquals(a0, s.getAction());
-		Assert.assertEquals(0.0f, s.getReward());
+		Assert.assertEquals(0.0f, s.getScalarReward());
 		Assert.assertEquals(s1, s.getNextState());
 		Assert.assertEquals(false, s.isTerminal());
 		
 		end = pool.getSample(9);
 		Assert.assertEquals(s5, end.getState());
 		Assert.assertEquals(a5, end.getAction());
-		Assert.assertEquals(0.0f, end.getReward());
+		Assert.assertEquals(0.0f, end.getScalarReward());
 		nan = end.getNextState();
 		for(float n : nan.get()){
 			Assert.assertTrue(Float.isNaN(n));
@@ -154,7 +154,7 @@ public class ExperiencePoolTest {
 			ExperiencePoolSample expected = sequence2.get(i++);
 			Assert.assertEquals(expected.getState(), r.getState());
 			Assert.assertEquals(expected.getAction(), r.getAction());
-			Assert.assertEquals(expected.getReward(), r.getReward());
+			Assert.assertEquals(expected.getScalarReward(), r.getScalarReward());
 			Assert.assertEquals(expected.isTerminal(), r.isTerminal());
 			if(expected.isTerminal()){
 				nan = r.getNextState();
@@ -212,7 +212,7 @@ public class ExperiencePoolTest {
 		ExperiencePoolSample s = pool.getSample(0);
 		Assert.assertEquals(s1, s.getState());
 		Assert.assertEquals(a0, s.getAction());
-		Assert.assertEquals(0.0f, s.getReward());
+		Assert.assertEquals(0.0f, s.getScalarReward());
 		Assert.assertEquals(s1, s.getNextState());
 		Assert.assertEquals(false, s.isTerminal());
 		
@@ -220,7 +220,7 @@ public class ExperiencePoolTest {
 		s = pool.getSample(6);
 		Assert.assertEquals(s0, s.getState());
 		Assert.assertEquals(a0, s.getAction());
-		Assert.assertEquals(1.0f, s.getReward());
+		Assert.assertEquals(1.0f, s.getScalarReward());
 		Assert.assertEquals(s1, s.getNextState());
 		Assert.assertEquals(false, s.isTerminal());
 		

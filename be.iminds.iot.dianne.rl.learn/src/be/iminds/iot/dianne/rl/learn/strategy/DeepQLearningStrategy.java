@@ -128,7 +128,7 @@ public class DeepQLearningStrategy implements LearningStrategy {
 			Tensor state = interaction.getState();
 			int action = TensorOps.argmax(interaction.getAction());
 			Tensor nextState = interaction.getNextState();
-			float reward = interaction.getReward();
+			float reward = interaction.getScalarReward();
 			
 			// Copy state into batch
 			state.copyInto(stateBatch.select(0, b));

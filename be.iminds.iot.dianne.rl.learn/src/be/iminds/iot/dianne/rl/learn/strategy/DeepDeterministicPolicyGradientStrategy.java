@@ -148,7 +148,7 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 			Tensor state = interaction.getState();
 			Tensor action = interaction.getAction();
 			Tensor nextState = interaction.getNextState();
-			float reward = interaction.getReward();
+			float reward = interaction.getScalarReward();
 			
 			// Copy state & action into there respective batches
 			state.copyInto(stateBatch.select(0, b));

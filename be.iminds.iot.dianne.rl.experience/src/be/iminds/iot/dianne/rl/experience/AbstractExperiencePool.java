@@ -220,7 +220,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 			for(ExperiencePoolSample s : sequence){
 				System.arraycopy(s.input.get(), 0, buffer, 0 , stateSize);
 				System.arraycopy(s.target.get(), 0, buffer, stateSize, actionSize);
-				buffer[stateSize+actionSize] = s.reward;
+				buffer[stateSize+actionSize] = s.getScalarReward();
 				buffer[stateSize+actionSize+1] = s.isTerminal ? 1.0f : 0.0f;
 				
 				if(index == MAX_SAMPLES){
@@ -301,7 +301,10 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		}
 		
 		// reward
-		s.reward = sampleBuffer[stateSize+actionSize];
+		if(s.reward == null){
+			s.reward = new Tensor(1);
+		}
+		s.reward.set(sampleBuffer[stateSize+actionSize], 0);
 		
 		// terminal
 		s.isTerminal = sampleBuffer[stateSize+actionSize+1] == 1.0f;

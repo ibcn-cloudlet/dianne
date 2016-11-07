@@ -33,18 +33,22 @@ import be.iminds.iot.dianne.tensor.Tensor;
  */
 public class ExperiencePoolSample extends Sample {
 
-	public float reward;
+	// store reward as a 1d tensor - tensor type required to support ExperiencePoolBatch
+	public Tensor reward;
+	
 	public Tensor nextState;
-	// terminal states can be marked by the Environment nextState == null or a nextState = -Float.MAX_VALUE
-	// use additional boolean to flag this, which allows the ExperiencePoolSample to be reused
-	// even if nextState is set to null by the env
+	// in case of a terminal state, besides setting isTerminal to true,
+	// nextState tensor should be null or filled with Float.NaN
 	public boolean isTerminal;
 	
 	public ExperiencePoolSample(){}
 	
 	public ExperiencePoolSample(Tensor state, Tensor action, float reward, Tensor nextState){
 		super(state, action);
-		this.reward = reward;
+		
+		this.reward = new Tensor(1);
+		this.reward.set(reward, 0);
+		
 		this.nextState = nextState;
 		this.isTerminal = nextState == null || Float.isNaN(nextState.get()[0]);
 	}
@@ -57,7 +61,11 @@ public class ExperiencePoolSample extends Sample {
 		return target;
 	}
 	
-	public float getReward(){
+	public float getScalarReward(){
+		return reward.get(0);
+	}
+	
+	public Tensor getReward(){
 		return reward;
 	}
 	

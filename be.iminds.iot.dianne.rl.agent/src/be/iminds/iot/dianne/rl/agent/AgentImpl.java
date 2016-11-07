@@ -306,8 +306,8 @@ public class AgentImpl implements Agent {
 					progress = strategy.processIteration(i, s.input);
 					s.target = progress.action;
 	
-					s.reward= env.performAction(s.target);
-					progress.reward = s.reward;
+					progress.reward = env.performAction(s.target);
+					s.reward.set(progress.reward, 0);
 					
 					s.nextState = env.getObservation(s.nextState);
 					s.isTerminal = s.nextState == null;
