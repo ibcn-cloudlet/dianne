@@ -227,8 +227,8 @@ public class ExperiencePoolTest {
 		// now add additional instances of sequence3
 		pool.addSequence(sequence3);
 
-		Assert.assertEquals(6, pool.size());
-		Assert.assertEquals(2, pool.sequences());
+		Assert.assertEquals(12, pool.size());
+		Assert.assertEquals(3, pool.sequences());
 		
 		// and cycle some more
 		pool.addSequence(sequence2);

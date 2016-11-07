@@ -76,14 +76,14 @@ public class FileExperiencePool extends AbstractExperiencePool {
 	}
 
 	@Override
-	protected float[] loadData(int index) {
-		float[] data = new float[sampleSize];
-				
-		int b = index / FLOATS_PER_BUFFER;
+	protected void loadData(int position, float[] data) {
+		int size = data.length;
+		
+		int b = position / FLOATS_PER_BUFFER;
 		FloatBuffer buffer = buffers[b];
-		int i = index % FLOATS_PER_BUFFER;
+		int i = position % FLOATS_PER_BUFFER;
 
-		if(FLOATS_PER_BUFFER-i < sampleSize){
+		if(FLOATS_PER_BUFFER-i < size){
 			// split in two
 			int half = FLOATS_PER_BUFFER-i;
 			buffer.position(i);
@@ -91,20 +91,18 @@ public class FileExperiencePool extends AbstractExperiencePool {
 			
 			FloatBuffer next = buffers[b+1];
 			next.position(0);
-			next.get(data, half, sampleSize-half);
+			next.get(data, half, size-half);
 		} else {
 			buffer.position(i);
 			buffer.get(data);
 		}
-		
-		return data;
 	}
 
 	@Override
-	protected void writeData(int index, float[] data) {
-		int b = index / FLOATS_PER_BUFFER;
+	protected void writeData(int position, float[] data) {
+		int b = position / FLOATS_PER_BUFFER;
 		FloatBuffer buffer = buffers[b];
-		int i = index % FLOATS_PER_BUFFER;
+		int i = position % FLOATS_PER_BUFFER;
 
 		if(FLOATS_PER_BUFFER-i < data.length){
 			// split in two
@@ -119,7 +117,6 @@ public class FileExperiencePool extends AbstractExperiencePool {
 			buffer.position(i);
 			buffer.put(data);
 		}
-		
 	}
 	
 	private FloatBuffer openFileAsFloatBuffer(String fileName, long size) throws Exception {

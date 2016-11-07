@@ -23,9 +23,6 @@
 package be.iminds.iot.dianne.rl.experience;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -38,6 +35,8 @@ import be.iminds.iot.dianne.tensor.Tensor;
 public abstract class AbstractExperiencePool extends AbstractDataset implements ExperiencePool {
 
 	protected long maxSize = 100000000; // max size of the experience pool (in bytes)
+	protected int MAX_SAMPLES; // number of samples that fit in this pool (based on maxSize and sampleSize)
+	
 	
 	protected int[] stateDims;
 	protected int stateSize;
@@ -45,11 +44,9 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	protected int actionSize;
 	protected int sampleSize;
 	
-	protected float[] emptyState;
+	protected List<Integer> sequenceStarts = new ArrayList<>(); // start index of sequence
+	protected List<Integer> sequenceLengths = new ArrayList<>(); // number of xp pool samples in sequence
 	
-	protected LinkedList<Integer> sequenceStarts = new LinkedList<>(); // start position in buffer
-	protected LinkedList<Integer> sequenceLengths = new LinkedList<>(); // number of xp pool samples in sequence
-
 	protected ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
 	
 	@Override
@@ -62,10 +59,9 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		actionDims = targetDims;
 		actionSize = targetSize;
 	
-		sampleSize = 2*stateSize+actionSize+1;
+		sampleSize = stateSize+actionSize+2;
 
-		emptyState = new float[stateSize];
-		Arrays.fill(emptyState, Float.NaN);
+		MAX_SAMPLES = (int)(this.maxSize/4)/sampleSize;
 		
 		setup(config);
 	}
@@ -92,110 +88,6 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		}
 	}
 
-	@Override
-	protected void readLabels(String labelsFile) {}
-	
-	// obsolete for ExperiencePool?
-	@Override
-	protected Tensor getInputSample(Tensor t, int index) {
-		ExperiencePoolSample s = getSample(null, index);
-		return s.input.copyInto(t);
-	}
-
-	@Override
-	protected Tensor getTargetSample(Tensor t, int index) {
-		ExperiencePoolSample s = getSample(null, index);
-		return s.target.copyInto(t);
-	}
-	
-	@Override
-	public ExperiencePoolSample getSample(ExperiencePoolSample s, int index){
-		try {
-			lock.readLock().lock();
-			
-			int pos = getBufferPosition(index);
-			s = getSample(s, pos, true);
-		} finally {
-			lock.readLock().unlock();
-		}
-		return s;
-	}
-	
-	private ExperiencePoolSample getSample(ExperiencePoolSample s, int position, boolean loadState){
-		float[] sampleBuffer = loadData(position);
-		float[] actionBuffer = new float[actionSize];
-		float[] nextStateBuffer = new float[stateSize];
-
-		System.arraycopy(sampleBuffer, stateSize, actionBuffer, 0, actionSize);
-		float rewardBuffer = sampleBuffer[stateSize+actionSize];
-		System.arraycopy(sampleBuffer, stateSize+actionSize+1, nextStateBuffer, 0, stateSize);
-		
-		if(s == null){
-			s = new ExperiencePoolSample();	
-		}
-		
-		// in case of sequences on might just reuse nextState tensor of previous instead of loading state again
-		if(loadState){
-			float[] stateBuffer = new float[stateSize];
-			System.arraycopy(sampleBuffer, 0, stateBuffer, 0, stateSize);
-
-			if(s.input == null){
-				s.input = new Tensor(stateBuffer, stateDims);
-			} else {
-				s.input.set(stateBuffer);
-			}
-		}
-		
-		if(s.target == null){
-			s.target = new Tensor(actionBuffer, actionDims);
-		} else {
-			s.target.set(actionBuffer);
-		}
-		
-		s.reward = rewardBuffer;
-		
-		if(s.nextState == null){
-			s.nextState = new Tensor(nextStateBuffer, stateDims);
-		} else {
-			s.nextState.set(nextStateBuffer);
-		}
-		
-		s.isTerminal = Float.isNaN(nextStateBuffer[0]);
-		
-		return s;
-	}
-	
-	private int getBufferPosition(int index){
-		int k = 0;
-		Iterator<Integer> lengths = sequenceLengths.iterator();
-		Iterator<Integer> starts = sequenceStarts.iterator();
-
-		int length = lengths.next();
-		int start = starts.next();
-		
-		while(k + length <= index){
-			k += length;
-			
-			length = lengths.next();
-			start = starts.next();
-		}
-		int positionInSequence = index - k;
-		
-		return start + (stateSize+actionSize+1)*positionInSequence;
-	}
-
-	private int getBufferStart(){
-		if(sequenceStarts.isEmpty())
-			return 0;
-		return sequenceStarts.getFirst();
-	}
-	
-	private int getBufferEnd(){
-		if(sequenceStarts.isEmpty())
-			return 0;
-		return sequenceStarts.getLast()+sequenceLengths.getLast()*(stateSize+actionSize+1)+stateSize;
-	}
-	
 	@Override
 	public String getName() {
 		return name;
@@ -227,6 +119,32 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	}
 	
 	@Override
+	protected void readLabels(String labelsFile) {}
+	
+	@Override
+	protected Tensor getInputSample(Tensor t, int index) {
+		ExperiencePoolSample s = getSample(null, index);
+		return s.input.copyInto(t);
+	}
+
+	@Override
+	protected Tensor getTargetSample(Tensor t, int index) {
+		ExperiencePoolSample s = getSample(null, index);
+		return s.target.copyInto(t);
+	}
+	
+	@Override
+	public ExperiencePoolSample getSample(ExperiencePoolSample s, int index){
+		try {
+			lock.readLock().lock();
+			s = getSample(s, index, true);
+		} finally {
+			lock.readLock().unlock();
+		}
+		return s;
+	}
+		
+	@Override
 	public List<ExperiencePoolSample> getSequence(List<ExperiencePoolSample> s, int sequence, int index, int length){
 		if(s == null){
 			s = new ArrayList<ExperiencePoolSample>(length == -1 ? 0 : length);
@@ -241,8 +159,6 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 			
 			int start = sequenceStarts.get(sequence);
 			int l = sequenceLengths.get(sequence);
-			int offset = stateSize+actionSize+1;
-
 			
 			if(index >= l){
 				throw new RuntimeException("Invalid start index: "+index);
@@ -268,7 +184,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 				if(i==0){
 					getSample(sample, start, true);
 				} else {
-					getSample(sample, start+i*offset, false);
+					getSample(sample, start+i, false);
 				}
 				
 				previous = sample;
@@ -286,60 +202,53 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		if(sequence == null || sequence.isEmpty()){
 			throw new RuntimeException("Null or empty sequence given");
 		}
-		
-		int size = sequence.size();
-		int offset = stateSize+actionSize+1;
-		float[] buffer = new float[sequence.size()*offset+stateSize];
-		int i = 0;
-		for(ExperiencePoolSample s : sequence){
-			System.arraycopy(s.input.get(), 0, buffer, offset*i , stateSize);
-			System.arraycopy(s.target.get(), 0, buffer, offset*i+stateSize, actionSize);
-			buffer[offset*i+stateSize+actionSize] = s.reward;
-			i++;
-		}
-		ExperiencePoolSample last = sequence.get(size-1);
-		System.arraycopy(last.isTerminal ? emptyState : last.nextState.get(), 0, buffer, offset*(i-1)+stateSize+actionSize+1, stateSize);
 
-		int pos = 0, l = 0;
+		int size = sequence.size();
+		if(size > MAX_SAMPLES){
+			// this cannot be stored in this pool
+			System.out.println("Warning, a sequence of length "+size+" cannot be stored in this pool");
+			return;
+		}
+		
+		float[] buffer = new float[sampleSize];
 		try {
 			lock.writeLock().lock();
 
-			// write the buffer - check whether we have to cycle
-			pos = getBufferEnd();
+			int index = getBufferEnd();
+			int start = index == MAX_SAMPLES ? 0 : index;
 			
-			l = buffer.length;
-			if(l >= maxSize/4){
-				// this cannot be stored in this pool
-				System.out.println("Warning, a sequence of length "+size+" cannot be stored in this pool");
-				return;
-			}
-			
-			if(pos + l >= maxSize/4){
-				// cycle
-				pos = 0;
+			for(ExperiencePoolSample s : sequence){
+				System.arraycopy(s.input.get(), 0, buffer, 0 , stateSize);
+				System.arraycopy(s.target.get(), 0, buffer, stateSize, actionSize);
+				buffer[stateSize+actionSize] = s.reward;
+				buffer[stateSize+actionSize+1] = s.isTerminal ? 1.0f : 0.0f;
 				
-				int first = -1;
-				while(first != 0){
-					int removed = sequenceLengths.removeFirst();
-					noSamples-=removed;
-					first = sequenceStarts.removeFirst();
+				if(index == MAX_SAMPLES){
+					// cycle 
+					index = 0;
+					
+					if(sequenceStarts.get(0) == 0){
+						int removed = sequenceLengths.remove(0);
+						noSamples-=removed;
+						sequenceStarts.remove(0);
+					}
 				}
-			}
-			
-			while(getBufferStart() > 0 && pos + l > getBufferStart()){
-				int removed = sequenceLengths.removeFirst();
-				noSamples-=removed;
-				sequenceStarts.removeFirst();
-			}
-			
-			writeData(pos, buffer);
 
-			sequenceStarts.addLast(pos);
-			sequenceLengths.addLast(size);
+				if(getBufferStart() > 0 && index == getBufferStart()){
+					int removed = sequenceLengths.remove(0);
+					noSamples-=removed;
+					sequenceStarts.remove(0);
+				}
+				
+				writeData(index*sampleSize, buffer);
+				index++;
+			}
+		
+			sequenceStarts.add(start);
+			sequenceLengths.add(size);
 			noSamples+= size;
 			
 		} catch(Throwable t){ 
-			System.out.println("SHIT "+pos+" "+l+" "+maxSize/4+" "+getBufferStart()+" "+sequenceStarts.size());
 			t.printStackTrace();
 		} finally {
 			lock.writeLock().unlock();
@@ -358,11 +267,87 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		}
 		
 	}
+
+	private ExperiencePoolSample getSample(ExperiencePoolSample s, int index, boolean loadState){
+		float[] sampleBuffer = new float[sampleSize];
+		
+		loadData(getBufferPosition(index), sampleBuffer);
+		
+		if(s == null){
+			s = new ExperiencePoolSample();	
+		}
+		
+		// state
+		// in case of sequences on might just reuse nextState tensor of previous instead of loading state again
+		if(loadState){
+			float[] stateBuffer = new float[stateSize];
+			System.arraycopy(sampleBuffer, 0, stateBuffer, 0, stateSize);
+
+			if(s.input == null){
+				s.input = new Tensor(stateBuffer, stateDims);
+			} else {
+				s.input.set(stateBuffer);
+			}
+		}
+		
+		// action
+		float[] actionBuffer = new float[actionSize];
+		System.arraycopy(sampleBuffer, stateSize, actionBuffer, 0, actionSize);
+		
+		if(s.target == null){
+			s.target = new Tensor(actionBuffer, actionDims);
+		} else {
+			s.target.set(actionBuffer);
+		}
+		
+		// reward
+		s.reward = sampleBuffer[stateSize+actionSize];
+		
+		// terminal
+		s.isTerminal = sampleBuffer[stateSize+actionSize+1] == 1.0f;
+		if(!s.isTerminal){
+			// load next state
+			float[] nextStateBuffer = new float[stateSize];
+			loadData(getBufferPosition(index+1), nextStateBuffer);
+
+			if(s.nextState == null){
+				s.nextState = new Tensor(nextStateBuffer, stateDims);
+			} else {
+				s.nextState.set(nextStateBuffer);
+			}
+		} else {
+			if(s.nextState == null){
+				s.nextState = new Tensor(stateDims);
+			} 
+			s.nextState.fill(Float.NaN);
+		}
+		
+		return s;
+	}
+	
+	private int getBufferPosition(int index){
+		int startIndex = sequenceStarts.get(0);
+		int pos = (startIndex+index) % MAX_SAMPLES;
+		return pos*sampleSize;
+	}
+	
+	private int getBufferStart(){
+		if(sequenceStarts.isEmpty())
+			return 0;
+		return sequenceStarts.get(0);
+	}
+	
+	private int getBufferEnd(){
+		if(sequenceLengths.isEmpty())
+			return 0;
+		int last = sequenceLengths.size() - 1;
+		return  (sequenceStarts.get(last)+sequenceLengths.get(last)) % MAX_SAMPLES;
+	}
 	
 	protected abstract void setup(Map<String, Object> config);
 	
-	protected abstract float[] loadData(int index);
+	protected abstract void loadData(int position, float[] data);
 	
-	protected abstract void writeData(int index, float[] sample);
+	protected abstract void writeData(int position, float[] data);
 
 }

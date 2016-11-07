@@ -22,7 +22,6 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rl.experience;
 
-import java.util.Arrays;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
@@ -51,14 +50,12 @@ public class MemoryExperiencePool extends AbstractExperiencePool {
 	}
 
 	@Override
-	protected float[] loadData(int index) {
-		float[] buffer = new float[sampleSize];
-		System.arraycopy(samples, index, buffer, 0, sampleSize);
-		return buffer;
+	protected void loadData(int position, float[] data) {
+		System.arraycopy(samples, position, data, 0, data.length);
 	}
 
 	@Override
-	protected void writeData(int index, float[] data) {
-		System.arraycopy(data, 0, samples, index, data.length);
+	protected void writeData(int position, float[] data) {
+		System.arraycopy(data, 0, samples, position, data.length);
 	}
 }
