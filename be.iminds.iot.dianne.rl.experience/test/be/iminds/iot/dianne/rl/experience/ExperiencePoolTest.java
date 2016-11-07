@@ -46,6 +46,7 @@ public class ExperiencePoolTest {
 	protected Tensor a4 = new Tensor(new float[]{2, 0}, 2);
 	protected Tensor s5 = new Tensor(new float[]{5, 6, 7, 8}, 4);
 	protected Tensor a5 = new Tensor(new float[]{2, 1}, 2);
+	protected Tensor sEnd = new Tensor(new float[]{0, 0, 0, 0}, 4);
 	
 	@BeforeClass
 	public static void setup() {
@@ -105,7 +106,7 @@ public class ExperiencePoolTest {
 		Assert.assertEquals(1.0f, end.getScalarReward());
 		Tensor nan = end.getNextState();
 		for(float n : nan.get()){
-			Assert.assertTrue(Float.isNaN(n));
+			Assert.assertEquals(0.0f, n);
 		}
 		Assert.assertEquals(true, end.isTerminal());	
 		
@@ -141,10 +142,8 @@ public class ExperiencePoolTest {
 		Assert.assertEquals(s5, end.getState());
 		Assert.assertEquals(a5, end.getAction());
 		Assert.assertEquals(0.0f, end.getScalarReward());
-		nan = end.getNextState();
-		for(float n : nan.get()){
-			Assert.assertTrue(Float.isNaN(n));
-		}
+		Assert.assertEquals(sEnd, end.getNextState());
+
 		Assert.assertEquals(true, end.isTerminal());	
 		
 		
@@ -158,10 +157,7 @@ public class ExperiencePoolTest {
 			Assert.assertEquals(expected.getScalarReward(), r.getScalarReward());
 			Assert.assertEquals(expected.isTerminal(), r.isTerminal());
 			if(expected.isTerminal()){
-				nan = r.getNextState();
-				for(float n : nan.get()){
-					Assert.assertTrue(Float.isNaN(n));
-				}
+				Assert.assertEquals(sEnd, r.getNextState());
 			} else {
 				Assert.assertEquals(expected.getNextState(), r.getNextState());
 			}
@@ -299,6 +295,17 @@ public class ExperiencePoolTest {
 
 		Tensor bReward = new Tensor(new float[]{0.0f, 0.1f, 0.3f, 0.8f, 0.5f}, 5, 1);
 		Assert.assertEquals(bReward, batch.getReward());
+		
+		Tensor bNextState = new Tensor(new float[]{1.0f, 2.0f, 3.0f, 4.0f, 
+												2.0f, 3.0f, 4.0f, 5.0f,
+												1.0f, 2.0f, 3.0f, 4.0f,
+												0.0f, 0.0f, 0.0f, 0.0f,
+												3.0f, 4.0f, 5.0f, 6.0f}, 5, 4);
+		Assert.assertEquals(bNextState, batch.getNextState());
+
+		Tensor bTerminal = new Tensor(new float[]{0.0f, 0.0f, 0.0f, 1.0f, 0.0f}, 5, 1);
+		Assert.assertEquals(bTerminal, batch.getTerminal());
+
 
 	}
 }

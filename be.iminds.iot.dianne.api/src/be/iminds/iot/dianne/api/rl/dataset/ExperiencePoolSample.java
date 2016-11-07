@@ -38,8 +38,8 @@ public class ExperiencePoolSample extends Sample {
 	
 	public Tensor nextState;
 	// in case of a terminal state, besides setting isTerminal to true,
-	// nextState tensor should be null or filled with Float.NaN
-	public boolean isTerminal;
+	// nextState tensor should be null or filled with zeros
+	public Tensor terminal;
 	
 	public ExperiencePoolSample(){}
 	
@@ -50,16 +50,17 @@ public class ExperiencePoolSample extends Sample {
 		this.reward.set(reward, 0);
 		
 		this.nextState = nextState;
-		this.isTerminal = nextState == null || Float.isNaN(nextState.get()[0]);
+		
+		this.terminal = new Tensor(1);
+		this.terminal.set(nextState == null ? 1.0f : 0.0f, 0);
 	}
 	
-	public ExperiencePoolSample(Tensor state, Tensor action, Tensor reward, Tensor nextState){
+	public ExperiencePoolSample(Tensor state, Tensor action, Tensor reward, Tensor nextState, Tensor terminal){
 		super(state, action);
 		
 		this.reward = reward;
-		
 		this.nextState = nextState;
-		this.isTerminal = nextState == null || Float.isNaN(nextState.get()[0]);
+		this.terminal = terminal;
 	}
 	
 	public Tensor getState(){
@@ -82,8 +83,12 @@ public class ExperiencePoolSample extends Sample {
 		return nextState;
 	}
 	
+	public Tensor getTerminal(){
+		return terminal;
+	}
+	
 	public boolean isTerminal(){
-		return isTerminal;
+		return terminal.get(0) == 1.0f;
 	}
 	
 	@Override
@@ -97,7 +102,7 @@ public class ExperiencePoolSample extends Sample {
 		.append(reward)
 		.append(" - Next state: ")
 		.append(nextState)
-		.append(" - Terminal: ").append(isTerminal);
+		.append(" - Terminal: ").append(isTerminal());
 		return b.toString();
 	}
 }

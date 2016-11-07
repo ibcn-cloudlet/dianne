@@ -34,8 +34,8 @@ import be.iminds.iot.dianne.tensor.Tensor;
 public class ExperiencePoolBatch extends Batch {
 
 	public Tensor reward;
-	
 	public Tensor nextState;
+	public Tensor terminal;
 	
 	public ExperiencePoolSample[] samples;
 	
@@ -46,28 +46,33 @@ public class ExperiencePoolBatch extends Batch {
 		this.target = new Tensor(batchSize, actionDims);
 		this.reward = new Tensor(batchSize, 1);
 		this.nextState = new Tensor(batchSize, stateDims);
+		this.terminal = new Tensor(batchSize, 1);
 
 		this.samples = new ExperiencePoolSample[batchSize];
 		for(int i = 0; i< batchSize; i++){
 			this.samples[i] = new ExperiencePoolSample(input.select(0, i), target.select(0, i),
-					reward.select(0, i), nextState.select(0, i));
+					reward.select(0, i), nextState.select(0, i), terminal.select(0, i));
 		}
 	}
 	
-	public ExperiencePoolBatch(Tensor states, Tensor actions, Tensor rewards, Tensor nextStates){
+	public ExperiencePoolBatch(Tensor states, Tensor actions, Tensor rewards, Tensor nextStates, Tensor terminal){
 		this.input = states;
 		this.target = actions;
 		this.reward = rewards;
-		if(rewards.dim()==1){
+		if(rewards.dim() == 1){
 			this.reward.reshape(rewards.size(0), 1);
 		}
 		this.nextState = nextStates;
+		this.terminal = terminal;
+		if(terminal.dim() == 1){
+			this.terminal.reshape(terminal.size(0), 1);
+		}
 		
 		int batchSize = input.size(0);
 		this.samples = new ExperiencePoolSample[batchSize];
 		for(int i = 0; i< batchSize; i++){
 			this.samples[i] = new ExperiencePoolSample(input.select(0, i), target.select(0, i),
-					reward.select(0, i), nextState.select(0, i));
+					reward.select(0, i), nextState.select(0, i), terminal.select(0, i));
 		}
 	}
 
@@ -107,6 +112,10 @@ public class ExperiencePoolBatch extends Batch {
 	
 	public Tensor getNextState(){
 		return nextState;
+	}
+	
+	public Tensor getTerminal(){
+		return terminal;
 	}
 	
 	public Tensor getInput(int i){
@@ -151,7 +160,9 @@ public class ExperiencePoolBatch extends Batch {
 		.append(" - Reward: ")
 		.append(reward)
 		.append(" - Next state: ")
-		.append(nextState);
+		.append(nextState)
+		.append(" - Terminal: ")
+		.append(terminal);
 		return b.toString();
 	}
 }

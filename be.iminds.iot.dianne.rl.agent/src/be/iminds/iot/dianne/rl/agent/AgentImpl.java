@@ -61,6 +61,7 @@ import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
 import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.agent.config.AgentConfig;
+import be.iminds.iot.dianne.tensor.Tensor;
 
 @Component(property={"aiolos.unique=true"})
 public class AgentImpl implements Agent {
@@ -307,10 +308,17 @@ public class AgentImpl implements Agent {
 					s.target = progress.action;
 	
 					progress.reward = env.performAction(s.target);
+					if(s.reward == null){
+						s.reward = new Tensor(1);
+					}
 					s.reward.set(progress.reward, 0);
 					
 					s.nextState = env.getObservation(s.nextState);
-					s.isTerminal = s.nextState == null;
+					
+					if(s.terminal == null){
+						s.terminal = new Tensor(1);
+					}
+					s.terminal.set(s.nextState == null ? 1.0f : 0.0f, 0);
 	
 					if(config.trace && i % config.traceInterval == 0){
 						System.out.println(progress);
@@ -327,12 +335,12 @@ public class AgentImpl implements Agent {
 						}
 						b.input = s.input.copyInto(b.input);
 						b.target = s.target.copyInto(b.target);
-						b.reward = s.reward;
-						b.isTerminal = s.isTerminal;
-						b.nextState = s.isTerminal ? null : s.nextState.copyInto(b.nextState);
+						b.reward = s.reward.copyInto(b.reward);
+						b.terminal = s.terminal.copyInto(b.terminal);
+						b.nextState = s.isTerminal() ? null : s.nextState.copyInto(b.nextState);
 						count++;
 						
-						if(b.isTerminal || count % config.experienceInterval == 0){
+						if(b.isTerminal() || count % config.experienceInterval == 0){
 							// sequence finished, switch to upload
 							// check if upload finished
 							// if still uploading ... wait now
@@ -362,7 +370,7 @@ public class AgentImpl implements Agent {
 					}
 	
 					// if this is a terminal state - reset environment and start over
-					if(s.isTerminal){
+					if(s.isTerminal()){
 						env.reset();
 						s.input = env.getObservation(s.input);
 					} else {

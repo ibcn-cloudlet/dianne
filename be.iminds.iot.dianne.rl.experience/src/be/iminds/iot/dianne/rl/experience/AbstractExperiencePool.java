@@ -237,7 +237,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 				System.arraycopy(s.input.get(), 0, buffer, 0 , stateSize);
 				System.arraycopy(s.target.get(), 0, buffer, stateSize, actionSize);
 				buffer[stateSize+actionSize] = s.getScalarReward();
-				buffer[stateSize+actionSize+1] = s.isTerminal ? 1.0f : 0.0f;
+				buffer[stateSize+actionSize+1] = s.isTerminal() ? 1.0f : 0.0f;
 				
 				if(index == maxSize){
 					// cycle 
@@ -323,8 +323,12 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		s.reward.set(sampleBuffer[stateSize+actionSize], 0);
 		
 		// terminal
-		s.isTerminal = sampleBuffer[stateSize+actionSize+1] == 1.0f;
-		if(!s.isTerminal){
+		if(s.terminal == null){
+			s.terminal = new Tensor(1);
+		}
+		s.terminal.set(sampleBuffer[stateSize+actionSize+1], 0);
+		
+		if(!s.isTerminal()){
 			// load next state
 			float[] nextStateBuffer = new float[stateSize];
 			loadData(getBufferPosition(index+1), nextStateBuffer);
@@ -338,7 +342,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 			if(s.nextState == null){
 				s.nextState = new Tensor(stateDims);
 			} 
-			s.nextState.fill(Float.NaN);
+			s.nextState.fill(0);
 		}
 		
 		return s;
