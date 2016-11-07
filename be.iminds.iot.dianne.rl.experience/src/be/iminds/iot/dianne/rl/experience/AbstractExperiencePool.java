@@ -35,9 +35,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 public abstract class AbstractExperiencePool extends AbstractDataset implements ExperiencePool {
 
-	protected long maxSize = 100000000; // max size of the experience pool (in bytes)
-	protected int MAX_SAMPLES; // number of samples that fit in this pool (based on maxSize and sampleSize)
-	
+	protected int maxSize = 1000000; // max number of samples in the experience pool
 	
 	protected int[] stateDims;
 	protected int stateSize;
@@ -62,15 +60,13 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	
 		sampleSize = stateSize+actionSize+2;
 
-		MAX_SAMPLES = (int)(this.maxSize/4)/sampleSize;
-		
 		setup(config);
 	}
 	
 	@Override
 	protected void init(Map<String, Object> properties) {
 		if(properties.containsKey("maxSize"))
-			this.maxSize = Long.parseLong((String) properties.get("maxSize"));
+			this.maxSize = Integer.parseInt((String) properties.get("maxSize"));
 		
 		String[] id = (String[])properties.get("stateDims");
 		if(id!=null){
@@ -224,7 +220,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		}
 
 		int size = sequence.size();
-		if(size > MAX_SAMPLES){
+		if(size > maxSize){
 			// this cannot be stored in this pool
 			System.out.println("Warning, a sequence of length "+size+" cannot be stored in this pool");
 			return;
@@ -235,7 +231,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 			lock.writeLock().lock();
 
 			int index = getBufferEnd();
-			int start = index == MAX_SAMPLES ? 0 : index;
+			int start = index == maxSize ? 0 : index;
 			
 			for(ExperiencePoolSample s : sequence){
 				System.arraycopy(s.input.get(), 0, buffer, 0 , stateSize);
@@ -243,7 +239,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 				buffer[stateSize+actionSize] = s.getScalarReward();
 				buffer[stateSize+actionSize+1] = s.isTerminal ? 1.0f : 0.0f;
 				
-				if(index == MAX_SAMPLES){
+				if(index == maxSize){
 					// cycle 
 					index = 0;
 					
@@ -350,7 +346,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	
 	private int getBufferPosition(int index){
 		int startIndex = sequenceStarts.get(0);
-		int pos = (startIndex+index) % MAX_SAMPLES;
+		int pos = (startIndex+index) % maxSize;
 		return pos*sampleSize;
 	}
 	
@@ -364,7 +360,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		if(sequenceLengths.isEmpty())
 			return 0;
 		int last = sequenceLengths.size() - 1;
-		return  (sequenceStarts.get(last)+sequenceLengths.get(last)) % MAX_SAMPLES;
+		return  (sequenceStarts.get(last)+sequenceLengths.get(last)) % maxSize;
 	}
 	
 	protected abstract void setup(Map<String, Object> config);

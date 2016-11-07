@@ -42,7 +42,7 @@ public class MemoryExperiencePool extends AbstractExperiencePool {
 	@Override
 	protected void setup(Map<String, Object> config) {
 		try {
-			samples = new float[(int)(maxSize/4)];
+			samples = new float[maxSize*sampleSize];
 		} catch(OutOfMemoryError e){
 			System.err.println("Failed to setup Experience Pool "+name+" in memory: failed to allocate "+maxSize/1000000+" MB");
 			throw new RuntimeException("Failed to instantiate experience pool, not enough memory");

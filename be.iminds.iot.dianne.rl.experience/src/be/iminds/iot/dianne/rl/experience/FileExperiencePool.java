@@ -55,7 +55,7 @@ public class FileExperiencePool extends AbstractExperiencePool {
 		
 		FLOATS_PER_BUFFER = SIZE_PER_BUFFER/4;
 		
-		long bufferSize = maxSize;
+		long bufferSize = maxSize*sampleSize*4;
 		
 		int noBuffers = 1;
 		if(bufferSize > SIZE_PER_BUFFER){

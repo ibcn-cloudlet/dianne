@@ -61,7 +61,7 @@ public class ExperiencePoolTest {
 		config.put("dir", "generated");
 		config.put("stateDims", new String[]{"4"});
 		config.put("actionDims", new String[]{"2"});
-		config.put("maxSize", "400");
+		config.put("maxSize", "12");
 		if(bufferSize!=null){
 			config.put("sizePerBuffer", bufferSize);
 		}
