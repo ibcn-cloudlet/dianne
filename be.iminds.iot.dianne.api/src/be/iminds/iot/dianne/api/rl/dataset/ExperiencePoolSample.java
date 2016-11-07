@@ -53,6 +53,15 @@ public class ExperiencePoolSample extends Sample {
 		this.isTerminal = nextState == null || Float.isNaN(nextState.get()[0]);
 	}
 	
+	public ExperiencePoolSample(Tensor state, Tensor action, Tensor reward, Tensor nextState){
+		super(state, action);
+		
+		this.reward = reward;
+		
+		this.nextState = nextState;
+		this.isTerminal = nextState == null || Float.isNaN(nextState.get()[0]);
+	}
+	
 	public Tensor getState(){
 		return input;
 	}
