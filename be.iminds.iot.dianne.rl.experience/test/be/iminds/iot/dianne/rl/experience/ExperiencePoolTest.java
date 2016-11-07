@@ -303,7 +303,7 @@ public class ExperiencePoolTest {
 												3.0f, 4.0f, 5.0f, 6.0f}, 5, 4);
 		Assert.assertEquals(bNextState, batch.getNextState());
 
-		Tensor bTerminal = new Tensor(new float[]{0.0f, 0.0f, 0.0f, 1.0f, 0.0f}, 5, 1);
+		Tensor bTerminal = new Tensor(new float[]{1.0f, 1.0f, 1.0f, 0.0f, 1.0f}, 5, 1);
 		Assert.assertEquals(bTerminal, batch.getTerminal());
 
 

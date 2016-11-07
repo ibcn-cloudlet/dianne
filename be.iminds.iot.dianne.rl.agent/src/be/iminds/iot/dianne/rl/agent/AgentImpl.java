@@ -318,7 +318,7 @@ public class AgentImpl implements Agent {
 					if(s.terminal == null){
 						s.terminal = new Tensor(1);
 					}
-					s.terminal.set(s.nextState == null ? 1.0f : 0.0f, 0);
+					s.terminal.set(s.nextState == null ? 0.0f : 1.0f, 0);
 	
 					if(config.trace && i % config.traceInterval == 0){
 						System.out.println(progress);

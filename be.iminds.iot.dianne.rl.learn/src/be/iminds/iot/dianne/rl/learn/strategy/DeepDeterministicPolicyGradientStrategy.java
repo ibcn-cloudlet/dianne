@@ -137,24 +137,10 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 		// Fill in the batch
 		batch = pool.getBatch(batch, sampling.next(config.batchSize));
 		
-		for(int b = 0; b < config.batchSize; b++) {
-			// Get the data from the sample
-			Tensor nextState = batch.getNextState(b);
-			float reward = batch.getScalarReward(b);
-			
-			// Calculate the target value
-			if(!batch.isTerminal(b)) {
-				// If the next state is not terminal, get the next value using the target actor and critic
-				Tensor nextAction = targetActor.forward(nextState);
-				Tensor nextValue = targetCritic.forward(inputIds, outputIds, new Tensor[]{nextState, nextAction}).getValue().tensor;
-				
-				// Set the target value using the Bellman equation
-				targetValueBatch.set(reward + config.discount*nextValue.get(0), b);
-			} else {
-				// If the next state is terminal, the target value is equal to the reward
-				targetValueBatch.set(reward, b);
-			}
-		}
+		// Calculate targetValues
+		Tensor nextAction = targetActor.forward(batch.getNextState());
+		Tensor nextValue = targetCritic.forward(inputIds, outputIds, new Tensor[]{batch.getNextState(), nextAction}).getValue().tensor;
+		targetValueBatch = TensorOps.addcmul(targetValueBatch, batch.getReward(), config.discount, batch.getTerminal(), nextValue);
 		
 		// Forward pass of the critic to get the current value estimate
 		Tensor valueBatch = critic.forward(inputIds, outputIds, new Tensor[]{batch.getState(), batch.getAction()}).getValue().tensor;

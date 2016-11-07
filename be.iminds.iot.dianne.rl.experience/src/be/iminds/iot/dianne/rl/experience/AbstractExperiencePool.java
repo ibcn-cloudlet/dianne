@@ -237,7 +237,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 				System.arraycopy(s.input.get(), 0, buffer, 0 , stateSize);
 				System.arraycopy(s.target.get(), 0, buffer, stateSize, actionSize);
 				buffer[stateSize+actionSize] = s.getScalarReward();
-				buffer[stateSize+actionSize+1] = s.isTerminal() ? 1.0f : 0.0f;
+				buffer[stateSize+actionSize+1] = s.isTerminal() ? 0.0f : 1.0f;
 				
 				if(index == maxSize){
 					// cycle 

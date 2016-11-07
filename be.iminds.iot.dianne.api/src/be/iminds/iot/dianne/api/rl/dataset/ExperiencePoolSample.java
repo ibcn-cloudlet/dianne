@@ -37,8 +37,8 @@ public class ExperiencePoolSample extends Sample {
 	public Tensor reward;
 	
 	public Tensor nextState;
-	// in case of a terminal state, besides setting isTerminal to true,
-	// nextState tensor should be null or filled with zeros
+	
+	// terminal tensor is 1 in case of non terminal, 0 in case of terminal
 	public Tensor terminal;
 	
 	public ExperiencePoolSample(){}
@@ -52,7 +52,7 @@ public class ExperiencePoolSample extends Sample {
 		this.nextState = nextState;
 		
 		this.terminal = new Tensor(1);
-		this.terminal.set(nextState == null ? 1.0f : 0.0f, 0);
+		this.terminal.set(nextState == null ? 0.0f : 1.0f, 0);
 	}
 	
 	public ExperiencePoolSample(Tensor state, Tensor action, Tensor reward, Tensor nextState, Tensor terminal){
@@ -88,7 +88,7 @@ public class ExperiencePoolSample extends Sample {
 	}
 	
 	public boolean isTerminal(){
-		return terminal.get(0) == 1.0f;
+		return terminal.get(0) == 0.0f;
 	}
 	
 	@Override
