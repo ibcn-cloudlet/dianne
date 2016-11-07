@@ -44,7 +44,7 @@ public class ExperiencePoolBatch extends Batch {
 	public ExperiencePoolBatch(int batchSize, int[] stateDims, int[] actionDims){
 		this.input = new Tensor(batchSize, stateDims);
 		this.target = new Tensor(batchSize, actionDims);
-		this.reward = new Tensor(batchSize);
+		this.reward = new Tensor(batchSize, 1);
 		this.nextState = new Tensor(batchSize, stateDims);
 
 		this.samples = new ExperiencePoolSample[batchSize];
@@ -58,6 +58,9 @@ public class ExperiencePoolBatch extends Batch {
 		this.input = states;
 		this.target = actions;
 		this.reward = rewards;
+		if(rewards.dim()==1){
+			this.reward.reshape(rewards.size(0), 1);
+		}
 		this.nextState = nextStates;
 		
 		int batchSize = input.size(0);
@@ -136,5 +139,19 @@ public class ExperiencePoolBatch extends Batch {
 	
 	public boolean isTerminal(int i){
 		return samples[i].isTerminal();
+	}
+	
+	@Override
+	public String toString(){
+		StringBuilder b = new StringBuilder();
+		b.append("State: ")
+		.append(input)
+		.append(" - Action: ")
+		.append(target)
+		.append(" - Reward: ")
+		.append(reward)
+		.append(" - Next state: ")
+		.append(nextState);
+		return b.toString();
 	}
 }

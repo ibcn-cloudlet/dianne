@@ -69,11 +69,20 @@ public interface ExperiencePool extends SequenceDataset<ExperiencePoolSample, Ex
 	
 	ExperiencePoolSample getSample(ExperiencePoolSample s, final int index);
 
-	default ExperiencePoolBatch getBatch(ExperiencePoolBatch b, final int...indices){
-		throw new UnsupportedOperationException("Batches not (yet) supported for Experience Pools");
+	/**
+	 * Get a batch from the experience pool. 
+	 * 
+	 * @param indices the indices to fetch, should be smaller then size()
+	 * @return the batch containing the requested samples
+	 */
+	default ExperiencePoolBatch getBatch(final int... indices){
+		return getBatch(null, indices);
 	}
 	
+	ExperiencePoolBatch getBatch(ExperiencePoolBatch b, final int...indices);
 	
+	
+	// TODO also support batched sequences?
 	default List<ExperiencePoolBatch> getBatchedSequence(List<ExperiencePoolBatch> b, final int[] sequences, final int[] indices, final int length){
 		throw new UnsupportedOperationException("Batches not (yet) supported for Experience Pools");
 	}

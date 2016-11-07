@@ -14,6 +14,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
+import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
 import be.iminds.iot.dianne.tensor.NativeTensorLoader;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -259,5 +260,45 @@ public class ExperiencePoolTest {
 		
 		Assert.assertEquals(0, pool.size());
 		Assert.assertEquals(0, pool.sequences());
+	}
+	
+	@Test
+	public void testBatch(){
+		Assert.assertEquals(0, pool.size());
+		Assert.assertEquals(0, pool.sequences());
+		
+		// first sequence
+		List<ExperiencePoolSample> sequence = new ArrayList<>();
+		sequence.add(new ExperiencePoolSample(s0, a0, 0, s1));
+		sequence.add(new ExperiencePoolSample(s1, a1, 0.1f, s2));
+		sequence.add(new ExperiencePoolSample(s2, a2, 0.2f, null));
+		pool.addSequence(sequence);
+
+		// second sequence
+		List<ExperiencePoolSample> sequence2 = new ArrayList<>();
+		sequence2.add(new ExperiencePoolSample(s0, a0, 0.3f, s1));
+		sequence2.add(new ExperiencePoolSample(s1, a1, 0.4f, s2));
+		sequence2.add(new ExperiencePoolSample(s2, a2, 0.5f, s3));
+		sequence2.add(new ExperiencePoolSample(s3, a3, 0.6f, s4));
+		sequence2.add(new ExperiencePoolSample(s4, a4, 0.7f, s5));
+		sequence2.add(new ExperiencePoolSample(s5, a5, 0.8f, null));
+		pool.addSequence(sequence2);
+		
+		ExperiencePoolBatch batch = pool.getBatch(0, 1, 3, 8, 5);
+		Assert.assertEquals(5, batch.getSize());
+		System.out.println(batch);
+		Tensor bState = new Tensor(new float[]{0.0f, 1.0f, 2.0f, 3.0f,
+											  1.0f, 2.0f, 3.0f, 4.0f, 
+											  0.0f, 1.0f, 2.0f, 3.0f,
+											  5.0f, 6.0f, 7.0f, 8.0f,
+											  2.0f, 3.0f, 4.0f, 5.0f}, 5, 4);
+		Assert.assertEquals(bState, batch.getState());
+	
+		Tensor bAction = new Tensor(new float[]{0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 2.0f, 1.0f, 1.0f, 0.0f}, 5, 2);
+		Assert.assertEquals(bAction, batch.getAction());
+
+		Tensor bReward = new Tensor(new float[]{0.0f, 0.1f, 0.3f, 0.8f, 0.5f}, 5, 1);
+		Assert.assertEquals(bReward, batch.getReward());
+
 	}
 }

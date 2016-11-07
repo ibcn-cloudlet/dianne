@@ -29,6 +29,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import be.iminds.iot.dianne.api.dataset.AbstractDataset;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
+import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
 import be.iminds.iot.dianne.tensor.Tensor;
 
@@ -144,6 +145,25 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		return s;
 	}
 		
+	@Override
+	public ExperiencePoolBatch getBatch(ExperiencePoolBatch b, int... indices) {
+		if(b == null){
+			b = new ExperiencePoolBatch(indices.length, stateDims, actionDims);
+		}
+		
+		try {
+			lock.readLock().lock();
+			int i = 0;
+			for(int index : indices){
+				getSample(b.getSample(i++), index, true);
+			}
+		} finally {
+			lock.readLock().unlock();
+		}
+		return b;
+	}
+
+	
 	@Override
 	public List<ExperiencePoolSample> getSequence(List<ExperiencePoolSample> s, int sequence, int index, int length){
 		if(s == null){
