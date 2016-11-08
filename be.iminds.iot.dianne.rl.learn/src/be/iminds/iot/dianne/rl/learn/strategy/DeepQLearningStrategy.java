@@ -94,15 +94,16 @@ public class DeepQLearningStrategy implements LearningStrategy {
 		this.targetValueBatch = new Tensor(this.config.batchSize, this.pool.actionDims()[0]);
 		
 		// Wait for the pool to contain enough samples
-		while(pool.size() < this.config.minSamples){
+		if(pool.size() < this.config.minSamples){
 			System.out.println("Experience pool has too few samples, waiting a bit to start learning...");
-			try {
-				Thread.sleep(5000);
-			} catch (InterruptedException e) {
-				return;
+			while(pool.size() < this.config.minSamples){
+				try {
+					Thread.sleep(5000);
+				} catch (InterruptedException e) {
+					return;
+				}
 			}
 		}
-		
 		System.out.println("Start learning...");
 	}
 
