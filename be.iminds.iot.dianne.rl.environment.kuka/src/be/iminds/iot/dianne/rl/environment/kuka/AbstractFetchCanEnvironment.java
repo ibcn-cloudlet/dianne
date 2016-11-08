@@ -49,11 +49,10 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 	
 	protected Random r = new Random(System.currentTimeMillis());
 
-	private float previousLogDistance = 0.0f;
+	private float initialDistance = Float.NaN;
 	
 	@Override
 	protected float calculateReward() throws Exception {
-		float reward = 0.0f;
 		
 		// calculate reward based on simulator info
 		if(simulator != null){
@@ -63,48 +62,58 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 			// else, reward between 0 and 0.5 as one gets closer to the optimal grip point
 			if(simulator.checkCollisions("Border")){
 				terminal = true;
+				initialDistance = Float.NaN;
 				return -1.0f;
 			}
 	
 			Position d = simulator.getPosition("Can1", "youBot");
-			// if terminal, check for grip success
+			
+			// calculate distance of youBot relative to can
+			float dx = d.y;
+			float dy = d.z - GRIP_DISTANCE;
+	
+			// dy should come close to 0.565 for succesful grip
+			// dx should come close to 0
+			float d2 = dx*dx + dy*dy;
+			float distance = (float)Math.sqrt(d2);
+			
+			if(Float.isNaN(initialDistance)){
+				initialDistance = distance;
+			}
+			
+			
+			// if terminal give reward according to position relative to can
 			if(terminal){
 				if(earlyStop){
 					// use position only
-					float dx = d.y;
-					float dy = d.z - GRIP_DISTANCE;
-					
 					if(Math.abs(dx) <= MARGIN
 						&& Math.abs(dy) <= MARGIN){
-						reward = 1.0f;
-					} else {
-						reward = 0.0f;
-					}
+						initialDistance = Float.NaN;
+						return 1.0f;
+					} 
 				} else {
+					// simulate actual grip action
 					if(d.x > 0){
 						// can is lifted, reward 1
-						reward =  1.0f;
-					} else {
-						// else failed, no reward
-						reward = 0.0f;
-					}
+						initialDistance = Float.NaN;
+						return 1.0f;
+					} 
 				}
+				
+				// no succes, give reward according to traject done towards Can
+				// negative = moved further away from can
+				// positive = moved closer towards can
+				float delta = (initialDistance-distance)/initialDistance;
+				initialDistance = Float.NaN;
+				return delta;
+				
 			} else {
-				float dx = d.y;
-				float dy = d.z - GRIP_DISTANCE;
-		
-				// dy should come close to 0.565 for succesful grip
-				// dx should come close to 0
-				float d2 = dx*dx + dy*dy;
-				float logDistance = (float)Math.log(Math.sqrt(d2));
-				
-				// use difference of log distances as reward
-				reward = (previousLogDistance-logDistance);
-				
-				previousLogDistance = logDistance;
+				// no intermediate reward
+				return 0.0f;
 			}
 		} 
 		
+		// in case no simulator ... return reward variable that might be set manually
 		return reward;
 	}
 	
