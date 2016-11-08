@@ -31,11 +31,6 @@ public class AgentConfig {
 	public String strategy = "GreedyActionStrategy";
 	
 	/**
-	 * After how many actions to fetch new weights from the Repository
-	 */
-	public int[] syncInterval = new int[]{10000};
-	
-	/**
 	 * Tag of fetched weights
 	 */
 	public String tag;
