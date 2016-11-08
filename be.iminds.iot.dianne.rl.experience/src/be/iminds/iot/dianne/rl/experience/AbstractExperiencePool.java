@@ -43,8 +43,17 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	protected int actionSize;
 	protected int sampleSize;
 	
-	protected List<Integer> sequenceStarts = new ArrayList<>(); // start index of sequence
-	protected List<Integer> sequenceLengths = new ArrayList<>(); // number of xp pool samples in sequence
+	public class Sequence {
+		public final int start;
+		public final int length;
+		
+		public Sequence(int start, int length){
+			this.start = start;
+			this.length = length;
+		}
+	}
+	
+	protected List<Sequence> sequences = new ArrayList<>();
 	
 	protected ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
 	
@@ -109,7 +118,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	public int sequences(){
 		try {
 			lock.readLock().lock();
-			return sequenceStarts.size();
+			return sequences.size();
 		} finally {
 			lock.readLock().unlock();
 		}
@@ -166,22 +175,21 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 			s = new ArrayList<ExperiencePoolSample>(length == -1 ? 0 : length);
 		}
 		
-		if(sequence > sequenceLengths.size()){
+		if(sequence > sequences.size()){
 			throw new RuntimeException("Invalid sequence number");
 		}
 		
 		try {
 			lock.readLock().lock();
 			
-			int start = sequenceStarts.get(sequence);
-			int l = sequenceLengths.get(sequence);
+			Sequence seq = sequences.get(sequence);
 			
-			if(index >= l){
+			if(index >= seq.length){
 				throw new RuntimeException("Invalid start index: "+index);
 			}
 			
 			if(length == -1){
-				length = l;
+				length = seq.length;
 			}
 			
 			ExperiencePoolSample previous = null;
@@ -198,9 +206,9 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 				}
 				
 				if(i==0){
-					getSample(sample, start, true);
+					getSample(sample, seq.start, true);
 				} else {
-					getSample(sample, start+i, false);
+					getSample(sample, seq.start+i, false);
 				}
 				
 				previous = sample;
@@ -243,25 +251,22 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 					// cycle 
 					index = 0;
 					
-					if(sequenceStarts.get(0) == 0){
-						int removed = sequenceLengths.remove(0);
-						noSamples-=removed;
-						sequenceStarts.remove(0);
+					if(sequences.get(0).start == 0){
+						Sequence removed = sequences.remove(0);
+						noSamples -= removed.length;
 					}
 				}
 
 				if(getBufferStart() > 0 && index == getBufferStart()){
-					int removed = sequenceLengths.remove(0);
-					noSamples-=removed;
-					sequenceStarts.remove(0);
+					Sequence removed = sequences.remove(0);
+					noSamples -= removed.length;
 				}
 				
 				writeData(index*sampleSize, buffer);
 				index++;
 			}
 		
-			sequenceStarts.add(start);
-			sequenceLengths.add(size);
+			sequences.add(new Sequence(start, size));
 			noSamples+= size;
 			
 		} catch(Throwable t){ 
@@ -275,8 +280,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	public void reset() {
 		try {
 			noSamples = 0;
-			sequenceLengths.clear();
-			sequenceStarts.clear();
+			sequences.clear();
 			lock.writeLock().lock();
 		} finally {
 			lock.writeLock().unlock();
@@ -349,22 +353,22 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	}
 	
 	private int getBufferPosition(int index){
-		int startIndex = sequenceStarts.get(0);
+		int startIndex = sequences.get(0).start;
 		int pos = (startIndex+index) % maxSize;
 		return pos*sampleSize;
 	}
 	
 	private int getBufferStart(){
-		if(sequenceStarts.isEmpty())
+		if(sequences.isEmpty())
 			return 0;
-		return sequenceStarts.get(0);
+		return sequences.get(0).start;
 	}
 	
 	private int getBufferEnd(){
-		if(sequenceLengths.isEmpty())
+		if(sequences.isEmpty())
 			return 0;
-		int last = sequenceLengths.size() - 1;
-		return  (sequenceStarts.get(last)+sequenceLengths.get(last)) % maxSize;
+		Sequence last = sequences.get(sequences.size() - 1);
+		return  (last.start+last.length) % maxSize;
 	}
 	
 	protected abstract void setup(Map<String, Object> config);
