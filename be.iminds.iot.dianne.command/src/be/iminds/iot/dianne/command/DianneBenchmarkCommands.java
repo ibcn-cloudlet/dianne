@@ -26,6 +26,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 
 import org.apache.felix.service.command.Descriptor;
 import org.osgi.framework.BundleContext;
@@ -33,8 +34,6 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
-import be.iminds.iot.dianne.api.dataset.Dataset;
-import be.iminds.iot.dianne.api.dataset.DianneDatasets;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
@@ -118,10 +117,15 @@ public class DianneBenchmarkCommands {
 		// deploy the NN
 		NeuralNetworkInstanceDTO nni = null;
 		try {
-			nni = platform.deployNeuralNetwork(nnName);
-		} catch (InstantiationException e1) {
-			System.out.println("Neural network "+nnName+" could not be deployed...");
-			return;
+			UUID nnId = UUID.fromString(nnName);
+			nni = platform.getNeuralNetworkInstance(nnId);
+		} catch (IllegalArgumentException e1) {
+			try {
+				nni = platform.deployNeuralNetwork(nnName);
+			} catch (InstantiationException e2) {
+				System.out.println("Neural network "+nnName+" could not be deployed...");
+				return;
+			}
 		}
 		NeuralNetwork nn = null;
 		try {
