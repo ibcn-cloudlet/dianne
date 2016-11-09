@@ -62,7 +62,8 @@ import be.iminds.iot.simulator.api.Simulator;
 				 "aiolos.unique=be.iminds.iot.dianne.api.rl.Environment",
 				 "aiolos.combine=*",
 				 "osgi.command.scope=kukaagent",
-				 "osgi.command.function=rest",
+				 "osgi.command.function=end",
+				 "osgi.command.function=pause",
 				 "osgi.command.function=go",
 				 "osgi.command.function=reward"})
  * 
@@ -149,6 +150,7 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		// calculate reward
 		try {
 			reward = calculateReward();
+			System.out.println("REWARD "+reward);
 		} catch(Exception e){
 			throw new RuntimeException("Failed calculating reward");
 		}
@@ -214,7 +216,11 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		go();
 	}
 	
-	public void rest(){
+	public void end(){
+		terminal = true;
+	}
+	
+	public void pause(){
 		pause = true;
 	}
 	
@@ -321,7 +327,7 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 	public void setup(Map<String, String> config) {
 		if(active)
 			throw new RuntimeException("This Environment is already active");
-
+		
 		configure(config);
 		
 		active = true;

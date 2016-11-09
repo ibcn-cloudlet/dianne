@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeoutException;
 
+import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
+import be.iminds.iot.dianne.rl.environment.kuka.config.FetchCanConfig;
 import be.iminds.iot.simulator.api.Orientation;
 import be.iminds.iot.simulator.api.Position;
 
@@ -40,17 +42,16 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 	
 	public static final String NAME = "Kuka";
 	
+	protected static final float MAX_DISTANCE = 2.4f;
 	protected static final float GRIP_DISTANCE = 0.565f;
 	protected static final float MARGIN = 0.005f;
-
-	// stop early when simulating
-	// this will not simulate the grip action, and calculate end reward purely based on end position
-	protected boolean earlyStop = true;
+	
+	protected FetchCanConfig config;
 	
 	protected Random r = new Random(System.currentTimeMillis());
 
-	private float initialDistance = Float.NaN;
-	
+	private float previousDistance;
+
 	@Override
 	protected float calculateReward() throws Exception {
 		
@@ -62,7 +63,6 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 			// else, reward between 0 and 0.5 as one gets closer to the optimal grip point
 			if(simulator.checkCollisions("Border")){
 				terminal = true;
-				initialDistance = Float.NaN;
 				return -1.0f;
 			}
 	
@@ -77,39 +77,34 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 			float d2 = dx*dx + dy*dy;
 			float distance = (float)Math.sqrt(d2);
 			
-			if(Float.isNaN(initialDistance)){
-				initialDistance = distance;
-			}
-			
 			
 			// if terminal give reward according to position relative to can
 			if(terminal){
-				if(earlyStop){
+				if(config.earlyStop){
 					// use position only
 					if(Math.abs(dx) <= MARGIN
 						&& Math.abs(dy) <= MARGIN){
-						initialDistance = Float.NaN;
 						return 1.0f;
 					} 
 				} else {
 					// simulate actual grip action
 					if(d.x > 0){
 						// can is lifted, reward 1
-						initialDistance = Float.NaN;
 						return 1.0f;
 					} 
 				}
 				
-				// no succes, give reward according to traject done towards Can
-				// negative = moved further away from can
-				// positive = moved closer towards can
-				float delta = (initialDistance-distance)/initialDistance;
-				initialDistance = Float.NaN;
-				return delta;
-				
-			} else {
-				// no intermediate reward
+				// no reward if wrong grip
 				return 0.0f;
+			} else {
+				// also give intermediate reward for each action?
+				if(config.intermediateReward){
+					float r = - previousDistance / MAX_DISTANCE;
+					previousDistance = distance;
+					return r;
+				} else {
+					return 0.0f;
+				}
 			}
 		} 
 		
@@ -123,9 +118,16 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 		
 		// random init position and orientation of the robot
 		Position p = simulator.getPosition("youBot");
-		x = (r.nextFloat()-0.5f);
-		y = (r.nextFloat()-0.5f)*1.8f;
-		o = (r.nextFloat()-0.5f)*6.28f;
+		
+		if(config.difficulty == 0){
+			x = 0;
+			y = 0;
+			o = 0;
+		} else {
+			x = (r.nextFloat()-0.5f);
+			y = (r.nextFloat()-0.5f)*1.8f;
+			o = (r.nextFloat()-0.5f)*6.28f;
+		}
 		// somehow two times setPosition was required to actually get the position set
 		// TODO check in VREP simulator source?
 		simulator.setPosition("youBot", new Position(x, y, p.z));
@@ -137,7 +139,11 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 		while(s < 0.15f) { // can should not be colliding with youbot from start
 			p = simulator.getPosition("Can1");
 			x = (r.nextFloat()-0.5f)*1.6f;
-			y = (r.nextFloat()-0.5f)*2.4f;
+			if(config.difficulty == 0){
+				y = (0.125f + 3*r.nextFloat()/8f)*2.4f;
+			} else {
+				y = (r.nextFloat()-0.5f)*2.4f;
+			}
 			simulator.setPosition("Can1", new Position(x, y, 0.06f));
 			simulator.setOrientation("Can1", new Orientation(0, 0 ,1.6230719f));
 			
@@ -190,16 +196,8 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 			entities.put("hokuyo", "be.iminds.iot.sensor.range.ros.LaserScanner");
 			
 			simulator.loadScene("scenes/youbot_fetch_can.ttt", entities);
-			
-			// by default early stop in simulator
-			earlyStop = true;
-		} else {
-			// by default don't stop early in real world
-			earlyStop = false;
-		}
+		} 
 		
-		if(config.containsKey("earlyStop")){
-			earlyStop = Boolean.parseBoolean(config.get("earlyStop"));
-		}
+		this.config = DianneConfigHandler.getConfig(config, FetchCanConfig.class);
 	}
 }

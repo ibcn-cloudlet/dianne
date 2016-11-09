@@ -40,7 +40,8 @@ import be.iminds.iot.robot.api.Arm;
 				 "aiolos.unique=true",
 				 "aiolos.combine=*",
 				 "osgi.command.scope=fetchcancont",
-				 "osgi.command.function=rest",
+				 "osgi.command.function=end",
+				 "osgi.command.function=pause",
 				 "osgi.command.function=go",
 				 "osgi.command.function=reward"})
 public class FetchCanContinuousEnvironment extends AbstractFetchCanEnvironment {
@@ -48,7 +49,6 @@ public class FetchCanContinuousEnvironment extends AbstractFetchCanEnvironment {
 	public static final String NAME = "FetchCanContinuous";
 	
 	private float STOP_THRESHOLD = 0.01f;
-	private float MAX_SPEED = 0.1f;
 	
 	@Override
 	public String getName(){
@@ -72,7 +72,7 @@ public class FetchCanContinuousEnvironment extends AbstractFetchCanEnvironment {
 			
 			kukaPlatform.stop();	
 
-			if(!earlyStop) {
+			if(!config.earlyStop) {
 				Promise<Arm> result = kukaArm.openGripper()
 					.then(p -> kukaArm.setPositions(2.92f, 0.0f, 0.0f, 0.0f, 2.875f))
 					.then(p -> kukaArm.setPositions(2.92f, 1.76f, -1.37f, 2.55f))
@@ -101,23 +101,20 @@ public class FetchCanContinuousEnvironment extends AbstractFetchCanEnvironment {
 			
 			}
 		} else {
-			kukaPlatform.move(action[0]*MAX_SPEED, action[1]*MAX_SPEED, action[2]*MAX_SPEED*2);
+			kukaPlatform.move(action[0]*config.speed, action[1]*config.speed, action[2]*config.speed*2);
 					
 		}
-		
-		// simulate an iteration further
-		if(simulator != null)
-			simulator.tick();	
 	
+		// simulate an iteration further
+		if(simulator != null){
+			for(int i=0;i<=config.skip;i++){
+				simulator.tick();
+			}
+		}
 	}
 	
 	@Override
 	public void configure(Map<String, String> config) {
-		
-		if(config.containsKey("speed")){
-			this.MAX_SPEED = Float.parseFloat(config.get("speed"));
-		}
-		
 		if(config.containsKey("stop_threshold")){
 			this.STOP_THRESHOLD = Float.parseFloat(config.get("stop_threshold"));
 		}

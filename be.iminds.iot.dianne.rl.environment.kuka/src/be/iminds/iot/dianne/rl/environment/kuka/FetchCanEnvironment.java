@@ -41,15 +41,14 @@ import be.iminds.iot.robot.api.Arm;
 				 "aiolos.unique=true",
 				 "aiolos.combine=*",
 				 "osgi.command.scope=fetchcan",
-				 "osgi.command.function=rest",
+				 "osgi.command.function=end",
+				 "osgi.command.function=pause",
 				 "osgi.command.function=go",
 				 "osgi.command.function=reward",
 				 "osgi.command.function=load"})
 public class FetchCanEnvironment extends AbstractFetchCanEnvironment {
 	
 	public static final String NAME = "FetchCan";
-	
-	private float speed = 0.1f;
 	
 	@Override
 	public String getName(){
@@ -67,22 +66,22 @@ public class FetchCanEnvironment extends AbstractFetchCanEnvironment {
 		
 		switch(action){
 		case 0:
-			kukaPlatform.move(0f, speed, 0f);
+			kukaPlatform.move(0f, config.speed, 0f);
 			break;
 		case 1:
-			kukaPlatform.move(0f, -speed, 0f);
+			kukaPlatform.move(0f, -config.speed, 0f);
 			break;
 		case 2:
-			kukaPlatform.move(speed, 0f, 0f);
+			kukaPlatform.move(config.speed, 0f, 0f);
 			break;
 		case 3:
-			kukaPlatform.move(-speed, 0f, 0f);
+			kukaPlatform.move(-config.speed, 0f, 0f);
 			break;
 		case 4:
-			kukaPlatform.move(0f, 0.f, 2*speed);
+			kukaPlatform.move(0f, 0.f, 2*config.speed);
 			break;
 		case 5:
-			kukaPlatform.move(0f, 0.f, -2*speed);
+			kukaPlatform.move(0f, 0.f, -2*config.speed);
 			break;	
 		case 6:
 			terminal = true;
@@ -90,7 +89,7 @@ public class FetchCanEnvironment extends AbstractFetchCanEnvironment {
 			kukaPlatform.stop();	
 
 			
-			if(earlyStop){
+			if(config.earlyStop){
 				break;
 			}
 			
@@ -124,19 +123,11 @@ public class FetchCanEnvironment extends AbstractFetchCanEnvironment {
 		}
 		
 		// simulate an iteration further
-		if(simulator != null)
-			simulator.tick();	
-	
-	}
-	
-	@Override
-	public void configure(Map<String, String> config) {
-		
-		if(config.containsKey("speed")){
-			this.speed = Float.parseFloat(config.get("speed"));
+		if(simulator != null){
+			for(int i=0;i<=config.skip;i++){
+				simulator.tick();
+			}
 		}
-		
-		super.configure(config);
 	}
 	
 	@Override

@@ -17,8 +17,9 @@ Bundle-Name: Dianne Kuka Environments
 Private-Package: be.iminds.iot.dianne.rl.environment.kuka
 Export-Package: \
 	be.iminds.iot.dianne.api.rl.environment,\
+	be.iminds.iot.simulator.api,\
 	be.iminds.iot.dianne.rl.environment.kuka.api,\
-	be.iminds.iot.simulator.api
+	be.iminds.iot.dianne.rl.environment.kuka.config
 	
 -includeresource: scenes=scenes	
 	

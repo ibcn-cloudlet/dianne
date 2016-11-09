@@ -20,18 +20,43 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.rl.environment.kuka.api;
+package be.iminds.iot.dianne.rl.environment.kuka.config;
 
-public interface KukaEnvironment {
+public class FetchCanConfig {
 
-	public void pause();
+	/**
+	 * stop early when simulating
+	 * 
+	 * this will not simulate the grip action, and calculate end reward purely based on end position
+	 */
+	public boolean earlyStop = true;
 	
-	public void go();
+	/**
+	 * environment difficulty (the higher the more difficult)
+	 * 
+	 * can be used for curriculum learning
+	 * 
+	 * difficulty = 0 : fixed youBot, Can in front in sight
+	 * difficulty = 1 : random youBot / Can positions
+	 * ...
+	 * 
+	 * TODO make enum for this?
+	 */
+	public int difficulty = 1;
 	
-	public void end();
+	/**
+	 * Give intermediate reward on each action based on the distance covered towards Can
+	 */
+	public boolean intermediateReward = true;
 	
-	public void reward(float r);
+	/**
+	 * Skip a number of frames after each action, keeping executing the same action
+	 */
+	public int skip = 0;
 	
-	public void load();
+	/**
+	 * Speed (in m/s) the Kuka base is steered (max speed in case of continuous actions)
+	 */
+	public float speed = 0.1f;
 	
 }
