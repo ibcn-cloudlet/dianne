@@ -93,18 +93,15 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 						return 1.0f;
 					} 
 				}
-				
-				// no reward if wrong grip
-				return 0.0f;
+			}
+			
+			// also give intermediate reward for each action?
+			if(config.intermediateReward){
+				float r = - previousDistance / MAX_DISTANCE;
+				previousDistance = distance;
+				return r;
 			} else {
-				// also give intermediate reward for each action?
-				if(config.intermediateReward){
-					float r = - previousDistance / MAX_DISTANCE;
-					previousDistance = distance;
-					return r;
-				} else {
-					return 0.0f;
-				}
+				return 0.0f;
 			}
 		} 
 		
