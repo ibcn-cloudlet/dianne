@@ -187,7 +187,6 @@ function refreshStatus(){
 		status.uptime = moment.duration(moment().diff(moment(status.bootTime))).humanize();
 		status.spaceLeft = status.spaceLeft/1000000000;
 		status.spaceLeft = status.spaceLeft.toFixed(1);
-		status.devices = status.learn+status.eval+status.idle;
 
  	 	$("#status").empty();
  	    var template = $('#stat').html();

@@ -31,13 +31,14 @@ public class Status {
 	public final int eval;
 	public final int act;
 	public final int idle;
+	public final int devices;
 
 	public final long spaceLeft;
 	
 	public final long bootTime;
 	
 	public Status(int queued, int running,
-			int learn, int eval, int act, int idle,
+			int learn, int eval, int act, int idle, int devices,
 			long spaceLeft, long bootTime){
 		this.queued = queued;
 		this.running = running;
@@ -45,6 +46,7 @@ public class Status {
 		this.eval = eval;
 		this.act = act;
 		this.idle = idle;
+		this.devices = devices;
 		this.spaceLeft = spaceLeft;
 		this.bootTime = bootTime;
 	}

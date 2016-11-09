@@ -136,7 +136,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 
 		
 		long spaceLeft = repository.spaceLeft();
-		Status currentStatus = new Status(queueLearn.size()+queueEval.size(), running.size(), learn, eval, act, idle, spaceLeft, boot);
+		Status currentStatus = new Status(queueLearn.size()+queueEval.size(), running.size(), learn, eval, act, idle, devices.size(), spaceLeft, boot);
 		return currentStatus;
 	}
 	
