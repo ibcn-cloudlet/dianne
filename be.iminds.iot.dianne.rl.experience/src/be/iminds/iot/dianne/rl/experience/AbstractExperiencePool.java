@@ -25,6 +25,8 @@ package be.iminds.iot.dianne.rl.experience;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import be.iminds.iot.dianne.api.dataset.AbstractDataset;
@@ -42,6 +44,8 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	protected int[] actionDims;
 	protected int actionSize;
 	protected int sampleSize;
+	
+	protected ExecutorService queuedAddSequenceThread = Executors.newSingleThreadExecutor();
 	
 	public class Sequence {
 		public final int start;
@@ -221,8 +225,37 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		}
 		
 		float[] buffer = new float[sampleSize];
+		boolean locked = false;
 		try {
-			lock.writeLock().lock();
+			locked = lock.writeLock().tryLock();
+			
+			if(!locked){
+				// take copy of the sequence and add to the queuedAddSequence thread...
+				// this allows for agents not having to keep on waiting until sequence is added...
+				final List<ExperiencePoolSample> copy = new ArrayList<>(sequence.size());
+				for(ExperiencePoolSample s : sequence){
+					ExperiencePoolSample c = new ExperiencePoolSample();
+					c.input = s.input.copyInto(c.input);
+					c.target = s.target.copyInto(c.target);
+					c.nextState = s.nextState.copyInto(c.nextState);
+					c.reward = s.reward.copyInto(c.reward);
+					c.terminal = s.reward.copyInto(c.terminal);
+					copy.add(c);
+				}
+				
+				// TODO should we make sure we are not getting flooded with addSequences 
+				// and ignore addSequence calls once queue gets crowded?
+				queuedAddSequenceThread.submit(() ->{
+					try {
+						lock.writeLock().lock();
+						System.out.println("Delayed addition of sequence...");
+						addSequence(copy);
+					} finally {
+						lock.writeLock().unlock();
+					}
+				});
+				return;
+			}
 
 			int index = getBufferEnd();
 			int start = index == maxSize ? 0 : index;
@@ -258,7 +291,8 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		} catch(Throwable t){ 
 			t.printStackTrace();
 		} finally {
-			lock.writeLock().unlock();
+			if(locked)
+				lock.writeLock().unlock();
 		}
 	}
 	
