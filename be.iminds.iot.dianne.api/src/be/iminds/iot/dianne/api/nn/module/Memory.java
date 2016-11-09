@@ -47,6 +47,11 @@ public interface Memory extends Module {
 	public void triggerBackward(final String... tags);
 	
 	/**
+	 * Reset the memory to initial state (and zero out any gradOut)
+	 */
+	public void reset();
+	
+	/**
 	 * Get the current raw memory data
 	 * @return current memory Tensor
 	 */

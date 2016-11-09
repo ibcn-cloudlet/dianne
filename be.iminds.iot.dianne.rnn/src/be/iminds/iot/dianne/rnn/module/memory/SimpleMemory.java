@@ -56,6 +56,11 @@ public class SimpleMemory extends AbstractMemory {
 	}
 
 	@Override
+	protected void resetMemory(){
+		memory.fill(0.0f);
+	}
+	
+	@Override
 	protected void backward() {
 		// just forward gradOutput
 		gradInput = gradOutput;

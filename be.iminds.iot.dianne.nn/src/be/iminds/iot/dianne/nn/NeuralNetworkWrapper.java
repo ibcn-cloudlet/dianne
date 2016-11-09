@@ -703,6 +703,7 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		
 		trainables.values().stream().forEach(Trainable::zeroDeltaParameters);
 
+		memories.values().stream().forEach(Memory::reset);
 	}
 
 	@Override

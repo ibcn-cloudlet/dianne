@@ -37,13 +37,13 @@ public abstract class AbstractMemory extends AbstractModule implements Memory {
 	public AbstractMemory(int size) {
 		super();
 		this.memory = new Tensor(size);
-		this.memory.fill(0.0f);
+		resetMemory();
 	}
 
 	public AbstractMemory(UUID id, int size) {
 		super(id);
 		this.memory = new Tensor(size);
-		this.memory.fill(0.0f);
+		resetMemory();
 	}
 	
 	public AbstractMemory(Tensor memory) {
@@ -110,6 +110,9 @@ public abstract class AbstractMemory extends AbstractModule implements Memory {
 	protected abstract void updateMemory();
 	protected abstract void updateOutput();
 	
+	// reset memory to an initial state (e.g. zeros or some trainable params)
+	protected abstract void resetMemory();
+	
 	@Override
 	public synchronized void triggerForward(String... tags) {
 		this.tags = tags;
@@ -158,6 +161,16 @@ public abstract class AbstractMemory extends AbstractModule implements Memory {
 			callPrevious();
 	}
 
+	@Override
+	public void reset(){
+		if(gradInput==null){
+			gradInput = new Tensor(memory.size());
+		}
+		gradInput.fill(0.0f);
+		
+		resetMemory();
+	}
+	
 	@Override
 	public Tensor getMemory() {
 		return memory;

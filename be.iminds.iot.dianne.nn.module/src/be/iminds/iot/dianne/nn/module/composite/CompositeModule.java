@@ -129,6 +129,11 @@ public class CompositeModule extends AbstractTrainableModule implements Composit
 	}
 
 	@Override
+	public void reset() {
+		nn.getMemories().values().forEach(m -> m.reset());
+	}
+	
+	@Override
 	public Tensor getMemory() {
 		return memory;
 	}
