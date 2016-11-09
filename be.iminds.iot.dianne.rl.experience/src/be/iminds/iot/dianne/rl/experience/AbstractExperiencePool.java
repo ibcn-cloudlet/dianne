@@ -106,22 +106,12 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 
 	@Override
 	public int size() {
-		try {
-			lock.readLock().lock();
-			return noSamples;
-		} finally {
-			lock.readLock().unlock();
-		}
+		return noSamples;
 	}
 	
 	@Override
 	public int sequences(){
-		try {
-			lock.readLock().lock();
-			return sequences.size();
-		} finally {
-			lock.readLock().unlock();
-		}
+		return sequences.size();
 	}
 	
 	@Override
@@ -141,13 +131,8 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	
 	@Override
 	public ExperiencePoolSample getSample(ExperiencePoolSample s, int index){
-		try {
-			lock.readLock().lock();
-			s = getSample(s, index, true);
-		} finally {
-			lock.readLock().unlock();
-		}
-		return s;
+		// no locking since that kills performance and every part of the experience pool should be a valid xp sample
+		return getSample(s, index, true);
 	}
 		
 	@Override
@@ -156,15 +141,11 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 			b = new ExperiencePoolBatch(indices.length, stateDims, actionDims);
 		}
 		
-		try {
-			lock.readLock().lock();
-			int i = 0;
-			for(int index : indices){
-				getSample(b.getSample(i++), index, true);
-			}
-		} finally {
-			lock.readLock().unlock();
+		int i = 0;
+		for(int index : indices){
+			getSample(b.getSample(i++), index, true);
 		}
+		
 		return b;
 	}
 
@@ -180,7 +161,10 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		}
 		
 		try {
-			lock.readLock().lock();
+			// only lock if you want the first sequence ... this is the only one that might get overridden when no lock taken
+			if(sequence==0){
+				lock.readLock().lock();
+			}
 			
 			Sequence seq = sequences.get(sequence);
 			
@@ -215,7 +199,9 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 			}
 			
 		} finally {
-			lock.readLock().unlock();
+			if(sequence == 0){
+				lock.readLock().unlock();
+			}
 		}
 
 		return s;
