@@ -282,7 +282,7 @@ public class AgentImpl implements Agent {
 	
 				for(i = 0; acting; i++) {
 					// sync parameters
-					if(sync){
+					if(sync && count == 0){
 						for(int k=0;k<nns.length;k++){
 							try {
 								nns[k].loadParameters(config.tag);
