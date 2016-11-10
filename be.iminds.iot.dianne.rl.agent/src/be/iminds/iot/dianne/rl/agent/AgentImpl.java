@@ -333,7 +333,11 @@ public class AgentImpl implements Agent {
 							// sequence finished, upload to pool
 							upload = new ArrayList<>(uploadBuffer.subList(0, count));
 							if(pool!=null){
-								pool.addSequence(upload);
+								try {
+									pool.addSequence(upload);
+								} catch(Exception e){
+									System.out.println("Failed to upload to experience pool "+e.getMessage());
+								}
 							}
 							count = 0;
 						}
