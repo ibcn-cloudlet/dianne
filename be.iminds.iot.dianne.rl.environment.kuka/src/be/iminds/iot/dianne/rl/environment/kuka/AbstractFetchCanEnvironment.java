@@ -51,9 +51,17 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 	protected Random r = new Random(System.currentTimeMillis());
 
 	private float previousDistance;
+	private int count = 0;
+	
+	protected boolean grip = false;
+
 
 	@Override
 	protected float calculateReward() throws Exception {
+		if(count++ == config.maxActions){
+			count = 0;
+			terminal = true;
+		}
 		
 		// calculate reward based on simulator info
 		if(simulator != null){
@@ -62,7 +70,6 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 			// in case of succesful grip, reward 1, insuccesful grip, -1
 			// else, reward between 0 and 0.5 as one gets closer to the optimal grip point
 			if(simulator.checkCollisions("Border")){
-				terminal = true;
 				return -1.0f;
 			}
 	
@@ -72,27 +79,37 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 			float dx = d.y;
 			float dy = d.z - GRIP_DISTANCE;
 	
+			// if can is too close, give same reward as collision
+			if(Math.abs(d.y) < 0.23 && Math.abs(d.z) < 0.37){
+				return -1.0f;
+			}
+			
 			// dy should come close to 0.565 for succesful grip
 			// dx should come close to 0
 			float d2 = dx*dx + dy*dy;
 			float distance = (float)Math.sqrt(d2);
 			
 			
-			// if terminal give reward according to position relative to can
-			if(terminal){
+			// if grip give reward according to position relative to can
+			if(grip){
 				if(config.earlyStop){
 					// use position only
 					if(Math.abs(dx) <= MARGIN
 						&& Math.abs(dy) <= MARGIN){
+						// succesful grip, mark as terminal
+						terminal = true;
 						return 1.0f;
 					} 
 				} else {
 					// simulate actual grip action
 					if(d.x > 0){
-						// can is lifted, reward 1
+						// can is lifted, reward 1 and mark as terminal
+						terminal = true;
 						return 1.0f;
 					} 
 				}
+				
+				grip = false;
 			}
 			
 			// also give intermediate reward for each action?

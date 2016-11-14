@@ -59,4 +59,8 @@ public class FetchCanConfig {
 	 */
 	public float speed = 0.1f;
 	
+	/**
+	 * Max number of actions before terminating anyhow
+	 */
+	public int maxActions = 100;
 }

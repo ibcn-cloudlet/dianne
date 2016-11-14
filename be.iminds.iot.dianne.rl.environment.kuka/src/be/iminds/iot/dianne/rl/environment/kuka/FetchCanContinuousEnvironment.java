@@ -67,8 +67,7 @@ public class FetchCanContinuousEnvironment extends AbstractFetchCanEnvironment {
 		if(  action[0] < STOP_THRESHOLD
 		  && action[1] < STOP_THRESHOLD
 		  && action[2] < STOP_THRESHOLD){
-			
-			terminal = true;
+			grip = true;
 			
 			kukaPlatform.stop();	
 

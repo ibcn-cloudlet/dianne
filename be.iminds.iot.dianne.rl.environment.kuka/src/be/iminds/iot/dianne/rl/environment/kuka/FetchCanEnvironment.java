@@ -23,7 +23,6 @@
 package be.iminds.iot.dianne.rl.environment.kuka;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.util.promise.Promise;
@@ -84,11 +83,10 @@ public class FetchCanEnvironment extends AbstractFetchCanEnvironment {
 			kukaPlatform.move(0f, 0.f, -2*config.speed);
 			break;	
 		case 6:
-			terminal = true;
+			grip = true;
 			
 			kukaPlatform.stop();	
 
-			
 			if(config.earlyStop){
 				break;
 			}

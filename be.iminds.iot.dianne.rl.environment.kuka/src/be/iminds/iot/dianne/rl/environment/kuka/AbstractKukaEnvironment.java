@@ -138,13 +138,7 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		try {
 			executeAction(action);
 		} catch (Exception e) {
-			throw new RuntimeException("Failed executing action "+action);
-		}
-		
-		if(simulator == null && terminal){
-			// pause the agent on termination to enter reward
-			pause = true;
-			System.out.println("Enter your reward for this episode (type \"reward x\" in CLI with x your reward as floating point)");
+			throw new RuntimeException("Failed executing action "+action, e);
 		}
 		
 		// calculate reward
@@ -152,6 +146,12 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 			reward = calculateReward();
 		} catch(Exception e){
 			throw new RuntimeException("Failed calculating reward");
+		}
+		
+		if(simulator == null && terminal){
+			// pause the agent on termination to enter reward
+			pause = true;
+			System.out.println("Enter your reward for this episode (type \"reward x\" in CLI with x your reward as floating point)");
 		}
 		
 		// pause in case one wants to set reward
@@ -177,6 +177,7 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		if(terminal){
 			return null;
 		}
+		
 		return observation.copyInto(t);
 	}
 
