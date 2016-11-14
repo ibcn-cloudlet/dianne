@@ -275,6 +275,9 @@ public class AgentImpl implements Agent {
 				// make sure to sync initially
 				sync = true;
 				
+				// set count to zero
+				count = 0;
+				
 				// setup action strategy
 				strategy.setup(properties, env, nns);
 		
@@ -308,7 +311,7 @@ public class AgentImpl implements Agent {
 						s.terminal = new Tensor(1);
 					}
 					s.terminal.set(s.nextState == null ? 0.0f : 1.0f, 0);
-	
+					
 					if(config.trace && i % config.traceInterval == 0){
 						System.out.println(progress);
 					}
@@ -345,8 +348,13 @@ public class AgentImpl implements Agent {
 	
 					// if this is a terminal state - reset environment and start over
 					if(s.isTerminal()){
-						env.reset();
-						s.input = env.getObservation(s.input);
+						do {
+							env.reset();
+							s.input = env.getObservation(s.input);
+							if(s.input==null){
+								System.out.println("Observation null after reset, trying to reinitialize environment.");
+							}
+						} while(s.input == null);
 					} else {
 						s.input = s.nextState.copyInto(s.input);
 					}
@@ -360,7 +368,6 @@ public class AgentImpl implements Agent {
 				
 				acting = false;
 				
-				System.out.println("Error during acting");
 				t.printStackTrace();
 				
 				publishError(t);
