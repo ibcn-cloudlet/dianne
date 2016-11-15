@@ -62,7 +62,7 @@
 	be.iminds.iot.simulator.vrep;version='[0.2.0,0.3.0)',\
 	be.iminds.iot.sensor.range.ros;version='[0.2.0,0.3.0)',\
 	be.iminds.iot.robot.youbot.ros;version='[0.2.0,0.3.0)',\
-	be.iminds.iot.robot.input;version='[0.2.0,0.3.0)'
+	be.iminds.iot.robot.input.servlet;version='[0.2.0,0.3.0)'
 	
 -runproperties.kuka: \
 	ros.core.native=true,\
@@ -71,7 +71,7 @@
 	aiolos.proxy.ignore.extra="be.iminds.iot.ros.*,org.ros.*,\
 		be.iminds.iot.dianne.api.rl.environment.*,be.iminds.iot.dianne.rl.environment.*,\
 		be.iminds.iot.simulator.api.*,be.iminds.iot.robot.api.*,be.iminds.iot.sensor.api.*"
-		
+				
 -runbundles.things: \
 	be.iminds.iot.dianne.io.things;version=${dianne.version}
 		
