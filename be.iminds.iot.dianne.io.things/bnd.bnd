@@ -9,7 +9,8 @@ Bundle-Version: 0.6.0.${tstamp}
 	be.iminds.iot.dianne.tensor.util;version=latest,\
 	osgi.promise,\
 	be.iminds.iot.robot.api;version=0.2,\
-	be.iminds.iot.sensor.api;version=0.2
+	be.iminds.iot.sensor.api;version=0.2,\
+	be.iminds.iot.ros.joystick
 -dsannotations: *
 Private-Package: \
 	be.iminds.iot.dianne.things.output,\
@@ -19,5 +20,6 @@ Export-Package: \
 	be.iminds.iot.sensor.api,\
 	be.iminds.iot.things.api,\
 	be.iminds.iot.things.api.camera,\
-	be.iminds.iot.things.api.lamp
+	be.iminds.iot.things.api.lamp,\
+	be.iminds.iot.ros.joystick.api
 Bundle-Name: Dianne Thing I/O adapters

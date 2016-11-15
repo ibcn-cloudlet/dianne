@@ -168,7 +168,7 @@ public class ThingsOutputs implements DianneOutputs {
 		synchronized(things){
 			o = things.values().stream().filter(t -> t.name.equals(output)).findFirst().get();
 		}
-		o.disconnect();
+		o.disconnect(nnId, outputId);
 	}
 
 }

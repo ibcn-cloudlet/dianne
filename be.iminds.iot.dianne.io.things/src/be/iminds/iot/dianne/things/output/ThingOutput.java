@@ -1,7 +1,9 @@
 package be.iminds.iot.dianne.things.output;
 
 import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.UUID;
 
 import org.osgi.framework.BundleContext;
@@ -16,7 +18,7 @@ public abstract class ThingOutput implements ForwardListener {
 	public final String name;
 	public final String type;
 	
-	private ServiceRegistration registration;
+	private Map<String, ServiceRegistration> registrations = new HashMap<>();
 	
 	public ThingOutput(UUID id, String name, String type){
 		this.id = id;
@@ -33,14 +35,26 @@ public abstract class ThingOutput implements ForwardListener {
 		Dictionary<String, Object> properties = new Hashtable<String, Object>();
 		properties.put("targets", new String[]{target});
 		properties.put("aiolos.unique", true);
-		registration = context.registerService(ForwardListener.class.getName(), this, properties);
+		ServiceRegistration registration = context.registerService(ForwardListener.class.getName(), this, properties);
+		registrations.put(target, registration);
 	}
 	
-	public void disconnect(){
+	public void disconnect(UUID nnId, UUID outputId){
+		String target = nnId.toString()+":"+outputId.toString();
+		ServiceRegistration registration = registrations.remove(target);
 		if(registration != null){
 			registration.unregister();
-			registration = null;
 		}
 	}
 	
+	public void disconnect(){
+		for(ServiceRegistration r : registrations.values()){
+			r.unregister();
+		}
+		registrations.clear();
+	}
+	
+	protected boolean isConnected(){
+		return registrations.size() > 0;
+	}
 }

@@ -22,17 +22,29 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.things.output;
 
+import java.util.Hashtable;
 import java.util.UUID;
 
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 
 import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 import be.iminds.iot.robot.api.Arm;
 import be.iminds.iot.robot.api.OmniDirectional;
+import be.iminds.iot.ros.joystick.api.JoystickEvent;
+import be.iminds.iot.ros.joystick.api.JoystickListener;
 
-public class YoubotOutput extends ThingOutput {
+public class YoubotOutput extends ThingOutput implements JoystickListener {
+	
+	private enum Mode {
+		IGNORE,
+		DISCRETE,
+		CONTINUOUS,
+		STOCHASTIC,
+		ANY
+	}
 	
 	private OmniDirectional base;
 	private Arm arm;
@@ -47,6 +59,10 @@ public class YoubotOutput extends ThingOutput {
 	
 	private volatile boolean skip = false;
 	private volatile boolean stop = false;
+	
+	private ServiceRegistration registration;
+	
+	private Mode mode = Mode.ANY;
 	
 	public YoubotOutput(UUID id, String name){
 		super(id, name, "Youbot");
@@ -67,6 +83,10 @@ public class YoubotOutput extends ThingOutput {
 			return;
 		}
 		
+		if(mode == Mode.IGNORE){
+			return;
+		}
+		
 		if(skip || stop){
 			return;
 		}
@@ -74,7 +94,7 @@ public class YoubotOutput extends ThingOutput {
 		// TODO this code is replicated from the Environment to have same behavior
 		// Should this somehow be merged together?
 		int outputs = output.size(0);
-		if(outputs == 7){
+		if(outputs == 7 && (mode == Mode.DISCRETE || mode == Mode.ANY)){
 			// treat as discrete outputs
 			int action = TensorOps.argmax(output);
 			grip = false;
@@ -101,7 +121,7 @@ public class YoubotOutput extends ThingOutput {
 				grip = true;
 			}
 			
-		} else if(outputs == 3) {
+		} else if(outputs == 3 && (mode == Mode.DISCRETE || mode == Mode.ANY)) {
 			float[] action = output.get();
 			// treat as continuous outputs
 			if(  action[0] < threshold
@@ -141,16 +161,44 @@ public class YoubotOutput extends ThingOutput {
 	}
 
 	public void connect(UUID nnId, UUID outputId, BundleContext context){
-		stop = false;
+		if(!isConnected()){
+			stop = false;
+			registration = context.registerService(JoystickListener.class.getName(), this, new Hashtable<>());
+		}
+		
 		super.connect(nnId, outputId, context);
 	}
 	
-	public void disconnect(){
+	public void disconnect(UUID moduleId, UUID outputId){
 		// stop youbot on disconnect
-		stop = true;
-		super.disconnect();
+		super.disconnect(moduleId, outputId);
 		
-		base.stop();
-		arm.stop();
+		if(!isConnected()){
+			stop = true;
+	
+			base.stop();
+			arm.stop();
+			
+			registration.unregister();
+		}
+	}
+
+	@Override
+	public void onEvent(JoystickEvent e) {
+		switch(e.type){
+		case BUTTON_X_PRESSED:
+			base.stop();
+			mode = Mode.IGNORE;
+			System.out.println("Igore any neural net robot control signals");
+			break;
+		case BUTTON_Y_PRESSED:
+			mode = Mode.DISCRETE;
+			System.out.println("Accepy only discrete neural net robot control signals");
+			break;
+		case BUTTON_A_PRESSED:
+			mode = Mode.CONTINUOUS;
+			System.out.println("Accepy only continous neural net robot control signals");
+			break;
+		}
 	}
 }
