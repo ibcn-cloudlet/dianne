@@ -36,6 +36,12 @@ More info on OpenAI gym, take a look at their [website](https://gym.openai.com/d
 
 ## Running an OpenAI environment in DIANNE
 
+In order to run Jep from your OSGi runtime on Linux, make sure you have LD_PRELOAD defined to the Python 2.7 library .so:
+
+```
+export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libpython2.7.so
+```
+
 To run an OpenAI environment in DIANNE, select "Gym" as DIANNE environment id and pass as config "env=CartPole-v0" to select the actual gym environment to launch.
 
 
