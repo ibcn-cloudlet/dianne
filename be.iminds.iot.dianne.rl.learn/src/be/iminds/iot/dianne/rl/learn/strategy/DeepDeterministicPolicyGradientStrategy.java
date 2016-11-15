@@ -91,6 +91,10 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 		this.sampling = SamplingFactory.createSamplingStrategy(this.config.sampling, dataset, config);
 		this.criterion = CriterionFactory.createCriterion(this.config.criterion, config);
 		this.actorProcessor = ProcessorFactory.createGradientProcessor(this.config.method, actor, config);
+		
+		if(config.containsKey("policyRate"))
+			config.put("learningRate", config.get("policyRate"));
+		
 		this.criticProcessor = ProcessorFactory.createGradientProcessor(this.config.method, critic, config);
 		
 		// Look for the critic inputs corresponding to state & action
