@@ -36,13 +36,14 @@ public class FetchCanConfig {
 	 * 
 	 * can be used for curriculum learning
 	 * 
-	 * difficulty = 0 : fixed youBot, Can in front in sight
-	 * difficulty = 1 : random youBot / Can positions
+	 * difficulty = 0 : fixed youBot, Can right in front
+	 * difficulty = 1 : fixed youBot, Can in front in sight
+	 * difficulty = 2 : random youBot / Can positions
 	 * ...
 	 * 
 	 * TODO make enum for this?
 	 */
-	public int difficulty = 1;
+	public int difficulty = 2;
 	
 	/**
 	 * Give intermediate reward on each action based on the distance covered towards Can

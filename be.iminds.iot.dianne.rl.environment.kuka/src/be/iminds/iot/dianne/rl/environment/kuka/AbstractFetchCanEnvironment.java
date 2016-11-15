@@ -133,7 +133,7 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 		// random init position and orientation of the robot
 		Position p = simulator.getPosition("youBot");
 		
-		if(config.difficulty == 0){
+		if(config.difficulty <= 1){
 			x = 0;
 			y = 0;
 			o = 0;
@@ -152,12 +152,19 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 		float s = 0;
 		while(s < 0.15f) { // can should not be colliding with youbot from start
 			p = simulator.getPosition("Can1");
-			x = (r.nextFloat()-0.5f)*1.6f;
+			
 			if(config.difficulty == 0){
+				x = 0;
+			} else {
+				x = (r.nextFloat()-0.5f)*1.6f;
+			}
+			
+			if(config.difficulty <= 1){
 				y = (0.125f + 3*r.nextFloat()/8f)*2.4f;
 			} else {
 				y = (r.nextFloat()-0.5f)*2.4f;
 			}
+			
 			simulator.setPosition("Can1", new Position(x, y, 0.06f));
 			simulator.setOrientation("Can1", new Orientation(0, 0 ,1.6230719f));
 			
