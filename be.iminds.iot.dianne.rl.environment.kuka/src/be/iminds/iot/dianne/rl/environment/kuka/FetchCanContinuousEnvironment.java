@@ -22,15 +22,17 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rl.environment.kuka;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.util.promise.Promise;
 
 import be.iminds.iot.dianne.api.rl.environment.Environment;
+import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.environment.kuka.api.KukaEnvironment;
+import be.iminds.iot.dianne.rl.environment.kuka.config.FetchCanContinuousConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorOps;
 import be.iminds.iot.robot.api.Arm;
 
 
@@ -43,12 +45,13 @@ import be.iminds.iot.robot.api.Arm;
 				 "osgi.command.function=end",
 				 "osgi.command.function=pause",
 				 "osgi.command.function=go",
-				 "osgi.command.function=reward"})
+				 "osgi.command.function=reward",
+				 "osgi.command.function=load"})
 public class FetchCanContinuousEnvironment extends AbstractFetchCanEnvironment {
 	
 	public static final String NAME = "FetchCanContinuous";
 	
-	private float STOP_THRESHOLD = 0.01f;
+	protected FetchCanContinuousConfig config;
 	
 	@Override
 	public String getName(){
@@ -62,16 +65,12 @@ public class FetchCanContinuousEnvironment extends AbstractFetchCanEnvironment {
 	
 	@Override
 	protected void executeAction(Tensor a) throws Exception {
-		float[] action = a.get();
-
-		if(  action[0] < STOP_THRESHOLD
-		  && action[1] < STOP_THRESHOLD
-		  && action[2] < STOP_THRESHOLD){
+		if(TensorOps.dot(a, a) < config.stopThreshold) {
 			grip = true;
 			
 			kukaPlatform.stop();	
 
-			if(!config.earlyStop) {
+			if(!super.config.earlyStop) {
 				Promise<Arm> result = kukaArm.openGripper()
 					.then(p -> kukaArm.setPositions(2.92f, 0.0f, 0.0f, 0.0f, 2.875f))
 					.then(p -> kukaArm.setPositions(2.92f, 1.76f, -1.37f, 2.55f))
@@ -100,13 +99,13 @@ public class FetchCanContinuousEnvironment extends AbstractFetchCanEnvironment {
 			
 			}
 		} else {
-			kukaPlatform.move(action[0]*config.speed, action[1]*config.speed, action[2]*config.speed*2);
-					
+			float[] action = a.get();
+			kukaPlatform.move(action[0]*super.config.speed, action[1]*super.config.speed, action[2]*super.config.speed*2);
 		}
 	
 		// simulate an iteration further
 		if(simulator != null){
-			for(int i=0;i<=config.skip;i++){
+			for(int i=0;i<=super.config.skip;i++){
 				simulator.tick();
 			}
 		}
@@ -114,15 +113,8 @@ public class FetchCanContinuousEnvironment extends AbstractFetchCanEnvironment {
 	
 	@Override
 	public void configure(Map<String, String> config) {
-		if(config.containsKey("stop_threshold")){
-			this.STOP_THRESHOLD = Float.parseFloat(config.get("stop_threshold"));
-		}
+		this.config = DianneConfigHandler.getConfig(config, FetchCanContinuousConfig.class);
 		
 		super.configure(config);
-	}
-	
-	@Override
-	public void load(){
-		configure(new HashMap<>());
 	}
 }

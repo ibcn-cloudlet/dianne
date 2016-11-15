@@ -29,6 +29,7 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -41,8 +42,11 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.api.rl.environment.EnvironmentListener;
+import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.environment.kuka.api.KukaEnvironment;
+import be.iminds.iot.dianne.rl.environment.kuka.config.KukaConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorOps;
 import be.iminds.iot.robot.api.Arm;
 import be.iminds.iot.robot.api.OmniDirectional;
 import be.iminds.iot.sensor.api.LaserScanner;
@@ -65,12 +69,15 @@ import be.iminds.iot.simulator.api.Simulator;
 				 "osgi.command.function=end",
 				 "osgi.command.function=pause",
 				 "osgi.command.function=go",
-				 "osgi.command.function=reward"})
+				 "osgi.command.function=reward",
+				 "osgi.command.function=load"})
  * 
  * @author tverbele
  *
  */
 public abstract class AbstractKukaEnvironment implements Environment, KukaEnvironment {
+	
+	protected KukaConfig config;
 	
 	private Set<EnvironmentListener> listeners = Collections.synchronizedSet(new HashSet<>());
 	
@@ -144,6 +151,7 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		// calculate reward
 		try {
 			reward = calculateReward();
+			reward -= config.energyPenalization*TensorOps.dot(action, action);
 		} catch(Exception e){
 			throw new RuntimeException("Failed calculating reward");
 		}
@@ -229,6 +237,11 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		synchronized(this){
 			this.notifyAll();
 		}
+	}
+	
+	@Override
+	public void load(){
+		configure(new HashMap<>());
 	}
 	
 	private void waitForResume(){
@@ -328,6 +341,8 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		if(active)
 			throw new RuntimeException("This Environment is already active");
 		
+		this.config = DianneConfigHandler.getConfig(config, KukaConfig.class);
+		
 		configure(config);
 		
 		active = true;
@@ -341,5 +356,4 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		
 		deinit();
 	}
-	
 }

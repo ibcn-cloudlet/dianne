@@ -22,8 +22,6 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rl.environment.kuka;
 
-import java.util.HashMap;
-
 import org.osgi.service.component.annotations.Component;
 import org.osgi.util.promise.Promise;
 
@@ -126,10 +124,5 @@ public class FetchCanEnvironment extends AbstractFetchCanEnvironment {
 				simulator.tick();
 			}
 		}
-	}
-	
-	@Override
-	public void load(){
-		configure(new HashMap<>());
 	}
 }

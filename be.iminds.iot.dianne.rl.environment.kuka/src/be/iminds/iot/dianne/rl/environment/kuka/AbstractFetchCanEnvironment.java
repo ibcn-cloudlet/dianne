@@ -40,8 +40,6 @@ import be.iminds.iot.simulator.api.Position;
  */
 public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironment {
 	
-	public static final String NAME = "Kuka";
-	
 	protected static final float MAX_DISTANCE = 2.4f;
 	protected static final float GRIP_DISTANCE = 0.565f;
 	
