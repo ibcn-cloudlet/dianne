@@ -203,7 +203,6 @@ function createLineChart(container, xAxis, yAxis, scale, title, data, title2, da
             title: {
                 text: yAxis
             },
-            min: 0,
             plotLines: [{
                 value: 0,
                 width: 1,
