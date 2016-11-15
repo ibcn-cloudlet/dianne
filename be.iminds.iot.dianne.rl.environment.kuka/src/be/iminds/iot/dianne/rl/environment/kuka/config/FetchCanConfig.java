@@ -31,6 +31,12 @@ public class FetchCanConfig {
 	 */
 	public boolean earlyStop = true;
 	
+
+	/**
+	 * margin used to determine success in case of early stopping
+	 */
+	public float margin = 0.005f;
+	
 	/**
 	 * environment difficulty (the higher the more difficult)
 	 * 
@@ -64,4 +70,5 @@ public class FetchCanConfig {
 	 * Max number of actions before terminating anyhow
 	 */
 	public int maxActions = 100;
+	
 }

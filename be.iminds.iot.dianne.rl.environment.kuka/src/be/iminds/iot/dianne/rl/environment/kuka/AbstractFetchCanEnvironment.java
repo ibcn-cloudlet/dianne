@@ -44,7 +44,6 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 	
 	protected static final float MAX_DISTANCE = 2.4f;
 	protected static final float GRIP_DISTANCE = 0.565f;
-	protected static final float MARGIN = 0.005f;
 	
 	protected FetchCanConfig config;
 	
@@ -94,8 +93,8 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 			if(grip){
 				if(config.earlyStop){
 					// use position only
-					if(Math.abs(dx) <= MARGIN
-						&& Math.abs(dy) <= MARGIN){
+					if(Math.abs(dx) <= config.margin
+						&& Math.abs(dy) <= config.margin){
 						// succesful grip, mark as terminal
 						terminal = true;
 						return 1.0f;
