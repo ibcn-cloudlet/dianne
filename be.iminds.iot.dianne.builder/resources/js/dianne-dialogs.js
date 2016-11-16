@@ -652,7 +652,8 @@ function createRunModuleDialog(id, moduleItem){
 		}, $(document.body));
 		
 		dialog.find(".content").append("<canvas class='laserCanvas' width='512' height='512' style=\"border:1px solid #000000; margin-left:25px\"></canvas>");
-
+		dialog.find(".content").append("<br/><input type='checkbox' checked onclick='toggleTarget()'> show target position</input>");
+		
 		laserCanvas = dialog.find('.laserCanvas')[0];
 		laserCanvasCtx = laserCanvas.getContext('2d');
 		
@@ -675,11 +676,13 @@ function createRunModuleDialog(id, moduleItem){
 				laserCanvasCtx.stroke();
 				laserCanvasCtx.closePath();
 				
-				laserCanvasCtx.beginPath();
-				laserCanvasCtx.arc(256, 449, 6, 0, 2 * Math.PI, false);
-				laserCanvasCtx.fillStyle = 'red';
-				laserCanvasCtx.fill();
-				laserCanvasCtx.closePath();
+				if(laserTarget){
+					laserCanvasCtx.beginPath();
+					laserCanvasCtx.arc(256, 449, 6, 0, 2 * Math.PI, false);
+					laserCanvasCtx.fillStyle = 'red';
+					laserCanvasCtx.fill();
+					laserCanvasCtx.closePath();
+				}
 			};
 		}
 		
@@ -729,6 +732,11 @@ var mousePos = {x: 0, y:0};
 
 var laserCanvas;
 var laserCanvasCtx;
+var laserTarget = true;
+
+function toggleTarget(){
+	laserTarget = !laserTarget;
+}
 
 var sampleCanvas;
 var sampleCanvasCtx;
