@@ -292,10 +292,16 @@ public class LearnerImpl implements Learner {
 	 * Initialize the parameters for all neural network instances before learning starts
 	 */
 	private void initializeParameters(NeuralNetwork nn){
-		if(config.clean)
+		if(config.clean){
 			resetParameters(nn);
-		else
-			loadParameters(nn);
+		} else {
+			try {
+				loadParameters(nn);
+			} catch(Exception e){
+				System.out.println("Failed to load parameters "+config.tag+", fill with random parameters");
+				resetParameters(nn);
+			}
+		}
 	}
 
 	/**
@@ -306,7 +312,12 @@ public class LearnerImpl implements Learner {
 		nn.storeDeltaParameters(previousParameters.get(nn.getId()), config.tag);
 				
 		// Fetch update again from repo (could be merged from other learners)
-		loadParameters(nn);
+		try {
+			loadParameters(nn);
+		} catch(Exception e){
+			System.out.println("Failed to load parameters after publish?!");
+			e.printStackTrace();
+		}
 			
 		// trigger garbage collection to clean up store tensors
 		System.gc();
@@ -330,13 +341,8 @@ public class LearnerImpl implements Learner {
 	/**
 	 * Load parameters from the repository and store in previousParameters
 	 */
-	private void loadParameters(NeuralNetwork nn){
-		try {
-			previousParameters.put(nn.getId(), nn.loadParameters(config.tag));
-		} catch(Exception ex){
-			System.out.println("Failed to load parameters "+config.tag+", fill with random parameters");
-			resetParameters(nn);
-		}
+	private void loadParameters(NeuralNetwork nn) throws Exception {
+		previousParameters.put(nn.getId(), nn.loadParameters(config.tag));
 	}
 	
 	@Activate
