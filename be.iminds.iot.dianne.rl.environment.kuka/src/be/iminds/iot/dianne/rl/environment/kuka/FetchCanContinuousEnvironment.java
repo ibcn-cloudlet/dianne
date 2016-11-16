@@ -42,11 +42,11 @@ import be.iminds.iot.robot.api.Arm;
 				 "aiolos.unique=true",
 				 "aiolos.combine=*",
 				 "osgi.command.scope=fetchcancont",
-				 "osgi.command.function=end",
+				 "osgi.command.function=start",
+				 "osgi.command.function=stop",
 				 "osgi.command.function=pause",
-				 "osgi.command.function=go",
-				 "osgi.command.function=reward",
-				 "osgi.command.function=load"})
+				 "osgi.command.function=resume",
+				 "osgi.command.function=reward"})
 public class FetchCanContinuousEnvironment extends AbstractFetchCanEnvironment {
 	
 	public static final String NAME = "FetchCanContinuous";

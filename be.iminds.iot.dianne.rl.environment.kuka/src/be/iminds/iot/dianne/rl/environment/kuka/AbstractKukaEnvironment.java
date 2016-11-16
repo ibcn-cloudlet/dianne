@@ -221,27 +221,26 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		
 	public void reward(float r){
 		this.reward = r;
-		go();
+		resume();
 	}
 	
-	public void end(){
-		terminal = true;
+	public void stop(){
+		cleanup();
 	}
 	
 	public void pause(){
 		pause = true;
 	}
 	
-	public void go(){
+	public void resume(){
 		pause = false;
 		synchronized(this){
 			this.notifyAll();
 		}
 	}
 	
-	@Override
-	public void load(){
-		configure(new HashMap<>());
+	public void start(){
+		setup(new HashMap<>());
 	}
 	
 	private void waitForResume(){

@@ -24,14 +24,14 @@ package be.iminds.iot.dianne.rl.environment.kuka.api;
 
 public interface KukaEnvironment {
 
+	public void start();
+	
 	public void pause();
 	
-	public void go();
+	public void resume();
 	
-	public void end();
+	public void stop();
 	
 	public void reward(float r);
-	
-	public void load();
 	
 }
