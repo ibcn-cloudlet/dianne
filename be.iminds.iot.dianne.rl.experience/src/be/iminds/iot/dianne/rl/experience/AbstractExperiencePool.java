@@ -237,7 +237,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 					ExperiencePoolSample c = new ExperiencePoolSample();
 					c.input = s.input.copyInto(c.input);
 					c.target = s.target.copyInto(c.target);
-					c.nextState = s.nextState.copyInto(c.nextState);
+					c.nextState = s.nextState == null ? null : s.nextState.copyInto(c.nextState);
 					c.reward = s.reward.copyInto(c.reward);
 					c.terminal = s.reward.copyInto(c.terminal);
 					copy.add(c);
