@@ -71,4 +71,10 @@ public class FetchCanConfig {
 	 */
 	public int maxActions = 100;
 	
+	/**
+	 * Whether the environment has to tick the simulator
+	 * 
+	 * Set to false when using simulator to mimick real world ...
+	 */
+	public boolean tick = true;
 }

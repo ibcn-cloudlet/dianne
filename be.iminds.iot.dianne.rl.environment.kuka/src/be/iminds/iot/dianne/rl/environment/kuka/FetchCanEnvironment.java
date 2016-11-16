@@ -101,7 +101,7 @@ public class FetchCanEnvironment extends AbstractFetchCanEnvironment {
 			
 			
 			// in simulation keep on ticking to let the action complete
-			if(simulator != null){
+			if(simulator != null && super.config.tick){
 				for(int i=0;i<130;i++){
 					simulator.tick();
 					
@@ -119,7 +119,7 @@ public class FetchCanEnvironment extends AbstractFetchCanEnvironment {
 		}
 		
 		// simulate an iteration further
-		if(simulator != null){
+		if(simulator != null && super.config.tick){
 			for(int i=0;i<=config.skip;i++){
 				simulator.tick();
 			}

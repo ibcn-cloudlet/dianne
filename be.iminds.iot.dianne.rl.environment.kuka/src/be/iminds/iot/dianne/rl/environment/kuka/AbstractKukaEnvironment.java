@@ -240,7 +240,9 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 	}
 	
 	public void start(){
-		setup(new HashMap<>());
+		HashMap<String, String> config = new HashMap<>();
+		config.put("tick", "false");
+		setup(config);
 	}
 	
 	private void waitForResume(){

@@ -169,7 +169,7 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 			s = d.y*d.y+d.z*d.z;
 		} 
 		
-		simulator.start(true);
+		simulator.start(config.tick);
 		
 		// TODO there might be an issue with range sensor not coming online at all
 		// should be fixed in robot project..
@@ -180,7 +180,9 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 				|| kukaPlatform == null){
 			try {
 				Thread.sleep(100);
-				simulator.tick();
+				if(config.tick){
+					simulator.tick();
+				}
 			} catch (InterruptedException|TimeoutException e) {
 			}
 			
@@ -195,7 +197,7 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 				// try again?
 				simulator.stop();
 				Thread.sleep(1000);
-				simulator.start(true);
+				simulator.start(config.tick);
 				start = System.currentTimeMillis();
 			}
 		}
