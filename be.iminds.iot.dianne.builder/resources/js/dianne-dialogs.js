@@ -488,6 +488,9 @@ function createRunModuleDialog(id, moduleItem){
 			}, $(document.body));
 			
 			createOutputChart(dialog.find(".content"));
+			var index = Number($("#dialog-"+module.id).find(".content").attr("data-highcharts-chart"));
+			Highcharts.charts[index].yAxis[0].setExtremes(0,1);
+			
 		} else if(module.type ==="Youbot"){		
 			dialog = renderTemplate("dialog", {
 				id : id,
@@ -498,8 +501,6 @@ function createRunModuleDialog(id, moduleItem){
 			}, $(document.body));
 			
 			createOutputChart(dialog.find(".content"));
-			var index = Number($("#dialog-"+module.id).find(".content").attr("data-highcharts-chart"));
-			Highcharts.charts[index].yAxis[0].setExtremes(-1,1);
 			
 			window.addEventListener("keydown", keyboard, false);
 			window.addEventListener("keyup", keyboard, false);
@@ -672,6 +673,12 @@ function createRunModuleDialog(id, moduleItem){
 					angle+=step;
 				}
 				laserCanvasCtx.stroke();
+				laserCanvasCtx.closePath();
+				
+				laserCanvasCtx.beginPath();
+				laserCanvasCtx.arc(256, 449, 6, 0, 2 * Math.PI, false);
+				laserCanvasCtx.fillStyle = 'red';
+				laserCanvasCtx.fill();
 				laserCanvasCtx.closePath();
 			};
 		}
@@ -1034,8 +1041,6 @@ function createOutputChart(container) {
             }
         },
         yAxis: {
-            min: 0,
-            max: 1,
             title: {
                 text: null
             }
