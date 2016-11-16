@@ -41,13 +41,13 @@ import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory;
 import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory;
 import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
-import be.iminds.iot.dianne.rl.learn.strategy.config.DeepQConfig;
+import be.iminds.iot.dianne.rl.learn.strategy.config.DeepDeterministicPolicyGradientConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy {
 
-	protected DeepQConfig config;
+	protected DeepDeterministicPolicyGradientConfig config;
 	
 	protected ExperiencePool pool;
 	protected SamplingStrategy sampling;
@@ -70,7 +70,7 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 	protected UUID[] inputIds;
 	protected UUID[] outputIds;
 	
-	protected Tensor targetValueBatch;
+	protected Tensor targetValue;
 	
 	@Override
 	public void setup(Map<String, String> config, Dataset dataset, NeuralNetwork... nns) throws Exception {
@@ -87,13 +87,12 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 		this.critic = nns[2];
 		this.targetCritic = nns[3];
 		
-		this.config = DianneConfigHandler.getConfig(config, DeepQConfig.class);
+		this.config = DianneConfigHandler.getConfig(config, DeepDeterministicPolicyGradientConfig.class);
 		this.sampling = SamplingFactory.createSamplingStrategy(this.config.sampling, dataset, config);
 		this.criterion = CriterionFactory.createCriterion(this.config.criterion, config);
 		this.actorProcessor = ProcessorFactory.createGradientProcessor(this.config.method, actor, config);
 		
-		if(config.containsKey("policyRate"))
-			config.put("learningRate", config.get("policyRate"));
+		config.put("learningRate", String.valueOf(Float.parseFloat(config.get("learningRate"))*this.config.policyRateScaling));
 		
 		this.criticProcessor = ProcessorFactory.createGradientProcessor(this.config.method, critic, config);
 		
@@ -117,7 +116,7 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 		this.outputIds = new UUID[]{this.valueOut};
 		
 		// Pre-allocate tensors for batch operations
-		this.targetValueBatch = new Tensor(this.config.batchSize);
+		this.targetValue = new Tensor(this.config.batchSize);
 		
 		// Wait for the pool to contain enough samples
 		if(pool.size() < this.config.minSamples){
@@ -145,26 +144,25 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 		// Calculate targetValues
 		Tensor nextAction = targetActor.forward(batch.getNextState());
 		Tensor nextValue = targetCritic.forward(inputIds, outputIds, new Tensor[]{batch.getNextState(), nextAction}).getValue().tensor;
-		targetValueBatch = TensorOps.addcmul(targetValueBatch, batch.getReward(), config.discount, batch.getTerminal(), nextValue);
+		targetValue = TensorOps.addcmul(targetValue, batch.getReward(), config.discount, batch.getTerminal(), nextValue);
 		
 		// Forward pass of the critic to get the current value estimate
-		Tensor valueBatch = critic.forward(inputIds, outputIds, new Tensor[]{batch.getState(), batch.getAction()}).getValue().tensor;
+		Tensor value = critic.forward(inputIds, outputIds, new Tensor[]{batch.getState(), batch.getAction()}).getValue().tensor;
 		
-		// Get the total value for logging and calculate the MSE error and gradient with respect to the target value
-		float value = TensorOps.sum(valueBatch)/config.batchSize;
-		float loss = criterion.loss(valueBatch, targetValueBatch);
-		Tensor criticGrad = criterion.grad(valueBatch, targetValueBatch);
+		// Calculate the loss and gradient with respect to the target value
+		float loss = criterion.loss(value, targetValue);
+		Tensor criticGrad = criterion.grad(value, targetValue);
 		
 		// Backward pass of the critic
 		critic.backward(outputIds, inputIds, new Tensor[]{criticGrad}).getValue();
 		critic.accGradParameters();
 		
 		// Get the actor action for the current state
-		Tensor actionBatch = actor.forward(batch.getState());
+		Tensor action = actor.forward(batch.getState());
 		
 		// Get the actor gradient by evaluating the critic and use it's gradient with respect to the action
 		// Note: By default we're doing minimization, so set critic gradient to -1
-		critic.forward(inputIds, outputIds, new Tensor[]{batch.getState(), actionBatch}).getValue();
+		value = critic.forward(inputIds, outputIds, new Tensor[]{batch.getState(), action}).getValue().tensor;
 		criticGrad.fill(-1);
 		Tensor actorGrad = critic.backward(outputIds, inputIds, new Tensor[]{criticGrad}).getValue().tensors.get(actionIn);
 		
@@ -181,7 +179,8 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 		actor.updateParameters();
 		critic.updateParameters();
 		
-		return new QLearnProgress(i, loss, value);
+		// Report the average loss and value of the current policy
+		return new QLearnProgress(i, loss, TensorOps.sum(value)/config.batchSize);
 	}
 
 }
