@@ -52,6 +52,7 @@ import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.util.StrategyFactory;
 import be.iminds.iot.dianne.api.repository.RepositoryListener;
+import be.iminds.iot.dianne.api.rl.agent.ActionController;
 import be.iminds.iot.dianne.api.rl.agent.ActionStrategy;
 import be.iminds.iot.dianne.api.rl.agent.Agent;
 import be.iminds.iot.dianne.api.rl.agent.AgentListener;
@@ -79,6 +80,7 @@ public class AgentImpl implements Agent {
 	private DianneDatasets datasets;
 	
 	private ExperiencePool pool;
+	private String environment;
 	private Environment env;
 	
 	private AgentConfig config;
@@ -98,9 +100,11 @@ public class AgentImpl implements Agent {
 	
 	// repository listener to sync with repo
 	private BundleContext context;
-	private ServiceRegistration<RepositoryListener> reg;
+	private ServiceRegistration<RepositoryListener> repoListenerReg;
 	private volatile boolean sync = false;
 	
+	// in case of manual action strategy
+	private ServiceRegistration<ActionController> actionListenerReg;
 	
 	@Reference
 	void setDianne(Dianne d){
@@ -193,6 +197,7 @@ public class AgentImpl implements Agent {
 			}
 			
 			// setup environment
+			this.environment = environment;
 			env = envs.get(environment);
 			if(env==null){
 				throw new RuntimeException("Environment "+environment+" does not exist");
@@ -265,7 +270,7 @@ public class AgentImpl implements Agent {
 				String[] t = new String[]{":"+config.tag};
 				props.put("targets", t);
 				props.put("aiolos.unique", true);
-				reg = context.registerService(RepositoryListener.class, new RepositoryListener() {
+				repoListenerReg = context.registerService(RepositoryListener.class, new RepositoryListener() {
 					@Override
 					public void onParametersUpdate(UUID nnId, Collection<UUID> moduleIds, String... tag) {
 						sync = true;
@@ -280,6 +285,12 @@ public class AgentImpl implements Agent {
 				
 				// setup action strategy
 				strategy.setup(properties, env, nns);
+				
+				// TODO this his hard coded for ManualActionStrategy ... have something better?
+				if(strategy instanceof ActionController){
+					props.put("environment", environment);
+					actionListenerReg = context.registerService(ActionController.class, (ActionController)strategy, props);
+				}
 		
 				s.input = env.getObservation(s.input);
 	
@@ -376,8 +387,12 @@ public class AgentImpl implements Agent {
 				
 				datasets.releaseDataset(pool);
 				
-				if(reg != null){
-					reg.unregister();
+				if(repoListenerReg != null){
+					repoListenerReg.unregister();
+				}
+				
+				if(actionListenerReg != null){
+					actionListenerReg.unregister();
 				}
 				
 				acting = false;

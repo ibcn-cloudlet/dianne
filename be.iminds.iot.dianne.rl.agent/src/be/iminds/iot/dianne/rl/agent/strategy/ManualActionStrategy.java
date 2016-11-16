@@ -25,29 +25,40 @@ package be.iminds.iot.dianne.rl.agent.strategy;
 import java.util.Map;
 
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
+import be.iminds.iot.dianne.api.rl.agent.ActionController;
 import be.iminds.iot.dianne.api.rl.agent.ActionStrategy;
 import be.iminds.iot.dianne.api.rl.agent.AgentProgress;
 import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.tensor.Tensor;
 
-// TODO ... we need to define a new generic mechanism to bind a "controller" to this 
-// kind of strategy to manually control an agent, e.g. keyboard/gamepad/vr controllers
-// mapping actions for a given environment via the setup?
-public class ManualActionStrategy implements ActionStrategy {
+public class ManualActionStrategy implements ActionStrategy, ActionController {
 
+	// in case you want to wait in each state for a new setAction
+	private boolean wait = false;
+	
 	private Tensor action;
 	
 	public void setAction(Tensor a){
-		this.action = a;
+		synchronized(this){
+			this.action = a;
+			this.notifyAll();
+		}
 	}
 
 	@Override
 	public void setup(Map<String, String> config, Environment env, NeuralNetwork... nns) throws Exception {
+		if(config.containsKey("wait")){
+			wait = Boolean.parseBoolean(config.get("wait"));
+		}
 	}
 
 	@Override
 	public AgentProgress processIteration(long i, Tensor state) throws Exception {
-		return new AgentProgress(i, action);
+		synchronized(this){
+			if(wait)
+				this.wait();
+			return new AgentProgress(i, action);
+		}
 	}
 	
 }
