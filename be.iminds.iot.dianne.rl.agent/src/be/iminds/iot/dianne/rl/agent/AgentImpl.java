@@ -332,7 +332,7 @@ public class AgentImpl implements Agent {
 						b.nextState = s.isTerminal() ? null : s.nextState.copyInto(b.nextState);
 						count++;
 						
-						if(b.isTerminal() || count % config.experienceInterval == 0){
+						if(b.isTerminal()){
 							// sequence finished, upload to pool
 							upload = new ArrayList<>(uploadBuffer.subList(0, count));
 							if(pool!=null){

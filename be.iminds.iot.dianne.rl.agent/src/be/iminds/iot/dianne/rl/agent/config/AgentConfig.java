@@ -36,11 +36,6 @@ public class AgentConfig {
 	public String tag;
 	
 	/**
-	 * After how many actions to push experience to Experience Pool (if no terminal action occured)
-	 */
-	public int experienceInterval = 1000;
-	
-	/**
 	 * Clean experience pool at start
 	 */
 	public boolean clean = false;
