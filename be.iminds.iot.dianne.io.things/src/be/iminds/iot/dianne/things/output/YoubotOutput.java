@@ -33,10 +33,12 @@ import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 import be.iminds.iot.input.joystick.api.JoystickEvent;
 import be.iminds.iot.input.joystick.api.JoystickListener;
+import be.iminds.iot.input.keyboard.api.KeyboardEvent;
+import be.iminds.iot.input.keyboard.api.KeyboardListener;
 import be.iminds.iot.robot.api.Arm;
 import be.iminds.iot.robot.api.OmniDirectional;
 
-public class YoubotOutput extends ThingOutput implements JoystickListener {
+public class YoubotOutput extends ThingOutput implements JoystickListener, KeyboardListener {
 	
 	private enum Mode {
 		IGNORE,
@@ -163,7 +165,7 @@ public class YoubotOutput extends ThingOutput implements JoystickListener {
 	public void connect(UUID nnId, UUID outputId, BundleContext context){
 		if(!isConnected()){
 			stop = false;
-			registration = context.registerService(JoystickListener.class.getName(), this, new Hashtable<>());
+			registration = context.registerService(new String[]{JoystickListener.class.getName(),KeyboardListener.class.getName()}, this, new Hashtable<>());
 		}
 		
 		super.connect(nnId, outputId, context);
@@ -198,6 +200,32 @@ public class YoubotOutput extends ThingOutput implements JoystickListener {
 		case BUTTON_A_PRESSED:
 			mode = Mode.CONTINUOUS;
 			System.out.println("Accepy only continous neural net robot control signals");
+			break;
+		}
+	}
+
+	@Override
+	public void onEvent(KeyboardEvent e) {
+		if(e.type!=KeyboardEvent.Type.PRESSED)
+			return;
+		
+		switch(e.key){
+		case "1":
+			base.stop();
+			mode = Mode.IGNORE;
+			System.out.println("Igore any neural net robot control signals");
+			break;
+		case "2":
+			mode = Mode.DISCRETE;
+			System.out.println("Accepy only discrete neural net robot control signals");
+			break;
+		case "3":
+			mode = Mode.CONTINUOUS;
+			System.out.println("Accepy only continous neural net robot control signals");
+			break;
+		case "0":
+			mode = Mode.ANY;
+			System.out.println("Accepy any robot control signals");
 			break;
 		}
 	}
