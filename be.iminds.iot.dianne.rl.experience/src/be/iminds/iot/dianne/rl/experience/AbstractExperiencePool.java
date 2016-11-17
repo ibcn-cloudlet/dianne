@@ -22,7 +22,21 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rl.experience;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.EOFException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -37,7 +51,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 public abstract class AbstractExperiencePool extends AbstractDataset implements ExperiencePool {
 
-	protected int maxSize = 1000000; // max number of samples in the experience pool
+	protected int maxSize = 10000; // max number of samples in the experience pool
 	
 	protected int[] stateDims;
 	protected int stateSize;
@@ -74,6 +88,8 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		sampleSize = stateSize+actionSize+2;
 
 		setup(config);
+		
+		recover();
 	}
 	
 	@Override
@@ -299,9 +315,9 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	@Override
 	public void reset() {
 		try {
+			lock.writeLock().lock();
 			noSamples = 0;
 			sequences.clear();
-			lock.writeLock().lock();
 		} finally {
 			lock.writeLock().unlock();
 		}
@@ -397,4 +413,74 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	
 	protected abstract void writeData(int position, float[] data);
 
+	protected abstract void dumpData() throws IOException;
+	
+	protected abstract void recoverData();
+	
+	public void dump() throws IOException {
+		// write json if not preset
+		StringBuilder descriptor = new StringBuilder();
+		
+		descriptor.append("{\n\t");
+		descriptor.append("\"name\":");
+		descriptor.append("\"").append(name).append("\",\n\t");
+		descriptor.append("\"type\":");
+		descriptor.append("\"").append(this.getClass().getSimpleName()).append("\",\n\t");
+		descriptor.append("\"stateDims\":");
+		descriptor.append(Arrays.toString(stateDims)).append(",\n\t");
+		descriptor.append("\"actionDims\":");
+		descriptor.append(Arrays.toString(actionDims)).append(",\n\t");
+		descriptor.append("\"maxSize\":");
+		descriptor.append(maxSize);
+		descriptor.append("\n}");
+		
+		
+		Files.write( Paths.get(dir+File.separator+name+".json"), descriptor.toString().getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
+		
+		try {
+			lock.writeLock().lock();
+		
+			// write sequences
+			try (DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(new File(dir+File.separator+"sequences"))))){
+				for(Sequence s : sequences){
+					out.writeInt(s.start);
+					out.writeInt(s.length);
+				}
+				out.flush();
+			}
+			
+			// dump data
+			dumpData();
+		
+		} finally {
+			lock.writeLock().unlock();
+		}
+	}
+	
+	public void recover() {
+		try {
+			lock.writeLock().lock();
+
+			// recover sequences
+			try (DataInputStream in = new DataInputStream(new BufferedInputStream(new FileInputStream(new File(dir+File.separator+"sequences"))))){
+				while(true){
+					int start = in.readInt();
+					int length = in.readInt();
+					
+					Sequence s = new Sequence(start, length);
+					sequences.add(s);
+		
+					noSamples+=length;
+				}
+			} catch(Exception e){
+			}
+			
+			// recover data
+			recoverData();
+			
+		} finally {
+			lock.writeLock().unlock();
+		}
+		
+	}
 }

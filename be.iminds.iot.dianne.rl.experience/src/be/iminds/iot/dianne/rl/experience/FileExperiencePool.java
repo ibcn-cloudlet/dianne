@@ -134,4 +134,14 @@ public class FileExperiencePool extends AbstractExperiencePool {
 		}
 	}
 
+	
+	@Override
+	protected void dumpData() {
+		// TODO should we take a separate copy of the files here?
+	}
+
+	@Override
+	protected void recoverData() {
+		// TODO should we recover a separate copy of the files here?
+	}
 }

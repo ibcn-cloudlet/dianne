@@ -115,17 +115,15 @@ public class DatasetConfigurator implements DianneDatasets {
 			if(config.get("environment")!=null){
 				Hashtable<String, Object> props = new Hashtable<>();
 				
-				String pid = "be.iminds.iot.dianne.dataset.ExperiencePool";
+				String pid = "be.iminds.iot.dianne.dataset.MemoryExperiencePool";
 				if(config.containsKey("type")){
 					String type = config.get("type");
 					pid = "be.iminds.iot.dianne.dataset."+type;
-					
-					if(type.equals("FileExperiencePool")){
-						File dir = new File(path+"/"+name);
-						dir.mkdirs();
-						props.put("dir", dir.getAbsolutePath());
-					}
 				}
+
+				File dir = new File(path+"/"+name);
+				dir.mkdirs();
+				props.put("dir", dir.getAbsolutePath());
 				
 				props.put("name", name);
 				props.put("aiolos.combine", "*");
@@ -135,11 +133,7 @@ public class DatasetConfigurator implements DianneDatasets {
 				props.put("actionDims", config.get("actionDims").split(","));
 				if(config.containsKey("maxSize")){
 					props.put("maxSize", config.get("maxSize"));
-				} else {
-					props.put("maxSize", "1000000");
-				}
-				
-				// TODO also store a json description in the dir to reload the xp pool later?
+				} 
 				
 				try {
 					Configuration c = ca.createFactoryConfiguration(pid, null);

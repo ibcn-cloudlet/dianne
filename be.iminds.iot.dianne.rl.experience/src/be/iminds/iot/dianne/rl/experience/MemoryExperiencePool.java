@@ -22,6 +22,15 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rl.experience;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
@@ -29,12 +38,14 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
+import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch;
+import be.iminds.iot.dianne.rl.experience.AbstractExperiencePool.Sequence;
 
 @Component(
 		service={ExperiencePool.class, Dataset.class},
 		immediate=true, 
 		configurationPolicy=ConfigurationPolicy.REQUIRE,
-		configurationPid="be.iminds.iot.dianne.dataset.ExperiencePool")
+		configurationPid="be.iminds.iot.dianne.dataset.MemoryExperiencePool")
 public class MemoryExperiencePool extends AbstractExperiencePool {
 
 	private float[] samples;
@@ -48,7 +59,7 @@ public class MemoryExperiencePool extends AbstractExperiencePool {
 		try {
 			samples = new float[maxSize*sampleSize];
 		} catch(OutOfMemoryError e){
-			System.err.println("Failed to setup Experience Pool "+name+" in memory: failed to allocate "+maxSize/1000000+" MB");
+			System.err.println("Failed to setup Experience Pool "+name+" in memory: failed to allocate "+maxSize*sampleSize/1000000+" MB");
 			throw new RuntimeException("Failed to instantiate experience pool, not enough memory");
 		}
 	}
@@ -61,5 +72,33 @@ public class MemoryExperiencePool extends AbstractExperiencePool {
 	@Override
 	protected void writeData(int position, float[] data) {
 		System.arraycopy(data, 0, samples, position, data.length);
+	}
+
+	@Override
+	public List<ExperiencePoolBatch> getBatchedSequence(List<ExperiencePoolBatch> b, int[] sequences, int[] indices,
+			int length) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	
+	
+	@Override
+	protected void dumpData() throws IOException {
+		try (DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(new File(dir+File.separator+"data.bin"))))){
+			for(int i=0;i<samples.length;i++){
+				out.writeFloat(samples[i]);
+			}
+			out.flush();
+		}
+	}
+
+	@Override
+	protected void recoverData() {
+		try (DataInputStream in = new DataInputStream(new BufferedInputStream(new FileInputStream(new File(dir+File.separator+"data.bin"))))){
+			for(int i=0;i<samples.length;i++){
+				samples[i] = in.readFloat();
+			}
+		} catch(Exception e){}
 	}
 }

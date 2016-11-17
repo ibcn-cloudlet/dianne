@@ -22,6 +22,7 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.rl.dataset;
 
+import java.io.IOException;
 import java.util.List;
 
 import be.iminds.iot.dianne.api.dataset.SequenceDataset;
@@ -98,5 +99,11 @@ public interface ExperiencePool extends SequenceDataset<ExperiencePoolSample, Ex
 	 * Remove all samples from the experience pool
 	 */
 	void reset();
+	
+	/**
+	 * Dump the data of the experience pool to file for later recovery
+	 * @throws IOException
+	 */
+	void dump() throws IOException;
 	
 }
