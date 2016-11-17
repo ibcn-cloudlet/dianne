@@ -30,7 +30,6 @@ import be.iminds.iot.dianne.api.rl.agent.AgentProgress;
 import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.agent.strategy.config.BoltzmannConfig;
-import be.iminds.iot.dianne.tensor.ModuleOps;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
@@ -42,12 +41,10 @@ import be.iminds.iot.dianne.tensor.TensorOps;
  */
 public class DiscreteSamplingActionStrategy implements ActionStrategy {
 	
-	private BoltzmannConfig config;
 	private NeuralNetwork nn;
 	
 	@Override
 	public void setup(Map<String, String> config, Environment env, NeuralNetwork... nns) throws Exception {
-		this.config = DianneConfigHandler.getConfig(config, BoltzmannConfig.class);
 		this.nn = nns[0];
 	}
 
@@ -58,16 +55,16 @@ public class DiscreteSamplingActionStrategy implements ActionStrategy {
 		Tensor action = new Tensor(output.size());
 		action.fill(0);
 		
-		if(TensorOps.max(output) < 0){
+		if(TensorOps.min(output) < 0){
 			// assume logsoftmax output, take exp
 			output = TensorOps.exp(output, output);
 		}
 		
 		double s = 0, r = Math.random();
 		int a = 0;
-		
-		while((s += output.get(a)) < r && a < action.size())
+		while(a < output.size() && (s += output.get(a)) < r){
 			a++;
+		}
 		
 		action.set(1, a);
 		
