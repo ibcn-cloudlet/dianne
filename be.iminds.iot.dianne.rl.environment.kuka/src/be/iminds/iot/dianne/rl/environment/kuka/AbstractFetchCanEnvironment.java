@@ -56,8 +56,8 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 	@Override
 	protected float calculateReward() throws Exception {
 		if(count++ == config.maxActions){
-			count = 0;
 			terminal = true;
+			count = 0;
 		}
 		
 		// calculate reward based on simulator info
@@ -95,6 +95,7 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 						&& Math.abs(dy) <= config.margin){
 						// succesful grip, mark as terminal
 						terminal = true;
+						count = 0;
 						return 1.0f;
 					} 
 				} else {
@@ -102,6 +103,7 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 					if(d.x > 0){
 						// can is lifted, reward 1 and mark as terminal
 						terminal = true;
+						count = 0;
 						return 1.0f;
 					} 
 				}
