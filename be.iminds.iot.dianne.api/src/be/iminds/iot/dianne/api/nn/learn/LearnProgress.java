@@ -43,6 +43,6 @@ public class LearnProgress {
 	
 	@Override
 	public String toString(){
-		return "[LEARNER] Batch: "+iteration+" Loss: "+minibatchLoss;
+		return "[LEARNER] Iteration: "+iteration+" Loss: "+minibatchLoss;
 	}
 }

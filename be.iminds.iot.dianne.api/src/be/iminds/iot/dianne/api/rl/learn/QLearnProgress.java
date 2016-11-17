@@ -43,6 +43,6 @@ public class QLearnProgress extends LearnProgress{
 	
 	@Override
 	public String toString(){
-		return "[LEARNER] Batch: "+iteration+" Loss: "+minibatchLoss+" Q: "+q;
+		return "[LEARNER] Iteration: "+iteration+" Loss: "+minibatchLoss+" Q: "+q;
 	}
 }
