@@ -36,7 +36,7 @@ public class ManualActionStrategy implements ActionStrategy, ActionController {
 	// in case you want to wait in each state for a new setAction
 	private boolean wait = false;
 	
-	private Tensor action;
+	private Tensor action = null;
 	
 	public void setAction(Tensor a){
 		synchronized(this){
@@ -55,7 +55,7 @@ public class ManualActionStrategy implements ActionStrategy, ActionController {
 	@Override
 	public AgentProgress processIteration(long i, Tensor state) throws Exception {
 		synchronized(this){
-			if(wait)
+			if(wait || action == null)
 				this.wait();
 			return new AgentProgress(i, action);
 		}
