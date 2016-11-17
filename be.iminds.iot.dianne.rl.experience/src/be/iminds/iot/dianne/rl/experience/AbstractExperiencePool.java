@@ -194,6 +194,8 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 			
 			if(length == -1){
 				length = seq.length;
+			} else {
+				length = seq.length < length ? seq.length : length;
 			}
 			
 			ExperiencePoolSample previous = null;
