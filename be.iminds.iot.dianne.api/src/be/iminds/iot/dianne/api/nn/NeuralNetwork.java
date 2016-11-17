@@ -244,7 +244,11 @@ public interface NeuralNetwork {
 	 * Fill the parameters with random values
 	 */
 	void randomizeParameters();
-	
+
+	/**
+	 * Fill the parameters of a certain module with random values
+	 */
+	void randomizeParameters(UUID moduleId);
 	
 	/**
 	 * Store the current parameters into the repository

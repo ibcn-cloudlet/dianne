@@ -343,6 +343,23 @@ public class LearnerImpl implements Learner {
 	 */
 	private void loadParameters(NeuralNetwork nn) throws Exception {
 		previousParameters.put(nn.getId(), nn.loadParameters(config.tag));
+		
+		// TODO should this be handled somewhere else?
+		
+		// in case some modules are missing ... initialize those separately?!
+		Map<UUID, Tensor> prev = previousParameters.get(nn.getId());
+		if(prev.size() != nn.getTrainables().size()){
+			for(UUID moduleId : nn.getTrainables().keySet()){
+				if(!prev.containsKey(moduleId)){
+					nn.randomizeParameters(moduleId);
+				}
+			}
+			
+			// store and update previous again
+			nn.storeParameters(config.tag);
+			previousParameters.put(nn.getId(), nn.getParameters().entrySet().stream().collect(
+					Collectors.toMap(e -> e.getKey(), e -> e.getValue().copyInto(null))));
+		}
 	}
 	
 	@Activate
