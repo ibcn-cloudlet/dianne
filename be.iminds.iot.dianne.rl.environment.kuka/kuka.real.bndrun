@@ -43,9 +43,10 @@ dianne.version='[0.6.0,0.7.0)'
 	be.iminds.iot.ros.range;version='[0.2.0,0.3.0)',\
 	be.iminds.iot.sensor.range.ros;version='[0.2.0,0.3.0)',\
 	be.iminds.iot.robot.youbot.ros;version='[0.2.0,0.3.0)',\
-	be.iminds.iot.robot.input.servlet;version='[0.2.0,0.3.0)',\
-	be.iminds.iot.robot.input.joystick;version='[0.2.0,0.3.0]',\
-	be.iminds.iot.ros.joystick;version='[0.2.0,0.3.0]'
+	be.iminds.iot.keyboard.servlet;version='[0.2.0,0.3.0)',\
+	be.iminds.iot.robot.input.keyboard;version='[0.2.0,0.3.0)',\
+	be.iminds.iot.ros.joystick;version='[0.2.0,0.3.0]',\
+	be.iminds.iot.robot.input.joystick;version='[0.2.0,0.3.0]'
 		
 -runproperties.xkuka: \
 	ros.core.native=true,\

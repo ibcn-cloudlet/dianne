@@ -35,7 +35,8 @@
 	be.iminds.iot.simulator.vrep;version='[0.2.0,0.3.0)',\
 	be.iminds.iot.sensor.range.ros;version='[0.2.0,0.3.0)',\
 	be.iminds.iot.robot.youbot.ros;version='[0.2.0,0.3.0)',\
-	be.iminds.iot.robot.input;version='[0.2.0,0.3.0)'
+	be.iminds.iot.keyboard.servlet;version='[0.2.0,0.3.0)',\
+	be.iminds.iot.robot.input.keyboard;version='[0.2.0,0.3.0)'
 	
 -runproperties.runtime.agent.kuka: \
 	be.iminds.iot.dianne.runtime.name="KUKA",\
