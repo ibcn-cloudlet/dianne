@@ -124,26 +124,30 @@ public class A3CLearningStrategy implements LearningStrategy {
 			
 			// update expected discounted reward
 			reward += config.discount * sample.getScalarReward();
-			
-			// calculate action log probabilities from policy network
-			Tensor policy = policyNetwork.forward(sample.getState());
-			
+
 			// calculate value of state
 			value = valueNetwork.forward(sample.getState()).get(0);
-			
-			// calculate policy gradient
-			Tensor policyGrad  = new Tensor(policy.size());
-			policyGrad.fill(0.0f);
-			
-			int action = TensorOps.argmax(sample.getAction());
-			
 			float diff = reward - value;	
-			policyGrad.set(diff, action);
 			
-			policyNetwork.backward(policyGrad);
-			policyNetwork.accGradParameters();
+			// also update policy
+			if(config.updatePolicy){
+				// calculate action log probabilities from policy network
 			
-			// calculate value gradient
+				Tensor policy = policyNetwork.forward(sample.getState());
+				
+				// calculate policy gradient
+				Tensor policyGrad  = new Tensor(policy.size());
+				policyGrad.fill(0.0f);
+				
+				int action = TensorOps.argmax(sample.getAction());
+				policyGrad.set(diff, action);
+				
+				policyNetwork.backward(policyGrad);
+				policyNetwork.accGradParameters();
+			}
+			
+			
+			// calculate value gradient 
 			loss += diff*diff;
 			Tensor valueGrad = new Tensor(1);
 			valueGrad.set(-2*diff, 0);
@@ -153,11 +157,13 @@ public class A3CLearningStrategy implements LearningStrategy {
 			
 		}
 		
-		policyGradientProcessor.calculateDelta(i);
 		valueGradientProcessor.calculateDelta(i);
-		
-		policyNetwork.updateParameters();
 		valueNetwork.updateParameters();
+
+		if(config.updatePolicy){
+			policyGradientProcessor.calculateDelta(i);
+			policyNetwork.updateParameters();
+		}
 		
 		return new QLearnProgress(i, loss/sequence.size(), value);
 	}

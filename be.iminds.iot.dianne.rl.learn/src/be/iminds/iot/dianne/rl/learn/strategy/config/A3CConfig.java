@@ -45,4 +45,8 @@ public class A3CConfig {
 	 */
 	public ProcessorConfig method = ProcessorConfig.SGD;
 	
+	/**
+	 * Set to false to only train value function from existing policy
+	 */
+	public boolean updatePolicy = true;
 }
