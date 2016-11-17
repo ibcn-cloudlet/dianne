@@ -20,48 +20,63 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.rl.agent.strategy;
+package be.iminds.iot.dianne.rl.environment.kuka.controllers;
 
-import java.util.Map;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
-import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.rl.agent.ActionController;
-import be.iminds.iot.dianne.api.rl.agent.ActionStrategy;
-import be.iminds.iot.dianne.api.rl.agent.AgentProgress;
-import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.input.keyboard.api.KeyboardEvent;
+import be.iminds.iot.input.keyboard.api.KeyboardListener;
 
-public class ManualActionStrategy implements ActionStrategy, ActionController {
+/**
+ * Listens to keyboard events and uses these to steer FetchCan ActionController
+ *
+ */
+@Component()
+public class FetchCanController implements KeyboardListener {
 
-	// in case you want to wait in each state for a new setAction
-	private boolean wait = false;
+	private ActionController controller;
 	
-	private Tensor action = null;
+	@Reference(target="(environment=FetchCan)")
+	void setActionController(ActionController a) {
+		this.controller = a;
+	}
 	
-	public void setAction(Tensor a){
-		synchronized(this){
-			this.action = a;
-			this.notifyAll();
-		}
-	}
-
 	@Override
-	public void setup(Map<String, String> config, Environment env, NeuralNetwork... nns) throws Exception {
-		if(config.containsKey("wait")){
-			wait = Boolean.parseBoolean(config.get("wait"));
+	public void onEvent(KeyboardEvent e) {
+		if(e.type != KeyboardEvent.Type.PRESSED)
+			return;
+		
+		Tensor action = new Tensor(7);
+		action.fill(0.0f);
+		
+		switch(e.key){
+		case "a":
+			action.set(1.0f, 0);
+			break;
+		case "d":
+			action.set(1.0f, 1);
+			break;
+		case "w":
+			action.set(1.0f, 2);
+			break;
+		case "s":
+			action.set(1.0f, 3);
+			break;
+		case "q":
+			action.set(1.0f, 4);
+			break;
+		case "e":
+			action.set(1.0f, 5);
+			break;
+		case "Enter":
+			action.set(1.0f, 6);
+			break;
 		}
-	}
-
-	@Override
-	public AgentProgress processIteration(long i, Tensor state) throws Exception {
-		synchronized(this){
-			if(wait || action == null){
-				try {
-					this.wait();
-				} catch(InterruptedException e){}
-			}
-			return new AgentProgress(i, action);
-		}
+		
+		controller.setAction(action);
 	}
 	
 }
