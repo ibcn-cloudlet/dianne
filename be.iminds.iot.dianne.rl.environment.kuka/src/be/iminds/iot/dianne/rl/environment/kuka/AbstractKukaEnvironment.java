@@ -84,6 +84,7 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 	protected volatile boolean active = false;
 	protected boolean terminal = false;
 	protected Tensor observation;
+	protected Tensor noise;
 	
 	// TODO for now limited to 1 youbot, 1 laserscanner
 	protected OmniDirectional kukaPlatform;
@@ -261,6 +262,14 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 	private void updateObservation(){
 		float[] data = rangeSensor.getValue().data;
 		observation = new Tensor(data, data.length);
+		
+		if(config.rangeSensorNoise > 0) {
+			if(noise == null)
+				noise = new Tensor(observation.dims());
+			
+			noise.randn();
+			TensorOps.add(observation, observation, config.rangeSensorNoise, noise);
+		}
 	}
 	
 	
