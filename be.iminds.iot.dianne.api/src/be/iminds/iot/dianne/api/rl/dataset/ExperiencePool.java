@@ -96,6 +96,13 @@ public interface ExperiencePool extends SequenceDataset<ExperiencePoolSample, Ex
 	void addSequence(List<ExperiencePoolSample> sequence);
 	
 	/**
+	 * Remove a sequence from the experience pool
+	 * 
+	 * @param sequence
+	 */
+	void removeSequence(final int sequence);
+	
+	/**
 	 * Remove all samples from the experience pool
 	 */
 	void reset();

@@ -26,7 +26,6 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -311,6 +310,16 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		} finally {
 			if(locked)
 				lock.writeLock().unlock();
+		}
+	}
+	
+	@Override
+	public void removeSequence(final int sequence){
+		try {
+			lock.writeLock().lock();
+			sequences.remove(sequence);
+		} finally {
+			lock.writeLock().unlock();
 		}
 	}
 	
