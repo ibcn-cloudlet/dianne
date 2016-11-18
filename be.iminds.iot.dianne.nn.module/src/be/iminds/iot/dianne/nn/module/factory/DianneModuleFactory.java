@@ -42,6 +42,7 @@ import be.iminds.iot.dianne.nn.module.activation.LogSoftmax;
 import be.iminds.iot.dianne.nn.module.activation.PReLU;
 import be.iminds.iot.dianne.nn.module.activation.ReLU;
 import be.iminds.iot.dianne.nn.module.activation.Sigmoid;
+import be.iminds.iot.dianne.nn.module.activation.SoftPlus;
 import be.iminds.iot.dianne.nn.module.activation.Softmax;
 import be.iminds.iot.dianne.nn.module.activation.Tanh;
 import be.iminds.iot.dianne.nn.module.activation.Threshold;
@@ -98,6 +99,9 @@ public class DianneModuleFactory implements ModuleFactory {
 		addSupportedType(new ModuleTypeDTO("Sigmoid", "Activation", false));
 		
 		addSupportedType(new ModuleTypeDTO("Tanh", "Activation", false));
+		
+		addSupportedType(new ModuleTypeDTO("SoftPlus", "Activation", false,
+					new ModulePropertyDTO("Beta value", "beta", Float.class.getName())));
 		
 		addSupportedType(new ModuleTypeDTO("Softmax", "Activation", false));
 		
@@ -287,6 +291,12 @@ public class DianneModuleFactory implements ModuleFactory {
 		case "Sigmoid":
 		{
 			module = new Sigmoid(id);
+			break;
+		}
+		case "SoftPlus":
+		{
+			module = hasProperty(dto.properties, "beta") ? 
+					new SoftPlus(id, Float.parseFloat(dto.properties.get("beta"))) : new SoftPlus(id);
 			break;
 		}
 		case "Softmax":

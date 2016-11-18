@@ -34,6 +34,11 @@ public class ModuleOps {
 	public static native Tensor sigmoidGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor input, final Tensor output);
 	
 	
+	public static native Tensor softplus(Tensor output, final Tensor input, float beta, float threshold);
+
+	public static native Tensor softplusGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor input, final Tensor output, float beta, float threshold);
+	
+	
 	public static native Tensor threshold(Tensor output, final Tensor input, 
 			final float threshold, final float val);
 

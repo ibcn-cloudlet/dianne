@@ -93,6 +93,42 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_sigmoidGrad
 
 
 
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_softplus
+(JNIEnv * env, jclass c, jobject out, jobject in, jfloat beta, jfloat threshold){
+	THTensor* input = getTensor(env, in);
+	THTensor* output = getTensor(env, out);
+
+	THNN_(SoftPlus_updateOutput)(
+	          state,
+	          input,
+	          output,
+			  beta,
+			  threshold);
+
+	return out == NULL ? createTensorObject(env, output) : out;
+}
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_softplusGradIn
+(JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject out, jfloat beta, jfloat threshold){
+	THTensor* gradInput = getTensor(env, gradIn);
+	THTensor* gradOutput = getTensor(env, gradOut);
+	THTensor* input = getTensor(env, in);
+	THTensor* output = getTensor(env, out);
+
+	THNN_(SoftPlus_updateGradInput)(
+	          state,
+	          input,
+	          gradOutput,
+	          gradInput,
+	          output,
+			  beta,
+			  threshold);
+
+	return gradIn == NULL ? createTensorObject(env, gradInput) : gradIn;
+}
+
+
+
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_threshold
   (JNIEnv * env, jclass c, jobject out, jobject in, jfloat threshold, jfloat val){
 	THTensor* input = getTensor(env, in);
