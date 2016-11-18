@@ -91,6 +91,7 @@ function createNNModuleDialog(module, title, submit, cancel){
 				category: module.category
 			}, 
 			dialog.find('.content'));
+	dialog.find('.content').append('<div class="id">'+module.id+'</div>');
 	
 	return dialog;
 }

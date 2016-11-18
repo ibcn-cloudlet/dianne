@@ -189,7 +189,13 @@ footer {
 	width: 100px;
 	height: 50px;
 	margin: 5px 5px 5px 5px;
+	display:inline-block;
 	overflow: hidden;
+}
+
+.id {
+	display: inline-block;
+	padding-left: 10%;
 }
 
 .toolbox {
