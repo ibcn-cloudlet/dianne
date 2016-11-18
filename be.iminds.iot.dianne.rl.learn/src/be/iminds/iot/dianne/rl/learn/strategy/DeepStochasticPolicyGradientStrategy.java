@@ -96,11 +96,11 @@ public class DeepStochasticPolicyGradientStrategy implements LearningStrategy {
 		this.config = DianneConfigHandler.getConfig(config, DeepStochasticPolicyGradientConfig.class);
 		this.experienceSampling = SamplingFactory.createSamplingStrategy(this.config.sampling, dataset, config);
 		this.criterion = CriterionFactory.createCriterion(this.config.criterion, config);
-		this.actorProcessor = ProcessorFactory.createGradientProcessor(this.config.method, actor, config);
+		this.criticProcessor = ProcessorFactory.createGradientProcessor(this.config.method, critic, config);
 		
 		config.put("learningRate", String.valueOf(Float.parseFloat(config.get("learningRate"))*this.config.policyRateScaling));
 		
-		this.criticProcessor = ProcessorFactory.createGradientProcessor(this.config.method, critic, config);
+		this.actorProcessor = ProcessorFactory.createGradientProcessor(this.config.method, actor, config);
 		
 		// Look for the critic inputs corresponding to state & action
 		NeuralNetworkInstanceDTO nndto = this.critic.getNeuralNetworkInstance();
