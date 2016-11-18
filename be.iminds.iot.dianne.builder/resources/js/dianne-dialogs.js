@@ -234,38 +234,7 @@ function createLearnModuleDialog(id, moduleItem){
 	if(module===undefined){
 		module = nn.modules[id];
 		
-		if(module.trainable!==undefined){
-			var dialog = createNNModuleDialog(module, "Configure module", "Save", "");
-			dialog.find(".cancel").remove();
-			
-			var train = "";
-			if(module.trainable==="true"){
-				train = "checked";
-			}
-			renderTemplate("form-checkbox", 
-					{	
-						name: "Train",
-						id: "trainable",
-						checked: train
-					},
-					dialog.find('.form-items'));
-			
-			dialog.find(".submit").click(function(e){
-				// apply training configuration
-				var id = $(this).closest(".modal").find(".module-id").val();
-				var train = $(this).closest(".modal").find(".trainable").is(':checked');
-				if(train){
-					nn.modules[id].trainable = "true";
-				} else {
-					nn.modules[id].trainable = "false";
-				}
-				
-				$(this).closest(".modal").modal('hide');
-			});
-			
-			return dialog; 
-			
-		} else if(module.category==="Fork"
+		if(module.category==="Fork"
 					|| module.category==="Join"){
 			
 			var dialog = createNNModuleDialog(module, "Configure module", "Save", "");
