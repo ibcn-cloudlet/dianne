@@ -347,7 +347,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		
 	}
 
-	private ExperiencePoolSample getSample(ExperiencePoolSample s, int index, boolean loadState){
+	protected ExperiencePoolSample getSample(ExperiencePoolSample s, int index, boolean loadState){
 		float[] sampleBuffer = new float[sampleSize];
 		
 		loadData(getBufferPosition(index), sampleBuffer);

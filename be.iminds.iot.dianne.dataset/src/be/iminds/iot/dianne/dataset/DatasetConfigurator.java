@@ -357,6 +357,35 @@ public class DatasetConfigurator implements DianneDatasets {
 				e.printStackTrace();
 			}
 		}
+		// TODO delegate adater creation to separate factory services?
+		// this would allow this code to reside in the rl bundle...
+		if(config.containsKey("exploration")){
+			String target = adapter;
+			adapter = name+"-exploration="+config.get("exploration");
+			if(getDataset(adapter) == null){
+				String pid = "be.iminds.iot.dianne.dataset.adapters.HashcodeExplorationAdapter";
+				Hashtable<String, Object> props = new Hashtable<>();
+				props.put("Dataset.target", "(name="+target+")");
+				props.put("name", adapter);
+				props.put("aiolos.instance.id", adapter);
+				props.put("aiolos.combine", "*");
+				props.put("aiolos.export", "false");
+	
+				if(config.containsKey("exploration")){
+					String s = config.get("exploration");
+					props.put("exploration", s);
+					System.out.println("* exploration = "+s);
+				}
+				
+				try {
+					Configuration c = ca.createFactoryConfiguration(pid, null);
+					c.update(props);
+					adapterConfigurations.add(c);
+				} catch(Exception e){
+					e.printStackTrace();
+				}
+			}
+		}
 		System.out.println("---");
 		
 		// now wait for the adapter dataset to come online

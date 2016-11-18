@@ -8,4 +8,6 @@ Bundle-Name: Dianne Experience Pools
 	osgi.enterprise;version=5.0,\
 	be.iminds.iot.dianne.api;version=latest,\
 	be.iminds.iot.dianne.tensor;version=latest
-Private-Package: be.iminds.iot.dianne.rl.experience
+Private-Package: \
+	be.iminds.iot.dianne.rl.experience,\
+	be.iminds.iot.dianne.rl.experience.adapters
