@@ -48,6 +48,7 @@ import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.learn.LearnerListener;
 import be.iminds.iot.dianne.api.nn.learn.LearningStrategy;
+import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.util.StrategyFactory;
 import be.iminds.iot.dianne.nn.learn.config.LearnerConfig;
@@ -143,6 +144,18 @@ public class LearnerImpl implements Learner {
 				if(dto != null){
 					NeuralNetwork nn = dianne.getNeuralNetwork(dto).getValue();
 					nns[n++] = nn;
+
+					// mark modules as fixed
+					if(this.config.fixed.length > 0){
+						Map<UUID, Trainable> tt = nn.getTrainables();
+						for(UUID fixed : this.config.fixed){
+							Trainable t = tt.get(fixed);
+							if(t!=null){
+								t.setFixed(true);
+							}
+						}
+					}
+					
 					System.out.println("* "+dto.name);
 				}
 			}

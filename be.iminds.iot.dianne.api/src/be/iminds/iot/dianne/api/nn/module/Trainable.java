@@ -105,4 +105,15 @@ public interface Trainable extends Module {
 	 */
 	void randomize();
 
+	/**
+	 * Set parameters fixed or not
+	 * 
+	 * fixed parameters won't get updates during training
+	 */
+	void setFixed(boolean fixed);
+	
+	/**
+	 * Whether or not the parameters are fixed
+	 */
+	boolean isFixed();
 }

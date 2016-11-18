@@ -25,6 +25,7 @@ package be.iminds.iot.dianne.nn.util;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.Map;
+import java.util.UUID;
 
 public class DianneConfigHandler {
 
@@ -69,6 +70,12 @@ public class DianneConfigHandler {
 								doublearray[i] = Double.parseDouble(array[i]);
 							}
 							f.set(instance, doublearray);
+						} else if(f.getType().getComponentType().equals(UUID.class)){
+							UUID[] uuidarray = new UUID[array.length];
+							for(int i=0;i<uuidarray.length;i++){
+								uuidarray[i] = UUID.fromString(array[i]);
+							}
+							f.set(instance, uuidarray);
 						} else {
 							f.set(instance, array);
 						}

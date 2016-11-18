@@ -22,6 +22,8 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.learn.config;
 
+import java.util.UUID;
+
 public class LearnerConfig {
 
 	/**
@@ -64,4 +66,8 @@ public class LearnerConfig {
 	 */
 	public int[] storeInterval = new int[]{0};
 	
+	/**
+	 * module UUIDs to fix in this learn job - these modules won't get parameter updates
+	 */
+	public UUID[] fixed = new UUID[]{};
 }

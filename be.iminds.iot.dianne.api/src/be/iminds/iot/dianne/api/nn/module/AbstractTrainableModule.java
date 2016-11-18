@@ -94,4 +94,14 @@ public abstract class AbstractTrainableModule extends AbstractModule implements 
 	public void setParameters(Tensor params){
 		params.copyInto(parameters);
 	}
+	
+	@Override
+	public void setFixed(boolean fixed){
+		this.fixed = fixed;
+	}
+	
+	@Override
+	public boolean isFixed(){
+		return this.fixed;
+	}
 }
