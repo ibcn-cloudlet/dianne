@@ -324,6 +324,18 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	}
 	
 	@Override
+	public List<ExperiencePoolSample> removeAndGetSequence(List<ExperiencePoolSample> s, final int sequence){
+		try {
+			lock.writeLock().lock();
+			s = getSequence(s, sequence, 0, -1);
+			sequences.remove(sequence);
+			return s;
+		} finally {
+			lock.writeLock().unlock();
+		}
+	}
+	
+	@Override
 	public void reset() {
 		try {
 			lock.writeLock().lock();
@@ -428,6 +440,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	
 	protected abstract void recoverData();
 	
+	@Override
 	public void dump() throws IOException {
 		// write json if not preset
 		StringBuilder descriptor = new StringBuilder();

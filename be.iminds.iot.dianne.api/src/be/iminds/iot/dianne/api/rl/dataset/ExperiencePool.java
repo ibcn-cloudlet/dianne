@@ -103,6 +103,18 @@ public interface ExperiencePool extends SequenceDataset<ExperiencePoolSample, Ex
 	void removeSequence(final int sequence);
 	
 	/**
+	 * Remove and get a sequence from the dataset
+	 * @param s list to store the sequence into
+	 * @param sequence sequence to get and remove
+	 */
+	List<ExperiencePoolSample> removeAndGetSequence(List<ExperiencePoolSample> s, final int sequence);
+
+	default List<ExperiencePoolSample> removeAndGetSequence(final int sequence){
+		return removeAndGetSequence(null, sequence);
+	}
+	
+	
+	/**
 	 * Remove all samples from the experience pool
 	 */
 	void reset();
