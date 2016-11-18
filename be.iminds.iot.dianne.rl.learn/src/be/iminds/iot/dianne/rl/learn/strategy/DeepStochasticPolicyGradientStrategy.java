@@ -128,7 +128,7 @@ public class DeepStochasticPolicyGradientStrategy implements LearningStrategy {
 		this.random = new Tensor(this.config.batchSize, this.pool.actionDims());
 		this.actionSample = new Tensor(this.config.batchSize, this.pool.actionDims());
 		
-		this.criticGrad = new Tensor(this.config.batchSize);
+		this.criticGrad = new Tensor(this.config.batchSize, 1);
 		this.actorGrad = new Tensor(this.config.batchSize, this.pool.actionDims()[0]*2);
 		
 		// Wait for the pool to contain enough samples
