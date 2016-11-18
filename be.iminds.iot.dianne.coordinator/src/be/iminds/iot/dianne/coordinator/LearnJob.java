@@ -74,7 +74,10 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 			NeuralNetworkDTO[] nns){
 		super(coord, Type.LEARN, dataset, config, nns);
 		
-		if(config.containsKey("environment")
+		if(config.containsKey("strategy") && config.get("strategy").equals("FeedForwardLearningStrategy")){
+			// set FF category when explicitly using FF strategy
+			category = LearnCategory.FF;
+		} else if(config.containsKey("environment")
 				|| coord.datasets.isExperiencePool(dataset)){
 			category = LearnCategory.RL;
 		} else if(coord.isRecurrent(nns[0])){
