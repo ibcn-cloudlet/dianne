@@ -34,4 +34,13 @@ public class DeepStochasticPolicyGradientConfig extends DeepDeterministicPolicyG
 	 */
 	public int actorSamples = 1;
 	
+	/**
+	 * Action prior regularization coefficient on the action distributions
+	 */
+	public float actionPriorRegularization = 0;
+	
+	/**
+	 * Trust region regularization coefficient on the action distributions
+	 */
+	public float trustRegionRegularization = 0;
 }
