@@ -127,7 +127,7 @@ public class A3CLearningStrategy implements LearningStrategy {
 
 			// calculate value of state
 			value = valueNetwork.forward(sample.getState()).get(0);
-			float diff = reward - value;	
+			float advantage = reward - value;	
 			
 			// also update policy
 			if(config.updatePolicy){
@@ -140,17 +140,29 @@ public class A3CLearningStrategy implements LearningStrategy {
 				policyGrad.fill(0.0f);
 				
 				int action = TensorOps.argmax(sample.getAction());
-				policyGrad.set(diff, action);
+				policyGrad.set(advantage, action);
 				
+				if(config.entropy > 0){
+					// entropy regularization
+					
+					Tensor entropyGrad = new Tensor(policy.size());
+					// entropy = - sum_i  p_i * log p_i
+					// hence, gradient is d_i = - (1 + log p_i)
+					entropyGrad.fill(-1.0f);
+					entropyGrad = TensorOps.add(entropyGrad, entropyGrad, -1.0f, policy);
+				
+					policyGrad = TensorOps.add(policyGrad, policyGrad, value, entropyGrad);
+				}
+						
 				policyNetwork.backward(policyGrad);
 				policyNetwork.accGradParameters();
 			}
 			
 			
 			// calculate value gradient 
-			loss += diff*diff;
+			loss += advantage*advantage;
 			Tensor valueGrad = new Tensor(1);
-			valueGrad.set(-2*diff, 0);
+			valueGrad.set(-2*advantage, 0);
 			
 			valueNetwork.backward(valueGrad);
 			valueNetwork.accGradParameters();

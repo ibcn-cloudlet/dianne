@@ -49,4 +49,9 @@ public class A3CConfig {
 	 * Set to false to only train value function from existing policy
 	 */
 	public boolean updatePolicy = true;
+	
+	/**
+	 * Rate of entropy regularization
+	 */
+	public float entropy = 0.0f;
 }
