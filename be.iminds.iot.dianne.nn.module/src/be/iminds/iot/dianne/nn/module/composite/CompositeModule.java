@@ -74,11 +74,10 @@ public class CompositeModule extends AbstractTrainableModule implements Composit
 			offset += size;
 		}
 	}
-	
-	
-	@Override 
-	public void randomize(){
-		nn.getTrainables().values().stream().forEach(m -> m.randomize());
+
+	@Override
+	protected void randomize() {
+		nn.getTrainables().values().stream().forEach(m -> m.randomizeParameters());
 	}
 	
 	@Override

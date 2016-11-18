@@ -644,7 +644,7 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 			throw new RuntimeException("This neural network object is no longer valid");
 		}
 		
-		trainables.values().stream().forEach(t -> t.randomize());
+		trainables.values().stream().forEach(t -> t.randomizeParameters());
 	}
 	
 	@Override
@@ -657,7 +657,7 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		if(t == null){
 			throw new RuntimeException("This neural network has no trainable module with id "+moduleId);
 		}
-		t.randomize();
+		t.randomizeParameters();
 	}
 
 	@Override

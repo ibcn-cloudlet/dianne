@@ -58,6 +58,15 @@ public abstract class AbstractTrainableModule extends AbstractModule implements 
 			deltaParameters.fill(0.0f);
 		}
 	}
+	
+	@Override
+	public void randomizeParameters(){
+		if(!fixed){
+			randomize();
+		}
+	}
+	
+	protected abstract void randomize();
 
 	@Override
 	public void updateParameters() {

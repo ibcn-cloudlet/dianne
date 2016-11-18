@@ -103,7 +103,7 @@ public interface Trainable extends Module {
 	/**
 	 * Set parameters with random values
 	 */
-	void randomize();
+	void randomizeParameters();
 
 	/**
 	 * Set parameters fixed or not

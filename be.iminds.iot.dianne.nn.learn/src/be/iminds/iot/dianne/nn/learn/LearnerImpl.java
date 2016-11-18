@@ -305,15 +305,18 @@ public class LearnerImpl implements Learner {
 	 * Initialize the parameters for all neural network instances before learning starts
 	 */
 	private void initializeParameters(NeuralNetwork nn){
-		if(config.clean){
-			resetParameters(nn);
-		} else {
-			try {
-				loadParameters(nn);
-			} catch(Exception e){
-				System.out.println("Failed to load parameters "+config.tag+", fill with random parameters");
+		try {
+			// makes sure that fixed parameters are loaded anyhow
+			loadParameters(nn);
+			
+			// if clean, randomize parameters
+			if(config.clean){
 				resetParameters(nn);
 			}
+			
+		} catch(Exception e){
+			System.out.println("Failed to load parameters "+config.tag+", fill with random parameters");
+			resetParameters(nn);
 		}
 	}
 
