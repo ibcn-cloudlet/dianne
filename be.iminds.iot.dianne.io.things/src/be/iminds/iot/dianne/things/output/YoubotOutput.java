@@ -102,21 +102,33 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 			grip = false;
 			switch(action){
 			case 0:
+				vx = 0;
 				vy = speed;
+				va = 0;
 				break;
 			case 1:
+				vx = 0;
 				vy = -speed;
+				va = 0;
 				break;
 			case 2:
 				vx = speed;
+				vy = 0;
+				va = 0;
 				break;
 			case 3:
 				vx = -speed;
+				vy = 0;
+				va = 0;
 				break;
 			case 4:
+				vx = 0;
+				vy = 0;
 				va = 2*speed;
 				break;
 			case 5:
+				vx = 0;
+				vy = 0;
 				va = -2*speed;
 				break;	
 			case 6:
