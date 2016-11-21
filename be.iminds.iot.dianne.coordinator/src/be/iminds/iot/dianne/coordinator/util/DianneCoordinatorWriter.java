@@ -29,8 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.junit.rules.ErrorCollector;
-
 import com.google.gson.stream.JsonWriter;
 
 import be.iminds.iot.dianne.api.coordinator.AgentResult;
@@ -67,14 +65,14 @@ public class DianneCoordinatorWriter {
 				|| o.getClass().equals(UUID.class)){
 			writer.value(o.toString());
 		} else if(o instanceof List){
-			List l = (List)o;
+			List<?> l = (List<?>)o;
 			writer.beginArray();
 			for(Object ll : l){
 				writeObject(writer, ll);
 			}
 			writer.endArray();
 		} else if(o instanceof Map){
-			Map m = (Map) o;
+			Map<?,?> m = (Map<?,?>) o;
 			writer.beginObject();
 			for(Object k : m.keySet()){
 				writer.name(k.toString());

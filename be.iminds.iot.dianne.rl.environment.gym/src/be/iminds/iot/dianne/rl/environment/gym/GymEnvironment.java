@@ -131,7 +131,7 @@ public class GymEnvironment implements Environment {
 				try {
 					jep.eval("o = env.step(action)");
 					
-					List o = (List)jep.getValue("o");
+					List<?> o = (List<?>)jep.getValue("o");
 					Object r = o.get(1);
 					float reward = 0.0f;
 					if(r.getClass().equals(Double.class)){
@@ -149,7 +149,7 @@ public class GymEnvironment implements Environment {
 					end = (Boolean)o.get(2);
 
 					if(!end){
-						NDArray nextState = (NDArray)o.get(0);
+						NDArray<?> nextState = (NDArray<?>)o.get(0);
 						observation = gymArrayToTensor(observation, nextState);
 					} 
 					
@@ -192,7 +192,7 @@ public class GymEnvironment implements Environment {
 					jep.eval("init = env.reset()");
 					
 					// put this into observation
-					NDArray state = (NDArray)jep.getValue("init");
+					NDArray<?> state = (NDArray<?>)jep.getValue("init");
 					observation = gymArrayToTensor(observation, state);
 					
 				} catch(Exception e){
@@ -298,7 +298,7 @@ public class GymEnvironment implements Environment {
 		active = false;
 	}
 
-	private Tensor gymArrayToTensor(Tensor res, NDArray array){
+	private Tensor gymArrayToTensor(Tensor res, NDArray<?> array){
 		int[] dims = array.getDimensions();
 		
 		// swap in case of 3d array representing image data
@@ -377,7 +377,7 @@ public class GymEnvironment implements Environment {
 						int discreteAction = TensorOps.argmax(action);
 						jep.set("action", discreteAction);
 					} else {
-						NDArray a = new NDArray(action.get());
+						NDArray<float[]> a = new NDArray<float[]>(action.get());
 						jep.set("action", a);
 					}
 				} catch(Exception e){

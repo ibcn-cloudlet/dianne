@@ -32,7 +32,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.StringTokenizer;
 import java.util.UUID;
 
 import org.osgi.framework.BundleContext;
@@ -78,7 +77,7 @@ public class DianneRuntimeImpl implements DianneRuntime {
 	// All known modules
 	private ModuleMap<Module> modules = new ModuleMap<Module>();
 	// All module service registrations 
-	private ModuleMap<ServiceRegistration> registrations = new ModuleMap<ServiceRegistration>();
+	private ModuleMap<ServiceRegistration<?>> registrations = new ModuleMap<>();
 	private ModuleMap<ModuleInstanceDTO> instances = new ModuleMap<ModuleInstanceDTO>();
 	
 	private Map<UUID, List<UUID>> nextMap = new HashMap<UUID, List<UUID>>();
@@ -116,7 +115,7 @@ public class DianneRuntimeImpl implements DianneRuntime {
 	@Deactivate
 	public void deactivate(){
 		synchronized(registrations){
-			for(ServiceRegistration reg : registrations.values()){
+			for(ServiceRegistration<?> reg : registrations.values()){
 				reg.unregister();
 			}
 		}
@@ -298,7 +297,7 @@ public class DianneRuntimeImpl implements DianneRuntime {
 	}
 	
 	void removeForwardListener(ForwardListener l){
-		List<String> targets = forwardListeners.remove(l);
+		forwardListeners.remove(l);
 		// TODO filter out the modules that actually have this listener registered?
 		synchronized(instances){
 			for(ModuleInstanceDTO mi : instances.values()){
@@ -333,7 +332,7 @@ public class DianneRuntimeImpl implements DianneRuntime {
 	}
 	
 	void removeBackwardListener(BackwardListener l){
-		List<String> targets = backwardListeners.remove(l);
+		backwardListeners.remove(l);
 		// TODO filter out the modules that actually have this listener registered?
 		synchronized(instances){
 			for(ModuleInstanceDTO mi : instances.values()){
@@ -438,7 +437,7 @@ public class DianneRuntimeImpl implements DianneRuntime {
 		// allready add a null registration, in order to allow registrations.contains()
 		// to return true in the addModule call of this class
 		this.registrations.put(moduleId, nnId, null);
-		ServiceRegistration reg = context.registerService(classes, module, props);
+		ServiceRegistration<?> reg = context.registerService(classes, module, props);
 		this.registrations.put(moduleId, nnId, reg);
 		
 		ModuleInstanceDTO instance =  new ModuleInstanceDTO(dto, nnId, runtimeId);
@@ -479,7 +478,7 @@ public class DianneRuntimeImpl implements DianneRuntime {
 			return;
 		}
 		
-		ServiceRegistration reg = registrations.remove(dto.moduleId, dto.nnId);
+		ServiceRegistration<?> reg = registrations.remove(dto.moduleId, dto.nnId);
 		if(reg!=null){
 			// check if this is a composite ... if so, also undeploy composing modules
 			// TODO only works if these modules are not migrated in the mean time?
@@ -631,27 +630,6 @@ public class DianneRuntimeImpl implements DianneRuntime {
 			}
 		}
 		return result;
-	}
-	
-	private List<UUID> parseUUIDs(String string){
-		ArrayList<UUID> result = new ArrayList<UUID>();
-		if(string!=null){
-			StringTokenizer st = new StringTokenizer(string, ",");
-			while(st.hasMoreTokens()){
-				UUID id = UUID.fromString(st.nextToken());
-				result.add(id);
-			}
-		}
-		return result;
-	}
-	
-	private float[] parseWeights(String string){
-		String[] strings = parseStrings(string);
-		float weights[] = new float[strings.length];
-		for (int i = 0; i < weights.length; i++) {
-			weights[i] = Float.parseFloat(strings[i]);
-		}
-		return weights;
 	}
 	
 	private String[] parseStrings(String string){

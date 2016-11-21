@@ -88,6 +88,7 @@ import be.iminds.iot.dianne.api.rl.agent.Agent;
 import be.iminds.iot.dianne.api.rl.learn.QLearnProgress;
 import be.iminds.iot.dianne.coordinator.util.DianneCoordinatorWriter;
 
+@SuppressWarnings("rawtypes")
 @Component
 public class DianneCoordinatorImpl implements DianneCoordinator {
 
@@ -368,7 +369,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	}
 	
 	// called when a job is done
-	void done(final AbstractJob job) {
+	void done(final AbstractJob<?> job) {
 		// remove from running list
 		if(running.remove(job)){
 			job.targets.stream().forEach(uuid -> deviceUsage.get((UUID) uuid).set(job.type.ordinal(), false));
@@ -467,7 +468,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		}
 		
 		// try to schedule the next job on the queue
-		AbstractJob job = queue.peek();
+		AbstractJob<?> job = queue.peek();
 		if(job==null){
 			// no more jobs...
 			return;

@@ -38,6 +38,8 @@ import com.google.gson.stream.JsonWriter;
 		"osgi.http.whiteboard.servlet.pattern=/dianne/jsonrpc", "aiolos.proxy=false" }, immediate = true)
 public class DianneJSONRPCServlet extends HttpServlet {
 
+	private static final long serialVersionUID = 1L;
+
 	private JSONRPCRequestHandler handler;
 
 	@Reference

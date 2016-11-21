@@ -151,7 +151,7 @@ public class EvaluatorImpl implements Evaluator {
 				if(!(d instanceof SequenceDataset))
 					throw new Exception("Dataset "+dataset+" is not a sequence dataset, granularity SEQUENCE invalid");
 				
-				size = ((SequenceDataset)d).sequences();
+				size = ((SequenceDataset<?,?>)d).sequences();
 			}
 		
 			tStart = System.currentTimeMillis();
@@ -246,7 +246,7 @@ public class EvaluatorImpl implements Evaluator {
 	}
 
 	@Reference
-	void setEvaluationStrategyFactory(StrategyFactory f){
+	void setEvaluationStrategyFactory(StrategyFactory<EvaluationStrategy> f){
 		factory = f;
 	}
 	

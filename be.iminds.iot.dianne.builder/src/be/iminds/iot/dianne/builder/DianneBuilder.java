@@ -54,6 +54,8 @@ import com.google.gson.JsonPrimitive;
 	immediate=true)
 public class DianneBuilder extends HttpServlet {
 
+	private static final long serialVersionUID = 1L;
+	
 	private List<ModuleFactory> factories = Collections.synchronizedList(new ArrayList<ModuleFactory>());
 	
 	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 

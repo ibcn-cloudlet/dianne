@@ -529,9 +529,6 @@ public class DatasetConfigurator implements DianneDatasets {
 				}
 			}
 			
-			if(pid == null)
-				return;
-			
 			// set an aiolos instance id using the dataset name to treat
 			// equally named datasets as single instance in the network
 			props.put("aiolos.instance.id", name);

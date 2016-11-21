@@ -83,7 +83,8 @@ public class ModuleMap<T> {
 	    public boolean equals(Object o) {
 	        if (this == o) return true;
 	        if (!(o instanceof ModuleMap.Key)) return false;
-	        Key key = (Key) o;
+	        @SuppressWarnings("unchecked")
+			Key key = (Key) o;
 	        return moduleId.equals(key.moduleId) && nnId.equals(key.nnId);
 	    }
 

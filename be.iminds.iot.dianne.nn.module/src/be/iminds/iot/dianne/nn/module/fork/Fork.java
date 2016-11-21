@@ -253,12 +253,10 @@ public abstract class Fork extends AbstractModule {
 	}
 	
 	protected boolean nextBusy(){
-		int i = 0;
 		for(AtomicBoolean a : nextsBusy.values()){
 			if(a.get()){
 				return true;
 			}
-			i++;
 		}
 		return false;
 	}

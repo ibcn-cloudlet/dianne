@@ -39,7 +39,6 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch;
-import be.iminds.iot.dianne.rl.experience.AbstractExperiencePool.Sequence;
 
 @Component(
 		service={ExperiencePool.class, Dataset.class},

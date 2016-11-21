@@ -52,15 +52,9 @@ public class ThingsOutputs implements DianneOutputs {
 	
 	private Map<UUID, ThingOutput> things = Collections.synchronizedMap(new HashMap<>());
 	
-	private int magicNumber = -1;
-	
 	@Activate
 	void activate(BundleContext context){
 		this.context = context;
-		String number = context.getProperty("be.iminds.iot.dianne.things.light.index");
-		if(number!=null){
-			magicNumber = Integer.parseInt(number);
-		}
 	}
 	
 	@Reference(

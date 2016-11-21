@@ -52,6 +52,8 @@ import com.google.gson.JsonPrimitive;
 	immediate = true)
 public class DianneOutput extends HttpServlet {
 	
+	private static final long serialVersionUID = 1L;
+	
 	private List<DianneOutputs> outputs = Collections.synchronizedList(new ArrayList<DianneOutputs>());
 	
 	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE, 

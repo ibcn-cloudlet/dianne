@@ -82,18 +82,7 @@ public class DianneBenchmarkCommands {
 
 		System.gc();
 		
-		// parse the input
-		Tensor in = null;
-		
-		String datasetName = input;
-		String sample = null;
-		if(input.contains(":")){
-			int split = input.lastIndexOf(":");
-			datasetName = input.substring(0, split);
-			sample = input.substring(split + 1);
-		}
-		
-
+		// generate the input
 		int[] dims = null;
 		try {
 			String[] d = input.split(",");
@@ -106,13 +95,8 @@ public class DianneBenchmarkCommands {
 			return;
 		}
 		
-		in = new Tensor(dims);
+		Tensor in = new Tensor(dims);
 		in.rand();
-		
-		if(in == null){
-			System.out.println("No valid input provided...");
-			return;
-		}
 		
 		// deploy the NN
 		NeuralNetworkInstanceDTO nni = null;

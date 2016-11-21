@@ -62,7 +62,6 @@ public class DiannePlatformImpl implements DiannePlatform {
 	private Map<UUID, NeuralNetworkInstanceDTO> nnis = new ConcurrentHashMap<UUID, NeuralNetworkInstanceDTO>();
 
 	private UUID frameworkId;
-	private BundleContext context;
 
 	// waiting set to wait until remote service available when migrating
 	private Set<String> toWait = new HashSet<>();
@@ -70,7 +69,6 @@ public class DiannePlatformImpl implements DiannePlatform {
 	@Activate
 	public void activate(BundleContext context) throws Exception {
 		frameworkId = UUID.fromString(context.getProperty(Constants.FRAMEWORK_UUID));
-		this.context = context;
 	}
 	
 

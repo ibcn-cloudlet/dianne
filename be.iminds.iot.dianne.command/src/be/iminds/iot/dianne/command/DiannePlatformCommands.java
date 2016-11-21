@@ -23,7 +23,6 @@
 package be.iminds.iot.dianne.command;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.HashMap;
@@ -31,7 +30,6 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Random;
 import java.util.UUID;
 
 import org.apache.felix.service.command.Descriptor;
@@ -41,17 +39,12 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
-import be.iminds.iot.dianne.api.dataset.Dataset;
-import be.iminds.iot.dianne.api.dataset.DatasetDTO;
-import be.iminds.iot.dianne.api.dataset.DianneDatasets;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.api.repository.RepositoryListener;
-import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorOps;
 
 @Component(
 		service=Object.class,
@@ -66,8 +59,6 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 		immediate=true)
 public class DiannePlatformCommands {
 
-	private static Random rand = new Random(System.currentTimeMillis());
-	
 	BundleContext context;
 	
 	// Dianne components
@@ -75,7 +66,7 @@ public class DiannePlatformCommands {
 	DiannePlatform platform;
 	
 	// State
-	Map<UUID, ServiceRegistration> repoListeners = new HashMap<UUID, ServiceRegistration>();
+	Map<UUID, ServiceRegistration<RepositoryListener>> repoListeners = new HashMap<>();
 	
 	@Activate
 	public void activate(BundleContext context){
@@ -267,7 +258,7 @@ public class DiannePlatformCommands {
 	private void undeploy(NeuralNetworkInstanceDTO nn){
 		platform.undeployNeuralNetwork(nn);
 		
-		ServiceRegistration r = repoListeners.get(nn.id);
+		ServiceRegistration<RepositoryListener> r = repoListeners.get(nn.id);
 		if(r!=null){
 			r.unregister();
 		}
@@ -293,7 +284,7 @@ public class DiannePlatformCommands {
 		Dictionary<String, Object> props = new Hashtable<String, Object>();
 		props.put("targets", new String[]{":"+tag});
 		props.put("aiolos.unique", true);
-		ServiceRegistration r = context.registerService(RepositoryListener.class, listener, props);
+		ServiceRegistration<RepositoryListener> r = context.registerService(RepositoryListener.class, listener, props);
 		repoListeners.put(nni.id, r);
 	}
 	

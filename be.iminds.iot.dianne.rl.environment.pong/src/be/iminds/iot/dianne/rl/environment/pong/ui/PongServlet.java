@@ -58,6 +58,8 @@ import be.iminds.iot.dianne.tensor.Tensor;
 		"alias:String=/pong", "aiolos.proxy=false","target="+Pong.NAME }, immediate = true)
 public class PongServlet extends HttpServlet implements EnvironmentListener {
 
+	private static final long serialVersionUID = 1L;
+
 	private DiannePlatform platform;
 
 	// the Pong environment that is viewed

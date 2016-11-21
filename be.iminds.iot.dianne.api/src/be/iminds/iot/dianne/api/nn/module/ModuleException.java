@@ -26,6 +26,8 @@ import java.util.UUID;
 
 public class ModuleException extends Exception {
 
+	private static final long serialVersionUID = 1L;
+	
 	public UUID moduleId;
 	public String type;
 	

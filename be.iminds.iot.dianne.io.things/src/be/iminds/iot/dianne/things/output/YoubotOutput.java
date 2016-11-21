@@ -213,6 +213,7 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 			mode = Mode.CONTINUOUS;
 			System.out.println("Accepy only continous neural net robot control signals");
 			break;
+		default:
 		}
 	}
 

@@ -22,7 +22,6 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.learn.strategy;
 
-import java.util.Arrays;
 import java.util.Map;
 
 import org.osgi.util.promise.Promise;
@@ -30,6 +29,7 @@ import org.osgi.util.promise.Promise;
 import be.iminds.iot.dianne.api.dataset.Batch;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
+import be.iminds.iot.dianne.api.nn.NeuralNetworkResult;
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
@@ -42,7 +42,6 @@ import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory;
 import be.iminds.iot.dianne.nn.learn.strategy.config.FeedForwardConfig;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorOps;
 
 /**
  * Default LearningStrategy for supervised training of a Neural Network
@@ -101,7 +100,7 @@ public class FeedForwardLearningStrategy implements LearningStrategy {
 		// Load next batch while doing forward/backward
 		if(batch.input != null) {
 			// Execute in batch
-			Promise result = nn.forward(null, null, batch.input).then(
+			Promise<NeuralNetworkResult> result = nn.forward(null, null, batch.input).then(
 					p -> {
 						// Forward
 						Tensor output = p.getValue().tensor;
@@ -131,7 +130,7 @@ public class FeedForwardLearningStrategy implements LearningStrategy {
 			// Cannot load a batch for this dataset, still process one by one
 			for(int k=0;k<config.batchSize;k++){
 				final int b = k;
-				Promise result = nn.forward(null, null, batch.samples[b].input).then(
+				Promise<NeuralNetworkResult> result = nn.forward(null, null, batch.samples[b].input).then(
 						p -> {
 							// Forward
 							Tensor output = p.getValue().tensor;

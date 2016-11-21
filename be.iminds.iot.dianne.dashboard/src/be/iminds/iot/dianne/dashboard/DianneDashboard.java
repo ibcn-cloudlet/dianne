@@ -40,6 +40,8 @@ property={"alias:String=/dianne/dashboard",
 immediate=true)
 public class DianneDashboard extends HttpServlet{
 
+	private static final long serialVersionUID = 1L;
+
 	@Reference
 	void setHttpService(HttpService http){
 		try {

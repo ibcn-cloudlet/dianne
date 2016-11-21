@@ -30,6 +30,7 @@ import java.util.UUID;
 public class DianneConfigHandler {
 
 	// TODO use Object Conversion spec implementation for this?!
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static <T> T getConfig(Map<String, String> config, Class<T> c){
 		T instance = null;
 		try {

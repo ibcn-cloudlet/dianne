@@ -277,7 +277,7 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		if(simulator == null) {
 			// automatically pause the environment until the user resumes from CLI
 			pause = true;
-			System.out.println("Reset your environment and resume by typing the \"go\" command.");
+			System.out.println("Reset your environment and resume by typing the \"start\" command.");
 			waitForResume();
 			
 		} else {

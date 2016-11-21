@@ -50,6 +50,8 @@ property={"alias:String=/dianne/sse",
 immediate=true)
 public class DianneSSEServlet extends HttpServlet implements EventHandler {
 
+	private static final long serialVersionUID = 1L;
+	
 	private Map<String, AsyncContext> clients = new ConcurrentHashMap<>();
 	
 	@Override

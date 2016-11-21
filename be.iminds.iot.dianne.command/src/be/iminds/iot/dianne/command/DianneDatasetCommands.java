@@ -256,11 +256,11 @@ public class DianneDatasetCommands {
 		}
 		
 		try {
-		List s = ((SequenceDataset)d).getSequence(sequence);
-		int i = 0;
-		for(Object o : s){
-			System.out.println("["+(i++)+"] "+o.toString());
-		}
+			List<?> s = ((SequenceDataset<?,?>)d).getSequence(sequence);
+			int i = 0;
+			for(Object o : s){
+				System.out.println("["+(i++)+"] "+o.toString());
+			}
 		} catch(Throwable t){
 			t.printStackTrace();
 		}
@@ -281,7 +281,7 @@ public class DianneDatasetCommands {
 			return;
 		}
 		
-		System.out.println(((SequenceDataset)d).sequences());
+		System.out.println(((SequenceDataset<?, ?>)d).sequences());
 	}
 	
 	@Descriptor("Dump the content of an experience pool")

@@ -22,7 +22,6 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.dataset.adapters;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
 

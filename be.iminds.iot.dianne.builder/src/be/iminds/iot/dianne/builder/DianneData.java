@@ -52,6 +52,8 @@ import be.iminds.iot.dianne.tensor.Tensor;
 	immediate = true)
 public class DianneData extends HttpServlet {
 
+	private static final long serialVersionUID = 1L;
+	
 	private Random rand = new Random(System.currentTimeMillis());
 	private JsonParser parser = new JsonParser();
 	

@@ -54,6 +54,8 @@ import be.iminds.iot.dianne.tensor.util.ImageConverter;
 		"alias:String=/ale", "aiolos.proxy=false","target="+ArcadeLearningEnvironment.NAME }, immediate = true)
 public class ALEServlet extends HttpServlet implements EnvironmentListener {
 
+	private static final long serialVersionUID = 1L;
+
 	// interval between UI state updates
 	private int interval = 17;
 	private long timestamp = System.currentTimeMillis();
@@ -103,7 +105,7 @@ public class ALEServlet extends HttpServlet implements EnvironmentListener {
 		String client = request.getRemoteHost()+":"+request.getRemotePort();
 		CameraStream stream = streams.get(client);
 		if(stream==null){
-			stream = new CameraStream(client);
+			stream = new CameraStream();
 			synchronized(streams){
 				streams.put(client, stream);
 			}
@@ -162,14 +164,8 @@ public class ALEServlet extends HttpServlet implements EnvironmentListener {
 	
 	private class CameraStream {
 		
-		private final String client;
-		
 		private AsyncContext async;
 		private ServletResponse response; 
-		
-		public CameraStream(String client){
-			this.client = client;
-		}
 		
 		protected void sendFrame(byte[] data) throws IOException {
 			response.getOutputStream().println("--next");
@@ -179,10 +175,6 @@ public class ALEServlet extends HttpServlet implements EnvironmentListener {
 			response.getOutputStream().write(data, 0, data.length);
 			response.getOutputStream().println("");
 			response.flushBuffer();
-		}
-		
-		protected String getClient(){
-			return client;
 		}
 		
 		protected void updateRequest(ServletRequest request){

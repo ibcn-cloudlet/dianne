@@ -46,6 +46,8 @@ import com.google.gson.JsonPrimitive;
 	immediate = true)
 public class DianneLoader extends HttpServlet {
 	
+	private static final long serialVersionUID = 1L;
+	
 	private DianneRepository repository;
 	
 	@Reference

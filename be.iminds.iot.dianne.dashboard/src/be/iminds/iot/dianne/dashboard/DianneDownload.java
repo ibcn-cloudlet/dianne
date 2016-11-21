@@ -53,6 +53,8 @@ property={"alias:String=/dianne/download",
 immediate=true)
 public class DianneDownload extends HttpServlet{
 	
+	private static final long serialVersionUID = 1L;
+	
 	private DianneRepository repository;
 	
 	@Reference

@@ -80,6 +80,8 @@ import be.iminds.iot.dianne.tensor.util.ImageConverter;
 	immediate = true)
 public class DianneRunner extends HttpServlet {
 	
+	private static final long serialVersionUID = 1L;
+
 	private BundleContext context;
 	
 	private ImageConverter converter;
@@ -398,7 +400,7 @@ public class DianneRunner extends HttpServlet {
 		private final String nnId;
 		private final Map<UUID, String[]> labels;
 		private final AsyncContext async;
-		private ServiceRegistration reg;
+		private ServiceRegistration<ForwardListener> reg;
 		private Tensor copy = new Tensor();
 		
 		public SSEForwardListener(String nnId,
@@ -433,7 +435,7 @@ public class DianneRunner extends HttpServlet {
 		}
 		
 		public void register(BundleContext context){
-			Dictionary<String, Object> props = new Hashtable();
+			Dictionary<String, Object> props = new Hashtable<>();
 			props.put("targets", new String[]{nnId});
 			props.put("aiolos.unique", true);
 			reg = context.registerService(ForwardListener.class, this, props);

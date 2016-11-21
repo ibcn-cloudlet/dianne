@@ -24,6 +24,8 @@ package be.iminds.iot.dianne.api.nn.module.factory;
 
 public class ModuleTypeNotSupportedException extends Exception {
 
+	private static final long serialVersionUID = 1L;
+
 	public ModuleTypeNotSupportedException(String type){
 		super("Module type "+type+" is not supported by this factory");
 	}

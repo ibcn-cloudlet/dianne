@@ -40,7 +40,10 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
-import be.iminds.iot.dianne.api.nn.Dianne;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
@@ -48,10 +51,6 @@ import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.nn.util.DianneJSONConverter;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 
 
 @Component(service = { javax.servlet.Servlet.class }, 
@@ -61,17 +60,13 @@ import com.google.gson.JsonPrimitive;
 	immediate = true)
 public class DianneDeployer extends HttpServlet {
 
+	private static final long serialVersionUID = 1L;
+	
 	private DianneRepository repository;
 	private DiannePlatform platform;
-	private Dianne dianne;
 	
 	@Activate
 	public void activate(BundleContext context){
-	}
-	
-	@Reference
-	void setDianne(Dianne d){
-		this.dianne = d;
 	}
 	
 	@Reference

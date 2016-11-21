@@ -26,6 +26,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class CircularBlockingQueue<T> extends LinkedBlockingQueue<T> {
 
+	private static final long serialVersionUID = 1L;
+
 	private int limit;
 	
 	public CircularBlockingQueue(int limit){

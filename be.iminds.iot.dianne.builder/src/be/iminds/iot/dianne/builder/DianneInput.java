@@ -67,12 +67,14 @@ import be.iminds.iot.dianne.tensor.Tensor;
 	immediate = true)
 public class DianneInput extends HttpServlet {
 	
+	private static final long serialVersionUID = 1L;
+
 	private List<DianneInputs> inputs = Collections.synchronizedList(new ArrayList<DianneInputs>());
 
 	// Send event to UI when new input sample arrived
 	private AsyncContext sse = null;
 	private BundleContext context;
-	private Map<UUID, ServiceRegistration> inputListeners = Collections.synchronizedMap(new HashMap<UUID, ServiceRegistration>());
+	private Map<UUID, ServiceRegistration<ForwardListener>> inputListeners = Collections.synchronizedMap(new HashMap<>());
 	private JsonParser parser = new JsonParser();
 
 	@Activate 
@@ -178,7 +180,7 @@ public class DianneInput extends HttpServlet {
 				Dictionary<String, Object> properties = new Hashtable<String, Object>();
 				properties.put("targets", new String[]{nnId+":"+inputId});
 				properties.put("aiolos.unique", true);
-				ServiceRegistration r = context.registerService(ForwardListener.class.getName(), inputListener, properties);
+				ServiceRegistration<ForwardListener> r = context.registerService(ForwardListener.class, inputListener, properties);
 				inputListeners.put(UUID.fromString(inputId), r);
 			}
 		} else if("unsetinput".equals(action)){
@@ -192,7 +194,7 @@ public class DianneInput extends HttpServlet {
 				}
 			}
 			
-			ServiceRegistration r = inputListeners.get(UUID.fromString(inputId));
+			ServiceRegistration<ForwardListener> r = inputListeners.get(UUID.fromString(inputId));
 			if(r!=null){
 				r.unregister();
 			}

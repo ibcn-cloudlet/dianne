@@ -74,4 +74,4 @@ aiolos.version='[0.6.0,0.7.0)'
 -runproperties.common:\
 	org.osgi.service.http.port=8080,\
 	org.apache.felix.http.jetty.maxFormSize=999999999,\
-	rsa.timeout=10000000
+	rsa.timeout=300000

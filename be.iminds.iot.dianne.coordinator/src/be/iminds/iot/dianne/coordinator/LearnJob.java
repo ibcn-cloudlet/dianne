@@ -132,7 +132,7 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 			config.put("tag", jobId.toString());
 		}
 		
-		Dictionary<String, Object> props = new Hashtable();
+		Dictionary<String, Object> props = new Hashtable<>();
 		String[] t = targets.stream().map(uuid -> uuid.toString()).collect(Collectors.toList()).toArray(new String[targets.size()]);
 		props.put("targets", t);
 		props.put("aiolos.unique", true);

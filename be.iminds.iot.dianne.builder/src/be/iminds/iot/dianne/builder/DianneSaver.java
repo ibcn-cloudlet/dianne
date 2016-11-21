@@ -43,6 +43,8 @@ import be.iminds.iot.dianne.nn.util.DianneJSONConverter;
 	immediate = true)
 public class DianneSaver extends HttpServlet {
 
+	private static final long serialVersionUID = 1L;
+	
 	private DianneRepository repository;
 	
 	@Reference

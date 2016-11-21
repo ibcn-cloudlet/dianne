@@ -63,7 +63,6 @@ import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.learn.LearnerListener;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
-import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 @Component(service = { javax.servlet.Servlet.class }, 
@@ -74,8 +73,9 @@ import be.iminds.iot.dianne.tensor.Tensor;
 	immediate = true)
 public class DianneLearner extends HttpServlet {
 
+	private static final long serialVersionUID = 1L;
+	
 	private BundleContext context;
-	private DianneRepository repository;
 	private DianneDatasets datasets;
 	
 	private static final JsonParser parser = new JsonParser();
@@ -85,16 +85,10 @@ public class DianneLearner extends HttpServlet {
 	private Evaluator evaluator;
 
 	private int interval = 10;
-	private AsyncContext sse = null;
 	
 	@Activate
 	void activate(BundleContext context){
 		this.context = context;
-	}
-	
-	@Reference
-	void setDianneRepository(DianneRepository repo){
-		this.repository = repo;
 	}
 	
 	@Reference
@@ -136,15 +130,12 @@ public class DianneLearner extends HttpServlet {
 		NeuralNetworkInstanceDTO nn = platform.getNeuralNetworkInstance(UUID.fromString(nnId));
 		if(nn!=null){
 			try {
-				SSERepositoryListener listener = new SSERepositoryListener(nnId, request.startAsync());
+				SSERepositoryListener listener = new SSERepositoryListener(request.startAsync());
 				listener.register(context);
 			} catch(Exception e){
 				e.printStackTrace();
 			}
 		}
-		
-//		sse = request.startAsync();
-//		sse.setTimeout(0); // no timeout => remove listener when error occurs.
 	}
 	
 	@Override
@@ -228,11 +219,6 @@ public class DianneLearner extends HttpServlet {
 					Map<String, String> config = new HashMap<>();
 					config.put("range", ""+start+","+end);
 					
-					String type = "CRITERION";
-					if(datasets.isClassificationDataset(dataset)){
-						type = "CLASSIFICATION";
-					}
-					
 					try {
 						Evaluation result = evaluator.eval(dataset, config, nni);
 
@@ -281,15 +267,11 @@ public class DianneLearner extends HttpServlet {
 	
 	private class SSERepositoryListener implements LearnerListener {
 
-		private final String nnId;
 		private final AsyncContext async;
 
-		private ServiceRegistration reg;
+		private ServiceRegistration<LearnerListener> reg;
 		
-		private int i = 0;
-		
-		public SSERepositoryListener(String nnId, AsyncContext async){
-			this.nnId = nnId;
+		public SSERepositoryListener(AsyncContext async){
 			this.async = async;
 			
 			this.async.setTimeout(300000); // let it ultimately timeout if client is closed
@@ -318,7 +300,7 @@ public class DianneLearner extends HttpServlet {
 		}
 	
 		public void register(BundleContext context){
-			Dictionary<String, Object> props = new Hashtable();
+			Dictionary<String, Object> props = new Hashtable<>();
 			props.put("targets", new String[]{learner.getLearnerId().toString()});
 			props.put("aiolos.unique", true);
 			reg = context.registerService(LearnerListener.class, this, props);

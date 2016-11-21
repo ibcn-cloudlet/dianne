@@ -25,8 +25,6 @@ package be.iminds.iot.dianne.api.dataset;
 import java.util.List;
 import java.util.Map;
 
-import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
-
 /**
  * Interface to configure and manage all Datasets
  *  

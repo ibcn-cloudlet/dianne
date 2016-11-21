@@ -54,6 +54,7 @@ public class StrategyFactoryImpl<T> implements StrategyFactory<T>{
 		this.wiring = context.getBundle().adapt(BundleWiring.class);
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public T create(String strategy) {
 		if(strategy.contains("class")){
@@ -65,7 +66,7 @@ public class StrategyFactoryImpl<T> implements StrategyFactory<T>{
 			}
 		}
 		
-		Class c;
+		Class<?> c;
 		try {
 			if(strategy.contains(".")){
 				// fully qualified class name, load directly
@@ -102,6 +103,7 @@ public class StrategyFactoryImpl<T> implements StrategyFactory<T>{
 	}
 
 	
+	@SuppressWarnings("unchecked")
 	private T createFromSource(String source) throws Exception {
 		// fetch package
 		String pkg = "";
@@ -159,7 +161,7 @@ public class StrategyFactoryImpl<T> implements StrategyFactory<T>{
 		
 		// load class
 		URLClassLoader classLoader = URLClassLoader.newInstance(new URL[] {root.toURI().toURL()}, wiring.getClassLoader());
-		Class c = classLoader.loadClass(fqn);
+		Class<?> c = classLoader.loadClass(fqn);
 		Object instance = c.newInstance();
 		return (T) instance;
 	}

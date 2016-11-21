@@ -120,7 +120,7 @@ public class JSONRPCTester {
 			byte[] undeployRequest = undeployRequestJson.toString().getBytes();
 			out.write(undeployRequest);
 			JsonElement undeployResult = parser.parse(reader);
-			System.out.println("Undeployed "+deployResult.getAsJsonObject().get("result").getAsString());
+			System.out.println("Undeployed "+undeployResult.getAsJsonObject().get("result").getAsString());
 		}
 	}
 }

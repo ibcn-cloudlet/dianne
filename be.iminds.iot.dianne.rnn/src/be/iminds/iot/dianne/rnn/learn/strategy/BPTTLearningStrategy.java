@@ -50,6 +50,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
  * @author tverbele
  *
  */
+@SuppressWarnings("rawtypes")
 public class BPTTLearningStrategy implements LearningStrategy {
 
 	protected SequenceDataset dataset;

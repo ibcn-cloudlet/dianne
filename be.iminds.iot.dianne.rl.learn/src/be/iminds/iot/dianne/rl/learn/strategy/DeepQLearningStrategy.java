@@ -33,7 +33,6 @@ import be.iminds.iot.dianne.api.nn.learn.LearningStrategy;
 import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch;
-import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
 import be.iminds.iot.dianne.api.rl.learn.QLearnProgress;
 import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory;
 import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory;
@@ -161,7 +160,7 @@ public class DeepQLearningStrategy implements LearningStrategy {
 		valueNetwork.backward(grad);
 		valueNetwork.accGradParameters();
 		
-		// Call the processos to set the updates
+		// Call the processors to set the updates
 		gradientProcessor.calculateDelta(i);
 		
 		// Apply the updates
