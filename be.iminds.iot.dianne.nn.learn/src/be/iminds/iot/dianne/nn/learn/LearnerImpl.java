@@ -180,6 +180,8 @@ public class LearnerImpl implements Learner {
 					
 					// Setup LearningStrategy
 					strategy.setup(config, dataset, nns);
+					// this allows the strategy to adapt config in setup
+					this.config = DianneConfigHandler.getConfig(config, LearnerConfig.class);
 					
 					// Actual training loop
 					for(i = 0; learning; i++) {

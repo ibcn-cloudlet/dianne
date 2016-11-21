@@ -285,6 +285,8 @@ public class AgentImpl implements Agent {
 				
 				// setup action strategy
 				strategy.setup(properties, env, nns);
+				// this allows the strategy to adapt config in setup
+				config = DianneConfigHandler.getConfig(properties, AgentConfig.class);
 				
 				// TODO this his hard coded for ManualActionStrategy ... have something better?
 				if(strategy instanceof ActionController){

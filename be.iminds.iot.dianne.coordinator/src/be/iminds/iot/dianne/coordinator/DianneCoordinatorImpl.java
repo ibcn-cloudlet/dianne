@@ -166,11 +166,13 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	
 	@Override
 	public Promise<EvaluationResult> eval(String dataset, Map<String, String> config, NeuralNetworkDTO... nns) {
-		try {
-			for(NeuralNetworkDTO nn : nns)
-				repository.storeNeuralNetwork(nn);
-		} catch(Exception e){
-			// NN could be locked but still evaluation should be possible
+		if(nns != null){
+			try {
+				for(NeuralNetworkDTO nn : nns)
+					repository.storeNeuralNetwork(nn);
+			} catch(Exception e){
+				// NN could be locked but still evaluation should be possible
+			}
 		}
 		
 		EvaluationJob job = new EvaluationJob(this, dataset, config, nns);
@@ -182,17 +184,29 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		
 		return job.getPromise();
 	}
+	
+	@Override
+	public Promise<EvaluationResult> eval(String dataset, Map<String, String> config, String... nnName) {
+		NeuralNetworkDTO[] nns = null;
+		if(nnName != null){
+			nns = new NeuralNetworkDTO[nnName.length];
+			for(int i=0;i<nns.length;i++){
+				nns[i] = repository.loadNeuralNetwork(nnName[i]);
+			}
+		}
+		return eval(dataset, config, nns);
+	}
 
 	@Override
 	public Promise<AgentResult> act(String dataset, Map<String, String> config, String... nnName) {
-		if(nnName == null){
-			return act(dataset, config, (NeuralNetworkDTO[])null);
+		NeuralNetworkDTO[] nns = null;
+		if(nnName != null){
+			nns = new NeuralNetworkDTO[nnName.length];
+			for(int i=0;i<nns.length;i++){
+				nns[i] = repository.loadNeuralNetwork(nnName[i]);
+			}
 		}
-		
-		NeuralNetworkDTO[] nns = new NeuralNetworkDTO[nnName.length];
-		for(int i=0;i<nns.length;i++){
-			nns[i] = repository.loadNeuralNetwork(nnName[i]);
-		}
+
 		return act(dataset, config, nns);
 	}
 	
@@ -217,15 +231,6 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		return job.getPromise();
 	}
 
-	@Override
-	public Promise<EvaluationResult> eval(String dataset, Map<String, String> config, String... nnName) {
-		NeuralNetworkDTO[] nns = new NeuralNetworkDTO[nnName.length];
-		for(int i=0;i<nns.length;i++){
-			nns[i] = repository.loadNeuralNetwork(nnName[i]);
-		}
-		return eval(dataset, config, nns);
-	}
-	
 	@Override
 	public LearnResult getLearnResult(UUID jobId) {
 		// check if this job is running, if so return progress

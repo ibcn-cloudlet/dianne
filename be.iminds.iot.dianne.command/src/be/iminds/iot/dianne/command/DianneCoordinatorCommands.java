@@ -171,7 +171,7 @@ public class DianneCoordinatorCommands {
 			
 			Map<String, String> config = createConfig(defaults, properties);
 		
-			coordinator.eval(dataset, config, nnName.split(",")).then(p -> {
+			coordinator.eval(dataset, config, nnName==null ? null : nnName.split(",")).then(p -> {
 				System.out.println("Evaluation Job done!");
 				EvaluationResult result = p.getValue();
 				for(Evaluation eval : result.evaluations.values()){

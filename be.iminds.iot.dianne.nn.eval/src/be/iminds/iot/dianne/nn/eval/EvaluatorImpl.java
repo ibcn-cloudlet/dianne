@@ -110,30 +110,32 @@ public class EvaluatorImpl implements Evaluator {
 				throw new Exception("Dataset "+dataset+" not available");
 
 			// Fetch Neural Network instances and load parameters
-			System.out.println("Neural Network(s)");
-			System.out.println("---");
-			NeuralNetwork[] nns = new NeuralNetwork[nni.length];
-			int n = 0;
-			for(NeuralNetworkInstanceDTO dto : nni){
-				if(dto != null){
-					NeuralNetwork nn = dianne.getNeuralNetwork(dto).getValue();
-					nns[n++] = nn;
-					System.out.println("* "+dto.name);
-
-					try {
-						if(this.config.tag==null){
-							nn.loadParameters();
-						} else {
-							nn.loadParameters(this.config.tag);
+			NeuralNetwork[] nns = null;
+			if(nni != null){
+				System.out.println("Neural Network(s)");
+				System.out.println("---");
+				nns = new NeuralNetwork[nni.length];
+				int n = 0;
+				for(NeuralNetworkInstanceDTO dto : nni){
+					if(dto != null){
+						NeuralNetwork nn = dianne.getNeuralNetwork(dto).getValue();
+						nns[n++] = nn;
+						System.out.println("* "+dto.name);
+	
+						try {
+							if(this.config.tag==null){
+								nn.loadParameters();
+							} else {
+								nn.loadParameters(this.config.tag);
+							}
+						} catch(Exception e){
+							// ignore if no parameters found
+							System.out.println("No parameters loaded for this evaluation - network is not yet trained?");
 						}
-					} catch(Exception e){
-						// ignore if no parameters found
-						System.out.println("No parameters loaded for this evaluation - network is not yet trained?");
 					}
 				}
+				System.out.println("---");
 			}
-			System.out.println("---");
-
 			
 			// Create evaluation strategy
 			strategy = factory.create(this.config.strategy);
@@ -141,6 +143,8 @@ public class EvaluatorImpl implements Evaluator {
 				throw new Exception("Strategy "+this.config.strategy+" not available");
 			
 			strategy.setup(config, d, nns);
+			// this allows the strategy to adapt config in setup
+			this.config = DianneConfigHandler.getConfig(config, EvaluatorConfig.class);
 			
 			int size = d.size();
 			if(this.config.granularity == EvaluationGranularity.SEQUENCE){
@@ -154,7 +158,11 @@ public class EvaluatorImpl implements Evaluator {
 			for(long i=0; i<size;){
 				progress = strategy.processIteration(i);
 				
-				i = progress.processed;
+				long next = progress.processed;
+				if(next == i){
+					throw new RuntimeException("Strategy is not making progress...");
+				}
+				i = next;
 				
 				// TODO how frequently publish progress
 				listenerExecutor.execute(()->{
@@ -195,7 +203,7 @@ public class EvaluatorImpl implements Evaluator {
 				l.onException(evaluatorId, t);
 			}
 			throw t;
-		}finally {
+		} finally {
 			List<EvaluatorListener> copy = new ArrayList<>();
 			synchronized(listeners){
 				copy.addAll(listeners);
