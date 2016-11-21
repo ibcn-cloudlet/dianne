@@ -40,6 +40,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.DianneDatasets;
+import be.iminds.iot.dianne.api.dataset.SequenceDataset;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
@@ -50,6 +51,7 @@ import be.iminds.iot.dianne.api.nn.eval.EvaluatorListener;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.util.StrategyFactory;
 import be.iminds.iot.dianne.nn.eval.config.EvaluatorConfig;
+import be.iminds.iot.dianne.nn.eval.config.EvaluatorConfig.EvaluationGranularity;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 
 /**
@@ -140,9 +142,16 @@ public class EvaluatorImpl implements Evaluator {
 			
 			strategy.setup(config, d, nns);
 			
+			int size = d.size();
+			if(this.config.granularity == EvaluationGranularity.SEQUENCE){
+				if(!(d instanceof SequenceDataset))
+					throw new Exception("Dataset "+dataset+" is not a sequence dataset, granularity SEQUENCE invalid");
+				
+				size = ((SequenceDataset)d).sequences();
+			}
 		
 			tStart = System.currentTimeMillis();
-			for(long i=0; i<d.size();){
+			for(long i=0; i<size;){
 				progress = strategy.processIteration(i);
 				
 				i = progress.processed;

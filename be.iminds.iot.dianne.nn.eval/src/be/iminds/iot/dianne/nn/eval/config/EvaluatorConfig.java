@@ -24,10 +24,20 @@ package be.iminds.iot.dianne.nn.eval.config;
 
 public class EvaluatorConfig {
 
+	public enum EvaluationGranularity {
+		SAMPLE,
+		SEQUENCE
+	}
+	
 	/**
 	 * Evaluation Strategy to use
 	 */
 	public String strategy = "ClassificationEvaluationStrategy";
+	
+	/**
+	 * Granularity on which the evaluation iterations are done
+	 */
+	public EvaluationGranularity granularity = EvaluationGranularity.SAMPLE;
 	
 	/**
 	 * The tag under which to publish the trained parameters
