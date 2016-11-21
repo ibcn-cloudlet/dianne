@@ -25,5 +25,6 @@ Import-Package: \
 	be.iminds.iot.dianne.rnn.learn.strategy;resolution:=optional,\
 	be.iminds.iot.dianne.rl.eval.strategy;resolution:=optional,\
 	be.iminds.iot.dianne.rl.agent.strategy;resolution:=optional,\
+	be.iminds.iot.dianne.rl.learn.strategy;resolution:=optional,\
 	javax.tools;resolution:=optional,\
 	*
