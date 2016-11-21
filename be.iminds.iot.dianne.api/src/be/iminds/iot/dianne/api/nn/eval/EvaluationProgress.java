@@ -33,13 +33,13 @@ public class EvaluationProgress extends Evaluation {
 	/** Number of samples currently processed */
 	public final long processed;
 	
-	public EvaluationProgress(long processed, long total, float error){
-		this.error = error;
+	public EvaluationProgress(long processed, long size, float metric){
+		this.metric = metric;
 		this.processed = processed;
-		this.total = total;
+		this.size = size;
 	}
 
-	public long getProcessed(){
+	public long processed(){
 		return processed;
 	}
 }

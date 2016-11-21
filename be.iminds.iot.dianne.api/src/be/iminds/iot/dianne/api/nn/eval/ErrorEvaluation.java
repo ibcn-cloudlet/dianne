@@ -22,42 +22,53 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.nn.eval;
 
+import java.util.List;
+
+import be.iminds.iot.dianne.tensor.Tensor;
+
 /**
- * Result an the evaluation... contains the number of entities (samples/sequences) evaluated,
- * the resulting metric and the time required to evaluate 
+ * Result of the evaluation of a Dataset, provides access to the confusion matrix.
  * 
  * @author tverbele
  *
  */
-public class Evaluation {
+public class ErrorEvaluation extends Evaluation {
 
-	public long size;
-	public float metric;
-	public long time;
+	// the actual outputs 
+	public List<Tensor> outputs;
+	// average forward time
+	public float forwardTime;
 	
 	@Override
 	public String toString(){
-		return "Metric: "+metric+"\tSize: "+size+"\tTime: "+time+" ms.";
+		return "Error: "+metric+" ( on "+size+" samples) - Time: "+time+" ms.";
 	}
 	
 	/**
-	 * @return the total evaluation time
+	 * @return average time for processing one sample
 	 */
-	public long time(){
-		return time;
+	public float forwardTime(){
+		return forwardTime;
 	}
 	
 	/**
-	 * @return the total number of samples/sequences on which the evaluation took place
+	 * @return all outputs the evaluated neural network generated
 	 */
-	public long size(){
-		return size;
+	public List<Tensor> outputs(){
+		return outputs;
 	}
 	
 	/**
-	 * @return evaluation metric on the data processed
+	 * @return the output the evaluated neural network generated for sample index
 	 */
-	public float metric() {
+	public Tensor output(int index){
+		return outputs.get(index);
+	}
+	
+	/**
+	 * @return error on global dataset
+	 */
+	public float error() {
 		return metric;
 	}
 

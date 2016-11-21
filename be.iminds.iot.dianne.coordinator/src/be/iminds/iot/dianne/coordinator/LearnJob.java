@@ -204,13 +204,13 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 				try {
 					validation = validator.eval(dataset, c, validationNns);
 					
-					if(Float.isNaN(validation.error)){
+					if(Float.isNaN(validation.metric)){
 						validation = null;
 						throw new Exception("Validation loss became NaN");
 					}
 					
-					if(validation.error < bestValidationLoss){
-						bestValidationLoss = validation.error;
+					if(validation.metric < bestValidationLoss){
+						bestValidationLoss = validation.metric;
 					}
 				} catch(Exception e){
 					System.err.println("Error running validation: "+e.getMessage());
@@ -243,7 +243,7 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 			Evaluation last = result.validations.get(progress.iteration);
 			Evaluation prev = result.validations.get(progress.iteration - thresholdWindow*validationInterval);
 			if(last != null & prev != null){
-				float deltaValidationLoss = prev.error - last.error;
+				float deltaValidationLoss = prev.metric - last.metric;
 				if(deltaValidationLoss < validationLossThreshold){
 					stop = true;
 				}

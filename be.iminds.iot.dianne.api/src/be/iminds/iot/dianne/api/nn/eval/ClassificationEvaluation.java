@@ -30,7 +30,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
  * @author tverbele
  *
  */
-public class ClassificationEvaluation extends Evaluation {
+public class ClassificationEvaluation extends ErrorEvaluation {
 
 	// resulting confusion matrix
 	public Tensor confusionMatrix;
@@ -45,7 +45,7 @@ public class ClassificationEvaluation extends Evaluation {
 	/**
 	 * @return the confusion matrix
 	 */
-	public Tensor getConfusionMatix(){
+	public Tensor confusionMatrix(){
 		return confusionMatrix;
 	}
 	
@@ -75,16 +75,9 @@ public class ClassificationEvaluation extends Evaluation {
 	 * @return accuracy on global dataset
 	 */
 	public float accuracy(){
-		return 1-error;
+		return 1-error();
 	}
 	
-	/**
-	 * @return error on global dataset
-	 */
-	public float error() {
-		return error;
-	}
-
 	/**
 	 * @return true positives of i-th class
 	 */
@@ -120,7 +113,7 @@ public class ClassificationEvaluation extends Evaluation {
 	 * @return true negatives of i-th class
 	 */
 	public float tn(int i) {
-		return total-fn(i)-fp(i)-tp(i);
+		return size-fn(i)-fp(i)-tp(i);
 	}
 
 	/**
@@ -176,14 +169,14 @@ public class ClassificationEvaluation extends Evaluation {
 	 * @return accuracy of i-th class
 	 */
 	public float accuracy(int i) {
-		return (tp(i)+tn(i))/(float)total;
+		return (tp(i)+tn(i))/(float)size;
 	}
 
 	/**
 	 * @return error of i-th class
 	 */
 	public float error(int i) {
-		return (fp(i)+fn(i))/(float)total;
+		return (fp(i)+fn(i))/(float)size;
 	}
 
 	/**

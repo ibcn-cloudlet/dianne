@@ -602,7 +602,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		properties.put("minibatchLoss", progress.minibatchLoss);
 		
 		if(validation!=null)
-			properties.put("validationLoss", validation.error());
+			properties.put("validationLoss", validation.metric());
 		
 		if(progress instanceof QLearnProgress){
 			properties.put("q", ((QLearnProgress)progress).q);

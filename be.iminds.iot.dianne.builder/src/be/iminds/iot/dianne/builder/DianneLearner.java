@@ -55,6 +55,7 @@ import com.google.gson.JsonPrimitive;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.DianneDatasets;
 import be.iminds.iot.dianne.api.nn.eval.ClassificationEvaluation;
+import be.iminds.iot.dianne.api.nn.eval.ErrorEvaluation;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.eval.Evaluator;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
@@ -237,11 +238,19 @@ public class DianneLearner extends HttpServlet {
 
 						JsonObject eval = new JsonObject();
 						
+						eval.add("metric", new JsonPrimitive(result.metric()));
+						eval.add("time", new JsonPrimitive(result.time()));
+						
+						if(result instanceof ErrorEvaluation){
+							ErrorEvaluation ee = (ErrorEvaluation) result;
+							eval.add("error", new JsonPrimitive(ee.error()));
+						}
+						
 						if(result instanceof ClassificationEvaluation){
 							ClassificationEvaluation ce = (ClassificationEvaluation)result;
 							eval.add("accuracy", new JsonPrimitive(ce.accuracy()*100));
 							
-							Tensor confusionMatrix = ce.getConfusionMatix();
+							Tensor confusionMatrix = ce.confusionMatrix();
 							JsonArray data = new JsonArray();
 							for(int i=0;i<confusionMatrix.size(0);i++){
 								for(int j=0;j<confusionMatrix.size(1);j++){
@@ -253,9 +262,7 @@ public class DianneLearner extends HttpServlet {
 								}
 							}
 							eval.add("confusionMatrix", data);
-						} else {
-							eval.add("error", new JsonPrimitive(result.error()));
-						}
+						} 
 						
 						response.getWriter().write(eval.toString());
 						response.getWriter().flush();

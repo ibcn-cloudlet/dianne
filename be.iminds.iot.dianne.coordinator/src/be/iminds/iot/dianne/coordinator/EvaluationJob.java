@@ -72,8 +72,8 @@ public class EvaluationJob extends AbstractJob<EvaluationResult> {
 						
 						System.out.println("Evaluation result");
 						System.out.println("---");
-						System.out.println("Error: "+e.error());
-						System.out.println("Forward time: "+e.forwardTime());
+						System.out.println("Metric: "+e.metric());
+						System.out.println("Evaluation time: "+e.time());
 						if(e instanceof ClassificationEvaluation){
 							ClassificationEvaluation ce = (ClassificationEvaluation)e;
 							System.out.println("Accuracy: "+ce.accuracy());
@@ -110,7 +110,7 @@ public class EvaluationJob extends AbstractJob<EvaluationResult> {
 			EvaluationProgress p = null; 
 			if(results.containsKey(target)){
 				Evaluation eval = results.get(target);
-				p = new EvaluationProgress(eval.getTotal(), eval.getTotal(), eval.error());
+				p = new EvaluationProgress(eval.size(), eval.size(), eval.metric);
 			} else {
 				Evaluator evaluator = coordinator.evaluators.get(target);
 				p = evaluator.getProgress();

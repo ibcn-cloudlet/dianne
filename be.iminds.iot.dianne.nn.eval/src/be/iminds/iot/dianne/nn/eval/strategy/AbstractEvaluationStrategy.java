@@ -30,6 +30,7 @@ import be.iminds.iot.dianne.api.dataset.Batch;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
+import be.iminds.iot.dianne.api.nn.eval.ErrorEvaluation;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.eval.EvaluationProgress;
 import be.iminds.iot.dianne.api.nn.eval.EvaluationStrategy;
@@ -122,10 +123,14 @@ public abstract class AbstractEvaluationStrategy implements EvaluationStrategy {
 	@Override
 	public Evaluation getResult() {
 		Evaluation eval = finish();
-		eval.total = total;
-		eval.error = error/total;
-		eval.forwardTime = (tForward/1000000f)/total;
-		eval.outputs = outputs;
+		eval.size = total;
+		eval.metric = error/total;
+		
+		if(eval instanceof ErrorEvaluation){
+			ErrorEvaluation eeval = (ErrorEvaluation) eval;
+			eeval.forwardTime = (tForward/1000000f)/total;
+			eeval.outputs = outputs;
+		}
 		return eval;
 	}
 

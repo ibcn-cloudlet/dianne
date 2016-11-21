@@ -175,8 +175,8 @@ public class DianneCoordinatorCommands {
 				System.out.println("Evaluation Job done!");
 				EvaluationResult result = p.getValue();
 				for(Evaluation eval : result.evaluations.values()){
-					System.out.println("Error: "+eval.error());
-					System.out.println("Forward time: "+eval.forwardTime()+" ms");
+					System.out.println("Metric: "+eval.metric());
+					System.out.println("Evaluation time: "+eval.time()+" ms");
 				}
 				return null;
 			}, p -> {

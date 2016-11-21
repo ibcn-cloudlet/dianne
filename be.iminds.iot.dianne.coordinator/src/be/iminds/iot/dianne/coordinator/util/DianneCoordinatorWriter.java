@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.junit.rules.ErrorCollector;
+
 import com.google.gson.stream.JsonWriter;
 
 import be.iminds.iot.dianne.api.coordinator.AgentResult;
@@ -36,6 +38,7 @@ import be.iminds.iot.dianne.api.coordinator.EvaluationResult;
 import be.iminds.iot.dianne.api.coordinator.Job;
 import be.iminds.iot.dianne.api.coordinator.LearnResult;
 import be.iminds.iot.dianne.api.nn.eval.ClassificationEvaluation;
+import be.iminds.iot.dianne.api.nn.eval.ErrorEvaluation;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.eval.EvaluationProgress;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
@@ -146,7 +149,7 @@ public class DianneCoordinatorWriter {
 				writeFields(writer, p);
 				if(val != null){
 					writer.name("validationLoss");
-					writer.value(val.error());
+					writer.value(val.metric());
 				}
 				writer.endObject();
 			}
@@ -162,16 +165,38 @@ public class DianneCoordinatorWriter {
 				// write nothing?
 			} else if(eval instanceof EvaluationProgress){
 				writer.name("processed");
-				writer.value(((EvaluationProgress) eval).getProcessed());
+				writer.value(((EvaluationProgress) eval).processed());
 				writer.name("total");
-				writer.value(((EvaluationProgress) eval).getTotal());
+				writer.value(((EvaluationProgress) eval).size());
+				writer.name("metric");
+				writer.value(((EvaluationProgress) eval).metric());
 			} else {
-				writer.name("error");
-				writer.value(new Float(eval.error()));
 				writer.name("evaluationTime");
-				writer.value(eval.evaluationTime());
-				writer.name("forwardTime");
-				writer.value(new Float(eval.forwardTime()));
+				writer.value(eval.time());
+				
+				if(eval instanceof ErrorEvaluation){
+					ErrorEvaluation eeval = (ErrorEvaluation)eval;
+					
+					writer.name("error");
+					writer.value(new Float(eeval.error()));
+
+					writer.name("forwardTime");
+					writer.value(new Float(eeval.forwardTime()));
+					
+					// write all outputs
+					if(eeval.outputs()!=null){
+						writer.name("outputs");
+						writer.beginArray();
+						for(Tensor t : eeval.outputs()){
+							writer.beginArray();
+							for(float f : t.get()){
+								writer.value(new Float(f));
+							}
+							writer.endArray();
+						}
+						writer.endArray();
+					}
+				}
 				
 				if(eval instanceof ClassificationEvaluation){
 					ClassificationEvaluation ceval = (ClassificationEvaluation) eval;
@@ -188,24 +213,11 @@ public class DianneCoordinatorWriter {
 					// write confusion matrix
 					writer.name("confusionMatrix");
 					writer.beginArray();
-					Tensor confusionMatrix = ceval.getConfusionMatix();
+					Tensor confusionMatrix = ceval.confusionMatrix();
 					for(int i=0;i<confusionMatrix.size(0);i++){
 						writer.beginArray();
 						for(int j=0;j<confusionMatrix.size(1);j++){
 							writer.value(new Float(confusionMatrix.get(i, j)));
-						}
-						writer.endArray();
-					}
-					writer.endArray();
-				}
-				// write all outputs
-				if(eval.getOutputs()!=null){
-					writer.name("outputs");
-					writer.beginArray();
-					for(Tensor t : eval.getOutputs()){
-						writer.beginArray();
-						for(float f : t.get()){
-							writer.value(new Float(f));
 						}
 						writer.endArray();
 					}

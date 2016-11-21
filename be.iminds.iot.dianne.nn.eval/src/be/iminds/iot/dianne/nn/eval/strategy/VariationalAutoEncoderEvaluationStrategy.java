@@ -29,6 +29,7 @@ import java.util.Map;
 import be.iminds.iot.dianne.api.dataset.Batch;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
+import be.iminds.iot.dianne.api.nn.eval.ErrorEvaluation;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.eval.EvaluationProgress;
 import be.iminds.iot.dianne.api.nn.eval.EvaluationStrategy;
@@ -118,10 +119,14 @@ public class VariationalAutoEncoderEvaluationStrategy implements EvaluationStrat
 	@Override
 	public Evaluation getResult() {
 		Evaluation eval = new Evaluation();
-		eval.total = dataset.size();
-		eval.error = (float) (error/dataset.size());
-		eval.outputs = params;
-		eval.forwardTime = (tForward/1000000f)/dataset.size();
+		eval.size = dataset.size();
+		eval.metric = (float) (error/dataset.size());
+		
+		if(eval instanceof ErrorEvaluation){
+			ErrorEvaluation eeval = (ErrorEvaluation) eval;
+			eeval.outputs = params;
+			eeval.forwardTime = (tForward/1000000f)/dataset.size();
+		}
 		return eval;
 	}
 	
