@@ -84,20 +84,6 @@ public class A3CLearningStrategy implements LearningStrategy {
 		this.config = DianneConfigHandler.getConfig(config, A3CConfig.class);
 		this.policyGradientProcessor = ProcessorFactory.createGradientProcessor(this.config.method, policyNetwork, config);
 		this.valueGradientProcessor = ProcessorFactory.createGradientProcessor(this.config.method, valueNetwork, config);
-
-		
-		// Wait for the pool to contain enough samples
-		if(pool.size() < this.config.minSamples){
-			System.out.println("Experience pool has too few samples, waiting a bit to start learning...");
-			while(pool.size() < this.config.minSamples){
-				try {
-					Thread.sleep(5000);
-				} catch (InterruptedException e) {
-					return;
-				}
-			}
-		}
-		System.out.println("Start learning...");
 	}
 
 	@Override
@@ -105,12 +91,31 @@ public class A3CLearningStrategy implements LearningStrategy {
 		// Reset the deltas
 		policyNetwork.zeroDeltaParameters();
 		valueNetwork.zeroDeltaParameters();
+
+
+		// Wait for the pool to contain sequences
+		if(pool.sequences() == 0){
+			System.out.println("Experience pool has no sequences, wait a bit to continue learning...");
+			while(pool.sequences() == 0 ){
+				try {
+					Thread.sleep(5000);
+				} catch (InterruptedException e) {
+				}
+			}
+		}
 		
-		int s = r.nextInt(pool.sequences());
 		// TODO reuse samples for sequence?
-		// how to determine the correct length then in case a too long sequence is proviced?
-		List<ExperiencePoolSample> sequence = pool.getSequence(s);
-			
+		// how to determine the correct length then in case a too long sequence is provided?
+		
+		// either get a random sequence or get and remove the first sequence from the pool
+		List<ExperiencePoolSample> sequence = null;
+		if(config.reuseSequences){
+			int index = r.nextInt(pool.sequences());
+			sequence = pool.getSequence(index);
+		} else {
+			sequence = pool.removeAndGetSequence(0);
+		}	
+		
 		float reward = 0;
 		ExperiencePoolSample last = sequence.get(sequence.size()-1); 
 		if(!last.isTerminal()){

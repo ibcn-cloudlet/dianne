@@ -32,11 +32,6 @@ public class A3CConfig {
 	public float discount = 0.99f;
 	
 	/**
-	 * Minimum samples that should be in the Experience Pool before training starts
-	 */
-	public int minSamples = 1000;
-
-	/**
 	 * The gradient optimization method to use
 	 *  * SGD - stochastic gradient descent (optionally with (nesterov) momentum and regularization parameters)
 	 *  * Adadelta
@@ -54,4 +49,9 @@ public class A3CConfig {
 	 * Rate of entropy regularization
 	 */
 	public float entropy = 0.0f;
+	
+	/**
+	 * Set true to allow to revisit same sequences in the experience pool
+	 */
+	public boolean reuseSequences = false;
 }
