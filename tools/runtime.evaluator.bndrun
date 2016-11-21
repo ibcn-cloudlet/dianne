@@ -9,7 +9,8 @@
 -include: runtime.bndrun
 
 -runbundles.runtime.evaluator: \
-	be.iminds.iot.dianne.nn.eval;version=${dianne.version}
+	be.iminds.iot.dianne.nn.eval;version=${dianne.version},\
+	be.iminds.iot.dianne.rl.eval;version=${dianne.version}
 
 -runproperties.runtime.evaluator:\
 	be.iminds.iot.dianne.runtime.name="Evaluator"
