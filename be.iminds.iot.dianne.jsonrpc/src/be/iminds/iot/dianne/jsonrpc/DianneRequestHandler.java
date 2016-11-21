@@ -192,8 +192,7 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 		case "learn":
 		case "eval":
 		case "act":
-			// TODO should be able to cope with multiple nnNames!
-			String nnName = null;
+			String[] nnName = null;
 			NeuralNetworkDTO nn = null;
 			String dataset;
 			Map<String, String> config;
@@ -201,7 +200,10 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 			try {
 				JsonArray params = request.get("params").getAsJsonArray();
 				if(params.get(0).isJsonPrimitive()){
-					nnName = params.get(0).getAsString();
+					nnName = params.get(0).getAsString().split(",");
+					for(int k=0;k<nnName.length;k++){
+						nnName[k] = nnName[k].trim();
+					}
 				} else {
 					nn = DianneJSONConverter.parseJSON(params.get(0).getAsJsonObject());
 				}

@@ -77,10 +77,6 @@ function upload(evt){
     		if(f.name==="modules.txt"){
     			// nn uploaded
 	    		uploadNN = JSON.parse(contents);
-	    		
-	    		if($("#submit-nn option[value='uploadNN.name']").length == 0){
-	    			$("#submit-nn").append('<option value="'+uploadNN.name+'">'+uploadNN.name+'</option>');
-	    		}
 				$('#submit-nn').val(uploadNN.name);
     		} else if(f.name.endsWith(".java")){
     			// strategy uploaded
@@ -308,10 +304,27 @@ $(function () {
      	// TODO set each time the dialog is shown?
      	// nn options in submission dialog
      	DIANNE.nns().then(function(data){
-     		var options = $("#submit-nn");
-     	    $.each(data, function(i) {
-     	        options.append($("<option />").val(data[i]).text(data[i]));
-     	    });
+     		$("#submit-nn").typeahead({
+     			source : data,
+     		    updater: function (item) {
+     		        var terms = split(this.query);
+     		        terms.pop();
+     		        terms.push(item);
+     		        return terms.join(", ");
+     		    },
+     		    matcher: function (item) {
+     		    	var q = extractLast(this.query);
+     		    	return (item.toLowerCase().indexOf(q.toLowerCase()) >= 0);
+     		    },
+     		    highlighter: function (item) {
+     		        var query = extractLast(this.query).replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, '\\$&');
+     		        return item.replace(new RegExp('(' + query + ')', 'ig'), function ($1, match) {
+     		            return '<strong>' + match + '</strong>';
+     		        });
+     		    }
+     		});
+     		
+     		
      	});
      	// dataset options in submission dialog
      	DIANNE.datasets().then(function(data){
@@ -443,3 +456,14 @@ function redirect(){
 	    	}
 	});
 }
+
+/**
+ * Autocomplete for submit-nn
+ */
+var split = function (val) {
+    return val.split(/\s*[,;]\s*/);
+};
+
+var extractLast = function (term) {
+    return split(term).pop();
+};
