@@ -225,6 +225,8 @@ public class DianneCoordinatorCommands {
 	@Descriptor("Start acting on an environment using a NN as agent, pushing samples to an experience pool. At the same time, \n"
 			+ "start training the NN using the generated samples in the experience pool. The learner uses a DQN strategy by default.")
 	public void rl(
+			@Descriptor("Specify learn or eval for specifying a learn/eval job")
+			String type, 
 			@Descriptor("Neural network name (use comma-separated list if multiple instances are required, e.g. for RL)")
 			String nnName, 
 			@Descriptor("Environment to act on")
@@ -234,36 +236,82 @@ public class DianneCoordinatorCommands {
 			@Descriptor("Additional properties, specified as key1=value1 key2=value2 ...")
 			String... properties){
 		try {
-			Map<String, String> defaults = new HashMap<>();
-			defaults.put("tag", UUID.randomUUID().toString()); // make sure a shared tag is specified
-			defaults.put("strategy", "GreedyActionStrategy");
-			defaults.put("environment", environment);
 			
-			Map<String, String> agentConfig = createConfig(defaults, properties);
-			coordinator.act(experiencePool, agentConfig, nnName==null ? null : nnName.split(",")).then(p -> {
-				System.out.println("Act Job done!");
-				return null;
-			}, p -> {
-				System.out.println("Act Job failed: "+p.getFailure().getMessage());
-				p.getFailure().printStackTrace();
-			});
-			
-			// wait a bit so the agent can configure the xp pool if required
-			Thread.sleep(2000);
-			
-			// learn job
-			defaults.put("strategy", "be.iminds.iot.dianne.rl.learn.strategy.DeepQLearningStrategy");
-			Map<String, String> learnConfig = createConfig(defaults, properties);
-		
-			coordinator.learn(experiencePool, learnConfig, nnName.split(",")).then(p -> {
-				System.out.println("RL Learn Job done!");
-				LearnResult result = p.getValue();
-				System.out.println("Iterations: "+result.getIterations());
-				System.out.println("Last minibatch loss: "+result.getLoss());
-				return null;
-			}, p -> {
-				System.out.println("Learn Job failed: "+p.getFailure().getMessage());
-			});
+			if(type.equals("eval")){
+				final Map<String, String> defaults = new HashMap<>();
+				defaults.put("environment", environment);
+				defaults.put("maxSequences", "100");
+				
+				Map<String, String> agentConfig = createConfig(defaults, properties);
+				coordinator.act(experiencePool, agentConfig, nnName==null ? null : nnName.split(",")).then(p -> {
+					Map<String, String> evalConfig = createConfig(defaults, properties);
+					evalConfig.put("strategy", "RewardEvaluationStrategy");
+					coordinator.eval(experiencePool, evalConfig, (String[])null).then(pp -> {
+						EvaluationResult result = pp.getValue();
+						for(Evaluation eval : result.evaluations.values()){
+							System.out.println("Average reward: "+eval.metric());
+						}
+						return null;
+					});
+					return null;
+				}, p -> {
+					System.out.println("Act Job failed: "+p.getFailure().getMessage());
+					p.getFailure().printStackTrace();
+				});
+				
+			} else {
+				// DQN by default
+				
+				Map<String, String> defaults = new HashMap<>();
+				defaults.put("tag", UUID.randomUUID().toString()); // make sure a shared tag is specified
+				defaults.put("environment", environment);
+				
+				Map<String, String> agentConfig = createConfig(defaults, properties);
+				
+				// somehow guess the action strategy here?!
+				if(agentConfig.containsKey("strategy")){
+					// this will be the learning strategy... choose a matching default actionStrategy
+					String learnStrategy = agentConfig.get("strategy");
+					if(learnStrategy.equals("DeeQLearningStrategy")){
+						agentConfig.put("strategy", "GreedyActionStrategy");
+					} else {
+						System.out.println("No idea which action strategy to use...");
+					}
+				} else if(agentConfig.containsKey("actionStrategy")){
+					agentConfig.put("strategy", agentConfig.get("actionStrategy"));
+				} else {
+					agentConfig.put("strategy", "GreedyActionStrategy"); // DQN by default
+				}
+				
+				coordinator.act(experiencePool, agentConfig, nnName==null ? null : nnName.split(",")).then(p -> {
+					System.out.println("Act Job done!");
+					return null;
+				}, p -> {
+					System.out.println("Act Job failed: "+p.getFailure().getMessage());
+					p.getFailure().printStackTrace();
+				});
+				
+				// wait a bit so the agent can configure the xp pool if required
+				Thread.sleep(2000);
+				
+				// learn job
+				Map<String, String> learnConfig = createConfig(defaults, properties);
+				if(learnConfig.containsKey("learningStrategy")){
+					learnConfig.put("strategy", learnConfig.get("learningStrategy"));
+				} else {
+					learnConfig.put("strategy", "DeepQLearningStrategy"); // DQN by default
+				}
+				
+				coordinator.learn(experiencePool, learnConfig, nnName.split(",")).then(p -> {
+					System.out.println("RL Learn Job done!");
+					LearnResult result = p.getValue();
+					System.out.println("Iterations: "+result.getIterations());
+					System.out.println("Last minibatch loss: "+result.getLoss());
+					return null;
+				}, p -> {
+					System.out.println("Learn Job failed: "+p.getFailure().getMessage());
+				});
+			}
 			
 		} catch(Exception e){
 			e.printStackTrace();

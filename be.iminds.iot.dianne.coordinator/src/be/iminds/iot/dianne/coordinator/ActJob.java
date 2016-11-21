@@ -81,6 +81,7 @@ public class ActJob extends AbstractJob<AgentResult> implements AgentListener {
 		System.out.println("* pool: "+dataset);
 		System.out.println("* environment: "+environment);
 		System.out.println("* maxIterations: "+maxIterations);
+		System.out.println("* maxSequences: "+maxSequences);
 		System.out.println("---");
 		
 		
