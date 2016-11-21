@@ -88,6 +88,7 @@ public class AgentImpl implements Agent {
 	
 	private Thread actingThread;
 	private long i = 0;
+	private long seq = 0;
 	private volatile boolean acting;
 	
 	private ActionStrategy strategy;
@@ -310,6 +311,8 @@ public class AgentImpl implements Agent {
 					}
 					
 					progress = strategy.processIteration(i, s.input);
+					progress.sequence = seq;
+					
 					s.target = progress.action;
 	
 					progress.reward = env.performAction(s.target);
@@ -361,6 +364,7 @@ public class AgentImpl implements Agent {
 	
 					// if this is a terminal state - reset environment and start over
 					if(s.isTerminal()){
+						seq++;
 						do {
 							env.reset();
 							s.input = env.getObservation(s.input);

@@ -46,6 +46,9 @@ public class ActJob extends AbstractJob<AgentResult> implements AgentListener {
 
 	private ServiceRegistration<AgentListener> reg;
 	
+	private long maxIterations = -1;
+	private long maxSequences = -1;
+	
 	private Map<UUID, Agent> agents = new HashMap<>();
 	
 	private AgentResult result = new AgentResult();
@@ -64,11 +67,20 @@ public class ActJob extends AbstractJob<AgentResult> implements AgentListener {
 		
 		String environment = config.get("environment");
 		
+		if(config.containsKey("maxIterations")){
+			maxIterations = Long.parseLong(config.get("maxIterations"));
+		}
+		
+		if(config.containsKey("maxSequences")){
+			maxSequences = Long.parseLong(config.get("maxSequences"));
+		}
+		
 		System.out.println("Start Act Job");
 		System.out.println("===============");
 		System.out.println("* nn: "+Arrays.toString(nnNames));
 		System.out.println("* pool: "+dataset);
 		System.out.println("* environment: "+environment);
+		System.out.println("* maxIterations: "+maxIterations);
 		System.out.println("---");
 		
 		
@@ -121,6 +133,22 @@ public class ActJob extends AbstractJob<AgentResult> implements AgentListener {
 			result.progress.put(agentId, p);
 		}
 		result.progress.get(agentId).add(progress);
+		
+		if(maxIterations > 0 && progress.iteration >= maxIterations){
+			try {
+				stop();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		if(maxSequences > 0 && progress.sequence >= maxSequences){
+			try {
+				stop();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	@Override
