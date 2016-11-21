@@ -35,7 +35,12 @@ public class EvaluatorConfig {
 	public String tag;
 	
 	/**
-	 * Store NN weights with "best" tag if the evaluation error is less than this value
+	 * Store NN weights with "best" tag if the evaluation metric is less than this value
 	 */
-	public float storeIfBetterThan = -Float.MAX_VALUE;
+	public float storeIfSmallerThan = -Float.MAX_VALUE;
+	
+	/**
+	 * Store NN weights with "best" tag if the evaluation metric is more than this value
+	 */
+	public float storeIfLargerThan = Float.MAX_VALUE;
 }

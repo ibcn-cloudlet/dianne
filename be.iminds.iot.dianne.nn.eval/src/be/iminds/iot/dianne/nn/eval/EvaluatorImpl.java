@@ -165,7 +165,12 @@ public class EvaluatorImpl implements Evaluator {
 			Evaluation eval = strategy.getResult();
 			eval.time = evaluationTime;
 			
-			if(eval.metric < this.config.storeIfBetterThan){
+			if(eval.metric < this.config.storeIfSmallerThan){
+				for(NeuralNetwork nn : nns)
+					nn.storeParameters(this.config.tag, "best");
+			}
+			
+			if(eval.metric > this.config.storeIfLargerThan){
 				for(NeuralNetwork nn : nns)
 					nn.storeParameters(this.config.tag, "best");
 			}
