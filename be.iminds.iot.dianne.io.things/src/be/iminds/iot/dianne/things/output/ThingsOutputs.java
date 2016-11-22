@@ -90,7 +90,7 @@ public class ThingsOutputs implements DianneOutputs {
 		synchronized(things){
 			ThingOutput t = things.get(id);
 			if(t == null){
-				t = new YoubotOutput(id, name);
+				t = new YoubotOutput(id, name, context);
 				things.put(id, t);
 			}
 			((YoubotOutput)t).setBase(b);
@@ -116,7 +116,7 @@ public class ThingsOutputs implements DianneOutputs {
 		synchronized(things){
 			ThingOutput t = things.get(id);
 			if(t == null){
-				t = new YoubotOutput(id, name);
+				t = new YoubotOutput(id, name, context);
 				things.put(id, t);
 			}
 			((YoubotOutput)t).setArm(a);

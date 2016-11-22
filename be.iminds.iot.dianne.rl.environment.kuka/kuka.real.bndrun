@@ -54,6 +54,9 @@ dianne.version='[0.6.0,0.7.0)'
 		be.iminds.iot.dianne.api.rl.environment.*,be.iminds.iot.dianne.rl.environment.*,\
 		be.iminds.iot.simulator.api.*,be.iminds.iot.robot.api.*,be.iminds.iot.sensor.api.*",\
 	be.iminds.iot.dianne.runtime.name="Kuka",\
-	be.iminds.iot.dianne.storage="models"
+	be.iminds.iot.dianne.storage="models",\
+	be.iminds.iot.dianne.youbot.speed=0.1,\
+	be.iminds.iot.dianne.youbot.gripThreshold=0.01,\
+	be.iminds.iot.dianne.youbot.ignoreGripThreshold=-0.02
 	
 	

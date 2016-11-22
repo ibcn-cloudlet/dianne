@@ -52,7 +52,8 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 	private Arm arm;
 	
 	private float speed = 0.1f;
-	private float threshold = 0.01f;
+	private float gripThreshold = 0.01f;
+	private float ignoreGripThreshold = -0.02f;
 	
 	private float vx = 0;
 	private float vy = 0;
@@ -66,8 +67,24 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 	
 	private Mode mode = Mode.ANY;
 	
-	public YoubotOutput(UUID id, String name){
+	public YoubotOutput(UUID id, String name, BundleContext context){
 		super(id, name, "Youbot");
+		
+		String s = context.getProperty("be.iminds.iot.dianne.youbot.speed");
+		if(s!=null){
+			speed = Float.parseFloat(s);
+		}
+		
+		s = context.getProperty("be.iminds.iot.dianne.youbot.gripThreshold");
+		if(s!=null){
+			gripThreshold = Float.parseFloat(s);
+		}
+		
+		s = context.getProperty("be.iminds.iot.dianne.youbot.ignoreGripThreshold");
+		if(s!=null){
+			ignoreGripThreshold = Float.parseFloat(s);
+		}
+
 	}
 	
 	public void setBase(OmniDirectional b){
@@ -99,6 +116,10 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 		if(outputs == 7 && (mode == Mode.DISCRETE || mode == Mode.ANY)){
 			// treat as discrete outputs
 			int action = TensorOps.argmax(output);
+			if(action == 6 && output.get(6) < ignoreGripThreshold){
+				action = TensorOps.argmax(output.narrow(0, 5));
+			}
+			
 			grip = false;
 			switch(action){
 			case 0:
@@ -138,9 +159,9 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 		} else if(outputs == 3 && (mode == Mode.DISCRETE || mode == Mode.ANY)) {
 			float[] action = output.get();
 			// treat as continuous outputs
-			if(  action[0] < threshold
-				&& action[1] < threshold
-				&& action[2] < threshold){
+			if(  action[0] < gripThreshold
+				&& action[1] < gripThreshold
+				&& action[2] < gripThreshold){
 				// grip	
 				grip = true;
 			} else {
