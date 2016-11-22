@@ -519,11 +519,23 @@ function createRunModuleDialog(id, moduleItem){
 								var attr = $("#dialog-"+module.id).find(".content").attr("data-highcharts-chart");
 								if(attr!==undefined){
 									var index = Number(attr);
-									Highcharts.charts[index].series[0].setData(output.data, true, true, true);
 									if(output.data.length == 3){
+										Highcharts.charts[index].series[0].setData(output.data, true, true, true);
+										Highcharts.charts[index].xAxis[0].setCategories(['vx','vy','va']);
+									} else if(output.data.length == 6){
+										var data = output.data.splice(0, 3);
+										var stdev = output.data;
+										var errors = [];
+										for (var i = 0; i < 3; i++) {
+										   var tuple = [data[i]-stdev[i], data[i]+stdev[i]];
+										   errors.push(tuple);
+										}
+										Highcharts.charts[index].series[0].setData(data, true, true, true);
+										Highcharts.charts[index].series[1].setData(errors, true, true, true);
 										Highcharts.charts[index].xAxis[0].setCategories(['vx','vy','va']);
 									} else if(output.data.length == 7){
-										Highcharts.charts[index].xAxis[0].setCategories(['Left','Right','Backward','Forward','Turn Left','Turn Right','Grip']);
+										Highcharts.charts[index].series[0].setData(output.data, true, true, true);
+										Highcharts.charts[index].xAxis[0].setCategories(['Left','Right','Forward','Backward','Turn Left','Turn Right','Grip']);
 									}
 								}
 							} else {
@@ -1027,7 +1039,12 @@ function createOutputChart(container) {
             enabled: false
         },
         series: [{
-            name: 'Output'
+            name: 'Output',
+            type: 'column'
+        },
+        {
+        	name: 'Error',
+        	type: 'errorbar'
         }]
     });
 }

@@ -59,6 +59,8 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 	private float vy = 0;
 	private float va = 0;
 	private boolean grip = false;
+
+	private Tensor sample = new Tensor(3);
 	
 	private volatile boolean skip = false;
 	private volatile boolean stop = false;
@@ -156,8 +158,28 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 				grip = true;
 			}
 			
-		} else if(outputs == 3 && (mode == Mode.DISCRETE || mode == Mode.ANY)) {
+		} else if(outputs == 3 && (mode == Mode.CONTINUOUS || mode == Mode.ANY)) {
 			float[] action = output.get();
+			// treat as continuous outputs
+			if(  action[0] < gripThreshold
+				&& action[1] < gripThreshold
+				&& action[2] < gripThreshold){
+				// grip	
+				grip = true;
+			} else {
+				// move
+				grip = false;
+				vx = action[0]*speed;
+				vy = action[1]*speed;
+				va = action[2]*speed*2;
+			}
+		} else if(outputs == 6 && (mode == Mode.STOCHASTIC || mode == Mode.ANY)) {
+			sample.randn();
+			
+			TensorOps.cmul(sample, sample, output.narrow(0, 3, 3));
+			TensorOps.add(sample, sample, output.narrow(0, 0, 3));
+		
+			float[] action = sample.get();
 			// treat as continuous outputs
 			if(  action[0] < gripThreshold
 				&& action[1] < gripThreshold
