@@ -28,12 +28,14 @@ import java.util.Random;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
+import be.iminds.iot.dianne.api.nn.learn.Criterion;
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.learn.LearningStrategy;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
 import be.iminds.iot.dianne.api.rl.learn.QLearnProgress;
+import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory;
 import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.learn.strategy.config.A3CConfig;
@@ -63,6 +65,7 @@ public class A3CLearningStrategy implements LearningStrategy {
 	
 	protected GradientProcessor policyGradientProcessor;
 	protected GradientProcessor valueGradientProcessor;
+	protected Criterion valueCriterion;
 	
 	protected A3CConfig config;
 	
@@ -82,6 +85,7 @@ public class A3CLearningStrategy implements LearningStrategy {
 		this.valueNetwork = nns[1];
 		
 		this.config = DianneConfigHandler.getConfig(config, A3CConfig.class);
+		this.valueCriterion = CriterionFactory.createCriterion(this.config.valueCriterion, config);
 		this.policyGradientProcessor = ProcessorFactory.createGradientProcessor(this.config.method, policyNetwork, config);
 		this.valueGradientProcessor = ProcessorFactory.createGradientProcessor(this.config.method, valueNetwork, config);
 	}
@@ -123,7 +127,7 @@ public class A3CLearningStrategy implements LearningStrategy {
 		}
 		
 		float loss = 0;
-		float value = 0;
+		float total_value = 0;
 		for(int k=sequence.size()-1;k>=0;k--){
 			ExperiencePoolSample sample = sequence.get(k);
 			
@@ -131,8 +135,8 @@ public class A3CLearningStrategy implements LearningStrategy {
 			reward += config.discount * sample.getScalarReward();
 
 			// calculate value of state
-			value = valueNetwork.forward(sample.getState()).get(0);
-			float advantage = reward - value;	
+			Tensor value = valueNetwork.forward(sample.getState());
+			total_value+= value.get(0);
 			
 			// also update policy
 			if(config.updatePolicy){
@@ -145,6 +149,8 @@ public class A3CLearningStrategy implements LearningStrategy {
 				policyGrad.fill(0.0f);
 				
 				int action = TensorOps.argmax(sample.getAction());
+				
+				float advantage = reward - value.get(0);	
 				policyGrad.set(advantage, action);
 				
 				if(config.entropy > 0){
@@ -156,7 +162,7 @@ public class A3CLearningStrategy implements LearningStrategy {
 					entropyGrad.fill(-1.0f);
 					entropyGrad = TensorOps.add(entropyGrad, entropyGrad, -1.0f, policy);
 				
-					policyGrad = TensorOps.add(policyGrad, policyGrad, value, entropyGrad);
+					policyGrad = TensorOps.add(policyGrad, policyGrad, config.entropy, entropyGrad);
 				}
 						
 				policyNetwork.backward(policyGrad);
@@ -164,14 +170,14 @@ public class A3CLearningStrategy implements LearningStrategy {
 			}
 			
 			
-			// calculate value gradient 
-			loss += advantage*advantage;
-			Tensor valueGrad = new Tensor(1);
-			valueGrad.set(-2*advantage, 0);
+			// calculate value gradient
+			Tensor target = new Tensor(1);
+			target.set(reward, 0);
 			
-			valueNetwork.backward(valueGrad);
+			loss += valueCriterion.loss(value, target);
+			
+			valueNetwork.backward(valueCriterion.grad(value, target));
 			valueNetwork.accGradParameters();
-			
 		}
 		
 		valueGradientProcessor.calculateDelta(i);
@@ -182,7 +188,7 @@ public class A3CLearningStrategy implements LearningStrategy {
 			policyNetwork.updateParameters();
 		}
 		
-		return new QLearnProgress(i, loss/sequence.size(), value);
+		return new QLearnProgress(i, loss/sequence.size(), total_value/sequence.size());
 	}
 
 }

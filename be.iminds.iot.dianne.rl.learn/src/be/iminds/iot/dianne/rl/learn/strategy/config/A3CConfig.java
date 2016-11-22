@@ -22,6 +22,7 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rl.learn.strategy.config;
 
+import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory.CriterionConfig;
 import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory.ProcessorConfig;
 
 public class A3CConfig {
@@ -39,6 +40,11 @@ public class A3CConfig {
 	 *  * RMSprop
 	 */
 	public ProcessorConfig method = ProcessorConfig.SGD;
+
+	/**
+	 * The criterion to use for the value network
+	 */
+	public CriterionConfig valueCriterion = CriterionConfig.MSE;
 	
 	/**
 	 * Set to false to only train value function from existing policy
@@ -54,4 +60,5 @@ public class A3CConfig {
 	 * Set true to allow to revisit same sequences in the experience pool
 	 */
 	public boolean reuseSequences = false;
+	
 }
