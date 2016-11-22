@@ -29,4 +29,9 @@ public class DeepDeterministicPolicyGradientConfig extends DeepQConfig {
 	 */
 	public float policyRateScaling = 0.1f;
 	
+	/**
+	 * Perform gradient clipping on actor
+	 */
+	public boolean actorGradClipping = false;
+	
 }

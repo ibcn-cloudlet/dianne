@@ -44,6 +44,7 @@ import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory;
 import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.learn.strategy.config.DeepStochasticPolicyGradientConfig;
+import be.iminds.iot.dianne.tensor.ModuleOps;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
@@ -225,6 +226,11 @@ public class DeepStochasticPolicyGradientStrategy implements LearningStrategy {
 			
 			loss += config.trustRegionRegularization*regulCriterion.loss(actionParams, targetActionParams);
 			TensorOps.add(actorGrad, actorGrad, config.trustRegionRegularization, regulCriterion.grad(actionParams, targetActionParams));
+		}
+		
+		// Perform gradient clipping if required
+		if(config.actorGradClipping) {
+			ModuleOps.tanh(actorGrad, actorGrad);
 		}
 		
 		// Backward pass of the actor

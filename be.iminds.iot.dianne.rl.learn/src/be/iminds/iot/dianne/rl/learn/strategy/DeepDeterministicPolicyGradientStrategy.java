@@ -42,6 +42,7 @@ import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory;
 import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.learn.strategy.config.DeepDeterministicPolicyGradientConfig;
+import be.iminds.iot.dianne.tensor.ModuleOps;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
@@ -165,6 +166,11 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 		value = critic.forward(inputIds, outputIds, new Tensor[]{batch.getState(), action}).getValue().tensor;
 		criticGrad.fill(-1f/config.batchSize);
 		Tensor actorGrad = critic.backward(outputIds, inputIds, new Tensor[]{criticGrad}).getValue().tensors.get(actionIn);
+		
+		// Perform gradient clipping if required
+		if(config.actorGradClipping) {
+			ModuleOps.tanh(actorGrad, actorGrad);
+		}
 		
 		// Backward pass of the actor
 		actor.backward(actorGrad);
