@@ -161,9 +161,9 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 		Tensor action = actor.forward(batch.getState());
 		
 		// Get the actor gradient by evaluating the critic and use it's gradient with respect to the action
-		// Note: By default we're doing minimization, so set critic gradient to -1
+		// Note: By default we're doing minimization, so set negative critic gradient
 		value = critic.forward(inputIds, outputIds, new Tensor[]{batch.getState(), action}).getValue().tensor;
-		criticGrad.fill(-1);
+		criticGrad.fill(-1f/config.batchSize);
 		Tensor actorGrad = critic.backward(outputIds, inputIds, new Tensor[]{criticGrad}).getValue().tensors.get(actionIn);
 		
 		// Backward pass of the actor

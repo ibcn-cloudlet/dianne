@@ -40,6 +40,11 @@ public class DeepStochasticPolicyGradientConfig extends DeepDeterministicPolicyG
 	public float actionPriorRegularization = 0;
 	
 	/**
+	 * Action prior deviation used in regularization
+	 */
+	public float actionPriorDev = 1;
+	
+	/**
 	 * Trust region regularization coefficient on the action distributions
 	 */
 	public float trustRegionRegularization = 0;

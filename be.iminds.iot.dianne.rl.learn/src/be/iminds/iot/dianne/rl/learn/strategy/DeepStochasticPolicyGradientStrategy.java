@@ -134,7 +134,7 @@ public class DeepStochasticPolicyGradientStrategy implements LearningStrategy {
 		// TODO: set tensors based on modeled distributions, currently a 1D factorized Gaussian is assumed
 		this.actionPrior = new Tensor(this.config.batchSize, this.pool.actionDims()[0]*2);
 		this.actionPrior.narrow(1, 0, this.pool.actionDims()[0]).fill(0);
-		this.actionPrior.narrow(1, this.pool.actionDims()[0], this.pool.actionDims()[0]).fill(1);
+		this.actionPrior.narrow(1, this.pool.actionDims()[0], this.pool.actionDims()[0]).fill(this.config.actionPriorDev);
 		
 		this.targetValue = new Tensor(this.config.batchSize);
 		
@@ -195,7 +195,7 @@ public class DeepStochasticPolicyGradientStrategy implements LearningStrategy {
 		
 		// Set the critic gradient in order to update the actor
 		// Note: by default we're doing minimization, so critic gradient is set to -1/#samples
-		criticGrad.fill(-1f/config.actorSamples);
+		criticGrad.fill(-1f/(config.batchSize*config.actorSamples));
 		
 		// Get distribution parameters for action in current state using working actor
 		Tensor actionParams = actor.forward(batch.getState());
