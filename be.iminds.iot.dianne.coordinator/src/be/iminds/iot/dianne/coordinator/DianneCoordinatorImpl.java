@@ -122,7 +122,9 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 
 	Map<UUID, Device> devices = new ConcurrentHashMap<>();
 	// keeps which device is doing what
-	Map<UUID, BitSet> deviceUsage = new ConcurrentHashMap<>(); 
+	Map<UUID, BitSet> deviceUsage = new ConcurrentHashMap<>();
+	// keeps failures to eventually blacklist device
+	Map<UUID, Integer> deviceErrors = new ConcurrentHashMap<>();
 	
 	Queue<Notification> notifications = new CircularBlockingQueue<>(20);
 	
@@ -390,7 +392,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 					System.err.println("Failed to write job.json for Job "+job.jobId);
 				}
 				
-				Throwable error = job.getPromise().getFailure();
+				JobFailedException error = (JobFailedException) job.getPromise().getFailure();
 				if(error !=null){
 					File errorFile = new File(dir.getAbsolutePath()+File.separator+"error");
 					try {
@@ -398,7 +400,15 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 					} catch (FileNotFoundException e) {
 					}
 					
-					sendNotification(job.jobId, Level.DANGER, "Job \""+job.name+"\" failed: "+error.getMessage());
+					UUID device = error.getDevice();
+					if(!deviceErrors.containsKey(device)){
+						deviceErrors.put(device, 1);
+					} else {
+						int errors = deviceErrors.get(device);
+						deviceErrors.put(device, errors+1);
+					}
+					
+					sendNotification(job.jobId, Level.DANGER, "Job \""+job.name+"\" failed on device "+device+" : "+error.getMessage());
 				} else {
 					File resultFile = new File(dir.getAbsolutePath()+File.separator+"result.json");
 					try(JsonWriter writer = new JsonWriter(new FileWriter(resultFile))){
@@ -557,7 +567,17 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 						}
 					})
 					.map(device -> device.id)
+					// discourate the use of devices that tend to cause errors :-)
+					.sorted(new Comparator<UUID>() {
+						@Override
+						public int compare(UUID o1, UUID o2) {
+							int errors1 = deviceErrors.containsKey(o1) ? deviceErrors.get(o1) : 0;
+							int errors2 = deviceErrors.containsKey(o2) ? deviceErrors.get(o2) : 0;
+							return errors1 -errors2;
+						}
+					})
 					.collect(Collectors.toList());
+		
 		// check if this is possible
 		if(candidates.size() < count)
 			throw new Exception("Insufficient infrastructure to meet the requirements of this Job");
@@ -689,6 +709,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 			&& !agents.containsKey(id)){
 				deviceUsage.remove(id);
 				devices.remove(id);
+				deviceErrors.remove(id);
 			}
 		}
 	}

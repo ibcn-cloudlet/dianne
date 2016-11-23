@@ -105,21 +105,25 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 	}
 		
 	@Override
-	public void execute() throws Exception {
+	public void execute() throws JobFailedException {
 		
 		master = targets.get(0);
 		if(config.containsKey("validationSet")){
 			for(UUID target : targets){
 				Evaluator v = coordinator.evaluators.get(target);
 				if(v != null){
-					validator = v;
-					// validator becomes master
-					master = target;
-					validationNns = new NeuralNetworkInstanceDTO[nns.length];
-					for(int i=0;i<nns.length;i++){
-						validationNns[i] = coordinator.platform.deployNeuralNetwork(nns[i].name, "Dianne Coordinator LearnJob Validaton NN"+jobId, target);
+					try {
+						validator = v;
+						// validator becomes master
+						master = target;
+						validationNns = new NeuralNetworkInstanceDTO[nns.length];
+						for(int i=0;i<nns.length;i++){
+							validationNns[i] = coordinator.platform.deployNeuralNetwork(nns[i].name, "Dianne Coordinator LearnJob Validaton NN"+jobId, target);
+						}
+						break;
+					} catch(Throwable c){
+						throw new JobFailedException(target, this.jobId, "Failed initialize validation: "+c.getMessage(), c);
 					}
-					break;
 				}
 			}
 		}
@@ -155,9 +159,13 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 		
 		// start learning on each learner
 		for(UUID target : targets){
-			Learner learner = coordinator.learners.get(target);
-			learners.put(target, learner);
-			learner.learn(dataset, learnConfig, nnis.get(target));
+			try {
+				Learner learner = coordinator.learners.get(target);
+				learners.put(target, learner);
+				learner.learn(dataset, learnConfig, nnis.get(target));
+			} catch(Throwable c){
+				throw new JobFailedException(target, this.jobId, "Failed to start learner: "+c.getMessage(), c);
+			}
 		}
 	}
 	
@@ -263,7 +271,7 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 		if(deferred.getPromise().isDone()){
 			return;
 		}
-		done(e);
+		done(new JobFailedException(learnerId, this.jobId, "Learner failed: "+e.getMessage(), e));
 	}
 
 	@Override
@@ -308,7 +316,7 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 				} catch(Exception e){}
 			}		
 		} else {
-			done(new Exception("Job "+this.jobId+" cancelled."));
+			done(new JobFailedException(null, this.jobId, "Job "+this.jobId+" cancelled.", null));
 		}
 	}
 

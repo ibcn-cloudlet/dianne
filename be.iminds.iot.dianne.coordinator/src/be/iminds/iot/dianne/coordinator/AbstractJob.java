@@ -106,10 +106,14 @@ public abstract class AbstractJob<T> implements Runnable {
 				for(UUID target : targets){
 					NeuralNetworkInstanceDTO[] instances = new NeuralNetworkInstanceDTO[nns.length];
 					for(int i=0;i<nns.length;i++){
-						NeuralNetworkDTO nn = nns[i];
-						NeuralNetworkInstanceDTO nni = coordinator.platform.deployNeuralNetwork(nn.name, "Dianne Coordinator "+type+" job "+jobId, target);
-						instances[i] = nni;
-						targetsByNNi.put(nni.id, target);
+						try {
+							NeuralNetworkDTO nn = nns[i];
+							NeuralNetworkInstanceDTO nni = coordinator.platform.deployNeuralNetwork(nn.name, "Dianne Coordinator "+type+" job "+jobId, target);
+							instances[i] = nni;
+							targetsByNNi.put(nni.id, target);
+						} catch(Throwable t){
+							throw new JobFailedException(target, AbstractJob.this.jobId, "Failed to deploy NN instances: "+t.getMessage(), t);
+						}
 					}
 					nnis.put(target, instances);
 				}
@@ -117,13 +121,13 @@ public abstract class AbstractJob<T> implements Runnable {
 			
 			// execute
 			execute();
-		} catch(Throwable t){
-			done(t);
+		} catch(JobFailedException e){
+			done(e);
 		}
 	}
 	
 	// to be implemented by the actual Job
-	public abstract void execute() throws Exception;
+	public abstract void execute() throws JobFailedException;
 	
 	public abstract T getProgress();
 	
@@ -133,7 +137,7 @@ public abstract class AbstractJob<T> implements Runnable {
 		if(started > 0){
 			throw new Exception("This job cannot be stopped");
 		} else {
-			done(new Exception("Job "+this.jobId+" cancelled."));
+			done(new JobFailedException(null, this.jobId, "Job "+this.jobId+" cancelled.", null));
 		}
 	}
 	
@@ -144,7 +148,7 @@ public abstract class AbstractJob<T> implements Runnable {
 	}
 	
 	// to be called on error
-	public void done(Throwable error){
+	public void done(JobFailedException error){
 		deferred.fail(error);
 		done();
 	}

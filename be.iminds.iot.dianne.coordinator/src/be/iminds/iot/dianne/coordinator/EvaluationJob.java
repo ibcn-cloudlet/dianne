@@ -54,7 +54,7 @@ public class EvaluationJob extends AbstractJob<EvaluationResult> {
 	}
 	
 	@Override
-	public void execute() throws Exception {
+	public void execute() throws JobFailedException {
 		
 		Map<String, String> evalConfig = new HashMap<>(config);
 		if(!evalConfig.containsKey("range") && config.containsKey("testSet")){
@@ -84,7 +84,7 @@ public class EvaluationJob extends AbstractJob<EvaluationResult> {
 						
 						results.put(target, e);
 					} catch(Exception e){
-						done(e);
+						done(new JobFailedException(target, EvaluationJob.this.jobId, "Evaluator failed: "+e.getMessage(), e));
 					}
 				}
 			});
@@ -92,7 +92,10 @@ public class EvaluationJob extends AbstractJob<EvaluationResult> {
 		}
 		
 		for(Thread t : threads){
-			t.join();
+			try {
+				t.join();
+			} catch (InterruptedException e) {
+			}
 		}
 		
 		result = new EvaluationResult(results);

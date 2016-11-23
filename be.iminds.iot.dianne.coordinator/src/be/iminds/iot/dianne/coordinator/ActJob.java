@@ -63,7 +63,7 @@ public class ActJob extends AbstractJob<AgentResult> implements AgentListener {
 	}
 	
 	@Override
-	public void execute() throws Exception {
+	public void execute() throws JobFailedException {
 		
 		String environment = config.get("environment");
 		
@@ -93,9 +93,13 @@ public class ActJob extends AbstractJob<AgentResult> implements AgentListener {
 		
 		// start acting on each agent
 		for(UUID target : targets){
-			Agent agent = coordinator.agents.get(target);
-			agents.put(target, agent);
-			agent.act(environment, dataset, config, nnis.get(target));
+			try {
+				Agent agent = coordinator.agents.get(target);
+				agents.put(target, agent);
+				agent.act(environment, dataset, config, nnis.get(target));
+			} catch(Throwable c){
+				throw new JobFailedException(target, this.jobId, "Failed to start agent: "+c.getMessage(), c);
+			}
 		}
 	}
 
@@ -119,7 +123,7 @@ public class ActJob extends AbstractJob<AgentResult> implements AgentListener {
 		if(started > 0){
 			done(getProgress());
 		} else {
-			done(new Exception("Job "+this.jobId+" cancelled."));
+			done(new JobFailedException(null, this.jobId, "Job "+this.jobId+" cancelled.", null));
 		}
 	}
 
@@ -157,7 +161,7 @@ public class ActJob extends AbstractJob<AgentResult> implements AgentListener {
 		if(deferred.getPromise().isDone()){
 			return;
 		}
-		done(e);
+		done(new JobFailedException(agentId, this.jobId, "Agent failed: "+e.getMessage(), e));
 	}
 
 	@Override
