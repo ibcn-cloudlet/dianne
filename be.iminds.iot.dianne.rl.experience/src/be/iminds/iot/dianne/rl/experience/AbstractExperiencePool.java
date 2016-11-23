@@ -68,6 +68,10 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 			this.start = start;
 			this.length = length;
 		}
+		
+		public String toString(){
+			return "Sequence start: "+start+" length: "+length;
+		}
 	}
 	
 	protected List<Sequence> sequences = new ArrayList<>();
@@ -151,7 +155,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	@Override
 	public ExperiencePoolSample getSample(ExperiencePoolSample s, int index){
 		// no locking since that kills performance and every part of the experience pool should be a valid xp sample
-		return getSample(s, index, true);
+		return getSample(s, index, sequences.get(0).start, true);
 	}
 		
 	@Override
@@ -162,7 +166,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		
 		int i = 0;
 		for(int index : indices){
-			getSample(b.getSample(i++), index, true);
+			getSample(b.getSample(i++), index, sequences.get(0).start, true);
 		}
 		
 		return b;
@@ -186,15 +190,14 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 			}
 			
 			Sequence seq = sequences.get(sequence);
-			
 			if(index >= seq.length){
 				throw new RuntimeException("Invalid start index: "+index);
 			}
 			
 			if(length == -1){
-				length = seq.length;
+				length = seq.length-index;
 			} else {
-				length = seq.length < length ? seq.length : length;
+				length = seq.length-index < length ? seq.length-index : length;
 			}
 			
 			ExperiencePoolSample previous = null;
@@ -211,9 +214,9 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 				}
 				
 				if(i==0){
-					getSample(sample, seq.start, true);
+					getSample(sample, i, seq.start+index, true);
 				} else {
-					getSample(sample, seq.start+i, false);
+					getSample(sample, i, seq.start+index, false);
 				}
 				
 				previous = sample;
@@ -265,7 +268,6 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 				queuedAddSequenceThread.submit(() ->{
 					try {
 						lock.writeLock().lock();
-						System.out.println("Delayed addition of sequence...");
 						addSequence(copy);
 					} finally {
 						lock.writeLock().unlock();
@@ -301,8 +303,9 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 				writeData(index*sampleSize, buffer);
 				index++;
 			}
-		
-			sequences.add(new Sequence(start, size));
+			
+			Sequence seq = new Sequence(start, size);
+			sequences.add(seq);
 			noSamples+= size;
 			
 		} catch(Throwable t){ 
@@ -347,10 +350,10 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		
 	}
 
-	protected ExperiencePoolSample getSample(ExperiencePoolSample s, int index, boolean loadState){
+	protected ExperiencePoolSample getSample(ExperiencePoolSample s, int index, int start, boolean loadState){
 		float[] sampleBuffer = new float[sampleSize];
 		
-		loadData(getBufferPosition(index), sampleBuffer);
+		loadData(getBufferPosition(index, start), sampleBuffer);
 		
 		if(s == null){
 			s = new ExperiencePoolSample();	
@@ -394,7 +397,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		if(!s.isTerminal()){
 			// load next state
 			float[] nextStateBuffer = new float[stateSize];
-			loadData(getBufferPosition(index+1), nextStateBuffer);
+			loadData(getBufferPosition(index+1, start), nextStateBuffer);
 
 			if(s.nextState == null){
 				s.nextState = new Tensor(nextStateBuffer, stateDims);
@@ -411,9 +414,8 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		return s;
 	}
 	
-	private int getBufferPosition(int index){
-		int startIndex = sequences.get(0).start;
-		int pos = (startIndex+index) % maxSize;
+	private int getBufferPosition(int index, int start){
+		int pos = (start+index) % maxSize;
 		return pos*sampleSize;
 	}
 	
