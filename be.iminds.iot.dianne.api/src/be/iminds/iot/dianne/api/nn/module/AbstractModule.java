@@ -318,8 +318,12 @@ public abstract class AbstractModule implements Module {
 				listenerExecutor.execute(()->{
 					fwdListenersCopy.stream().forEach(
 							f -> {
-								outputListenersCopy.reshape(dims);
-								f.onForward(id, outputListenersCopy, tagsCopy);
+								try {
+									outputListenersCopy.reshape(dims);
+									f.onForward(id, outputListenersCopy, tagsCopy);
+								} catch(Throwable t){
+									System.out.println(t.getMessage());
+								}
 							});
 					
 					synchronized(fwdListeners){
@@ -374,10 +378,14 @@ public abstract class AbstractModule implements Module {
 				listenerExecutor.execute(()->{
 					bwListenersCopy.stream().forEach(
 							b-> {
-								if(dims!=null)
-									gradInputListenersCopy.reshape(dims);
-								
-								b.onBackward(id, gradInputListenersCopy, tagsCopy);
+								try {
+									if(dims!=null)
+										gradInputListenersCopy.reshape(dims);
+									
+									b.onBackward(id, gradInputListenersCopy, tagsCopy);
+								} catch(Throwable t){
+									System.out.println(t.getMessage());
+								}
 							});
 					
 					synchronized(bwListeners){
