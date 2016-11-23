@@ -128,7 +128,7 @@ public class A3CLearningStrategy implements LearningStrategy {
 		}	
 		
 		float reward = 0;
-		ExperiencePoolSample last = sequence.get(sequence.size()-1); 
+		ExperiencePoolSample last = sequence.get(sequence.size()-1);
 		if(!last.isTerminal()){
 			reward = valueNetwork.forward(last.getNextState()).get(0);
 		}
@@ -142,7 +142,7 @@ public class A3CLearningStrategy implements LearningStrategy {
 			ExperiencePoolSample sample = sequence.get(k);
 			
 			// update expected discounted reward
-			reward += config.discount * sample.getScalarReward();
+			reward = config.discount * reward + sample.getScalarReward();
 
 			// calculate value of state
 			Tensor value = valueNetwork.forward(sample.getState());
@@ -202,6 +202,7 @@ public class A3CLearningStrategy implements LearningStrategy {
 			loss += valueCriterion.loss(value, target);
 			
 			criticGrad = valueCriterion.grad(value, target);
+			
 			valueNetwork.backward(criticGrad);
 			valueNetwork.accGradParameters();
 		}
