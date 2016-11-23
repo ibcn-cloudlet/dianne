@@ -34,7 +34,7 @@ import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.learn.LearningStrategy;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
-import be.iminds.iot.dianne.api.rl.learn.QLearnProgress;
+import be.iminds.iot.dianne.api.rl.learn.A3CLearnProgress;
 import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory;
 import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
@@ -71,6 +71,14 @@ public class A3CLearningStrategy implements LearningStrategy {
 	
 	protected Random r = new Random(System.currentTimeMillis());
 	
+	protected Tensor policyGrad = null;
+	
+	protected Tensor probs = null;
+	protected Tensor entropyGrad = null;
+	
+	protected Tensor actorGrad = null;
+	protected Tensor criticGrad = null;
+	
 	@Override
 	public void setup(Map<String, String> config, Dataset dataset, NeuralNetwork... nns) throws Exception {
 		if(!(dataset instanceof ExperiencePool))
@@ -99,7 +107,6 @@ public class A3CLearningStrategy implements LearningStrategy {
 
 		// Wait for the pool to contain sequences
 		if(pool.sequences() == 0){
-			System.out.println("Experience pool has no sequences, wait a bit to continue learning...");
 			while(pool.sequences() == 0 ){
 				try {
 					Thread.sleep(5000);
@@ -128,6 +135,9 @@ public class A3CLearningStrategy implements LearningStrategy {
 		
 		float loss = 0;
 		float total_value = 0;
+		float entropy = 0;
+		float total_entropy = 0;
+		
 		for(int k=sequence.size()-1;k>=0;k--){
 			ExperiencePoolSample sample = sequence.get(k);
 			
@@ -142,30 +152,45 @@ public class A3CLearningStrategy implements LearningStrategy {
 			if(config.updatePolicy){
 				// calculate action log probabilities from policy network
 			
-				Tensor policy = policyNetwork.forward(sample.getState());
+				Tensor log_probs = policyNetwork.forward(sample.getState());
 				
 				// calculate policy gradient
-				Tensor policyGrad  = new Tensor(policy.size());
+				if(policyGrad == null)
+					policyGrad  = new Tensor(log_probs.size());
+				
 				policyGrad.fill(0.0f);
 				
 				int action = TensorOps.argmax(sample.getAction());
 				
-				float advantage = reward - value.get(0);	
-				policyGrad.set(advantage, action);
+				float advantage = reward - value.get(0);
+				policyGrad.set(-advantage, action);
+				
+				actorGrad = policyGrad.copyInto(actorGrad);
+				
+				// calculate entropy
+				// assume output is logprob
+				if(probs == null)
+					probs = new Tensor(log_probs.size());
+				
+				probs = TensorOps.exp(probs, log_probs);
+				entropy = -TensorOps.dot(probs, log_probs);
+				total_entropy += entropy;
 				
 				if(config.entropy > 0){
 					// entropy regularization
-					
-					Tensor entropyGrad = new Tensor(policy.size());
+					if(entropyGrad==null)
+						entropyGrad = new Tensor(log_probs.size());
 					// entropy = - sum_i  p_i * log p_i
-					// hence, gradient is d_i = - (1 + log p_i)
-					entropyGrad.fill(-1.0f);
-					entropyGrad = TensorOps.add(entropyGrad, entropyGrad, -1.0f, policy);
-				
-					policyGrad = TensorOps.add(policyGrad, policyGrad, config.entropy, entropyGrad);
+					// however, we assume the output is logsoftmax'ed , so gradient to log_pi needed
+					// hence, gradient to log_pi becomes :  -(p_i + log_p_i * pi_i)
+					entropyGrad = TensorOps.cmul(entropyGrad, probs, log_probs);
+					entropyGrad = TensorOps.add(entropyGrad, entropyGrad, probs);
+					
+					// for exploration one wants a slight push towards higher entropy
+					TensorOps.add(actorGrad, policyGrad, config.entropy, entropyGrad);
 				}
 						
-				policyNetwork.backward(policyGrad);
+				policyNetwork.backward(actorGrad);
 				policyNetwork.accGradParameters();
 			}
 			
@@ -176,7 +201,8 @@ public class A3CLearningStrategy implements LearningStrategy {
 			
 			loss += valueCriterion.loss(value, target);
 			
-			valueNetwork.backward(valueCriterion.grad(value, target));
+			criticGrad = valueCriterion.grad(value, target);
+			valueNetwork.backward(criticGrad);
 			valueNetwork.accGradParameters();
 		}
 		
@@ -188,7 +214,7 @@ public class A3CLearningStrategy implements LearningStrategy {
 			policyNetwork.updateParameters();
 		}
 		
-		return new QLearnProgress(i, loss/sequence.size(), total_value/sequence.size());
+		return new A3CLearnProgress(i, loss/sequence.size(), total_value/sequence.size(), total_entropy/sequence.size());
 	}
 
 }
