@@ -107,7 +107,7 @@ public abstract class AbstractJob<T> implements Runnable {
 					NeuralNetworkInstanceDTO[] instances = new NeuralNetworkInstanceDTO[nns.length];
 					for(int i=0;i<nns.length;i++){
 						NeuralNetworkDTO nn = nns[i];
-						NeuralNetworkInstanceDTO nni = coordinator.platform.deployNeuralNetwork(nn.name, "Dianne Coordinator LearnJob "+jobId, target);
+						NeuralNetworkInstanceDTO nni = coordinator.platform.deployNeuralNetwork(nn.name, "Dianne Coordinator "+type+" job "+jobId, target);
 						instances[i] = nni;
 						targetsByNNi.put(nni.id, target);
 					}
