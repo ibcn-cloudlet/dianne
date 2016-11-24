@@ -256,6 +256,10 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 			mode = Mode.CONTINUOUS;
 			System.out.println("Accepy only continous neural net robot control signals");
 			break;
+		case BUTTON_B_PRESSED:
+			mode = Mode.STOCHASTIC;
+			System.out.println("Accepy only stochastic continuous neural net robot control signals");
+			break;	
 		default:
 		}
 	}
@@ -279,6 +283,11 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 			mode = Mode.CONTINUOUS;
 			System.out.println("Accepy only continous neural net robot control signals");
 			break;
+		case "4":
+			mode = Mode.STOCHASTIC;
+			System.out.println("Accepy only stochastic continuous neural net robot control signals");
+			break;	
+		default:	
 		case "0":
 			mode = Mode.ANY;
 			System.out.println("Accepy any robot control signals");
