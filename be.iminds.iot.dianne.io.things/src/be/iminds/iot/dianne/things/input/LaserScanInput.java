@@ -36,7 +36,6 @@ import be.iminds.iot.sensor.api.SensorValue;
 
 public class LaserScanInput extends ThingInput implements SensorListener {
 
-	private Input input;
 	private Tensor t;
 	
 	private ServiceRegistration registration;
@@ -47,31 +46,36 @@ public class LaserScanInput extends ThingInput implements SensorListener {
 
 	@Override
 	public void update(SensorValue value) {
-		if(t == null || t.size() != value.data.length){
-			t = new Tensor(value.data.length);
+		for(Input in : inputs){
+			if(t == null || t.size() != value.data.length){
+				t = new Tensor(value.data.length);
+			}
+			t.set(value.data);
+			in.input(t);
 		}
-		t.set(value.data);
-		input.input(t);
 	}
 
 	@Override
 	public void connect(Input input, BundleContext context) {
-		this.input = input;
+		super.connect(input, context);
 		
-		Dictionary<String, Object> properties = new Hashtable<String, Object>();
-		properties.put("target", id.toString());
-		properties.put("aiolos.unique", true);
-		registration = context.registerService(SensorListener.class.getName(), this, properties);
+		if(registration == null){
+			Dictionary<String, Object> properties = new Hashtable<String, Object>();
+			properties.put("target", id.toString());
+			properties.put("aiolos.unique", true);
+			registration = context.registerService(SensorListener.class.getName(), this, properties);
+		}
 	}
 
 	
 	@Override
-	public void disconnect(){
-		if(registration != null){
+	public void disconnect(Input input){
+		super.disconnect(input);
+		
+		if(registration != null && inputs.size() == 0){
 			registration.unregister();
 			registration = null;
 		}
-		this.input = null;
 	}
 	
 }

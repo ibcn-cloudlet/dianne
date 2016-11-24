@@ -43,8 +43,6 @@ public class CameraInput extends ThingInput implements CameraListener {
 	private ImageConverter converter;
 	private float[] buffer;
 
-	private Input input;
-
 	// input frame
 	private int width;
 	private int height;
@@ -61,10 +59,10 @@ public class CameraInput extends ThingInput implements CameraListener {
 	
 	@Override
 	public void nextFrame(UUID id, Format format, byte[] data) {
+		Tensor in = null;
 		if(format==Format.MJPEG){
 			try {
-				Tensor in = converter.readFromBytes(data);
-				input.input(in);
+				in = converter.readFromBytes(data);
 			} catch(Exception e){
 				System.out.println("Failed to read jpeg frame");
 			}
@@ -78,49 +76,57 @@ public class CameraInput extends ThingInput implements CameraListener {
 					}
 				}
 			}
-			Tensor in = new Tensor(buffer, channels, height, width);
-			input.input(in);
+			in = new Tensor(buffer, channels, height, width);
 		} 
 
+		if(in != null){
+			for(Input input: inputs){
+				input.input(in);
+			}
+		}
 	}
 
 
 	@Override
 	public void connect(Input input, BundleContext context) {
-		this.input = input;
-		
-		try {
-			camera.setFramerate(15f);
-			camera.start(320, 240, Camera.Format.MJPEG);
-		} catch(Exception e){
-			System.err.println("Error starting camera");
-		}
-		
-		this.width = 320;
-		this.height = 240;
-		this.channels = 3;
+		super.connect(input, context);
 
-		this.converter = new ImageConverter();
-		this.buffer = new float[channels*width*height];
-		
-		Dictionary<String, Object> properties = new Hashtable<String, Object>();
-		properties.put(CameraListener.CAMERA_ID, id.toString());
-		properties.put("aiolos.unique", true);
-		registration = context.registerService(CameraListener.class.getName(), this, properties);
+		if(registration == null){
+			try {
+				camera.setFramerate(15f);
+				camera.start(320, 240, Camera.Format.MJPEG);
+			} catch(Exception e){
+				System.err.println("Error starting camera");
+			}
+			
+			this.width = 320;
+			this.height = 240;
+			this.channels = 3;
+	
+			this.converter = new ImageConverter();
+			this.buffer = new float[channels*width*height];
+			
+			Dictionary<String, Object> properties = new Hashtable<String, Object>();
+			properties.put(CameraListener.CAMERA_ID, id.toString());
+			properties.put("aiolos.unique", true);
+			registration = context.registerService(CameraListener.class.getName(), this, properties);
+		}
 	}
 
 	
 	@Override
-	public void disconnect(){
-		try {
-			camera.stop();
-		} catch(Exception e){}
+	public void disconnect(Input input){
+		super.disconnect(input);
 		
-		if(registration != null){
-			registration.unregister();
-			registration = null;
+		if(inputs.size() == 0){
+			try {
+				camera.stop();
+			} catch(Exception e){}
+			
+			if(registration != null){
+				registration.unregister();
+				registration = null;
+			}
 		}
-		
-		this.input = null;
 	}
 }

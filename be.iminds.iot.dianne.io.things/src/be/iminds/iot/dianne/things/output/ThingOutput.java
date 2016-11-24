@@ -14,9 +14,9 @@ import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 
 public abstract class ThingOutput implements ForwardListener {
 
-	public final UUID id;
-	public final String name;
-	public final String type;
+	protected final UUID id;
+	protected final String name;
+	protected final String type;
 	
 	private Map<String, ServiceRegistration> registrations = new HashMap<>();
 	

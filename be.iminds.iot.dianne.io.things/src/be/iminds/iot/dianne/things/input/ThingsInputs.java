@@ -112,7 +112,12 @@ public class ThingsInputs implements DianneInputs {
 		String moduleId = (String)properties.get("module.id");
 		String nnId = (String)properties.get("nn.id");
 		String id = nnId+":"+moduleId;
-		inputs.remove(id);
+		Input in = inputs.remove(id);
+		synchronized(things){
+			for(ThingInput t : things.values()){
+				t.disconnect(in);
+			}
+		}
 	}
 	
 	@Override
@@ -143,11 +148,13 @@ public class ThingsInputs implements DianneInputs {
 
 	@Override
 	public void unsetInput(UUID nnId, UUID inputId, String input) {
+		String id = nnId.toString()+":"+inputId.toString();
+		Input in = inputs.get(id);
 		ThingInput thing = null;
 		synchronized(things){
 			thing = things.values().stream().filter(t -> t.name.equals(input)).findFirst().get();
 		}
-		thing.disconnect();
+		thing.disconnect(in);
 	}
 
 }

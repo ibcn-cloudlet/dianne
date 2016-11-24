@@ -1,6 +1,8 @@
 package be.iminds.iot.dianne.things.input;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.osgi.framework.BundleContext;
 
@@ -9,9 +11,11 @@ import be.iminds.iot.dianne.api.nn.module.Input;
 
 public abstract class ThingInput {
 
-	public final UUID id;
-	public final String name;
-	public final String type;
+	protected final UUID id;
+	protected final String name;
+	protected final String type;
+	
+	protected final List<Input> inputs = new CopyOnWriteArrayList<>();
 	
 	public ThingInput(UUID id, String name, String type){
 		this.id = id;
@@ -23,8 +27,12 @@ public abstract class ThingInput {
 		return new InputDescription(name, type);
 	}
 	
-	public abstract void connect(Input input, BundleContext context);
+	public void connect(Input input, BundleContext context){
+		inputs.add(input);
+	}
 	
-	public abstract void disconnect();
+	public void disconnect(Input input){
+		inputs.remove(input);
+	}
 	
 }
