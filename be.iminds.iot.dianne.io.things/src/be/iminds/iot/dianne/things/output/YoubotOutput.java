@@ -161,9 +161,7 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 		} else if(outputs == 3 && (mode == Mode.CONTINUOUS || mode == Mode.ANY)) {
 			float[] action = output.get();
 			// treat as continuous outputs
-			if(  action[0] < gripThreshold
-				&& action[1] < gripThreshold
-				&& action[2] < gripThreshold){
+			if(TensorOps.dot(output, output) < gripThreshold){
 				// grip	
 				grip = true;
 			} else {
@@ -181,9 +179,7 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 		
 			float[] action = sample.get();
 			// treat as continuous outputs
-			if(  action[0] < gripThreshold
-				&& action[1] < gripThreshold
-				&& action[2] < gripThreshold){
+			if(TensorOps.dot(sample, sample) < gripThreshold){
 				// grip	
 				grip = true;
 			} else {
@@ -250,15 +246,15 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 			break;
 		case BUTTON_Y_PRESSED:
 			mode = Mode.DISCRETE;
-			System.out.println("Accepy only discrete neural net robot control signals");
+			System.out.println("Accept only discrete neural net robot control signals");
 			break;
 		case BUTTON_A_PRESSED:
 			mode = Mode.CONTINUOUS;
-			System.out.println("Accepy only continous neural net robot control signals");
+			System.out.println("Accept only continous neural net robot control signals");
 			break;
 		case BUTTON_B_PRESSED:
 			mode = Mode.STOCHASTIC;
-			System.out.println("Accepy only stochastic continuous neural net robot control signals");
+			System.out.println("Accept only stochastic continuous neural net robot control signals");
 			break;	
 		default:
 		}
@@ -277,20 +273,21 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 			break;
 		case "2":
 			mode = Mode.DISCRETE;
-			System.out.println("Accepy only discrete neural net robot control signals");
+			System.out.println("Accept only discrete neural net robot control signals");
 			break;
 		case "3":
 			mode = Mode.CONTINUOUS;
-			System.out.println("Accepy only continous neural net robot control signals");
+			System.out.println("Accept only continous neural net robot control signals");
 			break;
 		case "4":
 			mode = Mode.STOCHASTIC;
-			System.out.println("Accepy only stochastic continuous neural net robot control signals");
+			System.out.println("Accept only stochastic continuous neural net robot control signals");
 			break;	
-		default:	
 		case "0":
 			mode = Mode.ANY;
-			System.out.println("Accepy any robot control signals");
+			System.out.println("Accept any robot control signals");
+			break;
+		default:
 			break;
 		}
 	}
