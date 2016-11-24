@@ -487,8 +487,7 @@ function createRunModuleDialog(id, moduleItem){
 		dialog.find(".content").append("<div class='outputviz'></div>");
 		dialog.find(".content").append("<div class='time'></div>");
 
-		if(eventsource===undefined){
-			eventsource = new EventSource("/dianne/run?nnId="+nn.id);
+			var eventsource = new EventSource("/dianne/run?nnId="+nn.id);
 			eventsource.onmessage = function(event){
 				var output = JSON.parse(event.data);
 				if(output.error!==undefined){
@@ -568,7 +567,6 @@ function createRunModuleDialog(id, moduleItem){
 					});
 				}
 			};
-		}
 		
 		dialog.on('hidden.bs.modal', function () {
 			if($(".probability").length == 1){
@@ -594,8 +592,8 @@ function createRunModuleDialog(id, moduleItem){
 		dialog.find(".content").append("<center><div class='expected'></div></center>");
 		dialog.find(".content").append("<button class='btn' onclick='sample(\""+module.type+"\",\""+module.input+"\")' style=\"margin-left:10px\">Sample</button>");
 		
-		sampleCanvas = dialog.find('.sampleCanvas')[0];
-		sampleCanvasCtx = sampleCanvas.getContext('2d');
+		var sampleCanvas = dialog.find('.sampleCanvas')[0];
+		var sampleCanvasCtx = sampleCanvas.getContext('2d');
 		
 	} else if(module.type==="Camera"){
 		dialog = renderTemplate("dialog", {
@@ -608,16 +606,14 @@ function createRunModuleDialog(id, moduleItem){
 		
 		dialog.find(".content").append("<canvas class='cameraCanvas' width='256' height='256' style=\"border:1px solid #000000; margin-left:150px\"></canvas>");
 
-		cameraCanvas = dialog.find('.cameraCanvas')[0];
-		cameraCanvasCtx = cameraCanvas.getContext('2d');
+		var cameraCanvas = dialog.find('.cameraCanvas')[0];
+		var cameraCanvasCtx = cameraCanvas.getContext('2d');
 		
-		if(inputEventSource===undefined){
-			inputEventSource = new EventSource("/dianne/input");
+			var inputEventSource = new EventSource("/dianne/input?name=" + encodeURIComponent(module.name));
 			inputEventSource.onmessage = function(event){
 				var data = JSON.parse(event.data);
 				render(data, cameraCanvasCtx);
 			};
-		}
 		
 		dialog.on('hidden.bs.modal', function () {
 		    inputEventSource.close();
@@ -636,11 +632,10 @@ function createRunModuleDialog(id, moduleItem){
 		dialog.find(".content").append("<canvas class='laserCanvas' width='512' height='512' style=\"border:1px solid #000000; margin-left:25px\"></canvas>");
 		dialog.find(".content").append("<br/><input type='checkbox' checked onclick='toggleTarget()'> show target position</input>");
 		
-		laserCanvas = dialog.find('.laserCanvas')[0];
-		laserCanvasCtx = laserCanvas.getContext('2d');
+		var laserCanvas = dialog.find('.laserCanvas')[0];
+		var laserCanvasCtx = laserCanvas.getContext('2d');
 		
-		if(inputEventSource===undefined){
-			inputEventSource = new EventSource("/dianne/input");
+			var inputEventSource = new EventSource("/dianne/input?name=" + encodeURIComponent(module.name));
 			inputEventSource.onmessage = function(event){
 				var tensor = JSON.parse(event.data);
 				// render laserdata
@@ -666,7 +661,6 @@ function createRunModuleDialog(id, moduleItem){
 					laserCanvasCtx.closePath();
 				}
 			};
-		}
 		
 		dialog.on('hidden.bs.modal', function () {
 		    inputEventSource.close();
@@ -712,20 +706,11 @@ var inputCanvas;
 var inputCanvasCtx;
 var mousePos = {x: 0, y:0};
 
-var laserCanvas;
-var laserCanvasCtx;
 var laserTarget = true;
 
 function toggleTarget(){
 	laserTarget = !laserTarget;
 }
-
-var sampleCanvas;
-var sampleCanvasCtx;
-
-// TODO can have multiple camera inputs...
-var cameraCanvas;
-var cameraCanvasCtx;
 
 function downListener(e) {
 	e.preventDefault();
@@ -941,7 +926,7 @@ function learn(id){
 	// first create the chart
 	createLossChart($("#dialog-"+id).find(".content"));
 
-	eventsource = new EventSource("/dianne/learner?nnId="+nn.id);
+	var eventsource = new EventSource("/dianne/learner?nnId="+nn.id);
 	eventsource.onmessage = function(event){
 		var data = JSON.parse(event.data);
 		
@@ -993,11 +978,12 @@ function evaluate(id){
 			, "json");
 }
 
+// code block so global variables are not defined
+{
 /*
  * SSE for feedback when training/running
  */
 var eventsource;
-var inputEventSource
 
 if(typeof(EventSource) === "undefined") {
 	// load polyfill eventsource library
@@ -1007,6 +993,7 @@ if(typeof(EventSource) === "undefined") {
 		console.log("Sorry, your browser does not support server-sent events...");
 	});
 } 
+}
 
 
 

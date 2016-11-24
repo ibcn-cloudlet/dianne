@@ -35,6 +35,8 @@ import java.util.Map;
 import java.util.UUID;
 
 import javax.servlet.AsyncContext;
+import javax.servlet.AsyncEvent;
+import javax.servlet.AsyncListener;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -72,7 +74,7 @@ public class DianneInput extends HttpServlet {
 	private List<DianneInputs> inputs = Collections.synchronizedList(new ArrayList<DianneInputs>());
 
 	// Send event to UI when new input sample arrived
-	private AsyncContext sse = null;
+	private Map<String,AsyncContext> sses = Collections.synchronizedMap(new HashMap<String, AsyncContext>());
 	private BundleContext context;
 	private Map<UUID, ServiceRegistration<ForwardListener>> inputListeners = Collections.synchronizedMap(new HashMap<>());
 	private JsonParser parser = new JsonParser();
@@ -101,8 +103,19 @@ public class DianneInput extends HttpServlet {
 		response.setCharacterEncoding("UTF-8");
 		response.addHeader("Connection", "keep-alive");
 		
-		sse = request.startAsync();
-		sse.setTimeout(0); // no timeout => remove listener when error occurs.
+		// register forward listener for this
+		final String name = request.getParameter("name");
+		if(name != null){
+			AsyncContext sse = request.startAsync();
+			sse.addListener(new AsyncListener() {
+				@Override public void onComplete(AsyncEvent event) throws IOException {sses.remove(name);}
+			    @Override public void onTimeout(AsyncEvent event) throws IOException {sses.remove(name);}
+			    @Override public void onError(AsyncEvent event) throws IOException {sses.remove(name);}
+			    @Override public void onStartAsync(AsyncEvent event) throws IOException {}
+			});
+			sse.setTimeout(0); // no timeout => remove listener when error occurs.
+			sses.put(name, sse);
+		}
 	}
 	
 	@Override
@@ -137,7 +150,7 @@ public class DianneInput extends HttpServlet {
 				ForwardListener inputListener = new ForwardListener(){
 					@Override
 					public void onForward(UUID moduleId, Tensor output, String... tags) {
-						if(sse!=null){
+						if(sses.get(input)!=null){
 							try {
 								JsonObject data = new JsonObject();
 
@@ -165,10 +178,19 @@ public class DianneInput extends HttpServlet {
 								StringBuilder builder = new StringBuilder();
 								builder.append("data: ").append(data.toString()).append("\n\n");
 				
-								PrintWriter writer = sse.getResponse().getWriter();
+								PrintWriter writer = sses.get(input).getResponse().getWriter();
 								writer.write(builder.toString());
 								writer.flush();
-							} catch(Exception e){}
+								if(writer.checkError()){
+									System.err.println("Writer error: removing async endpoint.");
+									writer.close();
+									sses.remove(input);
+								}
+							} catch(Exception e){
+								try { sses.get(input).getResponse().getWriter().close(); } catch (Exception ignore) {}
+								sses.remove(input);
+								e.printStackTrace();
+							}
 						}
 					}
 
