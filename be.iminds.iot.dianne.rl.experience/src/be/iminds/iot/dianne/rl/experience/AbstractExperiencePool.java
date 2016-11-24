@@ -320,7 +320,8 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	public void removeSequence(final int sequence){
 		try {
 			lock.writeLock().lock();
-			sequences.remove(sequence);
+			Sequence seq = sequences.remove(sequence);
+			noSamples -= seq.length;
 		} finally {
 			lock.writeLock().unlock();
 		}
@@ -331,7 +332,8 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		try {
 			lock.writeLock().lock();
 			s = getSequence(s, sequence, 0, -1);
-			sequences.remove(sequence);
+			Sequence seq = sequences.remove(sequence);
+			noSamples -= seq.length;
 			return s;
 		} finally {
 			lock.writeLock().unlock();

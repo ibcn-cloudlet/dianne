@@ -423,6 +423,8 @@ public class ExperiencePoolTest {
 			}
 		}
 		
+		Assert.assertEquals(6, pool.size());
+		Assert.assertEquals(1, pool.sequences());
 		
 		retrieved = pool.removeAndGetSequence(0);
 		i = 0;
@@ -438,5 +440,8 @@ public class ExperiencePoolTest {
 				Assert.assertEquals(expected.getNextState(), r.getNextState());
 			}
 		}
+		
+		Assert.assertEquals(0, pool.size());
+		Assert.assertEquals(0, pool.sequences());
 	}
 }
