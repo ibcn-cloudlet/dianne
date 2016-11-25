@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -74,7 +75,7 @@ public class DianneInput extends HttpServlet {
 	private List<DianneInputs> inputs = Collections.synchronizedList(new ArrayList<DianneInputs>());
 
 	// Send event to UI when new input sample arrived
-	private Map<String,AsyncContext> sses = Collections.synchronizedMap(new HashMap<String, AsyncContext>());
+	private Map<String, List<AsyncContext>> sses = Collections.synchronizedMap(new HashMap<>());
 	private BundleContext context;
 	private Map<UUID, ServiceRegistration<ForwardListener>> inputListeners = Collections.synchronizedMap(new HashMap<>());
 	private JsonParser parser = new JsonParser();
@@ -106,15 +107,20 @@ public class DianneInput extends HttpServlet {
 		// register forward listener for this
 		final String name = request.getParameter("name");
 		if(name != null){
-			AsyncContext sse = request.startAsync();
+			final AsyncContext sse = request.startAsync();
 			sse.addListener(new AsyncListener() {
-				@Override public void onComplete(AsyncEvent event) throws IOException {sses.remove(name);}
-			    @Override public void onTimeout(AsyncEvent event) throws IOException {sses.remove(name);}
-			    @Override public void onError(AsyncEvent event) throws IOException {sses.remove(name);}
+				@Override public void onComplete(AsyncEvent event) throws IOException {sses.get(name).remove(sse);}
+			    @Override public void onTimeout(AsyncEvent event) throws IOException {sses.get(name).remove(sse);}
+			    @Override public void onError(AsyncEvent event) throws IOException {sses.get(name).remove(sse);}
 			    @Override public void onStartAsync(AsyncEvent event) throws IOException {}
 			});
 			sse.setTimeout(0); // no timeout => remove listener when error occurs.
-			sses.put(name, sse);
+			List<AsyncContext> list = sses.get(name);
+			if(list == null){
+				list = new ArrayList<>();
+				sses.put(name, list);
+			}
+			list.add(sse);
 		}
 	}
 	
@@ -151,45 +157,53 @@ public class DianneInput extends HttpServlet {
 					@Override
 					public void onForward(UUID moduleId, Tensor output, String... tags) {
 						if(sses.get(input)!=null){
-							try {
-								JsonObject data = new JsonObject();
+							JsonObject data = new JsonObject();
 
-								if(output.dim()==3){
-									data.add("channels", new JsonPrimitive(output.dims()[0]));
-									data.add("height", new JsonPrimitive(output.dims()[1]));
-									data.add("width", new JsonPrimitive(output.dims()[2]));
-								} else if(output.dim()==2) {
-									data.add("channels", new JsonPrimitive(1));
-									data.add("height", new JsonPrimitive(output.dims()[0]));
-									data.add("width", new JsonPrimitive(output.dims()[1]));
-								} else {
-									data.add("size", new JsonPrimitive(output.size()));
+							if(output.dim()==3){
+								data.add("channels", new JsonPrimitive(output.dims()[0]));
+								data.add("height", new JsonPrimitive(output.dims()[1]));
+								data.add("width", new JsonPrimitive(output.dims()[2]));
+							} else if(output.dim()==2) {
+								data.add("channels", new JsonPrimitive(1));
+								data.add("height", new JsonPrimitive(output.dims()[0]));
+								data.add("width", new JsonPrimitive(output.dims()[1]));
+							} else {
+								data.add("size", new JsonPrimitive(output.size()));
+							}
+							if(tags!=null){
+								JsonArray ta = new JsonArray();
+								for(String t : tags){
+									ta.add(new JsonPrimitive(t));
 								}
-								if(tags!=null){
-									JsonArray ta = new JsonArray();
-									for(String t : tags){
-										ta.add(new JsonPrimitive(t));
+								data.add("tags",ta);
+							}
+							
+							data.add("data", parser.parse(Arrays.toString(output.get())));
+							
+							StringBuilder builder = new StringBuilder();
+							builder.append("data: ").append(data.toString()).append("\n\n");
+							String msg = builder.toString();
+						
+							List<AsyncContext> list = sses.get(input);
+							Iterator<AsyncContext> it = list.iterator();
+							while(it.hasNext()){
+								AsyncContext sse = it.next();
+								try {
+									PrintWriter writer = sse.getResponse().getWriter();
+									writer.write(msg);
+									writer.flush();
+									if(writer.checkError()){
+										System.err.println("Writer error: removing async endpoint.");
+										writer.close();
+										it.remove();									
 									}
-									data.add("tags",ta);
+								} catch(Exception e){
+									try { 
+										sse.getResponse().getWriter().close(); 
+									} catch (Exception ignore) {}
+									it.remove();
+									e.printStackTrace();
 								}
-								
-								data.add("data", parser.parse(Arrays.toString(output.get())));
-								
-								StringBuilder builder = new StringBuilder();
-								builder.append("data: ").append(data.toString()).append("\n\n");
-				
-								PrintWriter writer = sses.get(input).getResponse().getWriter();
-								writer.write(builder.toString());
-								writer.flush();
-								if(writer.checkError()){
-									System.err.println("Writer error: removing async endpoint.");
-									writer.close();
-									sses.remove(input);
-								}
-							} catch(Exception e){
-								try { sses.get(input).getResponse().getWriter().close(); } catch (Exception ignore) {}
-								sses.remove(input);
-								e.printStackTrace();
 							}
 						}
 					}
