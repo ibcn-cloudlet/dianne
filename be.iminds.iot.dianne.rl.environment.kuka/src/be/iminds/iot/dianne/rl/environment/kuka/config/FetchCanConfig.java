@@ -52,9 +52,20 @@ public class FetchCanConfig {
 	public int difficulty = 2;
 	
 	/**
-	 * Give intermediate reward on each action based on the distance covered towards Can
+	 * Give intermediate reward on each action based on the distance towards Can
 	 */
 	public boolean intermediateReward = true;
+	
+	/**
+	 * In case of intermediateReward, give reward on relative distance covered towards Can 
+	 * (in case of false return the negative (normalized) distance to Can of the state)
+	 */
+	public boolean relativeReward = false;
+	
+	/**
+	 * Only give +1 or -1 rewards in case of relative rewards
+	 */
+	public boolean discreteReward = false;
 	
 	/**
 	 * Skip a number of frames after each action, keeping executing the same action

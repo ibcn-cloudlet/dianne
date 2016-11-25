@@ -42,6 +42,7 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 	
 	protected static final float MAX_DISTANCE = 2.4f;
 	protected static final float GRIP_DISTANCE = 0.565f;
+	protected static final float EPSILON = 1e-4f;
 	
 	protected FetchCanConfig config;
 	
@@ -113,9 +114,23 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 			
 			// also give intermediate reward for each action?
 			if(config.intermediateReward){
-				float r = - previousDistance / MAX_DISTANCE;
-				previousDistance = distance;
-				return r;
+				if(config.relativeReward){
+					// give +1 if closer -1 if further
+					float r = previousDistance - distance;
+					if(config.discreteReward){
+						r = r > EPSILON ? 1 : r < -EPSILON ? -1 : 0;
+					} else {
+						// boost it a bit
+						r *= 5;
+					}
+					previousDistance = distance;
+					return r;
+				} else {
+					// just give negative relative distance as value
+					float r = - previousDistance / MAX_DISTANCE;
+					previousDistance = distance;
+					return r;
+				}
 			} else {
 				return 0.0f;
 			}
