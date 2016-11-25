@@ -105,7 +105,13 @@ public class DianneDownload extends HttpServlet{
 			// add weights in binary files
 			Map<UUID, Tensor> weights = repository.loadParameters(nnName, tags);
 			for(Entry<UUID, Tensor> e : weights.entrySet()){
-				zos.putNextEntry(new ZipEntry(nnName+"/"+e.getKey().toString()));
+				String weightName = e.getKey().toString();
+				if(tags!=null && tags.length>0){
+					for(String t : tags){
+						weightName+="-"+t;
+					}
+				}
+				zos.putNextEntry(new ZipEntry(nnName+"/"+weightName));
 				
 				float[] data = e.getValue().get();
 				dos.writeInt(data.length);
