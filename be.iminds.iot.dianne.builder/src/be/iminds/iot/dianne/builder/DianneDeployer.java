@@ -93,7 +93,12 @@ public class DianneDeployer extends HttpServlet {
 			if(name==null){
 				name = "unknown";
 			}
-
+			String[] tags = null;
+			String t = request.getParameter("tags");
+			if(t != null && !t.isEmpty()){
+				tags = t.split(",");
+			}
+			
 			List<ModuleDTO> toDeploy = new ArrayList<ModuleDTO>();
 			if(request.getParameter("modules")!=null){
 				String modulesJsonString = request.getParameter("modules");
@@ -113,8 +118,7 @@ public class DianneDeployer extends HttpServlet {
 				UUID runtimeId = UUID.fromString(target);
 				
 				UUID nnId = UUID.fromString(id);
-				List<ModuleInstanceDTO> moduleInstances = platform.deployModules(nnId, name, toDeploy, runtimeId);
-				// default parameters are loaded
+				List<ModuleInstanceDTO> moduleInstances = platform.deployModules(nnId, name, toDeploy, runtimeId, tags);
 				
 				// return json object with deployment
 				JsonObject result = new JsonObject();

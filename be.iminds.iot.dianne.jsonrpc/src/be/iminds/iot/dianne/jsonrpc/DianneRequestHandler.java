@@ -109,6 +109,7 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 			try {
 				String description = null;
 				UUID runtimeId = null;
+				String[] tags = null;
 				
 				NeuralNetworkInstanceDTO nni;
 				JsonArray params = request.get("params").getAsJsonArray();
@@ -118,21 +119,19 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 				if(params.size() > 2){
 					runtimeId = UUID.fromString(params.get(2).getAsString());
 				}
+				if(params.size() > 3){
+					tags = new String[params.size()-3];
+					for(int t=3;t<params.size();t++){
+						tags[t-3] = params.get(t).getAsString();
+					}
+				}
 				
 				if(params.get(0).isJsonPrimitive()){
 					String nnName = params.get(0).getAsString();
-					if(runtimeId != null){
-						nni = platform.deployNeuralNetwork(nnName, description, runtimeId);
-					} else {
-						nni = platform.deployNeuralNetwork(nnName, description);
-					}
+					nni = platform.deployNeuralNetwork(nnName, description, runtimeId, tags);
 				} else {
 					NeuralNetworkDTO nn = DianneJSONConverter.parseJSON(params.get(0).getAsJsonObject());
-					if(runtimeId != null){
-						nni = platform.deployNeuralNetwork(nn, description, runtimeId);
-					} else {
-						nni = platform.deployNeuralNetwork(nn, description);
-					}
+					nni = platform.deployNeuralNetwork(nn, description, runtimeId, tags);
 				}
 				writeResult(writer, id, nni.id.toString());
 			} catch(Exception e){

@@ -240,7 +240,9 @@ public class DianneFileRepository implements DianneRepository {
 				}
 			}
 			if(f!=null){
-				// load tensor in chuncks, slightly slower than one copy from Java to native,
+				// System.out.println("Load weights file "+f.getAbsolutePath());
+				
+				// load tensor in chunks, slightly slower than one copy from Java to native,
 				// but reduces memory usage a lot for big tensors
 				int bufferSize = 10000;
 				float[] data = new float[bufferSize];

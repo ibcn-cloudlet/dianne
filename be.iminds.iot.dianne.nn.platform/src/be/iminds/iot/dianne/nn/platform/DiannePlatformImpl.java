@@ -73,45 +73,39 @@ public class DiannePlatformImpl implements DiannePlatform {
 	
 
 	@Override
-	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name)
+	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String... tags)
 			throws InstantiationException {
-		if(!runtimes.containsKey(frameworkId)){
-			throw new InstantiationException("No local runtime available");
-		}
-		return deployNeuralNetwork(name, null, frameworkId, new HashMap<UUID, UUID>());
+		return deployNeuralNetwork(name, null, null, new HashMap<UUID, UUID>(), tags);
 	}
 	
 	@Override
-	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description)
+	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description, String... tags)
 			throws InstantiationException {
-		if(!runtimes.containsKey(frameworkId)){
-			throw new InstantiationException("No local runtime available");
-		}
-		return deployNeuralNetwork(name, description, frameworkId, new HashMap<UUID, UUID>());
+		return deployNeuralNetwork(name, description, null, new HashMap<UUID, UUID>(), tags);
 	}
 	
 	@Override
 	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name, 
-			UUID runtimeId) throws InstantiationException {
-		return deployNeuralNetwork(name, null, runtimeId, new HashMap<UUID, UUID>());
+			UUID runtimeId, String... tags) throws InstantiationException {
+		return deployNeuralNetwork(name, null, runtimeId, new HashMap<UUID, UUID>(), tags);
 	}
 	
 	@Override
 	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description,
-			UUID runtimeId) throws InstantiationException {
-		return deployNeuralNetwork(name, description, runtimeId, new HashMap<UUID, UUID>());
+			UUID runtimeId, String... tags) throws InstantiationException {
+		return deployNeuralNetwork(name, description, runtimeId, new HashMap<UUID, UUID>(), tags);
 	}
 
 
 	@Override
 	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name,
-			UUID runtimeId,  Map<UUID, UUID> deployment) throws InstantiationException {
+			UUID runtimeId,  Map<UUID, UUID> deployment, String... tags) throws InstantiationException {
 		return deployNeuralNetwork(name, null, runtimeId, deployment);
 	}
 	
 	@Override
 	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description,
-			UUID runtimeId, Map<UUID, UUID> deployment) throws InstantiationException {
+			UUID runtimeId, Map<UUID, UUID> deployment, String... tags) throws InstantiationException {
 		
 		NeuralNetworkDTO neuralNetwork = null;
 		try {
@@ -126,6 +120,13 @@ public class DiannePlatformImpl implements DiannePlatform {
 		for(ModuleDTO module : neuralNetwork.modules.values()){
 			UUID targetRuntime = deployment.get(module.id);
 			if(targetRuntime==null){
+				if(runtimeId == null){
+					if(!runtimes.containsKey(frameworkId)){
+						throw new InstantiationException("No local runtime available");
+					}
+					runtimeId = frameworkId;
+				}
+				
 				targetRuntime = runtimeId;
 			}
 			
@@ -146,44 +147,44 @@ public class DiannePlatformImpl implements DiannePlatform {
 	}
 	
 	@Override
-	public NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn)
+	public NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, String... tags)
 			throws InstantiationException {
 		repository.storeNeuralNetwork(nn);
-		return deployNeuralNetwork(nn.name);
+		return deployNeuralNetwork(nn.name, tags);
 	}
 	
 	@Override
-	public NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, String description)
+	public NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, String description, String... tags)
 			throws InstantiationException {
 		repository.storeNeuralNetwork(nn);
-		return deployNeuralNetwork(nn.name, description);
+		return deployNeuralNetwork(nn.name, description, tags);
 	}
 	
 	@Override
 	public NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, 
-			UUID runtimeId) throws InstantiationException {
+			UUID runtimeId, String... tags) throws InstantiationException {
 		repository.storeNeuralNetwork(nn);
-		return deployNeuralNetwork(nn.name, null, runtimeId, new HashMap<UUID, UUID>());
+		return deployNeuralNetwork(nn.name, null, runtimeId, new HashMap<UUID, UUID>(), tags);
 	}
 	
 	@Override
 	public NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, String description,
-			UUID runtimeId) throws InstantiationException {
+			UUID runtimeId, String... tags) throws InstantiationException {
 		repository.storeNeuralNetwork(nn);
-		return deployNeuralNetwork(nn.name, description, runtimeId, new HashMap<UUID, UUID>());
+		return deployNeuralNetwork(nn.name, description, runtimeId, new HashMap<UUID, UUID>(), tags);
 	}
 
 
 	@Override
 	public NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn,
-			UUID runtimeId,  Map<UUID, UUID> deployment) throws InstantiationException {
+			UUID runtimeId,  Map<UUID, UUID> deployment, String... tags) throws InstantiationException {
 		repository.storeNeuralNetwork(nn);
-		return deployNeuralNetwork(nn.name, null, runtimeId, deployment);
+		return deployNeuralNetwork(nn.name, null, runtimeId, deployment, tags);
 	}
 	
 	@Override
 	public NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, String description,
-			UUID runtimeId, Map<UUID, UUID> deployment) throws InstantiationException {
+			UUID runtimeId, Map<UUID, UUID> deployment, String... tags) throws InstantiationException {
 		repository.storeNeuralNetwork(nn);
 		return deployNeuralNetwork(nn.name, description, runtimeId, deployment);
 	}
@@ -211,19 +212,19 @@ public class DiannePlatformImpl implements DiannePlatform {
 	
 	@Override
 	public List<ModuleInstanceDTO> deployModules(UUID nnId,
-			List<ModuleDTO> modules, UUID runtimeId) throws InstantiationException{
-		return deployModules(nnId, null, null, modules, runtimeId);
+			List<ModuleDTO> modules, UUID runtimeId, String... tags) throws InstantiationException{
+		return deployModules(nnId, null, null, modules, runtimeId, tags);
 	}
 	
 	@Override
 	public List<ModuleInstanceDTO> deployModules(UUID nnId, String name,
-			List<ModuleDTO> modules, UUID runtimeId) throws InstantiationException{
-		return deployModules(nnId, name, null, modules, runtimeId);
+			List<ModuleDTO> modules, UUID runtimeId, String... tags) throws InstantiationException{
+		return deployModules(nnId, name, null, modules, runtimeId, tags);
 	}
 	
 	@Override
 	public List<ModuleInstanceDTO> deployModules(UUID nnId, String name, String description,
-			List<ModuleDTO> modules, UUID runtimeId)
+			List<ModuleDTO> modules, UUID runtimeId, String... tags)
 			throws InstantiationException {
 		List<ModuleInstanceDTO> moduleInstances = new ArrayList<ModuleInstanceDTO>();
 
@@ -236,6 +237,13 @@ public class DiannePlatformImpl implements DiannePlatform {
 		if(nni==null){
 			nni = new NeuralNetworkInstanceDTO(nnId, name, description, new HashMap<UUID, ModuleInstanceDTO>());
 			nnis.put(nnId, nni);
+		}
+		
+		if(runtimeId == null){
+			if(!runtimes.containsKey(frameworkId)){
+				throw new InstantiationException("No local runtime available");
+			}
+			runtimeId = frameworkId;
 		}
 		
 		DianneRuntime runtime = runtimes.get(runtimeId);
@@ -255,7 +263,7 @@ public class DiannePlatformImpl implements DiannePlatform {
 			}
 			
 			// if migrate - copy parameters from old
-			// TODO should we copy parameters or rather load defaults
+			// TODO should we copy parameters or rather load from repo
 			//Tensor parameters = null;
 			//if(old!=null){
 			//	parameters = runtimes.get(old.runtimeId).getModuleParameters(old);
@@ -266,7 +274,7 @@ public class DiannePlatformImpl implements DiannePlatform {
 				}
 			}
 
-			ModuleInstanceDTO moduleInstance = runtime.deployModule(module, nnId);
+			ModuleInstanceDTO moduleInstance = runtime.deployModule(module, nnId, tags);
 			
 			// migrate - undeploy old
 			if(old!=null){

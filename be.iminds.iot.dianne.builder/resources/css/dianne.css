@@ -208,6 +208,17 @@ footer {
 	float: left;
 }
 
+.btn-toolbox {
+	margin-left: 10px;
+	margin-top: 5px;
+	width: 40%;
+	min-width: 100px;
+}
+
+#tags {
+	width: 75%;
+}
+
 .learn {
 	background-color: #adc2ff;	
 }

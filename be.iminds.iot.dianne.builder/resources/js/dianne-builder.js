@@ -171,8 +171,10 @@ function setupBuildToolbox(){
 
 function setupDeployToolbox(){
 	$('#toolbox .mCSB_container').empty();
-	$('<button id="deployAll" class="btn btn-default controls" onclick="deployAll();return false;">Deploy all</button>').appendTo($('#toolbox .mCSB_container'));
-	$('<button id="undeployAll" class="btn btn-default controls"  onclick="undeployAll();return false;">Undeploy all</button>').appendTo($('#toolbox .mCSB_container'));
+	$('<p style="margin-left:10px">tags: <input id="tags" type="text" /></p>').appendTo($('#toolbox .mCSB_container'));
+	$('<button id="deployAll" class="btn btn-default btn-toolbox controls" onclick="deployAll();return false;">Deploy all</button>').appendTo($('#toolbox .mCSB_container'));
+	$('<button id="undeployAll" class="btn btn-default btn-toolbox controls"  onclick="undeployAll();return false;">Undeploy all</button>').appendTo($('#toolbox .mCSB_container'));
+
 	
 	selectedTarget = undefined;
 	

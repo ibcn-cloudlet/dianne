@@ -859,7 +859,8 @@ function deployAll(){
 			"id":nn.id,
 			"name":nn.name,
 			"modules":JSON.stringify(nn.modules),
-			"target":selectedTarget}, 
+			"target":selectedTarget,
+			"tags": $("#tags").val()}, 
 			function( data ) {
 				if(data.error!==undefined){
 					error(data.error);
@@ -884,7 +885,8 @@ function deploy(id, target){
 		"id": nn.id,
 		"name":nn.name,
 		"module":JSON.stringify(nn.modules[id]),
-		"target": target}, 
+		"target": target,
+		"tags": $("#tags").val()}, 
 			function( data ) {
 				if(data.error!==undefined){
 					error(data.error);

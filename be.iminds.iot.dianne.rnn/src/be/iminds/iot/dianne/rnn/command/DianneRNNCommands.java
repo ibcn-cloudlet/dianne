@@ -57,7 +57,7 @@ public class DianneRNNCommands {
 	public void generate(String nnName, String start, int n){
 		// forward of a rnn
 		try {
-			nni = platform.deployNeuralNetwork(nnName, "test rnn");
+			nni = platform.deployNeuralNetwork(nnName, "test rnn", null);
 			NeuralNetwork nn = dianne.getNeuralNetwork(nni).getValue();
 			
 			String result = ""+start;

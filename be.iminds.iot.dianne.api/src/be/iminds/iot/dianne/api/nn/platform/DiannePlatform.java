@@ -43,13 +43,14 @@ public interface DiannePlatform {
 	/**
 	 * Deploy an instance of a neural network on the local runtime
 	 * @param name name of the neural network 
+	 * @param tags tags of the weights to load
 	 * @return NeuralNetworkInstanceDTO of the deployed neural network
 	 * @throws InstantiationException
 	 */
-	NeuralNetworkInstanceDTO deployNeuralNetwork(String name) throws InstantiationException;
-	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description) throws InstantiationException;
-	NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn) throws InstantiationException;
-	NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, String description) throws InstantiationException;
+	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String... tags) throws InstantiationException;
+	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description, String... tags) throws InstantiationException;
+	NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, String... tags) throws InstantiationException;
+	NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, String description, String... tags) throws InstantiationException;
 
 	
 	/**
@@ -57,13 +58,14 @@ public interface DiannePlatform {
 	 * 
 	 * @param name name of the neural network
 	 * @param runtimeId identifier of the Dianne runtime to deploy the neural network modules on
+	 * @param tags tags of the weights to load
 	 * @return NeuralNetworkInstanceDTO of the deployed neural network
 	 * @throws InstantiationException thrown when failed to deploy all neural network modules
 	 */
-	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, UUID runtimeId) throws InstantiationException;
-	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description, UUID runtimeId) throws InstantiationException;
-	NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, UUID runtimeId) throws InstantiationException;
-	NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, String description, UUID runtimeId) throws InstantiationException;
+	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, UUID runtimeId, String... tags) throws InstantiationException;
+	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description, UUID runtimeId, String... tags) throws InstantiationException;
+	NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, UUID runtimeId, String... tags) throws InstantiationException;
+	NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, String description, UUID runtimeId, String... tags) throws InstantiationException;
 
 	
 	/**
@@ -72,13 +74,14 @@ public interface DiannePlatform {
 	 * @param name name of the neural network
 	 * @param runtimeId identifier of the Dianne runtime to deploy the neural network modules on
 	 * @param deployment a map mapping moduleIds to runtimeIds representing the requested deployment; moduleIds not mentioned in the map are deployed to runtimeId
+	 * @param tags tags of the weights to load
 	 * @return NeuralNetworkInstanceDTO of the deployed neural network
 	 * @throws InstantiationException thrown when failed to deploy all neural network modules
 	 */
-	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, UUID runtimeId, Map<UUID, UUID> deployment) throws InstantiationException;
-	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description, UUID runtimeId, Map<UUID, UUID> deployment) throws InstantiationException;
-	NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, UUID runtimeId, Map<UUID, UUID> deployment) throws InstantiationException;
-	NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, String description, UUID runtimeId, Map<UUID, UUID> deployment) throws InstantiationException;
+	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, UUID runtimeId, Map<UUID, UUID> deployment, String... tags) throws InstantiationException;
+	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description, UUID runtimeId, Map<UUID, UUID> deployment, String... tags) throws InstantiationException;
+	NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, UUID runtimeId, Map<UUID, UUID> deployment, String... tags) throws InstantiationException;
+	NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, String description, UUID runtimeId, Map<UUID, UUID> deployment, String... tags) throws InstantiationException;
 
 
 	/**
@@ -112,12 +115,13 @@ public interface DiannePlatform {
 	 * @param nnId the id of the neural network under which these should be deployed - if null a new nnId will be generated
 	 * @param modules the modules to deploy
 	 * @param runtimeId identifier of the Dianne runtime to deploy the neural network modules on
+	 * @param tags tags of the weights to load
 	 * @return ModuleInstanceDTOs of each deployed module
 	 * @throws InstantiationException thrown when failed to deploy all neural network modules
 	 */
-	List<ModuleInstanceDTO> deployModules(UUID nnId, List<ModuleDTO> modules, UUID runtimeId) throws InstantiationException;
-	List<ModuleInstanceDTO> deployModules(UUID nnId, String name, List<ModuleDTO> modules, UUID runtimeId) throws InstantiationException;
-	List<ModuleInstanceDTO> deployModules(UUID nnId, String name, String description, List<ModuleDTO> modules, UUID runtimeId) throws InstantiationException;
+	List<ModuleInstanceDTO> deployModules(UUID nnId, List<ModuleDTO> modules, UUID runtimeId, String... tags) throws InstantiationException;
+	List<ModuleInstanceDTO> deployModules(UUID nnId, String name, List<ModuleDTO> modules, UUID runtimeId, String... tags) throws InstantiationException;
+	List<ModuleInstanceDTO> deployModules(UUID nnId, String name, String description, List<ModuleDTO> modules, UUID runtimeId, String... tags) throws InstantiationException;
 
 	
 	/**
