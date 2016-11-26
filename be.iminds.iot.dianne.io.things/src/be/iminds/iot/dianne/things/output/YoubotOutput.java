@@ -242,7 +242,7 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 		case BUTTON_X_PRESSED:
 			base.stop();
 			mode = Mode.IGNORE;
-			System.out.println("Igore any neural net robot control signals");
+			System.out.println("Ignore any neural net robot control signals");
 			break;
 		case BUTTON_Y_PRESSED:
 			mode = Mode.DISCRETE;
@@ -269,7 +269,7 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 		case "1":
 			base.stop();
 			mode = Mode.IGNORE;
-			System.out.println("Igore any neural net robot control signals");
+			System.out.println("Ignore any neural net robot control signals");
 			break;
 		case "2":
 			mode = Mode.DISCRETE;
