@@ -42,10 +42,10 @@ public class GaussianNoiseConfig {
 	/**
 	 * Minimum value
 	 */
-	public float min = -1;
+	public float minValue = Float.NEGATIVE_INFINITY;
 	
 	/**
 	 * Maximum value
 	 */
-	public float max = 1;
+	public float maxValue = Float.POSITIVE_INFINITY;
 }

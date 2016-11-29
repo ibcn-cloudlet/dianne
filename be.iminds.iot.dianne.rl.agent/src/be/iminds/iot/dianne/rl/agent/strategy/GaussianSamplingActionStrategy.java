@@ -42,10 +42,10 @@ public class GaussianSamplingActionStrategy implements ActionStrategy {
 		
 		for(int a = 0; a < action.size(); a++) {
 			float v = action.get(a);
-			if(v < config.min)
-				action.set(config.min, a);
-			else if(v > config.max)
-				action.set(config.max, a);
+			if(v < config.minValue)
+				action.set(config.minValue, a);
+			else if(v > config.maxValue)
+				action.set(config.maxValue, a);
 		}
 		
 		return new AgentProgress(i, action);
