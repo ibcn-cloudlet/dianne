@@ -52,7 +52,8 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 				  "osgi.command.function=sample",
 				  "osgi.command.function=sequence",
 				  "osgi.command.function=sequences",
-				  "osgi.command.function=dump"},
+				  "osgi.command.function=dump",
+				  "osgi.command.function=clear"},
 		immediate=true)
 public class DianneDatasetCommands {
 
@@ -306,6 +307,31 @@ public class DianneDatasetCommands {
 			t.printStackTrace();
 		}
 	}
+
+	
+	@Descriptor("Clear an experience pool")
+	public void clear(
+			@Descriptor("The experience pool to dump")
+			String dataset){ 
+		
+		Dataset d = datasets.getDataset(dataset);
+		if(d==null){
+			System.out.println("Dataset "+dataset+" not available");
+			return;
+		}
+		if(!datasets.isExperiencePool(dataset)){
+			System.out.println("Dataset "+dataset+" is not an experience pool");
+			return;
+		}
+		
+		
+		try {
+			d.getClass().getMethod("reset").invoke(d);
+		} catch(Throwable t){
+			t.printStackTrace();
+		}
+	}
+	
 	
 	@Reference
 	void setDianneDatasets(DianneDatasets d){
