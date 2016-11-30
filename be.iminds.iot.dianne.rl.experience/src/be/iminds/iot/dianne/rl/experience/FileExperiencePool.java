@@ -22,7 +22,14 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rl.experience;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -68,7 +75,7 @@ public class FileExperiencePool extends AbstractExperiencePool {
 
 		try {
 			for(int i=0;i<buffers.length;i++){
-				buffers[i] = openFileAsFloatBuffer("data"+i+".bin", bufferSize > SIZE_PER_BUFFER ? SIZE_PER_BUFFER : bufferSize);
+				buffers[i] = openFileAsFloatBuffer("buffer"+i+".bin", bufferSize > SIZE_PER_BUFFER ? SIZE_PER_BUFFER : bufferSize);
 			}
 		} catch(Exception e){
 			e.printStackTrace();
@@ -136,12 +143,28 @@ public class FileExperiencePool extends AbstractExperiencePool {
 
 	
 	@Override
-	protected void dumpData() {
-		// TODO should we take a separate copy of the files here?
+	protected void dumpData() throws IOException {
+		for(int i=0;i<buffers.length;i++){
+			try (DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(new File(dir+File.separator+"data"+i+".bin"))))){
+				for(int k=0;k<buffers[i].limit();k++){
+					buffers[i].position(k);
+					out.writeFloat(buffers[i].get());
+				}
+				out.flush();
+			}
+		}
 	}
 
 	@Override
 	protected void recoverData() {
-		// TODO should we recover a separate copy of the files here?
+		for(int i=0;i<buffers.length;i++){
+			try (DataInputStream in = new DataInputStream(new BufferedInputStream(new FileInputStream(new File(dir+File.separator+"data"+i+".bin"))))){
+				int k=0;
+				while(true){
+					buffers[i].position(k++);
+					buffers[i].put(in.readFloat());
+				}
+			} catch(Exception e){}
+		}
 	}
 }
