@@ -151,8 +151,13 @@ public class DeepQLearningStrategy implements LearningStrategy {
 		// Fill in the missing target values
 		TensorOps.addcmul(targetValueBatch, targetValueBatch, 1, actionBatch, valueBatch);
 		
-		// Get the total value for logging and calculate the MSE error and gradient with respect to the target value
-		float value = TensorOps.sum(valueBatch)/config.batchSize/pool.actionDims()[0];
+		// Get the avg value of the best actions in the batch for reporting
+		float value = 0;
+		for(int b = 0; b < config.batchSize; b++) {
+			value += TensorOps.max(valueBatch.select(0, b));
+		}
+		value /= config.batchSize;
+		
 		float loss = criterion.loss(valueBatch, targetValueBatch);
 		Tensor grad = criterion.grad(valueBatch, targetValueBatch);
 		
