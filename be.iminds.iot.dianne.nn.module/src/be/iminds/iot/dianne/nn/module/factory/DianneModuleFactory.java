@@ -103,6 +103,9 @@ public class DianneModuleFactory implements ModuleFactory {
 		addSupportedType(new ModuleTypeDTO("SoftPlus", "Activation", false,
 					new ModulePropertyDTO("Beta value", "beta", Float.class.getName())));
 		
+		addSupportedType(new ModuleTypeDTO("ELU", "Activation", false,
+				new ModulePropertyDTO("Alpha value", "alpha", Float.class.getName())));
+		
 		addSupportedType(new ModuleTypeDTO("Softmax", "Activation", false));
 		
 		addSupportedType(new ModuleTypeDTO("LogSoftmax", "Activation", false));	
@@ -297,6 +300,12 @@ public class DianneModuleFactory implements ModuleFactory {
 		{
 			module = hasProperty(dto.properties, "beta") ? 
 					new SoftPlus(id, Float.parseFloat(dto.properties.get("beta"))) : new SoftPlus(id);
+			break;
+		}
+		case "ELU":
+		{
+			module = hasProperty(dto.properties, "alpha") ? 
+					new SoftPlus(id, Float.parseFloat(dto.properties.get("alpha"))) : new SoftPlus(id);
 			break;
 		}
 		case "Softmax":
