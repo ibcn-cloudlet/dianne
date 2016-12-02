@@ -39,6 +39,11 @@ public class ModuleOps {
 	public static native Tensor softplusGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor input, final Tensor output, float beta, float threshold);
 	
 	
+	public static native Tensor elu(Tensor output, final Tensor input, float alpha, boolean inPlace);
+
+	public static native Tensor eluGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor input, final Tensor output, float alpha, boolean inPlace);
+	
+	
 	public static native Tensor threshold(Tensor output, final Tensor input, 
 			final float threshold, final float val);
 
