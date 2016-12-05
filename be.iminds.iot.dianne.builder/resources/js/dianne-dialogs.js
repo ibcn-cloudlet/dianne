@@ -533,7 +533,7 @@ function createRunModuleDialog(id, moduleItem){
 										Highcharts.charts[index].series[1].setData(errors, true, true, true);
 										Highcharts.charts[index].xAxis[0].setCategories(['vx','vy','va']);
 									} else if(output.data.length == 7){
-										Highcharts.charts[index].series[0].setData(output.data, true, true, true);
+										Highcharts.charts[index].series[0].setData(output.probabilities===undefined ? output.data : output.probabilities, true, true, true);
 										Highcharts.charts[index].xAxis[0].setCategories(['Left','Right','Forward','Backward','Turn Left','Turn Right','Grip']);
 									}
 								}

@@ -280,7 +280,7 @@ public class DianneRunner extends HttpServlet {
 			
 			response.getWriter().println(sample.toString());
 			response.getWriter().flush();
-		} 
+		}
 	}
 	
 	private float[] parseInput(String string){
@@ -297,7 +297,7 @@ public class DianneRunner extends HttpServlet {
 
 		float max = TensorOps.max(output);
 		
-		if(outputLabels != null){
+		if(outputLabels != null || isProbability(output)){
 			// format output as [['label', val],['label2',val2],...] for in highcharts
 			String[] labels;
 			float[] values;
@@ -382,6 +382,19 @@ public class DianneRunner extends HttpServlet {
 		StringBuilder builder = new StringBuilder();
 		builder.append("data: ").append(data.toString()).append("\n\n");
 		return builder.toString();
+	}
+	
+	private boolean isProbability(Tensor t){
+		// estimate whether the tensor represents probabilties (== sums up to 1 or exps sum up to one)
+		if(Math.abs(1.0f - TensorOps.sum(t)) < 0.0001){
+			return true;
+		}
+		
+		if(Math.abs(1.0f - TensorOps.sum(TensorOps.exp(null, t))) < 0.0001){
+			return true;
+		}
+		
+		return false;
 	}
 	
 	private String errorSSEMessage(ModuleException exception){
