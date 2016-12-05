@@ -52,7 +52,7 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 	private Arm arm;
 	
 	private float speed = 0.1f;
-	private float gripThreshold = 0.01f;
+	private float gripThreshold = 0.05f;
 	private float ignoreGripThreshold = -0.02f;
 	
 	private float vx = 0;
@@ -118,8 +118,21 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 		if(outputs == 7 && (mode == Mode.DISCRETE || mode == Mode.ANY)){
 			// treat as discrete outputs
 			int action = TensorOps.argmax(output);
-			if(action == 6 && output.get(6) < ignoreGripThreshold){
-				action = TensorOps.argmax(output.narrow(0, 5));
+			
+			float sum = TensorOps.sum(TensorOps.exp(null, output));
+			Tensor narrowed = output.narrow(0, 5);
+			if(Math.abs(1.0f - sum) < 0.001){
+				// coming from logsoftmax policy (should we sample?)
+				if(action == 6 && output.get(6) < ignoreGripThreshold){
+					action = TensorOps.argmax(narrowed);
+				}
+			} else {
+				// DQN network, values are Q values
+				
+				// if gripThreshold specified, use that one instead of grip Q value (which is hard to train)
+				if(gripThreshold > 0 && TensorOps.dot(narrowed, narrowed) < gripThreshold){
+					action = 6;
+				}
 			}
 			
 			grip = false;
