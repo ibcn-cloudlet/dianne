@@ -1147,5 +1147,5 @@ function error(message){
 
 // keyboard control handler
 function keyboard(e) {
-	$.post("/keyboard/servlet",{'type':e.type,'key':e.key})
+	$.post("/keyboard/servlet",{'type':e.type,'key':e.key,'code':e.code})
 }
