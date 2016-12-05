@@ -533,8 +533,16 @@ function createRunModuleDialog(id, moduleItem){
 										Highcharts.charts[index].series[1].setData(errors, true, true, true);
 										Highcharts.charts[index].xAxis[0].setCategories(['vx','vy','va']);
 									} else if(output.data.length == 7){
-										Highcharts.charts[index].series[0].setData(output.probabilities===undefined ? output.data : output.probabilities, true, true, true);
-										Highcharts.charts[index].xAxis[0].setCategories(['Left','Right','Forward','Backward','Turn Left','Turn Right','Grip']);
+										if(output.probabilities===undefined){
+											// DQN network, show raw Q values
+											output.data.splice(-1, 1); // remove grip q value as we stop on norm of other q values atm
+											Highcharts.charts[index].series[0].setData(output.data, true, true, true);
+											Highcharts.charts[index].xAxis[0].setCategories(['Left','Right','Forward','Backward','Turn Left','Turn Right']);
+										} else {
+											// policy network ending with softmax - show the probabilities
+											Highcharts.charts[index].series[0].setData(output.probabilities, true, true, true);
+											Highcharts.charts[index].xAxis[0].setCategories(['Left','Right','Forward','Backward','Turn Left','Turn Right','Grip']);
+										}
 									}
 								}
 							} else {
