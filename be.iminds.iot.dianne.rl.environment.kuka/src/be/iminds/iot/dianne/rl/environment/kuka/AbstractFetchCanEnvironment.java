@@ -110,6 +110,9 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 				}
 				
 				grip = false;
+				
+				// punish wrong gripping?
+				return -1.0f;
 			}
 			
 			// also give intermediate reward for each action?
@@ -121,7 +124,7 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 						r = r > EPSILON ? 1 : r < -EPSILON ? -1 : 0;
 					} else {
 						// boost it a bit
-						r *= 5;
+						r *= 20/(config.skip+1);
 					}
 					previousDistance = distance;
 					return r;
@@ -141,6 +144,8 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 	}
 	
 	protected void initSimulator() throws Exception {
+		count = 0;
+		
 		// in simulation we can control the position of the youbot and can
 		float x,y,o;
 		
