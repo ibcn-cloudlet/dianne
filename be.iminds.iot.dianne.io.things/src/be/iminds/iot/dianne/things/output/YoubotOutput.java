@@ -33,6 +33,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 import be.iminds.iot.input.joystick.api.JoystickEvent;
 import be.iminds.iot.input.joystick.api.JoystickListener;
+import be.iminds.iot.input.joystick.api.JoystickEvent.JoystickButton;
 import be.iminds.iot.input.keyboard.api.KeyboardEvent;
 import be.iminds.iot.input.keyboard.api.KeyboardListener;
 import be.iminds.iot.robot.api.Arm;
@@ -43,6 +44,7 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 	private enum Mode {
 		IGNORE,
 		DISCRETE,
+		DISCRETE_SOFTMAX,
 		CONTINUOUS,
 		STOCHASTIC,
 		ANY
@@ -115,19 +117,25 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 		// TODO this code is replicated from the Environment to have same behavior
 		// Should this somehow be merged together?
 		int outputs = output.size(0);
-		if(outputs == 7 && (mode == Mode.DISCRETE || mode == Mode.ANY)){
+		if(outputs == 7 && (mode == Mode.DISCRETE || mode == Mode.DISCRETE_SOFTMAX || mode == Mode.ANY)){
 			// treat as discrete outputs
 			int action = TensorOps.argmax(output);
 			
 			float sum = TensorOps.sum(TensorOps.exp(null, output));
 			Tensor narrowed = output.narrow(0, 5);
 			if(Math.abs(1.0f - sum) < 0.001){
+				if(mode == Mode.DISCRETE)
+					return;
+				
 				// coming from logsoftmax policy (should we sample?)
 				if(action == 6 && output.get(6) < ignoreGripThreshold){
 					action = TensorOps.argmax(narrowed);
 				}
 			} else {
 				// DQN network, values are Q values
+				if(mode == Mode.DISCRETE_SOFTMAX){
+					return;
+				}
 				
 				// if gripThreshold specified, use that one instead of grip Q value (which is hard to train)
 				if(gripThreshold > 0 && TensorOps.dot(narrowed, narrowed) < gripThreshold){
@@ -262,13 +270,18 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 			System.out.println("Accept only discrete neural net robot control signals");
 			break;
 		case BUTTON_A_PRESSED:
-			mode = Mode.CONTINUOUS;
-			System.out.println("Accept only continous neural net robot control signals");
-			break;
-		case BUTTON_B_PRESSED:
-			mode = Mode.STOCHASTIC;
-			System.out.println("Accept only stochastic continuous neural net robot control signals");
+			mode = Mode.DISCRETE_SOFTMAX;
+			System.out.println("Accept only discrete softmax neural net robot control signals");
 			break;	
+		case BUTTON_B_PRESSED:
+			if(e.isPressed(JoystickButton.BUTTON_R1)){
+				mode = Mode.STOCHASTIC;
+				System.out.println("Accept only stochastic continuous neural net robot control signals");
+			} else {
+				mode = Mode.CONTINUOUS;
+				System.out.println("Accept only continous neural net robot control signals");
+			}
+			break;
 		default:
 		}
 	}
@@ -289,10 +302,14 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 			System.out.println("Accept only discrete neural net robot control signals");
 			break;
 		case "3":
+			mode = Mode.DISCRETE_SOFTMAX;
+			System.out.println("Accept only discrete softmax neural net robot control signals");
+			break;	
+		case "4":
 			mode = Mode.CONTINUOUS;
 			System.out.println("Accept only continous neural net robot control signals");
 			break;
-		case "4":
+		case "5":
 			mode = Mode.STOCHASTIC;
 			System.out.println("Accept only stochastic continuous neural net robot control signals");
 			break;	
