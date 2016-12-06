@@ -309,11 +309,14 @@ public class LearnerImpl implements Learner {
 	private void initializeParameters(NeuralNetwork nn){
 		try {
 			// makes sure that fixed parameters are loaded anyhow
-			loadParameters(nn);
+			loadParameters(nn, config.initTag != null ? config.initTag : config.tag);
 			
-			// if clean, randomize parameters
 			if(config.clean){
+				// if clean, randomize parameters
 				resetParameters(nn);
+			} else if(config.initTag!=null && !config.initTag.equals(config.tag)){
+				// if switching tag, store under new tag
+				nn.storeParameters(config.tag);
 			}
 			
 		} catch(Exception e){
@@ -331,7 +334,7 @@ public class LearnerImpl implements Learner {
 				
 		// Fetch update again from repo (could be merged from other learners)
 		try {
-			loadParameters(nn);
+			loadParameters(nn, config.tag);
 		} catch(Exception e){
 			System.out.println("Failed to load parameters after publish?!");
 			e.printStackTrace();
@@ -359,8 +362,8 @@ public class LearnerImpl implements Learner {
 	/**
 	 * Load parameters from the repository and store in previousParameters
 	 */
-	private void loadParameters(NeuralNetwork nn) throws Exception {
-		previousParameters.put(nn.getId(), nn.loadParameters(config.tag));
+	private void loadParameters(NeuralNetwork nn, String tag) throws Exception {
+		previousParameters.put(nn.getId(), nn.loadParameters(tag));
 		
 		// TODO should this be handled somewhere else?
 		

@@ -32,6 +32,11 @@ public class LearnerConfig {
 	public String tag;
 	
 	/**
+	 * An optional tag to initialize the training from
+	 */
+	public String initTag;
+	
+	/**
 	 * Start the training with new randomized parameters
 	 */
 	public boolean clean = false;
