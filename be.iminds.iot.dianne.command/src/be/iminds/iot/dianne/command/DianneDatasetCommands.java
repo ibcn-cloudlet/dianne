@@ -36,6 +36,7 @@ import org.osgi.service.component.annotations.Reference;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.DatasetDTO;
 import be.iminds.iot.dianne.api.dataset.DianneDatasets;
+import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.api.dataset.SequenceDataset;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
@@ -48,6 +49,7 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 		service=Object.class,
 		property={"osgi.command.scope=dianne",
 				  "osgi.command.function=datasets",
+				  "osgi.command.function=classes",
 				  "osgi.command.function=forward",
 				  "osgi.command.function=sample",
 				  "osgi.command.function=sequence",
@@ -283,6 +285,33 @@ public class DianneDatasetCommands {
 		}
 		
 		System.out.println(((SequenceDataset<?, ?>)d).sequences());
+	}
+	
+	@Descriptor("Print out the classes and number of samples per class")
+	public void classes(
+			@Descriptor("dataset get the classes from")
+			String dataset){ 
+		
+		Dataset d = datasets.getDataset(dataset);
+		if(d==null){
+			System.out.println("Dataset "+dataset+" not available");
+			return;
+		}
+
+		Tensor count = new Tensor(d.targetDims());
+		count.fill(0.0f);
+		int samples = d.size();
+		for(int i=0;i<samples;i++){
+			Sample s = d.getSample(i);
+			count = TensorOps.add(count, count, s.target);
+		}
+		
+		String[] labels = d.getLabels();
+		if(labels!=null){
+			System.out.println(Arrays.toString(labels));
+		}
+		
+		System.out.println(Arrays.toString(count.get()));
 	}
 	
 	@Descriptor("Dump the content of an experience pool")
