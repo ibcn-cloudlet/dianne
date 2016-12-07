@@ -44,6 +44,7 @@ import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 @Component(
 		service=Object.class,
 		property={"osgi.command.scope=dianne",
+				  "osgi.command.function=devices",
 				  "osgi.command.function=learn",
 				  "osgi.command.function=eval",
 				  "osgi.command.function=act",
@@ -58,6 +59,12 @@ import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 public class DianneCoordinatorCommands {
 
 	private DianneCoordinator coordinator;
+	
+	@Descriptor("List available devices.")
+	public void devices(){
+		coordinator.getDevices(false).stream().forEach(device -> 
+			System.out.println(device.id+"\t"+device.name+"\t"+device.ip+"\t"+device.os+"\t"+device.arch));
+	}
 	
 	@Descriptor("List running jobs.")
 	public void running(){
