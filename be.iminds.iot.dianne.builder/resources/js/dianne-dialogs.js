@@ -598,10 +598,7 @@ function createRunModuleDialog(id, moduleItem){
 		
 		dialog.find(".content").append("<canvas class='sampleCanvas' width='256' height='256' style=\"border:1px solid #000000; margin-left:150px\"></canvas>");
 		dialog.find(".content").append("<center><div class='expected'></div></center>");
-		dialog.find(".content").append("<button class='btn' onclick='sample(\""+module.type+"\",\""+module.input+"\")' style=\"margin-left:10px\">Sample</button>");
-		
-		var sampleCanvas = dialog.find('.sampleCanvas')[0];
-		var sampleCanvasCtx = sampleCanvas.getContext('2d');
+		dialog.find(".content").append("<button class='btn' onclick='sample(\""+module.type+"\",\""+module.input+"\",this)' style=\"margin-left:10px\">Sample</button>");
 		
 	} else if(module.type==="Camera"){
 		dialog = renderTemplate("dialog", {
@@ -801,9 +798,11 @@ function forwardURL(btn, input){
 			, "json");
 }
 
-function sample(dataset, input){
+function sample(dataset, input, source){
 	$.post("/dianne/run", {"dataset":dataset,"input":input, "id": nn.id}, 
 			function( sample ) {
+				var sampleCanvas = $(source).parent().find('.sampleCanvas')[0];
+				var sampleCanvasCtx = sampleCanvas.getContext('2d');
 				render(sample, sampleCanvasCtx);
 				if(sample.target !== undefined)
 					$('.expected').text('Expected output: '+sample.target);
