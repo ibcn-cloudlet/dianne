@@ -35,10 +35,9 @@ import be.iminds.iot.dianne.tensor.TensorOps;
  */
 public class MSECriterion implements Criterion {
 
-	private Tensor diff;
-	private Tensor grad;
-	
-	private int div;
+	protected Tensor loss = new Tensor(1);
+	protected Tensor diff;
+	protected Tensor grad;
 	
 	protected BatchConfig b;
 	
@@ -47,26 +46,18 @@ public class MSECriterion implements Criterion {
 	}
 	
 	@Override
-	public float loss(final Tensor output, final Tensor target) {
+	public Tensor loss(final Tensor output, final Tensor target) {
 		diff = TensorOps.sub(diff, output, target);
 		
-		// to determine if it is batch or not ... use following rule of thumb
-		// 1d = no batch, 2d = batched 1d, 3d = no batch image, 4d = batched image, 5d = batched volumetric
-		int[] dims = output.dims();
-		int d = dims.length;
-		if(d == 2){
-			div = dims[1];
-		} else if(d == 4){
-			div = dims[1]*dims[2]*dims[3];
-		} else if(d == 5){
-			div = dims[1]*dims[2]*dims[3]*dims[4];
+		if(b.batchSize > 1){
+			loss.reshape(b.batchSize);
+			int div = diff.size() / b.batchSize;
+			for(int i=0;i<b.batchSize;i++){
+				Tensor l = diff.select(0, i);
+				loss.set(TensorOps.dot(l, l)/div, i);
+			}
 		} else {
-			div = output.size();
-		}
-		float loss = TensorOps.dot(diff, diff) / div;
-		
-		if(b.batchAverage){
-			loss /= b.batchSize;
+			loss.set(TensorOps.dot(diff, diff), 0);
 		}
 		
 		return loss;
@@ -74,6 +65,7 @@ public class MSECriterion implements Criterion {
 
 	@Override
 	public Tensor grad(final Tensor output, final Tensor target) {
+		int div = output.size() / b.batchSize;
 		grad = TensorOps.mul(grad, diff, 2.0f / div);
 		
 		if(b.batchAverage){

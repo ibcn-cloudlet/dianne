@@ -46,7 +46,7 @@ public class GaussianKLDivCriterion implements Criterion {
 	}
 	
 	@Override
-	public float loss(Tensor output, Tensor target) {
+	public Tensor loss(Tensor output, Tensor target) {
 		int dim = output.dim()-1;
 		int size = output.size(dim)/2;
 		
@@ -69,11 +69,7 @@ public class GaussianKLDivCriterion implements Criterion {
 		TensorOps.sub(loss, loss, 1);
 		TensorOps.div(loss, loss, 2);
 		
-		if(b.batchAverage){
-			return TensorOps.sum(loss)/b.batchSize;
-		} else {
-			return TensorOps.sum(loss);
-		}
+		return loss;
 	}
 
 	@Override

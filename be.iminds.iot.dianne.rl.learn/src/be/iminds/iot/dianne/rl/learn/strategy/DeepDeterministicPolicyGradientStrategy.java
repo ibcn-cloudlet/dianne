@@ -155,14 +155,14 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 		Tensor value = critic.forward(inputIds, outputIds, new Tensor[]{batch.getState(), batch.getAction()}).getValue().tensor;
 		
 		// Calculate the loss and gradient with respect to the target value
-		float loss = reconCriterion.loss(value, targetValue);
+		float loss = TensorOps.mean(reconCriterion.loss(value, targetValue));
 		Tensor criticGrad = reconCriterion.grad(value, targetValue);
 		
 		// Add value smoothing on critic gradient when required
 		if(config.smoothingRegularization > 0) {
 			targetValue.fill(TensorOps.mean(value));
 			
-			loss += config.smoothingRegularization*regulCriterion.loss(value, targetValue);
+			loss += config.smoothingRegularization*TensorOps.mean(regulCriterion.loss(value, targetValue));
 			TensorOps.add(criticGrad, criticGrad, config.smoothingRegularization, regulCriterion.grad(value, targetValue));
 		}
 		

@@ -42,6 +42,7 @@ import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rnn.learn.strategy.config.BPTTConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 /**
  * This LearningStrategy works on SequenceDatasets and trains according to the
@@ -128,7 +129,7 @@ public class BPTTLearningStrategy implements LearningStrategy {
 		// backward
 		for(int k=config.sequenceLength-1;k>=0;k--){
 			Tensor target = sequence.get(k).target;
-			float l = criterion.loss(outputs[k], target);
+			float l = TensorOps.mean(criterion.loss(outputs[k], target));
 			if(config.backpropAll || k==config.sequenceLength-1){
 				loss+=l;
 			}

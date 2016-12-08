@@ -38,6 +38,7 @@ import be.iminds.iot.dianne.nn.eval.strategy.config.EvaluationStrategyConfig;
 import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class VariationalAutoEncoderEvaluationStrategy implements EvaluationStrategy {
 
@@ -111,7 +112,7 @@ public class VariationalAutoEncoderEvaluationStrategy implements EvaluationStrat
 			for(int b=0; b<indices.length; b++)
 				params.add(latentParams.select(0, b).copyInto(null));
 		
-		error += criterion.loss(output, batch.target);
+		error += TensorOps.mean(criterion.loss(output, batch.target));
 		
 		return progress = new EvaluationProgress(i+indices.length, dataset.size(), (float) (error/(i+indices.length)));
 	}

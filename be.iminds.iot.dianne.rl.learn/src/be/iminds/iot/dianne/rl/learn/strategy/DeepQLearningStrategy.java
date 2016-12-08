@@ -158,7 +158,7 @@ public class DeepQLearningStrategy implements LearningStrategy {
 		}
 		value /= config.batchSize;
 		
-		float loss = criterion.loss(valueBatch, targetValueBatch);
+		float loss = TensorOps.mean(criterion.loss(valueBatch, targetValueBatch));
 		Tensor grad = criterion.grad(valueBatch, targetValueBatch);
 		
 		// Backward pass of the critic

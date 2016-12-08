@@ -199,7 +199,7 @@ public class A3CLearningStrategy implements LearningStrategy {
 			Tensor target = new Tensor(1);
 			target.set(reward, 0);
 			
-			loss += valueCriterion.loss(value, target);
+			loss += TensorOps.mean(valueCriterion.loss(value, target));
 			
 			criticGrad = valueCriterion.grad(value, target);
 			

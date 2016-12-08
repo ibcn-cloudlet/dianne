@@ -39,6 +39,7 @@ import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory;
 import be.iminds.iot.dianne.nn.learn.strategy.config.GenerativeAdverserialConfig;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 /**
  * Generative Adversarial NN Learning strategy
@@ -98,7 +99,7 @@ public class GenerativeAdverserialLearningStrategy implements LearningStrategy {
 		target.fill(0.85f);
 		
 		Tensor output = discriminator.forward(batch.input);
-		float d_loss_positive = criterion.loss(output, target);
+		float d_loss_positive = TensorOps.mean(criterion.loss(output, target));
 		Tensor gradOutput = criterion.grad(output, target);
 		discriminator.backward(gradOutput);
 		
@@ -111,7 +112,7 @@ public class GenerativeAdverserialLearningStrategy implements LearningStrategy {
 		target.fill(0.15f);
 		Tensor generated = generator.forward(random);
 		output = discriminator.forward(generated);
-		float d_loss_negative = criterion.loss(output, target);
+		float d_loss_negative = TensorOps.mean(criterion.loss(output, target));
 		gradOutput = criterion.grad(output, target);
 		discriminator.backward(gradOutput);
 		
@@ -130,7 +131,7 @@ public class GenerativeAdverserialLearningStrategy implements LearningStrategy {
 		generated = generator.forward(random);
 		output = discriminator.forward(generated);
 		
-		float g_loss = criterion.loss(output, target);
+		float g_loss = TensorOps.mean(criterion.loss(output, target));
 		gradOutput = criterion.grad(output, target);
 		Tensor gradInput = discriminator.backward(gradOutput);
 		generator.backward(gradInput);

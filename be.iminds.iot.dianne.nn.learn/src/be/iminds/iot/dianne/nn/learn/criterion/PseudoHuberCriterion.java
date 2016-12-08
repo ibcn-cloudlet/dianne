@@ -34,12 +34,12 @@ import be.iminds.iot.dianne.tensor.TensorOps;
  *
  */
 public class PseudoHuberCriterion implements Criterion {
-	
+
+	protected Tensor loss = new Tensor(1);
+	protected Tensor grad;
+
 	protected Tensor diff;
 	protected Tensor sqrt;
-	protected Tensor grad;
-	
-	private int div;
 	
 	protected BatchConfig b;
 	
@@ -48,28 +48,21 @@ public class PseudoHuberCriterion implements Criterion {
 	}
 	
 	@Override
-	public float loss(final Tensor output, final Tensor target) {
+	public Tensor loss(final Tensor output, final Tensor target) {
 		diff = TensorOps.sub(diff, output, target);
 		sqrt = TensorOps.cmul(sqrt, diff, diff);
 		TensorOps.add(sqrt, sqrt, 1);
 		TensorOps.sqrt(sqrt, sqrt);
 		
-		int[] dims = output.dims();
-		int d = output.dim();
-		if(d == 2){
-			div = dims[1];
-		} else if(d == 4){
-			div = dims[1]*dims[2]*dims[3];
-		} else if(d == 5){
-			div = dims[1]*dims[2]*dims[3]*dims[4];
+		if(b.batchSize > 1){
+			loss.reshape(b.batchSize);
+			int div = output.size() / b.batchSize;
+			for(int i=0;i<b.batchSize;i++){
+				Tensor s = sqrt.select(0, i);
+				loss.set((TensorOps.sum(s) - s.size())/div, i);
+			}
 		} else {
-			div = output.size();
-		}
-		
-		float loss = (TensorOps.sum(sqrt) - sqrt.size()) / div;
-		
-		if(b.batchAverage){
-			loss /= b.batchSize;
+			loss.set((TensorOps.sum(sqrt) - sqrt.size()), 0);
 		}
 		
 		return loss;
@@ -77,6 +70,7 @@ public class PseudoHuberCriterion implements Criterion {
 
 	@Override
 	public Tensor grad(final Tensor output, final Tensor target) {
+		int div = output.size() / b.batchSize;
 		grad = TensorOps.cdiv(grad, diff, sqrt);
 		TensorOps.mul(grad, grad, 1.0f / div);
 		

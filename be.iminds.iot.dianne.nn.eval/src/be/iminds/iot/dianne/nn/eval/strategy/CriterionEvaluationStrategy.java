@@ -28,6 +28,7 @@ import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
 import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class CriterionEvaluationStrategy extends AbstractEvaluationStrategy {
 	
@@ -39,7 +40,7 @@ public class CriterionEvaluationStrategy extends AbstractEvaluationStrategy {
 	}
 
 	protected float eval(Tensor output, Tensor target){
-		return criterion.loss(output, target);
+		return TensorOps.mean(criterion.loss(output, target));
 	}
 
 	@Override

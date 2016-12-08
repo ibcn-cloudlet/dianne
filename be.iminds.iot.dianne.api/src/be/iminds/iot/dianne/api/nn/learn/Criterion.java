@@ -39,9 +39,9 @@ public interface Criterion {
 	 * 
 	 * @param output the neural network output
 	 * @param target the desired target output
-	 * @return the loss for the output
+	 * @return the loss for the output - in case of batched output the loss tensor will contain one loss value per sample
 	 */
-	float loss(final Tensor output, final Tensor target);
+	Tensor loss(final Tensor output, final Tensor target);
 	
 	/**
 	 * Returns gradient feeding into the Output Module backwards for training

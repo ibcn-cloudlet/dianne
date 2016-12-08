@@ -42,6 +42,7 @@ import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory;
 import be.iminds.iot.dianne.nn.learn.strategy.config.FeedForwardConfig;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 /**
  * Default LearningStrategy for supervised training of a Neural Network
@@ -106,7 +107,7 @@ public class FeedForwardLearningStrategy implements LearningStrategy {
 						Tensor output = p.getValue().tensor;
 						
 						// Loss
-						loss[0] += criterion.loss(output, batch.target);
+						loss[0] += TensorOps.mean(criterion.loss(output, batch.target));
 	
 						// Gradient
 						Tensor gradOut = criterion.grad(output, batch.target);
@@ -136,7 +137,7 @@ public class FeedForwardLearningStrategy implements LearningStrategy {
 							Tensor output = p.getValue().tensor;
 							
 							// Loss
-							loss[0] += criterion.loss(output, batch.samples[b].target);
+							loss[0] += TensorOps.mean(criterion.loss(output, batch.samples[b].target));
 		
 							// Gradient
 							Tensor gradOut = criterion.grad(output, batch.samples[b].target);

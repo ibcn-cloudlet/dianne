@@ -29,6 +29,7 @@ import org.junit.Test;
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
 import be.iminds.iot.dianne.tensor.NativeTensorLoader;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorOps;
 import junit.framework.Assert;
 
 @Ignore
@@ -55,7 +56,7 @@ public abstract class AbstractCriterionTest {
 			Tensor o = new Tensor(out[i],out[i].length);
 			Tensor t = new Tensor(tar[i],tar[i].length);
 			
-			float l = c.loss(o, t);
+			float l = TensorOps.mean(c.loss(o, t));
 			
 			Assert.assertEquals(loss[i], l, eps);
 		}

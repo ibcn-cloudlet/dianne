@@ -38,6 +38,7 @@ import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory;
 import be.iminds.iot.dianne.nn.learn.strategy.config.FeedForwardConfig;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class SimpleLearningStrategy implements LearningStrategy {
 
@@ -72,7 +73,7 @@ public class SimpleLearningStrategy implements LearningStrategy {
 		
 		// Forward-backward pass
 		Tensor output = nn.forward(batch.input);
-		float loss = criterion.loss(output, batch.target);
+		float loss = TensorOps.mean(criterion.loss(output, batch.target));
 		Tensor gradOutput = criterion.grad(output, batch.target);
 		nn.backward(gradOutput);
 		

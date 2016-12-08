@@ -35,12 +35,12 @@ import be.iminds.iot.dianne.tensor.TensorOps;
  */
 public class AbsCriterion implements Criterion {
 	
-	protected Tensor diff;
-	protected Tensor absdiff;
+	protected Tensor loss = new Tensor(1);
 	protected Tensor grad;
 	
-	private int div;
-	
+	protected Tensor diff;
+	protected Tensor absdiff;
+
 	protected BatchConfig b;
 	
 	public AbsCriterion(BatchConfig b) {
@@ -48,26 +48,18 @@ public class AbsCriterion implements Criterion {
 	}
 	
 	@Override
-	public float loss(final Tensor output, final Tensor target) {
+	public Tensor loss(final Tensor output, final Tensor target) {
 		diff = TensorOps.sub(diff, output, target);
 		absdiff = TensorOps.abs(absdiff, diff);
 		
-		int[] dims = output.dims();
-		int d = output.dim();
-		if(d == 2){
-			div = dims[1];
-		} else if(d == 4){
-			div = dims[1]*dims[2]*dims[3];
-		} else if(d == 5){
-			div = dims[1]*dims[2]*dims[3]*dims[4];
+		if(b.batchSize > 1){
+			loss.reshape(b.batchSize);
+			int div = absdiff.size() / b.batchSize;
+			for(int i=0;i<b.batchSize;i++){
+				loss.set(TensorOps.sum(absdiff.select(0, i))/div, i);
+			}
 		} else {
-			div = output.size();
-		}
-		
-		float loss = TensorOps.sum(absdiff) / div;
-		
-		if(b.batchAverage){
-			loss /= b.batchSize;
+			loss.set(TensorOps.sum(absdiff)/absdiff.size(), 0);
 		}
 		
 		return loss;
@@ -75,6 +67,7 @@ public class AbsCriterion implements Criterion {
 
 	@Override
 	public Tensor grad(final Tensor output, final Tensor target) {
+		int div = output.size() / b.batchSize;
 		grad = TensorOps.sign(grad, diff);
 		TensorOps.mul(grad, grad, 1.0f / div);
 		

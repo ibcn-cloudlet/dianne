@@ -189,7 +189,7 @@ public class DeepStochasticPolicyGradientStrategy implements LearningStrategy {
 			// Calculate the loss and gradient with respect to the target value
 			// Note: scaling here is easier than outside this loop
 			// TODO: calculate importance weight?
-			loss += reconCriterion.loss(value, targetValue)/config.criticSamples;
+			loss += TensorOps.mean(reconCriterion.loss(value, targetValue))/config.criticSamples;
 			TensorOps.add(criticGrad, criticGrad, 1f/config.criticSamples, reconCriterion.grad(value, targetValue));
 		}
 		
@@ -197,7 +197,7 @@ public class DeepStochasticPolicyGradientStrategy implements LearningStrategy {
 		if(config.smoothingRegularization > 0) {
 			targetValue.fill(TensorOps.mean(value));
 			
-			loss += config.smoothingRegularization*criticRegulCriterion.loss(value, targetValue);
+			loss += config.smoothingRegularization*TensorOps.mean(criticRegulCriterion.loss(value, targetValue));
 			TensorOps.add(criticGrad, criticGrad, config.smoothingRegularization, criticRegulCriterion.grad(value, targetValue));
 		}
 		
@@ -227,7 +227,7 @@ public class DeepStochasticPolicyGradientStrategy implements LearningStrategy {
 		
 		// Add action prior regularization error and gradient on action parameters
 		if(config.actionPriorRegularization > 0) {
-			loss += config.actionPriorRegularization*actorRegulCriterion.loss(actionParams, actionPrior);
+			loss += config.actionPriorRegularization*TensorOps.mean(actorRegulCriterion.loss(actionParams, actionPrior));
 			TensorOps.add(actorGrad, actorGrad, config.actionPriorRegularization, actorRegulCriterion.grad(actionParams, actionPrior));
 		}
 		
@@ -235,7 +235,7 @@ public class DeepStochasticPolicyGradientStrategy implements LearningStrategy {
 		if(config.trustRegionRegularization > 0) {
 			Tensor targetActionParams = targetActor.forward(batch.getState());
 			
-			loss += config.trustRegionRegularization*actorRegulCriterion.loss(actionParams, targetActionParams);
+			loss += config.trustRegionRegularization*TensorOps.mean(actorRegulCriterion.loss(actionParams, targetActionParams));
 			TensorOps.add(actorGrad, actorGrad, config.trustRegionRegularization, actorRegulCriterion.grad(actionParams, targetActionParams));
 		}
 		
