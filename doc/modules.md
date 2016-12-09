@@ -271,7 +271,7 @@ Concatenates the input tensor along a certain dimension into the output tensors.
 
   * `dim` : the dimension along which to concatenate, counting backwards
 
-For example, if you want to concatenate 4D tensors along the third dimension, you need to set `dim` to 2. This allows for transparant batch operation.
+For example, if you want to concatenate 4D tensors along the third dimension, you need to set `dim` to 1. This allows for transparant batch operation.
 
 <a name="nn.Multiply"/>
 ### Multiply ###
