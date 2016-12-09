@@ -65,7 +65,7 @@ Reads a number of JPEG images for image classification. The input images need to
 
 <a name="dataset.ImageSegmentationDataset"/>
 ### ImageSegmentationDataset ###
-Reads a number of JPEG images for image segmentations. The input images need to be put in a subdirectory called `images`, and have a name `<index>.jpg`, with `<index>` being the index in the set. Similarly, the masks need to be punt in a subdirectory called `masks`, and have a name `<index>.jpg`, with `<index>` being the index in the set. No further options need to be set.
+Reads a number of JPEG images for image segmentations. The input images need to be put in a subdirectory called `images`, and have a name `<index>.jpg`, with `<index>` being the index in the set. Similarly, the masks need to be put in a subdirectory called `masks`, and have a name `<index>.jpg`, with `<index>` being the index in the set. No further options need to be set.
 
 <a name="dataset.adapters"/>
 ## Dataset adapters ##
