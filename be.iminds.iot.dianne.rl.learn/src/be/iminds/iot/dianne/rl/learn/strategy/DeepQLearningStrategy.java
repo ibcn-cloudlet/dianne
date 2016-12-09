@@ -39,6 +39,8 @@ import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory;
 import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.learn.strategy.config.DeepQConfig;
+import be.iminds.iot.dianne.rl.learn.util.PrioritySampler;
+import be.iminds.iot.dianne.rl.learn.util.PrioritySamplerConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
@@ -59,6 +61,8 @@ public class DeepQLearningStrategy implements LearningStrategy {
 	
 	protected ExperiencePool pool;
 	protected SamplingStrategy sampling;
+	protected PrioritySampler prioritySampler;
+	
 	protected ExperiencePoolBatch batch;
 	
 	protected NeuralNetwork valueNetwork;
@@ -85,6 +89,7 @@ public class DeepQLearningStrategy implements LearningStrategy {
 		
 		this.config = DianneConfigHandler.getConfig(config, DeepQConfig.class);
 		this.sampling = SamplingFactory.createSamplingStrategy(this.config.sampling, dataset, config);
+		this.prioritySampler = new PrioritySampler(pool, sampling, DianneConfigHandler.getConfig(config, PrioritySamplerConfig.class));
 		this.criterion = CriterionFactory.createCriterion(this.config.criterion, config);
 		this.gradientProcessor = ProcessorFactory.createGradientProcessor(this.config.method, valueNetwork, config);
 		
@@ -117,7 +122,7 @@ public class DeepQLearningStrategy implements LearningStrategy {
 		targetValueBatch.fill(0);
 		
 		// Fill in the batch
-		batch = pool.getBatch(batch, sampling.next(config.batchSize));
+		batch = prioritySampler.getBatch(batch, config.batchSize);
 		
 		for(int b = 0; b < config.batchSize; b++) {
 			// Get the data from the sample
@@ -158,7 +163,8 @@ public class DeepQLearningStrategy implements LearningStrategy {
 		}
 		value /= config.batchSize;
 		
-		float loss = TensorOps.mean(criterion.loss(valueBatch, targetValueBatch));
+		Tensor l = criterion.loss(valueBatch, targetValueBatch);
+		float loss = TensorOps.mean(l);
 		Tensor grad = criterion.grad(valueBatch, targetValueBatch);
 		
 		// Backward pass of the critic
@@ -171,6 +177,9 @@ public class DeepQLearningStrategy implements LearningStrategy {
 		// Apply the updates
 		// Note: target network gets updated automatically by setting the syncInterval option
 		valueNetwork.updateParameters();
+		
+		// Add samples for priority sampling
+		prioritySampler.addBatch(l, batch);
 		
 		return new QLearnProgress(i, loss, value);
 	}

@@ -20,49 +20,18 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.api.dataset;
+package be.iminds.iot.dianne.rl.learn.util;
 
-import be.iminds.iot.dianne.tensor.Tensor;
+public class PrioritySamplerConfig {
 
-/**
- * A helper class for representing one sample of a dataset, a combination of
- * an input and target Tensor
- * 
- * @author tverbele
- *
- */
-public class Sample {
+	/**
+	 * Probability to get a sample from the priority sampling buffer
+	 */
+	public float prioritySamplingFactor = 0f;
 	
-	public Tensor input;
-	public Tensor target;
+	/**
+	 * Size of the priority sampling buffer
+	 */
+	public int prioritySamplingSize = 100;
 	
-	public Sample(){}
-	
-	public Sample(Tensor input, Tensor target){
-		this.input = input;
-		this.target = target;
-	}
-	
-	public Tensor getInput(){
-		return input;
-	}
-	
-	public Tensor getTarget(){
-		return target;
-	}
-	
-	@Override
-	public String toString(){
-		StringBuilder b = new StringBuilder();
-		b.append("Input: ")
-		.append(input)
-		.append(" - Target: ")
-		.append(target);
-		return b.toString();
-	}
-	
-	public void copyInto(Sample other){
-		other.input = input.copyInto(other.input);
-		other.target = target.copyInto(other.target);
-	}
 }

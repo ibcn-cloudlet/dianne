@@ -13,4 +13,5 @@ Bundle-Name: Dianne RL Learners
 	be.iminds.iot.dianne.nn.util;version=latest
 Export-Package: \
 	be.iminds.iot.dianne.rl.learn.strategy,\
-	be.iminds.iot.dianne.rl.learn.strategy.config
+	be.iminds.iot.dianne.rl.learn.strategy.config,\
+	be.iminds.iot.dianne.rl.learn.util

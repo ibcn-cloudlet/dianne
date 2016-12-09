@@ -105,4 +105,12 @@ public class ExperiencePoolSample extends Sample {
 		.append(" - Terminal: ").append(isTerminal());
 		return b.toString();
 	}
+	
+	public void copyInto(ExperiencePoolSample other){
+		other.input = input.copyInto(other.input);
+		other.target = target.copyInto(other.target);
+		other.reward = reward.copyInto(other.reward);
+		other.nextState = nextState.copyInto(other.nextState);
+		other.terminal = terminal.copyInto(other.terminal);
+	}
 }
