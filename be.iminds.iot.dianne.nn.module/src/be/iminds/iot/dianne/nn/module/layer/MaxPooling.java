@@ -24,7 +24,7 @@ package be.iminds.iot.dianne.nn.module.layer;
 
 import java.util.UUID;
 
-import be.iminds.iot.dianne.nn.module.fork.Fork;
+import be.iminds.iot.dianne.api.nn.module.Fork;
 import be.iminds.iot.dianne.tensor.ModuleOps;
 import be.iminds.iot.dianne.tensor.Tensor;
 

@@ -20,7 +20,7 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.nn.module.join;
+package be.iminds.iot.dianne.api.nn.module;
 
 import java.util.Arrays;
 import java.util.HashMap;

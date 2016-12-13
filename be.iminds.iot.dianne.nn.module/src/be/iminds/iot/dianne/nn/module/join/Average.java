@@ -24,6 +24,7 @@ package be.iminds.iot.dianne.nn.module.join;
 
 import java.util.UUID;
 
+import be.iminds.iot.dianne.api.nn.module.Join;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
