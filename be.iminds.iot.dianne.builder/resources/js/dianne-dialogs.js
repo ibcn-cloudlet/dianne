@@ -474,6 +474,16 @@ function createRunModuleDialog(id, moduleItem){
 			
 			window.addEventListener("keydown", keyboard, false);
 			window.addEventListener("keyup", keyboard, false);
+		} else if(module.type === "LaserScan"){
+			dialog = renderTemplate("dialog", {
+				id : id,
+				type: "laser",
+				title : "LaserScan Output",
+				submit: "",
+				cancel: "Delete"
+			}, $(document.body));
+			
+			dialog.find(".content").append("<canvas class='laserCanvas' width='512' height='512' style=\"border:1px solid #000000; margin-left:25px\"></canvas>");
 		} else {
 			dialog = renderTemplate("dialog", {
 				id : id,
@@ -487,94 +497,97 @@ function createRunModuleDialog(id, moduleItem){
 		dialog.find(".content").append("<div class='outputviz'></div>");
 		dialog.find(".content").append("<div class='time'></div>");
 
-			var eventsource = new EventSource("/dianne/run?nnId="+nn.id);
-			eventsource.onmessage = function(event){
-				var output = JSON.parse(event.data);
-				if(output.error!==undefined){
-					error(output.error);
-				} else {
-					$.each(running, function(id, module){
-						// choose right RunOutput to set the chart of
-						if(module.output===output.id){
-							if(module.type ==="ProbabilityOutput"){
-								var attr = $("#dialog-"+module.id).find(".content").attr("data-highcharts-chart");
-								if(attr!==undefined){
-									var index = Number(attr);
-		
-									if(output.tags.length != 0){
-										var title = "";
-										for(var i =0; i<output.tags.length; i++){
-											if(!isFinite(String(output.tags[i]))){
-												title+= output.tags[i]+" ";
-											}
-										}
-										Highcharts.charts[index].setTitle({text: title});
-									}
-									Highcharts.charts[index].series[0].setData(output.probabilities, true, true, true);
-									Highcharts.charts[index].xAxis[0].setCategories(output.labels);
-								}
-								$("#dialog-"+module.id).find(".content").find('.outputviz').hide();
-							} else if(module.type === "Youbot"){
-								var attr = $("#dialog-"+module.id).find(".content").attr("data-highcharts-chart");
-								if(attr!==undefined){
-									var index = Number(attr);
-									if(output.data.length == 3){
-										Highcharts.charts[index].series[0].setData(output.data, true, true, true);
-										Highcharts.charts[index].xAxis[0].setCategories(['vx','vy','va']);
-									} else if(output.data.length == 6){
-										var data = output.data.splice(0, 3);
-										var stdev = output.data;
-										var errors = [];
-										for (var i = 0; i < 3; i++) {
-										   var tuple = [data[i]-stdev[i], data[i]+stdev[i]];
-										   errors.push(tuple);
-										}
-										Highcharts.charts[index].series[0].setData(data, true, true, true);
-										Highcharts.charts[index].series[1].setData(errors, true, true, true);
-										Highcharts.charts[index].xAxis[0].setCategories(['vx','vy','va']);
-									} else if(output.data.length == 7){
-										if(output.probabilities===undefined){
-											// DQN network, show raw Q values
-											output.data.splice(-1, 1); // remove grip q value as we stop on norm of other q values atm
-											Highcharts.charts[index].series[0].setData(output.data, true, true, true);
-											Highcharts.charts[index].xAxis[0].setCategories(['Left','Right','Forward','Backward','Turn Left','Turn Right']);
-										} else {
-											// policy network ending with softmax - show the probabilities
-											Highcharts.charts[index].series[0].setData(output.probabilities, true, true, true);
-											Highcharts.charts[index].xAxis[0].setCategories(['Left','Right','Forward','Backward','Turn Left','Turn Right','Grip']);
-										}
-									}
-								}
-							} else {
-								// render raw output
-								if(output.height!==undefined){
-									// as image
-									var outputCanvas = dialog.find('.outputCanvas')[0];
-									if(outputCanvas === undefined){
-										$("#dialog-"+module.id).find(".content").append("<canvas class='outputCanvas' width='256' height='256' style=\"border:1px solid #000000; margin-left:150px\"></canvas>");
-										 outputCanvas = dialog.find('.outputCanvas')[0];
-									}
-									var outputCanvasCtx = outputCanvas.getContext('2d');
-									render(output, outputCanvasCtx);
-								} else {
-									// as floats
-									$("#dialog-"+module.id).find(".content").find('.outputviz').html('<b>Output: </b>'+JSON.stringify(output.data).replace(/,/g,"  "));
-									$("#dialog-"+module.id).find(".content").find('.outputviz').show();
-								}
-							}
-							
-							if(output.time === undefined){
-								$("#dialog-"+module.id).find(".content").find('.time').hide();
-							} else {
-								$("#dialog-"+module.id).find(".content").find('.time').html('<b>Forward time: </b>'+output.time+' ms');
-								$("#dialog-"+module.id).find(".content").find('.time').show();
+		var eventsource = new EventSource("/dianne/run?nnId="+nn.id);
+		eventsource.onmessage = function(event){
+			var output = JSON.parse(event.data);
+			if(output.error!==undefined){
+				error(output.error);
+			} else {
+				$.each(running, function(id, module){
+					// choose right RunOutput to set the chart of
+					if(module.output===output.id){
+						if(module.type ==="ProbabilityOutput"){
+							var attr = $("#dialog-"+module.id).find(".content").attr("data-highcharts-chart");
+							if(attr!==undefined){
+								var index = Number(attr);
 	
+								if(output.tags.length != 0){
+									var title = "";
+									for(var i =0; i<output.tags.length; i++){
+										if(!isFinite(String(output.tags[i]))){
+											title+= output.tags[i]+" ";
+										}
+									}
+									Highcharts.charts[index].setTitle({text: title});
+								}
+								Highcharts.charts[index].series[0].setData(output.probabilities, true, true, true);
+								Highcharts.charts[index].xAxis[0].setCategories(output.labels);
 							}
-							
+							$("#dialog-"+module.id).find(".content").find('.outputviz').hide();
+						} else if(module.type === "Youbot"){
+							var attr = $("#dialog-"+module.id).find(".content").attr("data-highcharts-chart");
+							if(attr!==undefined){
+								var index = Number(attr);
+								if(output.data.length == 3){
+									Highcharts.charts[index].series[0].setData(output.data, true, true, true);
+									Highcharts.charts[index].xAxis[0].setCategories(['vx','vy','va']);
+								} else if(output.data.length == 6){
+									var data = output.data.splice(0, 3);
+									var stdev = output.data;
+									var errors = [];
+									for (var i = 0; i < 3; i++) {
+									   var tuple = [data[i]-stdev[i], data[i]+stdev[i]];
+									   errors.push(tuple);
+									}
+									Highcharts.charts[index].series[0].setData(data, true, true, true);
+									Highcharts.charts[index].series[1].setData(errors, true, true, true);
+									Highcharts.charts[index].xAxis[0].setCategories(['vx','vy','va']);
+								} else if(output.data.length == 7){
+									if(output.probabilities===undefined){
+										// DQN network, show raw Q values
+										output.data.splice(-1, 1); // remove grip q value as we stop on norm of other q values atm
+										Highcharts.charts[index].series[0].setData(output.data, true, true, true);
+										Highcharts.charts[index].xAxis[0].setCategories(['Left','Right','Forward','Backward','Turn Left','Turn Right']);
+									} else {
+										// policy network ending with softmax - show the probabilities
+										Highcharts.charts[index].series[0].setData(output.probabilities, true, true, true);
+										Highcharts.charts[index].xAxis[0].setCategories(['Left','Right','Forward','Backward','Turn Left','Turn Right','Grip']);
+									}
+								}
+							}
+						} else if(module.type === "LaserScan"){
+							var laserCanvas = dialog.find('.laserCanvas')[0];
+							var laserCanvasCtx = laserCanvas.getContext('2d');
+							laser(output, laserCanvasCtx, false);
+						} else {
+							// render raw output
+							if(output.height!==undefined){
+								// as image
+								var outputCanvas = dialog.find('.outputCanvas')[0];
+								if(outputCanvas === undefined){
+									$("#dialog-"+module.id).find(".content").append("<canvas class='outputCanvas' width='256' height='256' style=\"border:1px solid #000000; margin-left:150px\"></canvas>");
+									 outputCanvas = dialog.find('.outputCanvas')[0];
+								}
+								var outputCanvasCtx = outputCanvas.getContext('2d');
+								render(output, outputCanvasCtx);
+							} else {
+								// as floats
+								$("#dialog-"+module.id).find(".content").find('.outputviz').html('<b>Output: </b>'+JSON.stringify(output.data).replace(/,/g,"  "));
+								$("#dialog-"+module.id).find(".content").find('.outputviz').show();
+							}
 						}
-					});
-				}
-			};
+						
+						if(output.time === undefined){
+							$("#dialog-"+module.id).find(".content").find('.time').hide();
+						} else {
+							$("#dialog-"+module.id).find(".content").find('.time').html('<b>Forward time: </b>'+output.time+' ms');
+							$("#dialog-"+module.id).find(".content").find('.time').show();
+						}
+						
+					}
+				});
+			}
+		};
 		
 		dialog.on('hidden.bs.modal', function () {
 			if($(".probability").length == 1){
@@ -640,32 +653,11 @@ function createRunModuleDialog(id, moduleItem){
 		var laserCanvas = dialog.find('.laserCanvas')[0];
 		var laserCanvasCtx = laserCanvas.getContext('2d');
 		
-			var inputEventSource = new EventSource("/dianne/input?name=" + encodeURIComponent(module.name));
-			inputEventSource.onmessage = function(event){
-				var tensor = JSON.parse(event.data);
-				// render laserdata
-				var step = Math.PI/512;
-				var angle = 0;
-				var length;
-				laserCanvasCtx.clearRect(0,0,512,512);
-				laserCanvasCtx.beginPath();
-				for (var i = 0; i < tensor.size; i++) {
-					laserCanvasCtx.moveTo(256, 512);
-					length = tensor.data[i]*256;
-					laserCanvasCtx.lineTo(256+length*Math.cos(angle), 512-length*Math.sin(angle));
-					angle+=step;
-				}
-				laserCanvasCtx.stroke();
-				laserCanvasCtx.closePath();
-				
-				if(laserTarget){
-					laserCanvasCtx.beginPath();
-					laserCanvasCtx.arc(256, 449, 6, 0, 2 * Math.PI, false);
-					laserCanvasCtx.fillStyle = 'red';
-					laserCanvasCtx.fill();
-					laserCanvasCtx.closePath();
-				}
-			};
+		var inputEventSource = new EventSource("/dianne/input?name=" + encodeURIComponent(module.name));
+		inputEventSource.onmessage = function(event){
+			var tensor = JSON.parse(event.data);
+			laser(tensor, laserCanvasCtx, laserTarget);
+		};
 		
 		dialog.on('hidden.bs.modal', function () {
 		    inputEventSource.close();
@@ -853,6 +845,31 @@ function render(tensor, canvasCtx){
 	var offsetX = Math.floor((256-width)/2);
 	var offsetY = Math.floor((256-height)/2);
 	canvasCtx.putImageData(imageData, offsetX, offsetY); 
+}
+
+function laser(tensor, canvasCtx, showTarget){
+	// render laserdata
+	var step = Math.PI/512;
+	var angle = 0;
+	var length;
+	canvasCtx.clearRect(0,0,512,512);
+	canvasCtx.beginPath();
+	for (var i = 0; i < tensor.size; i++) {
+		canvasCtx.moveTo(256, 512);
+		length = tensor.data[i]*256;
+		canvasCtx.lineTo(256+length*Math.cos(angle), 512-length*Math.sin(angle));
+		angle+=step;
+	}
+	canvasCtx.stroke();
+	canvasCtx.closePath();
+	
+	if(showTarget){
+		canvasCtx.beginPath();
+		canvasCtx.arc(256, 449, 6, 0, 2 * Math.PI, false);
+		canvasCtx.fillStyle = 'red';
+		canvasCtx.fill();
+		canvasCtx.closePath();
+	}
 }
 
 

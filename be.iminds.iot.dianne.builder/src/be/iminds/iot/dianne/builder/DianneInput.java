@@ -167,9 +167,9 @@ public class DianneInput extends HttpServlet {
 								data.add("channels", new JsonPrimitive(1));
 								data.add("height", new JsonPrimitive(output.dims()[0]));
 								data.add("width", new JsonPrimitive(output.dims()[1]));
-							} else {
-								data.add("size", new JsonPrimitive(output.size()));
-							}
+							} 
+							data.add("size", new JsonPrimitive(output.size()));
+							
 							if(tags!=null){
 								JsonArray ta = new JsonArray();
 								for(String t : tags){

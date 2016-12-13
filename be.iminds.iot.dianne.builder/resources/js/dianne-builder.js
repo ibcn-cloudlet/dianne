@@ -236,6 +236,8 @@ function setupRunToolbox(){
 	addToolboxItem('Raw input','RawInput','Input','run');
 	addToolboxItem('Output probabilities','ProbabilityOutput','Visualize','run');
 	addToolboxItem('Raw outputs','RawOutput','Visualize','run');
+	addToolboxItem('Laserscan output','LaserScan','Visualize','run');
+
 }
 
 /**

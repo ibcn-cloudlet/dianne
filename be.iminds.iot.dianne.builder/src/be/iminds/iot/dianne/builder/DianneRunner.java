@@ -268,6 +268,8 @@ public class DianneRunner extends HttpServlet {
 				sample.add("height", new JsonPrimitive(1));
 				sample.add("width", new JsonPrimitive(s.input.dims()[0]));
 			}
+			sample.add("size", new JsonPrimitive(s.input.size()));
+
 			sample.add("data", parser.parse(Arrays.toString(s.input.get())));
 			
 			String[] labels = d.getLabels();
@@ -360,6 +362,8 @@ public class DianneRunner extends HttpServlet {
 			data.add("height", new JsonPrimitive(output.dims()[0]));
 			data.add("width", new JsonPrimitive(output.dims()[1]));
 		}
+		data.add("size", new JsonPrimitive(output.size()));
+
 		data.add("data", parser.parse(Arrays.toString(output.get())));
 		
 		if(time > 0){
