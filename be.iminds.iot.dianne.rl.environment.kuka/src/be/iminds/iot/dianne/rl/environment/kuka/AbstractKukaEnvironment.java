@@ -91,7 +91,7 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 	protected Tensor observation;
 	protected Tensor noise;
 	
-	// TODO for now limited to 1 youbot, 1 laserscanner
+	// TODO for now limited to 1 youbot
 	protected OmniDirectional kukaPlatform;
 	protected Arm kukaArm;
 	protected SortedMap<String,LaserScanner> rangeSensors;
@@ -136,7 +136,7 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 	@Override
 	public int[] observationDims() {
 		// observation from laser range scanner
-		return this.rangeSensors.size() > 1 ? new int[]{this.rangeSensors.size(), 512} : new int[]{512};
+		return this.rangeSensors.size() > 1 ? new int[]{this.rangeSensors.size(), config.scanPoints} : new int[]{config.scanPoints};
 	}
 
 	@Override

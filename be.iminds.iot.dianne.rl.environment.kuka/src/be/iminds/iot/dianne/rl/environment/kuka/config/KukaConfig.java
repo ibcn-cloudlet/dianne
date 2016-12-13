@@ -11,4 +11,14 @@ public class KukaConfig {
 	 * White noise to be added to the range sensor (e.g. to compensate for perfect simulation)
 	 */
 	public float rangeSensorNoise = 0f;
+	
+	/**
+	 * Number of scan points to evaluate for a range sensor
+	 */
+	public int scanPoints = 512;
+	
+	/**
+	 * Show laser beams in environment
+	 */
+	public boolean showLaser = false;
 }

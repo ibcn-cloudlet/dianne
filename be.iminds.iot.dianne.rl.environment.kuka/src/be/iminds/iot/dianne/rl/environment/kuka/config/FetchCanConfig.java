@@ -88,4 +88,9 @@ public class FetchCanConfig {
 	 * Set to false when using simulator to mimick real world ...
 	 */
 	public boolean tick = true;
+	
+	/**
+	 * Number of sensors to activate in the environment
+	 */
+	public int environmentSensors = 0;
 }

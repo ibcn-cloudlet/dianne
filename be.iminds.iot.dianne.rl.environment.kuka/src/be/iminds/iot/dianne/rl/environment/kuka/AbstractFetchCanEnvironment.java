@@ -232,15 +232,44 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 	
 	@Override
 	public void configure(Map<String, String> config) {
+		this.config = DianneConfigHandler.getConfig(config, FetchCanConfig.class);
+		
 		// configure the simulated environment
 		if(simulator != null){
 			Map<String, String> entities = new HashMap<String, String>();
 			entities.put("youBot", "be.iminds.iot.robot.youbot.ros.Youbot");
 			entities.put("hokuyo", "be.iminds.iot.sensor.range.ros.LaserScanner");
 			
+			switch(this.config.environmentSensors){
+			case 0:
+				break;
+			case 1:
+				entities.put("hokuyo#0", "be.iminds.iot.sensor.range.ros.LaserScanner");
+				break;
+			case 2:
+				entities.put("hokuyo#0", "be.iminds.iot.sensor.range.ros.LaserScanner");
+				entities.put("hokuyo#3", "be.iminds.iot.sensor.range.ros.LaserScanner");
+				break;
+			case 4:
+				entities.put("hokuyo#0", "be.iminds.iot.sensor.range.ros.LaserScanner");
+				entities.put("hokuyo#1", "be.iminds.iot.sensor.range.ros.LaserScanner");
+				entities.put("hokuyo#2", "be.iminds.iot.sensor.range.ros.LaserScanner");
+				entities.put("hokuyo#3", "be.iminds.iot.sensor.range.ros.LaserScanner");
+				break;
+			default:
+				System.out.println("Invalid number of environment sensors given: "+this.config.environmentSensors+", should be 0,1,2 or 4");
+			}
+			
 			simulator.loadScene("scenes/youbot_fetch_can.ttt", entities);
+			
+			for(String key : entities.keySet()){
+				if(key.startsWith("hokuyo")){
+					simulator.setProperty(key, "active", true);
+					simulator.setProperty(key, "scanPoints", super.config.scanPoints);
+					simulator.setProperty(key, "showLaser", super.config.showLaser);
+				}
+			}
 		} 
 		
-		this.config = DianneConfigHandler.getConfig(config, FetchCanConfig.class);
 	}
 }
