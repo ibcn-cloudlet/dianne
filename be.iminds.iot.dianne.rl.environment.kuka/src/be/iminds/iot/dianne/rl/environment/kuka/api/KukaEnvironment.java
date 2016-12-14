@@ -24,7 +24,7 @@ package be.iminds.iot.dianne.rl.environment.kuka.api;
 
 public interface KukaEnvironment {
 
-	public void start();
+	public void start(String... params);
 	
 	public void pause();
 	

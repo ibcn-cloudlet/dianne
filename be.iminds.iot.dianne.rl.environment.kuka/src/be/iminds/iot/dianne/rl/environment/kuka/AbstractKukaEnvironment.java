@@ -245,9 +245,15 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		}
 	}
 	
-	public void start(){
+	public void start(String... params){
 		HashMap<String, String> config = new HashMap<>();
 		config.put("tick", "false");
+		for(String p : params){
+			if(p.contains("=")){
+				String[] keyval = p.split("=");
+				config.put(keyval[0], keyval[1]);
+			}
+		}
 		setup(config);
 	}
 	
