@@ -849,7 +849,7 @@ function render(tensor, canvasCtx){
 
 function laser(tensor, canvasCtx, showTarget){
 	// render laserdata
-	var step = Math.PI/512;
+	var step = Math.PI/tensor.size;
 	var angle = 0;
 	var length;
 	canvasCtx.clearRect(0,0,512,512);
