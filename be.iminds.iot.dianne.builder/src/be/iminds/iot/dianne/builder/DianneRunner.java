@@ -134,6 +134,8 @@ public class DianneRunner extends HttpServlet {
 			return;
 		}
 		
+		String moduleId = request.getParameter("moduleId");
+		
 		NeuralNetworkInstanceDTO nn = platform.getNeuralNetworkInstance(UUID.fromString(nnId));
 		if(nn!=null){
 			
@@ -146,7 +148,7 @@ public class DianneRunner extends HttpServlet {
 					l = l.substring(1, l.length()-1);
 					return l.split(",");
 				}));
-				SSEForwardListener listener = new SSEForwardListener(nnId, labels, request.startAsync());
+				SSEForwardListener listener = new SSEForwardListener(nnId, moduleId, labels, request.startAsync());
 				listener.register(context);
 			} catch(Exception e){
 				e.printStackTrace();
@@ -415,15 +417,17 @@ public class DianneRunner extends HttpServlet {
 	private class SSEForwardListener implements ForwardListener {
 
 		private final String nnId;
+		private final String moduleId;
 		private final Map<UUID, String[]> labels;
 		private final AsyncContext async;
 		private ServiceRegistration<ForwardListener> reg;
 		private Tensor copy = new Tensor();
 		
-		public SSEForwardListener(String nnId,
+		public SSEForwardListener(String nnId, String moduleId,
 				Map<UUID, String[]> labels,
 				AsyncContext async) {
 			this.nnId = nnId;
+			this.moduleId = moduleId;
 			this.labels = labels;
 			this.async = async;
 			this.async.setTimeout(300000); // let it ultimately timeout if client is closed
@@ -453,7 +457,10 @@ public class DianneRunner extends HttpServlet {
 		
 		public void register(BundleContext context){
 			Dictionary<String, Object> props = new Hashtable<>();
-			props.put("targets", new String[]{nnId});
+			String target = nnId;
+			if(moduleId != null)
+				target+=":"+moduleId;
+			props.put("targets", new String[]{target});
 			props.put("aiolos.unique", true);
 			reg = context.registerService(ForwardListener.class, this, props);
 		}

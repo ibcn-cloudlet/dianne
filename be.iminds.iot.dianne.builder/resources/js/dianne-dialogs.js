@@ -497,7 +497,7 @@ function createRunModuleDialog(id, moduleItem){
 		dialog.find(".content").append("<div class='outputviz'></div>");
 		dialog.find(".content").append("<div class='time'></div>");
 
-		var eventsource = new EventSource("/dianne/run?nnId="+nn.id);
+		var eventsource = new EventSource("/dianne/run?nnId="+nn.id+"&moduleId="+module.output);
 		eventsource.onmessage = function(event){
 			var output = JSON.parse(event.data);
 			if(output.error!==undefined){
