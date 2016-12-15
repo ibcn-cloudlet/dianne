@@ -88,14 +88,11 @@ function createResultChart(container, job, scale){
  	  		DIANNE.learnResult(job.id).then(function(learnprogress){
 				 var q = [];
 				 $.each(learnprogress, function(i) {
-					 // TODO determine how to sample
-					 if(i % 1000 == 0){
-						 var progress = learnprogress[i];
-						 q.push({
-							 x: progress.iteration,
-		                     y: progress.q
-		                 });
-					 }
+					var progress = learnprogress[i];
+					q.push({
+						x: progress.iteration,
+		                y: progress.q
+		            });
 				 });
 				 createQChart(container, scale, q);
 			});
@@ -105,20 +102,18 @@ function createResultChart(container, job, scale){
 				 var minibatchLoss = [];
 				 var validationLoss = [];
 				 $.each(learnprogress, function(i) {
-					 // TODO determine how to sample
-					 if(i % 1000 == 0){
-						 var progress = learnprogress[i];
-						 minibatchLoss.push({
-							 x: progress.iteration,
-		                     y: progress.minibatchLoss
-		                 });
-						 if(progress.validationLoss !== undefined){
+					 var progress = learnprogress[i];
+					 minibatchLoss.push({
+						x: progress.iteration,
+		                y: progress.minibatchLoss
+		             });
+					 if(progress.validationLoss !== undefined){
 							 validationLoss.push({
 								 x: progress.iteration,
 								 y: progress.validationLoss
-					 	 	});
-						 }
+							 });
 					 }
+					 
 				 });
 				 createLossChart(container, scale, minibatchLoss, validationLoss);
 			});

@@ -138,8 +138,11 @@ public class DianneCoordinatorWriter {
 		// merge progress and validation in single object
 		// TODO for now select one learners minibatch loss as progress?
 		if(result.progress.size() > 0){
+			// only send out ~1000 points max for plotting
 			List<LearnProgress> select = result.progress.values().iterator().next();
-			for(int i =0;i<select.size();i++){
+			int step = select.size()/1000000+1;
+			step *= 1000;
+			for(int i =0;i<select.size();i+=step){
 				LearnProgress p = select.get(i);
 				Evaluation val = result.validations.get(p.iteration);
 				
