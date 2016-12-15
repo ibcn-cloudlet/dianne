@@ -112,7 +112,8 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 				grip = false;
 				
 				// punish wrong gripping?
-				return -1.0f;
+				if(config.punishWrongGrip)
+					return -1.0f;
 			}
 			
 			// also give intermediate reward for each action?
@@ -124,7 +125,7 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 						r = r > EPSILON ? 1 : r < -EPSILON ? -1 : 0;
 					} else {
 						// boost it a bit
-						r *= 20/(config.skip+1);
+						r *= config.relativeRewardScale/(config.skip+1);
 					}
 					previousDistance = distance;
 					return r;
@@ -198,9 +199,9 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 		long start = System.currentTimeMillis();
 		int tries = 0;
 		while(rangeSensors==null
-				|| rangeSensors.isEmpty()
 				|| kukaArm == null 
-				|| kukaPlatform == null){
+				|| kukaPlatform == null
+				|| rangeSensors.size() != 1 + config.environmentSensors){
 			try {
 				Thread.sleep(100);
 				if(config.tick){
@@ -239,6 +240,12 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 			Map<String, String> entities = new HashMap<String, String>();
 			entities.put("youBot", "be.iminds.iot.robot.youbot.ros.Youbot");
 			entities.put("hokuyo", "be.iminds.iot.sensor.range.ros.LaserScanner");
+			
+			// inactivate extra sensors
+			simulator.setProperty("hokuyo#0", "active", false);
+			simulator.setProperty("hokuyo#1", "active", false);
+			simulator.setProperty("hokuyo#2", "active", false);
+			simulator.setProperty("hokuyo#3", "active", false);
 			
 			switch(this.config.environmentSensors){
 			case 0:

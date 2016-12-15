@@ -63,9 +63,19 @@ public class FetchCanConfig {
 	public boolean relativeReward = false;
 	
 	/**
+	 * Scale factor to multiply diff in distance to the Can with
+	 */
+	public float relativeRewardScale = 5.0f;
+	
+	/**
 	 * Only give +1 or -1 rewards in case of relative rewards
 	 */
 	public boolean discreteReward = false;
+	
+	/**
+	 * Punish wrong grip action with a -1 reward
+	 */
+	public boolean punishWrongGrip = false;
 	
 	/**
 	 * Skip a number of frames after each action, keeping executing the same action
