@@ -344,8 +344,6 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 						if(remove){
 							inProgress.remove(tag);
 						}
-					} else {
-						System.err.println("No progress for tag "+tag+" ?!");
 					}
 				}
 			}
@@ -368,8 +366,6 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 					Progress p = inProgress.remove(tag);
 					if(p!=null){
 						p.fail(e);
-					} else {
-						System.err.println("No progress for tag "+tag+" ?!");
 					}
 				}
 			}
@@ -402,8 +398,6 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 						if(remove){
 							inProgress.remove(tag);
 						}
-					} else {
-						System.err.println("No progress for tag "+tag+" ?!");
 					}
 				}
 			}
@@ -427,8 +421,6 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 					Progress p = inProgress.remove(tag);
 					if(p!=null){
 						p.fail(e);
-					} else {
-						System.err.println("No progress for tag "+tag+" ?!");
 					}
 				}
 			}
