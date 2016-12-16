@@ -38,6 +38,8 @@ import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch;
 import be.iminds.iot.dianne.api.rl.learn.QLearnProgress;
 import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory;
+import be.iminds.iot.dianne.nn.learn.criterion.PseudoHuberCriterion;
+import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory.BatchConfig;
 import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory;
 import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
@@ -60,7 +62,8 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 	protected NeuralNetwork critic;
 	protected NeuralNetwork targetCritic;
 	
-	protected Criterion criterion;
+	protected Criterion reconCriterion;
+	protected Criterion regulCriterion;
 	protected GradientProcessor actorProcessor;
 	protected GradientProcessor criticProcessor;
 	
@@ -90,7 +93,8 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 		
 		this.config = DianneConfigHandler.getConfig(config, DeepDeterministicPolicyGradientConfig.class);
 		this.sampling = SamplingFactory.createSamplingStrategy(this.config.sampling, dataset, config);
-		this.criterion = CriterionFactory.createCriterion(this.config.criterion, config);
+		this.reconCriterion = CriterionFactory.createCriterion(this.config.criterion, config);
+		this.regulCriterion = new PseudoHuberCriterion(DianneConfigHandler.getConfig(config, BatchConfig.class));
 		this.criticProcessor = ProcessorFactory.createGradientProcessor(this.config.method, critic, config);
 		
 		config.put("learningRate", String.valueOf(Float.parseFloat(config.get("learningRate"))*this.config.policyRateScaling));
@@ -151,8 +155,16 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 		Tensor value = critic.forward(inputIds, outputIds, new Tensor[]{batch.getState(), batch.getAction()}).getValue().tensor;
 		
 		// Calculate the loss and gradient with respect to the target value
-		float loss = criterion.loss(value, targetValue);
-		Tensor criticGrad = criterion.grad(value, targetValue);
+		float loss = reconCriterion.loss(value, targetValue);
+		Tensor criticGrad = reconCriterion.grad(value, targetValue);
+		
+		// Add value smoothing on critic gradient when required
+		if(config.smoothingRegularization > 0) {
+			targetValue.fill(TensorOps.mean(value));
+			
+			loss += config.smoothingRegularization*regulCriterion.loss(value, targetValue);
+			TensorOps.add(criticGrad, criticGrad, config.smoothingRegularization, regulCriterion.grad(value, targetValue));
+		}
 		
 		// Backward pass of the critic
 		critic.backward(outputIds, inputIds, new Tensor[]{criticGrad}).getValue();

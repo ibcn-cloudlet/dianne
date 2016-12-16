@@ -39,6 +39,7 @@ import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch;
 import be.iminds.iot.dianne.api.rl.learn.QLearnProgress;
 import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory;
 import be.iminds.iot.dianne.nn.learn.criterion.GaussianKLDivCriterion;
+import be.iminds.iot.dianne.nn.learn.criterion.PseudoHuberCriterion;
 import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory.BatchConfig;
 import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory;
 import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory;
@@ -63,7 +64,8 @@ public class DeepStochasticPolicyGradientStrategy implements LearningStrategy {
 	protected NeuralNetwork targetCritic;
 	
 	protected Criterion reconCriterion;
-	protected Criterion regulCriterion;
+	protected Criterion criticRegulCriterion;
+	protected Criterion actorRegulCriterion;
 	
 	protected GradientProcessor actorProcessor;
 	protected GradientProcessor criticProcessor;
@@ -126,7 +128,8 @@ public class DeepStochasticPolicyGradientStrategy implements LearningStrategy {
 		this.outputIds = new UUID[]{this.valueOut};
 		
 		this.reconCriterion = CriterionFactory.createCriterion(this.config.criterion, config);
-		this.regulCriterion = new GaussianKLDivCriterion(DianneConfigHandler.getConfig(config, BatchConfig.class));
+		this.criticRegulCriterion = new PseudoHuberCriterion(DianneConfigHandler.getConfig(config, BatchConfig.class));
+		this.actorRegulCriterion = new GaussianKLDivCriterion(DianneConfigHandler.getConfig(config, BatchConfig.class));
 		
 		// Pre-allocate tensors for batch operations
 		this.random = new Tensor(this.config.batchSize, this.pool.actionDims());
@@ -190,6 +193,14 @@ public class DeepStochasticPolicyGradientStrategy implements LearningStrategy {
 			TensorOps.add(criticGrad, criticGrad, 1f/config.criticSamples, reconCriterion.grad(value, targetValue));
 		}
 		
+		// Add value smoothing on critic gradient when required
+		if(config.smoothingRegularization > 0) {
+			targetValue.fill(TensorOps.mean(value));
+			
+			loss += config.smoothingRegularization*criticRegulCriterion.loss(value, targetValue);
+			TensorOps.add(criticGrad, criticGrad, config.smoothingRegularization, criticRegulCriterion.grad(value, targetValue));
+		}
+		
 		// Backward pass of the critic
 		critic.backward(outputIds, inputIds, new Tensor[]{criticGrad}).getValue();
 		critic.accGradParameters();
@@ -216,16 +227,16 @@ public class DeepStochasticPolicyGradientStrategy implements LearningStrategy {
 		
 		// Add action prior regularization error and gradient on action parameters
 		if(config.actionPriorRegularization > 0) {
-			loss += config.actionPriorRegularization*regulCriterion.loss(actionParams, actionPrior);
-			TensorOps.add(actorGrad, actorGrad, config.actionPriorRegularization, regulCriterion.grad(actionParams, actionPrior));
+			loss += config.actionPriorRegularization*actorRegulCriterion.loss(actionParams, actionPrior);
+			TensorOps.add(actorGrad, actorGrad, config.actionPriorRegularization, actorRegulCriterion.grad(actionParams, actionPrior));
 		}
 		
 		// Add trust region regularization error and gradient on action parameters
 		if(config.trustRegionRegularization > 0) {
 			Tensor targetActionParams = targetActor.forward(batch.getState());
 			
-			loss += config.trustRegionRegularization*regulCriterion.loss(actionParams, targetActionParams);
-			TensorOps.add(actorGrad, actorGrad, config.trustRegionRegularization, regulCriterion.grad(actionParams, targetActionParams));
+			loss += config.trustRegionRegularization*actorRegulCriterion.loss(actionParams, targetActionParams);
+			TensorOps.add(actorGrad, actorGrad, config.trustRegionRegularization, actorRegulCriterion.grad(actionParams, targetActionParams));
 		}
 		
 		// Perform gradient clipping if required

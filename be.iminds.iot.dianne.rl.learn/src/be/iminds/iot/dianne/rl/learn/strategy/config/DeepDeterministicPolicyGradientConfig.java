@@ -34,4 +34,8 @@ public class DeepDeterministicPolicyGradientConfig extends DeepQConfig {
 	 */
 	public boolean actorGradClipping = false;
 	
+	/**
+	 * Smooth out the Q values to improve stability
+	 */
+	public float smoothingRegularization = 0f;
 }
