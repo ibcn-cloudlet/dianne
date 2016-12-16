@@ -359,17 +359,8 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	}
 
 	@Override
-	public List<Device> getDevices(final boolean monitor){
-		return devices.values().stream().map(device -> {
-			if(monitor){
-				NodeMonitorInfo nmi = aiolos.getNodeMonitorInfo(device.id.toString());
-				if(nmi!=null){
-					device.cpuUsage = nmi.getCpuUsage();
-					device.memUsage = nmi.getMemoryUsage();
-				}
-			}
-			return device;
-		}).collect(Collectors.toList());
+	public List<Device> getDevices(){
+		return new ArrayList<Device>(devices.values());
 	}
 	
 	// called when a job is done

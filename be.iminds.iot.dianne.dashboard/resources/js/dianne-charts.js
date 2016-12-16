@@ -55,29 +55,6 @@ function createStatusChart(container, status){
     });	
 }
 
-// gauge charts for cpu/memory usage
-function createGaugeChart(container, name, value) {
-	container.highcharts(Highcharts.merge(gaugeOptions, {
-        yAxis: {
-            min: 0,
-            max: 100,
-            title: {
-                text: name
-            }
-        },
-        series: [{
-            name: name,
-            data: [value],
-            dataLabels: {
-                format: '<div style="text-align:center"><span style="font-size:25px;color:' +
-                    ((Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black') + '">{y:.1f}%</span></div>'
-            },
-            tooltip: {
-                valueSuffix: ' %'
-            }
-        }]
-    }));
-}
 
 // create job results chart
 function createResultChart(container, job, scale){
@@ -348,60 +325,3 @@ $(function () {
 	    });
 	});
 });
-
-
-// gauge charts options
-var gaugeOptions = {
-        chart: {
-            type: 'solidgauge',
-            height: 200
-        },
-        title: null,
-        pane: {
-            center: ['50%', '85%'],
-            size: '140%',
-            startAngle: -90,
-            endAngle: 90,
-            background: {
-                backgroundColor: (Highcharts.theme && Highcharts.theme.background2) || '#EEE',
-                innerRadius: '60%',
-                outerRadius: '100%',
-                shape: 'arc'
-            }
-        },
-        tooltip: {
-            enabled: false
-        },
-        credits: {
-            enabled: false
-        },
-        // the value axis
-        yAxis: {
-        	color: {
-        	    radialGradient: { cx: 0.5, cy: 0.5, r: 0.5 },
-        	    stops: [
-        	       [0, '#003399'],
-        	       [1, '#3366AA']
-        	    ]
-        	},
-            lineWidth: 0,
-            minorTickInterval: null,
-            tickPixelInterval: 400,
-            tickWidth: 0,
-            title: {
-                y: -70
-            },
-            labels: {
-                y: 16
-            }
-        },
-        plotOptions: {
-            solidgauge: {
-                dataLabels: {
-                    y: 5,
-                    borderWidth: 0,
-                    useHTML: true
-                }
-            }
-        }
-    };

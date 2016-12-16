@@ -326,7 +326,7 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 			writeResult(writer, id, coordinator.getStatus());
 			break;
 		case "devices":
-			writeResult(writer, id, coordinator.getDevices(true));
+			writeResult(writer, id, coordinator.getDevices());
 			break;
 		default:
 			writeError(writer, id, -32601, "Method "+method+" not found");

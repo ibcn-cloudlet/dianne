@@ -195,22 +195,6 @@ function refreshStatus(){
  	});
 }
 
-function refreshInfrastructure(){
-	DIANNE.devices().then(function(data){
- 	 	$(".infrastructure").remove();
- 	    $.each(data, function(i) {
- 	        var device = data[i];
- 	        var template = $('#device').html();
-     	  	Mustache.parse(template);
-     	  	var rendered = Mustache.render(template, device);
-     	  	$(rendered).appendTo($("#dashboard"));
-     	  	
-     	  	createGaugeChart($('#'+device.id+'-cpu'), 'CPU usage', device.cpuUsage);
-     	  	createGaugeChart($('#'+device.id+'-mem'), 'Memory usage', device.memUsage);
- 	    });
- 	});	
-}
-
 function addNotification(notification){
 	notification.time = moment(notification.timestamp).fromNow();
 	notification.level = notification.level.toLowerCase();
@@ -269,37 +253,10 @@ function showDetails(jobId){
 }
 
 
-function setModus(mode){
-	currentMode = mode;
-	
-	$(".active").removeClass("active");
-	
-	if(mode === "dashboard"){
-		$(".block").hide();
-		$(".block").filter( ".dashboard" ).show();
-		$("#mode-dashboard").addClass("active");
-		
-		refreshStatus();
-	} else if(mode === "jobs"){
-		$(".block").hide();
-		refreshJobs();
-		
-		$(".block").filter( ".jobs" ).show();
-		$("#mode-jobs").addClass("active");
-	} else if(mode === "infrastructure"){
-     	refreshInfrastructure();
-     	
-		$(".block").hide();
-		$(".block").filter( ".infrastructure" ).show();
-		$("#mode-infrastructure").addClass("active");
-	}
-}
-
-
 // initialize
 $(function () {
     $(document).ready(function () {
-     	setModus('dashboard');
+		refreshStatus();
 
      	// TODO set each time the dialog is shown?
      	// nn options in submission dialog
@@ -388,29 +345,7 @@ eventsource.onmessage = function(event){
 	var data = JSON.parse(event.data);
 	if(data.type === "notification"){
 		addNotification(data);
-		refreshJobs();
 		refreshStatus();
-		
- 	    // update final graphs in running job overview
-		if(data.jobId!==undefined && data.level==="success"){
-			DIANNE.job(data.jobId).then(function(job){
-	     	  	createResultChart($('#'+job.id+"-progress"), job);
-	 	    });
-		}
-	} else if(data.type === "progress"){
-		var index = Number($("#"+data.jobId+"-progress").attr("data-highcharts-chart"));
-    	var x = Number(data.iteration);
-    	var y;
-    	if(data.q!==undefined){
-    		y = Number(data.q);
-    	} else {
-    		y = Number(data.minibatchLoss);
-    	}
-		Highcharts.charts[index].series[0].addPoint([x, y], true, true, false);
-		if(data.validationLoss !== undefined){
-			var v = Number(data.validationLoss);
-			Highcharts.charts[index].series[1].addPoint([x, v], true, true, false);
-		}
 	}
 }
 

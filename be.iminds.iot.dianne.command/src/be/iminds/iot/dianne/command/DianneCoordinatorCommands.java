@@ -62,7 +62,7 @@ public class DianneCoordinatorCommands {
 	
 	@Descriptor("List available devices.")
 	public void devices(){
-		coordinator.getDevices(false).stream().forEach(device -> 
+		coordinator.getDevices().stream().forEach(device -> 
 			System.out.println(device.id+"\t"+device.name+"\t"+device.ip+"\t"+device.os+"\t"+device.arch));
 	}
 	

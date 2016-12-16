@@ -37,9 +37,6 @@ public class Device {
 	public boolean eval = false;
 	public boolean act = false;
 	
-	public double cpuUsage;
-	public double memUsage;
-	
 	public Device(UUID id, String name, String arch, String os, String ip){
 		this.id = id;
 		this.name = name;

@@ -36,14 +36,6 @@
 						<li><a href="#" id="menu-submit" data-toggle="modal" data-target="#submit-modal">Submit new job</a></li>
 	                </ul>
                 </nav>
-				
-				<nav class='controls'>
-					<ul id="modes" class="nav masthead-nav control-group">
-						<li><a href="#" id="mode-dashboard" onclick="setModus('dashboard');return false;" class="active">Dashboard</a></li>
-						<li><a href="#" id="mode-jobs" onclick="setModus('jobs');return false;">Running Jobs</a></li>
-						<li><a href="#" id="mode-infrastructure" onclick="setModus('infrastructure');return false;">Infrastructure</a></li>
-					</ul>
-				</nav>
 			</div>
 		</header>
 
@@ -215,30 +207,6 @@
 	</div>
 	</script>	
 
-	<script type="x-tmpl-mustache" id="device">
-	<div class="block infrastructure col-lg-4 col-md-6">
-		<div class="panel panel-default resources">
-			<div class="panel-heading">{{name}}</div>
-			<div class="panel-body">
-				<b>{{id}}</b>
-				<ul>
-					<li>Arch: {{arch}}</li>
-					<li>OS: {{os}}</li>
-					<!--<li>CPU: Intel(R) Xeon(R) CPU E5-2620 v3 @ 2.40GHz</li>-->
-					<!--<li>GPU: GeForce GTX 980 </li>-->
-					<li>IP: {{ip}}</li>
-				</ul>
-				<br/>
-				Resource usage:							
-				<div class="row">
-					<div id="{{id}}-mem" class="col-sm-6"></div>
-					<div id="{{id}}-cpu" class="col-sm-6"></div>
-				</div>
-			</div>
-		</div>
-	</div>
-	</script>	
-
 	<script type="x-tmpl-mustache" id="job-item">
 	<a href="#" onclick="showDetails('{{id}}')" class="list-group-item">
 		<span class="badge">{{category}}</span>
@@ -250,26 +218,6 @@
 	</a>
 	</script>
 
-	<script type="x-tmpl-mustache" id="job">
-	<div id="{{id}}" class="block jobs col-lg-4 col-md-6">
-	<div class="panel panel-default job">
-	  	<div class="panel-heading">
-			<span class="badge pull-right">{{category}}</span>
-			<span class="badge pull-right" style="margin-right:10px">{{type}}</span>
-			{{name}}
-		</div>
-	  	<div class="panel-body">
-	  		<div>
-	  			<p>NN: {{nn}} | Dataset: {{dataset}}</p>
-	  			<p>Running on {{devices}} nodes | Started: <span class="timeAgo" timestamp="{{started}}">{{time}}</span></p>
-	  		</div>
-	  		<div id="{{id}}-progress">
-	  		</div>
-	  	</div>
-	  </div>
-	</div>
-	</script>
-	
 	<script type="x-tmpl-mustache" id="job-details">
 	<div class="modal fade" id="{{id}}-details" role="dialog">
 	  <div class="modal-dialog modal-lg">

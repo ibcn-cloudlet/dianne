@@ -64,6 +64,6 @@ public interface DianneCoordinator {
 	
 	List<Notification> getNotifications();
 	
-	List<Device> getDevices(boolean monitor);
+	List<Device> getDevices();
 	
 }
