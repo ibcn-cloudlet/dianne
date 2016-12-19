@@ -27,7 +27,6 @@ import java.util.Map;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.rl.agent.ActionController;
 import be.iminds.iot.dianne.api.rl.agent.ActionStrategy;
-import be.iminds.iot.dianne.api.rl.agent.AgentProgress;
 import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.tensor.Tensor;
 
@@ -53,14 +52,14 @@ public class ManualActionStrategy implements ActionStrategy, ActionController {
 	}
 
 	@Override
-	public AgentProgress processIteration(long i, Tensor state) throws Exception {
+	public Tensor processIteration(long i, Tensor state) throws Exception {
 		synchronized(this){
 			if(wait || action == null){
 				try {
 					this.wait();
 				} catch(InterruptedException e){}
 			}
-			return new AgentProgress(i, action);
+			return action;
 		}
 	}
 	

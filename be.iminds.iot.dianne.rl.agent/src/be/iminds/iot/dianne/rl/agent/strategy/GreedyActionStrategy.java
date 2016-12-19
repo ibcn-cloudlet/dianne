@@ -26,7 +26,6 @@ import java.util.Map;
 
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.rl.agent.ActionStrategy;
-import be.iminds.iot.dianne.api.rl.agent.AgentProgress;
 import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.agent.strategy.config.GreedyConfig;
@@ -52,7 +51,7 @@ public class GreedyActionStrategy implements ActionStrategy {
 	}
 
 	@Override
-	public AgentProgress processIteration(long i, Tensor state) throws Exception {
+	public Tensor processIteration(long i, Tensor state) throws Exception {
 		Tensor output = nn.forward(state);
 		
 		Tensor action = new Tensor(output.size());
@@ -70,7 +69,7 @@ public class GreedyActionStrategy implements ActionStrategy {
 			action.set(1, TensorOps.argmax(output));
 		}
 		
-		return new AgentProgress(i, action);
+		return action;
 	}
 
 }

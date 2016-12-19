@@ -46,6 +46,9 @@ public class ActJob extends AbstractJob<AgentResult> implements AgentListener {
 
 	private ServiceRegistration<AgentListener> reg;
 	
+	private long totalIterations = 0;
+	private long totalSequences = 0;
+	
 	private long maxIterations = -1;
 	private long maxSequences = -1;
 	
@@ -139,7 +142,10 @@ public class ActJob extends AbstractJob<AgentResult> implements AgentListener {
 		}
 		result.progress.get(agentId).add(progress);
 		
-		if(maxIterations > 0 && progress.iteration >= maxIterations){
+		totalIterations += progress.iterations;
+		totalSequences ++;
+		
+		if(maxIterations > 0 && totalIterations >= maxIterations){
 			try {
 				stop();
 			} catch (Exception e) {
@@ -147,7 +153,7 @@ public class ActJob extends AbstractJob<AgentResult> implements AgentListener {
 			}
 		}
 		
-		if(maxSequences > 0 && progress.sequence >= maxSequences){
+		if(maxSequences > 0 && totalSequences >= maxSequences){
 			try {
 				stop();
 			} catch (Exception e) {

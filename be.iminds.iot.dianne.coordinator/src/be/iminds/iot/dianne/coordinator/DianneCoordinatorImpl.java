@@ -64,7 +64,6 @@ import org.osgi.util.promise.Promise;
 import com.google.gson.stream.JsonWriter;
 
 import be.iminds.aiolos.info.NodeInfo;
-import be.iminds.aiolos.monitor.node.api.NodeMonitorInfo;
 import be.iminds.aiolos.platform.api.PlatformManager;
 import be.iminds.iot.dianne.api.coordinator.AgentResult;
 import be.iminds.iot.dianne.api.coordinator.Device;

@@ -31,10 +31,10 @@ package be.iminds.iot.dianne.api.nn.learn;
 public class LearnProgress {
 
 	/** The number of iterations (=number of batches) processed */
-	public final long iteration;
+	public long iteration;
 	
 	/** The current minibatch loss perceived by the Learner */
-	public final float minibatchLoss;
+	public float minibatchLoss;
 	
 	public LearnProgress(long iteration, float loss){
 		this.iteration = iteration;

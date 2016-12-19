@@ -233,12 +233,15 @@ public class DianneCoordinatorWriter {
 	public static void writeAgentResult(JsonWriter writer, AgentResult result) throws Exception {
 		writer.beginArray();
 		for(List<AgentProgress> pp : result.progress.values()){
-			// for only write latest ... TODO write complete progress, including reward/actions?
-			AgentProgress p = pp.get(pp.size()-1);
-			writer.beginObject();
-			writer.name("samples");
-			writer.value(p.iteration);
-			writer.endObject();		
+			writer.beginArray();
+			int step = pp.size()/10000+1; // limit to 10k points
+			for(int i =0;i<pp.size();i+=step){
+				AgentProgress progress = pp.get(i);
+				writer.beginObject();
+				writeFields(writer, progress);
+				writer.endObject();
+			}
+			writer.endArray();
 		}
 		writer.endArray();
 	}

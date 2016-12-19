@@ -26,7 +26,6 @@ import java.util.Map;
 
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.rl.agent.ActionStrategy;
-import be.iminds.iot.dianne.api.rl.agent.AgentProgress;
 import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.agent.strategy.config.GaussianNoiseConfig;
@@ -48,7 +47,7 @@ public class GaussianNoiseActionStrategy implements ActionStrategy {
 	}
 
 	@Override
-	public AgentProgress processIteration(long i, Tensor state) throws Exception {
+	public Tensor processIteration(long i, Tensor state) throws Exception {
 		Tensor action = policy.forward(state);
 		
 		noise.randn();
@@ -65,7 +64,7 @@ public class GaussianNoiseActionStrategy implements ActionStrategy {
 				action.set(config.maxValue, a);
 		}
 		
-		return new AgentProgress(i, action);
+		return action;
 	}
 
 }

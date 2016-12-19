@@ -22,23 +22,20 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.rl.agent;
 
-import be.iminds.iot.dianne.tensor.Tensor;
-
 public class AgentProgress {
 
-	public final long iteration;
-	public final Tensor action;
-	
-	public float reward;
 	public long sequence;
+	public long iterations;
+	public float reward;
 	
-	public AgentProgress(long i, Tensor a){
-		this.iteration = i;
-		this.action = a;
+	public AgentProgress(long s, long i, float r){
+		this.sequence = s;
+		this.iterations = i;
+		this.reward = r;
 	}
 	
 	@Override
 	public String toString(){
-		return "[AGENT] Iteration: "+iteration+" Sequence: "+sequence+" Action: "+action.toString().replace("\n", " ")+" Reward: "+reward;
+		return "[AGENT] Sequence: "+sequence+" Iterations: "+iterations+" Reward: "+reward;
 	}
 }

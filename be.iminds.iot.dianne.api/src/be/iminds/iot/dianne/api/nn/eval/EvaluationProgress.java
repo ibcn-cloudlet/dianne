@@ -31,7 +31,7 @@ package be.iminds.iot.dianne.api.nn.eval;
 public class EvaluationProgress extends Evaluation {
 
 	/** Number of samples currently processed */
-	public final long processed;
+	public long processed;
 	
 	public EvaluationProgress(long processed, long size, float metric){
 		this.metric = metric;

@@ -26,7 +26,6 @@ import java.util.Map;
 
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.rl.agent.ActionStrategy;
-import be.iminds.iot.dianne.api.rl.agent.AgentProgress;
 import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
@@ -47,7 +46,7 @@ public class DiscreteSamplingActionStrategy implements ActionStrategy {
 	}
 
 	@Override
-	public AgentProgress processIteration(long i, Tensor state) throws Exception {
+	public Tensor processIteration(long i, Tensor state) throws Exception {
 		Tensor output = nn.forward(state);
 		
 		Tensor action = new Tensor(output.size());
@@ -66,7 +65,7 @@ public class DiscreteSamplingActionStrategy implements ActionStrategy {
 		
 		action.set(1, a);
 		
-		return new AgentProgress(i, action);
+		return action;
 	}
 
 }

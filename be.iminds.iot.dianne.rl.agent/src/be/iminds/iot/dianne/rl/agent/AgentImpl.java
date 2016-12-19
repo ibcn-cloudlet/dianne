@@ -298,6 +298,8 @@ public class AgentImpl implements Agent {
 		
 				s.input = env.getObservation(s.input);
 	
+				progress = new AgentProgress(0, 0, 0);
+				
 				for(i = 0; acting; i++) {
 					// sync parameters
 					if(sync && count == 0){
@@ -311,19 +313,24 @@ public class AgentImpl implements Agent {
 						sync = false;
 					}
 					
-					progress = strategy.processIteration(i, s.input);
-					progress.sequence = seq;
+					progress.iterations++;
 					
-					s.target = progress.action;
+					// select action according to strategy
+					s.target = strategy.processIteration(i, s.input);
 	
-					progress.reward = env.performAction(s.target);
+					// execute action and get reward
+					float reward = env.performAction(s.target);
+					progress.reward+=reward;
+					
 					if(s.reward == null){
 						s.reward = new Tensor(1);
 					}
 					s.reward.set(progress.reward, 0);
 					
+					// get the next state
 					s.nextState = env.getObservation(s.nextState);
 					
+					// check if terminal
 					if(s.terminal == null){
 						s.terminal = new Tensor(1);
 					}
@@ -364,8 +371,12 @@ public class AgentImpl implements Agent {
 					}
 	
 					// if this is a terminal state - reset environment and start over
+					// TODO what with infinite horizon environments?
 					if(s.isTerminal()){
+						publishProgress(progress);
 						seq++;
+						progress = new AgentProgress(seq, 0, 0);
+						
 						do {
 							env.reset();
 							s.input = env.getObservation(s.input);
@@ -376,8 +387,6 @@ public class AgentImpl implements Agent {
 					} else {
 						s.input = s.nextState.copyInto(s.input);
 					}
-					
-					publishProgress(progress);
 				}
 			} catch(Throwable t){
 				if(t.getCause() != null && t.getCause() instanceof InterruptedException){

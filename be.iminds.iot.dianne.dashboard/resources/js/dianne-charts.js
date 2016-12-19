@@ -121,8 +121,18 @@ function createResultChart(container, job, scale){
 		container.empty();
  	  	DIANNE.agentResult(job.id).then(function(results){
 			$.each(results, function(i) {
-				var result = results[i];
-				createProgressBar($('#'+job.id+"-result"), 100, result.samples+" samples generated", job.stopped===0);
+				var agentprogress = results[i];
+			
+				var reward = [];
+				$.each(agentprogress, function(i) {
+					var progress = agentprogress[i];
+					reward.push({
+						x: progress.sequence,
+		                y: progress.reward
+		            });
+				 });
+				
+				 createRewardChart(container, scale, reward);
 			});
 		});
 	}
@@ -134,6 +144,10 @@ function createLossChart(container, scale, minibatchLoss, validationLoss){
 
 function createQChart(container, scale, q){
 	createLineChart(container, 'Iterations', 'Q', scale, 'Q', q);
+}
+
+function createRewardChart(container, scale, reward){
+	createLineChart(container, 'Sequences', 'Reward', scale, 'reward', reward);
 }
 
 // generic line chart
