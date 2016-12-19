@@ -35,7 +35,8 @@ public class CriterionFactory {
 		ABS,
 		BCE,
 		GKL,
-		HUB
+		HUB,
+		GAU
 	}
 	
 	public static class BatchConfig {
@@ -76,6 +77,9 @@ public class CriterionFactory {
 			break;
 		case HUB :
 			criterion = new PseudoHuberCriterion(b);
+			break;
+		case GAU :
+			criterion = new GaussianCriterion(b);
 			break;
 		default:
 			criterion = new MSECriterion(b);
