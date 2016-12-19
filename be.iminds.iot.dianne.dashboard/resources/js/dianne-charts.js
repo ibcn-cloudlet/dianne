@@ -60,9 +60,8 @@ function createStatusChart(container, status){
 function createResultChart(container, job, scale){
 	// in case of learn chart, plot learn progress curve
 	if(job.type==="LEARN"){
-     	if(job.category==="RL"){
-     		// in case of RL jobs, plot Q value (TODO plot 2 series error + Q?)
- 	  		DIANNE.learnResult(job.id).then(function(learnprogress){
+		DIANNE.learnResult(job.id).then(function(learnprogress){
+			if(learnprogress[0].q !== undefined){
 				 var q = [];
 				 $.each(learnprogress, function(i) {
 					var progress = learnprogress[i];
@@ -72,13 +71,10 @@ function createResultChart(container, job, scale){
 		            });
 				 });
 				 createQChart(container, scale, q);
-			});
-     	} else { 
-     		// else plot error value
-			DIANNE.learnResult(job.id).then(function(learnprogress){
-				 var minibatchLoss = [];
-				 var validationLoss = [];
-				 $.each(learnprogress, function(i) {
+			} else {
+				var minibatchLoss = [];
+				var validationLoss = [];
+				$.each(learnprogress, function(i) {
 					 var progress = learnprogress[i];
 					 minibatchLoss.push({
 						x: progress.iteration,
@@ -92,9 +88,9 @@ function createResultChart(container, job, scale){
 					 }
 					 
 				 });
-				 createLossChart(container, scale, minibatchLoss, validationLoss);
-			});
-     	}
+				 createLossChart(container, scale, minibatchLoss, validationLoss);	
+			}
+		});
 	} else if(job.type==="EVALUATE"){
 		// in case of evaluate jobs, plot a progress bar if still busy, confusion matrix heatmap otherwise
 		container.empty();
