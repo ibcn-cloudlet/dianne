@@ -42,7 +42,7 @@ public class GaussianCriterion implements Criterion {
 	}
 	
 	@Override
-	public float loss(Tensor params, Tensor data) {
+	public Tensor loss(Tensor params, Tensor data) {
 		int dim = params.dim()-1;
 		int size = params.size(dim)/2;
 		
@@ -58,11 +58,7 @@ public class GaussianCriterion implements Criterion {
 		logStdev = TensorOps.log(logStdev, stdev);
 		TensorOps.add(loss, loss, logStdev);
 		
-		if(b.batchAverage){
-			return TensorOps.sum(loss)/b.batchSize;
-		} else {
-			return TensorOps.sum(loss);
-		}
+		return loss;
 	}
 
 	@Override
