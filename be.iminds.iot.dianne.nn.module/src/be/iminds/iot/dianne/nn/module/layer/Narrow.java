@@ -20,16 +20,20 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.nn.module.preprocessing;
+package be.iminds.iot.dianne.nn.module.layer;
 
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
+import be.iminds.iot.dianne.tensor.Tensor;
 
 public class Narrow extends AbstractModule {
 
 	// narrow ranges - should match the dimensions though
 	private final int[] ranges;
+	
+	private int[] inputDims;
+	private int batched = 0;
 	
 	public Narrow(final int... ranges){
 		super();
@@ -43,12 +47,35 @@ public class Narrow extends AbstractModule {
 
 	@Override
 	protected void forward() {
-		output = input.narrow(ranges);
+		inputDims = input.dims();
+		if(inputDims.length == ranges.length/2 + 1){
+			// batched input
+			batched = 1;
+		}  else {
+			batched = 0;
+		}
+	
+		output = input;
+		for(int i=0;i<ranges.length-1;i+=2){
+			output = output.narrow(i/2 + batched, ranges[i], ranges[i+1]); 
+		}
+	
 	}
 
 	@Override
 	protected void backward() {
-		// not implemented
+		if(gradInput == null){
+			gradInput = new Tensor(inputDims);
+		}
+		gradInput.reshape(inputDims);
+		gradInput.fill(0.0f);	
+		
+		Tensor narrowedGradIn = gradInput;
+		for(int i=0;i<ranges.length-1;i+=2){
+			narrowedGradIn = narrowedGradIn.narrow(i/2 + batched, ranges[i], ranges[i+1]); 
+		}
+		
+		gradOutput.copyInto(narrowedGradIn);
 	}
 
 }

@@ -62,11 +62,11 @@ import be.iminds.iot.dianne.nn.module.layer.Linear;
 import be.iminds.iot.dianne.nn.module.layer.MaskedMaxPooling;
 import be.iminds.iot.dianne.nn.module.layer.MaxPooling;
 import be.iminds.iot.dianne.nn.module.layer.MaxUnpooling;
+import be.iminds.iot.dianne.nn.module.layer.Narrow;
 import be.iminds.iot.dianne.nn.module.layer.Reshape;
 import be.iminds.iot.dianne.nn.module.layer.Zeropad;
 import be.iminds.iot.dianne.nn.module.preprocessing.Denormalization;
 import be.iminds.iot.dianne.nn.module.preprocessing.Frame;
-import be.iminds.iot.dianne.nn.module.preprocessing.Narrow;
 import be.iminds.iot.dianne.nn.module.preprocessing.Normalization;
 import be.iminds.iot.dianne.nn.module.preprocessing.Scale;
 import be.iminds.iot.dianne.nn.module.regularization.BatchNormalization;
@@ -195,7 +195,7 @@ public class DianneModuleFactory implements ModuleFactory {
 		addSupportedType(new ModuleTypeDTO("Normalization", "Preprocessing", true));
 		addSupportedType(new ModuleTypeDTO("Denormalization", "Preprocessing", true));
 		
-		addSupportedType(new ModuleTypeDTO("Narrow", "Preprocessing", false, 
+		addSupportedType(new ModuleTypeDTO("Narrow", "Layer", false, 
 				new ModulePropertyDTO("Index dim 0", "index0", Integer.class.getName()),
 				new ModulePropertyDTO("Size dim 0", "size0", Integer.class.getName()),
 				new ModulePropertyDTO("Index dim 1", "index1", Integer.class.getName()),
@@ -577,16 +577,20 @@ public class DianneModuleFactory implements ModuleFactory {
 			int index0 = Integer.parseInt(dto.properties.get("index0"));
 			int size0 = Integer.parseInt(dto.properties.get("size0"));
 			
-			int index1 = Integer.parseInt(dto.properties.get("index1"));
-			int size1 = Integer.parseInt(dto.properties.get("size1"));
+			if(hasProperty(dto.properties, "index1")){
+				int index1 = Integer.parseInt(dto.properties.get("index1"));
+				int size1 = Integer.parseInt(dto.properties.get("size1"));
 			
-			if(hasProperty(dto.properties, "index2")){
-				int index2 = Integer.parseInt(dto.properties.get("index2"));
-				int size2 = Integer.parseInt(dto.properties.get("size2"));
-				
-				ranges = new int[]{index0, size0, index1, size1, index2, size2};
+				if(hasProperty(dto.properties, "index2")){
+					int index2 = Integer.parseInt(dto.properties.get("index2"));
+					int size2 = Integer.parseInt(dto.properties.get("size2"));
+					
+					ranges = new int[]{index0, size0, index1, size1, index2, size2};
+				} else {
+					ranges = new int[]{index0, size0, index1, size1};
+				}
 			} else {
-				ranges = new int[]{index0, size0, index1, size1};
+				ranges = new int[]{index0, size0};
 			}
 			
 			module = new Narrow(id, ranges);
