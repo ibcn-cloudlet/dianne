@@ -27,6 +27,14 @@ import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory.BatchConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
+/**
+ * Gaussian criterion that can be used for training VAEs with continuous data
+ * 
+ * https://github.com/y0ast/VAE-Torch/blob/master/GaussianCriterion.lua
+ * 
+ * @author tverbele
+ *
+ */
 public class GaussianCriterion implements Criterion {
 	
 	protected Tensor meanDiff;
@@ -45,6 +53,8 @@ public class GaussianCriterion implements Criterion {
 	
 	@Override
 	public Tensor loss(Tensor params, Tensor data) {
+	    // negative log likelihood, so sign is flipped
+	    // log(sigma) + 0.5 *log(2pi)) + 0.5 * (x - mu)^2/sigma^2
 		int dim = params.dim()-1;
 		int size = params.size(dim)/2;
 		
@@ -83,14 +93,16 @@ public class GaussianCriterion implements Criterion {
 		Tensor gradMean = grad.narrow(dim, 0, size);
 		Tensor gradStdev = grad.narrow(dim, size, size);
 		
+		// - (x - mu) / sigma^2
 		TensorOps.cdiv(gradMean, meanDiff, stdev);
 		TensorOps.cdiv(gradMean, gradMean, stdev);
 		TensorOps.mul(gradMean, gradMean, -1);
-		
+
+		// 0.5 - 0.5 * (x - mu)^2 / sigma^2
 		gradMean.copyInto(gradStdev);
 		TensorOps.cmul(gradStdev, gradStdev, meanDiff);
 		TensorOps.add(gradStdev, gradStdev, 1);
-		TensorOps.cdiv(gradStdev, gradStdev, stdev);
+		TensorOps.div(gradStdev, gradStdev, 2);
 		
 		if(b.batchAverage){
 			TensorOps.div(grad, grad, b.batchSize);
