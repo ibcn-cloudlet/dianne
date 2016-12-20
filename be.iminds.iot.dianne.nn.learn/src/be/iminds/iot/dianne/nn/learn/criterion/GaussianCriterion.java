@@ -32,7 +32,9 @@ public class GaussianCriterion implements Criterion {
 	protected Tensor meanDiff;
 	protected Tensor logStdev;
 	
-	protected Tensor loss;
+	protected Tensor l;
+	
+	protected Tensor loss = new Tensor(1);
 	protected Tensor grad;
 
 	protected BatchConfig b;
@@ -51,12 +53,21 @@ public class GaussianCriterion implements Criterion {
 		
 		meanDiff = TensorOps.sub(meanDiff, data, mean);
 		
-		loss = TensorOps.cdiv(loss, meanDiff, stdev);
-		TensorOps.cmul(loss, loss, loss);
-		TensorOps.add(loss, loss, (float) Math.log(2*Math.PI));
-		TensorOps.div(loss, loss, 2);
+		l = TensorOps.cdiv(l, meanDiff, stdev);
+		TensorOps.cmul(l, l, l);
+		TensorOps.add(l, l, (float) Math.log(2*Math.PI));
+		TensorOps.div(l, l, 2);
 		logStdev = TensorOps.log(logStdev, stdev);
-		TensorOps.add(loss, loss, logStdev);
+		TensorOps.add(l, l, logStdev);
+		
+		if(b.batchSize > 1){
+			loss.reshape(b.batchSize);
+			for(int i=0;i<b.batchSize;i++){
+				loss.set(TensorOps.sum(l.select(0, i)), i);
+			}
+		} else {
+			loss.set(TensorOps.sum(l), 0);
+		}
 		
 		return loss;
 	}

@@ -43,7 +43,9 @@ public class BCECriterion implements Criterion {
 	protected Tensor logOut;
 	protected Tensor logInvOut;
 	
-	protected Tensor loss;
+	protected Tensor l;
+	
+	protected Tensor loss = new Tensor(1);
 	protected Tensor grad;
 	
 	protected BatchConfig b;
@@ -68,9 +70,17 @@ public class BCECriterion implements Criterion {
 		logOut = TensorOps.log(logOut, epsOut);
 		logInvOut = TensorOps.log(logInvOut, epsInvOut);
 		
-		loss = TensorOps.cmul(loss, target, logOut);
-		TensorOps.addcmul(loss, loss, 1, invTar, logInvOut);
-		loss = TensorOps.mul(loss, loss, -1);
+		l = TensorOps.cmul(l, target, logOut);
+		TensorOps.addcmul(l, l, 1, invTar, logInvOut);
+		
+		if(b.batchSize > 1){
+			loss.reshape(b.batchSize);
+			for(int i=0;i<b.batchSize;i++){
+				loss.set(-TensorOps.sum(l.select(0, i)), i);
+			}
+		} else {
+			loss.set(-TensorOps.sum(l), 0);
+		}
 		
 		return loss;
 	}

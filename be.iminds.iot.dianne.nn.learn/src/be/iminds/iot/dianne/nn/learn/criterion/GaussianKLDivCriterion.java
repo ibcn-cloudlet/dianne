@@ -36,7 +36,9 @@ public class GaussianKLDivCriterion implements Criterion {
 	protected Tensor sqTarStdev;
 	protected Tensor invOutStdev;
 	
-	protected Tensor loss;
+	protected Tensor l;
+	
+	protected Tensor loss = new Tensor(1);
 	protected Tensor grad;
 
 	protected BatchConfig b;
@@ -56,18 +58,27 @@ public class GaussianKLDivCriterion implements Criterion {
 		Tensor tarStdev = target.narrow(dim, size, size);
 		
 		meanDiff = TensorOps.sub(meanDiff, tarMean, outMean);
-		loss = TensorOps.cdiv(loss, meanDiff, tarStdev);
-		TensorOps.cmul(loss, loss, loss);
+		l = TensorOps.cdiv(l, meanDiff, tarStdev);
+		TensorOps.cmul(l, l, l);
 		
 		stdevRatio = TensorOps.cdiv(stdevRatio, outStdev, tarStdev);
 		TensorOps.cmul(stdevRatio, stdevRatio, stdevRatio);
-		TensorOps.add(loss, loss, stdevRatio);
+		TensorOps.add(l, l, stdevRatio);
 		
 		logStdevRatio = TensorOps.log(logStdevRatio, stdevRatio);
-		TensorOps.sub(loss, loss, logStdevRatio);
+		TensorOps.sub(l, l, logStdevRatio);
 		
-		TensorOps.sub(loss, loss, 1);
-		TensorOps.div(loss, loss, 2);
+		TensorOps.sub(l, l, 1);
+		TensorOps.div(l, l, 2);
+		
+		if(b.batchSize > 1){
+			loss.reshape(b.batchSize);
+			for(int i=0;i<b.batchSize;i++){
+				loss.set(TensorOps.sum(l.select(0, i)), i);
+			}
+		} else {
+			loss.set(TensorOps.sum(l), 0);
+		}
 		
 		return loss;
 	}
