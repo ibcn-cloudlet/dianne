@@ -71,6 +71,7 @@ import be.iminds.iot.dianne.nn.module.preprocessing.Normalization;
 import be.iminds.iot.dianne.nn.module.preprocessing.Scale;
 import be.iminds.iot.dianne.nn.module.regularization.BatchNormalization;
 import be.iminds.iot.dianne.nn.module.regularization.Dropout;
+import be.iminds.iot.dianne.nn.module.vae.GaussianSampler;
 import be.iminds.iot.dianne.nn.module.vae.MultivariateGaussian;
 import be.iminds.iot.dianne.tensor.Tensor;
 
@@ -87,6 +88,10 @@ public class DianneModuleFactory implements ModuleFactory {
 				new ModulePropertyDTO("Size", "size", Integer.class.getName()),
 				new ModulePropertyDTO("Mean Activation", "meanActivation", String.class.getName()),
 				new ModulePropertyDTO("Stdev Activation", "stdevActivation", String.class.getName())));
+		
+		addSupportedType( new ModuleTypeDTO("Gaussian Sampler", "Variational", true, 
+				new ModulePropertyDTO("Size", "size", Integer.class.getName())));
+		
 		
 		addSupportedType( new ModuleTypeDTO("BatchNormalization", "Regularization", true, 
 				new ModulePropertyDTO("Size", "size", Integer.class.getName())));
@@ -682,6 +687,12 @@ public class DianneModuleFactory implements ModuleFactory {
 			String stdevActivation = dto.properties.get("stdevActivation");
 			
 			module = new MultivariateGaussian(id, size, meanActivation, stdevActivation);
+			break;
+		}
+		case "Gaussian Sampler":
+		{
+			int size = Integer.parseInt(dto.properties.get("size"));
+			module = new GaussianSampler(id, size);
 			break;
 		}
 		default:
