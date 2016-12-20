@@ -325,7 +325,7 @@ public class AgentImpl implements Agent {
 					if(s.reward == null){
 						s.reward = new Tensor(1);
 					}
-					s.reward.set(progress.reward, 0);
+					s.reward.set(reward, 0);
 					
 					// get the next state
 					s.nextState = env.getObservation(s.nextState);
