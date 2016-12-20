@@ -34,6 +34,13 @@ import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.tensor.Tensor;
 
+/**
+ * Fork provides a super class for forking modules that get one input and fork to
+ * multiple next modules
+ * 
+ * @author tverbele
+ *
+ */
 public abstract class Fork extends AbstractModule {
 
 	protected Map<UUID, Tensor> outputs = new HashMap<UUID, Tensor>();
@@ -81,7 +88,7 @@ public abstract class Fork extends AbstractModule {
 	protected void callPrevious(){
 		// merge tags
 		HashSet<String> mergedTags = new HashSet<>();
-		for(int i=0; i< prev.length;i++){
+		for(int i=0; i< next.length;i++){
 			UUID id = nextIds[i];
 			String[] t = outputTags.get(id);
 			if(t != null){

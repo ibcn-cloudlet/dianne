@@ -507,10 +507,10 @@ function setupModule(moduleItem, type, category){
 		jsPlumb.addEndpoint(moduleItem, targetStyle, {anchor: "Left",endpoint:"Rectangle"});
 	} else if(category==="Output"){ 
 		jsPlumb.addEndpoint(moduleItem, targetStyle, {anchor: "Left",endpoint:"Rectangle"});
-	} else if(category==="Fork") {
+	} else if(category==="Fork" || category==="Variational") {
 		jsPlumb.addEndpoint(moduleItem, sourceStyle, {anchor: "Right",maxConnections:-1});
 		jsPlumb.addEndpoint(moduleItem, targetStyle, {anchor: "Left"});
-	} else if(category==="Join") {
+	} else if(category==="Join" || category==="Variational") {
 		jsPlumb.addEndpoint(moduleItem, sourceStyle, {anchor: "Right"});
 		jsPlumb.addEndpoint(moduleItem, targetStyle, {anchor: "Left", maxConnections:-1});
 	} else {

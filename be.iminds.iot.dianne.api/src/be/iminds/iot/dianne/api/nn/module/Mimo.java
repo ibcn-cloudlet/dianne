@@ -29,36 +29,34 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import be.iminds.iot.dianne.api.nn.module.Fork.ForwardForkRunnable;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
- * Join provides a super class for joining modules that get multiple inputs and join to
- * a single next module
+ * Fork provides a super class for MIMO modules that transform multiple inputs to
+ * multiple outputs
  * 
  * @author tverbele
  *
  */
-public abstract class Join extends AbstractModule {
+public abstract class Mimo extends Fork {
 
 	protected Map<UUID, Tensor> inputs = new HashMap<UUID, Tensor>();
 	protected Map<UUID, String[]> inputTags = new HashMap<UUID, String[]>();
 	protected Map<UUID, Tensor> gradInputs = new HashMap<UUID, Tensor>();
 	
-	// this will make sure that one will wait until all prev have given input before forwarding 
-	// during training
 	protected Map<UUID, AtomicBoolean> prevLock = new HashMap<UUID, AtomicBoolean>();
 	
-	// might need the order of id
 	protected UUID[] prevIds;
 	
-	public Join() {
+	public Mimo() {
 		super();
 	}
 	
-	public Join(UUID id) {
+	public Mimo(UUID id) {
 		super(id);
 	}
-	
+
 	@Override
 	protected void callNext(){
 		// merge tags
@@ -73,11 +71,39 @@ public abstract class Join extends AbstractModule {
 			}
 		}
 		this.tags = mergedTags.toArray(new String[mergedTags.size()]);
-		super.callNext();
+		// call all next
+		for(int i=0; i< next.length;i++){
+			UUID id = nextIds[i];
+			Module m = next[i];
+			
+			if(m!=null){
+				synchronized(nextsBusy){
+					nextsBusy.get(m).set(true);
+				}
+				
+				if(exception == null){
+					runExecutor.execute(new ForwardForkRunnable(m, outputs.get(id), tags));
+				} else {				
+					runExecutor.execute(new ForwardForkRunnable(m, exception, tags));
+				}
+			}
+		}
 	}
-		
+	
 	@Override
 	protected void callPrevious(){
+		// merge tags
+		HashSet<String> mergedTags = new HashSet<>();
+		for(int i=0; i< next.length;i++){
+			UUID id = nextIds[i];
+			String[] t = outputTags.get(id);
+			if(t != null){
+				for(String tag : t){
+					mergedTags.add(tag);
+				}
+			}
+		}
+		this.tags = mergedTags.toArray(new String[mergedTags.size()]);
 		// call all previous
 		for(int i=0; i< prev.length;i++){
 			UUID id = prevIds[i];
@@ -96,7 +122,7 @@ public abstract class Join extends AbstractModule {
 	@Override
 	protected synchronized void forward(final UUID moduleId, final ModuleException ex, final Tensor input, final String... tags) {
 		if(TRACE){
-			System.out.println("JOIN "+this.id+" ("+this.getClass().getName()+")  FROM "+moduleId+" "+Arrays.toString(input.dims())+" "+Arrays.toString(tags));
+			System.out.println("FORK "+this.id+" ("+this.getClass().getName()+")  FROM "+moduleId+" "+Arrays.toString(input.dims())+" "+Arrays.toString(tags));
 		}
 		
 		synchronized(nextBusy){
@@ -157,6 +183,7 @@ public abstract class Join extends AbstractModule {
 	
 	}
 	
+	
 	@Override
 	public void setPrevious(final Module... prev) {
 		if(prev==null){
@@ -178,4 +205,5 @@ public abstract class Join extends AbstractModule {
 			}
 		}
 	}
+	
 }

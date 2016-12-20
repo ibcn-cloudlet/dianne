@@ -71,6 +71,7 @@ import be.iminds.iot.dianne.nn.module.preprocessing.Normalization;
 import be.iminds.iot.dianne.nn.module.preprocessing.Scale;
 import be.iminds.iot.dianne.nn.module.regularization.BatchNormalization;
 import be.iminds.iot.dianne.nn.module.regularization.Dropout;
+import be.iminds.iot.dianne.nn.module.vae.MultivariateGaussian;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 @Component(property={"aiolos.proxy=false"})
@@ -82,6 +83,10 @@ public class DianneModuleFactory implements ModuleFactory {
 	void activate(){
 		// build list of supported modules
 		// TODO use reflection for this?
+		addSupportedType( new ModuleTypeDTO("Multivariate Gaussian", "Variational", true, 
+				new ModulePropertyDTO("Size", "size", Integer.class.getName()),
+				new ModulePropertyDTO("Mean Activation", "meanActivation", String.class.getName()),
+				new ModulePropertyDTO("Stdev Activation", "stdevActivation", String.class.getName())));
 		
 		addSupportedType( new ModuleTypeDTO("BatchNormalization", "Regularization", true, 
 				new ModulePropertyDTO("Size", "size", Integer.class.getName())));
@@ -668,6 +673,15 @@ public class DianneModuleFactory implements ModuleFactory {
 			String masks = dto.properties.get("masks");
 			
 			module = new MaskedMaxPooling(id, noInputs, masks);
+			break;
+		}
+		case "Multivariate Gaussian":
+		{
+			int size = Integer.parseInt(dto.properties.get("size"));
+			String meanActivation = dto.properties.get("meanActivation");
+			String stdevActivation = dto.properties.get("stdevActivation");
+			
+			module = new MultivariateGaussian(id, size, meanActivation, stdevActivation);
 			break;
 		}
 		default:
