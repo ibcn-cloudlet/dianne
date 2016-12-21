@@ -284,6 +284,7 @@ public class AgentImpl implements Agent {
 				
 				// set count to zero
 				count = 0;
+				seq = 0;
 				
 				// setup action strategy
 				strategy.setup(properties, env, nns);
