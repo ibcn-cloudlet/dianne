@@ -431,33 +431,7 @@ public class DianneRunner extends HttpServlet {
 					}
 				}
 
-				int[] dims = output.dims();
-				if(dims.length == 4){
-					// create a mosaic
-					int[] mosaicDims = new int[3];
-					int batchSize = dims[0];
-					int mosaic = (int)Math.ceil(Math.sqrt(batchSize));
-
-					mosaicDims[0] = dims[1];
-					mosaicDims[1] = dims[2]*mosaic;
-					mosaicDims[2] = dims[3]*mosaic;
-					copy.reshape(mosaicDims);
-					
-					int b = 0;
-					for(int k=0;k<mosaic;k++){
-						for(int l=0;l<mosaic;l++){
-							if(b >= batchSize)
-								continue;
-							
-							Tensor sample = output.select(0, b++);
-							sample.copyInto(copy.narrow(1, dims[2]*k, dims[2]).narrow(2, dims[3]*l, dims[3]));
-						}
-					}
-					
-				} else {
-					copy = output.copyInto(copy);
-				}
-					
+				copy = output.copyInto(copy);
 				String sseMessage = outputSSEMessage(moduleId, labels.get(moduleId), copy, time, tags);
 				PrintWriter writer = async.getResponse().getWriter();
 				writer.write(sseMessage);

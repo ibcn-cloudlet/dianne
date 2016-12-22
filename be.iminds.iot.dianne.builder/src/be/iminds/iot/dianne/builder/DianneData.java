@@ -23,7 +23,6 @@
 package be.iminds.iot.dianne.builder;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Random;
 
 import javax.servlet.ServletException;
@@ -42,7 +41,6 @@ import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.DatasetDTO;
 import be.iminds.iot.dianne.api.dataset.DianneDatasets;
 import be.iminds.iot.dianne.api.dataset.Sample;
-import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 import be.iminds.iot.dianne.tensor.util.JsonConverter;
 

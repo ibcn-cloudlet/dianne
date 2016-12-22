@@ -617,6 +617,8 @@ function addConnection(connection){
 	} else {
 		addNext(connection.sourceId, connection.targetId);
 		addPrevious(connection.targetId, connection.sourceId);
+		
+		connection.connection.bind("dblclick", connectionClicked);
 	}
 }
 
@@ -940,11 +942,13 @@ function loadLayout(layout){
     
     var connections = layout.connections;
     $.each(connections, function( index, elem ) {
-        var connection1 = jsPlumb.connect({
+        var connection = jsPlumb.connect({
         	source: elem.sourceId,
         	target: elem.targetId,
         	anchors: elem.anchors
         });
+        
+        connection.bind("dblclick", connectionClicked);
     });
 }
 
@@ -969,6 +973,11 @@ function redrawElement(id, posX, posY){
 	
 	setupModule(moduleItem, module.type, module.category);
 	jsPlumb.repaint(id);
+}
+
+
+function connectionClicked(connection){
+	console.log("Connection clicked "+connection.sourceId+"->"+connection.targetId);
 }
 
 

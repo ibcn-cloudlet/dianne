@@ -443,7 +443,7 @@ function createRunModuleDialog(id, moduleItem){
 			cancel: "Delete"
 		}, $(document.body));
 		
-		dialog.find(".content").append("<textarea class=\"rawinput\" rows=\"5\" cols=\"65\">{\"dims\":[x,y,z],\"data\":[0.0,0.0,...]}</textarea><br/><br/>");
+		dialog.find(".content").append("<textarea class=\"rawinput\" rows=\"5\" cols=\"65\">{\"dims\":[x,y,z],\"data\":[]}</textarea><br/><br/>");
 		
 		dialog.find(".content").append("<button class='btn' onclick='forwardRawInput(this, \""+module.input+"\")' style=\"margin-left:10px\">Submit</button>");
 		
@@ -561,7 +561,7 @@ function createRunModuleDialog(id, moduleItem){
 							laser(output, laserCanvasCtx, false);
 						} else {
 							// render raw output
-							if(output.height!==undefined){
+							if(output.dims.length > 1){
 								// as image
 								var outputCanvas = dialog.find('.outputCanvas')[0];
 								if(outputCanvas === undefined){
@@ -569,7 +569,7 @@ function createRunModuleDialog(id, moduleItem){
 									 outputCanvas = dialog.find('.outputCanvas')[0];
 								}
 								var outputCanvasCtx = outputCanvas.getContext('2d');
-								render(output, outputCanvasCtx);
+								image(output, outputCanvasCtx);
 							} else {
 								// as floats
 								$("#dialog-"+module.id).find(".content").find('.outputviz').html('<b>Output: </b>'+JSON.stringify(output.data).replace(/,/g,"  "));
@@ -633,7 +633,7 @@ function createRunModuleDialog(id, moduleItem){
 			var inputEventSource = new EventSource("/dianne/input?name=" + encodeURIComponent(module.name));
 			inputEventSource.onmessage = function(event){
 				var data = JSON.parse(event.data);
-				render(data, cameraCanvasCtx);
+				image(data, cameraCanvasCtx);
 			};
 		
 		dialog.on('hidden.bs.modal', function () {
@@ -804,90 +804,11 @@ function sample(dataset, input, source){
 			function( sample ) {
 				var sampleCanvas = $(source).parent().find('.sampleCanvas')[0];
 				var sampleCanvasCtx = sampleCanvas.getContext('2d');
-				render(sample, sampleCanvasCtx);
+				image(sample, sampleCanvasCtx);
 				if(sample.target !== undefined)
 					$('.expected').text('Expected output: '+sample.target);
 			}
 			, "json");
-}
-
-function render(tensor, canvasCtx){
-	canvasCtx.clearRect(0,0,256,256);
-
-	var w = tensor.dims[tensor.dims.length-1];
-	var h = tensor.dims[tensor.dims.length-2];
-	
-	var scaleX = 256/w;
-	var scaleY = 256/h;
-	var scale = scaleX < scaleY ? scaleX : scaleY;
-	
-	var width = Math.round(w*scale);
-	var height = Math.round(h*scale);
-	var channels = tensor.dims.length > 2 ? tensor.dims[tensor.dims.length-3] : 1;
-	var imageData = canvasCtx.createImageData(width, height);
-	
-	if(tensor.dims.length == 4){
-		// mosaic
-	} else {
-		// render single image
-		if(channels===1){
-			for (var y = 0; y < height; y++) {
-		        for (var x = 0; x < width; x++) {
-		        	// collect alpha values
-		        	var x_s = Math.floor(x/scale);
-		        	var y_s = Math.floor(y/scale);
-		        	var index = y_s*w+x_s;
-		        	imageData.data[y*width*4+x*4+3] = Math.floor(tensor.data[index]*255);
-		        }
-		    }
-		} else if(channels===3){
-			// RGB
-			for(var c = 0; c < 3; c++){
-				for (var y = 0; y < height; y++) {
-			        for (var x = 0; x < width; x++) {
-			        	var x_s = Math.floor(x/scale);
-			        	var y_s = Math.floor(y/scale);
-			        	var index = c*w*h + y_s*w+x_s;
-			        	imageData.data[y*width*4+x*4+c] = Math.floor(tensor.data[index]*255);
-			        }
-			    }		
-			}
-			for (var y = 0; y < height; y++) {
-		        for (var x = 0; x < width; x++) {
-		        	imageData.data[y*width*4+x*4+3] = 255;
-		        }
-			}
-		}	
-	}
-	
-	var offsetX = Math.floor((256-width)/2);
-	var offsetY = Math.floor((256-height)/2);
-	canvasCtx.putImageData(imageData, offsetX, offsetY); 
-}
-
-function laser(tensor, canvasCtx, showTarget){
-	// render laserdata
-	var step = Math.PI/tensor.size;
-	var angle = 0;
-	var length;
-	canvasCtx.clearRect(0,0,512,512);
-	canvasCtx.beginPath();
-	for (var i = 0; i < tensor.size; i++) {
-		canvasCtx.moveTo(256, 512);
-		length = tensor.data[i]*256;
-		canvasCtx.lineTo(256+length*Math.cos(angle), 512-length*Math.sin(angle));
-		angle+=step;
-	}
-	canvasCtx.stroke();
-	canvasCtx.closePath();
-	
-	if(showTarget){
-		canvasCtx.beginPath();
-		canvasCtx.arc(256, 449, 6, 0, 2 * Math.PI, false);
-		canvasCtx.fillStyle = 'red';
-		canvasCtx.fill();
-		canvasCtx.closePath();
-	}
 }
 
 
