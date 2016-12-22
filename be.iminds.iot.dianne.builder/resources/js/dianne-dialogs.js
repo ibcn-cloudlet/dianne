@@ -613,6 +613,9 @@ function createRunModuleDialog(id, moduleItem){
 		dialog.find(".content").append("<center><div class='expected'></div></center>");
 		dialog.find(".content").append("<button class='btn' onclick='sample(\""+module.type+"\",\""+module.input+"\",this)' style=\"margin-left:10px\">Sample</button>");
 		
+		dialog.on('hidden.bs.modal', function () {
+		    $(this).closest(".modal").remove();
+		});
 	} else if(module.type==="Camera"){
 		dialog = renderTemplate("dialog", {
 			id : id,
@@ -791,7 +794,13 @@ function forwardURL(btn, input){
 }
 
 function sample(dataset, input, source){
-	$.post("/dianne/run", {"dataset":dataset,"input":input, "id": nn.id}, 
+	var uri = "/dianne/run";
+	var args = {"dataset":dataset,"input":input, "id": nn.id};
+	if(input==="undefined"){
+		uri = "/dianne/datasets";
+		args =  {"dataset":dataset,"action":"sample"};
+	}
+	$.post(uri, args , 
 			function( sample ) {
 				var sampleCanvas = $(source).parent().find('.sampleCanvas')[0];
 				var sampleCanvasCtx = sampleCanvas.getContext('2d');

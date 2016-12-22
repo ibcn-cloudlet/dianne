@@ -244,8 +244,10 @@ public class DianneRunner extends HttpServlet {
 			if(labels != null){
 				sample.add("target", new JsonPrimitive(labels[TensorOps.argmax(s.target)]));
 			} else {
-				if(s.target.size() < 10)
-					sample.add("target", parser.parse(Arrays.toString(s.target.get())));
+				if(s.target.size() < 10){
+					JsonObject target = jsonConverter.toJson(s.target);
+					sample.add("target", target.get("data").getAsJsonArray());			
+				}
 			}
 			
 			response.getWriter().println(sample.toString());

@@ -23,6 +23,7 @@
 package be.iminds.iot.dianne.builder;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Random;
 
 import javax.servlet.ServletException;
@@ -40,7 +41,9 @@ import com.google.gson.JsonPrimitive;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.DatasetDTO;
 import be.iminds.iot.dianne.api.dataset.DianneDatasets;
+import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorOps;
 import be.iminds.iot.dianne.tensor.util.JsonConverter;
 
 
@@ -93,8 +96,18 @@ public class DianneData extends HttpServlet {
 			String dataset = request.getParameter("dataset");
 			Dataset d = datasets.getDataset(dataset);
 			if(d!=null){
-				Tensor t = d.getSample(rand.nextInt(d.size())).input;
-				JsonObject sample = converter.toJson(t);
+				Sample s = d.getSample(rand.nextInt(d.size()));
+				JsonObject sample = converter.toJson(s.input);
+				String[] labels = d.getLabels();
+				if(labels != null){
+					sample.add("target", new JsonPrimitive(labels[TensorOps.argmax(s.target)]));
+				} else {
+					if(s.target.size() < 10){
+						JsonObject target = converter.toJson(s.target);
+						sample.add("target", target.get("data").getAsJsonArray());
+					}
+				}
+				
 				response.getWriter().println(sample.toString());
 				response.getWriter().flush();
 			}
