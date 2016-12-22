@@ -77,6 +77,10 @@ public class DianneData extends HttpServlet {
 					JsonObject r = new JsonObject();
 					r.add("dataset", new JsonPrimitive(d.name));
 					r.add("size", new JsonPrimitive(d.size));
+					if(d.inputType != null)
+						r.add("inputType", new JsonPrimitive(d.inputType));
+					if(d.targetType != null)
+						r.add("targetType", new JsonPrimitive(d.targetType));
 					String[] ll = d.labels;
 					if(ll != null){
 						JsonArray labels = new JsonArray();

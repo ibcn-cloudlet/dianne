@@ -27,7 +27,9 @@ public class DatasetDTO {
 	public String name;
 	public int size;
 	public int[] inputDims;
+	public String inputType;
 	public int[] targetDims;
+	public String targetType;
 	public String[] labels;
 	
 }

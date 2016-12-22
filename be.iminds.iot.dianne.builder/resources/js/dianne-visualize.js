@@ -1,10 +1,14 @@
 
 
 function render(tensor, canvasCtx, type){
+	console.log("RENDER "+type)
 	if(type==="image"){
 		image(tensor, canvasCtx);
 	} else if(type==="laser"){
 		laser(tensor, canvasCtx, false);
+	} else {
+		// image by default?
+		image(tensor, canvasCtx);
 	}
 }
 
@@ -44,6 +48,8 @@ function image_rect(tensor, canvasCtx, offset, posX, posY, imageW, imageH){
 
 	var w = tensor.dims[tensor.dims.length-1];
 	var h = tensor.dims[tensor.dims.length-2];
+	if(h === undefined)
+		h = 1;
 	
 	var scaleX = imageW/w;
 	var scaleY = imageH/h;

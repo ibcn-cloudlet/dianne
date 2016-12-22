@@ -33,8 +33,10 @@ public abstract class AbstractDataset implements Dataset {
 	protected String name;
 	protected int[] inputDims;
 	protected int inputSize;
+	protected String inputType;
 	protected int[] targetDims;
 	protected int targetSize;
+	protected String targetType;
 	protected int noSamples;
 	protected String[] labels;
 	protected String labelsFile;
@@ -60,6 +62,9 @@ public abstract class AbstractDataset implements Dataset {
 			}
 		}
 		
+		if(inputType == null)
+			inputType = (String)properties.get("inputType");
+		
 		String[] od = (String[])properties.get("targetDims");
 		if(od != null){
 			targetDims= new int[od.length];
@@ -67,6 +72,10 @@ public abstract class AbstractDataset implements Dataset {
 				targetDims[i] = Integer.parseInt(od[i]);
 			}
 		}
+		
+		if(targetType == null)
+			targetType = (String)properties.get("targetType");
+
 		
 		String ns = (String)properties.get("noSamples");
 		if(ns != null)
@@ -130,10 +139,20 @@ public abstract class AbstractDataset implements Dataset {
 	public int[] inputDims(){
 		return inputDims;
 	}
+
+	@Override
+	public String inputType(){
+		return inputType;
+	}
 	
 	@Override
 	public int[] targetDims(){
 		return targetDims;
+	}
+	
+	@Override
+	public String targetType(){
+		return targetType;
 	}
 	
 	@Override

@@ -128,8 +128,18 @@ public class CharSequenceDataset implements SequenceDataset<Sample, Batch> {
 	}
 
 	@Override
+	public String inputType() {
+		return "character";
+	}
+
+	@Override
 	public int[] targetDims() {
 		return new int[]{chars.length()};
+	}
+
+	@Override
+	public String targetType() {
+		return "character";
 	}
 
 	@Override
@@ -246,4 +256,5 @@ public class CharSequenceDataset implements SequenceDataset<Sample, Batch> {
 		
 		return b;
 	}
+
 }

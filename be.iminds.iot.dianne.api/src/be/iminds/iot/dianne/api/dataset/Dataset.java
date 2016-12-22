@@ -51,7 +51,11 @@ public interface Dataset {
 
 	int[] inputDims();
 	
+	String inputType();
+	
 	int[] targetDims();
+	
+	String targetType();
 	
 	/**
 	 * Returns a sample from the dataset

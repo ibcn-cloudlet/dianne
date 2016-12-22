@@ -80,8 +80,18 @@ public abstract class AbstractDatasetAdapter implements Dataset {
 	}
 	
 	@Override
+	public String inputType(){
+		return data.inputType();
+	}
+	
+	@Override
 	public int[] targetDims(){
 		return data.targetDims();
+	}
+	
+	@Override
+	public String targetType(){
+		return data.targetType();
 	}
 	
 	@Override

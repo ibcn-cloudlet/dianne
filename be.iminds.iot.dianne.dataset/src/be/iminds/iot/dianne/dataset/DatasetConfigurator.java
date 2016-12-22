@@ -85,7 +85,9 @@ public class DatasetConfigurator implements DianneDatasets {
 				DatasetDTO dto = new DatasetDTO();
 				dto.name = dataset.getName();
 				dto.inputDims = dataset.inputDims();
+				dto.inputType = dataset.inputType();
 				dto.targetDims = dataset.targetDims();
+				dto.targetType = dataset.targetType();
 				dto.size = dataset.size();
 				dto.labels = dataset.getLabels();
 				return dto;

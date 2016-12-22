@@ -49,6 +49,10 @@ public interface ExperiencePool extends SequenceDataset<ExperiencePoolSample, Ex
 		return inputDims();
 	}
 	
+	default String stateType(){
+		return inputType();
+	}
+	
 	/**
 	 * Returns the dimensions of the actions
 	 * 
@@ -56,6 +60,10 @@ public interface ExperiencePool extends SequenceDataset<ExperiencePoolSample, Ex
 	 */
 	default int[] actionDims(){
 		return targetDims();
+	}
+	
+	default String actionType(){
+		return targetType();
 	}
 	
 	/**

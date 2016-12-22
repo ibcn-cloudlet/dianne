@@ -65,12 +65,22 @@ public abstract class AbstractExperiencePoolAdapter implements ExperiencePool {
 	public int[] inputDims() {
 		return pool.inputDims();
 	}
+	
+	@Override
+	public String inputType(){
+		return pool.inputType();
+	}
 
 	@Override
 	public int[] targetDims() {
 		return pool.targetDims();
 	}
 
+	@Override
+	public String targetType(){
+		return pool.inputType();
+	}
+	
 	@Override
 	public String[] getLabels() {
 		return pool.getLabels();

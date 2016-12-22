@@ -804,7 +804,7 @@ function sample(dataset, input, source){
 			function( sample ) {
 				var sampleCanvas = $(source).parent().find('.sampleCanvas')[0];
 				var sampleCanvasCtx = sampleCanvas.getContext('2d');
-				image(sample, sampleCanvasCtx);
+				render(sample, sampleCanvasCtx, datasets[dataset].inputType);
 				if(sample.target !== undefined)
 					$('.expected').text('Expected output: '+sample.target);
 			}

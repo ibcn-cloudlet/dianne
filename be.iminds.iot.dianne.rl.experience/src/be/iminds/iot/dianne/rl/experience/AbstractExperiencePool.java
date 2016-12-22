@@ -108,6 +108,8 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 			}
 		}
 		
+		inputType = (String)properties.get("stateType");
+		
 		String[] od = (String[])properties.get("actionDims");
 		if(od!=null){
 			targetDims= new int[od.length];
@@ -115,6 +117,8 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 				targetDims[i] = Integer.parseInt(od[i]);
 			}
 		}
+		
+		targetType = (String)properties.get("actionType");
 	}
 
 	@Override
