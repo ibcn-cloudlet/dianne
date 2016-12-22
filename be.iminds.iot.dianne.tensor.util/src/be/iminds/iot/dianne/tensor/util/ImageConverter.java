@@ -121,11 +121,11 @@ public class ImageConverter {
 		return result;
 	}
 	
-	public Tensor readFromImage(BufferedImage img){
-		return readFromImage(img, null);
+	public Tensor fromImage(BufferedImage img){
+		return fromImage(null, img);
 	}
 
-	public Tensor readFromImage(BufferedImage img, Tensor t){
+	public Tensor fromImage(Tensor t, BufferedImage img){
 		int width = img.getWidth();
 		int height = img.getHeight();
 		
@@ -156,7 +156,7 @@ public class ImageConverter {
 		return t;
 	}
 	
-	public Tensor readFromFile(String fileName, Tensor t) throws Exception{
+	public Tensor fromFile(String fileName, Tensor t) throws Exception{
 		// Use jDeli instead of ImageIO, should be faster
 		// BufferedImage img = ImageIO.read(new File(fileName));
 
@@ -172,14 +172,14 @@ public class ImageConverter {
 			img = decoder.read();
 		}
 
-		return readFromImage(img, t);
+		return fromImage(t, img);
 	}
 	
 	public Tensor readFromFile(String fileName) throws Exception {
-		return readFromFile(fileName, null);
+		return fromFile(fileName, null);
 	}
 	
-	public Tensor readFromBytes(byte[] data) throws Exception {
+	public Tensor fromBytes(byte[] data) throws Exception {
         ImageInputStream stream = ImageIO.createImageInputStream(new ByteArrayInputStream(data));
         ioDecoder.setInput(stream, true, true);
 		BufferedImage img = ioDecoder.read(0, param);
@@ -187,10 +187,10 @@ public class ImageConverter {
 		// jDeli decoder not always working with mjpeg data
 		// especially not when no Huffmann table is given, which could be fixed for imageio decoder
 		//BufferedImage img = decoder.read(data);
-		return readFromImage(img);
+		return fromImage(img);
 	}
 
-	public BufferedImage writeToImage(Tensor t) throws Exception {
+	public BufferedImage toImage(Tensor t) throws Exception {
 		int width, height, channels;
 		
 		if(t.dim()==3){
@@ -237,8 +237,8 @@ public class ImageConverter {
 		return img;
 	}
 	
-	public void writeToFile(String fileName, Tensor t) throws Exception{
-		BufferedImage img = writeToImage(t);
+	public void toFile(String fileName, Tensor t) throws Exception{
+		BufferedImage img = toImage(t);
 		
 		JpegEncoder encoder = new JpegEncoder();
 		BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream(new File(fileName)));

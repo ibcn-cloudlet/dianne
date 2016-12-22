@@ -201,7 +201,7 @@ public class DianneRunner extends HttpServlet {
 			try {
 				URL u = new URL(url);
 				BufferedImage img = ImageIO.read(u);
-				t = imageConverter.readFromImage(img);
+				t = imageConverter.fromImage(img);
 			} catch(Exception e){
 				System.out.println("Failed to read image from url "+url);
 				return;

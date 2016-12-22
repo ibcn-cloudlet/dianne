@@ -52,6 +52,6 @@ public class ImageConverterTest {
 	public void testReadWriteImage() throws Exception {
 		ImageConverter conv = new ImageConverter();
 		Tensor t = conv.readFromFile(String.format("../tools/datasets/ImageNet/images/ILSVRC2012_val_%08d.JPEG", 1));
-		conv.writeToFile("generated/test.jpg", t);
+		conv.toFile("generated/test.jpg", t);
 	}
 }

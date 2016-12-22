@@ -53,7 +53,7 @@ public abstract class ImageSegmentationDataset extends AbstractDataset {
 	public Tensor getInputSample(Tensor t, int index) {
 		String file = getImageFile(index);
 		try {
-			t = converter.readFromFile(file, t);
+			t = converter.fromFile(file, t);
 		} catch(Exception e){
 			e.printStackTrace();
 			System.out.println("Failed to load sample image "+file);
@@ -65,7 +65,7 @@ public abstract class ImageSegmentationDataset extends AbstractDataset {
 	public Tensor getTargetSample(Tensor t, int index) {
 		String file = getMaskFile(index);
 		try {
-			t = converter.readFromFile(file, t);
+			t = converter.fromFile(file, t);
 		} catch(Exception e){
 			e.printStackTrace();
 			System.out.println("Failed to load sample mask "+file);

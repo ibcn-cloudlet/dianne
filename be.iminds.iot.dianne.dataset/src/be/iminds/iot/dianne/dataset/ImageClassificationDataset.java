@@ -65,7 +65,7 @@ public abstract class ImageClassificationDataset extends AbstractDataset {
 		// Open JPEG file and convert to size
 		String file = getImageFile(index);
 		try {
-			t = converter.readFromFile(file, t);
+			t = converter.fromFile(file, t);
 		} catch(Exception e){
 			e.printStackTrace();
 			System.out.println("Failed to load input sample "+file);

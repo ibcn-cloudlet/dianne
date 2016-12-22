@@ -62,7 +62,7 @@ public class CameraInput extends ThingInput implements CameraListener {
 		Tensor in = null;
 		if(format==Format.MJPEG){
 			try {
-				in = converter.readFromBytes(data);
+				in = converter.fromBytes(data);
 			} catch(Exception e){
 				System.out.println("Failed to read jpeg frame");
 			}

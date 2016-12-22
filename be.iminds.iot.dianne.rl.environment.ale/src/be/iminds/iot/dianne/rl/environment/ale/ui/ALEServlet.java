@@ -120,9 +120,9 @@ public class ALEServlet extends HttpServlet implements EnvironmentListener {
 		try {
 			BufferedImage img = null;
 			if(grayscale){
-				img = converter.writeToImage(nextState.select(0, nextState.size(0)-1));
+				img = converter.toImage(nextState.select(0, nextState.size(0)-1));
 			} else {
-				img = converter.writeToImage(nextState.narrow(0, nextState.size(0)-4, 3));
+				img = converter.toImage(nextState.narrow(0, nextState.size(0)-4, 3));
 			}
 			
 			ByteArrayOutputStream bos = new ByteArrayOutputStream();
