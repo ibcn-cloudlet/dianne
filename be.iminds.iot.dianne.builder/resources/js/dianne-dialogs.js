@@ -596,8 +596,8 @@ function createRunModuleDialog(id, moduleItem){
 			}
 		    $(this).closest(".modal").remove();
 		    
-		    window.removeEventListener("keydown");
-			window.removeEventListener("keyup");
+		    window.removeEventListener("keydown", keyboard, false);
+			window.removeEventListener("keyup", keyboard, false);
 		});
 		
 	} else if(module.category==="Dataset"){
