@@ -71,6 +71,7 @@ import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 import be.iminds.iot.dianne.tensor.util.ImageConverter;
+import be.iminds.iot.dianne.tensor.util.JsonConverter;
 
 @Component(service = { javax.servlet.Servlet.class }, 
 	property = { "alias:String=/dianne/run",
@@ -84,9 +85,10 @@ public class DianneRunner extends HttpServlet {
 
 	private BundleContext context;
 	
-	private ImageConverter converter;
+	private ImageConverter imageConverter;
 	
 	private JsonParser parser = new JsonParser();
+	private JsonConverter jsonConverter = new JsonConverter();
 	
 	// also keep datasets to already forward random sample while sending sample to the ui
 	private Random rand = new Random(System.currentTimeMillis());
@@ -101,7 +103,7 @@ public class DianneRunner extends HttpServlet {
 	@Activate
 	public void activate(BundleContext c){
 		this.context = c;
-		this.converter = new ImageConverter();
+		this.imageConverter = new ImageConverter();
 	}
 	
 	@Reference
@@ -186,28 +188,7 @@ public class DianneRunner extends HttpServlet {
 			String inputId = request.getParameter("input");
 			
 			JsonObject sample = parser.parse(request.getParameter("forward")).getAsJsonObject();
-			JsonArray d = sample.get("dims").getAsJsonArray();
-			int[] dims = new int[d.size()];
-			for(int i=0;i<dims.length;i++){
-				dims[i] = d.get(i).getAsInt();
-			}
-			 
-			Tensor t = null;
-			
-			JsonArray dd = sample.get("data").getAsJsonArray();
-			if(dd==null || dd.size() == 0){
-				// fill random data
-				t = new Tensor(dims);
-				t.randn();
-			} else {
-				float[] data = parseInput(dd.toString());
-				if(data.length == 1){
-					t = new Tensor(dims);
-					t.fill(data[0]);
-				} else {
-					t = new Tensor(data, dims);
-				}
-			}
+			Tensor t = jsonConverter.fromJson(sample);
 			
 			start = System.currentTimeMillis();
 			nn.forward(UUID.fromString(inputId), null, t, "ui");
@@ -220,7 +201,7 @@ public class DianneRunner extends HttpServlet {
 			try {
 				URL u = new URL(url);
 				BufferedImage img = ImageIO.read(u);
-				t = converter.readFromImage(img);
+				t = imageConverter.readFromImage(img);
 			} catch(Exception e){
 				System.out.println("Failed to read image from url "+url);
 				return;
@@ -248,32 +229,17 @@ public class DianneRunner extends HttpServlet {
 				System.out.println("Dataset "+dataset+" not available");
 				return;
 			}
-			
-			String inputId = request.getParameter("input");
 
 			Sample s = d.getSample(rand.nextInt(d.size()));
-			
-			start = System.currentTimeMillis();
-			nn.forward(UUID.fromString(inputId), null, s.input, "ui");
-			
-			JsonObject sample = new JsonObject();
-			if(s.input.dims().length==3){
-				sample.add("channels", new JsonPrimitive(s.input.dims()[0]));
-				sample.add("height", new JsonPrimitive(s.input.dims()[1]));
-				sample.add("width", new JsonPrimitive(s.input.dims()[2]));
-			} else if(s.input.dims().length==2){
-				sample.add("channels", new JsonPrimitive(1));
-				sample.add("height", new JsonPrimitive(s.input.dims()[0]));
-				sample.add("width", new JsonPrimitive(s.input.dims()[1]));
-			} else if(s.input.dims().length==1){
-				sample.add("channels", new JsonPrimitive(1));
-				sample.add("height", new JsonPrimitive(1));
-				sample.add("width", new JsonPrimitive(s.input.dims()[0]));
-			}
-			sample.add("size", new JsonPrimitive(s.input.size()));
 
-			sample.add("data", parser.parse(Arrays.toString(s.input.get())));
+			String inputId = request.getParameter("input");
+
+			if(inputId != null){
+				start = System.currentTimeMillis();
+				nn.forward(UUID.fromString(inputId), null, s.input, "ui");
+			}
 			
+			JsonObject sample = jsonConverter.toJson(s.input);			
 			String[] labels = d.getLabels();
 			if(labels != null){
 				sample.add("target", new JsonPrimitive(labels[TensorOps.argmax(s.target)]));
@@ -287,20 +253,10 @@ public class DianneRunner extends HttpServlet {
 		}
 	}
 	
-	private float[] parseInput(String string){
-		String[] strings = string.replace("[", "").replace("]", "").split(",");
-		float result[] = new float[strings.length];
-		for (int i = 0; i < result.length; i++) {
-			result[i] = Float.parseFloat(strings[i]);
-		}
-		return result;
-	}
-	
 	private String outputSSEMessage(UUID outputId, String[] outputLabels, Tensor output, long time, String...tags){
-		JsonObject data = new JsonObject();
+		JsonObject data = jsonConverter.toJson(output);
 
 		float max = TensorOps.max(output);
-		
 		if(outputLabels != null || isProbability(output)){
 			// format output as [['label', val],['label2',val2],...] for in highcharts
 			String[] labels;
@@ -355,19 +311,6 @@ public class DianneRunner extends HttpServlet {
 			data.add("labels", l);
 		}
 
-		if(output.dims().length==3){
-			data.add("channels", new JsonPrimitive(output.dims()[0]));
-			data.add("height", new JsonPrimitive(output.dims()[1]));
-			data.add("width", new JsonPrimitive(output.dims()[2]));
-		} else if(output.dims().length==2) {
-			data.add("channels", new JsonPrimitive(1));
-			data.add("height", new JsonPrimitive(output.dims()[0]));
-			data.add("width", new JsonPrimitive(output.dims()[1]));
-		}
-		data.add("size", new JsonPrimitive(output.size()));
-
-		data.add("data", parser.parse(Arrays.toString(output.get())));
-		
 		if(time > 0){
 			data.add("time", new JsonPrimitive(time));
 		}

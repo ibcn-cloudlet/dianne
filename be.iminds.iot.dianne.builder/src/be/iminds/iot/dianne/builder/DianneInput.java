@@ -53,7 +53,6 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
 import be.iminds.iot.dianne.api.io.DianneInputs;
@@ -61,6 +60,7 @@ import be.iminds.iot.dianne.api.io.InputDescription;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.util.JsonConverter;
 
 @Component(service = { javax.servlet.Servlet.class }, 
 	property = { "alias:String=/dianne/input",
@@ -78,7 +78,7 @@ public class DianneInput extends HttpServlet {
 	private Map<String, List<AsyncContext>> sses = Collections.synchronizedMap(new HashMap<>());
 	private BundleContext context;
 	private Map<UUID, ServiceRegistration<ForwardListener>> inputListeners = Collections.synchronizedMap(new HashMap<>());
-	private JsonParser parser = new JsonParser();
+	private JsonConverter converter = new JsonConverter();
 
 	@Activate 
 	public void activate(BundleContext context){
@@ -157,31 +157,9 @@ public class DianneInput extends HttpServlet {
 					@Override
 					public void onForward(UUID moduleId, Tensor output, String... tags) {
 						if(sses.get(input)!=null){
-							JsonObject data = new JsonObject();
-
-							if(output.dim()==3){
-								data.add("channels", new JsonPrimitive(output.dims()[0]));
-								data.add("height", new JsonPrimitive(output.dims()[1]));
-								data.add("width", new JsonPrimitive(output.dims()[2]));
-							} else if(output.dim()==2) {
-								data.add("channels", new JsonPrimitive(1));
-								data.add("height", new JsonPrimitive(output.dims()[0]));
-								data.add("width", new JsonPrimitive(output.dims()[1]));
-							} 
-							data.add("size", new JsonPrimitive(output.size()));
-							
-							if(tags!=null){
-								JsonArray ta = new JsonArray();
-								for(String t : tags){
-									ta.add(new JsonPrimitive(t));
-								}
-								data.add("tags",ta);
-							}
-							
-							data.add("data", parser.parse(Arrays.toString(output.get())));
-							
+							JsonObject json = converter.toJson(output);
 							StringBuilder builder = new StringBuilder();
-							builder.append("data: ").append(data.toString()).append("\n\n");
+							builder.append("data: ").append(json.toString()).append("\n\n");
 							String msg = builder.toString();
 						
 							List<AsyncContext> list = sses.get(input);

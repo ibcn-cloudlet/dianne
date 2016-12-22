@@ -804,42 +804,51 @@ function sample(dataset, input, source){
 
 function render(tensor, canvasCtx){
 	canvasCtx.clearRect(0,0,256,256);
+
+	var w = tensor.dims[tensor.dims.length-1];
+	var h = tensor.dims[tensor.dims.length-2];
 	
-	var scaleX = 256/tensor.width;
-	var scaleY = 256/tensor.height;
+	var scaleX = 256/w;
+	var scaleY = 256/h;
 	var scale = scaleX < scaleY ? scaleX : scaleY;
 	
-	var width = Math.round(tensor.width*scale);
-	var height = Math.round(tensor.height*scale);
+	var width = Math.round(w*scale);
+	var height = Math.round(h*scale);
+	var channels = tensor.dims.length > 2 ? tensor.dims[tensor.dims.length-3] : 1;
 	var imageData = canvasCtx.createImageData(width, height);
 	
-	if(tensor.channels===1){
-		for (var y = 0; y < height; y++) {
-	        for (var x = 0; x < width; x++) {
-	        	// collect alpha values
-	        	var x_s = Math.floor(x/scale);
-	        	var y_s = Math.floor(y/scale);
-	        	var index = y_s*tensor.width+x_s;
-	        	imageData.data[y*width*4+x*4+3] = Math.floor(tensor.data[index]*255);
-	        }
-	    }
-	} else if(tensor.channels===3){
-		// RGB
-		for(var c = 0; c < 3; c++){
+	if(tensor.dims.length == 4){
+		// mosaic
+	} else {
+		// render single image
+		if(channels===1){
 			for (var y = 0; y < height; y++) {
 		        for (var x = 0; x < width; x++) {
+		        	// collect alpha values
 		        	var x_s = Math.floor(x/scale);
 		        	var y_s = Math.floor(y/scale);
-		        	var index = c*tensor.width*tensor.height + y_s*tensor.width+x_s;
-		        	imageData.data[y*width*4+x*4+c] = Math.floor(tensor.data[index]*255);
+		        	var index = y_s*w+x_s;
+		        	imageData.data[y*width*4+x*4+3] = Math.floor(tensor.data[index]*255);
 		        }
-		    }		
-		}
-		for (var y = 0; y < height; y++) {
-	        for (var x = 0; x < width; x++) {
-	        	imageData.data[y*width*4+x*4+3] = 255;
-	        }
-		}
+		    }
+		} else if(channels===3){
+			// RGB
+			for(var c = 0; c < 3; c++){
+				for (var y = 0; y < height; y++) {
+			        for (var x = 0; x < width; x++) {
+			        	var x_s = Math.floor(x/scale);
+			        	var y_s = Math.floor(y/scale);
+			        	var index = c*w*h + y_s*w+x_s;
+			        	imageData.data[y*width*4+x*4+c] = Math.floor(tensor.data[index]*255);
+			        }
+			    }		
+			}
+			for (var y = 0; y < height; y++) {
+		        for (var x = 0; x < width; x++) {
+		        	imageData.data[y*width*4+x*4+3] = 255;
+		        }
+			}
+		}	
 	}
 	
 	var offsetX = Math.floor((256-width)/2);

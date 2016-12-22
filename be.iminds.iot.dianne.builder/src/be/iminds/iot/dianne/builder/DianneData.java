@@ -23,7 +23,6 @@
 package be.iminds.iot.dianne.builder;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Random;
 
 import javax.servlet.ServletException;
@@ -36,13 +35,13 @@ import org.osgi.service.component.annotations.Reference;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.DatasetDTO;
 import be.iminds.iot.dianne.api.dataset.DianneDatasets;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.util.JsonConverter;
 
 
 @Component(service = { javax.servlet.Servlet.class }, 
@@ -55,7 +54,7 @@ public class DianneData extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	
 	private Random rand = new Random(System.currentTimeMillis());
-	private JsonParser parser = new JsonParser();
+	private JsonConverter converter = new JsonConverter();
 	
 	private DianneDatasets datasets;
 	
@@ -94,20 +93,8 @@ public class DianneData extends HttpServlet {
 			String dataset = request.getParameter("dataset");
 			Dataset d = datasets.getDataset(dataset);
 			if(d!=null){
-				JsonObject sample = new JsonObject();
-				
 				Tensor t = d.getSample(rand.nextInt(d.size())).input;
-				
-				if(t.dims().length==3){
-					sample.add("channels", new JsonPrimitive(t.dims()[0]));
-					sample.add("height", new JsonPrimitive(t.dims()[1]));
-					sample.add("width", new JsonPrimitive(t.dims()[2]));
-				} else {
-					sample.add("channels", new JsonPrimitive(1));
-					sample.add("height", new JsonPrimitive(t.dims()[0]));
-					sample.add("width", new JsonPrimitive(t.dims()[1]));
-				}
-				sample.add("data", parser.parse(Arrays.toString(t.get())));
+				JsonObject sample = converter.toJson(t);
 				response.getWriter().println(sample.toString());
 				response.getWriter().flush();
 			}
