@@ -948,7 +948,8 @@ function loadLayout(layout){
         	anchors: elem.anchors
         });
         
-        connection.bind("dblclick", connectionClicked);
+        if(connection!==undefined)
+        	connection.bind("dblclick", connectionClicked);
     });
 }
 
