@@ -773,13 +773,22 @@ function showSaveDialog(){
 		{
 			name: "Name",
 			id: "name",
-			value: ""
+			value: nn.name
 		}, dialog.find('.form-items'));
+
+	renderTemplate('form-checkbox',
+			{
+				name: "New uuids",
+				id: "copy",
+				checked: ""
+			}, dialog.find('.form-items'));
 	
 	// submit button callback
 	dialog.find(".submit").click(function(e){
-		var name = $(this).closest('.modal').find('.form-control').val();
-		save(name);
+		var name = $(this).closest('.modal').find('.name').val();
+		var copy = $(this).closest('.modal').find('.copy').is(':checked');
+
+		save(name, copy);
 	});
 	
 	// remove cancel button
@@ -792,7 +801,7 @@ function showSaveDialog(){
 	
 }
 
-function save(name){
+function save(name, copy){
 	nn.name = name;
 	
 	// save modules
@@ -806,10 +815,20 @@ function save(name){
 	var layout = saveLayout();
     var layoutJson = JSON.stringify(layout);
     
+    if(copy){
+    	$.each(nn.modules, function( k, v ) {
+    		var newId = guid();
+    		modulesJson = modulesJson.replace(k, newId, "g");
+    		layoutJson = layoutJson.replace(k, newId, "g");
+    	});
+    	
+    }
+    
 	$.post("/dianne/save", {"nn":modulesJson, "layout":layoutJson}, 
 		function( data ) {
 			$('#dialog-save').remove();
 			console.log("Succesfully saved");
+			load(s.name);
 		}
 		, "json");
     
