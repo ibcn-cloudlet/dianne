@@ -21,17 +21,23 @@ function image(tensor, canvasCtx){
 		if(tensor.dims.length == 4){
 			var batchSize = tensor.dims[0];
 			var mosaic = Math.ceil(Math.sqrt(batchSize));
-			var mosaicW = canvasW/mosaic;
-			var mosaicH = canvasH/mosaic;
+			if(height == 1){
+				var mosaicW = canvasW;
+				var mosaicH = canvasH/(mosaic*mosaic)
+			} else {
+				var mosaicW = canvasW/mosaic;
+				var mosaicH = canvasH/mosaic;
+			}
 			
 			var offset = 0;
 			tensor.dims.splice(0, 1);
+			var i = 0;
 			for(l=0;l<mosaic;l++){
 				for(k=0;k<mosaic;k++){
 					if(offset >= tensor.size)
 						continue;
 					
-					image_rect(tensor, canvasCtx, offset, k*mosaicW, l*mosaicH, mosaicW, mosaicH);
+					image_rect(tensor, canvasCtx, offset, height == 1 ? 0 : k*mosaicW,  h == 1 ? (i++)*mosaicH : l*mosaicH, mosaicW, mosaicH);
 					offset = offset + tensor.size/batchSize;
 				}
 			}
@@ -57,7 +63,7 @@ function image_rect(tensor, canvasCtx, offset, posX, posY, targetW, targetH){
 	var width = Math.round(w*scale);
 	var height = Math.round(h*scale);
 	var channels = tensor.dims.length > 2 ? tensor.dims[tensor.dims.length-3] : 1;
-	var imageData = canvasCtx.createImageData(width, height);
+	var imageData = canvasCtx.createImageData(width, h==1 ? targetH : height);
 	
 	if(channels===1){
 		for (var y = 0; y < height; y++) {
@@ -66,9 +72,24 @@ function image_rect(tensor, canvasCtx, offset, posX, posY, targetW, targetH){
 	        	var x_s = Math.floor(x/scale);
 	        	var y_s = Math.floor(y/scale);
 	        	var index = offset + y_s*w+x_s;
-	        	imageData.data[y*width*4+x*4+3] = Math.floor(tensor.data[index]*255);
+	        	var normalized = tensor.data[index];
+	        	if(tensor.min < 0 || tensor.max > 1){
+	        		normalized = (normalized - tensor.min)/(tensor.max-tensor.min);
+	        	}
+	        	
+	        	if(h == 1){
+	        		for(var yy = 0 ; yy < targetH; yy++){
+	        			imageData.data[yy*width*4+x*4+3] = Math.floor(normalized*255);
+	        		}
+	        	} else {
+        			imageData.data[y*width*4+x*4+3] = Math.floor(normalized*255);
+	        	}
 	        }
 	    }
+		
+		var offsetX = h==1 ? 0 : Math.floor((targetW-width)/2);
+		var offsetY = h==1 ? 1 : Math.floor((targetH-height)/2);
+		canvasCtx.putImageData(imageData, posX+offsetX, posY+offsetY); 
 	} else if(channels===3){
 		// RGB
 		for(var c = 0; c < 3; c++){
@@ -86,11 +107,33 @@ function image_rect(tensor, canvasCtx, offset, posX, posY, targetW, targetH){
 	        	imageData.data[y*width*4+x*4+3] = 255;
 	        }
 		}
-	}	
-	
-	var offsetX = Math.floor((targetW-width)/2);
-	var offsetY = Math.floor((targetH-height)/2);
-	canvasCtx.putImageData(imageData, posX+offsetX, posY+offsetY); 
+		
+		var offsetX = Math.floor((targetW-width)/2);
+		var offsetY = Math.floor((targetH-height)/2);
+		canvasCtx.putImageData(imageData, posX+offsetX, posY+offsetY); 
+	} else {
+		// render each channel as mosaic image
+		var mosaic = Math.ceil(Math.sqrt(channels));
+		if(h == 1){
+			var mosaicW = targetW;
+			var mosaicH = targetH/(mosaic*mosaic)
+		} else {
+			var mosaicW = targetW/mosaic;
+			var mosaicH = targetH/mosaic;
+		}
+		
+		tensor.dims.splice(0, 1);
+		var i = 0;
+		for(l=0;l<mosaic;l++){
+			for(k=0;k<mosaic;k++){
+				if(offset >= tensor.size)
+					continue;
+				
+				image_rect(tensor, canvasCtx, offset, h == 1 ? 0 : k*mosaicW, h == 1 ? (i++)*mosaicH : l*mosaicH, mosaicW, mosaicH);
+				offset = offset + tensor.size/channels;
+			}
+		}
+	}
 }
 
 

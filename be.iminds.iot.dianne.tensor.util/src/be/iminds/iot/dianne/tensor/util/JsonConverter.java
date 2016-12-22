@@ -8,6 +8,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class JsonConverter {
 
@@ -24,6 +25,8 @@ public class JsonConverter {
 		
 		// not really required, but handy to have full size available in js 
 		json.add("size", new JsonPrimitive(t.size()));
+		json.add("min", new JsonPrimitive(TensorOps.min(t)));
+		json.add("max", new JsonPrimitive(TensorOps.max(t)));
 		return json;
 	}
 	

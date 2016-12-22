@@ -978,6 +978,7 @@ function redrawElement(id, posX, posY){
 
 function connectionClicked(connection){
 	console.log("Connection clicked "+connection.sourceId+"->"+connection.targetId);
+	showConnectionDialog(connection);
 }
 
 

@@ -702,6 +702,81 @@ function createRunModuleDialog(id, moduleItem){
 	return dialog;
 }
 
+
+/**
+ * create dialogs for intermediate output
+ */
+function showConnectionDialog(connection) {
+	var id = connection.sourceId
+	var dialogId = "dialog-" + id;
+	var dialog;
+	dialog = $("#" + dialogId);
+	if (dialog.length == 0) {
+		var dialog;
+		if (currentMode === "run") {
+			dialog = createIntermediateOutputDialog(connection);
+		}
+		if (dialog !== undefined) {
+			var offset = $("#"+id).offset();
+			offset.top = offset.top - 100;
+			offset.left = offset.left - 200;
+			// show the modal (disable backdrop)
+			dialog.draggable({
+				handle : ".modal-header"
+			}).mousedown(function(){
+	   			// set clicked element to a higher level
+	   			$(this).css('z-index', ++dialogZIndex);
+			}).offset(offset);
+		}
+	}
+	
+	if (dialog !== undefined) {
+		dialog.modal({
+			'show' : true,
+			'backdrop' : false
+		}).css('z-index', ++dialogZIndex);
+	}
+}
+
+function createIntermediateOutputDialog(connection){
+	var dialog = renderTemplate("dialog", {
+		id : connection.sourceId,
+		type: "outputviz",
+		title : "Intermediate output after "+nn.modules[connection.sourceId].name,
+		submit: "",
+		cancel: ""
+	}, $(document.body));
+	
+	dialog.find(".content").append("<canvas class='outputCanvas' width='512' height='512' style=\"border:1px solid #000000; margin-left:25px\"></canvas>");
+
+	var eventsource = new EventSource("/dianne/run?nnId="+nn.id+"&moduleId="+connection.sourceId);
+	eventsource.onmessage = function(event){
+		var output = JSON.parse(event.data);
+		if(output.error===undefined){
+			var dialog = $("#dialog-"+output.id);
+			if(dialog !== undefined){
+				var outputCanvas = dialog.find('.outputCanvas')[0];
+				var outputCanvasCtx = outputCanvas.getContext('2d');
+				image(output, outputCanvasCtx);
+			}
+		}
+	};
+	
+	dialog.on('hidden.bs.modal', function () {
+		if($(".probability").length == 1){
+			eventsource.close();
+	    	eventsource = undefined;
+		}
+	    $(this).closest(".modal").remove();
+	});
+		
+	// submit button not used atm
+	dialog.find(".submit").remove();
+	dialog.find(".cancel").remove();
+	
+	return dialog;
+}
+
 var inputCanvas;
 var inputCanvasCtx;
 var mousePos = {x: 0, y:0};
