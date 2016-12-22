@@ -827,7 +827,7 @@ function save(name, copy){
 	$.post("/dianne/save", {"nn":modulesJson, "layout":layoutJson}, 
 		function( data ) {
 			$('#dialog-save').remove();
-			console.log("Succesfully saved");
+			console.log("saved "+s.name);
 			load(s.name);
 		}
 		, "json");
@@ -914,13 +914,14 @@ function showLoadDialog(){
 }
 
 function load(name){
-	console.log("load");
-	nn.name = name;
-	
+	console.log("load "+name);
 	$.post("/dianne/load", {"action":"load", "name":name}, 
 			function( data ) {
 				resetCanvas();
 		
+				nn.name = name;
+				$('#name').text(nn.name);
+				
 				nn.modules = data.nn.modules;
 				loadLayout(data.layout);
 		
@@ -1016,9 +1017,10 @@ function recover(id){
 	$.post("/dianne/deployer", {"action":"recover", "id":id}, 
 			function( data ) {
 				// empty canvas?
-				$('#canvas').empty();
+				resetCanvas();
 				
 				nn.name = data.nn.name;
+				$('#name').text(nn.name);
 				nn.id = data.id;
 				nn.modules = data.nn.modules;
 				loadLayout(data.layout);
@@ -1031,9 +1033,10 @@ function recover(id){
 }
 
 function resetCanvas(){
-	// empty canvas - keep alerts div
+	// empty canvas - keep alerts and name div
+	var name = $('#canvas #name').detach();
 	var alerts = $('#canvas #alerts').detach();
-	$('#canvas').empty().append(alerts);
+	$('#canvas').empty().append(name).append(alerts);
 	learning = {};
 	running = {};
 }

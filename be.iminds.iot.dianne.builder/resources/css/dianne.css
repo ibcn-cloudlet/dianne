@@ -338,3 +338,13 @@ footer {
     content: "\e080";    /* adjust as needed, taken from bootstrap.css */
 }
  
+ /*
+  * Other
+  */
+  
+#name {
+	margin-top: 15px;
+    text-align: center;
+    color: #888;
+    font-weight: bold;
+} 
