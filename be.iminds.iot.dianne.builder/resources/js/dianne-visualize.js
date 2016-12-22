@@ -1,7 +1,6 @@
 
 
 function render(tensor, canvasCtx, type){
-	console.log("RENDER "+type)
 	if(type==="image"){
 		image(tensor, canvasCtx);
 	} else if(type==="laser"){
@@ -12,12 +11,13 @@ function render(tensor, canvasCtx, type){
 	}
 }
 
+
 function image(tensor, canvasCtx){
 	var canvasW = canvasCtx.canvas.clientWidth;
 	var canvasH = canvasCtx.canvas.clientHeight;
 	
 	if(tensor.dims.length >= 4){
-		// batched inputs ... try to fit a mosaic
+		// batched inputs ... render a mosaic
 		if(tensor.dims.length == 4){
 			var batchSize = tensor.dims[0];
 			var mosaic = Math.ceil(Math.sqrt(batchSize));
@@ -35,24 +35,23 @@ function image(tensor, canvasCtx){
 					offset = offset + tensor.size/batchSize;
 				}
 			}
-			
 		}
-		
 	} else {
 		image_rect(tensor, canvasCtx, 0, 0, 0, canvasW, canvasH);
 	}
 }
 
-function image_rect(tensor, canvasCtx, offset, posX, posY, imageW, imageH){
-	canvasCtx.clearRect(posX,posY,imageW,imageH);
+
+function image_rect(tensor, canvasCtx, offset, posX, posY, targetW, targetH){
+	canvasCtx.clearRect(posX,posY,targetW,targetH);
 
 	var w = tensor.dims[tensor.dims.length-1];
 	var h = tensor.dims[tensor.dims.length-2];
 	if(h === undefined)
 		h = 1;
 	
-	var scaleX = imageW/w;
-	var scaleY = imageH/h;
+	var scaleX = targetW/w;
+	var scaleY = targetH/h;
 	var scale = scaleX < scaleY ? scaleX : scaleY;
 	
 	var width = Math.round(w*scale);
@@ -60,8 +59,6 @@ function image_rect(tensor, canvasCtx, offset, posX, posY, imageW, imageH){
 	var channels = tensor.dims.length > 2 ? tensor.dims[tensor.dims.length-3] : 1;
 	var imageData = canvasCtx.createImageData(width, height);
 	
-	
-	// render single image
 	if(channels===1){
 		for (var y = 0; y < height; y++) {
 	        for (var x = 0; x < width; x++) {
@@ -91,8 +88,8 @@ function image_rect(tensor, canvasCtx, offset, posX, posY, imageW, imageH){
 		}
 	}	
 	
-	var offsetX = Math.floor((imageW-width)/2);
-	var offsetY = Math.floor((imageH-height)/2);
+	var offsetX = Math.floor((targetW-width)/2);
+	var offsetY = Math.floor((targetH-height)/2);
 	canvasCtx.putImageData(imageData, posX+offsetX, posY+offsetY); 
 }
 
@@ -101,16 +98,45 @@ function laser(tensor, canvasCtx, showTarget){
 	var canvasW = canvasCtx.canvas.clientWidth;
 	var canvasH = canvasCtx.canvas.clientHeight;
 	
+	if(tensor.dims.length >= 2){
+		// render in a mosaic
+		var scanPoints = tensor.dims[tensor.dims.length-1];
+		var batchSize = tensor.size/scanPoints;
+		var mosaic = Math.ceil(Math.sqrt(batchSize));
+		var mosaicW = canvasW/mosaic;
+		var mosaicH = canvasH/mosaic;
+		
+		var offset = 0;
+		for(l=0;l<mosaic;l++){
+			for(k=0;k<mosaic;k++){
+				if(offset >= tensor.size)
+					continue;
+				
+				laser_rect(tensor, canvasCtx, offset, scanPoints, k*mosaicW, l*mosaicH, mosaicW, mosaicH, showTarget);
+				offset = offset + scanPoints;
+			}
+		}
+	} else {
+		laser_rect(tensor, canvasCtx, 0, tensor.size, 0, 0, canvasW, canvasH, showTarget);
+	}
+}
+
+
+function laser_rect(tensor, canvasCtx, offset, scanPoints, posX, posY, targetW, targetH, showTarget){
 	// render laserdata
-	var step = Math.PI/tensor.size;
+	var step = Math.PI/scanPoints;
 	var angle = 0;
 	var length;
-	canvasCtx.clearRect(0,0,canvasW,canvasH);
+	canvasCtx.clearRect(posX,posY,targetW,targetH);
 	canvasCtx.beginPath();
-	for (var i = 0; i < tensor.size; i++) {
-		canvasCtx.moveTo(canvasW/2, canvasH);
-		length = tensor.data[i]*canvasH/2;
-		canvasCtx.lineTo(canvasW/2+length*Math.cos(angle), canvasH-length*Math.sin(angle));
+	for (var i = 0; i < scanPoints; i++) {
+		canvasCtx.moveTo(posX+targetW/2, posY+targetH);
+		length = tensor.data[offset+i]*targetH/2;
+		
+		var x = posX+targetW/2+length*Math.cos(angle);
+		var y = posY+targetH-length*Math.sin(angle);
+		canvasCtx.lineTo(Math.min(Math.max(parseInt(x), posX), posX+targetW), 
+				Math.min(Math.max(parseInt(y), posY), posY+targetH));
 		angle+=step;
 	}
 	canvasCtx.stroke();
@@ -118,7 +144,7 @@ function laser(tensor, canvasCtx, showTarget){
 	
 	if(showTarget){
 		canvasCtx.beginPath();
-		canvasCtx.arc(256, 449, 6, 0, 2 * Math.PI, false);
+		canvasCtx.arc(targetW/2, 0.876953125*targetH, 6, 0, 2 * Math.PI, false);
 		canvasCtx.fillStyle = 'red';
 		canvasCtx.fill();
 		canvasCtx.closePath();

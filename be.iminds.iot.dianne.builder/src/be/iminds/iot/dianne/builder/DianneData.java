@@ -97,7 +97,7 @@ public class DianneData extends HttpServlet {
 		} else if(action.equals("sample")){
 			String dataset = request.getParameter("dataset");
 			Dataset d = datasets.getDataset(dataset);
-			if(d!=null){
+			if(d!=null && d.size() > 0){
 				Sample s = d.getSample(rand.nextInt(d.size()));
 				JsonObject sample = converter.toJson(s.input);
 				String[] labels = d.getLabels();
