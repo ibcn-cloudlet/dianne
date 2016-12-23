@@ -1,0 +1,20 @@
+
+.sample {
+	display: inline-block;
+	margin: 5px;
+}
+
+.sample:hover {
+	background-color: #ddd;
+}
+
+.selected {
+	background-color: #ddd;
+}
+
+.latent{
+	z-index: 1;
+	top: 0px;
+	position:absolute;
+	display: none
+}
