@@ -748,7 +748,21 @@ function createIntermediateOutputDialog(connection){
 	}, $(document.body));
 	
 	dialog.find(".content").append("<canvas class='outputCanvas' width='512' height='512' style=\"border:1px solid #000000; margin-left:25px\"></canvas>");
-
+	dialog.find(".content").append("<div class='stats'>Min: <div class='min stat'></div> Mean: <div class='mean stat'></div> Max: <div class='max stat'></div> <div class='val stat'></div></div>");
+	dialog.find('.outputCanvas').mousemove(function(e) {
+	    var pos = findPos(this);
+	    var x = e.pageX - pos.x;
+	    var y = e.pageY - pos.y;
+	    var coord = "x=" + x + ", y=" + y;
+	    var c = this.getContext('2d');
+	    var p = c.getImageData(x, y, 1, 1).data; 
+	  
+	    var min = parseFloat(dialog.find('.min').text());
+	    var max = parseFloat(dialog.find('.max').text());
+	    var val = (p[3]/255*(max-min)+min);
+	    dialog.find('.val').text(isNaN(val) ? "" : val.toFixed(4));
+	});
+	
 	var eventsource = new EventSource("/dianne/run?nnId="+nn.id+"&moduleId="+connection.sourceId);
 	eventsource.onmessage = function(event){
 		var output = JSON.parse(event.data);
@@ -758,6 +772,9 @@ function createIntermediateOutputDialog(connection){
 				var outputCanvas = dialog.find('.outputCanvas')[0];
 				var outputCanvasCtx = outputCanvas.getContext('2d');
 				image(output, outputCanvasCtx);
+				dialog.find('.min').text(output.min.toFixed(4));
+				dialog.find('.max').text(output.max.toFixed(4));
+				dialog.find('.mean').text(output.mean.toFixed(4));
 			}
 		}
 	};
@@ -775,6 +792,18 @@ function createIntermediateOutputDialog(connection){
 	dialog.find(".cancel").remove();
 	
 	return dialog;
+}
+
+function findPos(obj) {
+    var curleft = 0, curtop = 0;
+    if (obj.offsetParent) {
+        do {
+            curleft += obj.offsetLeft;
+            curtop += obj.offsetTop;
+        } while (obj = obj.offsetParent);
+        return { x: curleft, y: curtop };
+    }
+    return undefined;
 }
 
 var inputCanvas;

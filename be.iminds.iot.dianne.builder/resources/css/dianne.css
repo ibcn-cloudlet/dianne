@@ -348,3 +348,15 @@ footer {
     color: #888;
     font-weight: bold;
 } 
+
+.stats {
+	width: 100%;
+}
+
+.stat {
+	display: inline-block;
+}
+
+.val {
+	float: right;
+}

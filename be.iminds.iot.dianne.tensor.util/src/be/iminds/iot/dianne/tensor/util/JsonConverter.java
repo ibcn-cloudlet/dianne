@@ -27,6 +27,7 @@ public class JsonConverter {
 		json.add("size", new JsonPrimitive(t.size()));
 		json.add("min", new JsonPrimitive(TensorOps.min(t)));
 		json.add("max", new JsonPrimitive(TensorOps.max(t)));
+		json.add("mean", new JsonPrimitive(TensorOps.mean(t)));
 		return json;
 	}
 	
