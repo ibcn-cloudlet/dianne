@@ -137,7 +137,7 @@ public class DiannePlatformImpl implements DiannePlatform {
 				throw new InstantiationException("Failed to deploy modules to runtime "+targetRuntime+": no such runtime");
 			}
 			
-			ModuleInstanceDTO instance = runtime.deployModule(module, nnId);
+			ModuleInstanceDTO instance = runtime.deployModule(module, nnId, tags);
 			moduleInstances.put(instance.moduleId, instance);
 		}
 
