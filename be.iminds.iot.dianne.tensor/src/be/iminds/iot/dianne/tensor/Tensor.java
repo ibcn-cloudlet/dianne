@@ -157,6 +157,13 @@ public class Tensor {
 	public native Tensor copyInto(final Tensor other);
 	
 	/**
+	 * clone this tensor - creates a deep copy of this tensor
+	 */
+	public Tensor clone(){
+		return copyInto(null);
+	}
+	
+	/**
 	 * Return a subtensor narrowing dimension dim from index to index+size-1
 	 */
 	public native Tensor narrow(final int dim, final int index, final int size);
