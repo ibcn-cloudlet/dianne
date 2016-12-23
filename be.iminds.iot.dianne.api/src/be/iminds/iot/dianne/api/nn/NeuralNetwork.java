@@ -24,6 +24,7 @@ package be.iminds.iot.dianne.api.nn;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import org.osgi.util.promise.Promise;
@@ -55,6 +56,18 @@ public interface NeuralNetwork {
 	 * Get the Neural Network Instance DTO 
 	 */
 	NeuralNetworkInstanceDTO getNeuralNetworkInstance();
+	
+	/**
+	 * Get a UUID for a module by its name. Casing is ignored. A name is not necessary unique, in which case
+	 * this method can return any one of the matching UUIDs.
+	 */
+	default UUID getModuleId(String name) {
+		try {
+			return getNeuralNetworkInstance().modules.entrySet().stream().filter(e -> name.equalsIgnoreCase(e.getValue().module.properties.get("name"))).findFirst().map(e -> e.getKey()).get();
+		} catch(NoSuchElementException e){
+			return null;
+		}
+	}
 	
 	/**
 	 * Forward input through the neural network
@@ -157,6 +170,15 @@ public interface NeuralNetwork {
 	Map<UUID, Input> getInputs();
 	
 	/**
+	 * Get Input module by id
+	 * @param inputId
+	 * @return
+	 */
+	default Input getInput(UUID inputId){
+		return getInputs().get(inputId);
+	}
+	
+	/**
 	 * Get the output module in case of only one output
 	 * @return
 	 */
@@ -167,6 +189,15 @@ public interface NeuralNetwork {
 	 * @return
 	 */
 	Map<UUID, Output> getOutputs();
+	
+	/**
+	 * Get Output module by id
+	 * @param outputId
+	 * @return
+	 */
+	default Output getOutput(UUID outputId){
+		return getOutputs().get(outputId);
+	}
 	
 	/**
 	 * Get the output labels for the neural network output.
@@ -204,10 +235,28 @@ public interface NeuralNetwork {
 	Map<UUID, Trainable> getTrainables();
 	
 	/**
+	 * Get Trainable module by id
+	 * @param moduleId
+	 * @return
+	 */
+	default Trainable getTrainable(UUID moduleId){
+		return getTrainables().get(moduleId);
+	}
+	
+	/**
 	 * Get Preprocessor modules for this neural network instance
 	 * @return
 	 */
 	Map<UUID, Preprocessor> getPreprocessors();
+	
+	/**
+	 * Get Preprocessor module by id
+	 * @param moduleId
+	 * @return
+	 */
+	default Preprocessor getPreprocessor(UUID moduleId){
+		return getPreprocessors().get(moduleId);
+	}
 	
 	/**
 	 * Get Memory modules for this neural network instance
@@ -216,10 +265,28 @@ public interface NeuralNetwork {
 	Map<UUID, Memory> getMemories();
 	
 	/**
+	 * Get Memory module by id
+	 * @param moduleId
+	 * @return
+	 */
+	default Memory getMemory(UUID moduleId){
+		return getMemories().get(moduleId);
+	}
+	
+	/**
 	 * Get all modules for this neural network instance
 	 * @return
 	 */
 	Map<UUID, Module> getModules();
+	
+	/**
+	 * Get Module by id
+	 * @param moduleId
+	 * @return
+	 */
+	default Module getModule(UUID moduleId){
+		return getModules().get(moduleId);
+	}
 	
 	/**
 	 * Set parameters for this neural network instance
