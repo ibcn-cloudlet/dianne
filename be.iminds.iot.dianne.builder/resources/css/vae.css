@@ -12,6 +12,22 @@
 	background-color: #ddd;
 }
 
+.slider {
+	width: 500px;
+}
+
+.slider-wrapper {
+	width: 300px;
+	height: 30px;
+	display: inline-block;
+}
+
+.output-wrapper {
+	width: 100px;
+	height: 30px;
+	display: inline-block;
+}
+
 .latent{
 	z-index: 1;
 	top: 0px;

@@ -71,7 +71,8 @@ public class DianneVAE extends HttpServlet {
 	private DianneDatasets datasets;
 	
 	private int tries = 1000;
-
+	private int size = 6*6;
+	
 	private Map<String, NeuralNetwork> nns = new ConcurrentHashMap<>();
 	
 	@Reference
@@ -144,7 +145,7 @@ public class DianneVAE extends HttpServlet {
 			}
 		}
 		
-		int size = 36;
+		int size = this.size;
 		String s = request.getParameter("size");
 		if(s != null){
 			size = Integer.parseInt(s);
@@ -153,7 +154,8 @@ public class DianneVAE extends HttpServlet {
 		JsonArray result = new JsonArray();
 
 		String sample = request.getParameter("sample");
-		if(sample == null){
+		String l = request.getParameter("latent");
+		if(sample == null && l == null){
 			// fetch random samples from dataset
 			for(int i=0;i<size;i++){
 				JsonObject o = new JsonObject();
@@ -169,15 +171,23 @@ public class DianneVAE extends HttpServlet {
 			}
 			
 		} else {
-			int index = Integer.parseInt(sample);
-			Tensor base = dataset.getSample(index).input;
-			Tensor latent = encoder.forward(base).clone();
+			Tensor latent = null;
+			if(sample != null){
+				int index = Integer.parseInt(sample);
+				Tensor base = dataset.getSample(index).input;
+				latent = encoder.forward(base).clone();
+			} else {
+				Tensor lmeans = converter.fromString(l);
+				latent = new Tensor(lmeans.size()*2);
+				latent.fill(0.0f);
+				lmeans.copyInto(latent.narrow(0, lmeans.size()));
+			}
 			if(decoder != null){
 				// generate samples using the decoder
 				Tensor mean = latent.narrow(0, latent.size()/2);
 				Tensor stdev = latent.narrow(latent.size()/2, latent.size()/2);
 				Tensor rand = new Tensor(latent.size()/2);
-				Tensor rand2 = new Tensor(base.size());
+				Tensor rand2 = null;
 				
 				for(int i=0;i<size;i++){
 					rand.randn();
@@ -188,6 +198,9 @@ public class DianneVAE extends HttpServlet {
 					Tensor rmean = reconstruction.narrow(0, reconstruction.size()/2);
 					Tensor rstdev = reconstruction.narrow(reconstruction.size()/2, reconstruction.size()/2);
 					
+					if(rand2 == null){
+						rand2 = new Tensor(rmean.dims());
+					}
 					rand2.randn();
 					TensorOps.cmul(rand2, rand2, rstdev);
 					TensorOps.add(rand2, rand2, rmean);
@@ -201,12 +214,13 @@ public class DianneVAE extends HttpServlet {
 				
 			} else {
 				// search for samples close to this sample in the dataset
+				final Tensor baseline = latent;
 				SortedSet<LatentSample> set = new TreeSet<>(new Comparator<LatentSample>() {
 					@Override
 					public int compare(LatentSample o1, LatentSample o2) {
-						Tensor diff = TensorOps.sub(null, o1.latent.narrow(0, latent.size()/2), latent.narrow(0, latent.size()/2));
+						Tensor diff = TensorOps.sub(null, o1.latent.narrow(0, baseline.size()/2), baseline.narrow(0, baseline.size()/2));
 						Float d1 = TensorOps.dot(diff, diff);
-						diff = TensorOps.sub(null, o2.latent.narrow(0, latent.size()/2), latent.narrow(0, latent.size()/2));
+						diff = TensorOps.sub(null, o2.latent.narrow(0, baseline.size()/2), baseline.narrow(0, baseline.size()/2));
 						Float d2 = TensorOps.dot(diff, diff);
 						return d1.compareTo(d2);
 					}

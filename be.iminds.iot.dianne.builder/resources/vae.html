@@ -32,12 +32,45 @@
 		</div>
 	</div>
 
+	<div class="modal fade" id="latent-modal" role="dialog">
+	  	<div class="modal-dialog modal-lg">
+	    	<div class="modal-content">
+		      	<div class="modal-header">
+		        	<button type="button" class="close" data-dismiss="modal">&times;</button>
+		        	<h4 class="modal-title">Explore latent space</h4>
+		      	</div>
+		     	<div class="modal-body">
+		     		<center>
+		      			<canvas class='sampleCanvas' width='256' height='256' style="border:1px solid #000000"></canvas>
+		      			<p>Tune the latent variables:</p>
+		        		<div id="sliders"></div>
+		        	</center>
+		      	</div>
+		      	<div class="modal-footer">
+		        	<button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+		      	</div>
+	    	</div>
+	  	</div>
+	</div>
+
 	<script type="x-tmpl-mustache" id="sample">
 	<div class="sample" data-toggle="tooltip" title='{{latent}}'>
 		<canvas class='sampleCanvas' width='128' height='128' style=\"border:1px solid #000000\"></canvas>
 		<input class="index" type="hidden" name="index" value="{{index}}"/>
 	</div>
 	</script>
+
+	<script type="x-tmpl-mustache" id="slider">
+	<div class="slider">
+		<div class="slider-wrapper">
+  			<input type="range" index="{{i}}" value="{{value}}" onchange="sliderChanged()" min="-5" max="5" step="0.001" />
+		</div>
+		<div class="output-wrapper">
+  			<output id="{{i}}-val">{{value}}</output>
+		</div>
+	</div>
+	</script>
+
 
 	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 	<script src="js/lib/jquery.min.js"></script>

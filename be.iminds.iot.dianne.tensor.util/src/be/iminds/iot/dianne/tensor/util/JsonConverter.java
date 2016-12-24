@@ -3,6 +3,7 @@ package be.iminds.iot.dianne.tensor.util;
 import java.util.Arrays;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
@@ -31,22 +32,38 @@ public class JsonConverter {
 		return json;
 	}
 	
-	public Tensor fromJson(JsonObject json){
-		JsonArray d = json.get("dims").getAsJsonArray();
-		int[] dims = new int[d.size()];
-		for(int i=0;i<dims.length;i++){
-			dims[i] = d.get(i).getAsInt();
-		}
-		 
+	public Tensor fromJson(JsonElement e){
+		int[] dims = null;
 		Tensor t = null;
+
+		JsonArray dd = null;
+		if(e.isJsonObject()){
+			JsonObject json = e.getAsJsonObject();
+			if(json.has("dims")){
+				JsonArray d = json.get("dims").getAsJsonArray();
+				dims = new int[d.size()];
+				for(int i=0;i<dims.length;i++){
+					dims[i] = d.get(i).getAsInt();
+				}
+			}	
+			dd = json.get("data").getAsJsonArray();
+		} else if(e.isJsonArray()){
+			dd = e.getAsJsonArray();
+		}
 		
-		JsonArray dd = json.get("data").getAsJsonArray();
 		if(dd==null || dd.size() == 0){
 			// fill random data ?
-			t = new Tensor(dims);
-			t.randn();
+			if(dims == null){
+				t = new Tensor();
+			} else {
+				t = new Tensor(dims);
+				t.randn();
+			}
 		} else {
 			float[] data = parseData(dd.toString());
+			if(dims == null){
+				dims = new int[]{data.length};
+			}
 			if(data.length == 1){
 				t = new Tensor(dims);
 				t.fill(data[0]);
@@ -59,7 +76,7 @@ public class JsonConverter {
 	}
 	
 	public Tensor fromString(String jsonString){
-		JsonObject json = parser.parse(jsonString).getAsJsonObject();
+		JsonElement json = parser.parse(jsonString);
 		return fromJson(json);
 	}
 	
