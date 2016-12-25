@@ -505,7 +505,8 @@ public class CompositeModuleFactory implements ModuleFactory {
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
 	void addModuleFactory(ModuleFactory factory){
-		this.moduleFactories.add(factory);
+		if(factory != this)
+			this.moduleFactories.add(factory);
 	}
 	
 	void removeModuleFactory(ModuleFactory factory){
