@@ -69,6 +69,9 @@ public class BPTTLearningStrategy implements LearningStrategy {
 		if(!(dataset instanceof SequenceDataset))
 			throw new RuntimeException("Dataset is no sequence dataset");
 		
+		// This strategy currently only works with batchsize 1
+		config.put("batchSize", "1");
+		
 		this.dataset = (SequenceDataset)dataset;
 		this.nn = nns[0];
 		
