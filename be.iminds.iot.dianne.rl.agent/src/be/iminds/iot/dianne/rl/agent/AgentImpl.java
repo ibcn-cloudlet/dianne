@@ -47,6 +47,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.DianneDatasets;
+import be.iminds.iot.dianne.api.dataset.Sequence;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
@@ -96,7 +97,7 @@ public class AgentImpl implements Agent {
 	private volatile AgentProgress progress;
 	
 	private List<ExperiencePoolSample> uploadBuffer;
-	private List<ExperiencePoolSample> upload; 
+	private Sequence<ExperiencePoolSample> upload; 
 	private int count = 0;
 	
 	// repository listener to sync with repo
@@ -359,7 +360,7 @@ public class AgentImpl implements Agent {
 						
 						if(b.isTerminal()){
 							// sequence finished, upload to pool
-							upload = new ArrayList<>(uploadBuffer.subList(0, count));
+							upload = new Sequence<ExperiencePoolSample>(uploadBuffer.subList(0, count), count);
 							if(pool!=null){
 								try {
 									pool.addSequence(upload);

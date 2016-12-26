@@ -61,8 +61,16 @@ public class Sample {
 		return b.toString();
 	}
 	
-	public void copyInto(Sample other){
+	public Sample copyInto(Sample other){
+		if(other == null){
+			other = new Sample();
+		}
 		other.input = input.copyInto(other.input);
 		other.target = target.copyInto(other.target);
+		return other;
+	}
+	
+	public Sample clone(){
+		return copyInto(null);
 	}
 }

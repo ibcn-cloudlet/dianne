@@ -22,8 +22,6 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.dataset;
 
-import java.util.List;
-
 /**
  * A SequenceDataset is a Dataset consisting of sequences of samples.
  * 
@@ -34,7 +32,7 @@ import java.util.List;
  * @author tverbele
  *
  */
-public interface SequenceDataset<S, B> extends Dataset {
+public interface SequenceDataset<S extends Sample, B extends Batch> extends Dataset {
 	
 	/**
 	 * Number of sequences in the dataset
@@ -50,13 +48,13 @@ public interface SequenceDataset<S, B> extends Dataset {
 	 * @param length number of samples to get (in case sequence is not long enough, elements will be put to NaN)
 	 * @return sequence
 	 */
-	List<S> getSequence(List<S> s, final int sequence, final int index, final int length);
+	Sequence<S> getSequence(Sequence<S> s, final int sequence, final int index, final int length);
 	
-	default List<S> getSequence(final int sequence, final int index, final int length){
+	default Sequence<S> getSequence(final int sequence, final int index, final int length){
 		return getSequence(null, sequence, index, length);
 	}
 	
-	default List<S> getSequence(final int sequence){
+	default Sequence<S> getSequence(final int sequence){
 		return getSequence(null, sequence, 0, -1);
 	}
 	
@@ -68,13 +66,13 @@ public interface SequenceDataset<S, B> extends Dataset {
 	 * @param length number of samples to get (in case sequence is not long enough, elements will be put to NaN)
 	 * @return sequence
 	 */
-	List<B> getBatchedSequence(List<B> b, final int[] sequences, final int[] indices, final int length);
+	Sequence<B> getBatchedSequence(Sequence<B> b, final int[] sequences, final int[] indices, final int length);
 	
-	default List<B> getBatchedSequence(final int[] sequences, final int[] indices, final int length){
+	default Sequence<B> getBatchedSequence(final int[] sequences, final int[] indices, final int length){
 		return getBatchedSequence(null, sequences, indices, length);
 	}
 	
-	default List<B> getBatchedSequence(final int[] sequences){
+	default Sequence<B> getBatchedSequence(final int[] sequences){
 		return getBatchedSequence(null, sequences, null, -1);
 	}
 }

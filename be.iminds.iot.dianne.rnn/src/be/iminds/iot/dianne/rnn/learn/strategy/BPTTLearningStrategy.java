@@ -23,12 +23,12 @@
 package be.iminds.iot.dianne.rnn.learn.strategy;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.Sample;
+import be.iminds.iot.dianne.api.dataset.Sequence;
 import be.iminds.iot.dianne.api.dataset.SequenceDataset;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
@@ -62,7 +62,7 @@ public class BPTTLearningStrategy implements LearningStrategy {
 	protected Criterion criterion;
 	protected SamplingStrategy sampling;
 	
-	protected List<Sample> sequence = null;
+	protected Sequence<Sample> sequence = null;
 	
 	@Override
 	public void setup(Map<String, String> config, Dataset dataset, NeuralNetwork... nns) throws Exception {
@@ -126,7 +126,7 @@ public class BPTTLearningStrategy implements LearningStrategy {
 			Tensor out = nn.forward(sequence.get(k).input);
 				
 			// store output
-			outputs[k] = out;
+			outputs[k] = out.copyInto(outputs[k]);
 		}
 		
 		// backward

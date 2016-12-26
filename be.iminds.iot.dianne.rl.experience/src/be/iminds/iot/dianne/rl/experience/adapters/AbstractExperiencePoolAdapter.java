@@ -23,13 +23,13 @@
 package be.iminds.iot.dianne.rl.experience.adapters;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.dataset.Sample;
+import be.iminds.iot.dianne.api.dataset.Sequence;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
@@ -120,7 +120,7 @@ public abstract class AbstractExperiencePoolAdapter implements ExperiencePool {
 	}
 	
 	@Override
-	public List<ExperiencePoolSample> getSequence(List<ExperiencePoolSample> s, int sequence, int index, int length){
+	public Sequence<ExperiencePoolSample> getSequence(Sequence<ExperiencePoolSample> s, int sequence, int index, int length){
 		s = pool.getSequence(s, sequence, index, length);
 		for(ExperiencePoolSample sample : s){
 			adaptFetchedSample(sample);
@@ -129,7 +129,7 @@ public abstract class AbstractExperiencePoolAdapter implements ExperiencePool {
 	}
 	
 	@Override
-	public List<ExperiencePoolBatch> getBatchedSequence(List<ExperiencePoolBatch> b, int[] sequences, int[] indices,
+	public Sequence<ExperiencePoolBatch> getBatchedSequence(Sequence<ExperiencePoolBatch> b, int[] sequences, int[] indices,
 			int length) {
 		b = pool.getBatchedSequence(b, sequences, indices, length);
 		for(int i=0; i< sequences.length;i++){
@@ -142,7 +142,7 @@ public abstract class AbstractExperiencePoolAdapter implements ExperiencePool {
 	}
 	
 	@Override
-	public void addSequence(List<ExperiencePoolSample> sequence){
+	public void addSequence(Sequence<ExperiencePoolSample> sequence){
 		for(ExperiencePoolSample sample : sequence){
 			adaptAddingSample(sample);
 		}
@@ -155,7 +155,7 @@ public abstract class AbstractExperiencePoolAdapter implements ExperiencePool {
 	}
 
 	@Override
-	public List<ExperiencePoolSample> removeAndGetSequence(List<ExperiencePoolSample> s, final int sequence){
+	public Sequence<ExperiencePoolSample> removeAndGetSequence(Sequence<ExperiencePoolSample> s, final int sequence){
 		s = pool.removeAndGetSequence(s, sequence);
 		for(ExperiencePoolSample sample : s){
 			adaptFetchedSample(sample);

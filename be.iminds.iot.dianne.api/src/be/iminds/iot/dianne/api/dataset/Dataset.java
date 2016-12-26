@@ -87,6 +87,10 @@ public interface Dataset {
 	/**
 	 * Fetches the samples at indices from the dataset and puts the data into the provided Batch object
 	 * If the provided Batch object is null a new one will be created and returned.
+	 * 
+	 * In case the dataset has varying input dims, a single batch cannot be constructed an
+	 * an InstantiationError will be thrown
+	 * 
 	 * @param b Batch object to put the data in
 	 * @param indices indices to fetch
 	 * @return
@@ -97,7 +101,7 @@ public interface Dataset {
 			int[] targetDims = targetDims();
 
 			if(inputDims == null){
-				b = new Batch(indices.length);
+				throw new InstantiationError("Cannot create a batch when dataset has no fixed input dimensions");
 			} else {
 				b = new Batch(indices.length, inputDims, targetDims);
 			}

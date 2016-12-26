@@ -33,8 +33,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
  * the inputSamples/targetSamples arrays. 
  * 
  * In case the Dataset has variable input dims, a single batched Tensor is 
- * impossible to construct, in which case input/target are null and the inputSamples
- * targetSamples arrays contain separate Tensor objects for each sample in the batch.
+ * impossible to construct, in which case an InstantiationError will be thrown
  * 
  * @author tverbele
  *
@@ -47,35 +46,22 @@ public class Batch extends Sample {
 	
 	public Batch(int batchSize, int[] inputDims, int[] targetDims){
 		super(new Tensor(batchSize, inputDims),new Tensor(batchSize, targetDims));
-		this.samples = new Sample[batchSize];
-		for(int i = 0; i< batchSize; i++){
-			this.samples[i] = new Sample(input.select(0, i), target.select(0, i));
-		}
+		init(batchSize);
 	}
 	
 	public Batch(Tensor input, Tensor target){
 		super(input, target);
 		int batchSize = input.size(0);
+		init(batchSize);
+	}
+	
+	private void init(int batchSize){
 		this.samples = new Sample[batchSize];
 		for(int i = 0; i< batchSize; i++){
 			this.samples[i] = new Sample(input.select(0, i), target.select(0, i));
 		}
 	}
 
-	public Batch(int batchSize){
-		// fill with empty samples...
-		this.samples = new Sample[batchSize];
-		for(int i = 0; i< batchSize; i++){
-			this.samples[i] = new Sample();
-		}
-	}
-	
-	public Batch(Sample[] samples){
-		// no single batch Tensor exists
-		// only an array of separate tensors
-		this.samples = samples;
-	}
-	
 	public int getSize(){
 		return samples.length;
 	}
@@ -90,5 +76,19 @@ public class Batch extends Sample {
 	
 	public Tensor getTarget(int i){
 		return samples[i].target;
+	}
+	
+	public Batch copyInto(Batch other){
+		if(other == null){
+			other = new Batch(samples.length, samples[0].input.dims(), samples[0].target.dims());
+		} 
+		other.input = input.copyInto(other.input);
+		other.target = target.copyInto(other.target);
+		other.init(samples.length);
+		return other;
+	}
+	
+	public Batch clone(){
+		return copyInto(null);
 	}
 }

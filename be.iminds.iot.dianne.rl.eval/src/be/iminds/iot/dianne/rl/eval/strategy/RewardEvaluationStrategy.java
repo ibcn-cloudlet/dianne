@@ -22,10 +22,10 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rl.eval.strategy;
 
-import java.util.List;
 import java.util.Map;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.Sequence;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 import be.iminds.iot.dianne.api.nn.eval.EvaluationProgress;
@@ -64,7 +64,7 @@ public class RewardEvaluationStrategy implements EvaluationStrategy {
 
 	@Override
 	public EvaluationProgress processIteration(long i) throws Exception {
-		List<ExperiencePoolSample> sequence = pool.getSequence((int)(i++));
+		Sequence<ExperiencePoolSample> sequence = pool.getSequence((int)(i++));
 		
 		float discountedReward = 0;
 		for(int k = sequence.size()-1; k >= 0; k--){

@@ -13,6 +13,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import be.iminds.iot.dianne.api.dataset.Sequence;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
@@ -88,7 +89,7 @@ public class ExperiencePoolTest {
 		sequence.add(new ExperiencePoolSample(s1, a1, 0, s2));
 		sequence.add(new ExperiencePoolSample(s2, a2, 0, s3));
 		sequence.add(new ExperiencePoolSample(s3, a3, 1, null));
-		pool.addSequence(sequence);
+		pool.addSequence(new Sequence<ExperiencePoolSample>(sequence, 4));
 		
 		Assert.assertEquals(4, pool.size());
 		Assert.assertEquals(1, pool.sequences());
@@ -119,7 +120,7 @@ public class ExperiencePoolTest {
 		sequence2.add(new ExperiencePoolSample(s3, a3, 0, s4));
 		sequence2.add(new ExperiencePoolSample(s4, a4, 0, s5));
 		sequence2.add(new ExperiencePoolSample(s5, a5, 0, null));
-		pool.addSequence(sequence2);
+		pool.addSequence(new Sequence<ExperiencePoolSample>(sequence2, 6));
 		
 		Assert.assertEquals(10, pool.size());
 		Assert.assertEquals(2, pool.sequences());
@@ -148,7 +149,7 @@ public class ExperiencePoolTest {
 		
 		
 		// test get sequence
-		List<ExperiencePoolSample> retrieved = pool.getSequence(1);
+		Sequence<ExperiencePoolSample> retrieved = pool.getSequence(1);
 		int i = 0;
 		for(ExperiencePoolSample r : retrieved){
 			ExperiencePoolSample expected = sequence2.get(i++);
@@ -175,7 +176,7 @@ public class ExperiencePoolTest {
 		sequence.add(new ExperiencePoolSample(s1, a1, 0, s2));
 		sequence.add(new ExperiencePoolSample(s2, a2, 0, s3));
 		sequence.add(new ExperiencePoolSample(s3, a3, 1, null));
-		pool.addSequence(sequence);
+		pool.addSequence(new Sequence<ExperiencePoolSample>(sequence, 4));
 		
 		Assert.assertEquals(4, pool.size());
 		Assert.assertEquals(1, pool.sequences());
@@ -190,7 +191,7 @@ public class ExperiencePoolTest {
 		sequence2.add(new ExperiencePoolSample(s3, a3, 0, s4));
 		sequence2.add(new ExperiencePoolSample(s4, a4, 0, s5));
 		sequence2.add(new ExperiencePoolSample(s5, a5, 0, null));
-		pool.addSequence(sequence2);
+		pool.addSequence(new Sequence<ExperiencePoolSample>(sequence2, 6));
 		
 		Assert.assertEquals(10, pool.size());
 		Assert.assertEquals(2, pool.sequences());
@@ -200,7 +201,7 @@ public class ExperiencePoolTest {
 		sequence3.add(new ExperiencePoolSample(s0, a0, 1, s1));
 		sequence3.add(new ExperiencePoolSample(s1, a1, 0, s2));
 		sequence3.add(new ExperiencePoolSample(s2, a2, 0, null));
-		pool.addSequence(sequence3);
+		pool.addSequence(new Sequence<ExperiencePoolSample>(sequence3, 3));
 		
 		Assert.assertEquals(9, pool.size());
 		Assert.assertEquals(2, pool.sequences());	
@@ -222,22 +223,22 @@ public class ExperiencePoolTest {
 		Assert.assertEquals(false, s.isTerminal());
 		
 		// now add additional instances of sequence3
-		pool.addSequence(sequence3);
+		pool.addSequence(new Sequence<ExperiencePoolSample>(sequence3, 3));
 
 		Assert.assertEquals(12, pool.size());
 		Assert.assertEquals(3, pool.sequences());
 		
 		// and cycle some more
-		pool.addSequence(sequence2);
+		pool.addSequence(new Sequence<ExperiencePoolSample>(sequence2, 6));
 		Assert.assertEquals(12, pool.size());
 		Assert.assertEquals(3, pool.sequences());
 		
-		pool.addSequence(sequence2);
+		pool.addSequence(new Sequence<ExperiencePoolSample>(sequence2, 6));
 		Assert.assertEquals(12, pool.size());
 		Assert.assertEquals(2, pool.sequences());
 		
-		pool.addSequence(sequence3);
-		pool.addSequence(sequence3);
+		pool.addSequence(new Sequence<ExperiencePoolSample>(sequence3, 3));
+		pool.addSequence(new Sequence<ExperiencePoolSample>(sequence3, 3));
 		Assert.assertEquals(12, pool.size());
 		Assert.assertEquals(3, pool.sequences());
 		
@@ -252,7 +253,7 @@ public class ExperiencePoolTest {
 		for(int i=0;i<20;i++)
 			sequence.add(new ExperiencePoolSample(s0, a0, 0, s0));
 		
-		pool.addSequence(sequence);
+		pool.addSequence(new Sequence<ExperiencePoolSample>(sequence, 20));
 		
 		Assert.assertEquals(0, pool.size());
 		Assert.assertEquals(0, pool.sequences());
@@ -268,7 +269,7 @@ public class ExperiencePoolTest {
 		sequence.add(new ExperiencePoolSample(s0, a0, 0, s1));
 		sequence.add(new ExperiencePoolSample(s1, a1, 0.1f, s2));
 		sequence.add(new ExperiencePoolSample(s2, a2, 0.2f, null));
-		pool.addSequence(sequence);
+		pool.addSequence(new Sequence<ExperiencePoolSample>(sequence, 3));
 
 		// second sequence
 		List<ExperiencePoolSample> sequence2 = new ArrayList<>();
@@ -278,7 +279,7 @@ public class ExperiencePoolTest {
 		sequence2.add(new ExperiencePoolSample(s3, a3, 0.6f, s4));
 		sequence2.add(new ExperiencePoolSample(s4, a4, 0.7f, s5));
 		sequence2.add(new ExperiencePoolSample(s5, a5, 0.8f, null));
-		pool.addSequence(sequence2);
+		pool.addSequence(new Sequence<ExperiencePoolSample>(sequence2, 6));
 		
 		ExperiencePoolBatch batch = pool.getBatch(0, 1, 3, 8, 5);
 		Assert.assertEquals(5, batch.getSize());
@@ -320,13 +321,13 @@ public class ExperiencePoolTest {
 		sequence.add(new ExperiencePoolSample(s1, a1, 0, s2));
 		sequence.add(new ExperiencePoolSample(s2, a2, 0, s3));
 		sequence.add(new ExperiencePoolSample(s3, a3, 1, null));
-		pool.addSequence(sequence);
+		pool.addSequence(new Sequence<ExperiencePoolSample>(sequence, 4));
 		
 		Assert.assertEquals(4, pool.size());
 		Assert.assertEquals(1, pool.sequences());
 		
 		// test get sequence
-		List<ExperiencePoolSample> retrieved = pool.getSequence(0, 1, -1);
+		Sequence<ExperiencePoolSample> retrieved = pool.getSequence(0, 1, -1);
 		Assert.assertEquals(3, retrieved.size());
 		int i = 1;
 		for(ExperiencePoolSample r : retrieved){
@@ -387,7 +388,7 @@ public class ExperiencePoolTest {
 		sequence.add(new ExperiencePoolSample(s1, a1, 0, s2));
 		sequence.add(new ExperiencePoolSample(s2, a2, 0, s3));
 		sequence.add(new ExperiencePoolSample(s3, a3, 1, null));
-		pool.addSequence(sequence);
+		pool.addSequence(new Sequence<ExperiencePoolSample>(sequence, 4));
 		
 		Assert.assertEquals(4, pool.size());
 		Assert.assertEquals(1, pool.sequences());
@@ -402,13 +403,13 @@ public class ExperiencePoolTest {
 		sequence2.add(new ExperiencePoolSample(s3, a3, 0, s4));
 		sequence2.add(new ExperiencePoolSample(s4, a4, 0, s5));
 		sequence2.add(new ExperiencePoolSample(s5, a5, 0, null));
-		pool.addSequence(sequence2);
+		pool.addSequence(new Sequence<ExperiencePoolSample>(sequence2, 6));
 		
 		Assert.assertEquals(10, pool.size());
 		Assert.assertEquals(2, pool.sequences());
 		
 		
-		List<ExperiencePoolSample> retrieved = pool.removeAndGetSequence(0);
+		Sequence<ExperiencePoolSample> retrieved = pool.removeAndGetSequence(0);
 		int i = 0;
 		for(ExperiencePoolSample r : retrieved){
 			ExperiencePoolSample expected = sequence.get(i++);

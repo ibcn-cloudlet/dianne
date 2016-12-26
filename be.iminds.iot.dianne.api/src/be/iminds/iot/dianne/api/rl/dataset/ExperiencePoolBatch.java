@@ -48,11 +48,7 @@ public class ExperiencePoolBatch extends Batch {
 		this.nextState = new Tensor(batchSize, stateDims);
 		this.terminal = new Tensor(batchSize, 1);
 
-		this.samples = new ExperiencePoolSample[batchSize];
-		for(int i = 0; i< batchSize; i++){
-			this.samples[i] = new ExperiencePoolSample(input.select(0, i), target.select(0, i),
-					reward.select(0, i), nextState.select(0, i), terminal.select(0, i));
-		}
+		init(batchSize);
 	}
 	
 	public ExperiencePoolBatch(Tensor states, Tensor actions, Tensor rewards, Tensor nextStates, Tensor terminal){
@@ -69,6 +65,10 @@ public class ExperiencePoolBatch extends Batch {
 		}
 		
 		int batchSize = input.size(0);
+		init(batchSize);
+	}
+	
+	private void init(int batchSize){
 		this.samples = new ExperiencePoolSample[batchSize];
 		for(int i = 0; i< batchSize; i++){
 			this.samples[i] = new ExperiencePoolSample(input.select(0, i), target.select(0, i),
@@ -76,20 +76,6 @@ public class ExperiencePoolBatch extends Batch {
 		}
 	}
 
-	public ExperiencePoolBatch(int batchSize){
-		// fill with empty samples...
-		this.samples = new ExperiencePoolSample[batchSize];
-		for(int i = 0; i< batchSize; i++){
-			this.samples[i] = new ExperiencePoolSample();
-		}
-	}
-	
-	public ExperiencePoolBatch(ExperiencePoolSample[] samples){
-		// no single batch Tensor exists
-		// only an array of separate tensors
-		this.samples = samples;
-	}
-	
 	public int getSize(){
 		return samples.length;
 	}
@@ -164,5 +150,22 @@ public class ExperiencePoolBatch extends Batch {
 		.append(" - Terminal: ")
 		.append(terminal);
 		return b.toString();
+	}
+	
+	public ExperiencePoolBatch copyInto(ExperiencePoolBatch other){
+		if(other == null){
+			other = new ExperiencePoolBatch(samples.length, samples[0].input.dims(), samples[0].target.dims());
+		}
+		other.input = input.copyInto(other.input);
+		other.target = target.copyInto(other.target);
+		other.reward = reward.copyInto(other.reward);
+		other.nextState = nextState.copyInto(other.nextState);
+		other.terminal = terminal.copyInto(other.terminal);
+		other.init(samples.length);
+		return other;
+	}
+	
+	public ExperiencePoolBatch clone(){
+		return copyInto(null);
 	}
 }

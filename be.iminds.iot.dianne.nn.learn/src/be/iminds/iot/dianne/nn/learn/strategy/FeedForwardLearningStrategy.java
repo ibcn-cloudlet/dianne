@@ -99,66 +99,34 @@ public class FeedForwardLearningStrategy implements LearningStrategy {
 		// Forward/backward pass - executed asynchronously
 		// Handle case of varying input dims so batch is array of different tensors
 		// Load next batch while doing forward/backward
-		if(batch.input != null) {
-			// Execute in batch
-			Promise<NeuralNetworkResult> result = nn.forward(null, null, batch.input).then(
-					p -> {
-						// Forward
-						Tensor output = p.getValue().tensor;
-						
-						// Loss
-						loss[0] += TensorOps.mean(criterion.loss(output, batch.target));
-	
-						// Gradient
-						Tensor gradOut = criterion.grad(output, batch.target);
-						
-						// Backward
-						return nn.backward(null, null, gradOut);
-					}).then(		
-					p -> {	
-						// Accumulate gradient weights
-						nn.getTrainables().values().stream().forEach(Trainable::accGradParameters);
-						
-						return p;
-					});
-			
-			// Load next batch while processing previous one
-			nextBatch = dataset.getBatch(nextBatch, sampling.next(config.batchSize));
-			
-			// Fetch the result (errors are handled by caller)
-			result.getValue();
-		} else {
-			// Cannot load a batch for this dataset, still process one by one
-			for(int k=0;k<config.batchSize;k++){
-				final int b = k;
-				Promise<NeuralNetworkResult> result = nn.forward(null, null, batch.samples[b].input).then(
-						p -> {
-							// Forward
-							Tensor output = p.getValue().tensor;
-							
-							// Loss
-							loss[0] += TensorOps.mean(criterion.loss(output, batch.samples[b].target));
+
+		Promise<NeuralNetworkResult> result = nn.forward(null, null, batch.input).then(
+				p -> {
+					// Forward
+					Tensor output = p.getValue().tensor;
+					
+					// Loss
+					loss[0] += TensorOps.mean(criterion.loss(output, batch.target));
+
+					// Gradient
+					Tensor gradOut = criterion.grad(output, batch.target);
+					
+					// Backward
+					return nn.backward(null, null, gradOut);
+				}).then(		
+				p -> {	
+					// Accumulate gradient weights
+					nn.getTrainables().values().stream().forEach(Trainable::accGradParameters);
+					
+					return p;
+				});
 		
-							// Gradient
-							Tensor gradOut = criterion.grad(output, batch.samples[b].target);
-							
-							// Backward
-							return nn.backward(null, null, gradOut);
-						}).then(
-						p -> {	
-							// Accumulate gradient weights
-							nn.getTrainables().values().stream().forEach(Trainable::accGradParameters);
-							
-							return p;
-						});
-				
-				//Fetch the result (errors are handled by caller)
-				result.getValue();
-			}
-			
-			// Load next batch
-			nextBatch = dataset.getBatch(nextBatch, sampling.next(config.batchSize));
-		}
+		// Load next batch while processing previous one
+		nextBatch = dataset.getBatch(nextBatch, sampling.next(config.batchSize));
+		
+		// Fetch the result (errors are handled by caller)
+		result.getValue();
+		
 		
 		// Run gradient processors
 		gradientProcessor.calculateDelta(i);

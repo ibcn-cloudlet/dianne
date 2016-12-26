@@ -23,8 +23,8 @@
 package be.iminds.iot.dianne.api.rl.dataset;
 
 import java.io.IOException;
-import java.util.List;
 
+import be.iminds.iot.dianne.api.dataset.Sequence;
 import be.iminds.iot.dianne.api.dataset.SequenceDataset;
 
 /**
@@ -92,7 +92,7 @@ public interface ExperiencePool extends SequenceDataset<ExperiencePoolSample, Ex
 	
 	
 	// TODO also support batched sequences?
-	default List<ExperiencePoolBatch> getBatchedSequence(List<ExperiencePoolBatch> b, final int[] sequences, final int[] indices, final int length){
+	default Sequence<ExperiencePoolBatch> getBatchedSequence(Sequence<ExperiencePoolBatch> b, final int[] sequences, final int[] indices, final int length){
 		throw new UnsupportedOperationException("Batches not (yet) supported for Experience Pools");
 	}
 
@@ -101,7 +101,7 @@ public interface ExperiencePool extends SequenceDataset<ExperiencePoolSample, Ex
 	 * 
 	 * @param sequence the sequence of samples to add
 	 */
-	void addSequence(List<ExperiencePoolSample> sequence);
+	void addSequence(Sequence<ExperiencePoolSample> sequence);
 	
 	/**
 	 * Remove a sequence from the experience pool
@@ -115,9 +115,9 @@ public interface ExperiencePool extends SequenceDataset<ExperiencePoolSample, Ex
 	 * @param s list to store the sequence into
 	 * @param sequence sequence to get and remove
 	 */
-	List<ExperiencePoolSample> removeAndGetSequence(List<ExperiencePoolSample> s, final int sequence);
+	Sequence<ExperiencePoolSample> removeAndGetSequence(Sequence<ExperiencePoolSample> s, final int sequence);
 
-	default List<ExperiencePoolSample> removeAndGetSequence(final int sequence){
+	default Sequence<ExperiencePoolSample> removeAndGetSequence(final int sequence){
 		return removeAndGetSequence(null, sequence);
 	}
 	

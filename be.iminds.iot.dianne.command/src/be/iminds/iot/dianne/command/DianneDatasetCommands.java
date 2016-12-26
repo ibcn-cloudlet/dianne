@@ -37,6 +37,7 @@ import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.DatasetDTO;
 import be.iminds.iot.dianne.api.dataset.DianneDatasets;
 import be.iminds.iot.dianne.api.dataset.Sample;
+import be.iminds.iot.dianne.api.dataset.Sequence;
 import be.iminds.iot.dianne.api.dataset.SequenceDataset;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
@@ -259,11 +260,8 @@ public class DianneDatasetCommands {
 		}
 		
 		try {
-			List<?> s = ((SequenceDataset<?,?>)d).getSequence(sequence);
-			int i = 0;
-			for(Object o : s){
-				System.out.println("["+(i++)+"] "+o.toString());
-			}
+			Sequence<?> s = ((SequenceDataset<?,?>)d).getSequence(sequence);
+			System.out.println(s.toString());
 		} catch(Throwable t){
 			t.printStackTrace();
 		}

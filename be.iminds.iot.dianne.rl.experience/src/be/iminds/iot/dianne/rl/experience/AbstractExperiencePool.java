@@ -43,6 +43,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import be.iminds.iot.dianne.api.dataset.AbstractDataset;
+import be.iminds.iot.dianne.api.dataset.Sequence;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
@@ -60,11 +61,11 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	
 	protected ExecutorService queuedAddSequenceThread = Executors.newSingleThreadExecutor();
 	
-	public class Sequence {
+	public class SequenceLocation {
 		public final int start;
 		public final int length;
 		
-		public Sequence(int start, int length){
+		public SequenceLocation(int start, int length){
 			this.start = start;
 			this.length = length;
 		}
@@ -74,7 +75,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		}
 	}
 	
-	protected List<Sequence> sequences = new ArrayList<>();
+	protected List<SequenceLocation> sequences = new ArrayList<>();
 	
 	protected ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
 	
@@ -178,11 +179,12 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 
 	
 	@Override
-	public List<ExperiencePoolSample> getSequence(List<ExperiencePoolSample> s, int sequence, int index, int length){
+	public Sequence<ExperiencePoolSample> getSequence(Sequence<ExperiencePoolSample> s, int sequence, int index, int length){
 		if(s == null){
-			s = new ArrayList<ExperiencePoolSample>(length == -1 ? 0 : length);
+			s = new Sequence<ExperiencePoolSample>();
 		}
-		
+		List<ExperiencePoolSample> list = s.data; 
+				
 		if(sequence > sequences.size()){
 			throw new RuntimeException("Invalid sequence number");
 		}
@@ -193,7 +195,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 				lock.readLock().lock();
 			}
 			
-			Sequence seq = sequences.get(sequence);
+			SequenceLocation seq = sequences.get(sequence);
 			if(index >= seq.length){
 				throw new RuntimeException("Invalid start index: "+index);
 			}
@@ -207,11 +209,11 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 			ExperiencePoolSample previous = null;
 			for(int i=0;i<length;i++){
 				ExperiencePoolSample sample = null;
-				if(s.size() <= i){
+				if(list.size() <= i){
 					sample = new ExperiencePoolSample(previous == null ? null : previous.nextState, null, 0, null);
-					s.add(sample);
+					list.add(sample);
 				} else {
-					sample = s.get(i);
+					sample = list.get(i);
 					if(previous != null){
 						sample.input = previous.nextState;
 					}
@@ -226,6 +228,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 				previous = sample;
 			}
 			
+			s.size = length;
 		} finally {
 			if(sequence == 0){
 				lock.readLock().unlock();
@@ -236,9 +239,9 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	}
 	
 	@Override
-	public void addSequence(List<ExperiencePoolSample> sequence){
-		if(sequence == null || sequence.isEmpty()){
-			throw new RuntimeException("Null or empty sequence given");
+	public void addSequence(Sequence<ExperiencePoolSample> sequence){
+		if(sequence == null){
+			throw new RuntimeException("Null sequence given");
 		}
 
 		int size = sequence.size();
@@ -256,16 +259,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 			if(!locked){
 				// take copy of the sequence and add to the queuedAddSequence thread...
 				// this allows for agents not having to keep on waiting until sequence is added...
-				final List<ExperiencePoolSample> copy = new ArrayList<>(sequence.size());
-				for(ExperiencePoolSample s : sequence){
-					ExperiencePoolSample c = new ExperiencePoolSample();
-					c.input = s.input.copyInto(c.input);
-					c.target = s.target.copyInto(c.target);
-					c.nextState = s.nextState == null ? null : s.nextState.copyInto(c.nextState);
-					c.reward = s.reward.copyInto(c.reward);
-					c.terminal = s.reward.copyInto(c.terminal);
-					copy.add(c);
-				}
+				final Sequence<ExperiencePoolSample> copy = sequence.clone();
 				
 				// TODO should we make sure we are not getting flooded with addSequences 
 				// and ignore addSequence calls once queue gets crowded?
@@ -283,7 +277,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 			int index = getBufferEnd();
 			int start = index == maxSize ? 0 : index;
 			
-			for(ExperiencePoolSample s : sequence){
+			for(ExperiencePoolSample s : sequence.data){
 				System.arraycopy(s.input.get(), 0, buffer, 0 , stateSize);
 				System.arraycopy(s.target.get(), 0, buffer, stateSize, actionSize);
 				buffer[stateSize+actionSize] = s.getScalarReward();
@@ -294,13 +288,13 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 					index = 0;
 					
 					if(sequences.get(0).start == 0){
-						Sequence removed = sequences.remove(0);
+						SequenceLocation removed = sequences.remove(0);
 						noSamples -= removed.length;
 					}
 				}
 
 				if(getBufferStart() > 0 && index == getBufferStart()){
-					Sequence removed = sequences.remove(0);
+					SequenceLocation removed = sequences.remove(0);
 					noSamples -= removed.length;
 				}
 				
@@ -308,7 +302,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 				index++;
 			}
 			
-			Sequence seq = new Sequence(start, size);
+			SequenceLocation seq = new SequenceLocation(start, size);
 			sequences.add(seq);
 			noSamples+= size;
 			
@@ -324,7 +318,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	public void removeSequence(final int sequence){
 		try {
 			lock.writeLock().lock();
-			Sequence seq = sequences.remove(sequence);
+			SequenceLocation seq = sequences.remove(sequence);
 			noSamples -= seq.length;
 		} finally {
 			lock.writeLock().unlock();
@@ -332,11 +326,11 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	}
 	
 	@Override
-	public List<ExperiencePoolSample> removeAndGetSequence(List<ExperiencePoolSample> s, final int sequence){
+	public Sequence<ExperiencePoolSample> removeAndGetSequence(Sequence<ExperiencePoolSample> s, final int sequence){
 		try {
 			lock.writeLock().lock();
 			s = getSequence(s, sequence, 0, -1);
-			Sequence seq = sequences.remove(sequence);
+			SequenceLocation seq = sequences.remove(sequence);
 			noSamples -= seq.length;
 			return s;
 		} finally {
@@ -434,7 +428,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	private int getBufferEnd(){
 		if(sequences.isEmpty())
 			return 0;
-		Sequence last = sequences.get(sequences.size() - 1);
+		SequenceLocation last = sequences.get(sequences.size() - 1);
 		return  (last.start+last.length) % maxSize;
 	}
 	
@@ -474,7 +468,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		
 			// write sequences
 			try (DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(new File(dir+File.separator+"sequences"))))){
-				for(Sequence s : sequences){
+				for(SequenceLocation s : sequences){
 					out.writeInt(s.start);
 					out.writeInt(s.length);
 				}
@@ -499,7 +493,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 					int start = in.readInt();
 					int length = in.readInt();
 					
-					Sequence s = new Sequence(start, length);
+					SequenceLocation s = new SequenceLocation(start, length);
 					sequences.add(s);
 		
 					noSamples+=length;

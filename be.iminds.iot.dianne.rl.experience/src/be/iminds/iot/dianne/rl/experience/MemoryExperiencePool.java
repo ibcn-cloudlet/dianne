@@ -30,13 +30,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.Sequence;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch;
 
@@ -73,15 +73,6 @@ public class MemoryExperiencePool extends AbstractExperiencePool {
 		System.arraycopy(data, 0, samples, position, data.length);
 	}
 
-	@Override
-	public List<ExperiencePoolBatch> getBatchedSequence(List<ExperiencePoolBatch> b, int[] sequences, int[] indices,
-			int length) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	
-	
 	@Override
 	protected void dumpData() throws IOException {
 		try (DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(new File(dir+File.separator+"data.bin"))))){

@@ -22,11 +22,11 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rl.learn.strategy;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.Sequence;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
@@ -119,7 +119,7 @@ public class A3CLearningStrategy implements LearningStrategy {
 		// how to determine the correct length then in case a too long sequence is provided?
 		
 		// either get a random sequence or get and remove the first sequence from the pool
-		List<ExperiencePoolSample> sequence = null;
+		Sequence<ExperiencePoolSample> sequence = null;
 		if(config.reuseSequences){
 			int index = r.nextInt(pool.sequences());
 			sequence = pool.getSequence(index);

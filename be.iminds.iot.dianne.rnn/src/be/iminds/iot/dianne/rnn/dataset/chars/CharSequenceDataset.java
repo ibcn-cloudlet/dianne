@@ -35,6 +35,7 @@ import org.osgi.service.component.annotations.Component;
 import be.iminds.iot.dianne.api.dataset.Batch;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.Sample;
+import be.iminds.iot.dianne.api.dataset.Sequence;
 import be.iminds.iot.dianne.api.dataset.SequenceDataset;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
@@ -148,10 +149,11 @@ public class CharSequenceDataset implements SequenceDataset<Sample, Batch> {
 	}
 
 	@Override
-	public List<Sample> getSequence(List<Sample> s, int sequence, int index, int length) {
-		if(s == null){
-			s = new ArrayList<Sample>(length);
+	public Sequence<Sample> getSequence(Sequence<Sample> seq, int sequence, int index, int length) {
+		if(seq == null){
+			seq = new Sequence<Sample>();
 		}
+		List<Sample> s = seq.data;
 		
 		if(sequence > 1){
 			throw new RuntimeException("Invalid sequence number");
@@ -194,14 +196,16 @@ public class CharSequenceDataset implements SequenceDataset<Sample, Batch> {
 			previous = sample;
 		}
 		
-		return s;
+		seq.size = length;
+		return seq;
 	}
 
 	@Override
-	public List<Batch> getBatchedSequence(List<Batch> b, int[] sequences, int[] indices, int length) {
-		if(b == null){
-			b = new ArrayList<Batch>(length);
+	public Sequence<Batch> getBatchedSequence(Sequence<Batch> seq, int[] sequences, int[] indices, int length) {
+		if(seq == null){
+			seq = new Sequence<Batch>();
 		}
+		List<Batch> b = seq.data;
 		
 		for(int sequence : sequences){
 			if(sequence > 1){
@@ -254,7 +258,7 @@ public class CharSequenceDataset implements SequenceDataset<Sample, Batch> {
 			previous = batch;
 		}
 		
-		return b;
+		seq.size = length;
+		return seq;
 	}
-
 }
