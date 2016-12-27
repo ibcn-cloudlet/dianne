@@ -31,15 +31,15 @@ import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.api.dataset.Sequence;
 import be.iminds.iot.dianne.api.dataset.SequenceDataset;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
-import be.iminds.iot.dianne.api.nn.learn.Criterion;
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.learn.LearningStrategy;
 import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
-import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory;
 import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory;
 import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
+import be.iminds.iot.dianne.rnn.criterion.SequenceCriterion;
+import be.iminds.iot.dianne.rnn.criterion.SequenceCriterionFactory;
 import be.iminds.iot.dianne.rnn.learn.strategy.config.BPTTConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
@@ -59,7 +59,7 @@ public class BPTTLearningStrategy implements LearningStrategy {
 	
 	protected BPTTConfig config;
 	protected GradientProcessor gradientProcessor;
-	protected Criterion criterion;
+	protected SequenceCriterion criterion;
 	protected SamplingStrategy sampling;
 	
 	protected Sequence<Sample> sequence = null;
@@ -81,7 +81,7 @@ public class BPTTLearningStrategy implements LearningStrategy {
 		
 		this.config = DianneConfigHandler.getConfig(config, BPTTConfig.class);
 		sampling = SamplingFactory.createSamplingStrategy(this.config.sampling, dataset, config);
-		criterion = CriterionFactory.createCriterion(this.config.criterion, config);
+		criterion = SequenceCriterionFactory.createCriterion(this.config.criterion, config);
 		gradientProcessor = ProcessorFactory.createGradientProcessor(this.config.method, nn, config);
 	}
 
@@ -91,7 +91,6 @@ public class BPTTLearningStrategy implements LearningStrategy {
 		nn.zeroDeltaParameters();
 		
 		// calculate grad through sequence
-		float loss = 0;
 		int index = sampling.next();
 		if(dataset.size()-index < config.sequenceLength+1){
 			index-=(config.sequenceLength+1);
@@ -106,18 +105,9 @@ public class BPTTLearningStrategy implements LearningStrategy {
 		List<Tensor> outputs = nn.forward(sequence.getInputs());
 		
 		// calculate gradients
-		List<Tensor> gradOutputs = new ArrayList<>();
 		List<Tensor> targets = sequence.getTargets();
-		for(int k=0;k<outputs.size();k++){
-			float l = TensorOps.mean(criterion.loss(outputs.get(k), targets.get(k)));
-			Tensor grad = criterion.grad(outputs.get(k), targets.get(k));
-			if(config.backpropAll || k==config.sequenceLength-1){
-				loss+=l;
-			} else {
-				grad.fill(0.0f);
-			}
-			gradOutputs.add(grad);
-		}
+		float loss =  TensorOps.mean(criterion.loss(outputs, targets));
+		List<Tensor> gradOutputs = criterion.grad(outputs, targets);
 		
 		// backward and acc grad parameters
 		nn.backward(gradOutputs, true);

@@ -20,37 +20,30 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.rnn.learn.strategy.config;
+package be.iminds.iot.dianne.rnn.criterion;
 
+import java.util.Map;
+
+import be.iminds.iot.dianne.api.nn.learn.Criterion;
+import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory;
 import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory.CriterionConfig;
-import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory.ProcessorConfig;
-import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory.SamplingConfig;
+import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 
-public class BPTTConfig {
-
-	/**
-	 * Length of the sequence to feed into the network before backpropagating 
-	 */
-	public int sequenceLength = 10;
+public class SequenceCriterionFactory {
 	
-	/**
-	 * The criterion to use to evaluate the error between output and target
-	 */
-	public CriterionConfig criterion = CriterionConfig.MSE;
+	public static class SequenceCriterionConfig {
+		
+		/**
+		 * Backpropagate the error at each step in the sequence or only for the last sample
+		 */
+		public boolean backpropAll = false;
+		
+	}
 	
-	/**
-	 * The gradient optimization method to use
-	 *  * SGD - stochastic gradient descent (optionally with (nesterov) momentum and regularization parameters)
-	 *  * Adadelta
-	 *  * Adagrad
-	 *  * RMSprop
-	 */
-	public ProcessorConfig method = ProcessorConfig.SGD;
+	public static SequenceCriterion createCriterion(CriterionConfig c, Map<String, String> config){
+		Criterion criterion = CriterionFactory.createCriterion(c, config);
+		SequenceCriterionConfig conf = DianneConfigHandler.getConfig(config, SequenceCriterionConfig.class);
+		return new SequenceCriterion(criterion, conf);
+	}
 	
-	/**
-	 * The sampling strategy to use to traverse the dataset
-	 *  * Random
-	 *  * Sequential
-	 */
-	public SamplingConfig sampling = SamplingConfig.UNIFORM;
 }
