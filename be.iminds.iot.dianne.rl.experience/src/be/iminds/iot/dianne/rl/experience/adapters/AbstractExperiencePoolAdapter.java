@@ -95,6 +95,11 @@ public abstract class AbstractExperiencePoolAdapter implements ExperiencePool {
 	public int sequences(){
 		return pool.sequences();
 	}
+	
+	@Override
+	public int sequenceLength(int sequence){
+		return pool.sequenceLength(sequence);
+	}
 
 	@Override
 	public Sample getSample(Sample s, int index) {

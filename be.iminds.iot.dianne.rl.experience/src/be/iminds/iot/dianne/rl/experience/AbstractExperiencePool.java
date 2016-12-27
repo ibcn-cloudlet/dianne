@@ -143,6 +143,11 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	}
 	
 	@Override
+	public int sequenceLength(int sequence){
+		return sequences.get(sequence).length;
+	}
+	
+	@Override
 	protected void readLabels(String labelsFile) {}
 	
 	@Override

@@ -41,11 +41,18 @@ public interface SequenceDataset<S extends Sample, B extends Batch> extends Data
 	public int sequences();
 	
 	/**
+	 * Get the length of a sequence
+	 * @param sequence sequence index
+	 * @return size of the sequence
+	 */
+	public int sequenceLength(int sequence);
+	
+	/**
 	 * Get a (part of) a sequence with start index and length
-	 * @param s provided array to copy the data into, will be created in case of null or elements will be added if s.size() < length
+	 * @param s provided sequence to copy the data into, will be created in case of null or elements will be added if s.size() < length
 	 * @param sequence number of the sequence
 	 * @param index start index of the first sample
-	 * @param length number of samples to get (in case sequence is not long enough, elements will be put to NaN)
+	 * @param length number of samples to get
 	 * @return sequence
 	 */
 	Sequence<S> getSequence(Sequence<S> s, final int sequence, final int index, final int length);
@@ -60,10 +67,10 @@ public interface SequenceDataset<S extends Sample, B extends Batch> extends Data
 	
 	/**
 	 * Get a (part of) sequences in batch with start indices and length
-	 * @param s provided array to copy the data into, will be created in case of null or elements will be added if s.size() < length
+	 * @param s provided sequence to copy the data into, will be created in case of null or elements will be added if s.size() < length
 	 * @param sequences sequences to batch
 	 * @param indices start indices of the first samples
-	 * @param length number of samples to get (in case sequence is not long enough, elements will be put to NaN)
+	 * @param length number of samples to get
 	 * @return sequence
 	 */
 	Sequence<B> getBatchedSequence(Sequence<B> b, final int[] sequences, final int[] indices, final int length);

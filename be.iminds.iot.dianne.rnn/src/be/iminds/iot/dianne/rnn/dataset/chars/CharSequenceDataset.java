@@ -147,6 +147,14 @@ public class CharSequenceDataset implements SequenceDataset<Sample, Batch> {
 	public int sequences() {
 		return 1;
 	}
+	
+	@Override
+	public int sequenceLength(int index){
+		if(index > 1){
+			throw new ArrayIndexOutOfBoundsException();
+		}
+		return data.length();
+	}
 
 	@Override
 	public Sequence<Sample> getSequence(Sequence<Sample> seq, int sequence, int index, int length) {
