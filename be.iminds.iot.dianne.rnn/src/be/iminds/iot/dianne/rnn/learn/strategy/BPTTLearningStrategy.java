@@ -22,7 +22,6 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rnn.learn.strategy;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -106,7 +105,7 @@ public class BPTTLearningStrategy implements LearningStrategy {
 		
 		// calculate gradients
 		List<Tensor> targets = sequence.getTargets();
-		float loss =  TensorOps.mean(criterion.loss(outputs, targets));
+		float loss =  TensorOps.mean(criterion.loss(outputs, targets).stream().reduce((t1,t2) -> TensorOps.add(t1, t1, t2)).get());
 		List<Tensor> gradOutputs = criterion.grad(outputs, targets);
 		
 		// backward and acc grad parameters

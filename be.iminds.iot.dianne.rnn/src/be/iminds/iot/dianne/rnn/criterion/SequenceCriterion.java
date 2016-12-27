@@ -40,6 +40,9 @@ public class SequenceCriterion implements Criterion {
 	private Criterion criterion;
 	private SequenceCriterionConfig config;
 	
+	private List<Tensor> losses = new ArrayList<>();
+	private List<Tensor> grads = new ArrayList<>();
+	
 	public SequenceCriterion(Criterion c, SequenceCriterionConfig conf) {
 		this.criterion = c;
 		this.config = conf;
@@ -55,28 +58,32 @@ public class SequenceCriterion implements Criterion {
 		return criterion.grad(output, target);
 	}
 	
-	public Tensor loss(final List<Tensor> outputs, final List<Tensor> targets){
-		Tensor loss = null;
+	public List<Tensor> loss(final List<Tensor> outputs, final List<Tensor> targets){
 		for(int i=0;i<outputs.size();i++){
-			if(config.backpropAll || i==outputs.size()-1){
-				if(loss == null){
-					loss = criterion.loss(outputs.get(i), targets.get(i)).clone();
-				} else {
-					loss = TensorOps.add(loss, loss, criterion.loss(outputs.get(i), targets.get(i)));
-				}
+			Tensor loss = criterion.loss(outputs.get(i), targets.get(i)).clone();
+			if(!config.backpropAll && i!=outputs.size()-1){
+				loss.fill(0.0f);
+			}
+			if(losses.size() <= i){
+				losses.add(loss.clone());
+			} else {
+				loss.copyInto(losses.get(i));
 			}
 		}
-		return loss;
+		return losses;
 	}
 	
 	public List<Tensor> grad(final List<Tensor> outputs, final List<Tensor> targets){
-		List<Tensor> grads = new ArrayList<>();
 		for(int i=0;i<outputs.size();i++){
 			Tensor grad = criterion.grad(outputs.get(i), targets.get(i));
 			if(!config.backpropAll && i!=outputs.size()-1){
 				grad.fill(0.0f);
 			}
-			grads.add(grad);
+			if(grads.size() <= i){
+				grads.add(grad.clone());
+			} else {
+				grad.copyInto(grads.get(i));
+			}
 		}
 		return grads;
 	}
