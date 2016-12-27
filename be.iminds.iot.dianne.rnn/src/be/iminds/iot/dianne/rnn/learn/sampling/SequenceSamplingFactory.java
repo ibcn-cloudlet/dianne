@@ -18,32 +18,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Contributors:
- *     Tim Verbelen, Steven Bohez
+ *     Tim Verbelen, Steven Bohez, Elias De Coninck
  *******************************************************************************/
-package be.iminds.iot.dianne.rnn.criterion;
+package be.iminds.iot.dianne.rnn.learn.sampling;
 
 import java.util.Map;
 
-import be.iminds.iot.dianne.api.nn.learn.Criterion;
-import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory;
-import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory.CriterionConfig;
-import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
+import be.iminds.iot.dianne.api.dataset.SequenceDataset;
+import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory.SamplingConfig;
 
-public class SequenceCriterionFactory {
+public class SequenceSamplingFactory {
 	
-	public static class SequenceCriterionConfig {
+	public static SequenceSamplingStrategy createSamplingStrategy(SamplingConfig strategy, SequenceDataset<?,?> d, Map<String, String> config){
+		SequenceSamplingStrategy sampling = null;
+
+		switch(strategy) {
+		default:
+			sampling = new UniformSequenceSamplingStrategy(d);
+		}
 		
-		/**
-		 * Backpropagate the error at each step in the sequence or only for the last sample
-		 */
-		public boolean backpropAll = false;
-		
+		return sampling;
 	}
-	
-	public static SequenceCriterion createCriterion(CriterionConfig c, Map<String, String> config){
-		Criterion criterion = CriterionFactory.createCriterion(c, config);
-		SequenceCriterionConfig conf = DianneConfigHandler.getConfig(config, SequenceCriterionConfig.class);
-		return new SequenceCriterion(criterion, conf);
-	}
-	
 }

@@ -20,13 +20,13 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.rnn.criterion;
+package be.iminds.iot.dianne.rnn.learn.criterion;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
-import be.iminds.iot.dianne.rnn.criterion.SequenceCriterionFactory.SequenceCriterionConfig;
+import be.iminds.iot.dianne.rnn.learn.criterion.SequenceCriterionFactory.SequenceCriterionConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 

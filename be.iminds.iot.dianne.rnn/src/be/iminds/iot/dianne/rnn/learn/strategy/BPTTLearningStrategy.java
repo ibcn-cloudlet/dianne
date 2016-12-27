@@ -33,12 +33,12 @@ import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.learn.LearningStrategy;
-import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory;
-import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
-import be.iminds.iot.dianne.rnn.criterion.SequenceCriterion;
-import be.iminds.iot.dianne.rnn.criterion.SequenceCriterionFactory;
+import be.iminds.iot.dianne.rnn.learn.criterion.SequenceCriterion;
+import be.iminds.iot.dianne.rnn.learn.criterion.SequenceCriterionFactory;
+import be.iminds.iot.dianne.rnn.learn.sampling.SequenceSamplingFactory;
+import be.iminds.iot.dianne.rnn.learn.sampling.SequenceSamplingStrategy;
 import be.iminds.iot.dianne.rnn.learn.strategy.config.BPTTConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
@@ -59,7 +59,7 @@ public class BPTTLearningStrategy implements LearningStrategy {
 	protected BPTTConfig config;
 	protected GradientProcessor gradientProcessor;
 	protected SequenceCriterion criterion;
-	protected SamplingStrategy sampling;
+	protected SequenceSamplingStrategy sampling;
 	
 	protected Sequence<Sample> sequence = null;
 	
@@ -79,7 +79,7 @@ public class BPTTLearningStrategy implements LearningStrategy {
 			nn.setOutputLabels(labels);
 		
 		this.config = DianneConfigHandler.getConfig(config, BPTTConfig.class);
-		sampling = SamplingFactory.createSamplingStrategy(this.config.sampling, dataset, config);
+		sampling = SequenceSamplingFactory.createSamplingStrategy(this.config.sampling, this.dataset, config);
 		criterion = SequenceCriterionFactory.createCriterion(this.config.criterion, config);
 		gradientProcessor = ProcessorFactory.createGradientProcessor(this.config.method, nn, config);
 	}
@@ -89,16 +89,9 @@ public class BPTTLearningStrategy implements LearningStrategy {
 		// clear delta params
 		nn.zeroDeltaParameters();
 		
-		// calculate grad through sequence
-		int index = sampling.next();
-		if(dataset.size()-index < config.sequenceLength+1){
-			index-=(config.sequenceLength+1);
-			if(index < 0){
-				throw new RuntimeException("Sequence length larger than dataset...");
-			}
-		}
-		
-		sequence = dataset.getSequence(sequence, 0, index, config.sequenceLength);
+		int s = sampling.sequence();
+		int index = sampling.next(s, config.sequenceLength);
+		sequence = dataset.getSequence(sequence, s, index, config.sequenceLength);
 		
 		// forward
 		List<Tensor> outputs = nn.forward(sequence.getInputs());

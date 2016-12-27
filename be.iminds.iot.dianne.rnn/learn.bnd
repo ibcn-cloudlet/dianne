@@ -3,4 +3,5 @@ Bundle-Name: Dianne RNN Learner
 Export-Package: \
 	be.iminds.iot.dianne.rnn.learn.strategy.config,\
 	be.iminds.iot.dianne.rnn.learn.strategy,\
-	be.iminds.iot.dianne.rnn.criterion
+	be.iminds.iot.dianne.rnn.learn.criterion,\
+	be.iminds.iot.dianne.rnn.learn.sampling
