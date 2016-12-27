@@ -416,7 +416,7 @@ public class DianneRuntimeImpl implements DianneRuntime {
 		} else if(module instanceof Output){
 			classes = new String[]{Module.class.getName(),Output.class.getName()};
 		} else if(module instanceof Composite){
-			classes = new String[]{Module.class.getName(),Trainable.class.getName(),Composite.class.getName()};
+			classes = new String[]{Module.class.getName(),Trainable.class.getName(),Memory.class.getName(),Composite.class.getName()};
 			props.put("composite.nn.id", ((Composite)module).getNNi().id.toString());
 		}else if(module instanceof Trainable){
 			classes = new String[]{Module.class.getName(),Trainable.class.getName()};
