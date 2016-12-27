@@ -22,24 +22,26 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.nn;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
- * Collects the output of a neural network: the Tensor(s) and an optional array of tags
+ * Collects the output sequence of a neural network: the Tensor(s) list and an optional array of tags
  * 
  * @author tverbele
  *
  */
-public class NeuralNetworkResult {
+public class NeuralNetworkSequenceResult {
 
-	public Map<UUID, Tensor> tensors;
-	public Tensor tensor;
+	public Map<UUID, List<Tensor>> tensors;
+	public List<Tensor> tensor;
 	public String[] tags;
 	
-	public NeuralNetworkResult(Map<UUID, Tensor> tensors, String... tags){
+	public NeuralNetworkSequenceResult(Map<UUID, List<Tensor>> tensors, String... tags){
 		this.tensors = tensors;
 		if(tensors.size() == 1){
 			tensor = tensors.values().iterator().next();

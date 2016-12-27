@@ -22,9 +22,8 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.nn;
 
-import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 import org.osgi.util.promise.Promise;
@@ -61,18 +60,12 @@ public interface NeuralNetwork {
 	 * Get a UUID for a module by its name. Casing is ignored. A name is not necessary unique, in which case
 	 * this method can return any one of the matching UUIDs.
 	 */
-	default UUID getModuleId(String name) {
-		try {
-			return getNeuralNetworkInstance().modules.entrySet().stream().filter(e -> name.equalsIgnoreCase(e.getValue().module.properties.get("name"))).findFirst().map(e -> e.getKey()).get();
-		} catch(NoSuchElementException e){
-			return null;
-		}
-	}
+	UUID getModuleId(String name);
 	
 	/**
 	 * Forward input through the neural network
 	 * @param inputId id of the Input module to forward the input to
-	 * @param outputId id of the Output module to get the output from
+	 * @param outputId id of the Output module to get the output from - or null for all
 	 * @param input the input tensor
 	 * @param tags optional array of tags
 	 * @return result
@@ -82,7 +75,7 @@ public interface NeuralNetwork {
 	/**
 	 * Forward inputs through the neural network
 	 * @param inputIds ids of the Input modules to forward the inputs to
-	 * @param outputIds ids of the Output modules to get the outputs from
+	 * @param outputIds ids of the Output modules to get the outputs from - or null for all
 	 * @param inputs the input tensors
 	 * @param tags optional array of tags
 	 * @return result
@@ -98,64 +91,74 @@ public interface NeuralNetwork {
 	 * @param tags
 	 * @return
 	 */
-	default Tensor forward(Tensor input, String... tags){
-		Tensor result = null;
-		Promise<NeuralNetworkResult> p = forward(null, null, input, tags);
-		try {
-			if(p.getFailure()!=null){
-				throw new RuntimeException("Error forwarding input", p.getFailure());
-			}
-		
-			result = p.getValue().tensor;
-		} catch(InterruptedException|InvocationTargetException e){
-			throw new RuntimeException("Error forwarding input", e);
-		}
-		return result;
-	}
+	Tensor forward(Tensor input, String... tags);
 
+	
+	Promise<NeuralNetworkSequenceResult> forward(UUID inputId, UUID outputId, List<Tensor> input, String... tags);
+	
+	Promise<NeuralNetworkSequenceResult> forward(UUID[] inputId, UUID[] outputId, List<Tensor>[] input, String... tags);
+
+	List<Tensor> forward(List<Tensor> input, String... tags);
+
+	
+	
 	/**
 	 * Backward gradOutputs through the neural network
 	 * @param outputId id of the Output module to backpropagate the gradOutput 
-	 * @param inputId id of the Input module to gather the gradInput
+	 * @param inputId id of the Input module to gather the gradInput - or null for all
 	 * @param gradOutput the gradOutput tensor
+	 * @param accGradParameters also accumulate gradient to the neural network's parameters
 	 * @param tags optional array of tags
 	 * @return
 	 */
-	Promise<NeuralNetworkResult> backward(UUID outputId, UUID inputId, Tensor gradOutput, String... tags);
+	Promise<NeuralNetworkResult> backward(UUID outputId, UUID inputId, Tensor gradOutput, boolean accGradParameters, String... tags);
+
+	default Promise<NeuralNetworkResult> backward(UUID outputId, UUID inputId, Tensor gradOutput, String... tags){
+		return backward(outputId, inputId, gradOutput, false, tags);
+	}
+
 	
 	/**
 	 * Backward gradOutput through the neural network
 	 * @param outputIds ids of the Output modules to backpropagate the gradOutputs 
-	 * @param inputIds ids of the Input modules to gather the gradInputs
+	 * @param inputIds ids of the Input modules to gather the gradInputs - or null for all
 	 * @param gradOutputs the gradOutput tensors
+	 * @param accGradParameters also accumulate gradient to the neural network's parameters
 	 * @param tags optional array of tags
 	 * @return
 	 */
-	Promise<NeuralNetworkResult> backward(UUID[] outputIds, UUID[] inputIds, Tensor[] gradOutputs, String... tags);
+	Promise<NeuralNetworkResult> backward(UUID[] outputIds, UUID[] inputIds, Tensor[] gradOutputs, boolean accGradParameters, String... tags);
 
+	default Promise<NeuralNetworkResult> backward(UUID[] outputIds, UUID[] inputIds, Tensor[] gradOutputs, String... tags){
+		return backward(outputIds, inputIds, gradOutputs, false, tags);
+	}
+
+	
 	/**
 	 * Blocking call that returns the gradInput Tensor after back propagating gradOutput.
 	 * 
 	 * This method is applicable for neural networks with one input and one output module.
 	 * 
 	 * @param input
+	 * @param accGradParameters also accumulate gradient to the neural network's parameters
 	 * @param tags
 	 * @return
 	 */
+	Tensor backward(Tensor gradOutput, boolean accGradParameters, String... tags);
+	
 	default Tensor backward(Tensor gradOutput, String... tags){
-		Tensor result = null;
-		Promise<NeuralNetworkResult> p = backward(null, null, gradOutput, tags);
-		try {
-			if(p.getFailure()!=null){
-				throw new RuntimeException("Error back propagating gradOutput", p.getFailure());
-			}
-		
-			result = p.getValue().tensor;
-		} catch(InterruptedException|InvocationTargetException e){
-			throw new RuntimeException("Error back propagating gradOutput", e);
-		}
-		return result;
+		return backward(gradOutput, false, tags);
 	}
+	
+	
+	
+	Promise<NeuralNetworkSequenceResult> backward(UUID outputId, UUID inputId, List<Tensor> gradOutput, boolean accGradParameters, String... tags);
+	
+	Promise<NeuralNetworkSequenceResult> backward(UUID[] outputIds, UUID[] inputIds, List<Tensor>[] gradOutputs, boolean accGradParameters, String... tags);
+
+	List<Tensor> backward(List<Tensor> gradOutput, boolean accGradParameters, String... tags);
+	
+	
 	
 	/**
 	 * Get the input module in case of only one input

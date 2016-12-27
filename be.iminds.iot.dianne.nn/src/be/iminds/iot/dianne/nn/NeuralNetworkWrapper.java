@@ -22,6 +22,7 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -30,6 +31,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -40,6 +42,7 @@ import org.osgi.util.promise.Promise;
 
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.NeuralNetworkResult;
+import be.iminds.iot.dianne.api.nn.NeuralNetworkSequenceResult;
 import be.iminds.iot.dianne.api.nn.module.BackwardListener;
 import be.iminds.iot.dianne.api.nn.module.ForwardListener;
 import be.iminds.iot.dianne.api.nn.module.Input;
@@ -75,9 +78,14 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	private ServiceRegistration<ForwardListener> forwardListenerReg;
 	private ServiceRegistration<BackwardListener> backwardListenerReg;
 
-	
 	private Map<String, Progress> inProgress = Collections.synchronizedMap(new HashMap<String, Progress>());
 	private Map<String, List<UUID>> interestedModules = Collections.synchronizedMap(new HashMap<String, List<UUID>>());
+
+	private Map<UUID, List<Tensor>> sequenceInputs = new HashMap<>();
+	private Map<UUID, List<Tensor>> sequenceOutputs = new HashMap<>();
+	private Map<UUID, List<Tensor>> sequenceMemories = new HashMap<>();
+	private Map<UUID, List<Tensor>> sequenceGradInputs = new HashMap<>();
+
 	
 	private boolean valid = true;
 	
@@ -107,59 +115,12 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	}
 
 	@Override
-	public Promise<NeuralNetworkResult> forward(UUID inputId, UUID outputId, Tensor in, String... tags){
-		if(!valid)
-			throw new RuntimeException("This neural network object is no longer valid");
-		
-		String tag = getTag();
-		String[] t = addTag(tags, tag);
-		
-		// first trigger all memories
-		memories.values().forEach(m -> m.triggerForward(t));
-		
-		Input input = inputId!=null ? inputs.get(inputId) : inputs.values().iterator().next();
-		
-		if(outputId!=null) {
-			addInterest(outputId, tag);
-		} else {
-			// just mark all outputs as interested
-			nn.modules.values().stream().filter(m -> m.module.type.equals("Output")).map(m -> m.moduleId).forEach(id -> addInterest(id, tag));
+	public UUID getModuleId(String name) {
+		try {
+			return getNeuralNetworkInstance().modules.entrySet().stream().filter(e -> name.equalsIgnoreCase(e.getValue().module.properties.get("name"))).findFirst().map(e -> e.getKey()).get();
+		} catch(NoSuchElementException e){
+			return null;
 		}
-		
-		Progress p = new Progress(outputId);
-		inProgress.put(tag, p);
-		
-		input.input(in, t);
-		
-		return p.getPromise();
-	}
-	
-	@Override
-	public Promise<NeuralNetworkResult> backward(UUID outputId, UUID inputId, Tensor gradOut, String... tags){
-		if(!valid)
-			throw new RuntimeException("This neural network object is no longer valid");
-		
-		String tag = getTag();
-		String[] t = addTag(tags, tag);
-
-		// first trigger all memories
-		memories.values().forEach(m -> m.triggerBackward(t));
-		
-		Output output = outputId!=null ? outputs.get(outputId) : outputs.values().iterator().next();
-		
-		if(inputId!=null) {
-			addInterest(inputId, tag);
-		} else {
-			// just mark all inputs as interested
-			nn.modules.values().stream().filter(m -> m.module.type.equals("Input")).map(m -> m.moduleId).forEach(id -> addInterest(id, tag));
-		}
-		
-		Progress p = new Progress(inputId);
-		inProgress.put(tag, p);
-		
-		output.backpropagate(gradOut, t);
-		
-		return p.getPromise();
 	}
 	
 	@Override
@@ -199,7 +160,89 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	}
 	
 	@Override
-	public Promise<NeuralNetworkResult> backward(UUID[] outputIds, UUID[] inputIds, Tensor[] gradOuts, String... tags){
+	public Promise<NeuralNetworkResult> forward(UUID inputId, UUID outputId, Tensor in, String... tags){
+		return forward(inputId == null ? null : new UUID[]{inputId}, outputId == null ? null : new UUID[]{outputId}, new Tensor[]{in}, tags);	
+	}
+	
+	@Override
+	public Tensor forward(Tensor input, String... tags){
+		Tensor result = null;
+		Promise<NeuralNetworkResult> p = forward(null, null, input, tags);
+		try {
+			if(p.getFailure()!=null){
+				throw new RuntimeException("Error forwarding input", p.getFailure());
+			}
+		
+			result = p.getValue().tensor;
+		} catch(InterruptedException|InvocationTargetException e){
+			throw new RuntimeException("Error forwarding input", e);
+		}
+		return result;
+	}
+	
+	
+	public Promise<NeuralNetworkSequenceResult> forward(UUID inputId, UUID outputId, List<Tensor> input, String... tags){
+		return forward(inputId == null ? null : new UUID[]{inputId}, outputId == null ? null : new UUID[]{outputId}, new List[]{input}, tags);
+	}
+	
+	public Promise<NeuralNetworkSequenceResult> forward(UUID[] inputIds, UUID[] outputIds, List<Tensor>[] inputs, String... tags){
+		if(!valid)
+			throw new RuntimeException("This neural network object is no longer valid");
+		
+		// store inputs
+		if(inputIds == null){
+			sequenceInputs.put(null, inputs[0]);
+		} else {
+			for(int i=0;i<inputIds.length;i++){
+				sequenceInputs.put(inputIds[i], inputs[i]);
+			}
+		}
+
+		// TODO what if other sequence already executing?!
+		return forward(0, inputIds, outputIds, inputs, tags);
+	}
+
+	private Promise<NeuralNetworkSequenceResult> forward(int index, UUID[] inputIds, UUID[] outputIds, List<Tensor>[] inputs, String... tags){
+		int sequenceLength = inputs[0].size();
+
+		storeSequenceMemories(index);
+
+		return forward(inputIds, outputIds, getSequenceInputs(index, inputs), tags).then(p -> {
+			// store output
+			storeSequenceOutputs(index, p.getValue().tensors);
+
+			// increment counter
+			int next = index + 1;
+			
+			// check if we are done
+			if(next == sequenceLength){
+				Deferred<NeuralNetworkSequenceResult> d = new Deferred<>();
+				d.resolve(new NeuralNetworkSequenceResult(sequenceOutputs, tags));
+				return d.getPromise();
+			} else {
+				return forward(next, inputIds, outputIds, inputs, tags);
+			}
+		});
+	}
+	
+	public List<Tensor> forward(List<Tensor> input, String... tags){
+		List<Tensor> result = null;
+		Promise<NeuralNetworkSequenceResult> p = forward(null, null, input, tags);
+		try {
+			if(p.getFailure()!=null){
+				throw new RuntimeException("Error forwarding input", p.getFailure());
+			}
+		
+			result = p.getValue().tensor;
+		} catch(InterruptedException|InvocationTargetException e){
+			throw new RuntimeException("Error forwarding input", e);
+		}
+		return result;
+	}
+	
+	
+	@Override
+	public Promise<NeuralNetworkResult> backward(UUID[] outputIds, UUID[] inputIds, Tensor[] gradOuts, boolean accGradParameters, String... tags){
 		if(!valid)
 			throw new RuntimeException("This neural network object is no longer valid");
 		
@@ -231,9 +274,170 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 			}
 		}
 		
-		return p.getPromise();
+		if(accGradParameters){
+			return p.getPromise().then(		
+				pp -> {	
+					// Accumulate gradient weights
+					getTrainables().values().stream().forEach(Trainable::accGradParameters);
+					
+					return pp;
+				});
+		} else {
+			return p.getPromise();
+		}
 	}
 
+	@Override
+	public Promise<NeuralNetworkResult> backward(UUID outputId, UUID inputId, Tensor gradOut, boolean accGradParameters, String... tags){
+		return backward(outputId == null ? null : new UUID[]{outputId}, inputId == null? null : new UUID[]{inputId}, new Tensor[]{gradOut}, accGradParameters, tags);
+	}
+	
+	@Override
+	public Tensor backward(Tensor gradOutput, boolean accGradParameters, String... tags){
+		Tensor result = null;
+		Promise<NeuralNetworkResult> p = backward(null, null, gradOutput, accGradParameters, tags);
+		try {
+			if(p.getFailure()!=null){
+				throw new RuntimeException("Error back propagating gradOutput", p.getFailure());
+			}
+		
+			result = p.getValue().tensor;
+		} catch(InterruptedException|InvocationTargetException e){
+			throw new RuntimeException("Error back propagating gradOutput", e);
+		}
+		return result;
+	}
+	
+	
+	public Promise<NeuralNetworkSequenceResult> backward(UUID outputId, UUID inputId, List<Tensor> gradOutput, boolean accGradParameters, String... tags){
+		return backward(outputId == null ? null : new UUID[]{outputId}, inputId == null ? null : new UUID[]{inputId}, new List[]{gradOutput}, accGradParameters, tags);
+	}
+	
+	public Promise<NeuralNetworkSequenceResult> backward(UUID[] outputIds, UUID[] inputIds, List<Tensor>[] gradOutputs, boolean accGradParameters, String... tags){
+		if(!valid)
+			throw new RuntimeException("This neural network object is no longer valid");
+		
+	
+		// TODO what if other sequence already executing?!
+		return backward(gradOutputs[0].size()-1, outputIds, inputIds, gradOutputs, accGradParameters, tags);
+	}
+
+	private Promise<NeuralNetworkSequenceResult> backward(int index, UUID[] outputIds, UUID[] inputIds, List<Tensor>[] gradOutputs, boolean accGradParameters, String... tags){
+		// first forward again with correct input and memories
+		loadSequenceMemories(index);
+		
+		Tensor[] ins = new Tensor[inputIds == null ? 1 : inputIds.length];
+		if(inputIds == null){
+			ins[0] = sequenceInputs.values().iterator().next().get(index);
+		} else {
+			for(int i=0;i<inputIds.length;i++){
+				ins[i] = sequenceInputs.get(inputIds[i]).get(index);
+			}
+		}
+		
+		return forward(inputIds, outputIds, ins, tags).then(p -> {
+			return backward(outputIds, inputIds, getSequenceInputs(index, gradOutputs), accGradParameters, tags).then( pp -> {
+				
+				storeSequenceGradInputs(index, pp.getValue().tensors);
+
+				// decrement counter
+				int next = index - 1;
+				
+				// check if we are done
+				if(next < 0){
+					Deferred<NeuralNetworkSequenceResult> d = new Deferred<>();
+					d.resolve(new NeuralNetworkSequenceResult(sequenceGradInputs, tags));
+					return d.getPromise();
+				} else {
+					return backward(next, outputIds, inputIds, gradOutputs, accGradParameters, tags);
+				}
+				
+			});
+		});
+	}
+	
+
+	public List<Tensor> backward(List<Tensor> gradOutput, boolean accGradParameters, String... tags){
+		List<Tensor> result = null;
+		Promise<NeuralNetworkSequenceResult> p = backward(null, null, gradOutput, accGradParameters, tags);
+		try {
+			if(p.getFailure()!=null){
+				throw new RuntimeException("Error back propagating gradOutput", p.getFailure());
+			}
+		
+			result = p.getValue().tensor;
+		} catch(InterruptedException|InvocationTargetException e){
+			throw new RuntimeException("Error back propagating gradOutput", e);
+		}
+		return result;
+	}
+	
+	
+	private void storeSequenceOutputs(int index, Map<UUID, Tensor> outputs){
+		outputs.entrySet().forEach(e -> {
+			List<Tensor> outs = sequenceOutputs.get(e.getKey());
+			if(outs == null){
+				outs = new ArrayList<>();
+				sequenceOutputs.put(e.getKey(), outs);
+			}
+			
+			if(outs.size() <= index){
+				outs.add(e.getValue().clone());
+			} else {
+				e.getValue().copyInto(outs.get(index));
+			}
+		});
+	}
+	
+	private void storeSequenceMemories(int index){
+		memories.entrySet().forEach(e ->{
+			List<Tensor> mems = sequenceMemories.get(e.getKey());
+			if(mems == null){
+				mems = new ArrayList<Tensor>();
+				sequenceMemories.put(e.getKey(), mems);
+			}
+			
+			if(mems.size() <= index){
+				mems.add(e.getValue().getMemory().clone());
+			} else {
+				e.getValue().getMemory().copyInto(mems.get(index));
+			}
+		});	
+	}
+	
+	private void storeSequenceGradInputs(int index, Map<UUID, Tensor> gradInputs){
+		gradInputs.entrySet().forEach(e -> {
+			List<Tensor> gradIns = sequenceGradInputs.get(e.getKey());
+			if(gradIns == null){
+				gradIns = new ArrayList<>();
+				sequenceGradInputs.put(e.getKey(), gradIns);
+			}
+			
+			if(gradIns.size() <= index){
+				gradIns.add(e.getValue().clone());
+			} else {
+				e.getValue().copyInto(gradIns.get(index));
+			}
+		});
+	}
+	
+	private void loadSequenceMemories(int index){
+		memories.entrySet().forEach(e ->{
+			List<Tensor> mems = sequenceMemories.get(e.getKey());
+			Tensor state = mems.get(index);
+			e.getValue().setMemory(state);
+		});	
+	}
+	
+	private Tensor[] getSequenceInputs(int index, List<Tensor>[] inputs){
+		Tensor[] ins = new Tensor[inputs.length];
+		for(int i=0;i<inputs.length;i++){
+			ins[i] = inputs[i].get(index);
+		}
+		return ins;
+	}
+	
+	
 	// let all tags added by NN wrapper precede by "_"
 	private String getTag(){
 		synchronized(this){
@@ -764,13 +968,7 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 			}
 			
 			if(resultIds==null || results.size() == resultIds.length){
-				NeuralNetworkResult r;
-				
-				if(resultIds==null || resultIds.length == 1)
-					r = new NeuralNetworkResult(moduleId, tensor, tags);
-				else
-					r = new NeuralNetworkResult(results, tags);
-				
+				NeuralNetworkResult r = new NeuralNetworkResult(results, tags);
 				deferred.resolve(r);
 				return true;
 			}

@@ -22,9 +22,9 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rnn.learn.strategy;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.Sample;
@@ -102,61 +102,25 @@ public class BPTTLearningStrategy implements LearningStrategy {
 		
 		sequence = dataset.getSequence(sequence, 0, index, config.sequenceLength);
 		
-		// keep all memories hidden states
-		Map<UUID, Tensor[]> memories = new HashMap<UUID, Tensor[]>();
-		nn.getMemories().entrySet().forEach(e -> {
-			Tensor[] mems = new Tensor[config.sequenceLength];
-			for(int k=0;k<config.sequenceLength;k++){
-				mems[k] = e.getValue().getMemory().copyInto(null);
-			}
-			memories.put(e.getKey(), mems);
-		});
+		// forward
+		List<Tensor> outputs = nn.forward(sequence.getInputs());
 		
-		// also keep all outputs (in case we want to backprop all)
-		Tensor[] outputs = new Tensor[config.sequenceLength];
-		
-		
-		for(int k=0;k<config.sequenceLength;k++){
-			final int in = k;
-			nn.getMemories().entrySet().forEach(e ->{
-				e.getValue().getMemory().copyInto(memories.get(e.getKey())[in]);
-			});
-				
-			// forward
-			Tensor out = nn.forward(sequence.get(k).input);
-				
-			// store output
-			outputs[k] = out.copyInto(outputs[k]);
-		}
-		
-		// backward
-		for(int k=config.sequenceLength-1;k>=0;k--){
-			Tensor target = sequence.get(k).target;
-			float l = TensorOps.mean(criterion.loss(outputs[k], target));
+		// calculate gradients
+		List<Tensor> gradOutputs = new ArrayList<>();
+		List<Tensor> targets = sequence.getTargets();
+		for(int k=0;k<outputs.size();k++){
+			float l = TensorOps.mean(criterion.loss(outputs.get(k), targets.get(k)));
+			Tensor grad = criterion.grad(outputs.get(k), targets.get(k));
 			if(config.backpropAll || k==config.sequenceLength-1){
 				loss+=l;
+			} else {
+				grad.fill(0.0f);
 			}
-			Tensor grad = criterion.grad(outputs[k], target);
-				
-			// first forward again with correct state and memories
-			final int in = k;
-			nn.getMemories().entrySet().forEach(e -> {
-				e.getValue().setMemory(memories.get(e.getKey())[in]);
-			});
-			nn.forward(sequence.get(k).input);
-				
-			// set grad to zero for all intermediate outputs
-			if(!config.backpropAll){
-				if(k!=config.sequenceLength-1){
-					grad.fill(0.0f);
-				}
-			}
-			nn.backward(grad);
-				
-			// acc grad
-			nn.accGradParameters();
-				
+			gradOutputs.add(grad);
 		}
+		
+		// backward and acc grad parameters
+		nn.backward(gradOutputs, true);
 		
 		// run gradient processors
 		gradientProcessor.calculateDelta(i);

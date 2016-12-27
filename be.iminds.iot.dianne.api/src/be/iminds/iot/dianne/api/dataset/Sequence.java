@@ -72,8 +72,24 @@ public class Sequence<T extends Sample> implements Iterable <T>{
 		return get(index).input;
 	}
 	
+	public List<Tensor> getInputs(){
+		ArrayList<Tensor> inputs = new ArrayList<>();
+		for(T t : this){
+			inputs.add(t.input);
+		}
+		return inputs;
+	}
+	
 	public Tensor getTarget(int index){
 		return get(index).target;
+	}
+	
+	public List<Tensor> getTargets(){
+		ArrayList<Tensor> targets = new ArrayList<>();
+		for(T t : this){
+			targets.add(t.target);
+		}
+		return targets;
 	}
 	
 	@Override
@@ -114,7 +130,7 @@ public class Sequence<T extends Sample> implements Iterable <T>{
 			
 			@Override
 			public boolean hasNext() {
-				return i < size-1;
+				return i < size;
 			}
 
 			@Override
