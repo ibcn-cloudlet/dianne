@@ -22,16 +22,17 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rnn.dataset.chars;
 
+import java.io.File;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
 
+import be.iminds.iot.dianne.api.dataset.AbstractDataset;
 import be.iminds.iot.dianne.api.dataset.Batch;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.Sample;
@@ -46,69 +47,86 @@ import be.iminds.iot.dianne.tensor.TensorOps;
  * @author tverbele
  *
  */
-@Component(immediate=true, service={SequenceDataset.class, Dataset.class},
-	property={"name=CharSequence","aiolos.unique=true","aiolos.combine=*"})
-public class CharSequenceDataset implements SequenceDataset<Sample, Batch> {
+@Component(
+		service={SequenceDataset.class, Dataset.class},
+		immediate=true,
+		property={"aiolos.unique=true","aiolos.combine=*"},
+		configurationPolicy=ConfigurationPolicy.REQUIRE,
+		configurationPid="be.iminds.iot.dianne.dataset.CharSequenceDataset")
+public class CharSequenceDataset extends AbstractDataset implements SequenceDataset<Sample, Batch> {
 
-	private String file = "input.txt";
-	
 	private String data;
 	private String chars = "";
-	private String[] labels;
-	
-	@Activate
-	public void activate(BundleContext context) throws Exception {
-		String f = context.getProperty("be.iminds.iot.dianne.dataset.chars.location");
-		if(f!=null){
-			this.file = f;
-		}
-		
+
+	@Override
+	protected void init(Map<String, Object> properties) {
 		try {
-			byte[] encoded = Files.readAllBytes(Paths.get(file));
+			inputType = "character";
+			targetType = "characer";
+			
+			String file = "input.txt";
+			
+			if(properties.containsKey("file")){
+				file = properties.get("file").toString();
+			}
+			
+			// read the data
+			byte[] encoded = Files.readAllBytes(Paths.get(dir+File.separator+file));
 			data = new String(encoded, Charset.defaultCharset());
 			
-			data.chars().forEach(c -> {
-				if(!chars.contains(""+(char)c)){
-					chars+=""+(char)c;
+			noSamples = data.length();
+			
+			// no labels given, build up the vocabulary
+			if(!properties.containsKey("labels") 
+					&& !properties.containsKey("labelsFile")){
+				
+				data.chars().forEach(c -> {
+					if(!chars.contains(""+(char)c)){
+						chars+=""+(char)c;
+					}
+				});
+				
+				labels = new String[chars.length()];
+				for(int i=0;i<labels.length;i++){
+					labels[i] = ""+chars.charAt(i);
 				}
-			});
+				
+				inputDims = new int[]{chars.length()};
+				targetDims = new int[]{chars.length()};
+			}
+			
+		} catch(Exception e){
+			e.printStackTrace();
+			throw new RuntimeException("Failed to load char sequence dataset", e);
+		}	
+	}
+
+	@Override
+	protected void readLabels(String labelsFile) {
+		try {
+			byte[] encoded = Files.readAllBytes(Paths.get(labelsFile));
+			chars = new String(encoded, Charset.defaultCharset());
 			
 			labels = new String[chars.length()];
 			for(int i=0;i<labels.length;i++){
 				labels[i] = ""+chars.charAt(i);
 			}
-			
 		} catch(Exception e){
-			System.err.println("Failed to load char sequence dataset ... ");
-			throw e;
-		}
+			e.printStackTrace();
+			throw new RuntimeException("Failed to load char sequence dataset", e);
+		}	
 	}
 
 	@Override
-	public int size() {
-		return data.length();
-	}
-	
-	@Override
-	public Sample getSample(Sample s, int index){
-		if(s == null){
-			s = new Sample();
-		}
-		s.input = asTensor(data.charAt(index), s.input);
-		s.target = asTensor(data.charAt(index+1), s.target);
-		return s;
+	protected Tensor getInputSample(Tensor t, int index) {
+		return asTensor(data.charAt(index), t);
 	}
 
 	@Override
-	public String getName() {
-		return "CharSequence";
+	protected Tensor getTargetSample(Tensor t, int index) {
+		return asTensor(data.charAt(index+1), t);
 	}
 
-	@Override
-	public String[] getLabels() {
-		return labels;
-	}
-	
 	private Tensor asTensor(char c, Tensor t){
 		int index = chars.indexOf(c);
 		if(t == null)
@@ -121,26 +139,6 @@ public class CharSequenceDataset implements SequenceDataset<Sample, Batch> {
 	private char asChar(Tensor t){
 		int index = TensorOps.argmax(t);
 		return chars.charAt(index);
-	}
-
-	@Override
-	public int[] inputDims() {
-		return new int[]{chars.length()};
-	}
-
-	@Override
-	public String inputType() {
-		return "character";
-	}
-
-	@Override
-	public int[] targetDims() {
-		return new int[]{chars.length()};
-	}
-
-	@Override
-	public String targetType() {
-		return "character";
 	}
 
 	@Override
