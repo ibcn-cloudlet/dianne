@@ -61,7 +61,7 @@ public class NLLCriterion implements Criterion {
 		if(b.batchSize > 1){
 			loss.reshape(b.batchSize);
 			for(int i=0;i<b.batchSize;i++){
-				loss.set(-TensorOps.dot(log==null ? output.select(0, i) : log.select(0, i) , target), i);
+				loss.set(-TensorOps.dot(log==null ? output.select(0, i) : log.select(0, i) , target.select(0,  i)), i);
 			}
 		} else {
 			loss.set(-TensorOps.dot(log==null ? output : log , target), 0);
