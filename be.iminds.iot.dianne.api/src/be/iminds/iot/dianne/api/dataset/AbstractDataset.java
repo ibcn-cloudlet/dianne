@@ -44,8 +44,6 @@ public abstract class AbstractDataset implements Dataset {
 	
 	@Activate
 	protected void activate(Map<String, Object> properties) {
-		init(properties);
-		
 		String d = (String)properties.get("dir");
 		if(d != null){
 			dir = d;
@@ -87,6 +85,11 @@ public abstract class AbstractDataset implements Dataset {
 			labelsFile = (String) properties.get("labelsFile");
 		}
 		
+		init(properties);
+
+		if(labelsFile != null)
+			readLabels(labelsFile);
+		
 		if(inputDims != null){
 			inputSize = 1;
 			for(int i=0;i<inputDims.length;i++){
@@ -104,9 +107,6 @@ public abstract class AbstractDataset implements Dataset {
 		} else {
 			targetSize = -1;
 		}
-		
-		if(labelsFile != null)
-			readLabels(labelsFile);
 		
 	}
 	

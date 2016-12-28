@@ -86,7 +86,7 @@ public class CSVDataset extends FileDataset{
 		if(!properties.containsKey("noSamples")){
 			// count line numbers in file
 			try {
-				File f = new File((String)properties.get("dir")+File.separator+file);
+				File f = new File(dir+File.separator+file);
 				LineNumberReader lineNumberReader = new LineNumberReader(new FileReader(f));
 				lineNumberReader.skip(Long.MAX_VALUE);
 				noSamples = lineNumberReader.getLineNumber();

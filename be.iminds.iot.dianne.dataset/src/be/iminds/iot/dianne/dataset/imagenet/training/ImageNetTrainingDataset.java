@@ -120,7 +120,7 @@ public class ImageNetTrainingDataset extends ImageClassificationDataset implemen
 		this.targetDims = new int[]{1000};
 		this.nodeIds = new String[1000];
 		this.noSamplesNodeId = new int[1000];
-		this.noSamples = processImageDir(Paths.get(properties.get("dir") + File.separator + "images"));
+		this.noSamples = processImageDir(Paths.get(dir + File.separator + "images"));
 		this.labelsFile = "classes.txt";
 	}
 

@@ -59,7 +59,7 @@ public class ImageNetValidationDataset extends ImageClassificationDataset {
 		this.inputDims = null;
 		this.targetDims = new int[]{1000};
 
-		File images = new File(properties.get("dir") + File.separator + "images/");
+		File images = new File(dir + File.separator + "images/");
 		noSamples = (int) Arrays.stream(images.listFiles()).filter(f -> !f.isHidden()).count();
 		
 		this.labelsFile = "classes.txt";
