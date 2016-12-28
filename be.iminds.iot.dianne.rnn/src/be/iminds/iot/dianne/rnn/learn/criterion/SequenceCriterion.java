@@ -59,32 +59,29 @@ public class SequenceCriterion implements Criterion {
 	}
 	
 	public List<Tensor> loss(final List<Tensor> outputs, final List<Tensor> targets){
+		// Criterion expects to call grad immediately after loss, so we do both here
+		// and just return latest grads array in grad call
 		for(int i=0;i<outputs.size();i++){
 			Tensor loss = criterion.loss(outputs.get(i), targets.get(i)).clone();
+			Tensor grad = criterion.grad(outputs.get(i), targets.get(i));
+
 			if(!config.backpropAll && i!=outputs.size()-1){
 				loss.fill(0.0f);
+				grad.fill(0.0f);
 			}
 			if(losses.size() <= i){
 				losses.add(loss.clone());
+				grads.add(grad.clone());
 			} else {
 				loss.copyInto(losses.get(i));
+				grad.copyInto(grads.get(i));
 			}
 		}
 		return losses;
 	}
 	
 	public List<Tensor> grad(final List<Tensor> outputs, final List<Tensor> targets){
-		for(int i=0;i<outputs.size();i++){
-			Tensor grad = criterion.grad(outputs.get(i), targets.get(i));
-			if(!config.backpropAll && i!=outputs.size()-1){
-				grad.fill(0.0f);
-			}
-			if(grads.size() <= i){
-				grads.add(grad.clone());
-			} else {
-				grad.copyInto(grads.get(i));
-			}
-		}
+		// grads list should be updated with a loss call
 		return grads;
 	}
 }
