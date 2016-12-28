@@ -132,10 +132,15 @@ public class CharSequenceDataset extends AbstractDataset implements SequenceData
 	}
 
 	private Tensor asTensor(char c, Tensor t){
-		int index = chars.indexOf(c);
+		int index = 0;
+		index = chars.indexOf(c);
 		if(t == null)
 			t = new Tensor(chars.length());
 		t.fill(0.0f);
+		if(index == -1){
+			System.err.println("Character "+c+" is not in the vocabulary");
+			return t;
+		}
 		t.set(1.0f, index);
 		return t;
 	}
