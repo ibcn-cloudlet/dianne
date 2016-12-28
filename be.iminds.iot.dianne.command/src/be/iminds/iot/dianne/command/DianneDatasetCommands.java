@@ -86,7 +86,7 @@ public class DianneDatasetCommands {
 		System.out.println("Available datasets:");
 		int i = 0;
 		for(DatasetDTO dataset : ds){
-			System.out.println("["+(i++)+"] "+dataset.name+"\t"+dataset.size+" samples");
+			System.out.println("["+(i++)+"] "+dataset.name+"\t"+dataset.size+" samples\t"+(dataset.inputDims == null ? "null" : Arrays.toString(dataset.inputDims))+"\t"+(dataset.targetDims == null ? "null" : Arrays.toString(dataset.targetDims)));
 		}
 	}
 	
