@@ -29,6 +29,11 @@ import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory.SamplingConfig;
 public class BPTTConfig {
 
 	/**
+	 * Batchsize to process inputs
+	 */
+	public int batchSize = 10;
+	
+	/**
 	 * Length of the sequence to feed into the network before backpropagating 
 	 */
 	public int sequenceLength = 10;

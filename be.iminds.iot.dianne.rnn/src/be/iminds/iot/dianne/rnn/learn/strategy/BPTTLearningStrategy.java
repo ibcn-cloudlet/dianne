@@ -25,8 +25,8 @@ package be.iminds.iot.dianne.rnn.learn.strategy;
 import java.util.List;
 import java.util.Map;
 
+import be.iminds.iot.dianne.api.dataset.Batch;
 import be.iminds.iot.dianne.api.dataset.Dataset;
-import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.api.dataset.Sequence;
 import be.iminds.iot.dianne.api.dataset.SequenceDataset;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
@@ -61,15 +61,12 @@ public class BPTTLearningStrategy implements LearningStrategy {
 	protected SequenceCriterion criterion;
 	protected SequenceSamplingStrategy sampling;
 	
-	protected Sequence<Sample> sequence = null;
+	protected Sequence<Batch> sequence = null;
 	
 	@Override
 	public void setup(Map<String, String> config, Dataset dataset, NeuralNetwork... nns) throws Exception {
 		if(!(dataset instanceof SequenceDataset))
 			throw new RuntimeException("Dataset is no sequence dataset");
-		
-		// This strategy currently only works with batchsize 1
-		config.put("batchSize", "1");
 		
 		this.dataset = (SequenceDataset)dataset;
 		this.nn = nns[0];
@@ -79,6 +76,7 @@ public class BPTTLearningStrategy implements LearningStrategy {
 			nn.setOutputLabels(labels);
 		
 		this.config = DianneConfigHandler.getConfig(config, BPTTConfig.class);
+		this.nn.batch(this.config.batchSize);
 		sampling = SequenceSamplingFactory.createSamplingStrategy(this.config.sampling, this.dataset, config);
 		criterion = SequenceCriterionFactory.createCriterion(this.config.criterion, config);
 		gradientProcessor = ProcessorFactory.createGradientProcessor(this.config.method, nn, config);
@@ -89,9 +87,9 @@ public class BPTTLearningStrategy implements LearningStrategy {
 		// clear delta params
 		nn.zeroDeltaParameters();
 		
-		int s = sampling.sequence();
-		int index = sampling.next(s, config.sequenceLength);
-		sequence = dataset.getSequence(sequence, s, index, config.sequenceLength);
+		int[] s = sampling.sequence(config.batchSize);
+		int[] index = sampling.next(s, config.sequenceLength);
+		sequence = dataset.getBatchedSequence(sequence, s, index, config.sequenceLength);
 		
 		// forward
 		List<Tensor> outputs = nn.forward(sequence.getInputs());
