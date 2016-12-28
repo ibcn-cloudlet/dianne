@@ -32,28 +32,37 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 public abstract class AbstractMemory extends AbstractModule implements Memory {
 
+	protected final int size;
 	protected final Tensor memory;
 	
 	public AbstractMemory(int size) {
 		super();
+		this.size = size;
 		this.memory = new Tensor(size);
 		resetMemory();
 	}
 
 	public AbstractMemory(UUID id, int size) {
 		super(id);
+		this.size = size;
 		this.memory = new Tensor(size);
 		resetMemory();
 	}
 	
 	public AbstractMemory(Tensor memory) {
 		super();
+		this.size = memory.size();
 		this.memory = memory;
 	}
 
 	public AbstractMemory(UUID id, Tensor memory) {
 		super(id);
+		this.size = memory.size();
 		this.memory = memory;
+	}
+	
+	public void batch(int batchSize){
+		this.memory.reshape(batchSize, size);
 	}
 
 	protected synchronized void forward(final UUID moduleId, final ModuleException ex, final Tensor input, final String... tags) {

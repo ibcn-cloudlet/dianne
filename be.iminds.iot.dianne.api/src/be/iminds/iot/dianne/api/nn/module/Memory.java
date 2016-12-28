@@ -47,6 +47,11 @@ public interface Memory extends Module {
 	public void triggerBackward(final String... tags);
 	
 	/**
+	 * Initialize the memory to provide memory cells for batched operation
+	 */
+	public void batch(int batchSize);
+	
+	/**
 	 * Reset the memory to initial state (and zero out any gradOut)
 	 */
 	public void reset();

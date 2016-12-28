@@ -76,6 +76,11 @@ public class CompositeModule extends AbstractTrainableModule implements Composit
 	}
 
 	@Override
+	public void batch(int batchSize){
+		nn.getMemories().values().stream().forEach(m -> m.batch(batchSize));
+	}
+	
+	@Override
 	protected void randomize() {
 		nn.getTrainables().values().stream().forEach(m -> m.randomizeParameters());
 	}

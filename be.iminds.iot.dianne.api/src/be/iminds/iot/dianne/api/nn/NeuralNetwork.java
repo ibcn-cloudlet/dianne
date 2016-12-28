@@ -360,4 +360,9 @@ public interface NeuralNetwork {
 	 * Accumulate the gradients in deltaprameters
 	 */
 	void accGradParameters();
+	
+	/**
+	 * Make sure memories are initialized for batched operation
+	 */
+	void batch(int batchSize);
 }

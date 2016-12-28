@@ -985,4 +985,8 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		}
 	}
 	
+	
+	public void batch(int batchSize){
+		memories.values().forEach(m -> m.batch(batchSize));
+	}
 }
