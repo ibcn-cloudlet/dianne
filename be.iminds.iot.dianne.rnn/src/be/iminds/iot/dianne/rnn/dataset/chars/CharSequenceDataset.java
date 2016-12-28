@@ -104,13 +104,17 @@ public class CharSequenceDataset extends AbstractDataset implements SequenceData
 	@Override
 	protected void readLabels(String labelsFile) {
 		try {
-			byte[] encoded = Files.readAllBytes(Paths.get(labelsFile));
+			byte[] encoded = Files.readAllBytes(Paths.get(dir+File.separator+labelsFile));
 			chars = new String(encoded, Charset.defaultCharset());
 			
 			labels = new String[chars.length()];
 			for(int i=0;i<labels.length;i++){
 				labels[i] = ""+chars.charAt(i);
 			}
+			
+			inputDims = new int[]{chars.length()};
+			targetDims = new int[]{chars.length()};
+			
 		} catch(Exception e){
 			e.printStackTrace();
 			throw new RuntimeException("Failed to load char sequence dataset", e);
