@@ -309,6 +309,51 @@ public class ExperiencePoolTest {
 
 	}
 	
+	@Test
+	public void testBatchedSequence(){
+		Assert.assertEquals(0, pool.size());
+		Assert.assertEquals(0, pool.sequences());
+		
+		// first sequence
+		List<ExperiencePoolSample> sequence = new ArrayList<>();
+		sequence.add(new ExperiencePoolSample(s0, a0, 0, s1));
+		sequence.add(new ExperiencePoolSample(s1, a1, 0.1f, s2));
+		sequence.add(new ExperiencePoolSample(s2, a2, 0.2f, null));
+		pool.addSequence(new Sequence<ExperiencePoolSample>(sequence, 3));
+
+		// second sequence
+		List<ExperiencePoolSample> sequence2 = new ArrayList<>();
+		sequence2.add(new ExperiencePoolSample(s0, a0, 0.3f, s1));
+		sequence2.add(new ExperiencePoolSample(s1, a1, 0.4f, s2));
+		sequence2.add(new ExperiencePoolSample(s2, a2, 0.5f, s3));
+		sequence2.add(new ExperiencePoolSample(s3, a3, 0.6f, s4));
+		sequence2.add(new ExperiencePoolSample(s4, a4, 0.7f, s5));
+		sequence2.add(new ExperiencePoolSample(s5, a5, 0.8f, null));
+		pool.addSequence(new Sequence<ExperiencePoolSample>(sequence2, 6));
+		
+		Sequence<ExperiencePoolBatch> batchedSequence = pool.getBatchedSequence(new int[]{0, 1}, new int[]{0, 1}, 3);
+		Assert.assertEquals(3, batchedSequence.size);
+		ExperiencePoolBatch b0 = batchedSequence.get(0);
+		Assert.assertEquals(s0, b0.getState(0));
+		Assert.assertEquals(s1, b0.getState(1));
+
+		ExperiencePoolBatch b1 = batchedSequence.get(1);
+		Assert.assertEquals(s1, b1.getState(0));
+		Assert.assertEquals(s2, b1.getState(1));
+		
+		
+		batchedSequence = pool.getBatchedSequence(batchedSequence, new int[]{0, 1}, new int[]{1, 1}, 3);
+		Assert.assertEquals(2, batchedSequence.size);
+		b0 = batchedSequence.get(0);
+		Assert.assertEquals(s1, b0.getState(0));
+		Assert.assertEquals(s1, b0.getState(1));
+
+		b1 = batchedSequence.get(1);
+		Assert.assertEquals(s2, b1.getState(0));
+		Assert.assertEquals(s2, b1.getState(1));
+		
+	}
+	
 	
 	@Test
 	public void testExperiencePoolGetSubSequence() throws Exception {

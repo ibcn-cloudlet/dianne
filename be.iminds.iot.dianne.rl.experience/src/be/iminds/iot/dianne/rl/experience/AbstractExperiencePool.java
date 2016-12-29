@@ -244,6 +244,77 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	}
 	
 	@Override
+	public Sequence<ExperiencePoolBatch> getBatchedSequence(Sequence<ExperiencePoolBatch> b, final int[] sequences, final int[] indices, final int length){
+		if(b == null){
+			b = new Sequence<ExperiencePoolBatch>();
+		}
+		List<ExperiencePoolBatch> list = b.data; 
+				
+		boolean l = false;
+		for(int sequence : sequences){
+			if(sequence > this.sequences.size()){
+				throw new RuntimeException("Invalid sequence number");
+			}
+			if(sequence == 0){
+				l = true;
+			}
+		}
+		
+		try {
+			// only lock if you want the first sequence ... this is the only one that might get overridden when no lock taken
+			if(l){
+				lock.readLock().lock();
+			}
+			
+			int[] globalIndices = new int[sequences.length];
+			int minLength = Integer.MAX_VALUE;
+			
+			for(int k=0; k<sequences.length;k++){
+				SequenceLocation seq = this.sequences.get(k);
+				if(indices[k] >= seq.length){
+					throw new RuntimeException("Invalid start index: "+indices[k]);
+				}
+			
+				int sequenceLength;
+				if(length == -1){
+					sequenceLength = seq.length-indices[k];
+				} else {
+					sequenceLength = seq.length-indices[k] < length ? seq.length-indices[k] : length;
+				}
+				
+				if(sequenceLength < minLength){
+					minLength = sequenceLength;
+				}
+			
+				globalIndices[k] = seq.start + indices[k];
+			}
+				
+			
+			for(int i=0;i<minLength;i++){
+				if(list.size() > i){
+					getBatch(list.get(i), globalIndices);
+				} else {
+					ExperiencePoolBatch batch = getBatch(null, globalIndices);
+					list.add(batch);
+				}
+				
+				for(int k=0;k<globalIndices.length;k++){
+					globalIndices[k] = globalIndices[k]+1;
+				}
+			}
+			
+			b.size = minLength;
+		} finally {
+			if(l){
+				lock.readLock().unlock();
+			}
+		}
+
+		return b;
+	}
+	
+	
+	@Override
 	public void addSequence(Sequence<ExperiencePoolSample> sequence){
 		if(sequence == null){
 			throw new RuntimeException("Null sequence given");
