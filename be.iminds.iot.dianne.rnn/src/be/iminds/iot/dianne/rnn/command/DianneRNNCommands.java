@@ -136,8 +136,17 @@ public class DianneRNNCommands {
 		// forward
 		Tensor out = nn.forward(in);
 		
-		// select next, for now arg max, better sample here?
-		int o = TensorOps.argmax(out);
+		// select next, sampling from (Log)Softmax output
+		if(TensorOps.min(out) < 0){
+			// assume logsoftmax output, take exp
+			out = TensorOps.exp(out, out);
+		}
+		
+		double s = 0, r = Math.random();
+		int o = 0;
+		while(o < out.size() && (s += out.get(o)) < r){
+			o++;
+		}
 		
 		return labels[o].charAt(0);
 	}
