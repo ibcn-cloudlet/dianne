@@ -28,9 +28,10 @@ import java.util.Map;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
+import be.iminds.iot.dianne.api.coordinator.DianneCoordinator;
+import be.iminds.iot.dianne.api.coordinator.LearnResult;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
-import be.iminds.iot.dianne.api.nn.learn.Learner;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -43,21 +44,20 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 		service=Object.class,
 		property={"osgi.command.scope=dianne",
 				  "osgi.command.function=generate",
-				  "osgi.command.function=bptt",
-				  "osgi.command.function=stopBptt"},
+				  "osgi.command.function=bptt"},
 		immediate=true)
 public class DianneRNNCommands {
 
 	private Dianne dianne;
 	private DiannePlatform platform;
-	private Learner learner;
+	private DianneCoordinator coordinator;
 
 	protected NeuralNetworkInstanceDTO nni;
 	
-	public void generate(String nnName, String start, int n){
+	public void generate(String nnName, String start, int n, String... tags){
 		// forward of a rnn
 		try {
-			nni = platform.deployNeuralNetwork(nnName, "test rnn", null);
+			nni = platform.deployNeuralNetwork(nnName, "test rnn", tags);
 			NeuralNetwork nn = dianne.getNeuralNetwork(nni).getValue();
 			
 			String result = ""+start;
@@ -87,19 +87,27 @@ public class DianneRNNCommands {
 			Map<String, String> config = createLearnerConfig(properties);
 			
 			nni = platform.deployNeuralNetwork(nnName);
-			learner.learn(dataset, config, nni);
+			
+			coordinator.learn(dataset, config, nnName.split(",")).then(p -> {
+				System.out.println("Learn Job done!");
+				LearnResult result = p.getValue();
+				System.out.println("Iterations: "+result.getIterations());
+				System.out.println("Last minibatch loss: "+result.getLoss());
+				return null;
+			}, p -> {
+				System.out.println("Learn Job failed: "+p.getFailure().getMessage());
+				p.getFailure().printStackTrace();
+			});
+
+			
 		} catch(Exception e){
 			e.printStackTrace();
 			platform.undeployNeuralNetwork(nni);
 		} 
 	}
 
-	public void stopBptt(){
-		this.learner.stop();
-		platform.undeployNeuralNetwork(nni);
-	}
-	
 	private Map<String, String> createLearnerConfig(String[] properties){
+		
 		Map<String, String> config = new HashMap<String, String>();
 		// defaults
 		config.put("strategy", "be.iminds.iot.dianne.rnn.learn.strategy.BPTTLearningStrategy");
@@ -162,7 +170,7 @@ public class DianneRNNCommands {
 	}
 	
 	@Reference
-	void setLearner(Learner l){
-		this.learner = l;
+	void setDianneCoordinator(DianneCoordinator c){
+		this.coordinator = c;
 	}
 }
