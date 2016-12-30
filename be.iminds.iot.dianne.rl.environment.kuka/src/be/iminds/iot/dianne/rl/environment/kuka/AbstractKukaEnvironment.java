@@ -289,7 +289,7 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 				}
 				observation = new Tensor(result, rangeSensors.size(), dimension);
 				if(config.rangeSensorNoise > 0) {
-					if(noise == null)
+					if(noise == null || !noise.sameDim(observation))
 						noise = new Tensor(observation.dims());
 					
 					noise.randn();
