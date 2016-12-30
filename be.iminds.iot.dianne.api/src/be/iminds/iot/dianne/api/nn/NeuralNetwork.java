@@ -362,7 +362,11 @@ public interface NeuralNetwork {
 	void accGradParameters();
 	
 	/**
-	 * Make sure memories are initialized for batched operation
+	 * Reset memory
 	 */
-	void batch(int batchSize);
+	void resetMemory(int batchSize);
+	
+	default void resetMemory(){
+		resetMemory(1);
+	}
 }

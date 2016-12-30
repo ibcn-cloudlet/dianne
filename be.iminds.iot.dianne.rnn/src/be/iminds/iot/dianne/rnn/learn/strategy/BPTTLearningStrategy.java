@@ -76,7 +76,6 @@ public class BPTTLearningStrategy implements LearningStrategy {
 			nn.setOutputLabels(labels);
 		
 		this.config = DianneConfigHandler.getConfig(config, BPTTConfig.class);
-		this.nn.batch(this.config.batchSize);
 		sampling = SequenceSamplingFactory.createSamplingStrategy(this.config.sampling, this.dataset, config);
 		criterion = SequenceCriterionFactory.createCriterion(this.config.criterion, config);
 		gradientProcessor = ProcessorFactory.createGradientProcessor(this.config.method, nn, config);
@@ -86,6 +85,9 @@ public class BPTTLearningStrategy implements LearningStrategy {
 	public LearnProgress processIteration(long i) throws Exception {
 		// clear delta params
 		nn.zeroDeltaParameters();
+		// reset memory
+		this.nn.resetMemory(this.config.batchSize);
+
 		
 		int[] s = sampling.sequence(config.batchSize);
 		int[] index = sampling.next(s, config.sequenceLength);

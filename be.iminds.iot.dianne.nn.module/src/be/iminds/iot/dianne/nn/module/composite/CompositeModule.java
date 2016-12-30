@@ -76,8 +76,8 @@ public class CompositeModule extends AbstractTrainableModule implements Composit
 	}
 
 	@Override
-	public void batch(int batchSize){
-		nn.getMemories().values().stream().forEach(m -> m.batch(batchSize));
+	public void reset(int batchSize){
+		nn.getMemories().values().stream().forEach(m -> m.reset(batchSize));
 	}
 	
 	@Override
@@ -132,11 +132,6 @@ public class CompositeModule extends AbstractTrainableModule implements Composit
 		nn.getMemories().values().forEach(m -> m.triggerBackward(tags));
 	}
 
-	@Override
-	public void reset() {
-		nn.getMemories().values().forEach(m -> m.reset());
-	}
-	
 	@Override
 	public Tensor getMemory() {
 		return memory;

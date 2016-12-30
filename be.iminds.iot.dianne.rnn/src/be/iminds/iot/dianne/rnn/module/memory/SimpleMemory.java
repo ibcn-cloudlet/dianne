@@ -56,7 +56,7 @@ public class SimpleMemory extends AbstractMemory {
 	}
 
 	@Override
-	protected void resetMemory(){
+	protected void resetMemory(int batchSize){
 		memory.fill(0.0f);
 	}
 	

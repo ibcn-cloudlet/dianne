@@ -39,14 +39,14 @@ public abstract class AbstractMemory extends AbstractModule implements Memory {
 		super();
 		this.size = size;
 		this.memory = new Tensor(size);
-		resetMemory();
+		resetMemory(1);
 	}
 
 	public AbstractMemory(UUID id, int size) {
 		super(id);
 		this.size = size;
 		this.memory = new Tensor(size);
-		resetMemory();
+		resetMemory(1);
 	}
 	
 	public AbstractMemory(Tensor memory) {
@@ -61,10 +61,6 @@ public abstract class AbstractMemory extends AbstractModule implements Memory {
 		this.memory = memory;
 	}
 	
-	public void batch(int batchSize){
-		this.memory.reshape(batchSize, size);
-	}
-
 	protected synchronized void forward(final UUID moduleId, final ModuleException ex, final Tensor input, final String... tags) {
 		if(TRACE){
 			System.out.println("FORWARD "+this.id+" ("+this.getClass().getName()+")  FROM "+moduleId+" "+Arrays.toString(input.dims())+" "+Arrays.toString(tags));
@@ -120,7 +116,7 @@ public abstract class AbstractMemory extends AbstractModule implements Memory {
 	protected abstract void updateOutput();
 	
 	// reset memory to an initial state (e.g. zeros or some trainable params)
-	protected abstract void resetMemory();
+	protected abstract void resetMemory(int batchSize);
 	
 	@Override
 	public synchronized void triggerForward(String... tags) {
@@ -171,13 +167,16 @@ public abstract class AbstractMemory extends AbstractModule implements Memory {
 	}
 
 	@Override
-	public void reset(){
+	public void reset(int batchSize){
+		if(batchSize > 1)
+			this.memory.reshape(batchSize, size);
+		
 		if(gradInput==null){
 			gradInput = new Tensor(memory.size());
 		}
 		gradInput.fill(0.0f);
 		
-		resetMemory();
+		resetMemory(batchSize);
 	}
 	
 	@Override

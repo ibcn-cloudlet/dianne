@@ -911,8 +911,6 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		}
 		
 		trainables.values().stream().forEach(Trainable::zeroDeltaParameters);
-
-		memories.values().stream().forEach(Memory::reset);
 	}
 
 	@Override
@@ -986,7 +984,7 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	}
 	
 	
-	public void batch(int batchSize){
-		memories.values().forEach(m -> m.batch(batchSize));
+	public void resetMemory(int batchSize){
+		memories.values().forEach(m -> m.reset(batchSize));
 	}
 }
