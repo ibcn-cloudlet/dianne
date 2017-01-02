@@ -418,10 +418,15 @@ public abstract class AbstractModule implements Module {
 		}
 		
 		public void run(){
-			if(ex==null){
-				m.forward(id, tensor, tags);
-			} else {
-				m.forward(id, ex, tags);
+			try {
+				if(ex==null){
+					m.forward(id, tensor, tags);
+				} else {
+					m.forward(id, ex, tags);
+				}
+			} catch(Exception e){
+				// this means there is a problem forwarding to the next module ...
+				// just ignore? no way to feed error back
 			}
 
 			synchronized(nextBusy){
@@ -452,10 +457,15 @@ public abstract class AbstractModule implements Module {
 		}
 		
 		public void run(){
-			if(ex==null){
-				m.backward(id, tensor, tags);
-			} else {
-				m.backward(id, ex, tags);
+			try {
+				if(ex==null){
+					m.backward(id, tensor, tags);
+				} else {
+					m.backward(id, ex, tags);
+				}
+			} catch(Exception e){
+				// this means there is a problem backwarding to the previous module ...
+				// just ignore? no way to feed error back
 			}
 			
 		}
