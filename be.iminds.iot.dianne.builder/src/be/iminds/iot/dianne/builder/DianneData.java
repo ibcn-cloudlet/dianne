@@ -98,8 +98,10 @@ public class DianneData extends HttpServlet {
 			String dataset = request.getParameter("dataset");
 			Dataset d = datasets.getDataset(dataset);
 			if(d!=null && d.size() > 0){
-				Sample s = d.getSample(rand.nextInt(d.size()));
+				int index = rand.nextInt(d.size());
+				Sample s = d.getSample(index);
 				JsonObject sample = converter.toJson(s.input);
+				sample.add("index", new JsonPrimitive(index));
 				String[] labels = d.getLabels();
 				if(labels != null){
 					sample.add("target", new JsonPrimitive(labels[TensorOps.argmax(s.target)]));

@@ -1,10 +1,12 @@
 
 
-function render(tensor, canvasCtx, type){
+function render(tensor, canvasCtx, type, labels){
 	if(type==="image"){
 		image(tensor, canvasCtx);
 	} else if(type==="laser"){
 		laser(tensor, canvasCtx, false);
+	} else if(type==="character"){
+		text(tensor, canvasCtx, labels);
 	} else {
 		// image by default?
 		image(tensor, canvasCtx);
@@ -192,4 +194,22 @@ function laser_rect(tensor, canvasCtx, offset, scanPoints, posX, posY, targetW, 
 		canvasCtx.fill();
 		canvasCtx.closePath();
 	}
+}
+
+
+function text(tensor, canvasCtx, labels){
+	var canvasW = canvasCtx.canvas.clientWidth;
+	var canvasH = canvasCtx.canvas.clientHeight;
+	canvasCtx.clearRect(0,0,canvasW,canvasH);
+	
+	var index = tensor.data.indexOf(1);
+	if(index !== -1){
+		var size = Math.floor(canvasW/5);
+		canvasCtx.font= size+"px Verdana";
+		canvasCtx.fillText(labels[index], 9*canvasW/20, 11*canvasH/20);
+	} else {
+		console.log("index not found")
+	}
+	
+	
 }
