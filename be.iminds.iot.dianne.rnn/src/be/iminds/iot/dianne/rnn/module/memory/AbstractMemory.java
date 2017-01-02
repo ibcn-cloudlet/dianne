@@ -168,8 +168,9 @@ public abstract class AbstractMemory extends AbstractModule implements Memory {
 
 	@Override
 	public void reset(int batchSize){
-		if(batchSize > 1)
+		if(batchSize > 0) {
 			this.memory.reshape(batchSize, size);
+		}
 		
 		if(gradInput==null){
 			gradInput = new Tensor(memory.size());

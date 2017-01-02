@@ -52,7 +52,7 @@ public interface Memory extends Module {
 	public void reset(int batchSize);
 
 	default void reset(){
-		reset(1);
+		reset(0);
 	}
 	
 	/**
