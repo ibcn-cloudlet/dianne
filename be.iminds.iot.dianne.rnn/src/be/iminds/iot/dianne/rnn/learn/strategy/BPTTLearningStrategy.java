@@ -88,7 +88,7 @@ public class BPTTLearningStrategy implements LearningStrategy {
 		// reset memory
 		this.nn.resetMemory(this.config.batchSize);
 
-		
+		// sample sequence
 		int[] s = sampling.sequence(config.batchSize);
 		int[] index = sampling.next(s, config.sequenceLength);
 		sequence = dataset.getBatchedSequence(sequence, s, index, config.sequenceLength);
@@ -98,12 +98,12 @@ public class BPTTLearningStrategy implements LearningStrategy {
 		
 		// calculate gradients
 		List<Tensor> targets = sequence.getTargets();
-		float loss =  TensorOps.mean(criterion.loss(outputs, targets).stream().reduce((t1,t2) -> TensorOps.add(t1, t1, t2)).get());
+		float loss =  TensorOps.mean(criterion.loss(outputs, targets).stream().reduce((t1,t2) -> TensorOps.add(t1, t1, t2)).get())/sequence.size;
 		List<Tensor> gradOutputs = criterion.grad(outputs, targets);
 		
 		// backward and acc grad parameters
 		nn.backward(gradOutputs, true);
-		
+
 		// run gradient processors
 		gradientProcessor.calculateDelta(i);
 		
