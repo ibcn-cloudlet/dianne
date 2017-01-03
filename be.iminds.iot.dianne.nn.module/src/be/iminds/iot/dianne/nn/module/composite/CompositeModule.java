@@ -40,18 +40,21 @@ public class CompositeModule extends AbstractTrainableModule implements Composit
 
 	private final NeuralNetwork nn;
 	private final LinkedHashMap<UUID, Integer> parameterMapping;
-
-	private final Tensor memory;
+	private final LinkedHashMap<UUID, Integer> memoryMapping;
+	
+	private Tensor memory;
 	
 	private Map<UUID, Tensor> deltas;
 	
 	private Tensor in;
 	
-	public CompositeModule(UUID id, Tensor parameters, Tensor memory, NeuralNetwork nn, LinkedHashMap<UUID, Integer> parameterMapping){
+	public CompositeModule(UUID id, Tensor parameters, Tensor memory, NeuralNetwork nn, 
+			LinkedHashMap<UUID, Integer> parameterMapping, LinkedHashMap<UUID, Integer> memoryMapping){
 		super(id, parameters);
 		this.nn = nn;
 		this.memory = memory;
 		this.parameterMapping = parameterMapping;
+		this.memoryMapping = memoryMapping;
 	}
 	
 	public void initDeltaParameters(Tensor t){
@@ -77,8 +80,35 @@ public class CompositeModule extends AbstractTrainableModule implements Composit
 
 	@Override
 	public void reset(int batchSize){
-		nn.getMemories().values().stream().forEach(m -> m.reset(batchSize));
+		if(batchSize == 0 && memory.dim() > 1){
+			// create new non-batched memory tensor
+			reset(new Tensor(memory.dims()[memory.dim()-1]));
+		} else if(batchSize > 0 && (memory.dim()!=2 || memory.dims()[0] != batchSize)){
+			// create new batched memory tensor
+			reset(new Tensor(batchSize, memory.dims()[memory.dim()-1]));
+		} else {
+			// just forward reset
+			nn.getMemories().values().stream().forEach(m -> m.reset(batchSize));
+		}
 	}
+	
+	@Override
+	public void reset(Tensor t){
+		memory = t;
+		
+		int batchSize = t.dim()==2 ? t.dims()[0] : 0;
+		int offset = 0;
+		Iterator<Entry<UUID, Integer>> it = memoryMapping.entrySet().iterator();
+		while(it.hasNext()){
+			Entry<UUID, Integer> e = it.next();
+			int s = e.getValue();
+			Tensor narrow = memory.narrow(batchSize == 0 ? 0 : 1, offset, s);
+			nn.getMemories().get(e.getKey()).reset(narrow);
+			
+			offset+=s;
+		}
+	}
+	
 	
 	@Override
 	protected void randomize() {

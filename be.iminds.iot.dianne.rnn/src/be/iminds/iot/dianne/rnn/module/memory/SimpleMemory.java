@@ -47,7 +47,7 @@ public class SimpleMemory extends AbstractMemory {
 	@Override
 	protected void updateMemory() {
 		// simple memory just forwards ...
-		input.copyInto(memory);
+		memory = input.copyInto(memory);
 	}
 
 	@Override

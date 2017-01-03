@@ -56,6 +56,17 @@ public interface Memory extends Module {
 	}
 	
 	/**
+	 * This injects a new memory tensor to use as memory 
+	 * 
+	 * This should not be used by regular users ... is a hacky way to allow
+	 * a composite module to rearrange its Memory when batchSize is set...
+	 * 
+	 * The tensor is resetted same way as the other reset methods
+	 * @param t
+	 */
+	public void reset(Tensor t);
+	
+	/**
 	 * Get the current raw memory data
 	 * @return current memory Tensor
 	 */

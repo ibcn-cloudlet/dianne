@@ -33,20 +33,20 @@ import be.iminds.iot.dianne.tensor.Tensor;
 public abstract class AbstractMemory extends AbstractModule implements Memory {
 
 	protected final int size;
-	protected final Tensor memory;
+	protected Tensor memory;
 	
 	public AbstractMemory(int size) {
 		super();
 		this.size = size;
 		this.memory = new Tensor(size);
-		resetMemory(1);
+		resetMemory(0);
 	}
 
 	public AbstractMemory(UUID id, int size) {
 		super(id);
 		this.size = size;
 		this.memory = new Tensor(size);
-		resetMemory(1);
+		resetMemory(0);
 	}
 	
 	public AbstractMemory(Tensor memory) {
@@ -169,14 +169,30 @@ public abstract class AbstractMemory extends AbstractModule implements Memory {
 	@Override
 	public void reset(int batchSize){
 		if(batchSize > 0) {
-			this.memory.reshape(batchSize, size);
+			if(!this.memory.hasDim(batchSize, size)){
+				this.memory.reshape(batchSize, size);
+			}
 		}
 		
-		if(gradInput==null){
-			gradInput = new Tensor(memory.size());
+		if(gradInput==null || !gradInput.sameDim(memory)){
+			gradInput = new Tensor(memory.dims());
 		}
 		gradInput.fill(0.0f);
 		
+		resetMemory(batchSize);
+	}
+	
+	@Override
+	public void reset(Tensor t){
+		memory = t;
+		
+		gradInput = new Tensor(memory.dims());
+		gradInput.fill(0.0f);
+		
+		int batchSize = 0;
+		if(t.dim() > 1){
+			batchSize = t.dims()[0];
+		}
 		resetMemory(batchSize);
 	}
 	

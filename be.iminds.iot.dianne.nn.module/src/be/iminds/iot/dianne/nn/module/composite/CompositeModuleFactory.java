@@ -185,40 +185,40 @@ public class CompositeModuleFactory implements ModuleFactory {
 		// calculate parameters Tensor size
 		
 		// for composite we combine training parameters and memory state ... becomes messy?
-		int total = 0;
-		int memory = 0;
+		//int total = 0;
+		int params = 0;
+		int mems = 0;
 		LinkedHashMap<UUID, Integer> parameterMapping = new LinkedHashMap<>();
 		LinkedHashMap<UUID, Integer> memoryMapping = new LinkedHashMap<>();
 		for(ModuleDTO m : nnDescription.modules.values()){
-			int size = 0;
+			int param = 0;
 			int mem = 0;
 			synchronized(moduleFactories){
 				for(ModuleFactory f : moduleFactories){
 					try {
-						size = f.parameterSize(m);
+						param = f.parameterSize(m);
 						mem = f.memorySize(m);
 					} catch(ModuleTypeNotSupportedException e){}
 				}
 				if(mem > 0){
 					memoryMapping.put(m.id, mem);
 				}
-				if(size > 0){
-					parameterMapping.put(m.id, size);
+				if(param > 0){
+					parameterMapping.put(m.id, param);
 				}
-				memory += mem;
-				total += mem;
-				total += size;
+				mems += mem;
+				params += param;
 			}
 		}
 		
 		// narrow for each trainable and memory module
 		boolean hasParameters = true;
 		if(parameters == null){
-			parameters = new Tensor(total);
+			parameters = new Tensor(params);
 			parameters.fill(0.0f);
 			hasParameters = false;
 		} else {
-			parameters.reshape(total);
+			parameters.reshape(params);
 		}
 		
 		Map<UUID, Tensor> narrowed = new HashMap<>();
@@ -251,11 +251,13 @@ public class CompositeModuleFactory implements ModuleFactory {
 			offset+=s;
 		}
 		
+		Tensor memory = mems > 0 ? new Tensor(mems) : null;
+		offset = 0;
 		Iterator<Entry<UUID, Integer>> it2 = memoryMapping.entrySet().iterator();
 		while(it2.hasNext()){
 			Entry<UUID, Integer> e = it2.next();
 			int s = e.getValue();
-			Tensor narrow = parameters.narrow(0, offset, s);
+			Tensor narrow = memory.narrow(0, offset, s);
 			narrowed.put(e.getKey(), narrow);
 			
 			// TODO could one provide initial memory values? for now set to zero
@@ -286,9 +288,7 @@ public class CompositeModuleFactory implements ModuleFactory {
 			NeuralNetwork nn = dianne.getNeuralNetwork(nnDTO).getValue();
 			
 			// create CompositeModule with parameters and NeuralNetwork
-			Tensor params = total-memory == 0 ? null : parameters.narrow(0, total-memory);
-			Tensor mem = memory == 0 ? null : parameters.narrow(total-memory, memory); 
-			module = new CompositeModule(compositeId, params, mem, nn, parameterMapping);
+			module = new CompositeModule(compositeId, parameters, memory, nn, parameterMapping, memoryMapping);
 			
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to deploy composite module "+compositeId+": "+e.getMessage(), e);
