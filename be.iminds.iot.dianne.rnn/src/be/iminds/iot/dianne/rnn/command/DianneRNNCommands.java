@@ -52,10 +52,9 @@ public class DianneRNNCommands {
 	private DiannePlatform platform;
 	private DianneCoordinator coordinator;
 
-	protected NeuralNetworkInstanceDTO nni;
-	
 	public void generate(String nnName, String start, int n, String... tags){
 		// forward of a rnn
+		NeuralNetworkInstanceDTO nni = null;
 		try {
 			nni = platform.deployNeuralNetwork(nnName, "test rnn", tags);
 			NeuralNetwork nn = dianne.getNeuralNetwork(nni).getValue();
@@ -83,27 +82,18 @@ public class DianneRNNCommands {
 	
 
 	public void bptt(String nnName, String dataset, String... properties){
-		try {
-			Map<String, String> config = createLearnerConfig(properties);
-			
-			nni = platform.deployNeuralNetwork(nnName);
-			
-			coordinator.learn(dataset, config, nnName.split(",")).then(p -> {
-				System.out.println("Learn Job done!");
-				LearnResult result = p.getValue();
-				System.out.println("Iterations: "+result.getIterations());
-				System.out.println("Last minibatch loss: "+result.getLoss());
-				return null;
-			}, p -> {
-				System.out.println("Learn Job failed: "+p.getFailure().getMessage());
-				p.getFailure().printStackTrace();
-			});
-
-			
-		} catch(Exception e){
-			e.printStackTrace();
-			platform.undeployNeuralNetwork(nni);
-		} 
+		Map<String, String> config = createLearnerConfig(properties);
+		
+		coordinator.learn(dataset, config, nnName.split(",")).then(p -> {
+			System.out.println("Learn Job done!");
+			LearnResult result = p.getValue();
+			System.out.println("Iterations: "+result.getIterations());
+			System.out.println("Last minibatch loss: "+result.getLoss());
+			return null;
+		}, p -> {
+			System.out.println("Learn Job failed: "+p.getFailure().getMessage());
+			p.getFailure().printStackTrace();
+		});
 	}
 
 	private Map<String, String> createLearnerConfig(String[] properties){
