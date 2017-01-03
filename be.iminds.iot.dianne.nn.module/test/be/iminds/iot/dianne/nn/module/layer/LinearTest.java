@@ -30,6 +30,55 @@ import be.iminds.iot.dianne.tensor.Tensor;
 public class LinearTest extends ModuleTest {
 
 	@Test
+	public void testSimple() throws Exception {
+		Linear l = new Linear(2, 2);
+		l.getParameters().rand();
+
+		Tensor params = new Tensor(new float[]{1.0f, 0.0f, 0.5f, 0.5f, 1.0f, 1.0f}, 6);
+		Tensor input = new Tensor(new float[]{1f, 2f}, 2);
+		Tensor gradOutput = new Tensor(new float[]{1f, 1f}, 2);
+		
+		Tensor expOutput = new Tensor(new float[]{2, 2.5f },2);
+		Tensor expGradInput = new Tensor(new float[]{1.5f, 0.5f}, 2);
+		Tensor expDeltaParams = new Tensor(new float[]{1.0f, 2.0f, 1.0f, 2.0f, 1.0f, 1.0f}, 6);
+		
+		testModule(l, params, input, expOutput, gradOutput, expGradInput, expDeltaParams);
+	}
+	
+	@Test
+	public void testSimple1DBatch() throws Exception {
+		Linear l = new Linear(2, 2);
+		l.getParameters().rand();
+
+		Tensor params = new Tensor(new float[]{1.0f, 0.0f, 0.5f, 0.5f, 1.0f, 1.0f}, 6);
+		Tensor input = new Tensor(new float[]{1f, 2f},1, 2);
+		Tensor gradOutput = new Tensor(new float[]{1f, 1f},1, 2);
+		
+		Tensor expOutput = new Tensor(new float[]{2, 2.5f },1,2);
+		Tensor expGradInput = new Tensor(new float[]{1.5f, 0.5f},1, 2);
+		Tensor expDeltaParams = new Tensor(new float[]{1.0f, 2.0f, 1.0f, 2.0f, 1.0f, 1.0f}, 6);
+		
+		testModule(l, params, input, expOutput, gradOutput, expGradInput, expDeltaParams);
+	}
+	
+	
+	@Test
+	public void testSimpleBatch() throws Exception {
+		Linear l = new Linear(2, 2);
+		l.getParameters().rand();
+
+		Tensor params = new Tensor(new float[]{1.0f, 0.0f, 0.5f, 0.5f, 1.0f, 1.0f}, 6);
+		Tensor input = new Tensor(new float[]{1f, 2f, 1f, 2f}, 2, 2);
+		Tensor gradOutput = new Tensor(new float[]{1f, 1f, 1f, 1f}, 2, 2);
+		
+		Tensor expOutput = new Tensor(new float[]{2, 2.5f, 2, 2.5f },2, 2);
+		Tensor expGradInput = new Tensor(new float[]{1.5f, 0.5f, 1.5f, 0.5f}, 2, 2);
+		Tensor expDeltaParams = new Tensor(new float[]{2.0f, 4.0f, 2.0f, 4.0f, 2.0f, 2.0f}, 6);
+		
+		testModule(l, params, input, expOutput, gradOutput, expGradInput, expDeltaParams);
+	}
+	
+	@Test
 	public void testLinear() throws Exception {
 		Linear l = new Linear(6, 3);
 		l.getParameters().rand();

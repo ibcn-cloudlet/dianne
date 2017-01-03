@@ -37,7 +37,7 @@ public class Linear extends AbstractTrainableModule {
 	private Tensor weights;
 	private Tensor bias;
 	
-	private Tensor ones = new Tensor(1);
+	private Tensor ones = new Tensor(new float[]{1.0f}, 1);
 	
 	private Tensor deltaWeights;
 	private Tensor deltaBias;
