@@ -104,7 +104,7 @@ public abstract class Fork extends AbstractModule {
 	@Override
 	protected synchronized void forward(final UUID moduleId, final ModuleException ex, final Tensor input, final String... tags) {
 		if(TRACE){
-			System.out.println("FORK "+this.id+" ("+this.getClass().getName()+")  FROM "+moduleId+" "+Arrays.toString(input.dims())+" "+Arrays.toString(tags));
+			System.out.println("FORK "+this.id+" ("+this.getClass().getName()+")  FROM "+moduleId+" "+input+" "+Arrays.toString(tags));
 		}
 		
 		// skip or block when nexts are not ready processing previous output of this module
@@ -158,7 +158,7 @@ public abstract class Fork extends AbstractModule {
 	@Override
 	protected void backward(final UUID moduleId, final ModuleException ex, final Tensor gradOutput, final String... tags) {
 		if(TRACE){
-			System.out.println("BACKWARD FORK "+this.id+" ("+this.getClass().getName()+")  FROM "+moduleId+" "+Arrays.toString(input.dims())+" "+Arrays.toString(tags));
+			System.out.println("BACKWARD FORK "+this.id+" ("+this.getClass().getName()+")  FROM "+moduleId+" "+gradOutput+" "+Arrays.toString(tags));
 		}
 		
 		this.outputTags.put(moduleId, tags);

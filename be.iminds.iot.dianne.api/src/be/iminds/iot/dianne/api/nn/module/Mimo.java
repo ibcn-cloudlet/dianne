@@ -122,7 +122,7 @@ public abstract class Mimo extends Fork {
 	@Override
 	protected synchronized void forward(final UUID moduleId, final ModuleException ex, final Tensor input, final String... tags) {
 		if(TRACE){
-			System.out.println("FORK "+this.id+" ("+this.getClass().getName()+")  FROM "+moduleId+" "+Arrays.toString(input.dims())+" "+Arrays.toString(tags));
+			System.out.println("FORK "+this.id+" ("+this.getClass().getName()+")  FROM "+moduleId+" "+input+" "+Arrays.toString(tags));
 		}
 		
 		synchronized(nextBusy){
