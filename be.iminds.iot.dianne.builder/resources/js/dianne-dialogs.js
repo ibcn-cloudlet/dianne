@@ -688,7 +688,7 @@ function createRunModuleDialog(id, moduleItem){
 			cancel: "Delete"
 		}, $(document.body));
 		
-		dialog.find(".content").append("<textarea class='charsequence' rows='8' cols='65'></textarea><br/><br/>");
+		dialog.find(".content").append("<div contenteditable=true class='charsequence'></div><br/><br/>");
 		dialog.find(".content").append("Size: <input class='size' size='10' value='100'></input>");
 		dialog.find(".content").append("<button class='btn' onclick='charsequence(this)' style=\"margin-left:10px\">Generate</button>");
 	} else {
@@ -929,13 +929,25 @@ function sample(dataset, input, source){
 
 function charsequence(btn){
 	var size = $(btn).closest(".modal").find(".size").val();
-	var charsequence = $(btn).closest(".modal").find(".charsequence").val();
+	var charsequence = $(btn).closest(".modal").find(".charsequence").text();
 	
-	$.post("/dianne/charrnn", {"charsequence":charsequence, "size":size, "id":nn.id}, 
-			function( result ) {
-				$(btn).closest(".modal").find(".charsequence").val(charsequence+result);
-			}
-			, "text");
+	var i = 0;
+	var eventsource = new EventSource("/dianne/charrnn?id="+nn.id+"&size="+size+"&charsequence="+charsequence);
+	eventsource.onmessage = function(event){
+		var char = event.data;
+		var textArea = $(btn).closest(".modal").find(".charsequence");
+		textArea.html(textArea.html()+char);
+		
+		$('.charsequence').scrollTop($('.charsequence')[0].scrollHeight);
+		
+		if(size > 1000)
+			i = i+100;
+		else 
+			i = i+1;
+		
+		if(i == size-1)
+			eventsource.close();
+	}
 }
 
 

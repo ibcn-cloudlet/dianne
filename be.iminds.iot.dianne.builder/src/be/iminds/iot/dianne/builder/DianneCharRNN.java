@@ -23,9 +23,10 @@
 package be.iminds.iot.dianne.builder;
 
 import java.io.IOException;
-import java.util.Random;
+import java.io.PrintWriter;
 import java.util.UUID;
 
+import javax.servlet.AsyncContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -66,11 +67,15 @@ public class DianneCharRNN extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-	}
-	
-	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
+		// write text/eventstream response
+		response.setContentType("text/event-stream");
+		response.setHeader("Cache-Control", "no-cache");
+		response.setCharacterEncoding("UTF-8");
+		response.addHeader("Connection", "keep-alive");
+		
+		AsyncContext async = request.startAsync();
+		PrintWriter writer = async.getResponse().getWriter();
+		
 		String id = request.getParameter("id");
 		if(id == null){
 			System.out.println("No neural network instance specified");
@@ -108,19 +113,37 @@ public class DianneCharRNN extends HttpServlet {
 			nextChar(nn, charsequence.charAt(i));
 		}
 		
-		String result = "";
 		char c = '\n'; // if no charsequence given start from newline?
 		if(charsequence.length() > 0)
 			c = charsequence.charAt(charsequence.length()-1);
 		
+		int chunksize = size > 1000 ? 100 : 1;
+		
+		String chunk = "";
 		for(int i=0;i<size;i++){
 			c = nextChar(nn, c);
-			result += c;
+			
+			if(c == '\n'){
+				chunk += "<br>";
+			} else {
+				chunk += c;
+			}
+			
+			if(chunk.length() >= chunksize || i==size-1){
+				StringBuilder builder = new StringBuilder();
+				builder.append("data: ").append(chunk).append("\n\n");
+				writer.write(builder.toString());
+				writer.flush();
+				chunk = "";
+			}
 		}
-
-		System.out.println(result);
-		response.getWriter().println(result);
-		response.getWriter().flush();
+		
+		async.complete();
+	}
+	
+	@Override
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 	}
 	
 	private char nextChar(NeuralNetwork nn, char current){

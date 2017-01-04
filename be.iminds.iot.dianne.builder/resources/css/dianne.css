@@ -360,3 +360,9 @@ footer {
 .val {
 	float: right;
 }
+
+.charsequence {
+	width: 550px;
+	height: 300px;
+	overflow-y: auto;
+}
