@@ -679,6 +679,18 @@ function createRunModuleDialog(id, moduleItem){
 		dialog.find(".content").append("<img class='inputImage' width='224' height='auto' style=\"margin-left:150px\"></img><br/><br/>");
 		dialog.find(".content").append("<input class='urlInput' size='50' value='http://'></input>");
 		dialog.find(".content").append("<button class='btn' onclick='forwardURL(this, \""+module.input+"\")' style=\"margin-left:10px\">Forward</button>");
+	} else if(module.type==="CharSequence"){
+		dialog = renderTemplate("dialog", {
+			id : id,
+			type: "url",
+			title : "Generate character sequences",
+			submit: "",
+			cancel: "Delete"
+		}, $(document.body));
+		
+		dialog.find(".content").append("<textarea class='charsequence' rows='8' cols='65'></textarea><br/><br/>");
+		dialog.find(".content").append("Size: <input class='size' size='10' value='100'></input>");
+		dialog.find(".content").append("<button class='btn' onclick='charsequence(this)' style=\"margin-left:10px\">Generate</button>");
 	} else {
 		dialog = createNNModuleDialog(module, "Configure run module", "", "Delete");
 	}
@@ -913,6 +925,17 @@ function sample(dataset, input, source){
 					$('.expected').text('Expected output: '+sample.target);
 			}
 			, "json");
+}
+
+function charsequence(btn){
+	var size = $(btn).closest(".modal").find(".size").val();
+	var charsequence = $(btn).closest(".modal").find(".charsequence").val();
+	
+	$.post("/dianne/charrnn", {"charsequence":charsequence, "size":size, "id":nn.id}, 
+			function( result ) {
+				$(btn).closest(".modal").find(".charsequence").val(charsequence+result);
+			}
+			, "text");
 }
 
 

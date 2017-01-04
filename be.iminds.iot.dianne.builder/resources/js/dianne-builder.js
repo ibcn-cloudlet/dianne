@@ -237,6 +237,7 @@ function setupRunToolbox(){
 	addToolboxItem('Output probabilities','ProbabilityOutput','Visualize','run');
 	addToolboxItem('Raw outputs','RawOutput','Visualize','run');
 	addToolboxItem('Laserscan output','LaserScan','Visualize','run');
+	addToolboxItem('CharSequence','CharSequence','RNN','run');
 
 }
 
@@ -507,6 +508,9 @@ function setupModule(moduleItem, type, category){
 		jsPlumb.addEndpoint(moduleItem, targetStyle, {anchor: "Left",endpoint:"Rectangle"});
 	} else if(category==="Output"){ 
 		jsPlumb.addEndpoint(moduleItem, targetStyle, {anchor: "Left",endpoint:"Rectangle"});
+	} else if(category==="RNN"){ 
+		jsPlumb.addEndpoint(moduleItem, sourceStyle, {anchor: "Left",endpoint:"Rectangle"});
+		jsPlumb.addEndpoint(moduleItem, targetStyle, {anchor: "Right",endpoint:"Rectangle"});
 	} else if(category==="Fork" || category==="Variational") {
 		jsPlumb.addEndpoint(moduleItem, sourceStyle, {anchor: "Right",maxConnections:-1});
 		jsPlumb.addEndpoint(moduleItem, targetStyle, {anchor: "Left"});
