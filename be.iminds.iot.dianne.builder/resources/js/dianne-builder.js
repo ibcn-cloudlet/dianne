@@ -237,8 +237,16 @@ function setupRunToolbox(){
 	addToolboxItem('Output probabilities','ProbabilityOutput','Visualize','run');
 	addToolboxItem('Raw outputs','RawOutput','Visualize','run');
 	addToolboxItem('Laserscan output','LaserScan','Visualize','run');
-	addToolboxItem('CharSequence','CharSequence','RNN','run');
-
+	
+	$.post("/dianne/builder", {action : "available-modules"}, 
+			function( data ) {
+				$.each(data, function(index, module){
+					if(module.type==="Memory"){
+						addToolboxItem('CharRNN','CharRNN','RNN','run');
+					}
+				});
+			}
+			, "json");
 }
 
 /**

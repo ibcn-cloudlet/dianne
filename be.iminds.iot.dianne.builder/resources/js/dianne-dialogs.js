@@ -679,7 +679,7 @@ function createRunModuleDialog(id, moduleItem){
 		dialog.find(".content").append("<img class='inputImage' width='224' height='auto' style=\"margin-left:150px\"></img><br/><br/>");
 		dialog.find(".content").append("<input class='urlInput' size='50' value='http://'></input>");
 		dialog.find(".content").append("<button class='btn' onclick='forwardURL(this, \""+module.input+"\")' style=\"margin-left:10px\">Forward</button>");
-	} else if(module.type==="CharSequence"){
+	} else if(module.type==="CharRNN"){
 		dialog = renderTemplate("dialog", {
 			id : id,
 			type: "url",
@@ -945,7 +945,7 @@ function charsequence(btn){
 		else 
 			i = i+1;
 		
-		if(i == size-1)
+		if(i >= size-1)
 			eventsource.close();
 	}
 }
