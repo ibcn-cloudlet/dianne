@@ -117,6 +117,34 @@ html, body {
 /*
  * Header
  */
+#console {
+	height: 15em;
+ 	margin: 5px 15px 15px 15px;
+ 	padding: 5px 20px 5px 15px;
+ 	border: 1px solid #ccc !important;
+ 	border-radius: 15px;
+ 	font-size: 1.2em;
+ 	overflow-y:auto;
+}
+
+.hidden {
+	display:none;
+}
+
+#console-input {
+	min-height: 1.2em;
+	outline: transparent;
+	white-space: pre;
+	width: 95%;
+	display: inline-block;
+}
+
+#console-toggle {
+	color: #555;
+	float: right;
+	margin-right: 15px
+}
+
 .custom-navbar {
 	background-color: #FFF;
 	-webkit-box-shadow: 0 0 10px rgba(0, 0, 0, .5);

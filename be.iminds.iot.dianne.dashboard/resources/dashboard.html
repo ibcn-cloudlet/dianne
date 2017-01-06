@@ -29,6 +29,10 @@
 	<div class="site-wrapper">
 
 		<header class="navbar-fixed-top custom-navbar">
+			<div id="console" class="hidden">
+				<div id="console-output"></div>
+				<strong>g!</strong>&nbsp;<div id="console-input" contenteditable="true"></div>
+			</div>
 			<a href="#"><img class="logo" src="images/dianne.png" title="Go to the builder" onclick="redirect()"/></a>
 			<div class="inner">
 				<nav class='controls'>
@@ -37,6 +41,7 @@
 	                </ul>
                 </nav>
 			</div>
+			<div id="console-toggle" onclick="toggleConsole()">v</div>
 		</header>
 
 		<div class="container-fluid">
@@ -299,6 +304,7 @@
 	<script src="js/dianne-jsonrpc.js"></script>
 	<script src="js/dianne-charts.js"></script>
 	<script src="js/dianne-dashboard.js"></script>
+	<script src="js/dianne-console.js"></script>
 	
 </body>
 </html>
