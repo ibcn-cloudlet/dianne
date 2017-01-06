@@ -12,10 +12,6 @@
 	be.iminds.iot.dianne.nn.runtime;version=${dianne.version},\
 	be.iminds.iot.dianne.nn.learn;version=${dianne.version},\
 	be.iminds.iot.dianne.nn.eval;version=${dianne.version},\
-	be.iminds.iot.dianne.repository;version=${dianne.version},\
-	be.iminds.iot.dianne.builder;version=${dianne.version},\
-	be.iminds.iot.dianne.command;version=${dianne.version},\
-	be.iminds.iot.dianne.dataset;version=${dianne.version},\
 	be.iminds.iot.dianne.rl.learn;version=${dianne.version},\
 	be.iminds.iot.dianne.rl.experience;version=${dianne.version},\
 	be.iminds.iot.dianne.rl.agent;version=${dianne.version},\

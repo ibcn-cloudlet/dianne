@@ -39,7 +39,6 @@
 	be.iminds.iot.robot.input.keyboard;version='[0.2.0,0.3.0)'
 	
 -runproperties.runtime.agent.kuka: \
-	be.iminds.iot.dianne.runtime.name="KUKA",\
 	ros.core.native=true,\
 	vrep.dir=/opt/vrep-3.3.2,\
 	vrep.launch=true,\

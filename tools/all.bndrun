@@ -11,7 +11,9 @@
 -runbundles.all: \
 	be.iminds.iot.dianne.nn.runtime;version=${dianne.version},\
 	be.iminds.iot.dianne.nn.learn;version=${dianne.version},\
-	be.iminds.iot.dianne.nn.eval;version=${dianne.version}
+	be.iminds.iot.dianne.nn.eval;version=${dianne.version},\
+	be.iminds.iot.dianne.rnn.learn;version=${dianne.version}
+	
 
 -runproperties.all:\
 	be.iminds.iot.dianne.runtime.name="Dashboard"

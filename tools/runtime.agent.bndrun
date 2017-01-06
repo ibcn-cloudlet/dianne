@@ -12,5 +12,4 @@
 	be.iminds.iot.dianne.rl.agent;version=${dianne.version}
 
 -runproperties.runtime.agent:\
-	be.iminds.iot.dianne.runtime.name="Agent",\
 	aiolos.proxy.ignore.extra="be.iminds.iot.dianne.api.rl.environment.*,be.iminds.iot.dianne.rl.environment.*"

@@ -12,5 +12,4 @@
 	be.iminds.iot.dianne.nn.runtime;version=${dianne.version}
 
 -runproperties.runtime:\
-	be.iminds.iot.dianne.runtime.name="Runtime",\
 	org.osgi.service.http.port=8081

@@ -18,5 +18,6 @@ dianne.version='[0.6.0,0.7.0)'
 	be.iminds.iot.dianne.nn.util;version=${dianne.version},\
 	be.iminds.iot.dianne.nn.module;version=${dianne.version},\
 	be.iminds.iot.dianne.nn;version=${dianne.version},\
-	be.iminds.iot.dianne.dataset;version=${dianne.version}
-
+	be.iminds.iot.dianne.dataset;version=${dianne.version},\
+	be.iminds.iot.dianne.rnn.module;version=${dianne.version},\
+	be.iminds.iot.dianne.rnn.dataset;version=${dianne.version}
