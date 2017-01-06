@@ -1,3 +1,0 @@
--dsannotations: *
-Private-Package: be.iminds.iot.dianne.rnn.command
-Bundle-Name: Dianne RNN Commands

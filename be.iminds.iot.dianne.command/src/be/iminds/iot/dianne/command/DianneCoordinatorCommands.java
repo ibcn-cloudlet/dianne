@@ -49,6 +49,7 @@ import be.iminds.iot.dianne.api.nn.eval.Evaluation;
 				  "osgi.command.function=eval",
 				  "osgi.command.function=act",
 				  "osgi.command.function=rl",
+				  "osgi.command.function=bptt",
 				  "osgi.command.function=running",
 				  "osgi.command.function=queued",
 				  "osgi.command.function=finished",
@@ -324,6 +325,26 @@ public class DianneCoordinatorCommands {
 			e.printStackTrace();
 		}
 	}
+	
+	
+	@Descriptor("Train a recurrent neural network using the Back Propagation Through Time Learning strategy")
+	public void bptt(String nnName, String dataset, String... properties){
+		final Map<String, String> defaults = new HashMap<>();
+		defaults.put("strategy", "be.iminds.iot.dianne.rnn.learn.strategy.BPTTLearningStrategy");
+		Map<String, String> config = createConfig(defaults, properties);
+		
+		coordinator.learn(dataset, config, nnName.split(",")).then(p -> {
+			System.out.println("Learn Job done!");
+			LearnResult result = p.getValue();
+			System.out.println("Iterations: "+result.getIterations());
+			System.out.println("Last minibatch loss: "+result.getLoss());
+			return null;
+		}, p -> {
+			System.out.println("Learn Job failed: "+p.getFailure().getMessage());
+			p.getFailure().printStackTrace();
+		});
+	}
+
 	
 	private Map<String, String> createConfig(Map<String, String> defaults, String[] properties){
 		Map<String, String> config = new HashMap<String, String>(defaults);

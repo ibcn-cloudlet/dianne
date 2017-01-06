@@ -1,4 +1,5 @@
 Bundle-Version: 0.6.0.${tstamp}
+Bundle-Name: Dianne RNN Modules
 
 -buildpath: \
 	biz.aQute.junit,\
@@ -11,4 +12,7 @@ Bundle-Version: 0.6.0.${tstamp}
 	be.iminds.iot.dianne.tensor.util;version=latest,\
 	be.iminds.iot.dianne.nn.util;version=latest
 
--sub: *.bnd
+Private-Package: \
+	be.iminds.iot.dianne.rnn.module.memory,\
+	be.iminds.iot.dianne.rnn.module.factory
+-includeresource: composites=composites

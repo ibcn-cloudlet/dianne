@@ -20,16 +20,12 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.rnn.command;
+package be.iminds.iot.dianne.command;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import org.apache.felix.service.command.Descriptor;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
-import be.iminds.iot.dianne.api.coordinator.DianneCoordinator;
-import be.iminds.iot.dianne.api.coordinator.LearnResult;
 import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
@@ -37,130 +33,95 @@ import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
-/**
- * Separate component for learn commands ... should be moved to the command bundle later on
- */
-@Component(
-		service=Object.class,
-		property={"osgi.command.scope=dianne",
-				  "osgi.command.function=generate",
-				  "osgi.command.function=bptt"},
-		immediate=true)
-public class DianneRNNCommands {
+@Component(service = Object.class, 
+	property = { 
+		"osgi.command.scope=dianne",
+		"osgi.command.function=generate" }, 
+	immediate = true)
+public class DianneGenerationCommands {
 
 	private Dianne dianne;
 	private DiannePlatform platform;
-	private DianneCoordinator coordinator;
 
-	public void generate(String nnName, String start, int n, String... tags){
+	@Descriptor("Generate a string sequence with a neural network")
+	public void generate(
+			@Descriptor("neural network to use for generation")
+			String nnName, 
+			@Descriptor("start string to feed to the neural net first")
+			String start, 
+			@Descriptor("length of the string to generate")
+			int n, 
+			@Descriptor("optional tags of the neural net to load")
+			String... tags) {
 		// forward of a rnn
 		NeuralNetworkInstanceDTO nni = null;
 		try {
 			nni = platform.deployNeuralNetwork(nnName, "test rnn", tags);
 			NeuralNetwork nn = dianne.getNeuralNetwork(nni).getValue();
-			
-			String result = ""+start;
-			
-			for(int i=0;i<start.length()-1;i++){
+
+			System.out.print(start);
+
+			for (int i = 0; i < start.length() - 1; i++) {
 				nextChar(nn, start.charAt(i));
 			}
-			
-			char c = start.charAt(start.length()-1);
-			for(int i=0;i<n;i++){
+
+			char c = start.charAt(start.length() - 1);
+			for (int i = 0; i < n; i++) {
 				c = nextChar(nn, c);
-				result += c;
+				System.out.print(""+c);
 			}
-			
-			System.out.println(result);
-			
-		} catch(Exception e){
+
+		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
 			platform.undeployNeuralNetwork(nni);
 		}
 	}
-	
 
-	public void bptt(String nnName, String dataset, String... properties){
-		Map<String, String> config = createLearnerConfig(properties);
-		
-		coordinator.learn(dataset, config, nnName.split(",")).then(p -> {
-			System.out.println("Learn Job done!");
-			LearnResult result = p.getValue();
-			System.out.println("Iterations: "+result.getIterations());
-			System.out.println("Last minibatch loss: "+result.getLoss());
-			return null;
-		}, p -> {
-			System.out.println("Learn Job failed: "+p.getFailure().getMessage());
-			p.getFailure().printStackTrace();
-		});
-	}
-
-	private Map<String, String> createLearnerConfig(String[] properties){
-		
-		Map<String, String> config = new HashMap<String, String>();
-		// defaults
-		config.put("strategy", "be.iminds.iot.dianne.rnn.learn.strategy.BPTTLearningStrategy");
-
-		for(String property : properties){
-			String[] p = property.split("=");
-			if(p.length==2){
-				config.put(p[0].trim(), p[1].trim());
-			}
-		}
-		
-		return config;
-	}
-	
-	
-	
-	private char nextChar(NeuralNetwork nn, char current){
+	private char nextChar(NeuralNetwork nn, char current) {
 		// construct input tensor
 		String[] labels = nn.getOutputLabels();
-		if(labels==null){
-			throw new RuntimeException("Neural network "+nn.getNeuralNetworkInstance().name+" is not trained and has no labels");
+		if (labels == null) {
+			throw new RuntimeException(
+					"Neural network " + nn.getNeuralNetworkInstance().name + " is not trained and has no labels");
 		}
 		Tensor in = new Tensor(labels.length);
 		in.fill(0.0f);
 		int index = 0;
-		for(int i=0;i<labels.length;i++){
-			if(labels[i].charAt(0)==current){
+		for (int i = 0; i < labels.length; i++) {
+			if (labels[i].charAt(0) == current) {
 				index = i;
 				break;
 			}
 		}
 		in.set(1.0f, index);
-		
+
 		// forward
 		Tensor out = nn.forward(in);
-		
+
 		// select next, sampling from (Log)Softmax output
-		if(TensorOps.min(out) < 0){
+		if (TensorOps.min(out) < 0) {
 			// assume logsoftmax output, take exp
 			out = TensorOps.exp(out, out);
 		}
-		
+
 		double s = 0, r = Math.random();
 		int o = 0;
-		while(o < out.size() && (s += out.get(o)) < r){
+		while (o < out.size() && (s += out.get(o)) < r) {
 			o++;
 		}
-		
+
 		return labels[o].charAt(0);
 	}
-	
+
 	@Reference
-	void setDianne(Dianne d){
+	void setDianne(Dianne d) {
 		this.dianne = d;
 	}
-	
+
 	@Reference
-	void setDiannePlatform(DiannePlatform p){
+	void setDiannePlatform(DiannePlatform p) {
 		this.platform = p;
 	}
-	
-	@Reference
-	void setDianneCoordinator(DianneCoordinator c){
-		this.coordinator = c;
-	}
+
 }

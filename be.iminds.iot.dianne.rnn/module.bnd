@@ -1,7 +1,0 @@
--dsannotations: *
-Private-Package: \
-	be.iminds.iot.dianne.rnn.module.memory,\
-	be.iminds.iot.dianne.rnn.module.factory
-Bundle-Name: Dianne RNN Modules
--includeresource: composites=composites
-

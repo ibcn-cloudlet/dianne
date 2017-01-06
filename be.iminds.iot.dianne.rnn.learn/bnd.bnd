@@ -1,0 +1,19 @@
+Bundle-Version: 0.6.0.${tstamp}
+Bundle-Name: Dianne RNN Learner
+
+-buildpath: \
+	biz.aQute.junit,\
+	osgi.core;version=5.0,\
+	osgi.enterprise;version=5.0,\
+	osgi.promise,\
+	be.iminds.iot.dianne.api;version=latest,\
+	be.iminds.iot.dianne.tensor;version=latest,\
+	be.iminds.iot.dianne.nn.learn;version=latest,\
+	be.iminds.iot.dianne.tensor.util;version=latest,\
+	be.iminds.iot.dianne.nn.util;version=latest
+
+Export-Package: \
+	be.iminds.iot.dianne.rnn.learn.strategy.config,\
+	be.iminds.iot.dianne.rnn.learn.strategy,\
+	be.iminds.iot.dianne.rnn.learn.criterion,\
+	be.iminds.iot.dianne.rnn.learn.sampling
