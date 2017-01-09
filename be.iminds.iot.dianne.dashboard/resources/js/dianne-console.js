@@ -27,10 +27,10 @@ window.addEventListener("keypress", keyPressed, false);
 var consolePrefix = "<strong>g!</strong> ";
 
 function keyPressed(e) {
-	console.log(e.key);
-	if(e.key === "F10"){
+	console.log(e.code);
+	if(e.code === "F10"){
 		toggleConsole();
-	} else if(e.key === "Enter"){
+	} else if(e.code === "Enter"){
 		// enter
 		var command = $('#console-input').text();
 		var output = $('#console-output').html();
