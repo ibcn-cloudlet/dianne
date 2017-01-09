@@ -36,9 +36,9 @@ public class AgentConfig {
 	public String tag;
 	
 	/**
-	 * Clean experience pool at start
+	 * Clear experience pool at start
 	 */
-	public boolean clean = false;
+	public boolean clear = false;
 
 	/**
 	 * Output intermediate results to the console

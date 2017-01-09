@@ -302,6 +302,10 @@ public class AgentImpl implements Agent {
 	
 				progress = new AgentProgress(0, 0, 0);
 				
+				if(config.clear){
+					pool.reset();
+				}
+				
 				for(i = 0; acting; i++) {
 					// sync parameters
 					if(sync && count == 0){
