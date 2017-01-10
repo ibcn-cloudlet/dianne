@@ -25,6 +25,8 @@
 window.addEventListener("keypress", keyPressed, false);
 
 var consolePrefix = "<strong>g!</strong> ";
+var commands = [];
+var index = 0;
 
 function keyPressed(e) {
 	console.log(e.code);
@@ -33,6 +35,8 @@ function keyPressed(e) {
 	} else if(e.code === "Enter"){
 		// enter
 		var command = $('#console-input').text();
+		commands.push(command);
+		index = commands.length;
 		var output = $('#console-output').html();
 		output += "<br/>"+consolePrefix+command;
 		$('#console-output').html(output);
@@ -50,6 +54,22 @@ function keyPressed(e) {
 		$('#console-input').text("");
 		$('#console-input').focus();
 		e.preventDefault();
+	} else if(e.code === "ArrowUp"){
+		if(index > 0){
+			index--;
+			var command = commands[index];
+			$('#console-input').text(command);
+		} else {
+			$('#console-input').text("");
+		}
+	} else if(e.code === "ArrowDown"){
+		if(index < commands.length){
+			index++;
+			var command = commands[index];
+			$('#console-input').text(command);
+		} else {
+			$('#console-input').text("");
+		}
 	}
 }
 
