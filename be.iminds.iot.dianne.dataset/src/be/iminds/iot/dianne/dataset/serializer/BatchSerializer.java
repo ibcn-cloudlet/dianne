@@ -20,7 +20,7 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.tensor.serializer;
+package be.iminds.iot.dianne.dataset.serializer;
 
 import org.osgi.service.component.annotations.Component;
 
@@ -29,30 +29,32 @@ import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
+import be.iminds.iot.dianne.api.dataset.Batch;
 import be.iminds.iot.dianne.tensor.Tensor;
 
+/**
+ * Special serializer required to make sure all mappings in Batch objects are correct
+ * @author tverbele
+ *
+ */
 @Component(service = Serializer.class, property = { 
 		"aiolos.export=false",
-		"kryo.serializer.class=be.iminds.iot.dianne.tensor.Tensor", 
-		"kryo.serializer.id=100" })
-public class TensorSerializer extends Serializer<Tensor> {
+		"kryo.serializer.class=be.iminds.iot.dianne.api.dataset.Batch", 
+		"kryo.serializer.id=1000" })
+public class BatchSerializer extends Serializer<Batch> {
 
 	@Override
-	public Tensor read(Kryo kryo, Input input, Class<Tensor> tensor) {
-		int noDims = input.readInt();
-		int[] dims = input.readInts(noDims);
-		int length = input.readInt();
-		float[] data = input.readFloats(length);
-		return new Tensor(data, dims);
+	public Batch read(Kryo kryo, Input input, Class<Batch> batch) {
+		Tensor in = kryo.readObject(input, Tensor.class);
+		Tensor target = kryo.readObject(input, Tensor.class);
+		return new Batch(in, target);
 	}
 
 	@Override
-	public void write(Kryo kryo, Output output, Tensor tensor) {
+	public void write(Kryo kryo, Output output, Batch batch) {
 		try {
-			output.writeInt(tensor.dims().length);
-			output.writeInts(tensor.dims());
-			output.writeInt(tensor.size());
-			output.writeFloats(tensor.get());
+			kryo.writeObject(output, batch.input);
+			kryo.writeObject(output, batch.target);
 		} catch(Throwable t){
 			t.printStackTrace();
 			throw t;

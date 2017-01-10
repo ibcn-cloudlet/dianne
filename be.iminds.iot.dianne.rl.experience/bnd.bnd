@@ -6,8 +6,13 @@ Bundle-Name: Dianne Experience Pools
 	biz.aQute.junit,\
 	osgi.core;version=5.0,\
 	osgi.enterprise;version=5.0,\
+	com.esotericsoftware.kryo;version=2.23,\
 	be.iminds.iot.dianne.api;version=latest,\
 	be.iminds.iot.dianne.tensor;version=latest
 Private-Package: \
 	be.iminds.iot.dianne.rl.experience,\
+	be.iminds.iot.dianne.rl.experience.serializer,\
 	be.iminds.iot.dianne.rl.experience.adapters
+Import-Package: \
+	com.esotericsoftware.kryo.*;resolution:=optional,\
+	*	

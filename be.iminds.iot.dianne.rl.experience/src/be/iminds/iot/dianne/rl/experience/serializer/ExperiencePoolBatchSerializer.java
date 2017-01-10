@@ -20,7 +20,7 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.tensor.serializer;
+package be.iminds.iot.dianne.rl.experience.serializer;
 
 import org.osgi.service.component.annotations.Component;
 
@@ -29,30 +29,38 @@ import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
+import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch;
 import be.iminds.iot.dianne.tensor.Tensor;
 
+/**
+ * Special serializer required to make sure all mappings in ExperiencePoolBatch objects are correct
+ * @author tverbele
+ *
+ */
 @Component(service = Serializer.class, property = { 
 		"aiolos.export=false",
-		"kryo.serializer.class=be.iminds.iot.dianne.tensor.Tensor", 
-		"kryo.serializer.id=100" })
-public class TensorSerializer extends Serializer<Tensor> {
+		"kryo.serializer.class=be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch", 
+		"kryo.serializer.id=1001" })
+public class ExperiencePoolBatchSerializer extends Serializer<ExperiencePoolBatch> {
 
 	@Override
-	public Tensor read(Kryo kryo, Input input, Class<Tensor> tensor) {
-		int noDims = input.readInt();
-		int[] dims = input.readInts(noDims);
-		int length = input.readInt();
-		float[] data = input.readFloats(length);
-		return new Tensor(data, dims);
+	public ExperiencePoolBatch read(Kryo kryo, Input input, Class<ExperiencePoolBatch> batch) {
+		Tensor state = kryo.readObject(input, Tensor.class);
+		Tensor action = kryo.readObject(input, Tensor.class);
+		Tensor reward = kryo.readObject(input, Tensor.class);
+		Tensor nextState = kryo.readObject(input, Tensor.class);
+		Tensor terminal = kryo.readObject(input, Tensor.class);
+		return new ExperiencePoolBatch(state, action, reward, nextState, terminal);
 	}
 
 	@Override
-	public void write(Kryo kryo, Output output, Tensor tensor) {
+	public void write(Kryo kryo, Output output, ExperiencePoolBatch batch) {
 		try {
-			output.writeInt(tensor.dims().length);
-			output.writeInts(tensor.dims());
-			output.writeInt(tensor.size());
-			output.writeFloats(tensor.get());
+			kryo.writeObject(output, batch.input);
+			kryo.writeObject(output, batch.target);
+			kryo.writeObject(output, batch.reward);
+			kryo.writeObject(output, batch.nextState);
+			kryo.writeObject(output, batch.terminal);
 		} catch(Throwable t){
 			t.printStackTrace();
 			throw t;
