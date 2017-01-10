@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
@@ -97,6 +98,20 @@ public interface DianneRepository {
 	 * @param tag optional tags for the parameters
 	 */
 	void storeParameters(UUID nnId, UUID moduleId, Tensor parameters, String... tag);
+	
+	/**
+	 * List all available tags for a given module
+	 * @param moduleId
+	 * @return list of tags available in the repository
+	 */
+	Set<String> listTags(UUID moduleId);
+	
+	/**
+	 * List all available tags for a given neural network
+	 * @param nnName
+	 * @return list of tags available in the repository
+	 */
+	Set<String> listTags(String nnName);
 	
 	/**
 	 * Update the parameters for a given moduleId with this diff

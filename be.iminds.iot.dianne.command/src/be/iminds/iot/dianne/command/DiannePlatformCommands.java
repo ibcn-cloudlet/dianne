@@ -44,6 +44,7 @@ import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
+import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.api.repository.RepositoryListener;
 
 @Component(
@@ -51,6 +52,7 @@ import be.iminds.iot.dianne.api.repository.RepositoryListener;
 		property={"osgi.command.scope=dianne",
 				  "osgi.command.function=runtimes",
 				  "osgi.command.function=list",
+				  "osgi.command.function=tags",
 				  "osgi.command.function=info",
 				  "osgi.command.function=models",
 				  "osgi.command.function=deploy",
@@ -64,6 +66,7 @@ public class DiannePlatformCommands {
 	// Dianne components
 	Dianne dianne;
 	DiannePlatform platform;
+	DianneRepository repository;
 	
 	// State
 	Map<UUID, ServiceRegistration<RepositoryListener>> repoListeners = new HashMap<>();
@@ -121,7 +124,14 @@ public class DiannePlatformCommands {
 		for(NeuralNetworkInstanceDTO nn : nns){
 			System.out.println("["+(i++)+"] "+nn.id+"\t"+nn.name);
 		}
-		
+	}
+
+	@Descriptor("List all available tags for a given neural network.")
+	public void tags(String nnName){
+		Collection<String> tags = repository.listTags(nnName);
+		for(String tag : tags){
+			System.out.println("* "+tag);
+		}
 	}
 	
 	@Descriptor("Print details of a neural network instance.")
@@ -325,4 +335,9 @@ public class DiannePlatformCommands {
 		dianne = d;
 	}
 
+	@Reference
+	void setDianneRepository(DianneRepository r){
+		repository = r;
+	}
+	
 }

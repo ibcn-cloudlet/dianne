@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
@@ -39,8 +40,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -196,6 +201,76 @@ public class DianneFileRepository implements DianneRepository {
 		List<UUID> uuids = new ArrayList<UUID>();
 		uuids.addAll(parameters.keySet());
 		notifyListeners(nnId, uuids, tag);
+	}
+	
+	@Override
+	public Set<String> listTags(UUID moduleId){
+		Set<String> tags = new TreeSet<>();
+		
+		File w = new File(dir+"/weights");
+		tags.addAll(listTags(moduleId, w));
+	
+		
+		File d = new File(dir);
+		for(String l : d.list()){
+			File f = new File(dir+"/"+l);
+			tags.addAll(listTags(moduleId, f));
+		}
+		
+		return tags;
+	}
+
+	@Override
+	public Set<String> listTags(String nnName){
+		Set<String> tags = new TreeSet<>();
+		NeuralNetworkDTO nn = loadNeuralNetwork(nnName);
+		nn.modules.keySet().forEach(uuid -> tags.addAll(listTags(uuid)));
+		return tags;
+	}
+	
+	private Collection<String> listTags(UUID moduleId, File dir){
+		Set<String> tags = new TreeSet<>();
+		
+		if(!dir.exists() || !dir.isDirectory())
+			return tags;
+		
+		String[] candidates = dir.list(new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+				return name.startsWith(moduleId.toString());
+			}
+		});
+		if(candidates != null){
+			for(String candidate : candidates){
+				parseTags(candidate.substring(37), tags);
+			}
+		}
+		
+		return tags;
+	}
+	
+	private void parseTags(String candidate, Set<String> result){
+		if(candidate.length() >= 36){
+			try {
+				// correctly parse out UUID as single tags
+				UUID uuidAsTag = UUID.fromString(candidate.substring(0, 36));
+				result.add(uuidAsTag.toString());
+				if(candidate.length() > 37)
+					parseTags(candidate.substring(37), result);
+				return;
+			} catch(Exception e){}
+		}
+		
+		int split = candidate.indexOf('-');
+		if(split > 0){
+			String tag = candidate.substring(0, split);
+			result.add(tag);
+			if(candidate.length() > split)
+				parseTags(candidate.substring(split+1), result);
+			return;
+		}
+		
+		result.add(candidate);
 	}
 	
 	@Override
