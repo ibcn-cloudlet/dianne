@@ -24,7 +24,10 @@ Private-Package: \
 	be.iminds.iot.dianne.dataset.imagenet.training,\
 	be.iminds.iot.dianne.dataset.mnist,\
 	be.iminds.iot.dianne.dataset.stl10
-Export-Package: be.iminds.iot.dianne.api.dataset
+Export-Package: \
+	be.iminds.iot.dianne.api.dataset,\
+	be.iminds.iot.dianne.api.rl.dataset
 Import-Package: \
 	com.esotericsoftware.kryo.*;resolution:=optional,\
+	be.iminds.iot.dianne.api.rl.dataset;resolution:=optional,\
 	*

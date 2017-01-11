@@ -26,7 +26,11 @@ package be.iminds.iot.dianne.dataset;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
@@ -567,7 +571,15 @@ public class DatasetConfigurator implements DianneDatasets {
 			policy=ReferencePolicy.DYNAMIC)
 	void addDataset(Dataset dataset, Map<String, Object> properties){
 		String name = (String) properties.get("name");
-		this.datasets.put(name, dataset);
+		if(properties.containsKey("aiolos.framework.uuid")){
+			this.datasets.put(name, 
+					(Dataset) Proxy.newProxyInstance(
+							this.getClass().getClassLoader(), 
+							dataset.getClass().getInterfaces(), 
+							new RemoteDatasetProxy(dataset)));
+		} else {
+			this.datasets.put(name, dataset);
+		}
 	}
 	
 	void removeDataset(Dataset dataset, Map<String, Object> properties){
