@@ -103,4 +103,9 @@ public class FetchCanConfig {
 	 * Number of sensors to activate in the environment
 	 */
 	public int environmentSensors = 0;
+	
+	/**
+	 * Number of retries to initialize environment in case of error
+	 */
+	public int retry = 3;
 }
