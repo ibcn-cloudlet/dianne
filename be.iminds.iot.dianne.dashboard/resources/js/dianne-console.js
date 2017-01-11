@@ -32,7 +32,7 @@ function keyPressed(e) {
 	console.log(e.code);
 	if(e.code === "F10"){
 		toggleConsole();
-	} else if(e.code === "Enter"){
+	} else if(e.code === "Enter" || e.code === "NumpadEnter"){
 		// enter
 		var command = $('#console-input').text();
 		commands.push(command);
