@@ -22,7 +22,7 @@
  *******************************************************************************/
 
 // add a console for CLI input
-window.addEventListener("keypress", keyPressed, false);
+window.addEventListener("keydown", keyPressed, false);
 
 var consolePrefix = "<strong>g!</strong> ";
 var commands = [];
