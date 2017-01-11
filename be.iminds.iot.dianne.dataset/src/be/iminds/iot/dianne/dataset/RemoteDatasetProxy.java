@@ -37,26 +37,12 @@ public class RemoteDatasetProxy implements InvocationHandler {
 
 	private final Dataset proxied;
 	
-	private boolean dirty = true;
-	private int cachedSize = -1;
-	
 	public RemoteDatasetProxy(Dataset d){
 		this.proxied = d;
 	}
 	
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-		// cache the size so we don't have to do a remote call 
-		// for each time the sampling strategy wants the size for constructing batches
-		if(method.getName().equals("size")){
-			if(dirty){
-				cachedSize = (int)method.invoke(proxied, args);
-				dirty = false;
-			}
-			return cachedSize;
-		}
-		
-		dirty = true;
 		if(method.getParameterCount() > 0 && method.getReturnType().equals(method.getParameterTypes()[0])){
 			// this is a method that has as first arg the return type
 			//... in case of a remote call, set parameter[0] to null
