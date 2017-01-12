@@ -139,7 +139,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 
 		
 		long spaceLeft = repository.spaceLeft();
-		Status currentStatus = new Status(queueLearn.size()+queueEval.size(), running.size(), learn, eval, act, idle, devices.size(), spaceLeft, boot);
+		Status currentStatus = new Status(queueAct.size()+queueLearn.size()+queueEval.size(), running.size(), learn, eval, act, idle, devices.size(), spaceLeft, boot);
 		return currentStatus;
 	}
 	
@@ -305,6 +305,9 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 			job = queueEval.stream().filter(j -> j.jobId.equals(jobId)).findFirst().get();
 		} catch(NoSuchElementException e){}
 		try {
+			job = queueAct.stream().filter(j -> j.jobId.equals(jobId)).findFirst().get();
+		} catch(NoSuchElementException e){}
+		try {
 			job = running.stream().filter(j -> j.jobId.equals(jobId)).findFirst().get();
 		} catch(NoSuchElementException e){}
 		try {
@@ -329,9 +332,12 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	public List<Job> queuedJobs() {
 		List<Job> learnJobs = queueLearn.stream().map(j -> j.get()).collect(Collectors.toList());
 		List<Job> evalJobs = queueEval.stream().map(j -> j.get()).collect(Collectors.toList());
+		List<Job> actJobs = queueAct.stream().map(j -> j.get()).collect(Collectors.toList());
 
-		List<Job> allJobs = learnJobs;
+		
+		List<Job> allJobs = new ArrayList<>(learnJobs);
 		allJobs.addAll(evalJobs);
+		allJobs.addAll(actJobs);
 		allJobs.sort(new Comparator<Job>() {
 
 			@Override
