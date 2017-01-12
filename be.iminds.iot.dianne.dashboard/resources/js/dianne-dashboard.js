@@ -332,6 +332,9 @@ eventsource.onmessage = function(event){
 	if(data.type === "notification"){
 		addNotification(data);
 		refreshStatus();
+		refreshJobs();
+	} else if(data.type === "progress"){
+		updateResultsChart($("#"+data.jobId+"-result"), data);
 	}
 }
 

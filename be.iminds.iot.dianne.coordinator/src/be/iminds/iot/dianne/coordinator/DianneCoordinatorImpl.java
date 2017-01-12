@@ -84,6 +84,7 @@ import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.api.rl.agent.Agent;
+import be.iminds.iot.dianne.api.rl.agent.AgentProgress;
 import be.iminds.iot.dianne.api.rl.learn.QLearnProgress;
 import be.iminds.iot.dianne.coordinator.util.DianneCoordinatorWriter;
 
@@ -625,6 +626,17 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		if(progress instanceof QLearnProgress){
 			properties.put("q", ((QLearnProgress)progress).q);
 		}
+		
+		String topic = "dianne/jobs/"+jobId.toString()+"/progress";
+		Event e = new Event(topic, properties);
+		ea.postEvent(e);
+	}
+	
+	void sendActProgress(UUID jobId, AgentProgress progress){
+		Map<String, Object> properties = new HashMap<>();
+		properties.put("jobId", jobId.toString());
+		properties.put("sequence", progress.sequence);
+		properties.put("reward", progress.reward);
 		
 		String topic = "dianne/jobs/"+jobId.toString()+"/progress";
 		Event e = new Event(topic, properties);

@@ -145,6 +145,8 @@ public class ActJob extends AbstractJob<AgentResult> implements AgentListener {
 		totalIterations += progress.iterations;
 		totalSequences ++;
 		
+		coordinator.sendActProgress(this.jobId, progress);
+		
 		if(maxIterations > 0 && totalIterations >= maxIterations){
 			try {
 				stop();

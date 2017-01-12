@@ -61,7 +61,7 @@ function createResultChart(container, job, scale){
 	// in case of learn chart, plot learn progress curve
 	if(job.type==="LEARN"){
 		DIANNE.learnResult(job.id).then(function(learnprogress){
-			if(learnprogress[0].q !== undefined){
+			if(learnprogress[0] !== undefined && learnprogress[0].q !== undefined){
 				 var q = [];
 				 $.each(learnprogress, function(i) {
 					var progress = learnprogress[i];
@@ -135,6 +135,31 @@ function createResultChart(container, job, scale){
 				 createRewardChart(container, scale, reward);
 			});
 		});
+	}
+}
+
+function updateResultsChart(container, data){
+	var index = Number(container.attr("data-highcharts-chart"));
+	if(isNaN(index))
+		return;
+	
+	var x;
+	var y;
+	if(data.q !== undefined){
+		x = Number(data.iteration);
+		y = Number(data.q);
+	} else if(data.minibatchLoss !== undefined){
+		x = Number(data.iteration);
+		y = Number(data.minibatchLoss);
+	} else if(data.reward !== undefined){
+		x = Number(data.sequence);
+		y = Number(data.reward);
+	}
+	Highcharts.charts[index].series[0].addPoint([x, y], true, true, false);
+	
+	if(data.validationLoss !== undefined){
+		var v = Number(data.validationLoss);
+		Highcharts.charts[index].series[1].addPoint([x, v], true, true, false);
 	}
 }
 
