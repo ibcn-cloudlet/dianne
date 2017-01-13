@@ -905,6 +905,7 @@ function showLoadDialog(){
 			dialog.find('.form-items'));
 	$.post("/dianne/load", {"action" : "list"}, 
 			function( data ) {
+				data.sort();
 				$.each(data, function(index, name){
 					dialog.find('.options').append("<option value="+name+">"+name+"</option>")
 				});
