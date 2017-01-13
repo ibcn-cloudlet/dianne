@@ -34,4 +34,19 @@ public class GymConfig {
 	 * Render the Gym environment on the machine
 	 */
 	public boolean render = true;
+	
+	/**
+	 * Reward factor
+	 */
+	public float rewardFactor = 0.01f;
+
+	/**
+	 * action factor. Change range of the action.
+	 */
+	public float actionFactor = 1.0f;
+	
+	/**
+	 * Max number of actions before terminating anyhow
+	 */
+	public int maxActions = -1;
 }

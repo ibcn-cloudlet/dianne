@@ -23,7 +23,6 @@
 package be.iminds.iot.dianne.rl.environment.gym;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -66,6 +65,8 @@ public class GymEnvironment implements Environment {
 	private boolean discrete = true;
 	
 	private int[] observationDims;
+	
+	private int count = 0;
 	
 	@Activate
 	void activate() {
@@ -120,19 +121,23 @@ public class GymEnvironment implements Environment {
 	public int[] actionDims() {
 		return actionDims;
 	}
-	
+		
 	@Override
 	public float performAction(Tensor action) {
+		if(!active)
+			throw new RuntimeException("The Environment is not active!");
+		
 		// TODO embed this in performAction callable?
+		action = TensorOps.mul(action, action, this.config.actionFactor);
 		tensorToGymAction(action);
 		
 		try {
 			return thread.submit(()->{
 				try {
-					jep.eval("o = env.step(action)");
+					jep.eval("observation, reward, done, info = env.step(action)");
 					
-					List<?> o = (List<?>)jep.getValue("o");
-					Object r = o.get(1);
+					NDArray<?> nextState = (NDArray<?>)jep.getValue("observation");
+					Object r = jep.getValue("reward");
 					float reward = 0.0f;
 					if(r.getClass().equals(Double.class)){
 						reward = ((Double)r).floatValue();
@@ -141,17 +146,20 @@ public class GymEnvironment implements Environment {
 					} else {
 						System.out.println("Invalid reward class?! "+r.getClass().getName());
 					}
-				
+					
 					// TODO return raw reward and let RL Learner scale it?!
 					// squash between -1..1?!
-					reward = reward/100;
-					
-					end = (Boolean)o.get(2);
+					reward = reward * this.config.rewardFactor;
 
-					if(!end){
-						NDArray<?> nextState = (NDArray<?>)o.get(0);
-						observation = gymArrayToTensor(observation, nextState);
+					end = (Boolean) jep.getValue("done");
+					if (this.config.maxActions != -1 && count++ > this.config.maxActions) {
+						end = true;
 					} 
+					if(!end){	
+						observation = gymArrayToTensor(observation, nextState);
+					} else {
+						count = 0;
+					}
 					
 					
 					if(this.config.render)
@@ -177,6 +185,9 @@ public class GymEnvironment implements Environment {
 
 	@Override
 	public Tensor getObservation(Tensor t) {
+		if(!active)
+			throw new RuntimeException("The Environment is not active!");
+		
 		if(end){
 			return null;
 		}
@@ -185,9 +196,13 @@ public class GymEnvironment implements Environment {
 
 	@Override
 	public void reset() {
+		if(!active)
+			throw new RuntimeException("The Environment is not active!");
+		
 		try {
 			thread.submit(()->{
 				try {
+					count = 0;
 					end = false;
 					jep.eval("init = env.reset()");
 					
