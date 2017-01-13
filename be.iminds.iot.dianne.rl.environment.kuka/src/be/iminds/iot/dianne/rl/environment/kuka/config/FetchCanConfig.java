@@ -106,6 +106,13 @@ public class FetchCanConfig {
 	
 	/**
 	 * Number of retries to initialize environment in case of error
+	 * 
+	 * Each retry we will wait for timeout x retry
 	 */
 	public int retry = 3;
+	
+	/**
+	 * Ms to wait at initialization time before regarding this as failure
+	 */
+	public int timeout = 30000;
 }

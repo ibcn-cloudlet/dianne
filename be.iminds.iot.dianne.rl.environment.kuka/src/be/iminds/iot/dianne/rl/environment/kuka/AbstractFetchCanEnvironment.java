@@ -210,7 +210,7 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 			} catch (InterruptedException|TimeoutException e) {
 			}
 			
-			if(System.currentTimeMillis()-start > 20000){
+			if(System.currentTimeMillis()-start > config.timeout*(tries+1)){
 				tries++;
 				if(config.retry > 0 && tries > config.retry){
 					throw new Exception("Failed to initialize Kuka environment");
