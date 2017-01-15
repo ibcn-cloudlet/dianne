@@ -407,6 +407,16 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 						deviceErrors.put(device, errors+1);
 					}
 					
+					File resultFile = new File(dir.getAbsolutePath()+File.separator+"progress.json");
+					try(JsonWriter writer = new JsonWriter(new FileWriter(resultFile))){
+						writer.setLenient(true);
+						writer.setIndent("  ");
+						DianneCoordinatorWriter.writeObject(writer, job.getProgress());
+						writer.flush();
+					} catch(Exception e){
+						System.err.println("Failed to write job.json for Job "+job.jobId);
+					}
+					
 					sendNotification(job.jobId, Level.DANGER, "Job \""+job.name+"\" failed on device "+device+" : "+error.getMessage() == null ? error.getClass().getName() : error.getMessage());
 				} else {
 					File resultFile = new File(dir.getAbsolutePath()+File.separator+"result.json");
@@ -843,7 +853,13 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	private Object getResult(UUID jobId){
 		// TODO read from persistent storage?
 		try {
-			return finished.stream().filter(job -> job.jobId.equals(jobId)).findFirst().get().getPromise().getValue();
+			AbstractJob j = finished.stream().filter(job -> job.jobId.equals(jobId)).findFirst().get();
+			if(j.getPromise().getFailure() != null){
+				// read progress until then
+				return j.getProgress();
+			} else {
+				return j.getPromise().getValue();
+			}
 		} catch(Exception e){
 			return null;
 		}
