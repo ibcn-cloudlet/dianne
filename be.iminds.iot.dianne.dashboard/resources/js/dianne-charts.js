@@ -155,11 +155,11 @@ function updateResultsChart(container, data){
 		x = Number(data.sequence);
 		y = Number(data.reward);
 	}
-	Highcharts.charts[index].series[0].addPoint([x, y], true, true, false);
+	Highcharts.charts[index].series[0].addPoint([x, y], true, false, false);
 	
 	if(data.validationLoss !== undefined){
 		var v = Number(data.validationLoss);
-		Highcharts.charts[index].series[1].addPoint([x, v], true, true, false);
+		Highcharts.charts[index].series[1].addPoint([x, v], true, false, false);
 	}
 }
 
