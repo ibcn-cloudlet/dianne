@@ -71,6 +71,12 @@ public class DianneConfigHandler {
 								doublearray[i] = Double.parseDouble(array[i]);
 							}
 							f.set(instance, doublearray);
+						} else if(f.getType().getComponentType().equals(Float.TYPE)){
+							float[] floatarray = new float[array.length];
+							for(int i=0;i<floatarray.length;i++){
+								floatarray[i] = Float.parseFloat(array[i]);
+							}
+							f.set(instance, floatarray);
 						} else if(f.getType().getComponentType().equals(UUID.class)){
 							UUID[] uuidarray = new UUID[array.length];
 							for(int i=0;i<uuidarray.length;i++){
