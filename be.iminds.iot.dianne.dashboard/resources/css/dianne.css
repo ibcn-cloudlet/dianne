@@ -125,6 +125,7 @@ html, body {
  	border-radius: 15px;
  	font-size: 1.2em;
  	overflow-y:auto;
+ 	resize: vertical;
 }
 
 .hidden {
@@ -134,9 +135,7 @@ html, body {
 #console-input {
 	min-height: 1.2em;
 	outline: transparent;
-	white-space: pre;
-	width: 95%;
-	display: inline-block;
+	display: inline;
 }
 
 #console-toggle {
