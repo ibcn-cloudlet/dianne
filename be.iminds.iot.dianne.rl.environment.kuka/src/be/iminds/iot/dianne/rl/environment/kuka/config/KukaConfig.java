@@ -21,4 +21,9 @@ public class KukaConfig {
 	 * Show laser beams in environment
 	 */
 	public boolean showLaser = false;
+	
+	/**
+	 * Ms to wait when trying to restart simulator
+	 */
+	public int timeout = 100000;
 }

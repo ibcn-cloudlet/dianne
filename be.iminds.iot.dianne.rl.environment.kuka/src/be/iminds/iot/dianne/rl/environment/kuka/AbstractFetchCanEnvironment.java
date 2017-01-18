@@ -195,9 +195,8 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 		simulator.start(config.tick);
 		
 		// TODO there might be an issue with range sensor not coming online at all
-		// should be fixed in robot project..
+		// should be fixed in robot project?
 		long start = System.currentTimeMillis();
-		int tries = 0;
 		while(rangeSensors==null
 				|| kukaArm == null 
 				|| kukaPlatform == null
@@ -208,21 +207,11 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 					simulator.tick();
 				}
 			} catch (InterruptedException|TimeoutException e) {
-			}
+			} 
 			
-			if(System.currentTimeMillis()-start > config.timeout*(tries+1)){
-				tries++;
-				if(config.retry > 0 && tries > config.retry){
-					throw new Exception("Failed to initialize Kuka environment");
-				}
-				
+			if(System.currentTimeMillis()-start > config.timeout){
 				System.out.println("Failed to initialize youbot/laserscanner in environment... Try again");
-
-				// try again?
-				simulator.stop();
-				Thread.sleep(1000);
-				simulator.start(config.tick);
-				start = System.currentTimeMillis();
+				throw new Exception("Failed to initialize Kuka environment");
 			}
 		}
 		

@@ -83,6 +83,8 @@ import be.iminds.iot.simulator.api.Simulator;
 public abstract class AbstractKukaEnvironment implements Environment, KukaEnvironment {
 	
 	protected KukaConfig config;
+
+	private Map<String, String> configMap;
 	
 	private Set<EnvironmentListener> listeners = Collections.synchronizedSet(new HashSet<>());
 	
@@ -308,7 +310,30 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 			waitForResume();
 			
 		} else {
-			initSimulator();
+			try {
+				initSimulator();
+			} catch(Exception e){
+				// try to kill the simulator?! - this is hacky!
+				// TODO this should be fixed in the robot project?
+				Runtime.getRuntime().exec("killall vrep");
+                simulator = null;
+                
+				long start = System.currentTimeMillis();
+                while(simulator == null){
+                	System.out.println("Waiting for simulator to come back online");
+                	
+                	if(System.currentTimeMillis()-start > config.timeout){
+                      	throw new Exception("Failed to restart simulator");
+                    }
+                	
+                	Thread.sleep(1000);
+                }
+                
+                // configure it again from scratch
+                configure(configMap);
+                
+                initSimulator();
+			}
 		}
 	}
 	
@@ -380,6 +405,7 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 			throw new RuntimeException("This Environment is already active");
 		
 		this.config = DianneConfigHandler.getConfig(config, KukaConfig.class);
+		this.configMap = config;
 		
 		configure(config);
 		
