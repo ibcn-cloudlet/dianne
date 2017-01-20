@@ -342,10 +342,6 @@ public class AgentImpl implements Agent {
 					}
 					s.terminal.set(s.nextState == null ? 0.0f : 1.0f, 0);
 					
-					if(config.trace && i % config.traceInterval == 0){
-						System.out.println(progress);
-					}
-					
 					// upload in batch
 					if(pool != null) {
 						ExperiencePoolSample b;
@@ -380,6 +376,12 @@ public class AgentImpl implements Agent {
 					// TODO what with infinite horizon environments?
 					if(s.isTerminal()){
 						publishProgress(progress);
+						
+						// trace agent per sequence
+						if(config.trace && seq % config.traceInterval == 0){
+							System.out.println(progress);
+						}
+						
 						seq++;
 						progress = new AgentProgress(seq, 0, 0);
 						
