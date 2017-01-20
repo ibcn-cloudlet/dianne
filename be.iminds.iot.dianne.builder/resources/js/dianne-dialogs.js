@@ -545,9 +545,8 @@ function createRunModuleDialog(id, moduleItem){
 								} else if(output.data.length == 7){
 									if(output.probabilities===undefined){
 										// DQN network, show raw Q values
-										output.data.splice(-1, 1); // remove grip q value as we stop on norm of other q values atm
 										Highcharts.charts[index].series[0].setData(output.data, true, true, true);
-										Highcharts.charts[index].xAxis[0].setCategories(['Left','Right','Forward','Backward','Turn Left','Turn Right']);
+										Highcharts.charts[index].xAxis[0].setCategories(['Left','Right','Forward','Backward','Turn Left','Turn Right', 'Grip']);
 									} else {
 										// policy network ending with softmax - show the probabilities
 										Highcharts.charts[index].series[0].setData(output.probabilities, true, true, true);
