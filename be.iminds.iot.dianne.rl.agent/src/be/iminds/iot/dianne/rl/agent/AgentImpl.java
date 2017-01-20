@@ -90,6 +90,7 @@ public class AgentImpl implements Agent {
 	private Thread actingThread;
 	private long i = 0;
 	private long seq = 0;
+	private long episode = 0;
 	private volatile boolean acting;
 	
 	private ActionStrategy strategy;
@@ -275,8 +276,11 @@ public class AgentImpl implements Agent {
 				props.put("aiolos.unique", true);
 				repoListenerReg = context.registerService(RepositoryListener.class, new RepositoryListener() {
 					@Override
-					public void onParametersUpdate(UUID nnId, Collection<UUID> moduleIds, String... tag) {
-						sync = true;
+					public synchronized void onParametersUpdate(UUID nnId, Collection<UUID> moduleIds, String... tag) {
+						if(sync == false){
+							sync = true;
+							episode++;
+						}
 					}
 				}, props);
 				
@@ -286,6 +290,7 @@ public class AgentImpl implements Agent {
 				// set count to zero
 				count = 0;
 				seq = 0;
+				episode = 0;
 				
 				// setup action strategy
 				strategy.setup(properties, env, nns);
@@ -300,7 +305,7 @@ public class AgentImpl implements Agent {
 		
 				s.input = env.getObservation(s.input);
 	
-				progress = new AgentProgress(0, 0, 0);
+				progress = new AgentProgress(seq, 0, 0, episode);
 				
 				if(config.clear){
 					pool.reset();
@@ -383,7 +388,7 @@ public class AgentImpl implements Agent {
 						}
 						
 						seq++;
-						progress = new AgentProgress(seq, 0, 0);
+						progress = new AgentProgress(seq, 0, 0, episode);
 						
 						do {
 							env.reset();
