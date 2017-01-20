@@ -55,11 +55,11 @@ public class DianneCoordinatorWriter {
 		if(o==null){
 			writer.value("null");
 		} else if(o instanceof LearnResult){
-			writeLearnResult(writer, (LearnResult) o);
+			writeLearnResult(writer, (LearnResult) o, 0);
 		} else if(o instanceof EvaluationResult){
 			writeEvaluationResult(writer, (EvaluationResult) o);
 		} else if(o instanceof AgentResult){
-			writeAgentResult(writer, (AgentResult) o);
+			writeAgentResult(writer, (AgentResult) o, 0);
 		} else if(o.getClass().equals(String.class)
 				|| o.getClass().isEnum()
 				|| o.getClass().equals(UUID.class)){
@@ -133,15 +133,16 @@ public class DianneCoordinatorWriter {
 		writeObject(writer, job);
 	}
 	
-	public static void writeLearnResult(JsonWriter writer, LearnResult result) throws Exception {
+	public static void writeLearnResult(JsonWriter writer, LearnResult result, int limit) throws Exception {
 		writer.beginArray();
 		// merge progress and validation in single object
 		// TODO for now select one learners minibatch loss as progress?
 		if(result.progress.size() > 0){
-			// only send out ~1000 points max for plotting
 			List<LearnProgress> select = result.progress.values().iterator().next();
-			int step = select.size()/1000000+1;
-			step *= 1000;
+			int step = 1000;
+			if(limit > 0 && select.size()/step > limit){
+				step = select.size()/step*limit+1;
+			}
 			for(int i =0;i<select.size();i+=step){
 				LearnProgress p = select.get(i);
 				Evaluation val = result.validations.get(p.iteration);
@@ -230,11 +231,14 @@ public class DianneCoordinatorWriter {
 		writer.endArray();
 	}
 	
-	public static void writeAgentResult(JsonWriter writer, AgentResult result) throws Exception {
+	public static void writeAgentResult(JsonWriter writer, AgentResult result, int limit) throws Exception {
 		writer.beginArray();
 		for(List<AgentProgress> pp : result.progress.values()){
 			writer.beginArray();
-			int step = pp.size()/10000+1; // limit to 10k points
+			int step = 1;
+			if(limit > 0 && pp.size() > limit){
+				step = pp.size()/limit+1;
+			}
 			for(int i =0;i<pp.size();i+=step){
 				AgentProgress progress = pp.get(i);
 				writer.beginObject();
