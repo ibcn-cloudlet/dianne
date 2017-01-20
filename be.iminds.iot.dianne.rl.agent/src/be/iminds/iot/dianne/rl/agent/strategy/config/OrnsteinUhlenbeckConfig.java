@@ -63,14 +63,4 @@ public class OrnsteinUhlenbeckConfig {
 	 * 
 	 */
 	public float sigma = 0.3f;
-
-	/**
-	 * 
-	 */
-	public int maxActions = -1;
-	
-	/**
-	 * 
-	 */
-	public int explorationActions = -1;
 }

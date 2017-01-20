@@ -22,6 +22,7 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rl.agent.strategy;
 
+import java.util.Arrays;
 import java.util.Map;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.rl.agent.ActionStrategy;
@@ -58,19 +59,11 @@ public class OrnsteinUhlenbeckActionStrategy implements ActionStrategy {
 	@Override
 	public Tensor processIteration(long i, Tensor state) throws Exception {
 		Tensor action = policy.forward(state);
-		
-		if (i % config.maxActions == 0) {
-			noise.fill(0f);
-		}
-		if (config.explorationActions != -1 && i % config.maxActions > config.explorationActions) {
-			return action;
-		}
 		whiteNoise.randn();
-		
 		// TODO: different config parameters for each action
 		for (int j=0; j<action.size(); j++) { // use previous noise for each action
 			// Solve using Euler-Maruyama method
-			float val = config.theta * (config.mu - action.get(j)) + config.sigma * whiteNoise.get()[j];
+			float val = config.theta * (config.mu - action.get(j)) + config.sigma * whiteNoise.get(j);
 			noise.set(val, j);
 		}
 		double stdev = config.noiseMin + (config.noiseMax - config.noiseMin) * Math.exp(-i * config.noiseDecay);
