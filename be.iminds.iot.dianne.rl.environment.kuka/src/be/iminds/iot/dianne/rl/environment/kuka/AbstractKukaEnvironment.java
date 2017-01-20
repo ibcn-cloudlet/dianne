@@ -317,11 +317,9 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 				// TODO this should be fixed in the robot project?
 				Runtime.getRuntime().exec("killall vrep");
                 simulator = null;
-                
+            	System.out.println("Unexpected simulator error, waiting for simulator to come back online...");
 				long start = System.currentTimeMillis();
                 while(simulator == null){
-                	System.out.println("Waiting for simulator to come back online");
-                	
                 	if(System.currentTimeMillis()-start > config.timeout){
                       	throw new Exception("Failed to restart simulator");
                     }
