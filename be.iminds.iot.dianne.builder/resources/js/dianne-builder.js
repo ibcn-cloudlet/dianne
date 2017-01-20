@@ -832,8 +832,8 @@ function save(name, copy){
     if(copy){
     	$.each(nn.modules, function( k, v ) {
     		var newId = guid();
-    		modulesJson = modulesJson.replace(k, newId, "g");
-    		layoutJson = layoutJson.replace(k, newId, "g");
+    		modulesJson = modulesJson.replace(new RegExp(k, 'g'), newId);
+    		layoutJson = layoutJson.replace(new RegExp(k, 'g'), newId);
     	});
     	
     }

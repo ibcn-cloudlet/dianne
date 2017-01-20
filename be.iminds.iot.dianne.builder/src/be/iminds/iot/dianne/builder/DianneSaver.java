@@ -55,6 +55,7 @@ public class DianneSaver extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
+		response.setContentType("application/json");
 		String nn = request.getParameter("nn");
 		String layout = request.getParameter("layout");
 		

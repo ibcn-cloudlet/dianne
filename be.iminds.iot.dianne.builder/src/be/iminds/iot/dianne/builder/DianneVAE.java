@@ -101,6 +101,7 @@ public class DianneVAE extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
+		response.setContentType("application/json");
 		String d = request.getParameter("dataset");
 		if(d == null){
 			System.out.println("No dataset provided");
