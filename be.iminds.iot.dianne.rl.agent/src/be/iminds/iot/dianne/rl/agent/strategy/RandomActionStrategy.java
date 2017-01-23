@@ -46,7 +46,7 @@ public class RandomActionStrategy implements ActionStrategy {
 	}
 
 	@Override
-	public Tensor processIteration(long i, Tensor state) throws Exception {
+	public Tensor processIteration(long s, long i, Tensor state) throws Exception {
 		action.randn();
 		ModuleOps.tanh(action, action);
 		

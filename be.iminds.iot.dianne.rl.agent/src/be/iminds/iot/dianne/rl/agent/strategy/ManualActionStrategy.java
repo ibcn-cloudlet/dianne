@@ -52,7 +52,7 @@ public class ManualActionStrategy implements ActionStrategy, ActionController {
 	}
 
 	@Override
-	public Tensor processIteration(long i, Tensor state) throws Exception {
+	public Tensor processIteration(long s, long i, Tensor state) throws Exception {
 		synchronized(this){
 			if(wait || action == null){
 				try {

@@ -28,7 +28,7 @@ public class GaussianSamplingActionStrategy implements ActionStrategy {
 	}
 
 	@Override
-	public Tensor processIteration(long i, Tensor state) throws Exception {
+	public Tensor processIteration(long s, long i, Tensor state) throws Exception {
 		Tensor actionParams = policy.forward(state);
 		
 		Tensor means = actionParams.narrow(0, 0, actionDims);

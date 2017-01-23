@@ -311,7 +311,7 @@ public class AgentImpl implements Agent {
 					pool.reset();
 				}
 				
-				for(i = 0; acting; i++) {
+				while(acting) {
 					// sync parameters
 					if(sync && count == 0){
 						for(int k=0;k<nns.length;k++){
@@ -324,15 +324,11 @@ public class AgentImpl implements Agent {
 						sync = false;
 					}
 					
-					progress.iterations++;
-					
 					// select action according to strategy
-					s.target = strategy.processIteration(i, s.input);
+					s.target = strategy.processIteration(progress.sequence, progress.iterations, s.input);
 	
 					// execute action and get reward
 					float reward = env.performAction(s.target);
-					progress.reward+=reward;
-					
 					if(s.reward == null){
 						s.reward = new Tensor(1);
 					}
@@ -346,6 +342,10 @@ public class AgentImpl implements Agent {
 						s.terminal = new Tensor(1);
 					}
 					s.terminal.set(s.nextState == null ? 0.0f : 1.0f, 0);
+					
+					// update progress
+					progress.reward+=reward;
+					progress.iterations++;
 					
 					// upload in batch
 					if(pool != null) {

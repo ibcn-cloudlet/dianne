@@ -46,7 +46,7 @@ public class DiscreteSamplingActionStrategy implements ActionStrategy {
 	}
 
 	@Override
-	public Tensor processIteration(long i, Tensor state) throws Exception {
+	public Tensor processIteration(long s, long i, Tensor state) throws Exception {
 		Tensor output = nn.forward(state);
 		
 		Tensor action = new Tensor(output.size());
@@ -57,9 +57,9 @@ public class DiscreteSamplingActionStrategy implements ActionStrategy {
 			output = TensorOps.exp(output, output);
 		}
 		
-		double s = 0, r = Math.random();
+		double t = 0, r = Math.random();
 		int a = 0;
-		while(a < output.size() && (s += output.get(a)) < r){
+		while(a < output.size() && (t += output.get(a)) < r){
 			a++;
 		}
 		

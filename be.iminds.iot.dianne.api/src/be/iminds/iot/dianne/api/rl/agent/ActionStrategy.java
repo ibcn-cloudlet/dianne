@@ -32,6 +32,6 @@ public interface ActionStrategy {
 
 	void setup(Map<String, String> config, Environment env, NeuralNetwork... nns) throws Exception;
 	
-	Tensor processIteration(long i, Tensor state) throws Exception;
+	Tensor processIteration(long s, long i, Tensor state) throws Exception;
 	
 }

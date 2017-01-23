@@ -51,13 +51,13 @@ public class GreedyActionStrategy implements ActionStrategy {
 	}
 
 	@Override
-	public Tensor processIteration(long i, Tensor state) throws Exception {
+	public Tensor processIteration(long s, long i, Tensor state) throws Exception {
 		Tensor output = nn.forward(state);
 		
 		Tensor action = new Tensor(output.size());
 		action.fill(0);
 		
-		double epsilon = config.epsilonMin + (config.epsilonMax - config.epsilonMin) * Math.exp(-i * config.epsilonDecay);
+		double epsilon = config.epsilonMin + (config.epsilonMax - config.epsilonMin) * Math.exp(-s * config.epsilonDecay);
 		
 		if (Math.random() < epsilon) {
 			action.set(1, (int) (Math.random() * action.size()));

@@ -52,21 +52,21 @@ public class BoltzmannActionStrategy implements ActionStrategy {
 	}
 
 	@Override
-	public Tensor processIteration(long i, Tensor state) throws Exception {
+	public Tensor processIteration(long s, long i, Tensor state) throws Exception {
 		Tensor output = nn.forward(state);
 		
 		Tensor action = new Tensor(output.size());
 		action.fill(0);
 		
-		double temperature = config.temperatureMin + (config.temperatureMax - config.temperatureMin) * Math.exp(-i * config.temperatureDecay);
+		double temperature = config.temperatureMin + (config.temperatureMax - config.temperatureMin) * Math.exp(-s * config.temperatureDecay);
 		
 		TensorOps.div(output, output, (float) temperature);
 		ModuleOps.softmax(output, output);
 		
-		double s = 0, r = Math.random();
+		double t = 0, r = Math.random();
 		int a = 0;
 		
-		while((s += output.get(a)) < r)
+		while((t += output.get(a)) < r)
 			a++;
 		
 		action.set(1, a);
