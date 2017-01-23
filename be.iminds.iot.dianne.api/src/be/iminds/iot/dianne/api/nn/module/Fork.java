@@ -22,16 +22,16 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.nn.module;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import be.iminds.iot.dianne.api.nn.module.AbstractModule;
-import be.iminds.iot.dianne.api.nn.module.Module;
-import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
@@ -52,6 +52,8 @@ public abstract class Fork extends AbstractModule {
 	protected Map<UUID, AtomicBoolean> nextLock = new HashMap<UUID, AtomicBoolean>();
 	
 	protected Map<Module, AtomicBoolean> nextsBusy = new HashMap<Module, AtomicBoolean>(); 
+	
+	protected Map<UUID, Tensor> outputsListenersCopy = new HashMap<UUID, Tensor>();
 	
 	protected UUID[] nextIds;
 	
@@ -266,5 +268,61 @@ public abstract class Fork extends AbstractModule {
 			}
 		}
 		return false;
+	}
+	
+	protected void notifyForwardListeners(){
+		final List<ForwardListener> fwdListenersCopy = new ArrayList<ForwardListener>();
+		synchronized(fwdListeners){
+			if(forwardListenersBusy){
+				if(mode.contains(Mode.SKIP)){
+					return;
+				} else {
+					try {
+						fwdListeners.wait();
+					} catch (InterruptedException e) {}
+				}
+			}
+			
+			fwdListenersCopy.addAll(fwdListeners);
+		}
+		
+		if(!fwdListenersCopy.isEmpty()){
+			
+			final String[] tagsCopy = (tags == null) ? null : Arrays.copyOf(tags, tags.length);
+
+			if(exception!=null){
+				listenerExecutor.execute(()->{
+					fwdListenersCopy.stream().forEach(
+							f -> f.onError(id, exception, tagsCopy));
+					
+					synchronized(fwdListeners){
+						forwardListenersBusy = false;
+						fwdListeners.notifyAll();
+					}
+				});
+			} else {
+				outputs.entrySet().stream().forEach(e -> outputsListenersCopy.put(e.getKey(), e.getValue().copyInto(outputsListenersCopy.get(e.getKey()))));
+				for(Entry<UUID,Tensor> e : outputsListenersCopy.entrySet()){
+					final int[] dims = e.getValue().dims();
+					listenerExecutor.execute(()->{
+						fwdListenersCopy.stream().forEach(
+								f -> {
+									try {
+										e.getValue().reshape(dims);
+										//TODO mark which output?
+										f.onForward(id, e.getValue(), tagsCopy);
+									} catch(Throwable t){
+										System.out.println(t.getMessage());
+									}
+								});
+						
+						synchronized(fwdListeners){
+							forwardListenersBusy = false;
+							fwdListeners.notifyAll();
+						}
+					});
+				}
+			}
+		}
 	}
 }

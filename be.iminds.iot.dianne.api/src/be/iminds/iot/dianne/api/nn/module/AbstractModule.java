@@ -100,8 +100,8 @@ public abstract class AbstractModule implements Module {
 	// Avoid overload of Tensor creations for the listeners, keep one copy only
 	private Tensor outputListenersCopy;
 	private Tensor gradInputListenersCopy;
-	private volatile boolean forwardListenersBusy = false;
-	private volatile boolean backwardListenersBusy = false;
+	protected volatile boolean forwardListenersBusy = false;
+	protected volatile boolean backwardListenersBusy = false;
 	
 	// Mode
 	protected EnumSet<Mode> mode = EnumSet.of(Mode.BLOCKING, Mode.WAIT_FOR_ALL);

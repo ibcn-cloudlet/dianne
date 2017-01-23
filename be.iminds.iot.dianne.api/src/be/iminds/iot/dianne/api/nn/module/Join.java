@@ -22,10 +22,13 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.nn.module;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -50,6 +53,9 @@ public abstract class Join extends AbstractModule {
 	
 	// might need the order of id
 	protected UUID[] prevIds;
+	
+	protected Map<UUID, Tensor> gradInputsListenersCopy = new HashMap<UUID, Tensor>();
+
 	
 	public Join() {
 		super();
@@ -174,6 +180,61 @@ public abstract class Join extends AbstractModule {
 					inputs.put(id, null);
 					gradInputs.put(id, null);
 					prevLock.put(id, new AtomicBoolean(false));
+				}
+			}
+		}
+	}
+	
+	protected void notifyBackwardListeners(){
+		final List<BackwardListener> bwListenersCopy = new ArrayList<BackwardListener>();
+		synchronized(bwListeners){
+			if(backwardListenersBusy){
+				if(mode.contains(Mode.SKIP)){
+					return;
+				} else {
+					try {
+						bwListeners.wait();
+					} catch (InterruptedException e) {}
+				}
+			}
+			bwListenersCopy.addAll(bwListeners);
+		}
+		
+		if(!bwListenersCopy.isEmpty()){
+			final String[] tagsCopy = (tags == null) ? null : Arrays.copyOf(tags, tags.length);
+
+			if(exception!=null){
+				listenerExecutor.execute(()->{
+					bwListenersCopy.stream().forEach(
+							b->b.onError(id, exception, tagsCopy));
+					
+					synchronized(bwListeners){
+						backwardListenersBusy = false;
+						bwListeners.notifyAll();
+					}
+				});
+			} else {
+				gradInputs.entrySet().stream().forEach(e -> gradInputsListenersCopy.put(e.getKey(), e.getValue().copyInto(gradInputsListenersCopy.get(e.getKey()))));
+				
+				for(Entry<UUID,Tensor> e : gradInputsListenersCopy.entrySet()){
+					final int[] dims = e.getValue().dims();
+					listenerExecutor.execute(()->{
+						bwListenersCopy.stream().forEach(
+								b-> {
+									try {
+										e.getValue().reshape(dims);
+										//TODO mark which input?
+										b.onBackward(id, e.getValue(), tagsCopy);
+									} catch(Throwable t){
+										System.out.println(t.getMessage());
+									}
+								});
+						
+						synchronized(bwListeners){
+							backwardListenersBusy = false;
+							bwListeners.notifyAll();
+						}
+					});
 				}
 			}
 		}
