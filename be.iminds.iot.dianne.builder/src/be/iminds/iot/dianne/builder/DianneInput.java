@@ -25,7 +25,6 @@ package be.iminds.iot.dianne.builder;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashMap;
@@ -150,6 +149,7 @@ public class DianneInput extends HttpServlet {
 			String input = request.getParameter("input");
 
 			synchronized(inputs){
+				// TODO select the right one instead of forwarding to all?
 				for(DianneInputs i : inputs){
 					i.setInput(UUID.fromString(nnId), UUID.fromString(inputId), input);
 				}

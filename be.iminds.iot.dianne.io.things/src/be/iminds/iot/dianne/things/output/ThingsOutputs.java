@@ -45,7 +45,8 @@ import be.iminds.iot.things.api.Thing;
 import be.iminds.iot.things.api.lamp.Lamp;
 
 
-@Component(immediate=true)
+@Component(immediate=true,
+	property = {"aiolos.unique=true"})
 public class ThingsOutputs implements DianneOutputs {
 
 	private BundleContext context;
@@ -159,8 +160,12 @@ public class ThingsOutputs implements DianneOutputs {
 	@Override
 	public void unsetOutput(UUID nnId, UUID outputId, String output) {
 		ThingOutput o = null;
-		synchronized(things){
-			o = things.values().stream().filter(t -> t.name.equals(output)).findFirst().get();
+		try {
+			synchronized(things){
+				o = things.values().stream().filter(t -> t.name.equals(output)).findFirst().get();
+			}
+		} catch(NoSuchElementException e){
+			return;
 		}
 		o.disconnect(nnId, outputId);
 	}

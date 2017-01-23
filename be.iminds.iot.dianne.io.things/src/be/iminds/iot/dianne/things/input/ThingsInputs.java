@@ -44,7 +44,8 @@ import be.iminds.iot.sensor.api.LaserScanner;
 import be.iminds.iot.things.api.Thing;
 import be.iminds.iot.things.api.camera.Camera;
 
-@Component(immediate=true)
+@Component(immediate=true,
+	property = {"aiolos.unique=true"})
 public class ThingsInputs implements DianneInputs {
 
 	private BundleContext context;
@@ -151,8 +152,12 @@ public class ThingsInputs implements DianneInputs {
 		String id = nnId.toString()+":"+inputId.toString();
 		Input in = inputs.get(id);
 		ThingInput thing = null;
-		synchronized(things){
-			thing = things.values().stream().filter(t -> t.name.equals(input)).findFirst().get();
+		try {
+			synchronized(things){
+				thing = things.values().stream().filter(t -> t.name.equals(input)).findFirst().get();
+			}
+		} catch(NoSuchElementException e){
+			return;
 		}
 		thing.disconnect(in);
 	}
