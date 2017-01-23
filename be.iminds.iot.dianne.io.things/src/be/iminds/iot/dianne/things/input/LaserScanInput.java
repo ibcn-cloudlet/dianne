@@ -46,12 +46,16 @@ public class LaserScanInput extends ThingInput implements SensorListener {
 
 	@Override
 	public void update(SensorValue value) {
-		for(Input in : inputs){
-			if(t == null || t.size() != value.data.length){
-				t = new Tensor(value.data.length);
+		try {
+			for(Input in : inputs){
+				if(t == null || t.size() != value.data.length){
+					t = new Tensor(value.data.length);
+				}
+				t.set(value.data);
+				in.input(t);
 			}
-			t.set(value.data);
-			in.input(t);
+		} catch(Exception e){
+			// ignore exception ... probably NN was deployed while forwarding input
 		}
 	}
 
