@@ -162,8 +162,16 @@ public class LearnerImpl implements Learner {
 			System.out.println("---");
 
 			// Initialize NN parameters
-			for(NeuralNetwork nn : nns)
+			if(this.config.initTag != null){
+				// load parameters from init tag
+				for(NeuralNetwork nn : nns){
+					loadParameters(nn, this.config.initTag);
+				}
+			}
+			
+			for(NeuralNetwork nn : nns){
 				initializeParameters(nn);
+			}
 			
 			// Create learning strategy
 			strategy = factory.create(this.config.strategy);
@@ -309,12 +317,12 @@ public class LearnerImpl implements Learner {
 	private void initializeParameters(NeuralNetwork nn){
 		try {
 			// makes sure that fixed parameters are loaded anyhow
-			loadParameters(nn, config.initTag != null ? config.initTag : config.tag);
+			loadParameters(nn, config.tag);
 			
 			if(config.clean){
 				// if clean, randomize parameters
 				resetParameters(nn);
-			} else if(config.initTag!=null && !config.initTag.equals(config.tag)){
+			} else {
 				// if switching tag, store under new tag
 				nn.storeParameters(config.tag);
 			}
