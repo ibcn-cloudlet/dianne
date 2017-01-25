@@ -70,6 +70,7 @@ import be.iminds.iot.dianne.nn.module.preprocessing.Frame;
 import be.iminds.iot.dianne.nn.module.preprocessing.Normalization;
 import be.iminds.iot.dianne.nn.module.preprocessing.Scale;
 import be.iminds.iot.dianne.nn.module.regularization.BatchNormalization;
+import be.iminds.iot.dianne.nn.module.regularization.DropPath;
 import be.iminds.iot.dianne.nn.module.regularization.Dropout;
 import be.iminds.iot.dianne.nn.module.vae.GaussianSampler;
 import be.iminds.iot.dianne.nn.module.vae.MultivariateGaussian;
@@ -293,7 +294,7 @@ public class DianneModuleFactory implements ModuleFactory {
 		case "DropPath":
 		{
 			float rate = Float.parseFloat(dto.properties.get("rate"));
-			module = new Dropout(id, rate);
+			module = new DropPath(id, rate);
 			break;
 		}
 		case "Tanh":
