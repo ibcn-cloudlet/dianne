@@ -186,6 +186,9 @@ public abstract class Join extends AbstractModule {
 	}
 	
 	protected void notifyBackwardListeners(){
+		if(gradInput!=null)
+			super.notifyBackwardListeners();
+		
 		final List<BackwardListener> bwListenersCopy = new ArrayList<BackwardListener>();
 		synchronized(bwListeners){
 			if(backwardListenersBusy){

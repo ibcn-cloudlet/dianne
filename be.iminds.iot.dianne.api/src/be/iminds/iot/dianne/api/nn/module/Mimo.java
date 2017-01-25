@@ -212,6 +212,9 @@ public abstract class Mimo extends Fork {
 
 	
 	protected void notifyBackwardListeners(){
+		if(gradInput!=null)
+			super.notifyBackwardListeners();
+		
 		final List<BackwardListener> bwListenersCopy = new ArrayList<BackwardListener>();
 		synchronized(bwListeners){
 			if(backwardListenersBusy){

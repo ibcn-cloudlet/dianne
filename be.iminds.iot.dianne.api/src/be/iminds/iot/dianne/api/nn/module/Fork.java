@@ -271,6 +271,9 @@ public abstract class Fork extends AbstractModule {
 	}
 	
 	protected void notifyForwardListeners(){
+		if(output != null)
+			super.notifyForwardListeners();
+		
 		final List<ForwardListener> fwdListenersCopy = new ArrayList<ForwardListener>();
 		synchronized(fwdListeners){
 			if(forwardListenersBusy){
