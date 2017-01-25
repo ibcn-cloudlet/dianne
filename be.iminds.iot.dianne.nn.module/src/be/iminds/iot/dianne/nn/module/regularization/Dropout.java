@@ -30,7 +30,7 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class Dropout extends AbstractModule {
 
-	private final float p;
+	private float p;
 	
 	private Tensor mask = null;
 	
@@ -72,4 +72,12 @@ public class Dropout extends AbstractModule {
 		}
 	}
 
+	@Override
+	public void setProperty(String key, Object val){
+		if(key.equals("rate")){
+			p = 1-Float.parseFloat(val.toString());
+		} else {
+			super.setProperty(key, val);
+		}
+	}
 }

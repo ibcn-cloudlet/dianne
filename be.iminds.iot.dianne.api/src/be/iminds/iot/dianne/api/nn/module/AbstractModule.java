@@ -471,4 +471,8 @@ public abstract class AbstractModule implements Module {
 		}
 	}
 	
+	public void setProperty(String key, Object val){
+		throw new UnsupportedOperationException("Key "+key+" cannot be set for module "+id);
+	}
+
 }

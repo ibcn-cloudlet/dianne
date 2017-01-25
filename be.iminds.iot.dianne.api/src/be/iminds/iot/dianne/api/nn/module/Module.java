@@ -132,4 +132,12 @@ public interface Module {
 	 * @param mode the mode to set
 	 */
 	void setMode(EnumSet<Mode> mode);
+	
+	/**
+	 * Some modules could support certain properties to be set at runtime
+	 * Depends on the module implementation
+	 * @param key
+	 * @param val
+	 */
+	void setProperty(String key, Object val);
 }

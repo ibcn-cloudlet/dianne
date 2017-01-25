@@ -30,7 +30,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 public class DropPath extends AbstractModule {
 
-	private final float p;
+	private float p;
 	private final Random r = new Random(System.currentTimeMillis());
 	
 	private boolean drop = false;
@@ -81,4 +81,12 @@ public class DropPath extends AbstractModule {
 		}
 	}
 
+	@Override
+	public void setProperty(String key, Object val){
+		if(key.equals("rate")){
+			p = Float.parseFloat(val.toString());
+		} else {
+			super.setProperty(key, val);
+		}
+	}
 }
