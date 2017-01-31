@@ -224,6 +224,10 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 	public void configure(Map<String, String> config) {
 		this.config = DianneConfigHandler.getConfig(config, FetchCanConfig.class);
 		
+		if(this.config.seed != 0){
+			r = new Random(this.config.seed);
+		}
+		
 		// configure the simulated environment
 		if(simulator != null){
 			Map<String, String> entities = new HashMap<String, String>();
