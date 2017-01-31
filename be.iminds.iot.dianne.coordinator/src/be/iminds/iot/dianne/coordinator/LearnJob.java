@@ -118,7 +118,7 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 						master = target;
 						validationNns = new NeuralNetworkInstanceDTO[nns.length];
 						for(int i=0;i<nns.length;i++){
-							validationNns[i] = coordinator.platform.deployNeuralNetwork(nns[i].name, "Dianne Coordinator LearnJob Validaton NN"+jobId, target);
+							validationNns[i] = coordinator.platform.deployNeuralNetwork(nns[i].name, "Dianne Coordinator LearnJob Validaton NN"+jobId, super.config, target);
 						}
 						break;
 					} catch(Throwable c){

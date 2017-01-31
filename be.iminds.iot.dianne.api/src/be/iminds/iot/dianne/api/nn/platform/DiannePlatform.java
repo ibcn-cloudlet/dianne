@@ -48,9 +48,13 @@ public interface DiannePlatform {
 	 * @throws InstantiationException
 	 */
 	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String... tags) throws InstantiationException;
+	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, Map<String, String> properties, String... tags) throws InstantiationException;
 	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description, String... tags) throws InstantiationException;
+	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description, Map<String, String> properties, String... tags) throws InstantiationException;
+
 	NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, String... tags) throws InstantiationException;
 	NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, String description, String... tags) throws InstantiationException;
+
 
 	
 	/**
@@ -63,10 +67,14 @@ public interface DiannePlatform {
 	 * @throws InstantiationException thrown when failed to deploy all neural network modules
 	 */
 	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, UUID runtimeId, String... tags) throws InstantiationException;
+	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, Map<String, String> properties, UUID runtimeId, String... tags) throws InstantiationException;
 	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description, UUID runtimeId, String... tags) throws InstantiationException;
+	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description, Map<String, String> properties, UUID runtimeId, String... tags) throws InstantiationException;
+	
 	NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, UUID runtimeId, String... tags) throws InstantiationException;
 	NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, String description, UUID runtimeId, String... tags) throws InstantiationException;
 
+	
 	
 	/**
 	 * Deploy an instance of a neural network on a given set of runtimes
@@ -79,7 +87,10 @@ public interface DiannePlatform {
 	 * @throws InstantiationException thrown when failed to deploy all neural network modules
 	 */
 	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, UUID runtimeId, Map<UUID, UUID> deployment, String... tags) throws InstantiationException;
+	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, Map<String, String> properties, UUID runtimeId, Map<UUID, UUID> deployment, String... tags) throws InstantiationException;
 	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description, UUID runtimeId, Map<UUID, UUID> deployment, String... tags) throws InstantiationException;
+	NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description, Map<String, String> properties, UUID runtimeId, Map<UUID, UUID> deployment, String... tags) throws InstantiationException;
+
 	NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, UUID runtimeId, Map<UUID, UUID> deployment, String... tags) throws InstantiationException;
 	NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, String description, UUID runtimeId, Map<UUID, UUID> deployment, String... tags) throws InstantiationException;
 

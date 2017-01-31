@@ -75,36 +75,71 @@ public class DiannePlatformImpl implements DiannePlatform {
 	@Override
 	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String... tags)
 			throws InstantiationException {
-		return deployNeuralNetwork(name, null, null, new HashMap<UUID, UUID>(), tags);
+		return deployNeuralNetwork(name, null, null, null, new HashMap<UUID, UUID>(), tags);
+	}
+	
+	@Override
+	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name, Map<String, String> properties, String... tags)
+			throws InstantiationException {
+		return deployNeuralNetwork(name, null, properties, null, new HashMap<UUID, UUID>(), tags);
 	}
 	
 	@Override
 	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description, String... tags)
 			throws InstantiationException {
-		return deployNeuralNetwork(name, description, null, new HashMap<UUID, UUID>(), tags);
+		return deployNeuralNetwork(name, description, null, null, new HashMap<UUID, UUID>(), tags);
 	}
 	
+	@Override
+	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description, Map<String, String> properties,
+			String... tags) throws InstantiationException {
+		return deployNeuralNetwork(name, description, properties, null, new HashMap<UUID, UUID>(), tags);
+	}
+
 	@Override
 	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name, 
 			UUID runtimeId, String... tags) throws InstantiationException {
-		return deployNeuralNetwork(name, null, runtimeId, new HashMap<UUID, UUID>(), tags);
+		return deployNeuralNetwork(name, null, null, runtimeId, new HashMap<UUID, UUID>(), tags);
 	}
-	
+
 	@Override
-	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description,
+	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name, Map<String, String> properties,
 			UUID runtimeId, String... tags) throws InstantiationException {
-		return deployNeuralNetwork(name, description, runtimeId, new HashMap<UUID, UUID>(), tags);
-	}
-
-
-	@Override
-	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name,
-			UUID runtimeId,  Map<UUID, UUID> deployment, String... tags) throws InstantiationException {
-		return deployNeuralNetwork(name, null, runtimeId, deployment);
+		return deployNeuralNetwork(name, null, properties, runtimeId, new HashMap<UUID, UUID>(), tags);
 	}
 	
 	@Override
 	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description,
+			UUID runtimeId, Map<UUID, UUID> deployment, String... tags) throws InstantiationException {
+		return deployNeuralNetwork(name, description, null, runtimeId, deployment, tags);
+	}
+
+	@Override
+	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description, UUID runtimeId, String... tags)
+			throws InstantiationException {
+		return deployNeuralNetwork(name, description, null, runtimeId, new HashMap<UUID, UUID>(), tags);
+	}
+
+	@Override
+	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description, Map<String, String> properties,
+			UUID runtimeId, String... tags) throws InstantiationException {
+		return deployNeuralNetwork(name, description, properties, runtimeId, new HashMap<UUID, UUID>(), tags);
+	}
+
+	@Override
+	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name, UUID runtimeId, Map<UUID, UUID> deployment,
+			String... tags) throws InstantiationException {
+		return deployNeuralNetwork(name, null, null, runtimeId, deployment, tags);
+	}
+
+	@Override
+	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name, Map<String, String> properties, UUID runtimeId,
+			Map<UUID, UUID> deployment, String... tags) throws InstantiationException {
+		return deployNeuralNetwork(name, null, properties, runtimeId, deployment, tags);
+	}
+	
+	@Override
+	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description, Map<String, String> properties,
 			UUID runtimeId, Map<UUID, UUID> deployment, String... tags) throws InstantiationException {
 		
 		NeuralNetworkDTO neuralNetwork = null;
@@ -118,6 +153,8 @@ public class DiannePlatformImpl implements DiannePlatform {
 		
 		Map<UUID, ModuleInstanceDTO> moduleInstances = new HashMap<UUID, ModuleInstanceDTO>();
 		for(ModuleDTO module : neuralNetwork.modules.values()){
+			mergeProperties(module, properties);
+			
 			UUID targetRuntime = deployment.get(module.id);
 			if(targetRuntime==null){
 				if(runtimeId == null){
@@ -146,6 +183,7 @@ public class DiannePlatformImpl implements DiannePlatform {
 		return nni;
 	}
 	
+	
 	@Override
 	public NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, String... tags)
 			throws InstantiationException {
@@ -164,7 +202,7 @@ public class DiannePlatformImpl implements DiannePlatform {
 	public NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn, 
 			UUID runtimeId, String... tags) throws InstantiationException {
 		repository.storeNeuralNetwork(nn);
-		return deployNeuralNetwork(nn.name, null, runtimeId, new HashMap<UUID, UUID>(), tags);
+		return deployNeuralNetwork(nn.name, (String)null, runtimeId, new HashMap<UUID, UUID>(), tags);
 	}
 	
 	@Override
@@ -179,7 +217,7 @@ public class DiannePlatformImpl implements DiannePlatform {
 	public NeuralNetworkInstanceDTO deployNeuralNetwork(NeuralNetworkDTO nn,
 			UUID runtimeId,  Map<UUID, UUID> deployment, String... tags) throws InstantiationException {
 		repository.storeNeuralNetwork(nn);
-		return deployNeuralNetwork(nn.name, null, runtimeId, deployment, tags);
+		return deployNeuralNetwork(nn.name, (String)null, runtimeId, deployment, tags);
 	}
 	
 	@Override
@@ -411,4 +449,25 @@ public class DiannePlatformImpl implements DiannePlatform {
 		}
 	}
 
+	private void mergeProperties(ModuleDTO module, Map<String, String> properties){
+		if(properties == null)
+			return;
+		
+		properties.entrySet().stream()
+			.forEach(e -> {
+				int index = e.getKey().indexOf('.');
+				if(index < 0 )
+					return;
+				
+				// scan for property keys of the form   some-id.some-key
+				String id = e.getKey().substring(0, index);
+				String key = e.getKey().substring(index+1);
+				
+				if(module.id.toString().equals(id)
+					|| id.equals(module.properties.get("name"))
+					|| id.equals(module.type)){
+					module.properties.put(key, e.getValue());
+				}
+			});
+	}
 }
