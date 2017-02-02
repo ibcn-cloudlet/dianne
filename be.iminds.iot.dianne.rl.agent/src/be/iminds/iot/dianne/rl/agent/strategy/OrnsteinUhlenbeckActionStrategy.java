@@ -83,9 +83,6 @@ public class OrnsteinUhlenbeckActionStrategy implements ActionStrategy {
 			this.theta.fill(this.config.theta[0]);
 			warning += "theta, ";
 		}
-		System.out.println("mu: " + mu.toString());
-		System.out.println("sigma: " + sigma.toString());
-		System.out.println("theta: " + theta.toString());
 		
 		if (!warning.isEmpty()) {
 			System.err.println(OrnsteinUhlenbeckActionStrategy.class.getName() + ": the config variables [" + warning + "] mismatched with the action space size. Using the first value for all actions.");
