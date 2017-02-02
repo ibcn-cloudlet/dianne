@@ -942,3 +942,16 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_frame
 
 	return res == NULL ? createTensorObject(env, r) : res;
 }
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_clamp
+  (JNIEnv * env, jclass clazz, jobject res, jobject tensor, jfloat minval, jfloat maxval){
+	THTensor* r = getTensor(env, res);
+	THTensor* t = getTensor(env, tensor);
+	THTensor_(clamp)(
+#ifdef CUDA
+			state,
+#endif
+			r, t, minval, maxval);
+	return res == NULL ? createTensorObject(env, r) : res;
+}
+

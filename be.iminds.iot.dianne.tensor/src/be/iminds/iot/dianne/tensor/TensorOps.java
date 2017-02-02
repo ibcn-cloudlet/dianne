@@ -240,5 +240,15 @@ public class TensorOps {
 	 */
 	public static native Tensor frame(Tensor res, final Tensor t, final int... dims);
 	
+	/**
+	 * Clamp all elements in the Tensor into the range [minvalue, maxvalue].
+	 * @param res result tensor or null to create a new tensor.
+	 * @param tensor tensor to clamp
+	 * @param minvalue the minimum value allowed in tensor
+	 * @param minvalue the maximum value allowed in tensor
+	 * @return resulting tensor
+	 */
+	public static native Tensor clamp(Tensor res, final Tensor tensor, final float minvalue, final float maxvalue);
+	
 }
 
