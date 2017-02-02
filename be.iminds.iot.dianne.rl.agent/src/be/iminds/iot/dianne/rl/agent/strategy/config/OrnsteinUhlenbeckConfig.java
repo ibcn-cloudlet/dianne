@@ -52,15 +52,15 @@ public class OrnsteinUhlenbeckConfig {
 	/**
 	 * 
 	 */
-	public float theta = 0.15f;
+	public float[] theta = {0.15f};
 	
 	/**
 	 * 
 	 */
-	public float mu = 0.f;
+	public float[] mu = {0.00f};
 	
 	/**
 	 * 
 	 */
-	public float sigma = 0.3f;
+	public float[] sigma = {0.30f};
 }

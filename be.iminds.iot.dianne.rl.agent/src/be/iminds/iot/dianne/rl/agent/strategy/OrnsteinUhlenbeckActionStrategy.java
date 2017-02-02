@@ -45,13 +45,53 @@ public class OrnsteinUhlenbeckActionStrategy implements ActionStrategy {
 	
 	private Tensor noise;
 	private Tensor deltaNoise;
+	
+	private Tensor mu;
+	private Tensor sigma;
+	private Tensor theta;
+	private Tensor theta_mu;
 
 	@Override
 	public void setup(Map<String, String> config, Environment env, NeuralNetwork... nns) throws Exception {
 		this.policy = nns[0];
 		this.config = DianneConfigHandler.getConfig(config, OrnsteinUhlenbeckConfig.class);
+		
 		this.noise = new Tensor(env.actionDims());
 		this.deltaNoise = new Tensor(env.actionDims());
+		
+		String warning = "";
+		if (this.config.mu.length == this.noise.size()) {
+			this.mu = new Tensor(this.config.mu, env.actionDims());
+		} else {
+			this.mu = new Tensor(env.actionDims());
+			this.mu.fill(this.config.mu[0]);
+			warning += "mu, ";
+		}
+		
+		if (this.config.sigma.length == this.noise.size()) {
+			this.sigma = new Tensor(this.config.sigma, env.actionDims());
+		} else {
+			this.sigma = new Tensor(env.actionDims());
+			this.sigma.fill(this.config.sigma[0]);
+			warning += "sigma, ";
+		}
+		
+		if (this.config.theta.length == this.noise.size()) {
+			this.theta = new Tensor(this.config.theta, env.actionDims());
+		} else {
+			this.theta = new Tensor(env.actionDims());
+			this.theta.fill(this.config.theta[0]);
+			warning += "theta, ";
+		}
+		System.out.println("mu: " + mu.toString());
+		System.out.println("sigma: " + sigma.toString());
+		System.out.println("theta: " + theta.toString());
+		
+		if (!warning.isEmpty()) {
+			System.err.println(OrnsteinUhlenbeckActionStrategy.class.getName() + ": the config variables [" + warning + "] mismatched with the action space size. Using the first value for all actions.");
+		}
+		
+		this.theta_mu = TensorOps.cmul(this.theta_mu, this.theta, this.mu);
 	}
 
 	@Override
@@ -59,28 +99,22 @@ public class OrnsteinUhlenbeckActionStrategy implements ActionStrategy {
 		Tensor action = policy.forward(state);
 		
 		if(i == 0)
-			noise.fill(config.mu);
+			mu.copyInto(noise);
 
-		// TODO: different config parameters for each action
+		// noise += ( theta *  mu - theta * noise + sigma * N(0,1) )
 		// Solve using Euler-Maruyama method
 		deltaNoise.randn();
-		TensorOps.mul(deltaNoise, deltaNoise, config.sigma);
-		TensorOps.add(deltaNoise, deltaNoise, -config.theta, noise);
-		TensorOps.add(deltaNoise, deltaNoise, config.theta*config.mu);
+		TensorOps.cmul(deltaNoise, deltaNoise, sigma);
+		TensorOps.addcmul(deltaNoise, deltaNoise, -1, theta, noise);
+		TensorOps.add(deltaNoise, deltaNoise, theta_mu);
 		TensorOps.add(noise, noise, deltaNoise);
 		
 		// Decay epsilon
 		double eps = config.noiseMin + (config.noiseMax - config.noiseMin) * Math.exp(-s * config.noiseDecay);
 		TensorOps.add(action, action, (float) eps, noise);
 		
-		for(int a = 0; a < action.size(); a++) {
-			float v = action.get(a);
-			if(v < config.minValue)
-				action.set(config.minValue, a);
-			else if(v > config.maxValue)
-				action.set(config.maxValue, a);
-		}
-		return action;
+		// clip action [config.minValue, config.maxValue]
+		return TensorOps.clamp(action, action, config.minValue, config.maxValue);
 	}
 
 }
