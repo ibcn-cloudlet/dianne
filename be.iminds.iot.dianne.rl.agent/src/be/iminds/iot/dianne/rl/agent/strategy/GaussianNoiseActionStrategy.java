@@ -56,13 +56,7 @@ public class GaussianNoiseActionStrategy implements ActionStrategy {
 		
 		TensorOps.add(action, action, (float) stdev, noise);
 		
-		for(int a = 0; a < action.size(); a++) {
-			float v = action.get(a);
-			if(v < config.minValue)
-				action.set(config.minValue, a);
-			else if(v > config.maxValue)
-				action.set(config.maxValue, a);
-		}
+		TensorOps.clamp(action, action, config.minValue, config.maxValue);
 		
 		return action;
 	}

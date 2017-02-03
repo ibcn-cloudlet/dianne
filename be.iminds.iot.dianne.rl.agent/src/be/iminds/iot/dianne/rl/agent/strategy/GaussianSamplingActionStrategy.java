@@ -39,13 +39,7 @@ public class GaussianSamplingActionStrategy implements ActionStrategy {
 		TensorOps.cmul(action, action, stdevs);
 		TensorOps.add(action, action, means);
 		
-		for(int a = 0; a < action.size(); a++) {
-			float v = action.get(a);
-			if(v < config.minValue)
-				action.set(config.minValue, a);
-			else if(v > config.maxValue)
-				action.set(config.maxValue, a);
-		}
+		TensorOps.clamp(action, action, config.minValue, config.maxValue);
 		
 		return action;
 	}
