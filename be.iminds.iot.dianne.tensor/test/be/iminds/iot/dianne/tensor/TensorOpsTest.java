@@ -570,4 +570,18 @@ public class TensorOpsTest {
 		
 		Assert.assertEquals(exp, r);
 	}
+	
+	@Test
+	public void testClamp3() {
+		Tensor exp = new Tensor(2,2);
+				
+		Tensor t1 = new Tensor(2,2);
+		t1.fill(Float.POSITIVE_INFINITY);
+		TensorOps.clamp(t1, t1, -2.0f, -1.0f);
+		exp.fill(-1.0f);
+		Assert.assertEquals(exp, t1);
+
+		TensorOps.clamp(t1, t1, Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY);
+		Assert.assertEquals(exp, t1);
+	}
 }
