@@ -1060,7 +1060,8 @@ function resetCanvas(){
 	// empty canvas - keep alerts and name div
 	var name = $('#canvas #name').detach();
 	var alerts = $('#canvas #alerts').detach();
-	$('#canvas').empty().append(name).append(alerts);
+	jsPlumb.empty("canvas");
+	$('#canvas').append(name).append(alerts);
 	learning = {};
 	running = {};
 }
