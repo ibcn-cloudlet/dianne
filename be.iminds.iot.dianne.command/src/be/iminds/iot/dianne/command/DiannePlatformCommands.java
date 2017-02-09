@@ -46,6 +46,7 @@ import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.api.repository.RepositoryListener;
+import be.iminds.iot.dianne.tensor.Tensor;
 
 @Component(
 		service=Object.class,
@@ -57,6 +58,7 @@ import be.iminds.iot.dianne.api.repository.RepositoryListener;
 				  "osgi.command.function=models",
 				  "osgi.command.function=deploy",
 				  "osgi.command.function=undeploy",
+				  "osgi.command.function=size",
 				  "osgi.command.function=gc"},
 		immediate=true)
 public class DiannePlatformCommands {
@@ -271,6 +273,44 @@ public class DiannePlatformCommands {
 		ServiceRegistration<RepositoryListener> r = repoListeners.get(nn.id);
 		if(r!=null){
 			r.unregister();
+		}
+	}
+	
+	@Descriptor("Print size of a neural network.")
+	public void size(
+			@Descriptor("uuid of the neural network instance")
+			String nnId){
+		NeuralNetworkInstanceDTO nn = platform.getNeuralNetworkInstance(UUID.fromString(nnId));
+		if(nn==null){
+			System.out.println("No neural network deployed with id "+nnId);
+			return;
+		}
+		size(nn);
+	}
+	
+	@Descriptor("Print size of a neural network.")
+	public void size(
+			@Descriptor("index of the neural network instance (from the list command output)")
+			int index){
+		List<NeuralNetworkInstanceDTO> nns = platform.getNeuralNetworkInstances();
+		if(index >= nns.size()){
+			System.out.println("No neural network with index "+index);
+			return;
+		}
+		NeuralNetworkInstanceDTO nn = nns.get(index);
+		size(nn);
+	}
+	
+	private void size(NeuralNetworkInstanceDTO nni){
+		NeuralNetwork nn = null;
+		try {
+			nn = dianne.getNeuralNetwork(nni).getValue();
+		} catch (Exception e) {
+		}
+		if(nn!=null){
+			Map<UUID, Tensor> params = nn.getParameters();
+			int size = params.values().stream().mapToInt(t -> t.size()).sum();
+			System.out.println("Size: "+size);
 		}
 	}
 	
