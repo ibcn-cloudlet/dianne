@@ -229,8 +229,7 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 			}
 
 			// TODO how frequently send out the progress
-			if(progress.iteration % 1000 == 0)
-				coordinator.sendLearnProgress(this.jobId, progress, validation);
+			coordinator.sendLearnProgress(this.jobId, progress, validation);
 			
 			// maxIterations stop condition
 			// what in case of multiple learners?!

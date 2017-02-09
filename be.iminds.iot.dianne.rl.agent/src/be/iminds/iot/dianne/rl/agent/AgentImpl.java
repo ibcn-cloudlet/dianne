@@ -380,11 +380,13 @@ public class AgentImpl implements Agent {
 					// if this is a terminal state - reset environment and start over
 					// TODO what with infinite horizon environments?
 					if(s.isTerminal()){
-						publishProgress(progress);
 						
 						// trace agent per sequence
-						if(config.trace && seq % config.traceInterval == 0){
-							System.out.println(progress);
+						if(seq % config.traceInterval == 0){
+							if(config.trace)
+								System.out.println(progress);
+							
+							publishProgress(progress);
 						}
 						
 						seq++;

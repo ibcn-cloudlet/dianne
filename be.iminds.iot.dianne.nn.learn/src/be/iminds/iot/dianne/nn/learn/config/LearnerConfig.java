@@ -47,7 +47,7 @@ public class LearnerConfig {
 	public boolean trace = false;
 	
 	/**
-	 * Interval to output intermediate results to the console
+	 * Interval to publish intermediate results
 	 */
 	public int traceInterval = 1000;
 	

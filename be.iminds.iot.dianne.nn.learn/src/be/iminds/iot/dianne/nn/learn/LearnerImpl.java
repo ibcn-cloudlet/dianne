@@ -201,8 +201,12 @@ public class LearnerImpl implements Learner {
 							throw new Exception("Learner error became NaN");
 						}
 						
-						if(this.config.trace && i % this.config.traceInterval == 0)
-							System.out.println(progress);
+						if(i % this.config.traceInterval == 0){
+							if(this.config.trace)
+								System.out.println(progress);
+							
+							publishProgress(progress);
+						}
 						
 						// Publish parameters to repository
 						for(int k=0;k<nns.length;k++){
@@ -211,9 +215,6 @@ public class LearnerImpl implements Learner {
 								publishParameters(nns[k]);
 							}
 						}
-						
-						// Publish progress
-						publishProgress(progress);
 						
 						// Store intermediate parameters
 						for(int k=0;k<nns.length;k++){
