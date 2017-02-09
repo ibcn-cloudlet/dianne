@@ -297,6 +297,7 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 			} else if(method.equals("stop")) {
 				try {
 					coordinator.stop(jobId);
+					writeResult(writer, id, "Job "+jobId+" stopped");
 				} catch(Exception e){
 					writeError(writer, id, -32603, "Error stopping job: "+e.getMessage());
 				}
@@ -373,7 +374,8 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 		}
 		// end result object
 		writer.endObject();
-		writer.flush();			
+		writer.flush();		
+		System.out.println("WRITE RESULT!");
 	}
 	
 	private Tensor asTensor(JsonArray array){
