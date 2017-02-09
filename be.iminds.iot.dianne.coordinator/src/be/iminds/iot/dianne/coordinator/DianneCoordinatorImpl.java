@@ -534,15 +534,11 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 				targets = findTargets(type, agents.keySet(), filter, count, forceFree);
 			}
 		} catch(Exception e){
-			
+			// impossible to find targets (i.e. not enough workers (yet)) ... try to schedule next and add this one to back of queue
 			job = queue.poll();
-			job.deferred.fail(e);
-			
-			sendNotification(job.jobId, Level.DANGER, "Job \""+job.name+"\" failed to start: "+e.getMessage());
-		}
-		
-		if(targets==null){
-			// what if no targets found? try next one or just keep on waiting?
+			sendNotification(job.jobId, Level.WARNING, "Job \""+job.name+"\" failed to start: "+e.getMessage());
+			schedule(type);
+			queue.add(job);
 			return;
 		}
 			
@@ -607,7 +603,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		}
 
 		if(targets.size() != count){
-			return null;
+			throw new Exception("Not enough free targets for this Job");
 		}
 		
 		return targets;
