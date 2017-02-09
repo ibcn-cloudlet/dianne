@@ -187,18 +187,31 @@ function createRewardChart(container, scale, rewardseries){
 
 // generic line chart
 function createLineChart(container, xAxis, yAxis, scale, series) {
-	console.log("WIDTH! "+container.width());
 	if(scale === undefined){
 		scale = 1;
 	}
+
+	// adjust chart width and height to dialog
+	var w = 500*scale;
+	var h = 250*scale;
+	
+	var maxW = $('.modal-dialog').width()+10;
+	if(maxW == 10){
+		maxW = $('#dashboard').width()+20;
+	}
+	
+	while(w > maxW){
+		w = w/2;
+		h = h/2;
+	}
+	
     container.highcharts({
         chart: {
             type: 'line',
-            defaultSeriesType: 'line',
             animation: false, // don't animate in old IE
             marginRight: 10,
-    		height: 250*scale,
-    		width: 500*scale
+    		height: h,
+    		width: w
         },
         title : {
         	text: null
