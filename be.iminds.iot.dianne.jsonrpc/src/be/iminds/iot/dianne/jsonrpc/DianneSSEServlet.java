@@ -102,6 +102,10 @@ public class DianneSSEServlet extends HttpServlet implements EventHandler {
 			if(event.containsProperty("sequence")){
 				data.add("sequence", new JsonPrimitive((Long)event.getProperty("sequence")));
 			}
+			
+			if(event.containsProperty("worker")){
+				data.add("worker", new JsonPrimitive((Integer)event.getProperty("worker")));
+			}
 		} else {
 			// notification
 			if(event.containsProperty("jobId"))

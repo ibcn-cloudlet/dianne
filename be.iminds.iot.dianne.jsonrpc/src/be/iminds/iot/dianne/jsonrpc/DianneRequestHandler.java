@@ -375,7 +375,6 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 		// end result object
 		writer.endObject();
 		writer.flush();		
-		System.out.println("WRITE RESULT!");
 	}
 	
 	private Tensor asTensor(JsonArray array){

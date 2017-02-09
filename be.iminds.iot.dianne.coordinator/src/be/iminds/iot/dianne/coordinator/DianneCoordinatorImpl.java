@@ -644,11 +644,12 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		ea.postEvent(e);
 	}
 	
-	void sendActProgress(UUID jobId, AgentProgress progress){
+	void sendActProgress(UUID jobId, int worker, AgentProgress progress){
 		Map<String, Object> properties = new HashMap<>();
 		properties.put("jobId", jobId.toString());
 		properties.put("sequence", progress.sequence);
 		properties.put("reward", progress.reward);
+		properties.put("worker", worker);
 		
 		String topic = "dianne/jobs/"+jobId.toString()+"/progress";
 		Event e = new Event(topic, properties);
