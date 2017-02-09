@@ -113,7 +113,7 @@ public class ExperiencePoolSample extends Sample {
 		other.input = input.copyInto(other.input);
 		other.target = target.copyInto(other.target);
 		other.reward = reward.copyInto(other.reward);
-		other.nextState = nextState.copyInto(other.nextState);
+		other.nextState = nextState == null ? null : nextState.copyInto(other.nextState);
 		other.terminal = terminal.copyInto(other.terminal);
 		return other;
 	}
