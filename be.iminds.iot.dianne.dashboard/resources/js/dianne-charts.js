@@ -214,7 +214,9 @@ function createLineChart(container, xAxis, yAxis, scale, title, data, title2, da
                 value: 0,
                 width: 1,
                 color: '#808080'
-            }]
+            }],
+            softMin: 0,
+            softMax: 0
         },
         legend: {
             enabled: false
