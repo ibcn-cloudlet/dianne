@@ -34,22 +34,33 @@ function keyPressed(e) {
 		toggleConsole();
 	} else if(e.code === "Enter" || e.code === "NumpadEnter"){
 		// enter
-		var command = $('#console-input').text();
-		commands.push(command);
-		index = commands.length;
-		var output = $('#console-output').html();
-		output += "<br/>"+consolePrefix+command;
-		$('#console-output').html(output);
-		$('#console').scrollTop($('#console')[0].scrollHeight);
+		var input = $('#console-input').html();
+		var cmds = input.split("<br>");
 		
-		$.post("/dianne/console", {'command':command}, 
-				function( data ) {
-					var output = $('#console-output').html();
-					output += "<br/>"+data;
-					$('#console-output').html(output.replace(new RegExp('\r?\n','g'), '<br />'));
-					$('#console').scrollTop($('#console')[0].scrollHeight);
-				}
-				, "text");
+		for (var i = 0; i < cmds.length; i++) {
+			var command = cmds[i];
+			
+			if(command.length === 0 || command.startsWith("#")){
+				continue;
+			}
+			
+			// process command
+			commands.push(command);
+			index = commands.length;
+			var output = $('#console-output').html();
+			output += "<br/>"+consolePrefix+command;
+			$('#console-output').html(output);
+			$('#console').scrollTop($('#console')[0].scrollHeight);
+			
+			$.post("/dianne/console", {'command':command}, 
+					function( data ) {
+						var output = $('#console-output').html();
+						output += "<br/>"+data;
+						$('#console-output').html(output.replace(new RegExp('\r?\n','g'), '<br>'));
+						$('#console').scrollTop($('#console')[0].scrollHeight);
+					}
+					, "text");
+		}
 		
 		$('#console-input').text("");
 		$('#console-input').focus();
