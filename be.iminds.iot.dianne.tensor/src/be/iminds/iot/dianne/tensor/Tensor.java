@@ -248,6 +248,9 @@ public class Tensor {
 		} else {
 			b.append(Arrays.toString(data));
 		}
+		b.append(" Min: ").append(TensorOps.min(this))
+		.append(" Mean: ").append(TensorOps.mean(this))
+		.append(" Max: ").append(TensorOps.max(this));
 		
 		return b.toString();
 	}
