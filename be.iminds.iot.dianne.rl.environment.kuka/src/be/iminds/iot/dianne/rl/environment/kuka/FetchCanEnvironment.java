@@ -42,7 +42,8 @@ import be.iminds.iot.robot.api.Arm;
 				 "osgi.command.function=stop",
 				 "osgi.command.function=pause",
 				 "osgi.command.function=resume",
-				 "osgi.command.function=reward"})
+				 "osgi.command.function=reward",
+				 "osgi.command.function=resetCan"})
 public class FetchCanEnvironment extends AbstractFetchCanEnvironment {
 	
 	public static final String NAME = "FetchCan";

@@ -148,49 +148,11 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 		count = 0;
 		
 		// in simulation we can control the position of the youbot and can
-		float x,y,o;
-		
 		// random init position and orientation of the robot
-		Position p = simulator.getPosition("youBot");
-		
-		if(config.difficulty <= 1){
-			x = 0;
-			y = 0;
-			o = 0;
-		} else {
-			x = (r.nextFloat()-0.5f);
-			y = (r.nextFloat()-0.5f)*1.8f;
-			o = (r.nextFloat()-0.5f)*6.28f;
-		}
-		// somehow two times setPosition was required to actually get the position set
-		// TODO check in VREP simulator source?
-		simulator.setPosition("youBot", new Position(x, y, p.z));
-		simulator.setPosition("youBot", new Position(x, y, p.z));
-		simulator.setOrientation("youBot", new Orientation(-1.5707963f, o, -1.5707965f));
+		resetYoubot();
 		
 		// set random can position
-		float s = 0;
-		while(s < 0.15f) { // can should not be colliding with youbot from start
-			p = simulator.getPosition("Can1");
-			
-			if(config.difficulty == 0){
-				x = 0;
-			} else {
-				x = (r.nextFloat()-0.5f)*1.6f;
-			}
-			
-			if(config.difficulty <= 1){
-				y = (0.125f + 3*r.nextFloat()/8f)*2.4f;
-			} else {
-				y = (r.nextFloat()-0.5f)*2.4f;
-			}
-			
-			simulator.setPosition("Can1", new Position(x, y, 0.06f));
-			simulator.setOrientation("Can1", new Orientation(0, 0 ,1.6230719f));
-			
-			Position d = simulator.getPosition("Can1", "youBot");
-			s = d.y*d.y+d.z*d.z;
-		} 
+		resetCan();
 		
 		simulator.start(config.tick);
 		
@@ -217,6 +179,52 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 		
 		// calculate reward here to initialize previousDistance
 		calculateReward();
+	}
+	
+	public void resetYoubot(){
+		float x,y,o;
+		Position p = simulator.getPosition("youBot");
+		
+		if(config.difficulty <= 1){
+			x = 0;
+			y = 0;
+			o = 0;
+		} else {
+			x = (r.nextFloat()-0.5f);
+			y = (r.nextFloat()-0.5f)*1.8f;
+			o = (r.nextFloat()-0.5f)*6.28f;
+		}
+		// somehow two times setPosition was required to actually get the position set
+		// TODO check in VREP simulator source?
+		simulator.setPosition("youBot", new Position(x, y, p.z));
+		simulator.setPosition("youBot", new Position(x, y, p.z));
+		simulator.setOrientation("youBot", new Orientation(-1.5707963f, o, -1.5707965f));
+	}
+	
+	public void resetCan(){
+		float x,y;
+		
+		// set random can position
+		float s = 0;
+		while(s < 0.15f) { // can should not be colliding with youbot from start
+			if(config.difficulty == 0){
+				x = 0;
+			} else {
+				x = (r.nextFloat()-0.5f)*1.6f;
+			}
+			
+			if(config.difficulty <= 1){
+				y = (0.125f + 3*r.nextFloat()/8f)*2.4f;
+			} else {
+				y = (r.nextFloat()-0.5f)*2.4f;
+			}
+
+			simulator.setOrientation("Can1", new Orientation(0, 0 ,1.6230719f));
+			simulator.setPosition("Can1", new Position(x, y, 0.06f));
+			
+			Position d = simulator.getPosition("Can1", "youBot");
+			s = d.y*d.y+d.z*d.z;
+		} 
 	}
 	
 	
