@@ -34,10 +34,12 @@ import org.osgi.service.component.annotations.Component;
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
+import be.iminds.iot.dianne.api.nn.module.dto.ModulePropertyDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleTypeDTO;
 import be.iminds.iot.dianne.api.nn.module.factory.ModuleFactory;
 import be.iminds.iot.dianne.api.nn.module.factory.ModuleTypeNotSupportedException;
 import be.iminds.iot.dianne.rl.module.DuelJoin;
+import be.iminds.iot.dianne.rl.module.NormalizedAdvantageFunction;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 @Component(property={"aiolos.export=false"})
@@ -50,6 +52,8 @@ public class RLModuleFactory implements ModuleFactory {
 		// build list of supported modules
 		// TODO use reflection for this?
 		addSupportedType( new ModuleTypeDTO("DuelJoin", "Join", false));
+		addSupportedType(new ModuleTypeDTO("NormalizedAdvantageFunction", "Activation", false,
+				new ModulePropertyDTO("Action dimensions", "actionDims", Integer.class.getName())));
 	}
 	
 	
@@ -74,6 +78,11 @@ public class RLModuleFactory implements ModuleFactory {
 		case "DuelJoin":
 		{
 			module = new DuelJoin(id);
+			break;
+		}
+		case "NormalizedAdvantageFunction":
+		{
+			module = new NormalizedAdvantageFunction(id, Integer.parseInt(dto.properties.get("actionDims")));
 			break;
 		}
 		default:
