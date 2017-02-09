@@ -139,7 +139,7 @@ public class DianneCoordinatorWriter {
 		// TODO for now select one learners minibatch loss as progress?
 		if(result.progress.size() > 0){
 			List<LearnProgress> select = result.progress.values().iterator().next();
-			int step = 1000;
+			int step = 1;
 			if(limit > 0 && select.size()/step > limit){
 				step = select.size()/step*limit+1;
 			}
