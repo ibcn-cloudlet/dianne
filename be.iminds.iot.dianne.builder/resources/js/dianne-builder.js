@@ -516,11 +516,14 @@ function setupModule(moduleItem, type, category){
 	} else if(category==="RNN"){ 
 		jsPlumb.addEndpoint(moduleItem, sourceStyle, {anchor: "Left",endpoint:"Rectangle"});
 		jsPlumb.addEndpoint(moduleItem, targetStyle, {anchor: "Right",endpoint:"Rectangle"});
-	} else if(category==="Fork" || category==="Variational") {
+	} else if(category==="Fork") {
 		jsPlumb.addEndpoint(moduleItem, sourceStyle, {anchor: "Right",maxConnections:-1});
 		jsPlumb.addEndpoint(moduleItem, targetStyle, {anchor: "Left"});
-	} else if(category==="Join" || category==="Variational") {
+	} else if(category==="Join") {
 		jsPlumb.addEndpoint(moduleItem, sourceStyle, {anchor: "Right"});
+		jsPlumb.addEndpoint(moduleItem, targetStyle, {anchor: "Left", maxConnections:-1});
+	} else if(category==="Variational" || type==="NormalizedAdvantageFunction") {
+		jsPlumb.addEndpoint(moduleItem, sourceStyle, {anchor: "Right",maxConnections:-1});
 		jsPlumb.addEndpoint(moduleItem, targetStyle, {anchor: "Left", maxConnections:-1});
 	} else {
 		jsPlumb.addEndpoint(moduleItem, sourceStyle, {anchor: "Right"});
