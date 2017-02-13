@@ -163,9 +163,10 @@ public class LearnerImpl implements Learner {
 
 			// Initialize NN parameters
 			if(this.config.initTag != null){
-				// load parameters from init tag
+				// load parameters from init tag and store as tag
 				for(NeuralNetwork nn : nns){
 					loadParameters(nn, this.config.initTag);
+					nn.storeParameters(this.config.tag);
 				}
 			}
 			
@@ -323,11 +324,7 @@ public class LearnerImpl implements Learner {
 			if(config.clean){
 				// if clean, randomize parameters
 				resetParameters(nn);
-			} else {
-				// if switching tag, store under new tag
-				nn.storeParameters(config.tag);
 			}
-			
 		} catch(Exception e){
 			System.out.println("Failed to load parameters "+config.tag+", fill with random parameters");
 			resetParameters(nn);
@@ -386,7 +383,7 @@ public class LearnerImpl implements Learner {
 			}
 			
 			// store and update previous again
-			nn.storeParameters(config.tag);
+			nn.storeParameters(tag);
 			previousParameters.put(nn.getId(), nn.getParameters().entrySet().stream().collect(
 					Collectors.toMap(e -> e.getKey(), e -> e.getValue().copyInto(null))));
 		}
