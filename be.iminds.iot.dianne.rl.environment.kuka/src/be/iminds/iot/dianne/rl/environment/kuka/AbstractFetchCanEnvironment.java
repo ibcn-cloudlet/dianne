@@ -183,7 +183,6 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 	
 	public void resetYoubot(){
 		float x,y,o;
-		Position p = simulator.getPosition("youBot");
 		
 		if(config.difficulty <= 1){
 			x = 0;
@@ -194,7 +193,7 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 			y = (r.nextFloat()-0.5f)*1.8f;
 			o = (r.nextFloat()-0.5f)*6.28f;
 		}
-		simulator.setPosition("youBot", new Position(x, y, p.z));
+		simulator.setPosition("youBot", new Position(x, y, 0.0957f));
 		simulator.setOrientation("youBot", new Orientation(-1.5707963f, o, -1.5707965f));
 	}
 	
