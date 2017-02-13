@@ -202,13 +202,16 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 		
 		// set random can position
 		float s = 0;
-		while(s < 0.15f) { // can should not be colliding with youbot from start
-			if(config.difficulty == 0){
+		while(s < 0.15f) { // can should not be colliding with youbot from start	
+			if(config.difficulty <= 0){
 				x = 0;
 			} else {
 				x = (r.nextFloat()-0.5f)*1.6f;
 			}
 			
+			if(config.difficulty < 0) {
+				y = MAX_DISTANCE/3;
+			} else
 			if(config.difficulty <= 1){
 				y = (0.125f + 3*r.nextFloat()/8f)*2.4f;
 			} else {
