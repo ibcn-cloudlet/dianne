@@ -26,4 +26,9 @@ public class KukaConfig {
 	 * Ms to wait when trying to restart simulator
 	 */
 	public int timeout = 100000;
+	
+	/**
+	 * Ms to wait when stopping a simulation of the simulator.
+	 */
+	public int wait = 100;
 }

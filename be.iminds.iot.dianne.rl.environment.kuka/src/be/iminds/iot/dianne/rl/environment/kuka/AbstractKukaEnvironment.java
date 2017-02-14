@@ -338,6 +338,10 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 	private void deinit(){
 		if(simulator != null){
 			simulator.stop();
+			// TODO wait until simulation has completely stopped (use function call from remote api?)
+			try {
+				Thread.sleep(config.wait);
+			} catch (InterruptedException e) {}
 		}
 	}
 	

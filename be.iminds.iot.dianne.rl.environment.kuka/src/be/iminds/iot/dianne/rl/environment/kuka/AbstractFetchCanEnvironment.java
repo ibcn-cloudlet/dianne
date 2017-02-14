@@ -194,9 +194,6 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 			y = (r.nextFloat()-0.5f)*1.8f;
 			o = (r.nextFloat()-0.5f)*6.28f;
 		}
-		// somehow two times setPosition was required to actually get the position set
-		// TODO check in VREP simulator source?
-		simulator.setPosition("youBot", new Position(x, y, p.z));
 		simulator.setPosition("youBot", new Position(x, y, p.z));
 		simulator.setOrientation("youBot", new Orientation(-1.5707963f, o, -1.5707965f));
 	}
