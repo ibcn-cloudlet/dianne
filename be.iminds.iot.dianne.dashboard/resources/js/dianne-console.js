@@ -35,11 +35,9 @@ function keyPressed(e) {
 	} else if(e.code === "Enter" || e.code === "NumpadEnter"){
 		// enter
 		var input = $('#console-input').html();
-		var cmds = input.split("<br>");
-		
+		var cmds = input.split(/<div>|<br>/); // support for chrome and firefox
 		for (var i = 0; i < cmds.length; i++) {
-			var command = cmds[i];
-			
+			var command = $("<div />").html(cmds[i]).text().trim(); //remove tags + &nbsp;
 			if(command.length === 0 || command.startsWith("#")){
 				continue;
 			}
