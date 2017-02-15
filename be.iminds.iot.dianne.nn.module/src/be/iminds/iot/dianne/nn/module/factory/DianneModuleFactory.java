@@ -58,6 +58,7 @@ import be.iminds.iot.dianne.nn.module.join.Multiply;
 import be.iminds.iot.dianne.nn.module.layer.AvgPooling;
 import be.iminds.iot.dianne.nn.module.layer.Convolution;
 import be.iminds.iot.dianne.nn.module.layer.FullConvolution;
+import be.iminds.iot.dianne.nn.module.layer.Invert;
 import be.iminds.iot.dianne.nn.module.layer.Linear;
 import be.iminds.iot.dianne.nn.module.layer.MaskedMaxPooling;
 import be.iminds.iot.dianne.nn.module.layer.MaxPooling;
@@ -707,6 +708,11 @@ public class DianneModuleFactory implements ModuleFactory {
 		{
 			int size = Integer.parseInt(dto.properties.get("size"));
 			module = new GaussianSampler(id, size);
+			break;
+		}
+		case "Invert":
+		{
+			module = new Invert(id);
 			break;
 		}
 		default:
