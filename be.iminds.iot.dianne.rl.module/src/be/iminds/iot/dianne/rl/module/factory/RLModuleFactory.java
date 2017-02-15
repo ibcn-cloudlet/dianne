@@ -52,7 +52,7 @@ public class RLModuleFactory implements ModuleFactory {
 		// build list of supported modules
 		// TODO use reflection for this?
 		addSupportedType( new ModuleTypeDTO("DuelJoin", "Join", false));
-		addSupportedType(new ModuleTypeDTO("NormalizedAdvantageFunction", "Activation", false,
+		addSupportedType(new ModuleTypeDTO("NormalizedAdvantageFunction", "Layer", false,
 				new ModulePropertyDTO("Action dimensions", "actionDims", Integer.class.getName())));
 	}
 	

@@ -89,7 +89,7 @@ public class NormalizedAdvantageFunction extends Join {
 		Tensor maxAction = inputs.get(prevIds[1]);
 		Tensor matrix = inputs.get(prevIds[2]);
 		
-		ModuleOps.softplus(L, matrix, 1, 20);
+		L = ModuleOps.softplus(L, matrix, 1, 20);
 		TensorOps.cmul(L, eye, L);
 		TensorOps.addcmul(L, L, 1, lower, matrix);
 		

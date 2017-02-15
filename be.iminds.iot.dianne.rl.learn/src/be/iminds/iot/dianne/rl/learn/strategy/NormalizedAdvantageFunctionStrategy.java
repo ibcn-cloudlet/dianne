@@ -90,6 +90,7 @@ public class NormalizedAdvantageFunctionStrategy implements LearningStrategy {
 		
 		this.config = DianneConfigHandler.getConfig(config, DeepQConfig.class);
 		this.sampling = SamplingFactory.createSamplingStrategy(this.config.sampling, dataset, config);
+		config.put("batchSize", "1");
 		this.criterion = CriterionFactory.createCriterion(this.config.criterion, config);
 		this.gradientProcessor = ProcessorFactory.createGradientProcessor(this.config.method, valueNetwork, config);
 		
@@ -164,7 +165,7 @@ public class NormalizedAdvantageFunctionStrategy implements LearningStrategy {
 			Tensor loss = criterion.loss(actionValue, targetActionValue);
 			Tensor grad = criterion.grad(actionValue, targetActionValue);
 			
-			valueNetwork.backward(actionValueOut, stateIn, grad, true);
+			valueNetwork.backward(actionValueOut, stateIn, grad, true).getValue();
 			
 			totalValue += stateValue.get(0);
 			totalLoss += loss.get(0);
