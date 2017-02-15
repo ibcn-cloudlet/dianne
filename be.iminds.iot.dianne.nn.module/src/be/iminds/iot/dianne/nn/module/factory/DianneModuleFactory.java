@@ -247,6 +247,7 @@ public class DianneModuleFactory implements ModuleFactory {
 				new ModulePropertyDTO("Inputs", "noInputs", Integer.class.getName()),
 				new ModulePropertyDTO("Masks", "masks", String.class.getName())));
 
+		addSupportedType(new ModuleTypeDTO("Invert", "Layer", false));
 	}
 	
 	
