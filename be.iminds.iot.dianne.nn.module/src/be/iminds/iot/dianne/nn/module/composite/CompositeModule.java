@@ -154,12 +154,14 @@ public class CompositeModule extends AbstractTrainableModule implements Composit
 
 	@Override
 	public void triggerForward(final String... tags) {
-		nn.getMemories().values().forEach(m -> m.triggerForward(tags));
+		// don't trigger forward here ... is triggered in forward; else it will be called twice
+		//nn.getMemories().values().forEach(m -> m.triggerForward(tags));
 	}
 
 	@Override
 	public void triggerBackward(final String... tags) {
-		nn.getMemories().values().forEach(m -> m.triggerBackward(tags));
+		// don't trigger backward here ... is triggered in backward; else it will be called twice
+		//nn.getMemories().values().forEach(m -> m.triggerBackward(tags));
 	}
 
 	@Override
