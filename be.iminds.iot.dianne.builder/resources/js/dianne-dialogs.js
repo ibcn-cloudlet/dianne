@@ -484,6 +484,15 @@ function createRunModuleDialog(id, moduleItem){
 			}, $(document.body));
 			
 			dialog.find(".content").append("<canvas class='laserCanvas' width='512' height='512' style=\"border:1px solid #000000; margin-left:25px\"></canvas>");
+		} else if(module.type === "TimeSeries"){
+			dialog = renderTemplate("dialog", {
+				id : id,
+				type: "timeseries",
+				title : "Timeseries output",
+				submit: "",
+				cancel: "Delete"
+			}, $(document.body));
+			createLineChart(dialog.find(".content"), '', 'Q-Value', []);
 		} else {
 			dialog = renderTemplate("dialog", {
 				id : id,
@@ -558,6 +567,19 @@ function createRunModuleDialog(id, moduleItem){
 							var laserCanvas = dialog.find('.laserCanvas')[0];
 							var laserCanvasCtx = laserCanvas.getContext('2d');
 							laser(output, laserCanvasCtx, false);
+						} else if (module.type === "TimeSeries") {
+							var attr = $("#dialog-"+module.id).find(".content").attr("data-highcharts-chart");
+							if(attr!==undefined){
+								var chart = Highcharts.charts[Number(attr)];
+								while (chart.series.length < output.data.length) {
+									chart.addSeries({data: []});
+								}
+								for (var i=0; i<output.data.length; i++) {
+									var serie = chart.series[i];
+									var shift = serie.data.length > 1000; // shift if the series is longer than 1000
+									serie.addPoint(output.data[i], true, shift, true);
+								}
+							}
 						} else {
 							// render raw output
 							if(output.dims.length > 1){
@@ -1228,6 +1250,55 @@ function createConfusionChart(container) {
                 }
             }
         }]
+    });
+}
+
+//generic line chart
+function createLineChart(container, xAxis, yAxis, series) {	
+    return container.highcharts({
+    	chart: {
+            type: 'line',
+            animation: false, // don't animate in old IE
+            marginRight: 10,
+    		height: 200,
+    		width: 500
+        },
+        title : {
+        	text: null
+        },
+        xAxis: {
+            tickPixelInterval: 150,
+            title: {
+                text: xAxis
+            },
+        },
+        plotOptions:{
+            series:{
+                turboThreshold: 1000000
+            }
+        },
+        yAxis: {
+            title: {
+                text: yAxis
+            },
+            plotLines: [{
+                value: 0,
+                width: 1,
+                color: '#808080'
+            }],
+            softMin: 0,
+            softMax: 0
+        },
+        legend: {
+            enabled: false
+        },
+        exporting: {
+            enabled: false
+        },
+        credits: {
+            enabled: false
+        },
+        series: series
     });
 }
 
