@@ -61,7 +61,10 @@ public class FetchCanContinuousEnvironment extends AbstractFetchCanEnvironment {
 
 	@Override
 	public int[] actionDims() {
-		return new int[]{3};
+		if(config.seperateMagnitude)
+			return new int[]{6};
+		else
+			return new int[]{3};
 	}
 	
 	@Override
@@ -124,7 +127,7 @@ public class FetchCanContinuousEnvironment extends AbstractFetchCanEnvironment {
 	protected Tensor getVelocities(Tensor a) {
 		if(a.size() == 6) {
 			Tensor temp = a.narrow(0, 0, 3);
-			a = TensorOps.cmul(temp, temp, a.narrow(0, 3, 6));
+			a = TensorOps.cmul(temp, temp, a.narrow(0, 3, 3));
 		}
 		
 		return a;
