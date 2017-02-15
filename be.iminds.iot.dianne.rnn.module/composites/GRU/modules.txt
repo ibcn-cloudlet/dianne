@@ -1,0 +1,249 @@
+{
+  "name": "GRU",
+  "modules": {
+    "ada7544c-68ae-112f-d5dd-4271c4c853ae": {
+      "id": "ada7544c-68ae-112f-d5dd-4271c4c853ae",
+      "type": "Duplicate",
+      "next": [
+        "89cb4ddf-31ab-7c74-b617-5792b7c4cd34",
+        "85a5f3a3-9f90-429d-0581-a1bd1422ea6e"
+      ],
+      "prev": [
+        "f4fae688-fe94-6bd9-ce0d-2bff7e80d6f5"
+      ],
+      "name": "Duplicate",
+      "category": "Fork"
+    },
+    "c62ec5de-a1a8-367b-f07b-1a39942373e2": {
+      "id": "c62ec5de-a1a8-367b-f07b-1a39942373e2",
+      "type": "Accumulate",
+      "next": [
+        "b30f3f45-e9a9-7c4b-5665-c7dd175dba4b"
+      ],
+      "prev": [
+        "89cb4ddf-31ab-7c74-b617-5792b7c4cd34",
+        "5b86bb1c-40aa-228e-5443-e6bd1a1534ca"
+      ],
+      "name": "Accumulate",
+      "category": "Join"
+    },
+    "de8cae56-32d3-4dfe-0852-31a6d71549d2": {
+      "id": "de8cae56-32d3-4dfe-0852-31a6d71549d2",
+      "type": "Memory",
+      "next": [
+        "cd7ca9e3-0ddf-5787-31d0-795be1110bc1"
+      ],
+      "prev": [
+        "b30f3f45-e9a9-7c4b-5665-c7dd175dba4b"
+      ],
+      "size": "${output}",
+      "name": "Memory",
+      "category": "Memory",
+      "trainable": "true"
+    },
+    "9fe5d96d-0853-3ad7-203e-ca346bf9e5fa": {
+      "id": "9fe5d96d-0853-3ad7-203e-ca346bf9e5fa",
+      "type": "Multiply",
+      "next": [
+        "dbf67dab-c7cc-3811-2748-79fc66cb0718"
+      ],
+      "prev": [
+        "cd7ca9e3-0ddf-5787-31d0-795be1110bc1",
+        "f4fae688-fe94-6bd9-ce0d-2bff7e80d6f5",
+        "cd7ca9e3-0ddf-5787-31d0-795be1110bc1"
+      ],
+      "name": "Multiply",
+      "category": "Join"
+    },
+    "003473bc-83fc-c5f7-9f41-b1f91fec0451": {
+      "id": "003473bc-83fc-c5f7-9f41-b1f91fec0451",
+      "type": "Sigmoid",
+      "next": [
+        "f4fae688-fe94-6bd9-ce0d-2bff7e80d6f5"
+      ],
+      "prev": [
+        "0ed35e10-1182-17e9-fc74-5ec3006afeae"
+      ],
+      "name": "Sigmoid",
+      "category": "Activation"
+    },
+    "b30f3f45-e9a9-7c4b-5665-c7dd175dba4b": {
+      "id": "b30f3f45-e9a9-7c4b-5665-c7dd175dba4b",
+      "type": "Duplicate",
+      "next": [
+        "de8cae56-32d3-4dfe-0852-31a6d71549d2",
+        "846bcfd6-fd5c-0090-8f95-e75f68b1cd33"
+      ],
+      "prev": [
+        "c62ec5de-a1a8-367b-f07b-1a39942373e2"
+      ],
+      "name": "Duplicate",
+      "category": "Fork"
+    },
+    "dbf67dab-c7cc-3811-2748-79fc66cb0718": {
+      "id": "dbf67dab-c7cc-3811-2748-79fc66cb0718",
+      "type": "Concat",
+      "next": [
+        "22d899aa-0f2f-8722-3834-ed43b5ea17a9"
+      ],
+      "prev": [
+        "4f3443bf-63f9-7136-75d2-6a98a5703d07",
+        "9fe5d96d-0853-3ad7-203e-ca346bf9e5fa"
+      ],
+      "name": "Concat",
+      "dim": "0",
+      "category": "Join"
+    },
+    "22d899aa-0f2f-8722-3834-ed43b5ea17a9": {
+      "id": "22d899aa-0f2f-8722-3834-ed43b5ea17a9",
+      "type": "Linear",
+      "next": [
+        "5c34b70a-791c-b0ba-97c2-139472edc6b5"
+      ],
+      "prev": [
+        "dbf67dab-c7cc-3811-2748-79fc66cb0718"
+      ],
+      "output": "${output}",
+      "input": "${input}+${output}",
+      "name": "Linear",
+      "category": "Layer",
+      "trainable": "true"
+    },
+    "e8fa5d72-908a-ae59-efa1-9685937fcf94": {
+      "id": "e8fa5d72-908a-ae59-efa1-9685937fcf94",
+      "type": "Input",
+      "next": [
+        "4f3443bf-63f9-7136-75d2-6a98a5703d07"
+      ],
+      "name": "Input",
+      "category": "Input-Output"
+    },
+    "5c34b70a-791c-b0ba-97c2-139472edc6b5": {
+      "id": "5c34b70a-791c-b0ba-97c2-139472edc6b5",
+      "type": "Tanh",
+      "next": [
+        "89cb4ddf-31ab-7c74-b617-5792b7c4cd34"
+      ],
+      "prev": [
+        "22d899aa-0f2f-8722-3834-ed43b5ea17a9"
+      ],
+      "name": "Tanh",
+      "category": "Activation"
+    },
+    "a7ccea5c-1e13-3747-9069-5d330e81e188": {
+      "id": "a7ccea5c-1e13-3747-9069-5d330e81e188",
+      "type": "Concat",
+      "next": [
+        "0ed35e10-1182-17e9-fc74-5ec3006afeae"
+      ],
+      "prev": [
+        "4f3443bf-63f9-7136-75d2-6a98a5703d07",
+        "cd7ca9e3-0ddf-5787-31d0-795be1110bc1"
+      ],
+      "name": "Concat",
+      "dim": "0",
+      "category": "Join"
+    },
+    "f4fae688-fe94-6bd9-ce0d-2bff7e80d6f5": {
+      "id": "f4fae688-fe94-6bd9-ce0d-2bff7e80d6f5",
+      "type": "Split",
+      "next": [
+        "9fe5d96d-0853-3ad7-203e-ca346bf9e5fa",
+        "ada7544c-68ae-112f-d5dd-4271c4c853ae"
+      ],
+      "prev": [
+        "003473bc-83fc-c5f7-9f41-b1f91fec0451"
+      ],
+      "name": "Split",
+      "dim": "0",
+      "category": "Fork"
+    },
+    "846bcfd6-fd5c-0090-8f95-e75f68b1cd33": {
+      "id": "846bcfd6-fd5c-0090-8f95-e75f68b1cd33",
+      "type": "Output",
+      "prev": [
+        "b30f3f45-e9a9-7c4b-5665-c7dd175dba4b"
+      ],
+      "name": "Output",
+      "category": "Input-Output"
+    },
+    "4f3443bf-63f9-7136-75d2-6a98a5703d07": {
+      "id": "4f3443bf-63f9-7136-75d2-6a98a5703d07",
+      "type": "Duplicate",
+      "next": [
+        "a7ccea5c-1e13-3747-9069-5d330e81e188",
+        "dbf67dab-c7cc-3811-2748-79fc66cb0718"
+      ],
+      "prev": [
+        "e8fa5d72-908a-ae59-efa1-9685937fcf94"
+      ],
+      "name": "Duplicate",
+      "category": "Fork"
+    },
+    "0ed35e10-1182-17e9-fc74-5ec3006afeae": {
+      "id": "0ed35e10-1182-17e9-fc74-5ec3006afeae",
+      "type": "Linear",
+      "next": [
+        "003473bc-83fc-c5f7-9f41-b1f91fec0451"
+      ],
+      "prev": [
+        "a7ccea5c-1e13-3747-9069-5d330e81e188"
+      ],
+      "output": "2*${output}",
+      "input": "${input}+${output}",
+      "name": "Linear",
+      "category": "Layer",
+      "trainable": "true"
+    },
+    "85a5f3a3-9f90-429d-0581-a1bd1422ea6e": {
+      "id": "85a5f3a3-9f90-429d-0581-a1bd1422ea6e",
+      "type": "Invert",
+      "next": [
+        "5b86bb1c-40aa-228e-5443-e6bd1a1534ca"
+      ],
+      "prev": [
+        "ada7544c-68ae-112f-d5dd-4271c4c853ae"
+      ],
+      "name": "Invert",
+      "category": "Layer"
+    },
+    "cd7ca9e3-0ddf-5787-31d0-795be1110bc1": {
+      "id": "cd7ca9e3-0ddf-5787-31d0-795be1110bc1",
+      "type": "Duplicate",
+      "next": [
+        "a7ccea5c-1e13-3747-9069-5d330e81e188",
+        "9fe5d96d-0853-3ad7-203e-ca346bf9e5fa",
+        "5b86bb1c-40aa-228e-5443-e6bd1a1534ca"
+      ],
+      "name": "Duplicate",
+      "category": "Fork"
+    },
+    "89cb4ddf-31ab-7c74-b617-5792b7c4cd34": {
+      "id": "89cb4ddf-31ab-7c74-b617-5792b7c4cd34",
+      "type": "Multiply",
+      "next": [
+        "c62ec5de-a1a8-367b-f07b-1a39942373e2"
+      ],
+      "prev": [
+        "5c34b70a-791c-b0ba-97c2-139472edc6b5",
+        "ada7544c-68ae-112f-d5dd-4271c4c853ae"
+      ],
+      "name": "Multiply",
+      "category": "Join"
+    },
+    "5b86bb1c-40aa-228e-5443-e6bd1a1534ca": {
+      "id": "5b86bb1c-40aa-228e-5443-e6bd1a1534ca",
+      "type": "Multiply",
+      "next": [
+        "c62ec5de-a1a8-367b-f07b-1a39942373e2"
+      ],
+      "prev": [
+        "cd7ca9e3-0ddf-5787-31d0-795be1110bc1",
+        "85a5f3a3-9f90-429d-0581-a1bd1422ea6e",
+        "cd7ca9e3-0ddf-5787-31d0-795be1110bc1"
+      ],
+      "name": "Multiply",
+      "category": "Join"
+    }
+  }
+}
