@@ -85,22 +85,22 @@ public class DianneModuleFactory implements ModuleFactory {
 	void activate(){
 		// build list of supported modules
 		// TODO use reflection for this?
-		addSupportedType( new ModuleTypeDTO("Multivariate Gaussian", "Variational", true, 
+		addSupportedType( new ModuleTypeDTO("Multivariate Gaussian", "Variational", false, 
 				new ModulePropertyDTO("Size", "size", Integer.class.getName()),
 				new ModulePropertyDTO("Mean Activation", "meanActivation", String.class.getName()),
 				new ModulePropertyDTO("Stdev Activation", "stdevActivation", String.class.getName())));
 		
-		addSupportedType( new ModuleTypeDTO("Gaussian Sampler", "Variational", true, 
+		addSupportedType( new ModuleTypeDTO("Gaussian Sampler", "Variational", false, 
 				new ModulePropertyDTO("Size", "size", Integer.class.getName())));
 		
 		
 		addSupportedType( new ModuleTypeDTO("BatchNormalization", "Regularization", true, 
 				new ModulePropertyDTO("Size", "size", Integer.class.getName())));
 		
-		addSupportedType( new ModuleTypeDTO("Dropout", "Regularization", true, 
+		addSupportedType( new ModuleTypeDTO("Dropout", "Regularization", false, 
 				new ModulePropertyDTO("Dropout rate", "rate", Float.class.getName())));
 
-		addSupportedType( new ModuleTypeDTO("DropPath", "Regularization", true, 
+		addSupportedType( new ModuleTypeDTO("DropPath", "Regularization", false, 
 				new ModulePropertyDTO("DropPath rate", "rate", Float.class.getName())));
 		
 		addSupportedType( new ModuleTypeDTO("Linear", "Layer", true, 
