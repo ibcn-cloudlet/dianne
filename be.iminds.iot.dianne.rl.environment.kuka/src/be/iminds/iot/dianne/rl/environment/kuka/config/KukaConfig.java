@@ -30,5 +30,5 @@ public class KukaConfig {
 	/**
 	 * Ms to wait when stopping a simulation of the simulator.
 	 */
-	public int wait = 100;
+	public int wait = 200;
 }
