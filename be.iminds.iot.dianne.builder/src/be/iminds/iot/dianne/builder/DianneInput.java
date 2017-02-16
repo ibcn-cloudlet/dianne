@@ -126,10 +126,10 @@ public class DianneInput extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		response.setContentType("application/json");
-
+		
 		String action = request.getParameter("action");
 		if("available-inputs".equals(action)){
+			response.setContentType("application/json");
 			JsonArray availableInputs = new JsonArray();
 			synchronized(inputs){
 				for(DianneInputs i : inputs){

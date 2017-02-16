@@ -348,30 +348,26 @@ function randomColor() {
  */
 
 // definition of source Endpoints
+var connectorPaintStyle = {
+	stroke: "#333",
+	strokeWidth: 4,
+} 
+var connectorHoverPaintStyle = {
+	stroke: "#555",
+}
 var sourceStyle = {
 	isSource:true,
 	//anchor : "Right",	
 	paintStyle:{ 
-		strokeStyle:"#555", 
-		fillStyle:"#FFF", 
-		lineWidth:2 
+		stroke:"#555",
+		fill:"#FFF", 
+		strokeWidth:2
 	},
 	hoverPaintStyle:{
-		lineWidth:3 
-	},			
-	connectorStyle:{
-		lineWidth:4,
-		strokeStyle:"#333",
-		joinstyle:"round",
-		outlineColor:"white",
-		outlineWidth:2
+		strokeWidth:3 
 	},
-	connectorHoverStyle:{
-		lineWidth:4,
-		strokeStyle:"#555",
-		outlineWidth:2,
-		outlineColor:"white"
-	}
+	connectorStyle: connectorPaintStyle,
+	connectorHoverStyle: connectorHoverPaintStyle,
 }		
 
 // the definition of target Endpoints 
@@ -379,10 +375,10 @@ var targetStyle = {
 	isTarget:true,
 	//anchor: "Left",					
 	paintStyle:{ 
-		fillStyle:"#333"
+		fill:"#333"			
 	},
 	hoverPaintStyle:{ 
-		fillStyle: "#555"
+		fill: "#555"
 	}
 }
 
@@ -400,11 +396,11 @@ jsPlumb.ready(function() {
 		//
 		// listen for connection add/removes
 		//
-		jsPlumb.bind("beforeDrop", function(connection) {
-			if(!checkAddConnection(connection.connection)){
+		jsPlumb.bind("beforeDrop", function(wrapped_connection) {
+			if(!checkAddConnection(wrapped_connection)){
 				return false;
 			}
-			addConnection(connection);
+			addConnection(wrapped_connection);
 			return true;
 		});
 		
@@ -724,23 +720,29 @@ function checkRemoveModule(moduleItem){
 /**
  * Check whether one is allowed to instantiate this connection
  */
-function checkAddConnection(connection){
+function checkAddConnection(wrapped_connection){
+	var connection = wrapped_connection.connection;
 	if(currentMode==="build"){
 		if(deployment[connection.sourceId]!==undefined
 				|| deployment[connection.targetId]!==undefined){
 				return false;
 		}
 		if(connection.endpoints[0].type!=="Dot" 
-			|| connection.endpoints[1].type!=="Dot"){
+			|| connection.endpoints[1].type!=="Dot" 
+			|| wrapped_connection.dropEndpoint.type!=="Dot"){
 				return false;
 		}
 	}
-	if(currentMode==="learn"){
+	if(currentMode==="learn" || currentMode==="run"){
 		if(connection.endpoints[0].type!=="Rectangle" 
-			|| connection.endpoints[1].type!=="Rectangle"){
+			|| connection.endpoints[1].type!=="Rectangle"
+			|| wrapped_connection.dropEndpoint.type!=="Rectangle"){
 				return false;
 		}
 		//TODO dont allow connecting output to input
+	}
+	if (currentMode==="deploy") {
+		return false;
 	}
 	return true;
 }
@@ -764,6 +766,9 @@ function checkRemoveConnection(connection){
 			|| connection.endpoints[1].type!=="Rectangle"){
 				return false;
 		}
+	}
+	if (currentMode==="deploy") {
+		return false;
 	}
 	return true;
 }
@@ -959,7 +964,9 @@ function loadLayout(layout){
         var connection = jsPlumb.connect({
         	source: elem.sourceId,
         	target: elem.targetId,
-        	anchors: elem.anchors
+        	anchors: elem.anchors,
+        	paintStyle: connectorPaintStyle,
+        	paintHoverStyle: connectorHoverPaintStyle,
         });
         
         if(connection!==undefined)
@@ -969,7 +976,6 @@ function loadLayout(layout){
 
 function redrawElement(id, posX, posY){
 	var module = nn.modules[id];
-
 	var moduleItem = renderTemplate("module",
 			{	
 				name: module.name,

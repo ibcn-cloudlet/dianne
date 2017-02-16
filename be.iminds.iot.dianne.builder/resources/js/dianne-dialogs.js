@@ -576,7 +576,8 @@ function createRunModuleDialog(id, moduleItem){
 								}
 								for (var i=0; i<output.data.length; i++) {
 									var serie = chart.series[i];
-									var shift = serie.data.length > 1000; // shift if the series is longer than 1000
+									// shift if the series is longer than 100, higher numbers slow down the browser.
+									var shift = serie.data.length > 100; 
 									serie.addPoint(output.data[i], true, shift, true);
 								}
 							}
@@ -1261,7 +1262,8 @@ function createLineChart(container, xAxis, yAxis, series) {
             animation: false, // don't animate in old IE
             marginRight: 10,
     		height: 200,
-    		width: 500
+    		width: 500, 
+    		zoomType: 'x'
         },
         title : {
         	text: null
@@ -1287,13 +1289,7 @@ function createLineChart(container, xAxis, yAxis, series) {
                 color: '#808080'
             }],
             softMin: 0,
-            softMax: 0
-        },
-        legend: {
-            enabled: false
-        },
-        exporting: {
-            enabled: false
+            softMax: 1
         },
         credits: {
             enabled: false

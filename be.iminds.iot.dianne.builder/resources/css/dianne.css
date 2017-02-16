@@ -236,11 +236,11 @@ footer {
 	filter: alpha(opacity = 60);
 }
 
-._jsPlumb_connector {
+.jtk-connector {
 	z-index: 4;
 }
 
-._jsPlumb_endpoint, .endpointTargetLabel, .endpointSourceLabel {
+.jtk-endpoint, .endpointTargetLabel, .endpointSourceLabel {
 	z-index: 21;
 	cursor: pointer;
 }
@@ -257,7 +257,7 @@ footer {
 	cursor: pointer;
 }
 
-.aLabel._jsPlumb_hover {
+.aLabel.jtk-hover {
 	background-color: #5C96BC;
 	color: white;
 	border: 1px solid white;

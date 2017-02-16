@@ -161,7 +161,6 @@ public class DianneRunner extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		response.setContentType("application/json");
 		String id = request.getParameter("id");
 		if(id == null){
 			System.out.println("No neural network instance specified");
@@ -250,7 +249,7 @@ public class DianneRunner extends HttpServlet {
 					sample.add("target", target.get("data").getAsJsonArray());			
 				}
 			}
-			
+			response.setContentType("application/json");
 			response.getWriter().println(sample.toString());
 			response.getWriter().flush();
 		}
