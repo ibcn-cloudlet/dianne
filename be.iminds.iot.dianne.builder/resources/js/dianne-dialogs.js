@@ -577,8 +577,9 @@ function createRunModuleDialog(id, moduleItem){
 								for (var i=0; i<output.data.length; i++) {
 									var serie = chart.series[i];
 									// shift if the series is longer than 100, higher numbers slow down the browser.
-									var shift = serie.data.length > 100; 
-									serie.addPoint(output.data[i], true, shift, true);
+									var shift = serie.data.length > 100;
+									// disable animation because adding points can be to fast to complete the animation
+									serie.addPoint(output.data[i], true, shift, false);
 								}
 							}
 						} else {
