@@ -42,6 +42,7 @@ public class FetchCanConfig {
 	 * 
 	 * can be used for curriculum learning
 	 * 
+	 * difficulty = -1 : fixed youBot, fixed Can
 	 * difficulty = 0 : fixed youBot, Can right in front
 	 * difficulty = 1 : fixed youBot, Can in front in sight
 	 * difficulty = 2 : random youBot / Can positions
