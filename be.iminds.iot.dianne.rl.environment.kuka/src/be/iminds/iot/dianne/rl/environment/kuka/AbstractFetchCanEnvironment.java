@@ -96,7 +96,7 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 						// succesful grip, mark as terminal
 						terminal = true;
 						count = 0;
-						return 1.0f * config.gripRewardFactor;
+						return 1.0f * config.gripRewardScale;
 					} 
 				} else {
 					// simulate actual grip action
@@ -104,7 +104,7 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 						// can is lifted, reward 1 and mark as terminal
 						terminal = true;
 						count = 0;
-						return 1.0f * config.gripRewardFactor;
+						return 1.0f * config.gripRewardScale;
 					} 
 				}
 				
@@ -112,7 +112,7 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 				
 				// punish wrong gripping?
 				if(config.punishWrongGrip)
-					return -1.0f * config.gripRewardFactor;
+					return -1.0f * config.gripRewardScale;
 			}
 			
 			// also give intermediate reward for each action?
@@ -129,12 +129,12 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 					}
 				} else {
 					// linear or exponential decaying reward function
-					if (config.absoluteRewardScale <= 0)
-						r = - previousDistance / MAX_DISTANCE;
-					else {
+					if (config.exponentialDecayingReward)
 						// wolfram function: plot expm1(-a*x) + b with a=2.5 and b=1 for x = 0..2.4
 						// where x: previousDistance, a: absoluteRewardScale, b: maxReward and expm1 =  e^x -1
-						r = ((float)Math.expm1( -config.absoluteRewardScale * previousDistance));
+						r = ((float)Math.expm1( -config.exponentialDecayingRewardScale * previousDistance));
+					else {
+						r = - previousDistance / MAX_DISTANCE;
 					}
 					// reward offset
 					r += config.maxReward;

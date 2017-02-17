@@ -59,20 +59,26 @@ public class FetchCanConfig {
 	
 	/**
 	 * In case of intermediateReward, give reward on relative distance covered towards Can 
-	 * (in case of false return the negative (normalized) distance to Can of the state)
+	 * (in case of false return the (normalized) distance to Can of the state)
 	 */
 	public boolean relativeReward = false;
 	
 	/**
-	 * Scale factor to multiply diff in distance to the Can with
+	 * In case of relativeReward, use this scale factor to multiply diff in distance to the Can with
 	 */
 	public float relativeRewardScale = 5.0f;
 	
 	/**
-	 * Scale factor to modify the exponential decaying reward function.
-	 * A value of 0 or less will select the linear reward function.
+	 * In case of intermediateReward, give reward based on exponential decaying function.
+	 * (in case of false use the linear reward function)
 	 */
-	public float absoluteRewardScale = 0.0f;
+	public boolean exponentialDecayingReward = false;
+	
+	/**
+	 * In case of exponentialDecayingReward, use this scale factor to modify the decay rate.
+	 * (]0,R[)
+	 */
+	public float exponentialDecayingRewardScale = 2.5f;
 	
 	/**
 	 * Only give +1 or -1 rewards in case of relative rewards
@@ -131,7 +137,7 @@ public class FetchCanConfig {
 	/**
 	 * Scale factor to modify the reward of a grip action.
 	 */
-	public float gripRewardFactor = 1.0f;
+	public float gripRewardScale = 1.0f;
 
 	/**
 	 * Offset for the reward function. Can be used to make a reward function positive or negative.
