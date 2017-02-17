@@ -114,4 +114,11 @@ public class FetchCanConfig {
 	 * A seed for initializing the environment
 	 */
 	public long seed = 0;
+
+	/**
+	 * Whether a collision in the environment is terminal.
+	 * 
+	 * Set to false if the reward never gets positive.
+	 */
+	public boolean collisionTerminal = false;
 }

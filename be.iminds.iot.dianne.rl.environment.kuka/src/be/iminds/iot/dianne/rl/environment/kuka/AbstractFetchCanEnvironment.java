@@ -63,37 +63,36 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 		
 		// calculate reward based on simulator info
 		if(simulator != null){
-			
-			// in case of collision, reward -1
-			// in case of succesful grip, reward 1, insuccesful grip, -1
-			// else, reward between 0 and 0.5 as one gets closer to the optimal grip point
-			if(simulator.checkCollisions("Border")){
-				return -1.0f;
-			}
-	
 			Position d = simulator.getPosition("Can1", "youBot");
+			
+			// if collision or can is too close
+			if(simulator.checkCollisions("Border") || Math.abs(d.y) < 0.23 && Math.abs(d.z) < 0.37){
+				if (config.collisionTerminal) {
+					terminal = true;
+					count = 0;
+				} else {
+					return -1.0f;
+				}
+			}
 			
 			// calculate distance of youBot relative to can
 			float dx = d.y;
 			float dy = d.z - GRIP_DISTANCE;
-	
-			// if can is too close, give same reward as collision
-			if(Math.abs(d.y) < 0.23 && Math.abs(d.z) < 0.37){
-				return -1.0f;
-			}
 			
 			// dy should come close to 0.565 for succesful grip
 			// dx should come close to 0
-			float d2 = dx*dx + dy*dy;
-			float distance = (float)Math.sqrt(d2);
+			// hypot = Math.sqrt(dx*dx+dy*dy) without under and overflow
+			float distance = (float)Math.hypot(dx,dy);
 			
+			// max reward in radius of can by setting the distance to 0
+			if(distance <= config.margin)
+				distance = 0.0f;
 			
 			// if grip give reward according to position relative to can
 			if(grip){
 				if(config.earlyStop){
 					// use position only
-					if(Math.abs(dx) <= config.margin
-						&& Math.abs(dy) <= config.margin){
+					if(distance <= config.margin){
 						// succesful grip, mark as terminal
 						terminal = true;
 						count = 0;
