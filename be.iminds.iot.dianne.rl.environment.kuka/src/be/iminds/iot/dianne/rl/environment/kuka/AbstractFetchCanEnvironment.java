@@ -96,7 +96,7 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 						// succesful grip, mark as terminal
 						terminal = true;
 						count = 0;
-						return 1.0f;
+						return 1.0f * config.gripRewardFactor;
 					} 
 				} else {
 					// simulate actual grip action
@@ -104,7 +104,7 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 						// can is lifted, reward 1 and mark as terminal
 						terminal = true;
 						count = 0;
-						return 1.0f;
+						return 1.0f * config.gripRewardFactor;
 					} 
 				}
 				
@@ -112,7 +112,7 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 				
 				// punish wrong gripping?
 				if(config.punishWrongGrip)
-					return -1.0f;
+					return -1.0f * config.gripRewardFactor;
 			}
 			
 			// also give intermediate reward for each action?

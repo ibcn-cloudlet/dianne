@@ -121,4 +121,9 @@ public class FetchCanConfig {
 	 * Set to false if the reward never gets positive.
 	 */
 	public boolean collisionTerminal = false;
+
+	/**
+	 * Scale factor to modify the reward of a grip action.
+	 */
+	public float gripRewardFactor = 1.0f;
 }
