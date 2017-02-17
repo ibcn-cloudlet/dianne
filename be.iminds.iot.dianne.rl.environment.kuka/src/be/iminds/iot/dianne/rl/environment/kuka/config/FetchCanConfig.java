@@ -69,6 +69,12 @@ public class FetchCanConfig {
 	public float relativeRewardScale = 5.0f;
 	
 	/**
+	 * Scale factor to modify the exponential decaying reward function.
+	 * A value of 0 or less will select the linear reward function.
+	 */
+	public float absoluteRewardScale = 0.0f;
+	
+	/**
 	 * Only give +1 or -1 rewards in case of relative rewards
 	 */
 	public boolean discreteReward = false;
@@ -126,4 +132,9 @@ public class FetchCanConfig {
 	 * Scale factor to modify the reward of a grip action.
 	 */
 	public float gripRewardFactor = 1.0f;
+
+	/**
+	 * Offset for the reward function. Can be used to make a reward function positive or negative.
+	 */
+	public float maxReward = 0.0f;
 }

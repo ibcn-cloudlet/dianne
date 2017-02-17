@@ -117,23 +117,30 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 			
 			// also give intermediate reward for each action?
 			if(config.intermediateReward){
+				float r;
 				if(config.relativeReward){
 					// give +1 if closer -1 if further
-					float r = previousDistance - distance;
+					r = previousDistance - distance;
 					if(config.discreteReward){
 						r = r > EPSILON ? 1 : r < -EPSILON ? -1 : 0;
 					} else {
 						// boost it a bit
 						r *= config.relativeRewardScale/(config.skip+1);
 					}
-					previousDistance = distance;
-					return r;
 				} else {
-					// just give negative relative distance as value
-					float r = - previousDistance / MAX_DISTANCE;
-					previousDistance = distance;
-					return r;
+					// linear or exponential decaying reward function
+					if (config.absoluteRewardScale <= 0)
+						r = - previousDistance / MAX_DISTANCE;
+					else {
+						// wolfram function: plot expm1(-a*x) + b with a=2.5 and b=1 for x = 0..2.4
+						// where x: previousDistance, a: absoluteRewardScale, b: maxReward and expm1 =  e^x -1
+						r = ((float)Math.expm1( -config.absoluteRewardScale * previousDistance));
+					}
+					// reward offset
+					r += config.maxReward;
 				}
+				previousDistance = distance;
+				return r;
 			} else {
 				return 0.0f;
 			}
