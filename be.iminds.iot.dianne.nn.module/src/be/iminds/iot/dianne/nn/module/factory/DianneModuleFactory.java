@@ -133,18 +133,24 @@ public class DianneModuleFactory implements ModuleFactory {
 		
 		addSupportedType(new ModuleTypeDTO("Output", "Input-Output", false));
 
-		addSupportedType(new ModuleTypeDTO("Duplicate", "Fork", false));
+		addSupportedType(new ModuleTypeDTO("Duplicate", "Fork", false,
+				new ModulePropertyDTO("Wait for all", "waitForAll", Boolean.class.getName())));
 		
-		addSupportedType(new ModuleTypeDTO("Accumulate", "Join", false));
+		addSupportedType(new ModuleTypeDTO("Accumulate", "Join", false,
+				new ModulePropertyDTO("Wait for all", "waitForAll", Boolean.class.getName())));
 		
-		addSupportedType(new ModuleTypeDTO("Average", "Join", false));
+		addSupportedType(new ModuleTypeDTO("Average", "Join", false,
+				new ModulePropertyDTO("Wait for all", "waitForAll", Boolean.class.getName())));
 		
-		addSupportedType(new ModuleTypeDTO("Multiply", "Join", false));
+		addSupportedType(new ModuleTypeDTO("Multiply", "Join", false,
+				new ModulePropertyDTO("Wait for all", "waitForAll", Boolean.class.getName())));
 		
 		addSupportedType(new ModuleTypeDTO("Split", "Fork", false,
+				new ModulePropertyDTO("Wait for all", "waitForAll", Boolean.class.getName()),
 				new ModulePropertyDTO("Split dimension", "dim", Integer.class.getName())));
 		
 		addSupportedType(new ModuleTypeDTO("Concat", "Join", false,
+				new ModulePropertyDTO("Wait for all", "waitForAll", Boolean.class.getName()),
 				new ModulePropertyDTO("Concat dimension", "dim", Integer.class.getName())));
 			
 		addSupportedType(new ModuleTypeDTO("Grid", "Fork", false,
@@ -362,34 +368,40 @@ public class DianneModuleFactory implements ModuleFactory {
 		}
 		case "Duplicate":
 		{
-			module = new Duplicate(id);
+			module = hasProperty(dto.properties, "waitForAll") ? 
+					new Duplicate(id, Boolean.parseBoolean(dto.properties.get("waitForAll"))) : new Duplicate(id);
 			break;
 		}
 		case "Accumulate":
 		{
-			module = new Accumulate(id);
+			module = hasProperty(dto.properties, "waitForAll") ? 
+					new Accumulate(id, Boolean.parseBoolean(dto.properties.get("waitForAll"))) : new Accumulate(id);
 			break;
 		}
 		case "Average":
 		{
-			module = new Average(id);
+			module = hasProperty(dto.properties, "waitForAll") ? 
+					new Average(id, Boolean.parseBoolean(dto.properties.get("waitForAll"))) : new Average(id);
 			break;
 		}		
 		case "Multiply":
 		{
-			module = new Multiply(id);
+			module = hasProperty(dto.properties, "waitForAll") ? 
+					new Multiply(id, Boolean.parseBoolean(dto.properties.get("waitForAll"))) : new Multiply(id);
 			break;
 		}
 		case "Split":
 		{
 			int dim = Integer.parseInt(dto.properties.get("dim"));
-			module = new Split(id, dim);
+			module = hasProperty(dto.properties, "waitForAll") ? 
+					new Split(id, Boolean.parseBoolean(dto.properties.get("waitForAll")), dim) : new Split(id, dim);
 			break;
 		}
 		case "Concat":
 		{
 			int dim = Integer.parseInt(dto.properties.get("dim"));
-			module = new Concat(id, dim);
+			module = hasProperty(dto.properties, "waitForAll") ? 
+					new Concat(id, Boolean.parseBoolean(dto.properties.get("waitForAll")), dim) : new Concat(id, dim);
 			break;
 		}
 		case "Grid":

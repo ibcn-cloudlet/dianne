@@ -58,11 +58,26 @@ public abstract class Join extends AbstractModule {
 
 	
 	public Join() {
-		super();
+		this(true);
 	}
 	
 	public Join(UUID id) {
+		this(id, true);
+	}
+	
+	public Join(boolean waitForAll) {
+		super();
+		updateMode(waitForAll);
+	}
+	
+	public Join(UUID id, boolean waitForAll) {
 		super(id);
+		updateMode(waitForAll);
+	}
+	
+	private void updateMode(boolean waitForAll) {
+		mode.remove(waitForAll ? Mode.FORWARD_ON_CHANGE : Mode.WAIT_FOR_ALL);
+		mode.add(waitForAll ? Mode.WAIT_FOR_ALL : Mode.FORWARD_ON_CHANGE);
 	}
 	
 	@Override

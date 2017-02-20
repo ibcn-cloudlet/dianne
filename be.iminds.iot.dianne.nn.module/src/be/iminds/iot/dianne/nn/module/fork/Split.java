@@ -33,7 +33,7 @@ public class Split extends Fork {
 	// counted starting from the last dimension
 	// e.g. 3-dim tensor (x,y,z), dim 0 = split on z, dim 1 = split on y
 	// this allows to have the desired split in case of batched tensors
-	private int dim;
+	private final int dim;
 	
 	public Split(int dim) {
 		super();
@@ -42,6 +42,16 @@ public class Split extends Fork {
 	
 	public Split(UUID id, int dim) {
 		super(id);
+		this.dim = dim;
+	}
+	
+	public Split(boolean waitForAll, int dim) {
+		super(waitForAll);
+		this.dim = dim;
+	}
+	
+	public Split(UUID id, boolean waitForAll, int dim) {
+		super(id, waitForAll);
 		this.dim = dim;
 	}
 	

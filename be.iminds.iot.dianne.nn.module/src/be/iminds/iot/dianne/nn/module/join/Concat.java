@@ -33,7 +33,7 @@ public class Concat extends Join {
 	// counted starting from the last dimension
 	// e.g. 3-dim tensor (x,y,z), dim 0 = concat on z, dim 1 = concat on y
 	// this allows to have the desired concatenation in case of batched tensors
-	private int dim;
+	private final int dim;
 	
 	public Concat(int dim) {
 		super();
@@ -42,6 +42,16 @@ public class Concat extends Join {
 	
 	public Concat(UUID id, int dim) {
 		super(id);
+		this.dim = dim;
+	}
+	
+	public Concat(boolean waitForAll, int dim) {
+		super(waitForAll);
+		this.dim = dim;
+	}
+	
+	public Concat(UUID id, boolean waitForAll, int dim) {
+		super(id, waitForAll);
 		this.dim = dim;
 	}
 	

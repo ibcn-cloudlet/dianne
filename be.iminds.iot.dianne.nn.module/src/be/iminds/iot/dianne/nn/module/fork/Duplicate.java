@@ -38,6 +38,14 @@ public class Duplicate extends Fork {
 	public Duplicate(UUID id) {
 		super(id);
 	}
+	
+	public Duplicate(boolean waitForAll) {
+		super(waitForAll);
+	}
+	
+	public Duplicate(UUID id, boolean waitForAll) {
+		super(id, waitForAll);
+	}
 
 	@Override
 	protected void forward() {

@@ -58,11 +58,26 @@ public abstract class Fork extends AbstractModule {
 	protected UUID[] nextIds;
 	
 	public Fork() {
-		super();
+		this(true);
 	}
 	
 	public Fork(UUID id) {
+		this(id, true);
+	}
+	
+	public Fork(boolean waitForAll) {
+		super();
+		updateMode(waitForAll);
+	}
+	
+	public Fork(UUID id, boolean waitForAll) {
 		super(id);
+		updateMode(waitForAll);
+	}
+	
+	private void updateMode(boolean waitForAll) {
+		mode.remove(waitForAll ? Mode.FORWARD_ON_CHANGE : Mode.WAIT_FOR_ALL);
+		mode.add(waitForAll ? Mode.WAIT_FOR_ALL : Mode.FORWARD_ON_CHANGE);
 	}
 
 	@Override

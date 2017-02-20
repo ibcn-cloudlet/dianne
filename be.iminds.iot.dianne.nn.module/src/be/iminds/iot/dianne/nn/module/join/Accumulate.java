@@ -39,6 +39,14 @@ public class Accumulate extends Join {
 		super(id);
 	}
 	
+	public Accumulate(boolean waitForAll) {
+		super(waitForAll);
+	}
+	
+	public Accumulate(UUID id, boolean waitForAll) {
+		super(id, waitForAll);
+	}
+	
 	@Override
 	protected void forward() {
 		int[] dims = inputs.values().stream().filter(t -> t !=null).findFirst().get().dims();

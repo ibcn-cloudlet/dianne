@@ -39,6 +39,14 @@ public class Average extends Join {
 		super(id);
 	}
 	
+	public Average(boolean waitForAll) {
+		super(waitForAll);
+	}
+	
+	public Average(UUID id, boolean waitForAll) {
+		super(id, waitForAll);
+	}
+	
 	@Override
 	protected void forward() {
 		// element-wise average over inputs

@@ -39,6 +39,14 @@ public class Multiply extends Join {
 		super(id);
 	}
 	
+	public Multiply(boolean waitForAll) {
+		super(waitForAll);
+	}
+	
+	public Multiply(UUID id, boolean waitForAll) {
+		super(id, waitForAll);
+	}
+	
 	@Override
 	protected void forward() {
 		// elementwise multiply inputs
