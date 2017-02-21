@@ -169,19 +169,30 @@ function laser(tensor, canvasCtx, showTarget){
 
 function laser_rect(tensor, canvasCtx, offset, scanPoints, posX, posY, targetW, targetH, showTarget){
 	// render laserdata
+	
+	// define clipping region
+	canvasCtx.save();
+	canvasCtx.clearRect(posX,posY,targetW,targetH);
+	canvasCtx.rect(posX,posY,targetW,targetH);
+	canvasCtx.clip();
+	
+	// draw rays
 	var step = Math.PI/scanPoints;
 	var angle = 0;
 	var length;
-	canvasCtx.clearRect(posX,posY,targetW,targetH);
 	canvasCtx.beginPath();
 	for (var i = 0; i < scanPoints; i++) {
-		canvasCtx.moveTo(posX+targetW/2, posY+targetH);
+		var srcX = posX+targetW/2;
+		var srcY = posY+targetH;
+		
+		canvasCtx.moveTo(srcX, srcY);
+		
 		length = tensor.data[offset+i]*targetH/2;
 		
-		var x = posX+targetW/2+length*Math.cos(angle);
-		var y = posY+targetH-length*Math.sin(angle);
-		canvasCtx.lineTo(Math.min(Math.max(parseInt(x), posX), posX+targetW), 
-				Math.min(Math.max(parseInt(y), posY), posY+targetH));
+		var x = srcX+length*Math.cos(angle);
+		var y = srcY-length*Math.sin(angle);
+		
+		canvasCtx.lineTo(parseInt(x),parseInt(y));
 		angle+=step;
 	}
 	canvasCtx.stroke();
@@ -194,6 +205,8 @@ function laser_rect(tensor, canvasCtx, offset, scanPoints, posX, posY, targetW, 
 		canvasCtx.fill();
 		canvasCtx.closePath();
 	}
+	
+	canvasCtx.restore();
 }
 
 
