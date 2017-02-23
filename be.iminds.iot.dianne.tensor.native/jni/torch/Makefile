@@ -37,7 +37,7 @@ nn/lib/THNN/build/libTHNN.a: torch7/lib/TH/build/libTH.a
 OpenBLAS/libopenblas.a:
 	# CBLAS and LAPACKE or C wrappers for BLAS and LAPACK. Torch does not use these wrappers so they should not be compiled (saves build time)
 	# We do not use the shared library
-	$(MAKE) -C OpenBLAS NO_AFFINITY=1 USE_OPENMP=1 NO_SHARED=1 NO_CBLAS=1 NO_LAPACKE=1
+	$(MAKE) -C OpenBLAS NO_AFFINITY=1 USE_OPENMP=1 NO_SHARED=1 NO_CBLAS=1 NO_LAPACKE=1 NUM_THREADS=64
 
 .PHONY: clean
 clean:
