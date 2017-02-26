@@ -490,8 +490,8 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		return s;
 	}
 	
-	private int getBufferPosition(int index, int start){
-		int pos = (start+index) % maxSize;
+	private long getBufferPosition(long index, long start){
+		long pos = (start+index) % maxSize;
 		return pos*sampleSize;
 	}
 	
@@ -510,9 +510,9 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	
 	protected abstract void setup(Map<String, Object> config);
 	
-	protected abstract void loadData(int position, float[] data);
+	protected abstract void loadData(long position, float[] data);
 	
-	protected abstract void writeData(int position, float[] data);
+	protected abstract void writeData(long position, float[] data);
 
 	protected abstract void dumpData() throws IOException;
 	

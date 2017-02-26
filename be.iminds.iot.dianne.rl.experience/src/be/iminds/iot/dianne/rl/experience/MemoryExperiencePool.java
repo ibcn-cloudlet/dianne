@@ -64,13 +64,13 @@ public class MemoryExperiencePool extends AbstractExperiencePool {
 	}
 
 	@Override
-	protected void loadData(int position, float[] data) {
-		System.arraycopy(samples, position, data, 0, data.length);
+	protected void loadData(long position, float[] data) {
+		System.arraycopy(samples, (int)position, data, 0, data.length);
 	}
 
 	@Override
-	protected void writeData(int position, float[] data) {
-		System.arraycopy(data, 0, samples, position, data.length);
+	protected void writeData(long position, float[] data) {
+		System.arraycopy(data, 0, samples, (int)position, data.length);
 	}
 
 	@Override

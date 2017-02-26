@@ -83,12 +83,12 @@ public class FileExperiencePool extends AbstractExperiencePool {
 	}
 
 	@Override
-	protected void loadData(int position, float[] data) {
+	protected void loadData(long position, float[] data) {
 		int size = data.length;
 		
-		int b = position / FLOATS_PER_BUFFER;
+		int b = (int)(position / FLOATS_PER_BUFFER);
 		FloatBuffer buffer = buffers[b];
-		int i = position % FLOATS_PER_BUFFER;
+		int i = (int)(position % FLOATS_PER_BUFFER);
 
 		if(FLOATS_PER_BUFFER-i < size){
 			// split in two
@@ -106,10 +106,10 @@ public class FileExperiencePool extends AbstractExperiencePool {
 	}
 
 	@Override
-	protected void writeData(int position, float[] data) {
-		int b = position / FLOATS_PER_BUFFER;
+	protected void writeData(long position, float[] data) {
+		int b = (int) (position / FLOATS_PER_BUFFER);
 		FloatBuffer buffer = buffers[b];
-		int i = position % FLOATS_PER_BUFFER;
+		int i = (int)(position % FLOATS_PER_BUFFER);
 
 		if(FLOATS_PER_BUFFER-i < data.length){
 			// split in two
