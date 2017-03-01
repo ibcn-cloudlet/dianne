@@ -21,10 +21,6 @@
 -runbundles.ale: \
 	be.iminds.iot.dianne.rl.environment.ale;version=${dianne.version}
 
--runproperties.ale: \
-	be.iminds.iot.dianne.rl.ale.rom=roms/pong.bin,\
-	be.iminds.iot.dianne.rl.ale.skip=4
-
 -runbundles.pong: \
 	org.websocket;version='[1.0,1.1)',\
 	be.iminds.iot.dianne.rl.environment.pong;version=${dianne.version}

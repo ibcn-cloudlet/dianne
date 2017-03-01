@@ -9,8 +9,5 @@
 -include: runtime.agent.bndrun
 
 -runbundles.runtime.agent.ale: \
-	be.iminds.iot.dianne.rl.ale;version=${dianne.version}
+	be.iminds.iot.dianne.rl.environment.ale;version=${dianne.version}
 
--runproperties.runtime.agent.ale:\
-	be.iminds.iot.dianne.rl.ale.rom="roms/pong.bin",\
-	be.iminds.iot.dianne.rl.ale.skip=4
