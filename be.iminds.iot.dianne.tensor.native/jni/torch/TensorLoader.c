@@ -86,7 +86,7 @@ void initTH(JNIEnv* env, int device){
 	THSetDefaultArgErrorHandler(torchArgErrorHandlerFunction, NULL);
 
 	// Set Torch GC handler
-	THSetGCHandler(gcFunction, NULL);
+	THSetDefaultGCHandler(gcFunction, NULL);
 
 	// initialize CUDA
 #ifdef CUDA

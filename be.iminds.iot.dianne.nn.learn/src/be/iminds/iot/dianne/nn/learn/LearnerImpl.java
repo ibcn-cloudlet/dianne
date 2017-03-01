@@ -345,9 +345,6 @@ public class LearnerImpl implements Learner {
 			System.out.println("Failed to load parameters after publish?!");
 			e.printStackTrace();
 		}
-			
-		// trigger garbage collection to clean up store tensors
-		System.gc();
 	}
 
 	/**
