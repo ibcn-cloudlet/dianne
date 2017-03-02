@@ -374,7 +374,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 					noSamples -= removed.length;
 				}
 				
-				writeData(index*sampleSize, buffer);
+				writeData((long)index*(long)sampleSize, buffer);
 				index++;
 			}
 			
