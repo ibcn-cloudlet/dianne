@@ -391,30 +391,6 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	}
 	
 	@Override
-	public void removeSequence(final int sequence){
-		try {
-			lock.writeLock().lock();
-			SequenceLocation seq = sequences.remove(sequence);
-			noSamples -= seq.length;
-		} finally {
-			lock.writeLock().unlock();
-		}
-	}
-	
-	@Override
-	public Sequence<ExperiencePoolSample> removeAndGetSequence(Sequence<ExperiencePoolSample> s, final int sequence){
-		try {
-			lock.writeLock().lock();
-			s = getSequence(s, sequence, 0, -1);
-			SequenceLocation seq = sequences.remove(sequence);
-			noSamples -= seq.length;
-			return s;
-		} finally {
-			lock.writeLock().unlock();
-		}
-	}
-	
-	@Override
 	public void reset() {
 		try {
 			lock.writeLock().lock();

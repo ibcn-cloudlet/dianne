@@ -155,20 +155,6 @@ public abstract class AbstractExperiencePoolAdapter implements ExperiencePool {
 	}
 	
 	@Override
-	public void removeSequence(final int sequence){
-		pool.removeSequence(sequence);
-	}
-
-	@Override
-	public Sequence<ExperiencePoolSample> removeAndGetSequence(Sequence<ExperiencePoolSample> s, final int sequence){
-		s = pool.removeAndGetSequence(s, sequence);
-		for(ExperiencePoolSample sample : s){
-			adaptFetchedSample(sample);
-		}
-		return s;
-	}
-	
-	@Override
 	public void reset() {
 		pool.reset();
 	}
