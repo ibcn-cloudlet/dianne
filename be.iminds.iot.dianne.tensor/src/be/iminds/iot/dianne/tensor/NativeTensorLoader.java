@@ -22,6 +22,13 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.tensor;
 
+import java.lang.management.GarbageCollectorMXBean;
+import java.lang.management.ManagementFactory;
+
+import javax.management.Notification;
+import javax.management.NotificationEmitter;
+import javax.management.NotificationListener;
+
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -37,6 +44,22 @@ public class NativeTensorLoader {
 	static {
 		try {
 			System.loadLibrary("Tensor");
+			
+			NotificationListener notificationListener = new NotificationListener() {
+				@Override
+				public void handleNotification(Notification notification, Object handback) {
+					// should we wait for specific notification?
+					// will depend on JVM which garbage collectors are used?!
+					synchronized (gcDone) {
+						gcDone.notifyAll();
+					}
+				}
+			};
+			for (GarbageCollectorMXBean gcBean : ManagementFactory.getGarbageCollectorMXBeans()) {
+				NotificationEmitter emitter = (NotificationEmitter) gcBean;
+				emitter.addNotificationListener(notificationListener, null, null);
+			}
+			
 		} catch (final UnsatisfiedLinkError e) {
 		    System.err.println("Native code library Tensor failed to load. \n"+ e);
 		    throw e;
@@ -76,4 +99,18 @@ public class NativeTensorLoader {
 	
 	private native void cleanup();
 	
+	// Trigger garbage collection 
+	private static Object gcDone = new Object();
+	
+	public static void gc(){
+		// This is a "sync" gc method that waits until the gc has actually done something 
+		synchronized (gcDone) {
+			System.gc();
+			try {
+				gcDone.wait(100);
+			} catch (InterruptedException e) {
+			}
+		}
+	}
+
 }

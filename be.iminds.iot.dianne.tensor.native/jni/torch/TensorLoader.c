@@ -30,8 +30,8 @@ int CURRENT_GPU;
 static jfieldID TENSOR_ADDRESS_FIELD;
 static jmethodID TENSOR_INIT;
 static jclass TENSOR_CLASS;
-static jmethodID SYSTEM_GC;
-static jclass SYSTEM_CLASS;
+static jmethodID TENSORLOADER_GC;
+static jclass TENSORLOADER_CLASS;
 static jclass EXCEPTION_CLASS;
 
 void throwException(const char * msg){
@@ -53,7 +53,7 @@ static void torchArgErrorHandlerFunction(int argNumber, const char *msg, void *d
 static void gcFunction(void *data){
 	JNIEnv* env;
 	jvm->AttachCurrentThread((void**)&env, NULL);
-	env->CallStaticVoidMethod(SYSTEM_CLASS, SYSTEM_GC);
+	env->CallStaticVoidMethod(TENSORLOADER_CLASS, TENSORLOADER_GC);
 	jvm->DetachCurrentThread();
 }
 
@@ -69,11 +69,11 @@ void initTH(JNIEnv* env, int device){
 	TENSOR_ADDRESS_FIELD = env->GetFieldID(TENSOR_CLASS, "address", "J");
 	TENSOR_INIT = env->GetMethodID(TENSOR_CLASS, "<init>", "(J)V");
 
-	jclass systemClass;
-	char *systemClassName = (char*)"java/lang/System";
-	systemClass = env->FindClass(systemClassName);
-    SYSTEM_CLASS = (jclass) env->NewGlobalRef(systemClass);
-	SYSTEM_GC = env->GetStaticMethodID(SYSTEM_CLASS, "gc", "()V");
+	jclass tensorloaderClass;
+	char *tensorloaderClassName = (char*)"be/iminds/iot/dianne/tensor/NativeTensorLoader";
+	tensorloaderClass = env->FindClass(tensorloaderClassName);
+    TENSORLOADER_CLASS = (jclass) env->NewGlobalRef(tensorloaderClass);
+	TENSORLOADER_GC = env->GetStaticMethodID(TENSORLOADER_CLASS, "gc", "()V");
 
 	jclass exceptionClass;
 	char *exClassName = (char*)"java/lang/Exception";
@@ -102,6 +102,7 @@ void initTH(JNIEnv* env, int device){
 		}
 	}
 	THCudaCheck(cudaGetLastError());
+	THCSetGCHandler(state, gcFunction, NULL);
 #endif
 
 }
@@ -109,7 +110,7 @@ void initTH(JNIEnv* env, int device){
 void cleanupTH(JNIEnv* env){
 	// release global class references
 	env->DeleteGlobalRef(TENSOR_CLASS);
-	env->DeleteGlobalRef(SYSTEM_CLASS);
+	env->DeleteGlobalRef(TENSORLOADER_CLASS);
 	env->DeleteGlobalRef(EXCEPTION_CLASS);
 
 
