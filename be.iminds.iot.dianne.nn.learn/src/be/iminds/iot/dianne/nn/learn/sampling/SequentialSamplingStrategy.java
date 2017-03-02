@@ -44,4 +44,17 @@ public class SequentialSamplingStrategy implements SamplingStrategy {
 		return index++;
 	}
 
+	@Override
+	public int[] next(int count){
+		int[] indices = new int[count];
+		int size = dataset.size();
+		for(int i=0;i<count;i++){
+			if(index >= size){
+				indices[i] = 0;
+			} else {
+				indices[i] = index++;
+			}
+		}
+		return indices;
+	}
 }

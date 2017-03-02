@@ -42,4 +42,13 @@ public class UniformSamplingStrategy implements SamplingStrategy{
 		return random.nextInt(dataset.size());
 	}
 
+	@Override
+	public int[] next(int count){
+		int[] indices = new int[count];
+		int size = dataset.size();
+		for(int i=0;i<count;i++){
+			indices[i] = random.nextInt(size);
+		}
+		return indices;
+	}
 }
