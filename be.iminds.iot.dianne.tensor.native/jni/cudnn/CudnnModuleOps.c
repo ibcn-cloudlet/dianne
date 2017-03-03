@@ -124,7 +124,9 @@ jobject cudnn_activation_backward(JNIEnv * env, jobject gradIn, jobject gradOut,
 	THTensor* gradOutput = getTensor(env, gradOut);
 	THTensor* input = getTensor(env, in);
 	THTensor* output = getTensor(env, out);
-	THTensor_(resizeAs)(state, gradInput, gradOutput);
+	THTensor_(resizeAs)(state, input, output);
+	THTensor_(resizeAs)(state, gradOutput, output);
+	THTensor_(resizeAs)(state, gradInput, output);
 
 	// create cudnn tensor descriptors
 	cudnnTensorDescriptor_t inputTensor = cudnn_create_tensor_descriptor(input);
