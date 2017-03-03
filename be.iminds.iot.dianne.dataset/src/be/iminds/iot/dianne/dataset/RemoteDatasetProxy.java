@@ -25,7 +25,18 @@ package be.iminds.iot.dianne.dataset;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
+import be.iminds.iot.dianne.api.dataset.Batch;
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.RawBatch;
+import be.iminds.iot.dianne.api.dataset.RawBatchedSequence;
+import be.iminds.iot.dianne.api.dataset.RawSample;
+import be.iminds.iot.dianne.api.dataset.RawSequence;
+import be.iminds.iot.dianne.api.dataset.Sample;
+import be.iminds.iot.dianne.api.dataset.Sequence;
+import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch;
+import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
+import be.iminds.iot.dianne.api.rl.dataset.RawExperiencePoolBatch;
+import be.iminds.iot.dianne.api.rl.dataset.RawExperiencePoolSample;
 
 /**
  * Proxy class to optimize the behavior of querying datasets that are located on a remote machine
@@ -43,10 +54,36 @@ public class RemoteDatasetProxy implements InvocationHandler {
 	
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-		if(method.getParameterCount() > 0 && method.getReturnType().equals(method.getParameterTypes()[0])){
-			// this is a method that has as first arg the return type
-			//... in case of a remote call, set parameter[0] to null
-			args[0] = null;
+		if(method.getParameterCount() > 0 
+				&& method.getReturnType().equals(method.getParameterTypes()[0])
+				&& args[0] != null){
+			// get the raw data and copy it into the provided result object
+			// on the caller side
+			Class[] parameterTypes = new Class[args.length-1];
+			Object[] arguments = new Object[args.length-1];
+			for(int i=0;i<parameterTypes.length;i++){
+				parameterTypes[i] = method.getParameterTypes()[i+1];
+				arguments[i] = args[i+1];
+			}
+			String rawMethodName = "getRaw"+method.getName().substring(3);
+			
+			Method rawMethod = proxied.getClass().getMethod(rawMethodName, parameterTypes);
+			Object rawResult = rawMethod.invoke(proxied, arguments);
+			if(rawResult instanceof RawSample){
+				return ((RawSample)rawResult).copyInto((Sample)args[0]);
+			} else if(rawResult instanceof RawBatch){
+				return ((RawBatch)rawResult).copyInto((Batch)args[0]);
+			} else if(rawResult instanceof RawSequence){
+				return ((RawSequence)rawResult).copyInto((Sequence)args[0]);
+			} else if(rawResult instanceof RawBatchedSequence){
+				return ((RawBatchedSequence)rawResult).copyInto((Sequence)args[0]);
+			} else if(rawResult instanceof RawExperiencePoolSample){
+				return ((RawExperiencePoolSample)rawResult).copyInto((ExperiencePoolSample)args[0]);
+			} else if(rawResult instanceof RawExperiencePoolBatch){
+				return ((RawExperiencePoolBatch)rawResult).copyInto((ExperiencePoolBatch)args[0]);
+			} else {
+				throw new RuntimeException("Unsupported raw result "+rawResult);
+			}
 		}
 		return method.invoke(proxied, args);
 	}

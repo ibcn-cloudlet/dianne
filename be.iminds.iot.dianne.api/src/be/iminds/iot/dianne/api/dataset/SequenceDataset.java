@@ -22,6 +22,9 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.dataset;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * A SequenceDataset is a Dataset consisting of sequences of samples.
  * 
@@ -65,6 +68,15 @@ public interface SequenceDataset<S extends Sample, B extends Batch> extends Data
 		return getSequence(null, sequence, 0, -1);
 	}
 	
+	default RawSequence getRawSequence(final int sequence, final int index, final int length){
+		List<RawSample> data = new ArrayList<>();
+		Sequence<S> seq = getSequence(sequence, index, length);
+		for(S sample : seq){
+			data.add(new RawSample(sample.input.dims(), sample.input.get(), sample.target.dims(), sample.target.get()));
+		}
+		return new RawSequence(data);
+	}
+	
 	/**
 	 * Get a (part of) sequences in batch with start indices and length
 	 * @param s provided sequence to copy the data into, will be created in case of null or elements will be added if s.size() < length
@@ -81,5 +93,14 @@ public interface SequenceDataset<S extends Sample, B extends Batch> extends Data
 	
 	default Sequence<B> getBatchedSequence(final int[] sequences){
 		return getBatchedSequence(null, sequences, null, -1);
+	}
+	
+	default RawBatchedSequence getRawBatchedSequence(final int[] sequences, final int[] indices, final int length){
+		List<RawBatch> data = new ArrayList<>();
+		Sequence<B> seq = getBatchedSequence(sequences, indices, length);
+		for(B batch : seq){
+			data.add(new RawBatch(batch.input.dims(), batch.input.get(), batch.target.dims(), batch.target.get()));
+		}
+		return new RawBatchedSequence(data);
 	}
 }

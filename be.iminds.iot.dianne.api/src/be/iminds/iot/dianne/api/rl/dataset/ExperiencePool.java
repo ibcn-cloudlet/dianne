@@ -78,6 +78,12 @@ public interface ExperiencePool extends SequenceDataset<ExperiencePoolSample, Ex
 	
 	ExperiencePoolSample getSample(ExperiencePoolSample s, final int index);
 
+	default RawExperiencePoolSample getRawSample(final int index){
+		ExperiencePoolSample s = getSample(index);
+		return new RawExperiencePoolSample(s.input.dims(), s.target.dims(), 
+				s.input.get(), s.target.get(), s.nextState.get(), s.reward.get(), s.terminal.get());
+	}
+	
 	/**
 	 * Get a batch from the experience pool. 
 	 * 
@@ -90,7 +96,12 @@ public interface ExperiencePool extends SequenceDataset<ExperiencePoolSample, Ex
 	
 	ExperiencePoolBatch getBatch(ExperiencePoolBatch b, final int...indices);
 	
-
+	default RawExperiencePoolBatch getRawBatch(final int... indices){
+		ExperiencePoolBatch b = getBatch(indices);
+		return new RawExperiencePoolBatch(b.input.dims(), b.target.dims(), 
+				b.input.get(), b.target.get(), b.nextState.get(), b.reward.get(), b.terminal.get());
+	}
+	
 	/**
 	 * Add a new sequence of interactions to the experience pool
 	 * 

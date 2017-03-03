@@ -76,6 +76,19 @@ public interface Dataset {
 	Sample getSample(Sample s, final int index);
 	
 	/**
+	 * Get raw sample data
+	 * 
+	 * Override this method to avoid Tensor creation in the Dataset implementation
+	 * 
+	 * @param index the index to fetch, should be smaller than size()
+	 * @return the raw sample data at position index
+	 */
+	default RawSample getRawSample(final int index){
+		Sample s = getSample(index);
+		return new RawSample(s.input.dims(), s.input.get(), s.target.dims(), s.target.get());
+	}
+	
+	/**
 	 * Returns a batch from the dataset with samples at indices.
 	 * @param indices the indices of the samples to fetch
 	 * @return batch with samples at indices
@@ -112,6 +125,19 @@ public interface Dataset {
 		}
 		
 		return b;
+	}
+	
+	/**
+	 * Fetches raw batched data from the dataset
+	 * 
+	 * Override this method to avoid Tensor creation in the Dataset implementation
+	 *
+	 * @param indices indices to fetch
+	 * @return
+	 */
+	default RawBatch getRawBatch(final int...indices){
+		Batch b = getBatch(indices);
+		return new RawBatch(b.input.dims(), b.input.get(), b.target.dims(), b.target.get());
 	}
 	
 	/**
