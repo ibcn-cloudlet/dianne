@@ -19,11 +19,20 @@ else
     $(info ERROR - unsupported value $(ARCH) for ARCH!)
 endif
 
+ifeq ($(wildcard $(CUDA_TARGET)),)
+    CUDA_TARGET:=${CUDA_HOME}
+endif
+
+CUDA_LIB:=lib
+ifeq ($(wildcard $(CUDA_TARGET)/$(LIB)),)
+    CUDA_LIB:=lib64
+endif
+
 HEADERS := $(wildcard ../torch/*.h)
 SRC := $(wildcard ../torch/*.c)
 OBJECTS := $(notdir $(SRC:.c=.o))
 JAVAH := ../../../be.iminds.iot.dianne.tensor/generated/jni-headers
-LINKS := -Lcunn/lib/THCUNN/build -lTHCUNN -Lcutorch/lib/THC/build -lTHC -L../torch/torch7/lib/TH/build -lTH -L$(CUDA_TARGET)/lib -lcudart_static -lcublas_static -lstdc++ -lculibos -pthread
+LINKS := -Lcunn/lib/THCUNN/build -lTHCUNN -Lcutorch/lib/THC/build -lTHC -L../torch/torch7/lib/TH/build -lTH -L$(CUDA_TARGET)/$(CUDA_LIB) -lcudart_static -lcublas_static -lstdc++ -lculibos -pthread
 INCLUDES += -I. -I../torch
 INCLUDES += -I$(CUDA_TARGET)/include/
 INCLUDES += -Icutorch/lib -Icutorch/lib/THC -Icutorch/lib/THC/build
