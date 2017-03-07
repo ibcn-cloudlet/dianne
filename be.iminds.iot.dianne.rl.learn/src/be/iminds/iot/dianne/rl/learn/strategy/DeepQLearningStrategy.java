@@ -69,7 +69,6 @@ public class DeepQLearningStrategy implements LearningStrategy {
 	protected Criterion criterion;
 	protected GradientProcessor gradientProcessor;
 	
-	protected Tensor actionBatch;
 	protected Tensor targetValueBatch;
 	
 	@Override
@@ -91,7 +90,6 @@ public class DeepQLearningStrategy implements LearningStrategy {
 		this.gradientProcessor = ProcessorFactory.createGradientProcessor(this.config.method, valueNetwork, config);
 		
 		// Pre-allocate tensors for batch operations
-		this.actionBatch = new Tensor(this.config.batchSize, this.pool.actionDims()[0]);
 		this.targetValueBatch = new Tensor(this.config.batchSize, this.pool.actionDims()[0]);
 		
 		// Wait for the pool to contain enough samples
@@ -115,7 +113,6 @@ public class DeepQLearningStrategy implements LearningStrategy {
 		
 		// Reset the action & target value batch
 		// Note: actionBatch is a reverse mask of the action selected
-		actionBatch.fill(1);
 		targetValueBatch.fill(0);
 		
 		// Fill in the batch
@@ -127,9 +124,6 @@ public class DeepQLearningStrategy implements LearningStrategy {
 			int action = TensorOps.argmax(batch.getAction(b));
 			Tensor nextState = batch.getNextState(b);
 			float reward = batch.getScalarReward(b);
-			
-			// Flag proper action
-			actionBatch.set(0, b, action);
 			
 			// Calculate the target value
 			if(!batch.isTerminal(b)) {
@@ -150,15 +144,15 @@ public class DeepQLearningStrategy implements LearningStrategy {
 		// Forward pass of the value network to get the current value estimate
 		Tensor valueBatch = valueNetwork.forward(batch.getState());
 		
-		// Fill in the missing target values
-		TensorOps.addcmul(targetValueBatch, targetValueBatch, 1, actionBatch, valueBatch);
-		
 		// Get the avg value of the best actions in the batch for reporting
 		float value = 0;
 		for(int b = 0; b < config.batchSize; b++) {
 			value += TensorOps.max(valueBatch.select(0, b));
 		}
 		value /= config.batchSize;
+
+		// Only keep the values on the actions actually taken
+		TensorOps.cmul(valueBatch, valueBatch, batch.getAction());
 		
 		Tensor l = criterion.loss(valueBatch, targetValueBatch);
 		float loss = TensorOps.mean(l);
