@@ -272,7 +272,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 			int minLength = Integer.MAX_VALUE;
 			
 			for(int k=0; k<sequences.length;k++){
-				SequenceLocation seq = this.sequences.get(k);
+				SequenceLocation seq = this.sequences.get(sequences[k]);
 				if(indices[k] >= seq.length){
 					throw new RuntimeException("Invalid start index: "+indices[k]);
 				}
