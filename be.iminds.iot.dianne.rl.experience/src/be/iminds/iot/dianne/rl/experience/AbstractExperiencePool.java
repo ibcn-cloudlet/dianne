@@ -44,9 +44,11 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import be.iminds.iot.dianne.api.dataset.AbstractDataset;
 import be.iminds.iot.dianne.api.dataset.Sequence;
+import be.iminds.iot.dianne.api.rl.dataset.BatchedExperiencePoolSequence;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
+import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSequence;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 public abstract class AbstractExperiencePool extends AbstractDataset implements ExperiencePool {
@@ -184,9 +186,9 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 
 	
 	@Override
-	public Sequence<ExperiencePoolSample> getSequence(Sequence<ExperiencePoolSample> s, int sequence, int index, int length){
+	public ExperiencePoolSequence getSequence(ExperiencePoolSequence s, int sequence, int index, int length){
 		if(s == null){
-			s = new Sequence<ExperiencePoolSample>();
+			s = new ExperiencePoolSequence();
 		}
 		List<ExperiencePoolSample> list = s.data; 
 				
@@ -244,9 +246,9 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	}
 	
 	@Override
-	public Sequence<ExperiencePoolBatch> getBatchedSequence(Sequence<ExperiencePoolBatch> b, final int[] sequences, final int[] indices, final int length){
+	public BatchedExperiencePoolSequence getBatchedSequence(BatchedExperiencePoolSequence b, final int[] sequences, final int[] indices, final int length){
 		if(b == null){
-			b = new Sequence<ExperiencePoolBatch>();
+			b = new BatchedExperiencePoolSequence();
 		}
 		List<ExperiencePoolBatch> list = b.data; 
 				

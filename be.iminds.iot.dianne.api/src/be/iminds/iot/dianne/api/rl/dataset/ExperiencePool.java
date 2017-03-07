@@ -106,6 +106,37 @@ public interface ExperiencePool extends SequenceDataset<ExperiencePoolSample, Ex
 				b.input.get(), b.target.get(), b.nextState.get(), b.reward.get(), b.terminal.get());
 	}
 	
+	
+	/**
+	 * Get a (part of) a sequence with start index and length
+	 * @param s provided sequence to copy the data into, will be created in case of null or elements will be added if s.size() < length
+	 * @param sequence number of the sequence
+	 * @param index start index of the first sample
+	 * @param length number of samples to get
+	 * @return sequence
+	 */
+	ExperiencePoolSequence getSequence(ExperiencePoolSequence s, final int sequence, final int index, final int length);
+
+	default Sequence<ExperiencePoolSample> getSequence(Sequence<ExperiencePoolSample> s, final int sequence, final int index, final int length){
+		return getSequence((ExperiencePoolSequence)s, sequence, index, length);
+	}
+
+	
+	/**
+	 * Get a (part of) sequences in batch with start indices and length
+	 * @param s provided sequence to copy the data into, will be created in case of null or elements will be added if s.size() < length
+	 * @param sequences sequences to batch
+	 * @param indices start indices of the first samples
+	 * @param length number of samples to get
+	 * @return sequence
+	 */
+	BatchedExperiencePoolSequence getBatchedSequence(BatchedExperiencePoolSequence s, final int[] sequences, final int[] indices, final int length);
+
+	default Sequence<ExperiencePoolBatch> getBatchedSequence(Sequence<ExperiencePoolBatch> b, final int[] sequences, final int[] indices, final int length){
+		return getBatchedSequence((BatchedExperiencePoolSequence)b, sequences, indices, length);
+	}
+
+
 	default RawExperiencePoolSequence getRawSequence(final int sequence, final int index, final int length){
 		List<RawExperiencePoolSample> data = new ArrayList<>();
 		Sequence<ExperiencePoolSample> seq = getSequence(sequence, index, length);

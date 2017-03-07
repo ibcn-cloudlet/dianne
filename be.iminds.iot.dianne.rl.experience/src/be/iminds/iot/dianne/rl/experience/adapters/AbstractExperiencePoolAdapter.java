@@ -30,9 +30,11 @@ import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.api.dataset.Sequence;
+import be.iminds.iot.dianne.api.rl.dataset.BatchedExperiencePoolSequence;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
+import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSequence;
 
 public abstract class AbstractExperiencePoolAdapter implements ExperiencePool {
 
@@ -125,7 +127,7 @@ public abstract class AbstractExperiencePoolAdapter implements ExperiencePool {
 	}
 	
 	@Override
-	public Sequence<ExperiencePoolSample> getSequence(Sequence<ExperiencePoolSample> s, int sequence, int index, int length){
+	public ExperiencePoolSequence getSequence(ExperiencePoolSequence s, int sequence, int index, int length){
 		s = pool.getSequence(s, sequence, index, length);
 		for(ExperiencePoolSample sample : s){
 			adaptFetchedSample(sample);
@@ -134,7 +136,7 @@ public abstract class AbstractExperiencePoolAdapter implements ExperiencePool {
 	}
 	
 	@Override
-	public Sequence<ExperiencePoolBatch> getBatchedSequence(Sequence<ExperiencePoolBatch> b, int[] sequences, int[] indices,
+	public BatchedExperiencePoolSequence getBatchedSequence(BatchedExperiencePoolSequence b, int[] sequences, int[] indices,
 			int length) {
 		b = pool.getBatchedSequence(b, sequences, indices, length);
 		for(int i=0; i< sequences.length;i++){
