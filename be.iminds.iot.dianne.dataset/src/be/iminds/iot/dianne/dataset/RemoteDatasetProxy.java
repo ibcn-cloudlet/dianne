@@ -58,6 +58,7 @@ public class RemoteDatasetProxy implements InvocationHandler {
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 		if(method.getParameterCount() > 0 
 				&& method.getReturnType().equals(method.getParameterTypes()[0])
+				&& !method.getReturnType().isPrimitive()
 				&& args[0] != null){
 			// get the raw data and copy it into the provided result object
 			// on the caller side
