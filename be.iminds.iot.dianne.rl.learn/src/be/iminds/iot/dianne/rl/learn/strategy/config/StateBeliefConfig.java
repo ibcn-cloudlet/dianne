@@ -24,13 +24,19 @@ package be.iminds.iot.dianne.rl.learn.strategy.config;
 
 import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory.CriterionConfig;
 import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory.ProcessorConfig;
+import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory.SamplingConfig;
 
-public class A3CConfig {
+public class StateBeliefConfig {
 
 	/**
-	 * Discount factor
+	 * Size of the batches that are processed by the Learner
 	 */
-	public float discount = 0.99f;
+	public int batchSize = 10;
+
+	/**
+	 * The criterion to use to evaluate the loss between output and target
+	 */
+	public CriterionConfig criterion = CriterionConfig.MSE;
 	
 	/**
 	 * The gradient optimization method to use
@@ -40,25 +46,12 @@ public class A3CConfig {
 	 *  * RMSprop
 	 */
 	public ProcessorConfig method = ProcessorConfig.SGD;
-
-	/**
-	 * The criterion to use for the value network
-	 */
-	public CriterionConfig valueCriterion = CriterionConfig.MSE;
 	
 	/**
-	 * Set to false to only train value function from existing policy
+	 * The sampling strategy to use to traverse the dataset
+	 *  * Random
+	 *  * Sequential
 	 */
-	public boolean updatePolicy = true;
-	
-	/**
-	 * Rate of entropy regularization
-	 */
-	public float entropy = 0.0f;
-	
-	/**
-	 * Set true to allow to revisit same sequences in the experience pool
-	 */
-	public boolean reuseSequences = false;
+	public SamplingConfig sampling = SamplingConfig.UNIFORM;
 	
 }
