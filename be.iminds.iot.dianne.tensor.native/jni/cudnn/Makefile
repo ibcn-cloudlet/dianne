@@ -19,6 +19,15 @@ else
     $(info ERROR - unsupported value $(ARCH) for ARCH!)
 endif
 
+ifeq ($(wildcard $(CUDA_TARGET)),)
+    CUDA_TARGET:=${CUDA_HOME}
+endif
+
+CUDA_LIB:=lib
+ifeq ($(wildcard $(CUDA_TARGET)/$(CUDA_LIB)),)
+    CUDA_LIB:=lib64
+endif
+
 HEADERS := $(wildcard *.h)
 SRC := $(wildcard *.c)
 OBJECTS=$(SRC:.c=.o)
@@ -27,7 +36,7 @@ SRC_CUTORCH := $(wildcard ../cutorch/*.cu)
 OBJECTS_CUTORCH := $(SRC_CUTORCH:.cu=.o)
 OBJECTS_CUTORCH += $(addprefix ../cutorch/, $(notdir $(SRC_TORCH:.c=.o)))
 JAVAH := ../../../be.iminds.iot.dianne.tensor/generated/jni-headers
-LINKS := -L../cutorch/cunn/lib/THCUNN/build -lTHCUNN -L../cutorch/cutorch/lib/THC/build -lTHC -L../torch/torch7/lib/TH/build -lTH -L$(CUDA_TARGET)/lib -lcudnn_static -lcudart_static -lcublas_static -lstdc++ -lculibos -pthread
+LINKS := -L../cutorch/cunn/lib/THCUNN/build -lTHCUNN -L../cutorch/cutorch/lib/THC/build -lTHC -L../torch/torch7/lib/TH/build -lTH -L$(CUDA_TARGET)/$(CUDA_LIB) -lcudnn_static -lcudart_static -lcublas_static -lstdc++ -lculibos -pthread
 INCLUDES += -I$(CUDA_TARGET)/include/
 INCLUDES += -I../cutorch/cutorch/lib -I../cutorch/cutorch/lib/THC -I../cutorch/cutorch/lib/THC/build
 INCLUDES += -I../cutorch/cunn/lib/THCUNN -I../cutorch/cunn/lib/THCUNN/build

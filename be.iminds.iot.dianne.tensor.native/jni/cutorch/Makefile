@@ -24,7 +24,7 @@ ifeq ($(wildcard $(CUDA_TARGET)),)
 endif
 
 CUDA_LIB:=lib
-ifeq ($(wildcard $(CUDA_TARGET)/$(LIB)),)
+ifeq ($(wildcard $(CUDA_TARGET)/$(CUDA_LIB)),)
     CUDA_LIB:=lib64
 endif
 
@@ -67,7 +67,7 @@ endif
 install: info $(DEPLOY_DIR)/$(LIB)
 
 info:
-	$(info CUDA_TARGET: $(CUDA_TARGET))
+	$(info CUDA_TARGET: $(CUDA_TARGET) CUDA_LIB: $(CUDA_LIB))
 
 $(DEPLOY_DIR)/$(LIB): $(LIB)
 	mkdir -p $(DEPLOY_DIR)
