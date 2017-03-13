@@ -342,7 +342,7 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 
 				// decrement counter
 				int next = index - 1;
-				
+
 				// check if we are done
 				if(next < 0){
 					Deferred<NeuralNetworkSequenceResult> d = new Deferred<>();
@@ -381,11 +381,11 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 				sequenceOutputs.put(e.getKey(), outs);
 			}
 			
-			if(outs.size() <= index){
-				outs.add(e.getValue().clone());
-			} else {
-				e.getValue().copyInto(outs.get(index));
+			while(outs.size() <= index){
+				outs.add(new Tensor());
 			}
+			
+			e.getValue().copyInto(outs.get(index));
 		});
 	}
 	
@@ -397,11 +397,11 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 				sequenceMemories.put(e.getKey(), mems);
 			}
 			
-			if(mems.size() <= index){
-				mems.add(e.getValue().getMemory().clone());
-			} else {
-				e.getValue().getMemory().copyInto(mems.get(index));
+			while(mems.size() <= index){
+				mems.add(new Tensor());
 			}
+			
+			e.getValue().getMemory().copyInto(mems.get(index));
 		});	
 	}
 	
@@ -413,11 +413,11 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 				sequenceGradInputs.put(e.getKey(), gradIns);
 			}
 			
-			if(gradIns.size() <= index){
-				gradIns.add(e.getValue().clone());
-			} else {
-				e.getValue().copyInto(gradIns.get(index));
+			while(gradIns.size() <= index){
+				gradIns.add(new Tensor());
 			}
+			
+			e.getValue().copyInto(gradIns.get(index));
 		});
 	}
 	
