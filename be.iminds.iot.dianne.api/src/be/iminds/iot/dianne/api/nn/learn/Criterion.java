@@ -48,8 +48,18 @@ public interface Criterion {
 	 * 
 	 * @param output the neural network output
 	 * @param target the desired target output
-	 * @return the gradient for backpropagation
+	 * @return the gradient to the output for backpropagation
 	 */
 	Tensor grad(final Tensor output, final Tensor target);
-	
+
+	/**
+	 * Returns gradient to the target - not supported for all criterions.
+	 * 
+	 * @param output the neural network output
+	 * @param target the desired target output
+	 * @return the gradient to the target for backpropagation
+	 */
+	default Tensor gradTarget(final Tensor output, final Tensor target){
+		throw new UnsupportedOperationException();
+	}
 }

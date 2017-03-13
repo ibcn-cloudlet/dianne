@@ -35,7 +35,9 @@ public class GaussianKLDivCriterion implements Criterion {
 	
 	protected Tensor sqTarStdev;
 	protected Tensor invOutStdev;
-	
+
+	protected Tensor invTarStdev;
+
 	protected Tensor l;
 	
 	protected Tensor loss = new Tensor(1);
@@ -112,4 +114,54 @@ public class GaussianKLDivCriterion implements Criterion {
 		return grad;
 	}
 
+	@Override
+	public Tensor gradTarget(final Tensor output, final Tensor target){
+		int dim = output.dim()-1;
+		int size = output.size(dim)/2;
+		
+		grad = output.copyInto(grad);
+		
+		Tensor outStdev = output.narrow(dim, size, size);
+		Tensor tarMean = target.narrow(dim, 0, size);
+		Tensor tarStdev = target.narrow(dim, size, size);
+		Tensor gradMean = grad.narrow(dim, 0, size);
+		Tensor gradStdev = grad.narrow(dim, size, size);
+		
+		sqTarStdev = TensorOps.cmul(sqTarStdev, tarStdev, tarStdev);
+		invTarStdev = TensorOps.pow(invTarStdev, tarStdev, -1);
+		
+		// grad mu = (mu_tar - mu_out)/ s_tar^2
+		TensorOps.sub(gradMean, tarMean, gradMean);
+		TensorOps.cdiv(gradMean, gradMean, sqTarStdev);
+		
+		
+		// grad s =
+		
+		// 2*s_out^2/s_tar^3
+		TensorOps.cmul(gradStdev, gradStdev, gradStdev);
+		TensorOps.mul(gradStdev, gradStdev, 2.0f);
+		TensorOps.cmul(gradStdev, gradStdev, invTarStdev);
+		TensorOps.cmul(gradStdev, gradStdev, invTarStdev);
+		TensorOps.cmul(gradStdev, gradStdev, invTarStdev);
+		
+		// + 2*(mu_tar - mu_out)^2/s_tar^3
+		TensorOps.cmul(meanDiff, gradMean, gradMean);
+		TensorOps.cmul(meanDiff, meanDiff, tarStdev);
+		TensorOps.mul(meanDiff, meanDiff, 2.0f);
+		TensorOps.add(gradStdev, gradStdev, meanDiff);
+		
+		// + 1/s_tar
+		TensorOps.add(gradStdev, gradStdev, invTarStdev);
+		
+		// divided by 2
+		TensorOps.div(gradStdev, gradStdev, 2);
+		
+		
+		if(b.batchAverage){
+			TensorOps.div(grad, grad, b.batchSize);
+		}
+			
+		return grad;
+	
+	}
 }
