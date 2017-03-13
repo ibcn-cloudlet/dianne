@@ -373,6 +373,6 @@ public interface NeuralNetwork {
 	void resetMemory(int batchSize);
 	
 	default void resetMemory(){
-		resetMemory(1);
+		resetMemory(0);
 	}
 }
