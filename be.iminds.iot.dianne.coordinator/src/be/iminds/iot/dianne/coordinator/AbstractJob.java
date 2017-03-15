@@ -106,13 +106,13 @@ public abstract class AbstractJob<T> implements Runnable {
 				for(UUID target : targets){
 					NeuralNetworkInstanceDTO[] instances = new NeuralNetworkInstanceDTO[nns.length];
 					for(int i=0;i<nns.length;i++){
+						NeuralNetworkDTO nn = nns[i];
 						try {
-							NeuralNetworkDTO nn = nns[i];
 							NeuralNetworkInstanceDTO nni = coordinator.platform.deployNeuralNetwork(nn.name, "Dianne Coordinator "+type+" job "+jobId, this.config, target);
 							instances[i] = nni;
 							targetsByNNi.put(nni.id, target);
 						} catch(Throwable t){
-							throw new JobFailedException(target, AbstractJob.this.jobId, "Failed to deploy NN instances: "+t.getMessage(), t);
+							throw new JobFailedException(target, AbstractJob.this.jobId, "Failed to deploy NN instance "+nn.name+": "+t.getMessage(), t);
 						}
 					}
 					nnis.put(target, instances);
