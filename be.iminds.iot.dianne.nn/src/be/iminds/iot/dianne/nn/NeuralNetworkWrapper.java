@@ -119,8 +119,17 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		try {
 			return getNeuralNetworkInstance().modules.entrySet().stream().filter(e -> name.equalsIgnoreCase(e.getValue().module.properties.get("name"))).findFirst().map(e -> e.getKey()).get();
 		} catch(NoSuchElementException e){
-			return null;
+			throw new RuntimeException("Module with name "+name+" not found");
 		}
+	}
+
+	@Override
+	public UUID[] getModuleIds(String... names) {
+		UUID[] result = new UUID[names.length];
+		for(int i=0;i<names.length;i++){
+			result[i] = getModuleId(names[i]);
+		}
+		return result;
 	}
 	
 	@Override
