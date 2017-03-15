@@ -28,11 +28,16 @@ import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory.SamplingConfig;
 
 public class StateBeliefConfig {
 
-	/**
-	 * Size of the batches that are processed by the Learner
-	 */
-	public int batchSize = 10;
 
+	public int stateSize = 100;
+	
+	public int sequenceLength = 10;
+	
+	public int batchSize = 32;
+	
+	public boolean fixedPrior = false;
+
+	
 	/**
 	 * The criterion to use to evaluate the loss between output and target
 	 */

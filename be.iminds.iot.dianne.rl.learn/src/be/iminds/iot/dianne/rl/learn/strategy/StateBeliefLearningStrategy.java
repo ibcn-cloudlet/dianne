@@ -22,6 +22,8 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rl.learn.strategy;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -31,14 +33,15 @@ import be.iminds.iot.dianne.api.nn.learn.Criterion;
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.learn.LearningStrategy;
-import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
+import be.iminds.iot.dianne.api.rl.dataset.BatchedExperiencePoolSequence;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
-import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch;
 import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory;
+import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory.CriterionConfig;
 import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory;
-import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.learn.strategy.config.StateBeliefConfig;
+import be.iminds.iot.dianne.rnn.learn.sampling.SequenceSamplingFactory;
+import be.iminds.iot.dianne.rnn.learn.sampling.SequenceSamplingStrategy;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
@@ -54,23 +57,40 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 	protected StateBeliefConfig config;
 	
 	protected ExperiencePool pool;
-	protected SamplingStrategy sampling;
+	protected SequenceSamplingStrategy sampling;
+	protected int[] indices;
 	
-	protected ExperiencePoolBatch batch;
+	protected BatchedExperiencePoolSequence sequence;
 	
 	protected NeuralNetwork encoder;
 	protected NeuralNetwork decoder;
 	protected NeuralNetwork predictor;
 
-	protected UUID[] predictorIns;
+	protected UUID[] encoderIn;
+	protected UUID[] encoderOut;
+	
+	protected UUID[] predictorIn;
 	protected UUID[] predictorOut;
 	
-	protected Criterion decoderCriterion;
-	protected Criterion predictorCriterion;
+	protected Criterion reconCriterion;
+	protected Criterion regulCriterion;
+	
 	protected GradientProcessor encoderGradients;
 	protected GradientProcessor decoderGradients;
 	protected GradientProcessor predictorGradients;
-
+	
+	protected Tensor action;
+	protected Tensor state;
+	protected Tensor random;
+	
+	protected Tensor fixedPrior;
+	protected Tensor prior;
+	protected Tensor posterior;
+	
+	protected Tensor stateDistributionGrad;
+	
+	protected List<Tensor> states = new ArrayList<>();
+	
 	@Override
 	public void setup(Map<String, String> config, Dataset dataset, NeuralNetwork... nns) throws Exception {
 		if(!(dataset instanceof ExperiencePool))
@@ -85,67 +105,177 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 		this.decoder = nns[1];
 		this.predictor = nns[2];
 		
-		this.predictorIns = new UUID[]{predictor.getModuleId("Input"), predictor.getModuleId("Action")};
+		this.encoderIn = encoder.getModuleIds("State","Action","Observation");
+		this.encoderOut = new UUID[]{encoder.getOutput().getId()};
+		
+		this.predictorIn = predictor.getModuleIds("State","Action");
 		this.predictorOut = new UUID[]{predictor.getOutput().getId()};
 		
 		this.config = DianneConfigHandler.getConfig(config, StateBeliefConfig.class);
-		this.sampling = SamplingFactory.createSamplingStrategy(this.config.sampling, dataset, config);
+		this.sampling = SequenceSamplingFactory.createSamplingStrategy(this.config.sampling, this.pool, config);
+		// always sample from start index
+		indices = new int[this.config.batchSize];
+		for(int i=0;i<this.config.batchSize;i++){
+			indices[i]=0;
+		}
 		
-		this.decoderCriterion = CriterionFactory.createCriterion(this.config.criterion, config);
-		this.predictorCriterion = CriterionFactory.createCriterion(this.config.criterion, config);
-
+		// for now batchSize fixed 1
+		this.reconCriterion = CriterionFactory.createCriterion(this.config.criterion, config);
+		this.regulCriterion = CriterionFactory.createCriterion(CriterionConfig.GKL, config); 
+		
 		this.encoderGradients = ProcessorFactory.createGradientProcessor(this.config.method, encoder, config);
 		this.decoderGradients = ProcessorFactory.createGradientProcessor(this.config.method, decoder, config);
 		this.predictorGradients = ProcessorFactory.createGradientProcessor(this.config.method, predictor, config);
 
+		this.action = new Tensor(this.config.batchSize, pool.actionDims());
+		this.state = new Tensor(this.config.batchSize, this.config.stateSize);
+		this.random = new Tensor(this.config.batchSize, this.config.stateSize);
+
+		this.stateDistributionGrad = new Tensor(this.config.batchSize, 2*this.config.stateSize);
+		this.prior = new Tensor(this.config.batchSize, 2*this.config.stateSize);
+		this.fixedPrior = new Tensor(this.config.batchSize, 2*this.config.stateSize);
+		this.fixedPrior.narrow(1, 0, this.config.stateSize).fill(0.0f);
+		this.fixedPrior.narrow(1, this.config.stateSize, this.config.stateSize).fill(1.0f);
+		
 		System.out.println("Start learning...");
 	}
 
 	@Override
 	public LearnProgress processIteration(long i) throws Exception {
-		// Reset the deltas
+		// reset 
 		encoder.zeroDeltaParameters();
 		decoder.zeroDeltaParameters();
 		predictor.zeroDeltaParameters();
-		
-		batch = pool.getBatch(batch, sampling.next(config.batchSize));
-		
-		Tensor state = encoder.forward(batch.getState());
-		Tensor action = batch.getAction();
-		
-		// calc reconstruction and prediction
-		Tensor reconstruction  = decoder.forward(state);
-		Tensor prediction = predictor.forward(predictorIns, predictorOut, new Tensor[]{state, action}).getValue().tensor;
-		
-		// calc loss
-		float reconstructionLoss = TensorOps.mean(decoderCriterion.loss(reconstruction, batch.getState()));
-		float predictionLoss = TensorOps.mean(predictorCriterion.loss(prediction, batch.getNextState()));
-		float loss = reconstructionLoss+predictionLoss;
-		
-		// calc gradients
-		Tensor reconstructionGrad = decoderCriterion.grad(reconstruction, batch.getState());
-		Tensor predictionGrad = predictorCriterion.grad(prediction, batch.getNextState());
 
+		// fetch sequence
+		int[] seq = sampling.sequence(config.batchSize);
+		sequence = pool.getBatchedSequence(sequence, seq, indices , config.sequenceLength);
 		
-		// backward
-		Tensor encoderGrad = decoder.backward(reconstructionGrad);
-		TensorOps.add(encoderGrad, encoderGrad, predictor.backward(predictorOut, new UUID[]{predictorIns[0]}, new Tensor[]{predictionGrad}).getValue().tensor);
-		encoder.backward(encoderGrad);
+		// start action/state
+		action.fill(0.0f);
+		state.fill(0.0f);
+
+		// calculate intermediate state estimates
+		for(int k=0;k<sequence.size();k++){
+			
+			Tensor observation = sequence.getState(k);
+			posterior = encoder.forward(encoderIn, encoderOut, new Tensor[]{state, action, observation}).getValue().tensor;
+			sampleState(state, posterior);
+
+			storeState(state, k);
+			
+			action = sequence.getAction(k);
+		}
 		
-		// acc grad
-		decoder.accGradParameters();
-		predictor.accGradParameters();
-		encoder.accGradParameters();
+		// now go from last to first and calculate:
 		
-		decoderGradients.calculateDelta(i);
-		predictorGradients.calculateDelta(i);
+		float reconLoss = 0;
+		float regulLoss = 0;
+		
+		stateDistributionGrad.fill(0.0f);
+		
+		for(int k=sequence.size()-1;k>=0;k--){
+		
+			// reconstruction error + gradient
+			Tensor reconstruction = decoder.forward(states.get(k));
+			float recl = TensorOps.mean(reconCriterion.loss(reconstruction, sequence.getState(k)));
+			reconLoss += recl;
+			
+			Tensor reconstructionGrad = decoder.backward(reconCriterion.grad(reconstruction, sequence.getState(k)));
+			decoder.accGradParameters();
+
+			accStateDistributionGrad(stateDistributionGrad, reconstructionGrad);
+			
+			float regl = 0;
+			if(!config.fixedPrior && k>0){
+				// calculate prior
+				prior = predictor.forward(predictorIn, predictorOut, new Tensor[]{states.get(k-1), sequence.getAction(k-1)}).getValue().tensor;
+				
+				// re calculate posterior
+				posterior = encoder.forward(encoderIn, encoderOut, new Tensor[]{states.get(k-1), sequence.getAction(k-1), sequence.getState(k)}).getValue().tensor;
+
+				// KL divergence
+				regl = TensorOps.mean(regulCriterion.loss(posterior, prior));
+				
+				// backward encoder 
+				Tensor posteriorGrad = regulCriterion.grad(posterior, prior);
+				TensorOps.add(stateDistributionGrad, stateDistributionGrad, posteriorGrad);
+				Tensor stateGrad = encoder.backward(encoderOut, encoderIn, new Tensor[]{stateDistributionGrad}).getValue().tensors.get(encoderIn[0]);
+				stateDistributionGrad.fill(0.0f);
+				accStateDistributionGrad(stateDistributionGrad, stateGrad);
+				encoder.accGradParameters();
+				
+				// backward prior
+				Tensor priorGrad = regulCriterion.gradTarget(posterior, prior);
+				
+				// also add KL grad wrt fixed prior N(0,1)
+				TensorOps.add(priorGrad, priorGrad, regulCriterion.grad(prior, fixedPrior));
+				
+				predictor.backward(predictorOut, predictorIn, new Tensor[]{priorGrad}).getValue();
+				predictor.accGradParameters();
+				
+			} else {
+				// special case for k == 0 : use N(0,1) as prior
+				
+				state.fill(0.0f);
+				action.fill(0.0f);
+				// re calculate posterior
+				posterior = encoder.forward(encoderIn, encoderOut, new Tensor[]{state, action, sequence.getState(k)}).getValue().tensor;
+
+				// kl divergence
+				regl = TensorOps.mean(regulCriterion.loss(posterior, fixedPrior));
+				
+				// backward encoder 
+				Tensor posteriorGrad = regulCriterion.grad(posterior, fixedPrior);
+				TensorOps.add(stateDistributionGrad, stateDistributionGrad, posteriorGrad);
+				Tensor stateGrad = encoder.backward(encoderOut, encoderIn, new Tensor[]{stateDistributionGrad}).getValue().tensors.get(encoderIn[0]);
+				stateDistributionGrad.fill(0.0f);
+				accStateDistributionGrad(stateDistributionGrad, stateGrad);
+				encoder.accGradParameters();
+			}
+			regulLoss += regl;
+			
+			System.out.println("LOSS Reconstruction:\t"+recl+"\tRegularization:\t"+regl);
+
+		}
+
 		encoderGradients.calculateDelta(i);
-
-		decoder.updateParameters();
-		predictor.updateParameters();
-		encoder.updateParameters();
+		decoderGradients.calculateDelta(i);
+		if(!config.fixedPrior && config.sequenceLength > 1)
+			predictorGradients.calculateDelta(i);
 		
-		return new LearnProgress(i, loss);
+		encoder.updateParameters();
+		decoder.updateParameters();
+		if(!config.fixedPrior && config.sequenceLength > 1)
+			predictor.updateParameters();
+		
+		return new LearnProgress(i, (reconLoss+regulLoss)/sequence.size);
 	}
-
+	
+	private void storeState(Tensor state, int index){
+		while(index>=states.size()){
+			states.add(new Tensor());
+		}
+		state.copyInto(states.get(index));
+	}
+	
+	private void sampleState(Tensor state, Tensor stateDistribution) {
+		// latentParam => latent
+		Tensor means = stateDistribution.narrow(1, 0, config.stateSize);
+		Tensor stdevs = stateDistribution.narrow(1, config.stateSize, config.stateSize);
+		
+		random.randn();
+		
+		TensorOps.cmul(state, random, stdevs);
+		TensorOps.add(state, state, means);
+	}
+	
+	private void accStateDistributionGrad(Tensor stateDistributionGrad, Tensor stateGrad) {
+		// latentGrad => latentParamsGrad
+		Tensor gradMeans = stateDistributionGrad.narrow(1, 0, config.stateSize);
+		Tensor gradStdevs = stateDistributionGrad.narrow(1, config.stateSize, config.stateSize);
+		
+		TensorOps.add(gradMeans, gradMeans, stateGrad);
+		TensorOps.addcmul(gradStdevs, gradStdevs, 1, stateGrad, random);
+	}
 }
