@@ -35,7 +35,7 @@ public class StateBeliefConfig {
 	
 	public int batchSize = 32;
 	
-	public boolean fixedPrior = false;
+	public boolean priorRegularization = false;
 
 	
 	/**

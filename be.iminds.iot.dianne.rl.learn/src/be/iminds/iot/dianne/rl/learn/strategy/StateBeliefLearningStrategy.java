@@ -62,34 +62,32 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 	
 	protected BatchedExperiencePoolSequence sequence;
 	
-	protected NeuralNetwork encoder;
-	protected NeuralNetwork decoder;
-	protected NeuralNetwork predictor;
-
-	protected UUID[] encoderIn;
-	protected UUID[] encoderOut;
+	protected NeuralNetwork prior;
+	protected NeuralNetwork posterior;
+	protected NeuralNetwork likelihood;
 	
-	protected UUID[] predictorIn;
-	protected UUID[] predictorOut;
+	protected UUID[] priorIn;
+	protected UUID[] priorOut;
+
+	protected UUID[] posteriorIn;
+	protected UUID[] posteriorOut;
 	
 	protected Criterion reconCriterion;
 	protected Criterion regulCriterion;
 	
-	protected GradientProcessor encoderGradients;
-	protected GradientProcessor decoderGradients;
-	protected GradientProcessor predictorGradients;
+	protected GradientProcessor priorProcessor;
+	protected GradientProcessor posteriorProcessor;
+	protected GradientProcessor likelihoodProcessor;
 	
 	protected Tensor action;
 	protected Tensor state;
 	protected Tensor random;
 	
-	protected Tensor fixedPrior;
-	protected Tensor prior;
-	protected Tensor posterior;
-	
-	protected Tensor stateDistributionGrad;
+	protected Tensor initialPriorParams;
+	protected Tensor posteriorParamsGrad;
 	
 	protected List<Tensor> states = new ArrayList<>();
+	protected List<Tensor> randoms = new ArrayList<>();
 	
 	@Override
 	public void setup(Map<String, String> config, Dataset dataset, NeuralNetwork... nns) throws Exception {
@@ -101,15 +99,15 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 		if(nns.length != 3)
 			throw new RuntimeException("Invalid number of NN instances provided: "+nns.length+" (expected 3)");
 			
-		this.encoder = nns[0];
-		this.decoder = nns[1];
-		this.predictor = nns[2];
+		this.posterior = nns[0];
+		this.likelihood = nns[1];
+		this.prior = nns[2];
 		
-		this.encoderIn = encoder.getModuleIds("State","Action","Observation");
-		this.encoderOut = new UUID[]{encoder.getOutput().getId()};
+		this.posteriorIn = posterior.getModuleIds("State","Action","Observation");
+		this.posteriorOut = new UUID[]{posterior.getOutput().getId()};
 		
-		this.predictorIn = predictor.getModuleIds("State","Action");
-		this.predictorOut = new UUID[]{predictor.getOutput().getId()};
+		this.priorIn = prior.getModuleIds("State","Action");
+		this.priorOut = new UUID[]{prior.getOutput().getId()};
 		
 		this.config = DianneConfigHandler.getConfig(config, StateBeliefConfig.class);
 		this.sampling = SequenceSamplingFactory.createSamplingStrategy(this.config.sampling, this.pool, config);
@@ -119,147 +117,146 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 			indices[i]=0;
 		}
 		
-		// for now batchSize fixed 1
 		this.reconCriterion = CriterionFactory.createCriterion(this.config.criterion, config);
 		this.regulCriterion = CriterionFactory.createCriterion(CriterionConfig.GKL, config); 
 		
-		this.encoderGradients = ProcessorFactory.createGradientProcessor(this.config.method, encoder, config);
-		this.decoderGradients = ProcessorFactory.createGradientProcessor(this.config.method, decoder, config);
-		this.predictorGradients = ProcessorFactory.createGradientProcessor(this.config.method, predictor, config);
+		this.posteriorProcessor = ProcessorFactory.createGradientProcessor(this.config.method, posterior, config);
+		this.likelihoodProcessor = ProcessorFactory.createGradientProcessor(this.config.method, likelihood, config);
+		this.priorProcessor = ProcessorFactory.createGradientProcessor(this.config.method, prior, config);
 
-		this.action = new Tensor(this.config.batchSize, pool.actionDims());
+		this.action = new Tensor(this.config.batchSize, this.pool.actionDims());
 		this.state = new Tensor(this.config.batchSize, this.config.stateSize);
 		this.random = new Tensor(this.config.batchSize, this.config.stateSize);
 
-		this.stateDistributionGrad = new Tensor(this.config.batchSize, 2*this.config.stateSize);
-		this.prior = new Tensor(this.config.batchSize, 2*this.config.stateSize);
-		this.fixedPrior = new Tensor(this.config.batchSize, 2*this.config.stateSize);
-		this.fixedPrior.narrow(1, 0, this.config.stateSize).fill(0.0f);
-		this.fixedPrior.narrow(1, this.config.stateSize, this.config.stateSize).fill(1.0f);
+		this.posteriorParamsGrad = new Tensor(this.config.batchSize, 2*this.config.stateSize);
+		this.initialPriorParams = new Tensor(this.config.batchSize, 2*this.config.stateSize);
+		this.initialPriorParams.narrow(1, 0, this.config.stateSize).fill(0.0f);
+		this.initialPriorParams.narrow(1, this.config.stateSize, this.config.stateSize).fill(1.0f);
 		
 		System.out.println("Start learning...");
 	}
 
 	@Override
 	public LearnProgress processIteration(long i) throws Exception {
-		// reset 
-		encoder.zeroDeltaParameters();
-		decoder.zeroDeltaParameters();
-		predictor.zeroDeltaParameters();
+		// Reset deltas 
+		prior.zeroDeltaParameters();
+		posterior.zeroDeltaParameters();
+		likelihood.zeroDeltaParameters();
 
-		// fetch sequence
+		// Fetch sequence
 		int[] seq = sampling.sequence(config.batchSize);
 		sequence = pool.getBatchedSequence(sequence, seq, indices , config.sequenceLength);
 		
-		// start action/state
+		// Initial action/state
+		// TODO: seeing as these are a valid state & action, this might not be desired?
 		action.fill(0.0f);
 		state.fill(0.0f);
 
-		// calculate intermediate state estimates
-		for(int k=0;k<sequence.size();k++){
+		// Forward pass: generate sequence of state samples based on observations
+		for(int t = 0; t < sequence.size(); t++){
+			Tensor observation = sequence.getState(t);
 			
-			Tensor observation = sequence.getState(k);
-			posterior = encoder.forward(encoderIn, encoderOut, new Tensor[]{state, action, observation}).getValue().tensor;
-			sampleState(state, posterior);
+			// Use approximate posterior to determine distribution parameters
+			Tensor posteriorParams = posterior.forward(posteriorIn, posteriorOut, new Tensor[]{state, action, observation}).getValue().tensor;
+			sampleState(state, posteriorParams, random);
 
-			storeState(state, k);
+			// Store for backward pass
+			storeTensor(states, state, t);
+			storeTensor(randoms, random, t);
 			
-			action = sequence.getAction(k);
+			// Set next action (state already set)
+			action = sequence.getAction(t);
 		}
 		
-		// now go from last to first and calculate:
-		
+		// Keep separate reconstruction and regularization loss
 		float reconLoss = 0;
 		float regulLoss = 0;
 		
-		stateDistributionGrad.fill(0.0f);
+		// Additional for final timestep: reconstruction loss on o_T-1
+		Tensor reconParams = likelihood.forward(states.get(sequence.size()-1));
+		Tensor observation = sequence.getState(sequence.size()-1);
 		
-		for(int k=sequence.size()-1;k>=0;k--){
+		reconLoss += TensorOps.mean(reconCriterion.loss(reconParams, observation));
+		Tensor stateGrad = likelihood.backward(reconCriterion.grad(reconParams, observation));
+		likelihood.accGradParameters();
 		
-			// reconstruction error + gradient
-			Tensor reconstruction = decoder.forward(states.get(k));
-			float recl = TensorOps.mean(reconCriterion.loss(reconstruction, sequence.getState(k)));
-			reconLoss += recl;
+		// Other timesteps:
+		// - Convert gradient of next state sample to posterior parameters
+		// - Add regularization loss based on prior
+		// - Calculate gradient to current state sample
+		// - Add gradient from prior
+		// - Add gradient from likelihood
+		for(int t = sequence.size()-2; t >= 0; t--){
+			// Convert gradient of s_t+1 to gradient on its posterior parameters
+			stateDistributionGrad(posteriorParamsGrad, stateGrad, randoms.get(t+1));
 			
-			Tensor reconstructionGrad = decoder.backward(reconCriterion.grad(reconstruction, sequence.getState(k)));
-			decoder.accGradParameters();
-
-			accStateDistributionGrad(stateDistributionGrad, reconstructionGrad);
+			// Get prior and posterior parameters of s_t+1
+			Tensor priorParams = prior.forward(priorIn, priorOut, new Tensor[]{states.get(t), sequence.getAction(t)}).getValue().tensor;
+			Tensor posteriorParams = posterior.forward(posteriorIn, posteriorOut, new Tensor[]{states.get(t), sequence.getAction(t), sequence.getState(t+1)}).getValue().tensor;
 			
-			float regl = 0;
-			if(!config.fixedPrior && k>0){
-				// calculate prior
-				prior = predictor.forward(predictorIn, predictorOut, new Tensor[]{states.get(k-1), sequence.getAction(k-1)}).getValue().tensor;
-				
-				// re calculate posterior
-				posterior = encoder.forward(encoderIn, encoderOut, new Tensor[]{states.get(k-1), sequence.getAction(k-1), sequence.getState(k)}).getValue().tensor;
-
-				// KL divergence
-				regl = TensorOps.mean(regulCriterion.loss(posterior, prior));
-				
-				// backward encoder 
-				Tensor posteriorGrad = regulCriterion.grad(posterior, prior);
-				TensorOps.add(stateDistributionGrad, stateDistributionGrad, posteriorGrad);
-				Tensor stateGrad = encoder.backward(encoderOut, encoderIn, new Tensor[]{stateDistributionGrad}).getValue().tensors.get(encoderIn[0]);
-				stateDistributionGrad.fill(0.0f);
-				accStateDistributionGrad(stateDistributionGrad, stateGrad);
-				encoder.accGradParameters();
-				
-				// backward prior
-				Tensor priorGrad = regulCriterion.gradTarget(posterior, prior);
-				
-				// also add KL grad wrt fixed prior N(0,1)
-				TensorOps.add(priorGrad, priorGrad, regulCriterion.grad(prior, fixedPrior));
-				
-				predictor.backward(predictorOut, predictorIn, new Tensor[]{priorGrad}).getValue();
-				predictor.accGradParameters();
-				
-			} else {
-				// special case for k == 0 : use N(0,1) as prior
-				
-				state.fill(0.0f);
-				action.fill(0.0f);
-				// re calculate posterior
-				posterior = encoder.forward(encoderIn, encoderOut, new Tensor[]{state, action, sequence.getState(k)}).getValue().tensor;
-
-				// kl divergence
-				regl = TensorOps.mean(regulCriterion.loss(posterior, fixedPrior));
-				
-				// backward encoder 
-				Tensor posteriorGrad = regulCriterion.grad(posterior, fixedPrior);
-				TensorOps.add(stateDistributionGrad, stateDistributionGrad, posteriorGrad);
-				Tensor stateGrad = encoder.backward(encoderOut, encoderIn, new Tensor[]{stateDistributionGrad}).getValue().tensors.get(encoderIn[0]);
-				stateDistributionGrad.fill(0.0f);
-				accStateDistributionGrad(stateDistributionGrad, stateGrad);
-				encoder.accGradParameters();
+			// Add regularization loss based on prior on s_t+1
+			regulLoss += TensorOps.mean(regulCriterion.loss(posteriorParams, priorParams));
+			TensorOps.add(posteriorParamsGrad, posteriorParamsGrad, regulCriterion.grad(posteriorParams, priorParams));
+			
+			// Calculate gradient to s_t from posterior of s_t+1
+			stateGrad = posterior.backward(posteriorOut, posteriorIn, new Tensor[]{posteriorParamsGrad}).getValue().tensors.get(posteriorIn[0]);
+			posterior.accGradParameters();
+			
+			// Calculate gradient to s_t from prior of s_t+1
+			Tensor priorParamsGrad = regulCriterion.gradTarget(posteriorParams, priorParams);
+			// Optional prior regularization
+			if(config.priorRegularization) {
+				regulLoss += TensorOps.mean(regulCriterion.loss(priorParams, initialPriorParams));
+				TensorOps.add(priorParamsGrad, priorParamsGrad, regulCriterion.grad(priorParams, initialPriorParams));
 			}
-			regulLoss += regl;
+			TensorOps.add(stateGrad, stateGrad, prior.backward(priorOut, priorIn, new Tensor[]{priorParamsGrad}).getValue().tensors.get(priorIn[0]));
+			prior.accGradParameters();
 			
-			System.out.println("LOSS Reconstruction:\t"+recl+"\tRegularization:\t"+regl);
-
+			// Add gradient from likelihood of o_t
+			reconParams = likelihood.forward(states.get(t));
+			observation = sequence.getState(t);
+			
+			reconLoss += TensorOps.mean(reconCriterion.loss(reconParams, observation));
+			
+			Tensor reconParamsGrad = reconCriterion.grad(reconParams, observation);
+			TensorOps.add(stateGrad, stateGrad, likelihood.backward(reconParamsGrad));
+			likelihood.accGradParameters();
 		}
-
-		encoderGradients.calculateDelta(i);
-		decoderGradients.calculateDelta(i);
-		if(!config.fixedPrior && config.sequenceLength > 1)
-			predictorGradients.calculateDelta(i);
 		
-		encoder.updateParameters();
-		decoder.updateParameters();
-		if(!config.fixedPrior && config.sequenceLength > 1)
-			predictor.updateParameters();
+		// Additional for first timestep: loss on posterior of s_0 (with fixed initial prior)
+		action.fill(0.0f);
+		state.fill(0.0f);
+		
+		stateDistributionGrad(posteriorParamsGrad, stateGrad, randoms.get(0));
+		Tensor posteriorParams = posterior.forward(posteriorIn, posteriorOut, new Tensor[]{state, action, sequence.getState(0)}).getValue().tensor;
+		
+		regulLoss += TensorOps.mean(regulCriterion.loss(posteriorParams, initialPriorParams));
+		
+		TensorOps.add(posteriorParamsGrad, posteriorParamsGrad, regulCriterion.grad(posteriorParams, initialPriorParams));
+		posterior.backward(posteriorOut, posteriorIn, new Tensor[]{posteriorParamsGrad}).getValue().tensors.get(posteriorIn[0]);
+		posterior.accGradParameters();
+
+		// Calculate the deltas
+		priorProcessor.calculateDelta(i);
+		posteriorProcessor.calculateDelta(i);
+		likelihoodProcessor.calculateDelta(i);
+		
+		// Update the parameters
+		prior.updateParameters();
+		posterior.updateParameters();
+		likelihood.updateParameters();
 		
 		return new LearnProgress(i, (reconLoss+regulLoss)/sequence.size);
 	}
 	
-	private void storeState(Tensor state, int index){
-		while(index>=states.size()){
-			states.add(new Tensor());
+	private static void storeTensor(List<Tensor> list, Tensor tensor, int index){
+		while(index>=list.size()){
+			list.add(new Tensor());
 		}
-		state.copyInto(states.get(index));
+		tensor.copyInto(list.get(index));
 	}
 	
-	private void sampleState(Tensor state, Tensor stateDistribution) {
+	private void sampleState(Tensor state, Tensor stateDistribution, Tensor random) {
 		// latentParam => latent
 		Tensor means = stateDistribution.narrow(1, 0, config.stateSize);
 		Tensor stdevs = stateDistribution.narrow(1, config.stateSize, config.stateSize);
@@ -270,12 +267,12 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 		TensorOps.add(state, state, means);
 	}
 	
-	private void accStateDistributionGrad(Tensor stateDistributionGrad, Tensor stateGrad) {
+	private void stateDistributionGrad(Tensor stateDistributionGrad, Tensor stateGrad, Tensor random) {
 		// latentGrad => latentParamsGrad
 		Tensor gradMeans = stateDistributionGrad.narrow(1, 0, config.stateSize);
 		Tensor gradStdevs = stateDistributionGrad.narrow(1, config.stateSize, config.stateSize);
 		
-		TensorOps.add(gradMeans, gradMeans, stateGrad);
-		TensorOps.addcmul(gradStdevs, gradStdevs, 1, stateGrad, random);
+		stateGrad.copyInto(gradMeans);
+		TensorOps.cmul(gradStdevs, stateGrad, random);
 	}
 }
