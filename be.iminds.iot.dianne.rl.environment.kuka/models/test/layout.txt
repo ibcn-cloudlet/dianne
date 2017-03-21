@@ -1,0 +1,1 @@
+{"nodes":[{"id":"9582a0bc-184a-08a3-5d88-f8afd5875b26","positionX":203,"positionY":456},{"id":"f9821103-6a86-9785-e3b5-aced8cb20754","positionX":444,"positionY":452}],"connections":[{"connectionId":"con_12","sourceId":"9582a0bc-184a-08a3-5d88-f8afd5875b26","targetId":"f9821103-6a86-9785-e3b5-aced8cb20754","anchors":[[1,0.5,1,0,0,0],[0,0.5,-1,0,0,0]]}]}
