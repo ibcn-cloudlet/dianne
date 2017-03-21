@@ -363,9 +363,9 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 		// write result object
 		try {
 			if(result instanceof LearnResult){
-				DianneCoordinatorWriter.writeLearnResult(writer, (LearnResult)result, 10000);
+				DianneCoordinatorWriter.writeLearnResult(writer, (LearnResult)result);
 			} else if(result instanceof AgentResult){
-				DianneCoordinatorWriter.writeAgentResult(writer, (AgentResult)result, 10000);
+				DianneCoordinatorWriter.writeAgentResult(writer, (AgentResult)result);
 			} else {
 				DianneCoordinatorWriter.writeObject(writer, result);
 			}
