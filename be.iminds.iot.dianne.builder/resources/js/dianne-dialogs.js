@@ -595,7 +595,7 @@ function createRunModuleDialog(id, moduleItem){
 								image(output, outputCanvasCtx);
 							} else {
 								// as floats
-								$("#dialog-"+module.id).find(".content").find('.outputviz').html('<b>Output: </b>'+JSON.stringify(output.data).replace(/,/g,"  "));
+								$("#dialog-"+module.id).find(".content").find('.outputviz').html('<b>Output: </b>'+JSON.stringify(output.data).replace(/,/g,", "));
 								$("#dialog-"+module.id).find(".content").find('.outputviz').show();
 							}
 						}
