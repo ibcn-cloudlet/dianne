@@ -134,9 +134,7 @@ public class GaussianKLDivCriterion implements Criterion {
 		TensorOps.sub(gradMean, tarMean, gradMean);
 		TensorOps.cdiv(gradMean, gradMean, sqTarStdev);
 		
-		
-		// grad s =
-		
+	
 		// 2*s_out^2/s_tar^3
 		TensorOps.cmul(gradStdev, gradStdev, gradStdev);
 		TensorOps.mul(gradStdev, gradStdev, 2.0f);
@@ -144,14 +142,15 @@ public class GaussianKLDivCriterion implements Criterion {
 		TensorOps.cmul(gradStdev, gradStdev, invTarStdev);
 		TensorOps.cmul(gradStdev, gradStdev, invTarStdev);
 		
-		// + 2*(mu_tar - mu_out)^2/s_tar^3
+		// 2*(mu_tar - mu_out)^2/s_tar^3
 		TensorOps.cmul(meanDiff, gradMean, gradMean);
 		TensorOps.cmul(meanDiff, meanDiff, tarStdev);
 		TensorOps.mul(meanDiff, meanDiff, 2.0f);
 		TensorOps.add(gradStdev, gradStdev, meanDiff);
 		
-		// + 1/s_tar
-		TensorOps.add(gradStdev, gradStdev, invTarStdev);
+		
+		// grad_s = 1/s_tar - 2*s_out^2/s_tar^3 - 2*(mu_tar - mu_out)^2/s_tar^3
+		TensorOps.sub(gradStdev, invTarStdev, gradStdev);
 		
 		// divided by 2
 		TensorOps.div(gradStdev, gradStdev, 2);
