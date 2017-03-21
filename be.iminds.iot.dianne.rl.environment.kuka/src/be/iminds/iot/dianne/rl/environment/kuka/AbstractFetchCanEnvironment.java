@@ -57,10 +57,12 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 	protected float calculateReward() throws Exception {
 		// calculate reward based on simulator info
 		if(simulator != null){
-			Position d = simulator.getPosition("Can1", "youBot");
-			
 			// if collision or can is too close
-			if(simulator.checkCollisions("Border") || Math.abs(d.y) < 0.23 && Math.abs(d.z) < 0.37){
+			if(simulator.checkCollisions("Border") 
+					|| simulator.checkCollisions("BorderArm") 
+					|| simulator.checkCollisions("SelfCollision")
+					|| simulator.checkCollisions("Floor")
+					|| simulator.checkCollisions("Gripper")) {
 				if (config.collisionTerminal) {
 					terminal = true;
 				} else {
@@ -68,14 +70,21 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 				}
 			}
 			
-			// calculate distance of youBot relative to can
-			float dx = d.y;
-			float dy = d.z - GRIP_DISTANCE;
+			float distance, canHeight;
+			if (config.grip) {
+				Position p = simulator.getPosition("can_ref", "youBot_ref");
+				canHeight = p.z;
+				// calculate distance of gripper tip relative to can
+				p = simulator.getPosition("can_ref", "youBot_positionTip");
+				distance = (float)Math.sqrt(p.x*p.x+p.y*p.y+p.z*p.z);
+			} else {
+				// calculate distance of youBot relative to can
+				Position p = simulator.getPosition("can_ref", "youBot_ref");
+				distance = (float)Math.hypot(p.x, p.y);
+				canHeight = p.z;
+			}
 			
-			// dy should come close to 0.565 for succesful grip
-			// dx should come close to 0
-			// hypot = Math.sqrt(dx*dx+dy*dy) without under and overflow
-			float distance = (float)Math.hypot(dx,dy);
+			System.err.printf("1) distance: %f, can height: %f\n", distance, canHeight);
 			
 			// max reward in radius of can by setting the distance to 0
 			if(distance <= config.margin)
@@ -92,7 +101,7 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 					} 
 				} else {
 					// simulate actual grip action
-					if(d.x > 0){
+					if(canHeight > 0.001){
 						// can is lifted, reward 1 and mark as terminal
 						terminal = true;
 						return 1.0f * config.gripRewardScale;
@@ -107,7 +116,7 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 			}
 			
 			// also give intermediate reward for each action?
-			if(config.intermediateReward){
+			if(config.intermediateReward) {
 				float r;
 				if(config.relativeReward){
 					// give +1 if closer -1 if further
@@ -127,9 +136,22 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 					else {
 						r = - previousDistance / MAX_DISTANCE;
 					}
-					// reward offset
-					r += config.maxReward;
 				}
+				
+				if (config.grip) {
+					if (canHeight > 0.001) { // can is lifted if height is higher then 0
+						r += 1.0f * config.gripRewardScale + canHeight;
+					}
+					if (canHeight > 0.5) {
+						r = 100;
+						terminal = true;
+						count=0;
+					}
+				}
+				
+				// reward offset
+				r += config.maxReward;
+				System.err.printf("2) distance: %f, can height: %f, reward: %f\n", distance, canHeight, reward);
 				previousDistance = distance;
 				return r;
 			} else {
@@ -179,14 +201,20 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 	public void resetYoubot(){
 		float x,y,o;
 		
-		if(config.difficulty <= 1){
+		switch (config.difficulty) {
+		case FetchCanConfig.FIXED:
+		case FetchCanConfig.WORKSPACE:
+		case FetchCanConfig.VISIBLE:
 			x = 0;
 			y = 0;
 			o = 0;
-		} else {
+			break;
+		case FetchCanConfig.RANDOM:
+		default:
 			x = (r.nextFloat()-0.5f);
 			y = (r.nextFloat()-0.5f)*1.8f;
 			o = (r.nextFloat()-0.5f)*6.28f;
+			break;
 		}
 		simulator.setPosition("youBot", new Position(x, y, 0.0957f));
 		simulator.setOrientation("youBot", new Orientation(-1.5707963f, o, -1.5707965f));
@@ -197,19 +225,26 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 		
 		// set random can position
 		float s = 0;
-		while(s < 0.15f) { // can should not be colliding with youbot from start	
-			if(config.difficulty <= 0){
+		while(s < 0.15f) { // can should not be colliding with youbot from start
+			switch (config.difficulty) {
+			case FetchCanConfig.FIXED:
 				x = 0;
-			} else {
+				y = GRIP_DISTANCE;
+				break;
+			case FetchCanConfig.WORKSPACE:
+				// start position in front in workspace
+				float d = r.nextFloat()*0.25f;
+				double a = (r.nextFloat()-0.5f)*Math.PI;
+				x = (float)Math.sin(a)*d;
+				y = 0.4f + (float)Math.cos(a)*d;
+				break;
+			case FetchCanConfig.VISIBLE:
 				x = (r.nextFloat()-0.5f)*1.6f;
-			}
-			
-			if(config.difficulty < 0) {
-				y = MAX_DISTANCE/3;
-			} else
-			if(config.difficulty <= 1){
 				y = (0.125f + 3*r.nextFloat()/8f)*2.4f;
-			} else {
+				break;
+			case FetchCanConfig.RANDOM:
+			default:
+				x = (r.nextFloat()-0.5f)*1.6f;
 				y = (r.nextFloat()-0.5f)*2.4f;
 			}
 

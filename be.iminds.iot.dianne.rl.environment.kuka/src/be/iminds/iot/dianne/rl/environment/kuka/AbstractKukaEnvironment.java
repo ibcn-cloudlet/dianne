@@ -276,7 +276,7 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		}
 	}
 	
-	private void updateObservation(){
+	protected void updateObservation(){
 		int totalLength = 0;
 		synchronized (rangeSensors) {
 			for (LaserScanner ls : rangeSensors.values()) {

@@ -37,6 +37,10 @@ public class FetchCanConfig {
 	 */
 	public float margin = 0.005f;
 	
+	public static final int FIXED = -1;
+	public static final int WORKSPACE = 0;
+	public static final int VISIBLE = 1;
+	public static final int RANDOM = 2;
 	/**
 	 * environment difficulty (the higher the more difficult)
 	 * 
@@ -138,4 +142,9 @@ public class FetchCanConfig {
 	 * Offset for the reward function. Can be used to make a reward function positive or negative.
 	 */
 	public float maxReward = 0.0f;
+	
+	/**
+	 * Use relative distance from the gripper instead of from the base platform
+	 */
+	public boolean grip = false;
 }
