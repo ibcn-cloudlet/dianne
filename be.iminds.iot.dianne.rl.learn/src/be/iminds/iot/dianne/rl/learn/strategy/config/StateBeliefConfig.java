@@ -41,7 +41,7 @@ public class StateBeliefConfig {
 	/**
 	 * The criterion to use to evaluate the loss between output and target
 	 */
-	public CriterionConfig criterion = CriterionConfig.MSE;
+	public CriterionConfig criterion = CriterionConfig.GAU;
 	
 	/**
 	 * The gradient optimization method to use
