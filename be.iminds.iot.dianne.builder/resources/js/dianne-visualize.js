@@ -11,6 +11,8 @@ function render(tensor, canvasCtx, type, config){
 		}
 	} else if(type==="character"){
 		text(tensor, canvasCtx, config.labels);
+	} else if(type==="gaussian"){
+		gauss(tensor, canvasCtx, false);
 	} else {
 		// image by default?
 		image(tensor, canvasCtx);
@@ -227,6 +229,50 @@ function text(tensor, canvasCtx, labels){
 	} else {
 		console.log("index not found")
 	}
+}
+
+
+function gauss(tensor, canvasCtx){
+	var canvasW = canvasCtx.canvas.clientWidth;
+	var canvasH = canvasCtx.canvas.clientHeight;
+	canvasCtx.clearRect(0,0,canvasW,canvasH);
+
+	var stateSize = tensor.dims[tensor.dims.length-1]/2;
+	var gaussians =  tensor.data.length/2;
 	
+	var height = canvasH/gaussians;
+	var index = 0;
+	for (var i = 0; i < gaussians; i++) {
+		var posY = i*height;
+		
+		var mu = tensor.data[index];
+		var sigma = tensor.data[index+stateSize];
+		
+		index = index + 1;
+		if(index % stateSize === 0){
+			index = index + stateSize;
+		}
+			
+		gauss_rect(mu, sigma, canvasCtx,0, posY, canvasW, Math.round(height));
+	}
+}
+
+function gauss_rect(mu, sigma, canvasCtx, posX, posY, width, height){
+	var imageData = canvasCtx.createImageData(width, height);
+	for (var i = 0; i < width; i++) {
+		var x = -3 + i*6/width;
+		var y = Math.exp(-(x-mu)*(x-mu)/(2*sigma*sigma))/Math.sqrt(2*sigma*sigma*Math.PI);
 	
+		for(var k=0;k<height;k++){
+			var val = y*500;
+			if(val > 255)
+				val = 255;
+			
+			imageData.data[k*width*4+i*4+0] = val;
+			imageData.data[k*width*4+i*4+1] = val;
+			imageData.data[k*width*4+i*4+2] = val;
+			imageData.data[k*width*4+i*4+3] = 255;
+		}
+	}
+	canvasCtx.putImageData(imageData, posX, posY); 
 }
