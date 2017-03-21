@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="author" content="Tim Verbelen">
+<title>Dianne SB Inspector</title>
+
+<!-- Bootstrap -->
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="css/bootstrap.min.css">
+<link rel="stylesheet" href="css/jquery-ui.css">
+<!-- Styles -->
+<link rel="stylesheet" href="css/jquery.mCustomScrollbar.min.css">
+<link rel="stylesheet" href="css/dianne.css">
+<link rel="stylesheet" href="css/vae.css">
+<!-- icon -->
+<link rel="icon" type="image/png" href="images/icon.png">
+
+<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+<!--[if lt IE 9]>
+      <script src="js/html5shiv.min.js"></script>
+      <script src="js/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+	<div class="container-fluid">
+		<div id="canvas" class="row">
+			<div id="input" class="col-md-4">
+				<h4>Observation:</h4>
+				<canvas id='observation' width='256' height='256' style="border:1px solid #000000"></canvas>
+				<h4>State:</h4>
+				<canvas id='state' width='256' height='256' style="border:1px solid #000000"></canvas>
+				<h4>Action:</h4>
+				<canvas id='action' width='256' height='256' style="border:1px solid #000000"></canvas>
+			</div>
+			<div id="output" class="col-md-4">
+				<h4>Next State Prior</h4>		
+				<canvas id='prior' width='256' height='256' style="border:1px solid #000000"></canvas>		
+				<h4>Next State Posterior</h4>
+				<canvas id='posterior' width='256' height='256' style="border:1px solid #000000"></canvas>
+				<h4>Next State</h4>
+				<canvas id='sample' width='256' height='256' style="border:1px solid #000000"></canvas>
+			</div>
+			<div id="recon" class="col-md-4">
+				<h4>State Reconstruction</h4>	
+				<canvas id='reconstruction' width='256' height='256' style="border:1px solid #000000"></canvas>
+				
+				<br/>
+				<br/>
+				<br/>
+				<button type="button" class="btn" onclick='update()'>Next</button>
+				<button type="button" class="btn" onclick='reset()'>Reset</button>
+				
+			</div>
+		</div>
+	</div>
+
+
+	<script src="js/lib/jquery.min.js"></script>
+	<script src="js/lib/bootstrap.min.js"></script>
+	<script src="js/lib/jquery-ui.min.js"></script>
+	<script src="js/dianne-sb.js"></script>
+	<script src="js/dianne-visualize.js"></script>
+	
+</body>
+</html>
