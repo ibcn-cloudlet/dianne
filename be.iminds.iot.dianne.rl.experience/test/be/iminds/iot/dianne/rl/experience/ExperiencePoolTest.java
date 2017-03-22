@@ -1,5 +1,6 @@
 package be.iminds.iot.dianne.rl.experience;
 
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -17,6 +18,7 @@ import be.iminds.iot.dianne.api.dataset.Sequence;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
+import be.iminds.iot.dianne.dataset.RemoteDatasetProxy;
 import be.iminds.iot.dianne.tensor.NativeTensorLoader;
 import be.iminds.iot.dianne.tensor.Tensor;
 import junit.framework.Assert;
@@ -27,9 +29,10 @@ public class ExperiencePoolTest {
 	@Parameters()
     public static Collection<Object[]> getParameters() {
       return Arrays.asList(new Object[][] {
-        { new FileExperiencePool(), null },
-        { new FileExperiencePool(), "200" },
-        { new MemoryExperiencePool(), null}
+        { new FileExperiencePool(), null, null},
+        { new FileExperiencePool(), "200", null},
+        { new MemoryExperiencePool(), null, null},
+        { new MemoryExperiencePool(), null, true}
       });
     }
 	
@@ -55,7 +58,7 @@ public class ExperiencePoolTest {
 		loader.activate(null);
 	}
 	
-    public ExperiencePoolTest(ExperiencePool p, Object bufferSize) throws Exception {
+    public ExperiencePoolTest(ExperiencePool p, Object bufferSize, Object remote) throws Exception {
     	this.pool = p.getClass().newInstance();
     	
     	Map<String, Object> config = new HashMap<>();
@@ -69,6 +72,14 @@ public class ExperiencePoolTest {
 		}
 		
 		pool.getClass().getMethod("activate", Map.class).invoke(pool, config);
+		
+		if(remote != null){
+			pool = (ExperiencePool) Proxy.newProxyInstance(
+					ExperiencePoolTest.class.getClassLoader(), 
+					new Class[]{ExperiencePool.class}, 
+					new RemoteDatasetProxy(pool));
+		}
+	    	
     }
 	
 	@Test
@@ -306,6 +317,34 @@ public class ExperiencePoolTest {
 
 		Tensor bTerminal = new Tensor(new float[]{1.0f, 1.0f, 1.0f, 0.0f, 1.0f}, 5, 1);
 		Assert.assertEquals(bTerminal, batch.getTerminal());
+		
+		
+		batch = pool.getBatch(batch, 1, 0, 3, 5, 8);
+		
+		Tensor bState2 = new Tensor(new float[]{
+				  1.0f, 2.0f, 3.0f, 4.0f, 
+				  0.0f, 1.0f, 2.0f, 3.0f,
+				  0.0f, 1.0f, 2.0f, 3.0f,
+				  2.0f, 3.0f, 4.0f, 5.0f,
+				  5.0f, 6.0f, 7.0f, 8.0f,}, 5, 4);
+		Assert.assertEquals(bState2, batch.getState());
+
+		Tensor bAction2 = new Tensor(new float[]{0.0f, 1.0f, 0.0f, 0.0f,  0.0f, 0.0f, 1.0f, 0.0f, 2.0f, 1.0f}, 5, 2);
+		Assert.assertEquals(bAction2, batch.getAction());
+
+		Tensor bReward2 = new Tensor(new float[]{0.1f, 0.0f, 0.3f, 0.5f, 0.8f}, 5, 1);
+		Assert.assertEquals(bReward2, batch.getReward());
+
+		Tensor bNextState2 = new Tensor(new float[]{
+					2.0f, 3.0f, 4.0f, 5.0f,
+					1.0f, 2.0f, 3.0f, 4.0f, 
+					1.0f, 2.0f, 3.0f, 4.0f,
+					3.0f, 4.0f, 5.0f, 6.0f,
+					0.0f, 0.0f, 0.0f, 0.0f}, 5, 4);
+		Assert.assertEquals(bNextState2, batch.getNextState());
+
+		Tensor bTerminal2 = new Tensor(new float[]{1.0f, 1.0f, 1.0f, 1.0f, 0.0f}, 5, 1);
+		Assert.assertEquals(bTerminal2, batch.getTerminal());
 
 	}
 	

@@ -8,7 +8,8 @@ Bundle-Name: Dianne Experience Pools
 	osgi.enterprise;version=5.0,\
 	com.esotericsoftware.kryo;version=2.23,\
 	be.iminds.iot.dianne.api;version=latest,\
-	be.iminds.iot.dianne.tensor;version=latest
+	be.iminds.iot.dianne.tensor;version=latest,\
+	be.iminds.iot.dianne.dataset;version=latest
 Private-Package: \
 	be.iminds.iot.dianne.rl.experience,\
 	be.iminds.iot.dianne.rl.experience.serializer,\
