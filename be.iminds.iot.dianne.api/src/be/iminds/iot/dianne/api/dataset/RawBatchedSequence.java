@@ -53,6 +53,7 @@ public class RawBatchedSequence {
 			for(int i=0;i<data.size();i++){
 				data.get(i).copyInto(b.data.get(i));
 			}
+			b.size = data.size();
 			return b;
 		}
 	}
