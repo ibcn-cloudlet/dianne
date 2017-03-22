@@ -46,7 +46,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
 /**
- * This strategy tries to train an unsupervized state representation from observations by
+ * This strategy tries to train an unsupervized state representation from observations o_0 to o_T-1 by
  * decoding the current observation and predicting the next.
  * 
  * @author tverbele
@@ -83,7 +83,7 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 	protected Tensor state;
 	protected Tensor random;
 	
-	protected Tensor initialPriorParams;
+	protected Tensor referencePriorParams;
 	protected Tensor posteriorParamsGrad;
 	
 	protected List<Tensor> states = new ArrayList<>();
@@ -129,9 +129,9 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 		this.random = new Tensor(this.config.batchSize, this.config.stateSize);
 
 		this.posteriorParamsGrad = new Tensor(this.config.batchSize, 2*this.config.stateSize);
-		this.initialPriorParams = new Tensor(this.config.batchSize, 2*this.config.stateSize);
-		this.initialPriorParams.narrow(1, 0, this.config.stateSize).fill(0.0f);
-		this.initialPriorParams.narrow(1, this.config.stateSize, this.config.stateSize).fill(1.0f);
+		this.referencePriorParams = new Tensor(this.config.batchSize, 2*this.config.stateSize);
+		this.referencePriorParams.narrow(1, 0, this.config.stateSize).fill(0.0f);
+		this.referencePriorParams.narrow(1, this.config.stateSize, this.config.stateSize).fill(1.0f);
 		
 		System.out.println("Start learning...");
 	}
@@ -205,9 +205,9 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 			// Calculate gradient to s_t from prior of s_t+1
 			Tensor priorParamsGrad = regulCriterion.gradTarget(posteriorParams, priorParams);
 			// Optional prior regularization
-			if(config.priorRegularization) {
-				regulLoss += TensorOps.mean(regulCriterion.loss(priorParams, initialPriorParams));
-				TensorOps.add(priorParamsGrad, priorParamsGrad, regulCriterion.grad(priorParams, initialPriorParams));
+			if(config.priorRegularization > 0) {
+				regulLoss += config.priorRegularization*TensorOps.mean(regulCriterion.loss(priorParams, referencePriorParams));
+				TensorOps.add(priorParamsGrad, priorParamsGrad, config.priorRegularization, regulCriterion.grad(priorParams, referencePriorParams));
 			}
 			TensorOps.add(stateGrad, stateGrad, prior.backward(priorOut, priorIn, new Tensor[]{priorParamsGrad}).getValue().tensors.get(priorIn[0]));
 			prior.accGradParameters();
@@ -223,18 +223,34 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 			likelihood.accGradParameters();
 		}
 		
-		// Additional for first timestep: loss on posterior of s_0 (with fixed initial prior)
+		// Additional for first timestep: loss on posterior and prior of s_0
 		action.fill(0.0f);
 		state.fill(0.0f);
 		
+		// Convert gradient of s_0 to gradient on its posterior parameters
 		stateDistributionGrad(posteriorParamsGrad, stateGrad, randoms.get(0));
+		
+		// Get prior and posterior parameters of s_0
+		Tensor priorParams = prior.forward(priorIn, priorOut, new Tensor[]{state, action}).getValue().tensor;
 		Tensor posteriorParams = posterior.forward(posteriorIn, posteriorOut, new Tensor[]{state, action, sequence.getState(0)}).getValue().tensor;
 		
-		regulLoss += TensorOps.mean(regulCriterion.loss(posteriorParams, initialPriorParams));
+		// Add regularization loss based on prior on s_0
+		regulLoss += TensorOps.mean(regulCriterion.loss(posteriorParams, priorParams));
+		TensorOps.add(posteriorParamsGrad, posteriorParamsGrad, regulCriterion.grad(posteriorParams, priorParams));
 		
-		TensorOps.add(posteriorParamsGrad, posteriorParamsGrad, regulCriterion.grad(posteriorParams, initialPriorParams));
-		posterior.backward(posteriorOut, posteriorIn, new Tensor[]{posteriorParamsGrad}).getValue().tensors.get(posteriorIn[0]);
+		// Calculate gradient of posterior of s_0
+		posterior.backward(posteriorOut, posteriorIn, new Tensor[]{posteriorParamsGrad}).getValue();
 		posterior.accGradParameters();
+		
+		// Calculate gradient of prior of s_0
+		Tensor priorParamsGrad = regulCriterion.gradTarget(posteriorParams, priorParams);
+		// Optional prior regularization
+		if(config.priorRegularization > 0) {
+			regulLoss += config.priorRegularization*TensorOps.mean(regulCriterion.loss(priorParams, referencePriorParams));
+			TensorOps.add(priorParamsGrad, priorParamsGrad, config.priorRegularization, regulCriterion.grad(priorParams, referencePriorParams));
+		}
+		prior.backward(priorOut, priorIn, new Tensor[]{priorParamsGrad}).getValue();
+		prior.accGradParameters();
 
 		// Calculate the deltas
 		priorProcessor.calculateDelta(i);
