@@ -35,8 +35,10 @@ import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.api.dataset.Sequence;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
+import be.iminds.iot.dianne.api.rl.dataset.RawBatchedExperiencePoolSequence;
 import be.iminds.iot.dianne.api.rl.dataset.RawExperiencePoolBatch;
 import be.iminds.iot.dianne.api.rl.dataset.RawExperiencePoolSample;
+import be.iminds.iot.dianne.api.rl.dataset.RawExperiencePoolSequence;
 
 /**
  * Proxy class to optimize the behavior of querying datasets that are located on a remote machine
@@ -69,18 +71,22 @@ public class RemoteDatasetProxy implements InvocationHandler {
 			
 			Method rawMethod = proxied.getClass().getMethod(rawMethodName, parameterTypes);
 			Object rawResult = rawMethod.invoke(proxied, arguments);
-			if(rawResult instanceof RawSample){
+			if(rawResult instanceof RawExperiencePoolSample){
+				return ((RawExperiencePoolSample)rawResult).copyInto((ExperiencePoolSample)args[0]);
+			} else if(rawResult instanceof RawExperiencePoolBatch){
+				return ((RawExperiencePoolBatch)rawResult).copyInto((ExperiencePoolBatch)args[0]);
+			} else if(rawResult instanceof RawSample){
 				return ((RawSample)rawResult).copyInto((Sample)args[0]);
 			} else if(rawResult instanceof RawBatch){
 				return ((RawBatch)rawResult).copyInto((Batch)args[0]);
+			} else if(rawResult instanceof RawExperiencePoolSequence){
+				return ((RawExperiencePoolSequence)rawResult).copyInto((Sequence)args[0]);
+			} else if(rawResult instanceof RawBatchedExperiencePoolSequence){
+				return ((RawBatchedExperiencePoolSequence)rawResult).copyInto((Sequence)args[0]);
 			} else if(rawResult instanceof RawSequence){
 				return ((RawSequence)rawResult).copyInto((Sequence)args[0]);
 			} else if(rawResult instanceof RawBatchedSequence){
 				return ((RawBatchedSequence)rawResult).copyInto((Sequence)args[0]);
-			} else if(rawResult instanceof RawExperiencePoolSample){
-				return ((RawExperiencePoolSample)rawResult).copyInto((ExperiencePoolSample)args[0]);
-			} else if(rawResult instanceof RawExperiencePoolBatch){
-				return ((RawExperiencePoolBatch)rawResult).copyInto((ExperiencePoolBatch)args[0]);
 			} else {
 				throw new RuntimeException("Unsupported raw result "+rawResult);
 			}

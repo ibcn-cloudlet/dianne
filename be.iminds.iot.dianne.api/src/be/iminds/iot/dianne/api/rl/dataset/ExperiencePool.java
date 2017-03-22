@@ -23,7 +23,11 @@
 package be.iminds.iot.dianne.api.rl.dataset;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
+import be.iminds.iot.dianne.api.dataset.RawBatchedSequence;
+import be.iminds.iot.dianne.api.dataset.RawSequence;
 import be.iminds.iot.dianne.api.dataset.Sequence;
 import be.iminds.iot.dianne.api.dataset.SequenceDataset;
 
@@ -100,6 +104,24 @@ public interface ExperiencePool extends SequenceDataset<ExperiencePoolSample, Ex
 		ExperiencePoolBatch b = getBatch(indices);
 		return new RawExperiencePoolBatch(b.input.dims(), b.target.dims(), 
 				b.input.get(), b.target.get(), b.nextState.get(), b.reward.get(), b.terminal.get());
+	}
+	
+	default RawExperiencePoolSequence getRawSequence(final int sequence, final int index, final int length){
+		List<RawExperiencePoolSample> data = new ArrayList<>();
+		Sequence<ExperiencePoolSample> seq = getSequence(sequence, index, length);
+		for(ExperiencePoolSample sample : seq){
+			data.add(new RawExperiencePoolSample(sample.input.dims(), sample.target.dims(), sample.input.get(), sample.target.get(), sample.nextState.get(), sample.reward.get(), sample.terminal.get()));
+		}
+		return new RawExperiencePoolSequence(data);
+	}
+	
+	default RawBatchedExperiencePoolSequence getRawBatchedSequence(final int[] sequences, final int[] indices, final int length){
+		List<RawExperiencePoolBatch> data = new ArrayList<>();
+		Sequence<ExperiencePoolBatch> seq = getBatchedSequence(sequences, indices, length);
+		for(ExperiencePoolBatch batch : seq){
+			data.add(new RawExperiencePoolBatch(batch.input.dims(), batch.target.dims(), batch.input.get(), batch.target.get(), batch.nextState.get(), batch.reward.get(), batch.terminal.get()));
+		}
+		return new RawBatchedExperiencePoolSequence(data);
 	}
 	
 	/**

@@ -36,13 +36,13 @@ import java.util.List;
  */
 public class RawSequence {
 
-	public List<RawSample> data;
+	public List<? extends RawSample> data;
 	
-	public RawSequence(List<RawSample> data){
+	public RawSequence(List<? extends RawSample> data){
 		this.data = data;
 	}
 
-	public Sequence<Sample> copyInto(Sequence<Sample> s){
+	public Sequence<? extends Sample> copyInto(Sequence<? extends Sample> s){
 		if(s == null){
 			List<Sample> d = new ArrayList<>();
 			for(RawSample rs : data){

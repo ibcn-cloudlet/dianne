@@ -20,10 +20,14 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.api.dataset;
+package be.iminds.iot.dianne.api.rl.dataset;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import be.iminds.iot.dianne.api.dataset.Batch;
+import be.iminds.iot.dianne.api.dataset.RawBatchedSequence;
+import be.iminds.iot.dianne.api.dataset.Sequence;
 
 /**
  * A helper class for representing raw data of sequence of samples/batches of a dataset.
@@ -34,24 +38,23 @@ import java.util.List;
  * @author tverbele
  *
  */
-public class RawBatchedSequence {
+public class RawBatchedExperiencePoolSequence extends RawBatchedSequence {
 
-	public List<? extends RawBatch> data;
 	
-	public RawBatchedSequence(List<? extends RawBatch> data){
-		this.data = data;
+	public RawBatchedExperiencePoolSequence(List<RawExperiencePoolBatch> data){
+		super(data);
 	}
 
 	public Sequence<? extends Batch> copyInto(Sequence<? extends Batch> b){
 		if(b == null){
-			List<Batch> d = new ArrayList<>();
-			for(RawBatch rs : data){
-				d.add(rs.copyInto(null));
+			List<ExperiencePoolBatch> d = new ArrayList<>();
+			for(Object rs : data){
+				d.add(((RawExperiencePoolBatch)rs).copyInto((ExperiencePoolBatch)null));
 			}
-			return new Sequence<Batch>(d);
+			return new Sequence<ExperiencePoolBatch>(d);
 		} else {
 			for(int i=0;i<data.size();i++){
-				data.get(i).copyInto(b.data.get(i));
+				((RawExperiencePoolBatch)data.get(i)).copyInto((ExperiencePoolBatch)b.data.get(i));
 			}
 			b.size = data.size();
 			return b;

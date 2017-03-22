@@ -374,22 +374,33 @@ public class ExperiencePoolTest {
 		Assert.assertEquals(3, batchedSequence.size);
 		ExperiencePoolBatch b0 = batchedSequence.get(0);
 		Assert.assertEquals(s0, b0.getState(0));
+		Assert.assertEquals(0.0f, b0.getScalarReward(0));
 		Assert.assertEquals(s1, b0.getState(1));
+		Assert.assertEquals(0.4f, b0.getScalarReward(1));
+
 
 		ExperiencePoolBatch b1 = batchedSequence.get(1);
 		Assert.assertEquals(s1, b1.getState(0));
+		Assert.assertEquals(0.1f, b1.getScalarReward(0));
 		Assert.assertEquals(s2, b1.getState(1));
+		Assert.assertEquals(0.5f, b1.getScalarReward(1));
+
 		
 		
 		batchedSequence = pool.getBatchedSequence(batchedSequence, new int[]{0, 1}, new int[]{1, 1}, 3);
 		Assert.assertEquals(2, batchedSequence.size);
 		b0 = batchedSequence.get(0);
 		Assert.assertEquals(s1, b0.getState(0));
+		Assert.assertEquals(0.1f, b0.getScalarReward(0));
 		Assert.assertEquals(s1, b0.getState(1));
+		Assert.assertEquals(0.4f, b0.getScalarReward(1));
 
 		b1 = batchedSequence.get(1);
 		Assert.assertEquals(s2, b1.getState(0));
+		Assert.assertEquals(0.2f, b1.getScalarReward(0));
 		Assert.assertEquals(s2, b1.getState(1));
+		Assert.assertEquals(0.5f, b1.getScalarReward(1));
+
 		
 	}
 	
