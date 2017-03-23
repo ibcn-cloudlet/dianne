@@ -19,6 +19,7 @@ Bundle-Version: 0.6.0.${tstamp}
 aiolos.version='[0.6.0,0.7.0)'
 
 -runfw: org.eclipse.concierge
+-runpath: be.iminds.iot.dianne.launcher
 
 -runbundles.common: \
 	osgi.promise;version='[6.0.0,6.0.1)',\
