@@ -14,6 +14,7 @@ Bundle-Name: Dianne Launcher
 Private-Package: \
 	be.iminds.iot.dianne.launcher,\
 	aQute.bnd.annotation.component,\
+	aQute.launcher.pre,\
 	aQute.lib.tag,\
 	aQute.bnd.annotation,\
 	aQute.bnd.annotation.metatype,\
