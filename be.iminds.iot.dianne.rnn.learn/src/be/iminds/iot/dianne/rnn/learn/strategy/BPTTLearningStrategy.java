@@ -37,8 +37,7 @@ import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rnn.learn.criterion.SequenceCriterion;
 import be.iminds.iot.dianne.rnn.learn.criterion.SequenceCriterionFactory;
-import be.iminds.iot.dianne.rnn.learn.sampling.SequenceSamplingFactory;
-import be.iminds.iot.dianne.rnn.learn.sampling.SequenceSamplingStrategy;
+import be.iminds.iot.dianne.rnn.learn.sampling.SequenceSampler;
 import be.iminds.iot.dianne.rnn.learn.strategy.config.BPTTConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
@@ -59,9 +58,7 @@ public class BPTTLearningStrategy implements LearningStrategy {
 	protected BPTTConfig config;
 	protected GradientProcessor gradientProcessor;
 	protected SequenceCriterion criterion;
-	protected SequenceSamplingStrategy sampling;
-	
-	protected Sequence<Batch> sequence = null;
+	protected SequenceSampler sampler;
 	
 	@Override
 	public void setup(Map<String, String> config, Dataset dataset, NeuralNetwork... nns) throws Exception {
@@ -76,7 +73,7 @@ public class BPTTLearningStrategy implements LearningStrategy {
 			nn.setOutputLabels(labels);
 		
 		this.config = DianneConfigHandler.getConfig(config, BPTTConfig.class);
-		sampling = SequenceSamplingFactory.createSamplingStrategy(this.config.sampling, this.dataset, config);
+		sampler = new SequenceSampler(this.dataset, this.config.sampling, config);
 		criterion = SequenceCriterionFactory.createCriterion(this.config.criterion, config);
 		gradientProcessor = ProcessorFactory.createGradientProcessor(this.config.method, nn, config);
 	}
@@ -89,9 +86,7 @@ public class BPTTLearningStrategy implements LearningStrategy {
 		this.nn.resetMemory(this.config.batchSize);
 
 		// sample sequence
-		int[] s = sampling.sequence(config.batchSize);
-		int[] index = sampling.next(s, config.sequenceLength);
-		sequence = dataset.getBatchedSequence(sequence, s, index, config.sequenceLength);
+		Sequence<Batch> sequence = sampler.nextSequence();
 		
 		// forward
 		List<Tensor> outputs = nn.forward(sequence.getInputs());
