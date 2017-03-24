@@ -24,21 +24,16 @@ package be.iminds.iot.dianne.nn.learn.strategy;
 
 import java.util.Map;
 
-import org.osgi.util.promise.Promise;
-
 import be.iminds.iot.dianne.api.dataset.Batch;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
-import be.iminds.iot.dianne.api.nn.NeuralNetworkResult;
 import be.iminds.iot.dianne.api.nn.learn.Criterion;
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.learn.LearningStrategy;
-import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
-import be.iminds.iot.dianne.api.nn.module.Trainable;
 import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory;
 import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory;
-import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory;
+import be.iminds.iot.dianne.nn.learn.sampling.BatchSampler;
 import be.iminds.iot.dianne.nn.learn.strategy.config.FeedForwardConfig;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -58,10 +53,7 @@ public class FeedForwardLearningStrategy implements LearningStrategy {
 	protected FeedForwardConfig config;
 	protected GradientProcessor gradientProcessor;
 	protected Criterion criterion;
-	protected SamplingStrategy sampling;
-	
-	protected Batch batch = null;
-	private Batch nextBatch = null;
+	protected BatchSampler sampler;
 	
 	@Override
 	public void setup(Map<String, String> config, Dataset dataset, NeuralNetwork... nns) throws Exception {
@@ -74,7 +66,8 @@ public class FeedForwardLearningStrategy implements LearningStrategy {
 			nn.setOutputLabels(labels);
 		
 		this.config = DianneConfigHandler.getConfig(config, FeedForwardConfig.class);
-		sampling = SamplingFactory.createSamplingStrategy(this.config.sampling, dataset, config);
+		
+		sampler = new BatchSampler(dataset, this.config.sampling, config);
 		criterion = CriterionFactory.createCriterion(this.config.criterion, config);
 		gradientProcessor = ProcessorFactory.createGradientProcessor(this.config.method, nn, config);
 	}
@@ -83,58 +76,32 @@ public class FeedForwardLearningStrategy implements LearningStrategy {
 	public LearnProgress processIteration(long i) throws Exception {
 		// Clear delta params
 		nn.zeroDeltaParameters();
-		
-		// Use a placeholder for loss
-		final float[] loss = new float[1];
-		
-		// Load batch for first iteration
-		if(nextBatch==null)
-			nextBatch = dataset.getBatch(nextBatch, sampling.next(config.batchSize));
-		
-		// Flip current/next
-		Batch temp = batch;
-		batch = nextBatch;
-		nextBatch = temp;
-		
-		// Forward/backward pass - executed asynchronously
-		// Handle case of varying input dims so batch is array of different tensors
-		// Load next batch while doing forward/backward
 
-		Promise<NeuralNetworkResult> result = nn.forward(null, null, batch.input).then(
-				p -> {
-					// Forward
-					Tensor output = p.getValue().tensor;
-					
-					// Loss
-					loss[0] += TensorOps.mean(criterion.loss(output, batch.target));
+		// Load batch - reuse memory
+		Batch batch = sampler.nextBatch();
 
-					// Gradient
-					Tensor gradOut = criterion.grad(output, batch.target);
-					
-					// Backward
-					return nn.backward(null, null, gradOut);
-				}).then(		
-				p -> {	
-					// Accumulate gradient weights
-					nn.getTrainables().values().stream().forEach(Trainable::accGradParameters);
-					
-					return p;
-				});
+		// Forward input
+		Tensor output = nn.forward(batch.input);
 		
-		// Load next batch while processing previous one
-		nextBatch = dataset.getBatch(nextBatch, sampling.next(config.batchSize));
+		// Calculate loss
+		float loss = TensorOps.mean(criterion.loss(output, batch.target));
 		
-		// Fetch the result (errors are handled by caller)
-		result.getValue();
+		// Calculate gradient on the outputs
+		Tensor gradOutput = criterion.grad(output, batch.target);
 		
-		
+		// Backpropagate
+		nn.backward(gradOutput);
+
+		// Accumulate gradients in delta params
+		nn.accGradParameters();
+
 		// Run gradient processors
 		gradientProcessor.calculateDelta(i);
-		
+
 		// Update parameters
 		nn.updateParameters();
-		
-		return new LearnProgress(i, loss[0]);		
+
+		return new LearnProgress(i, loss);
 	}
 
 }
