@@ -27,10 +27,10 @@ public class SequenceSamplerConfig {
 	/**
 	 * Batch size to sample
 	 */
-	public int batchSize;
+	public int batchSize = 1;
 	
 	/**
 	 * Length of the sequence to sample
 	 */
-	public int sequenceLength;
+	public int sequenceLength = 1;
 }

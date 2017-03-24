@@ -41,7 +41,7 @@ public class CriterionFactory {
 	
 	public static class BatchConfig {
 		
-		public int batchSize = 10;
+		public int batchSize = 1;
 		
 		public boolean batchAverage = true;
 		

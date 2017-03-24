@@ -27,6 +27,6 @@ public class BatchSamplerConfig {
 	/**
 	 * Batch size to sample
 	 */
-	public int batchSize;
+	public int batchSize = 1;
 	
 }

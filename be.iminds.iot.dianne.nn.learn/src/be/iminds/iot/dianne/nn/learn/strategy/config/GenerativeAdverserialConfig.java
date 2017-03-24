@@ -30,7 +30,7 @@ public class GenerativeAdverserialConfig {
 	/**
 	 * Batch size in which samples are processed before updating parameters
 	 */
-	public int batchSize = 10;
+	public int batchSize = 1;
 	
 	/**
 	 * The gradient optimization method to use

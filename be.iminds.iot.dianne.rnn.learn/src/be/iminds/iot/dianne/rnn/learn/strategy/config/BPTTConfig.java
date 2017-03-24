@@ -31,12 +31,12 @@ public class BPTTConfig {
 	/**
 	 * Batchsize to process inputs
 	 */
-	public int batchSize = 10;
+	public int batchSize = 1;
 	
 	/**
 	 * Length of the sequence to feed into the network before backpropagating 
 	 */
-	public int sequenceLength = 10;
+	public int sequenceLength = 1;
 	
 	/**
 	 * The criterion to use to evaluate the error between output and target
