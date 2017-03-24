@@ -70,7 +70,7 @@ public class SequenceSampler {
 				try {
 					this.wait();
 				} catch (InterruptedException e) {
-					throw new RuntimeException("Interrupted while fetching batch?!");
+					throw new RuntimeException("Interrupted while fetching batch?!", e);
 				}
 			}
 			
