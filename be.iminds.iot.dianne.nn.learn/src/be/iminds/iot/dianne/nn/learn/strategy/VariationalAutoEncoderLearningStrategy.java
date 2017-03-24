@@ -31,12 +31,11 @@ import be.iminds.iot.dianne.api.nn.learn.Criterion;
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.learn.LearningStrategy;
-import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory;
-import be.iminds.iot.dianne.nn.learn.criterion.GaussianKLDivCriterion;
 import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory.BatchConfig;
+import be.iminds.iot.dianne.nn.learn.criterion.GaussianKLDivCriterion;
 import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory;
-import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory;
+import be.iminds.iot.dianne.nn.learn.sampling.BatchSampler;
 import be.iminds.iot.dianne.nn.learn.strategy.config.FeedForwardConfig;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -56,9 +55,8 @@ public class VariationalAutoEncoderLearningStrategy implements LearningStrategy 
 	protected int latentDims = 1;
 	protected int sampleSize = 1;
 	
-	protected Batch batch;
 	protected Dataset dataset;
-	protected SamplingStrategy sampling;
+	protected BatchSampler sampler;
 	
 	protected NeuralNetwork encoder;
 	protected NeuralNetwork decoder;
@@ -92,7 +90,7 @@ public class VariationalAutoEncoderLearningStrategy implements LearningStrategy 
 			this.sampleSize = Integer.parseInt(config.get("sampleSize"));
 
 		this.config = DianneConfigHandler.getConfig(config, FeedForwardConfig.class);
-		this.sampling = SamplingFactory.createSamplingStrategy(this.config.sampling, dataset, config);
+		this.sampler = new BatchSampler(dataset, this.config.sampling, config);
 		
 		this.encoderProcessor = ProcessorFactory.createGradientProcessor(this.config.method, this.encoder, config);
 		this.decoderProcessor = ProcessorFactory.createGradientProcessor(this.config.method, this.decoder, config);
@@ -121,7 +119,7 @@ public class VariationalAutoEncoderLearningStrategy implements LearningStrategy 
 		latentParamsGrad.fill(0);
 		
 		// Load input batch
-		batch = dataset.getBatch(batch, sampling.next(this.config.batchSize));
+		Batch batch = sampler.nextBatch();
 		
 		// Get latent distribution parameters (encoder forward)
 		latentParams = encoder.forward(batch.input);

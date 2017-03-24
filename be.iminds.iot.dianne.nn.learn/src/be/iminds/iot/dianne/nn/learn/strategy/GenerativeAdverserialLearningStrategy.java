@@ -31,11 +31,10 @@ import be.iminds.iot.dianne.api.nn.learn.Criterion;
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.learn.LearningStrategy;
-import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory;
 import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory.CriterionConfig;
 import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory;
-import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory;
+import be.iminds.iot.dianne.nn.learn.sampling.BatchSampler;
 import be.iminds.iot.dianne.nn.learn.strategy.config.GenerativeAdverserialConfig;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -62,9 +61,8 @@ public class GenerativeAdverserialLearningStrategy implements LearningStrategy {
 	protected GradientProcessor gradientProcessorD;
 
 	protected Criterion criterion;
-	protected SamplingStrategy sampling;
+	protected BatchSampler sampler;
 	
-	protected Batch batch;
 	protected Tensor target;
 	protected Tensor random;
 	
@@ -76,7 +74,8 @@ public class GenerativeAdverserialLearningStrategy implements LearningStrategy {
 		this.discriminator = nns[1];
 		
 		this.config = DianneConfigHandler.getConfig(config, GenerativeAdverserialConfig.class);
-		sampling = SamplingFactory.createSamplingStrategy(this.config.sampling, dataset, config);
+
+		sampler = new BatchSampler(dataset, this.config.sampling, config);
 		criterion = CriterionFactory.createCriterion(CriterionConfig.BCE, config);
 		gradientProcessorG = ProcessorFactory.createGradientProcessor(this.config.method, generator, config);
 		gradientProcessorD = ProcessorFactory.createGradientProcessor(this.config.method, discriminator, config);
@@ -94,7 +93,8 @@ public class GenerativeAdverserialLearningStrategy implements LearningStrategy {
 		// First update the discriminator
 		
 		// Load minibatch of real data for the discriminator 
-		batch = dataset.getBatch(batch, sampling.next(this.config.batchSize));
+		Batch batch = sampler.nextBatch();
+		
 		// These should be classified as correct by discriminator
 		target.fill(0.85f);
 		

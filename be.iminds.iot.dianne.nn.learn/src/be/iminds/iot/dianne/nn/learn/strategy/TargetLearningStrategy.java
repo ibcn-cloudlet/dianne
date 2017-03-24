@@ -34,6 +34,7 @@ import be.iminds.iot.dianne.api.nn.learn.LearningStrategy;
 import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory;
 import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory;
+import be.iminds.iot.dianne.nn.learn.sampling.BatchSampler;
 import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory;
 import be.iminds.iot.dianne.nn.learn.strategy.config.FeedForwardConfig;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
@@ -53,9 +54,7 @@ public class TargetLearningStrategy implements LearningStrategy {
 	protected FeedForwardConfig config;
 	
 	protected Dataset dataset;
-	protected SamplingStrategy sampling;
-	
-	protected Batch batch;
+	protected BatchSampler sampler;
 	
 	protected NeuralNetwork traineeNetwork;
 	protected NeuralNetwork targetNetwork;
@@ -77,7 +76,7 @@ public class TargetLearningStrategy implements LearningStrategy {
 		this.targetNetwork = nns[1];
 		
 		this.config = DianneConfigHandler.getConfig(config, FeedForwardConfig.class);
-		this.sampling = SamplingFactory.createSamplingStrategy(this.config.sampling, dataset, config);
+		this.sampler = new BatchSampler(dataset, this.config.sampling, config);
 		this.criterion = CriterionFactory.createCriterion(this.config.criterion, config);
 		this.gradientProcessor = ProcessorFactory.createGradientProcessor(this.config.method, traineeNetwork, config);
 		
@@ -89,12 +88,11 @@ public class TargetLearningStrategy implements LearningStrategy {
 		traineeNetwork.zeroDeltaParameters();
 		
 		// Fill in the batch
-		batch = dataset.getBatch(batch, sampling.next(config.batchSize));
+		Batch batch = sampler.nextBatch();
 		
 		// Forward pass 
 		output = traineeNetwork.forward(batch.input);
 		target = targetNetwork.forward(batch.input);
-		
 		
 		Tensor l = criterion.loss(output, target);
 		float loss = TensorOps.mean(l);
