@@ -38,9 +38,9 @@ import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory;
 import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory;
 import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
+import be.iminds.iot.dianne.rl.learn.sampling.PrioritySampler;
+import be.iminds.iot.dianne.rl.learn.sampling.config.PrioritySamplerConfig;
 import be.iminds.iot.dianne.rl.learn.strategy.config.DeepQConfig;
-import be.iminds.iot.dianne.rl.learn.util.PrioritySampler;
-import be.iminds.iot.dianne.rl.learn.util.PrioritySamplerConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 

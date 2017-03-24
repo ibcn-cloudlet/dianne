@@ -20,7 +20,7 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.rl.learn.util;
+package be.iminds.iot.dianne.rl.learn.sampling.config;
 
 public class PrioritySamplerConfig {
 

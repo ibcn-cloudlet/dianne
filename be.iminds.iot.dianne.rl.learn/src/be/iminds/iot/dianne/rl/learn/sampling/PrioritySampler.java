@@ -20,7 +20,7 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.rl.learn.util;
+package be.iminds.iot.dianne.rl.learn.sampling;
 
 import java.util.Random;
 import java.util.TreeMap;
@@ -29,6 +29,7 @@ import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
+import be.iminds.iot.dianne.rl.learn.sampling.config.PrioritySamplerConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 
 /**
