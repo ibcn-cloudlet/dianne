@@ -36,7 +36,7 @@ public class DeepQConfig {
 	/**
 	 * Size of the batches that are processed by the Learner
 	 */
-	public int batchSize = 10;
+	public int batchSize = 1;
 
 	/**
 	 * Minimum samples that should be in the Experience Pool before training starts

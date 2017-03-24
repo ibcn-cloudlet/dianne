@@ -22,13 +22,15 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rl.learn.sampling;
 
+import java.util.Map;
 import java.util.Random;
 import java.util.TreeMap;
 
-import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
+import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory.SamplingConfig;
+import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.learn.sampling.config.PrioritySamplerConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 
@@ -41,24 +43,22 @@ import be.iminds.iot.dianne.tensor.Tensor;
  */
 public class PrioritySampler {
 
-	private final ExperiencePool pool;
-	private final SamplingStrategy sampling;
+	private final ExperienceSampler sampler;
 	private final TreeMap<Float, ExperiencePoolSample> priorityBuffer = new TreeMap<>();
 	private final PrioritySamplerConfig config;
 	private final Random random = new Random(System.currentTimeMillis());
 	
-	public PrioritySampler(ExperiencePool pool, SamplingStrategy sampling, PrioritySamplerConfig config){
-		this.pool = pool;
-		this.sampling = sampling;
-		this.config = config;
+	public PrioritySampler(ExperiencePool pool, SamplingConfig sampling, Map<String, String> config){
+		this.sampler = new ExperienceSampler(pool, sampling, config);
+		this.config = DianneConfigHandler.getConfig(config, PrioritySamplerConfig.class);
 	}
 	
-	public ExperiencePoolBatch getBatch(ExperiencePoolBatch batch, int size){
-		ExperiencePoolBatch b = pool.getBatch(batch, sampling.next(size));
+	public ExperiencePoolBatch nextBatch(){
+		ExperiencePoolBatch b = sampler.nextBatch();
 		
 		// potentially replace some batch items by samples from the priority buffer
 		if(config.prioritySamplingFactor > 0){
-			for(int i=0;i<size;i++){
+			for(int i=0;i<b.getSize();i++){
 				if(priorityBuffer.size() > 0){
 					if(random.nextDouble() < config.prioritySamplingFactor){
 						// how to best sample from priority buffer?

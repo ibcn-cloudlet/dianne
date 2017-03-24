@@ -63,8 +63,6 @@ public class DeepQLearningStrategy implements LearningStrategy {
 	protected SamplingStrategy sampling;
 	protected PrioritySampler prioritySampler;
 	
-	protected ExperiencePoolBatch batch;
-	
 	protected NeuralNetwork valueNetwork;
 	protected NeuralNetwork targetNetwork;
 	
@@ -88,8 +86,7 @@ public class DeepQLearningStrategy implements LearningStrategy {
 		this.targetNetwork = nns[1];
 		
 		this.config = DianneConfigHandler.getConfig(config, DeepQConfig.class);
-		this.sampling = SamplingFactory.createSamplingStrategy(this.config.sampling, dataset, config);
-		this.prioritySampler = new PrioritySampler(pool, sampling, DianneConfigHandler.getConfig(config, PrioritySamplerConfig.class));
+		this.prioritySampler = new PrioritySampler(pool, this.config.sampling, config);
 		this.criterion = CriterionFactory.createCriterion(this.config.criterion, config);
 		this.gradientProcessor = ProcessorFactory.createGradientProcessor(this.config.method, valueNetwork, config);
 		
@@ -122,7 +119,7 @@ public class DeepQLearningStrategy implements LearningStrategy {
 		targetValueBatch.fill(0);
 		
 		// Fill in the batch
-		batch = prioritySampler.getBatch(batch, config.batchSize);
+		ExperiencePoolBatch batch = prioritySampler.nextBatch();
 		
 		for(int b = 0; b < config.batchSize; b++) {
 			// Get the data from the sample
