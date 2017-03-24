@@ -22,6 +22,9 @@ function image(tensor, canvasCtx){
 		// batched inputs ... render a mosaic
 		if(tensor.dims.length == 4){
 			var batchSize = tensor.dims[0];
+			var channels = tensor.dims[1];
+			var height = tensor.dims[2];
+			var width = tensor.dims[3];
 			var mosaic = Math.ceil(Math.sqrt(batchSize));
 			if(height == 1){
 				var mosaicW = canvasW;
@@ -39,7 +42,7 @@ function image(tensor, canvasCtx){
 					if(offset >= tensor.size)
 						continue;
 					
-					image_rect(tensor, canvasCtx, offset, height == 1 ? 0 : k*mosaicW,  h == 1 ? (i++)*mosaicH : l*mosaicH, mosaicW, mosaicH);
+					image_rect(tensor, canvasCtx, offset, height == 1 ? 0 : k*mosaicW,  height == 1 ? (i++)*mosaicH : l*mosaicH, mosaicW, mosaicH);
 					offset = offset + tensor.size/batchSize;
 				}
 			}
