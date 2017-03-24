@@ -80,7 +80,7 @@ public class GenerativeAdverserialLearningStrategy implements LearningStrategy {
 		gradientProcessorG = ProcessorFactory.createGradientProcessor(this.config.method, generator, config);
 		gradientProcessorD = ProcessorFactory.createGradientProcessor(this.config.method, discriminator, config);
 		
-		target = new Tensor(this.config.batchSize);
+		target = new Tensor(this.config.batchSize, 1);
 		random = new Tensor(this.config.batchSize, this.config.generatorDim);
 	}
 
