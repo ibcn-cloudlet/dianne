@@ -36,10 +36,8 @@ import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch;
 import be.iminds.iot.dianne.api.rl.learn.QLearnProgress;
 import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory;
 import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory;
-import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.learn.sampling.PrioritySampler;
-import be.iminds.iot.dianne.rl.learn.sampling.config.PrioritySamplerConfig;
 import be.iminds.iot.dianne.rl.learn.strategy.config.DeepQConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
@@ -118,23 +116,29 @@ public class DeepQLearningStrategy implements LearningStrategy {
 		// Fill in the batch
 		ExperiencePoolBatch batch = prioritySampler.nextBatch();
 		
+		// calculate value of next state for the target network
+		Tensor nextTargetValue = targetNetwork.forward(batch.nextState);
+		// .. and for the value network in case of double Q learning
+		Tensor nextValue = null;
+		if(config.doubleQ)
+			nextValue = valueNetwork.forward(batch.nextState);
+		
 		for(int b = 0; b < config.batchSize; b++) {
 			// Get the data from the sample
 			// Note: actions are one-hot encoded
 			int action = TensorOps.argmax(batch.getAction(b));
-			Tensor nextState = batch.getNextState(b);
 			float reward = batch.getScalarReward(b);
 			
 			// Calculate the target value
 			if(!batch.isTerminal(b)) {
 				// If the next state is not terminal, get the next value using the target network
-				Tensor nextValue = targetNetwork.forward(nextState);
+				Tensor t = nextTargetValue.select(0, b);
 				
 				// Determine the next action, depends on whether we are using double Q learning or not
-				int nextAction = TensorOps.argmax(config.doubleQ ? valueNetwork.forward(nextState) : nextValue);
+				int nextAction = TensorOps.argmax(config.doubleQ ? nextValue.select(0, b) : t);
 				
 				// Set the target value using the Bellman equation
-				targetValueBatch.set(reward + config.discount*nextValue.get(nextAction), b, action);
+				targetValueBatch.set(reward + config.discount*t.get(nextAction), b, action);
 			} else {
 				// If the next state is terminal, the target value is equal to the reward
 				targetValueBatch.set(reward, b, action);
