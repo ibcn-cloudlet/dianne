@@ -67,10 +67,8 @@ public class ExperienceSampler {
 
 		if(this.config.sequenceLength > 1){
 			this.ssampling = SequenceSamplingFactory.createSamplingStrategy(samplingStrategy, pool, config);;
-			fetchSequence();
 		} else {
 			this.sampling = SamplingFactory.createSamplingStrategy(samplingStrategy, pool, config);;
-			fetchBatch();
 		}
 	}
 	
@@ -84,6 +82,10 @@ public class ExperienceSampler {
 		synchronized(this){
 			if(!ready){
 				try {
+					// first call - fetch
+					if(batchBuffer == null && batchInUse == null)
+						fetchBatch();
+					
 					this.wait();
 				} catch (InterruptedException e) {
 					throw new RuntimeException("Interrupted while fetching batch?!", e);
@@ -117,6 +119,10 @@ public class ExperienceSampler {
 		synchronized(this){
 			if(!ready){
 				try {
+					// first call - fetch
+					if(sequenceBuffer == null && sequenceInUse == null)
+						fetchSequence();
+					
 					this.wait();
 				} catch (InterruptedException e) {
 					throw new RuntimeException("Interrupted while fetching batch?!", e);
