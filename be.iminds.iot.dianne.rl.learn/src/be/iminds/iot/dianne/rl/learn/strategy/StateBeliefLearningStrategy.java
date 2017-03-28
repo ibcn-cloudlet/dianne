@@ -185,25 +185,31 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 		float reconLoss = 0;
 		float regulLoss = 0;
 		
-		// Additional for final timestep: reconstruction loss on o_T-1
-		Tensor reconParams = likelihood.forward(states.get(sequence.size()-1));
-		Tensor observation = sequence.getState(sequence.size()-1);
-		
-		reconLoss += TensorOps.mean(reconCriterion.loss(reconParams, observation));
-		Tensor stateGrad = likelihood.backward(reconCriterion.grad(reconParams, observation));
-		likelihood.accGradParameters();
+		Tensor stateGrad;
+		if(!dropped[sequence.size()-1]) {
+			// Additional for final timestep: reconstruction loss on o_T-1
+			Tensor reconParams = likelihood.forward(states.get(sequence.size()-1));
+			Tensor observation = sequence.getState(sequence.size()-1);
+			
+			reconLoss += TensorOps.mean(reconCriterion.loss(reconParams, observation));
+			stateGrad = likelihood.backward(reconCriterion.grad(reconParams, observation));
+			likelihood.accGradParameters();
+		} else {
+			stateGrad = new Tensor(this.config.batchSize, this.config.stateSize);
+			stateGrad.fill(0.0f);
+		}
 		
 		// Other timesteps:
-		// * If dropped:
+		// * If next observation dropped:
 		//   - Convert gradient of next state sample to gradient on next state prior parameters
 		//   - Calculate gradient from next state prior to current state sample
-		//   - Add gradient from current state likelihood
-		// * If not dropped:
+		//   - Add gradient from current observation likelihood if not dropped
+		// * If next observation not dropped:
 		//   - Convert gradient of next state sample to gradient on next state posterior parameters
 		//   - Add regularization loss based on next state prior
 		//   - Calculate gradient from next state posterior parameters to current state sample
 		//   - Add gradient from next state prior prior
-		//   - Add gradient from current state likelihood
+		//   - Add gradient from current observation likelihood if not dropped
 		for(int t = sequence.size()-2; t >= 0; t--){
 			// Convert gradient of s_t+1 to gradient on its parameters
 			stateDistributionGrad(sampleParamsGrad, stateGrad, randoms.get(t+1));
@@ -214,7 +220,6 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 			// If dropped, gradient on prior of s_t+1 is gradient on sample parameters of s_t+1
 			Tensor priorParamsGrad = sampleParamsGrad;
 			
-			// Check if dropped
 			if(!dropped[t+1]) {
 				// Get posterior parameters of s_t+1
 				Tensor posteriorParams = posterior.forward(posteriorIn, posteriorOut, new Tensor[]{states.get(t), sequence.getAction(t), sequence.getState(t+1)}).getValue().tensor;
@@ -237,21 +242,23 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 			stateGrad = prior.backward(priorOut, priorIn, new Tensor[]{priorParamsGrad}).getValue().tensors.get(priorIn[0]);
 			prior.accGradParameters();
 			
-			// If not dropped, add gradient to s_t from posterior parameters of s_t+1
 			if(!dropped[t+1]) {
+				// If o_t+1 not dropped, add gradient to s_t from posterior parameters of s_t+1
 				TensorOps.add(stateGrad, stateGrad, posterior.backward(posteriorOut, posteriorIn, new Tensor[]{sampleParamsGrad}).getValue().tensors.get(posteriorIn[0]));
 				posterior.accGradParameters();
 			}
 			
-			// Add gradient from likelihood of o_t
-			reconParams = likelihood.forward(states.get(t));
-			observation = sequence.getState(t);
-			
-			reconLoss += TensorOps.mean(reconCriterion.loss(reconParams, observation));
-			
-			Tensor reconParamsGrad = reconCriterion.grad(reconParams, observation);
-			TensorOps.add(stateGrad, stateGrad, likelihood.backward(reconParamsGrad));
-			likelihood.accGradParameters();
+			if(!dropped[t]) {
+				// If o_t not dropped, add gradient from likelihood of o_t
+				Tensor reconParams = likelihood.forward(states.get(t));
+				Tensor observation = sequence.getState(t);
+				
+				reconLoss += TensorOps.mean(reconCriterion.loss(reconParams, observation));
+				
+				Tensor reconParamsGrad = reconCriterion.grad(reconParams, observation);
+				TensorOps.add(stateGrad, stateGrad, likelihood.backward(reconParamsGrad));
+				likelihood.accGradParameters();
+			}
 		}
 		
 		// Additional for first timestep: loss on posterior and prior of s_0
