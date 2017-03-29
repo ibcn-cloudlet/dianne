@@ -105,6 +105,8 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_free
 			state,
 #endif
 			getTensor(env, t));
+
+
 }
 
 
@@ -480,7 +482,7 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_fill
 
 
 
-JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_rand
+JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_srand
   (JNIEnv * env, jobject t){
 	THTensor* tensor = getTensor(env, t);
 
@@ -497,7 +499,7 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_rand
 
 
 
-JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_randn
+JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_srandn
   (JNIEnv * env, jobject t){
 	THTensor* tensor = getTensor(env, t);
 
@@ -514,7 +516,7 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_randn
 
 
 
-JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_bernoulli
+JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_sbernoulli
   (JNIEnv * env, jobject t, jfloat p){
 	THTensor* tensor = getTensor(env, t);
 

@@ -127,17 +127,36 @@ public class Tensor {
 	/**
 	 * fill with random values uniformely distributed between 0 and 1
 	 */
-	public native void rand();
+	public void rand(){
+		synchronized(Tensor.class){ // Torch random generation not generally thread safe ... 
+									// quick fix by synchronizing here in Java
+			srand();
+		}
+	}
+	
+	private native void srand();
 
 	/**
 	 * fill with random values Gaussian ("normally") distributed with mean 0.0 and standard deviation 1.0
 	 */
-	public native void randn();
+	public void randn(){
+		synchronized(Tensor.class){
+			srandn();
+		}
+	}
+
+	private native void srandn();
 	
 	/**
 	 * fill with 0 or 1 sampled using Bernoulli distribution with 0 <= p <= 1
 	 */
-	public native void bernoulli(float p);
+	public void bernoulli(float p){
+		synchronized(Tensor.class){
+			sbernoulli(p);
+		}
+	}
+	
+	private native void sbernoulli(float p);
 	
 	/**
 	 * check if other tensor has same dimensions
