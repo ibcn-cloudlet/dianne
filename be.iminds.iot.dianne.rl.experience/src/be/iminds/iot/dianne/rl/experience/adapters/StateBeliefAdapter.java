@@ -30,6 +30,8 @@ import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
@@ -97,19 +99,22 @@ public class StateBeliefAdapter implements ExperiencePool {
 	}
 	
 	@Activate
-	void activate(Map<String, Object> properties) throws Exception {
+	void activate(Map<String, Object> properties, BundleContext context) throws Exception {
+		// deploy the posterior/prior on local runtime
+		UUID frameworkId = UUID.fromString(context.getProperty(Constants.FRAMEWORK_UUID));
+		
 		this.name = (String)properties.get("name");
 		
 		String tag = (String)properties.get("tag");
 		String post = (String)properties.get("posterior");
-		NeuralNetworkInstanceDTO nnPosterior = platform.deployNeuralNetwork(post, new String[]{tag});
+		NeuralNetworkInstanceDTO nnPosterior = platform.deployNeuralNetwork(post, frameworkId, new String[]{tag});
 		this.posterior = dianne.getNeuralNetwork(nnPosterior).getValue();
 		this.posteriorIn = posterior.getModuleIds("State","Action","Observation");
 		this.posteriorOut = new UUID[]{posterior.getOutput().getId()};
 		
 		String pri = (String)properties.get("prior");
 		if(pri != null){
-			NeuralNetworkInstanceDTO nnPrior = platform.deployNeuralNetwork(pri, new String[]{tag});
+			NeuralNetworkInstanceDTO nnPrior = platform.deployNeuralNetwork(pri, frameworkId, new String[]{tag});
 			prior = dianne.getNeuralNetwork(nnPrior).getValue();
 			this.priorIn = prior.getModuleIds("State","Action");
 			this.priorOut = new UUID[]{prior.getOutput().getId()};
