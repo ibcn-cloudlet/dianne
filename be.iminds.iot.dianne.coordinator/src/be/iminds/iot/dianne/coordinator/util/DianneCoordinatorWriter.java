@@ -68,7 +68,7 @@ public class DianneCoordinatorWriter {
 			List<?> l = (List<?>)o;
 			writer.beginArray();
 			for(Object ll : l){
-				writeObject(writer, ll);
+				writeValue(writer, ll);
 			}
 			writer.endArray();
 		} else if(o instanceof Map){
@@ -76,14 +76,14 @@ public class DianneCoordinatorWriter {
 			writer.beginObject();
 			for(Object k : m.keySet()){
 				writer.name(k.toString());
-				writeObject(writer, m.get(k));
+				writeValue(writer, m.get(k));
 			}
 			writer.endObject();
 		}else if(o.getClass().isArray()){ 
 			int length = Array.getLength(o);
 			writer.beginArray();
 			for (int i = 0; i < length; i++) {
-				writeObject(writer, Array.get(o, i));
+				writeValue(writer, Array.get(o, i));
 			}
 			writer.endArray();
 		} else {
@@ -97,34 +97,28 @@ public class DianneCoordinatorWriter {
 		for(Field f : o.getClass().getFields()){
 			if(Modifier.isPublic(f.getModifiers())){
 				writer.name(f.getName());
-				if(f.getType().isPrimitive()){ 
-					switch(f.getType().getName()){
-					case "long":
-						writer.value(f.getLong(o));
-						break;
-					case "int":
-						writer.value(f.getInt(o));
-						break;
-					case "float":
-						writer.value(f.getFloat(o));
-						break;
-					case "double":
-						writer.value(f.getDouble(o));
-						break;
-					case "boolean":
-						writer.value(f.getBoolean(o));
-						break;
-					case "short": 
-						writer.value(f.getShort(o));
-						break;
-					case "byte":
-						writer.value(f.getByte(o));
-						break;
-					}
-				} else {
-					writeObject(writer, f.get(o));
-				}
+				writeValue(writer, f.get(o));
 			}
+		}
+	}
+	
+	public static void writeValue(JsonWriter writer, Object o) throws Exception {
+		if (o instanceof Long){
+			writer.value(((Long) o).longValue());
+		} else if (o instanceof Integer) {
+			writer.value(((Integer) o).intValue());
+		} else if (o instanceof Float) {
+			writer.value(((Float) o).floatValue());
+		} else if (o instanceof Double) {
+			writer.value(((Double) o).doubleValue());
+		} else if (o instanceof Boolean) {
+			writer.value(((Boolean) o).booleanValue());
+		} else if (o instanceof Short) {
+			writer.value(((Short) o).shortValue());
+		} else if (o instanceof Byte) {
+			writer.value(((Byte) o).byteValue());
+		} else {
+			writeObject(writer, o);
 		}
 	}
 	
