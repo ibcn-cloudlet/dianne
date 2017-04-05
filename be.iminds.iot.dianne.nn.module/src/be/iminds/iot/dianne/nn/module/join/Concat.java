@@ -101,7 +101,7 @@ public class Concat extends Join {
 					int[] inputDims = in.dims();
 					int concatDim = inputDims.length-1-dim;
 					int size = inputDims[concatDim];
-					gradInputs.put(prevIds[i], gradOutput.narrow(concatDim, offset, size));
+					gradInputs.put(prevIds[i], gradOutput.narrow(concatDim, offset, size).copyInto(gradInputs.get(prevIds[i])));
 					offset+=size;
 				}
 			}
