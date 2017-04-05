@@ -182,10 +182,9 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 		// TODO there might be an issue with range sensor not coming online at all
 		// should be fixed in robot project?
 		long start = System.currentTimeMillis();
-		while(rangeSensors==null
-				|| kukaArm == null 
+		while(kukaArm == null 
 				|| kukaPlatform == null
-				|| rangeSensors.size() != 1 + config.environmentSensors){
+				|| (!super.config.simState && rangeSensors.size() !=  1 + config.environmentSensors)){
 			try {
 				Thread.sleep(100);
 				if(config.tick){
@@ -287,9 +286,11 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 		if(simulator != null){
 			Map<String, String> entities = new HashMap<String, String>();
 			entities.put("youBot", "be.iminds.iot.robot.youbot.ros.Youbot");
-			entities.put("hokuyo", "be.iminds.iot.sensor.range.ros.LaserScanner");
-			
-			// inactivate extra sensors
+			if(!super.config.simState)
+				entities.put("hokuyo", "be.iminds.iot.sensor.range.ros.LaserScanner");
+
+			// only activate configured sensors
+			simulator.setProperty("hokuyo", "active", false);
 			simulator.setProperty("hokuyo#0", "active", false);
 			simulator.setProperty("hokuyo#1", "active", false);
 			simulator.setProperty("hokuyo#2", "active", false);
