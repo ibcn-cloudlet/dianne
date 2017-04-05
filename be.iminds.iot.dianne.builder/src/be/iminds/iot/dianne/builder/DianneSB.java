@@ -218,11 +218,15 @@ public class DianneSB extends HttpServlet {
 			}
 			
 			Tensor prior = null;
-			if(index == 0 || predictor == null){
+			if(predictor == null){
 				prior = state.clone();
 				prior.fill(0.0f);
 				prior.narrow(0, prior.size()/2, prior.size()/2).fill(1.0f);;
 			} else if(predictor != null){
+				if(index==0){
+					state.fill(0.0f);
+					action.fill(0.0f);
+				}
 				UUID[] pins = predictor.getModuleIds("State","Action");
 				UUID[] pouts = predictor.getModuleIds("Output");
 				prior = predictor.forward(pins, pouts, new Tensor[]{state, action}).getValue().tensor;
