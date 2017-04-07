@@ -58,7 +58,6 @@ public class DeepQLearningStrategy implements LearningStrategy {
 	protected DeepQConfig config;
 	
 	protected ExperiencePool pool;
-	protected SamplingStrategy sampling;
 	protected PrioritySampler prioritySampler;
 	
 	protected NeuralNetwork valueNetwork;

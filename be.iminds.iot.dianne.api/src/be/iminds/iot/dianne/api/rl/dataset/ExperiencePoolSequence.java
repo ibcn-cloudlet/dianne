@@ -36,6 +36,18 @@ import be.iminds.iot.dianne.tensor.Tensor;
  */
 public class ExperiencePoolSequence extends Sequence<ExperiencePoolSample> {
 	
+	public ExperiencePoolSequence(){
+		super();
+	}
+
+	public ExperiencePoolSequence(List<ExperiencePoolSample> data){
+		super(data);
+	}
+	
+	public ExperiencePoolSequence(List<ExperiencePoolSample> data, int size){
+		super(data, size);
+	}
+	
 	public List<Tensor> getStates(){
 		ArrayList<Tensor> states = new ArrayList<>();
 		for(ExperiencePoolSample t : this){

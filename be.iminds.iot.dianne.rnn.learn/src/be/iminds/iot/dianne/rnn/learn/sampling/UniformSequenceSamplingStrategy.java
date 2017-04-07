@@ -22,18 +22,24 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rnn.learn.sampling;
 
+import java.util.Map;
 import java.util.Random;
 
 import be.iminds.iot.dianne.api.dataset.SequenceDataset;
+import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
+import be.iminds.iot.dianne.rnn.learn.sampling.config.UniformSequenceSamplingStrategyConfig;
 
 public class UniformSequenceSamplingStrategy implements SequenceSamplingStrategy{
 
 	private Random random = new Random(System.currentTimeMillis());
 	
+	private UniformSequenceSamplingStrategyConfig config;
+	
 	private final SequenceDataset<?,?> dataset;
 	
-	public UniformSequenceSamplingStrategy(SequenceDataset<?,?> dataset) {
+	public UniformSequenceSamplingStrategy(SequenceDataset<?,?> dataset, Map<String, String> config) {
 		this.dataset = dataset;
+		this.config = DianneConfigHandler.getConfig(config, UniformSequenceSamplingStrategyConfig.class);
 	}
 
 	@Override
@@ -43,6 +49,9 @@ public class UniformSequenceSamplingStrategy implements SequenceSamplingStrategy
 
 	@Override
 	public int next(int sequence, int length) {
+		if(config.fromStart)
+			return 0;
+		
 		int sequenceLength = dataset.sequenceLength(sequence);
 		int range = sequenceLength - length;
 		if(range < 0)

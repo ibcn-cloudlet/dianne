@@ -40,9 +40,8 @@ import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory;
 import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory.CriterionConfig;
 import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
+import be.iminds.iot.dianne.rl.learn.sampling.ExperienceSampler;
 import be.iminds.iot.dianne.rl.learn.strategy.config.StateBeliefConfig;
-import be.iminds.iot.dianne.rnn.learn.sampling.SequenceSamplingFactory;
-import be.iminds.iot.dianne.rnn.learn.sampling.SequenceSamplingStrategy;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
@@ -58,8 +57,7 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 	protected StateBeliefConfig config;
 	
 	protected ExperiencePool pool;
-	protected SequenceSamplingStrategy sampling;
-	protected int[] indices;
+	protected ExperienceSampler sampler;
 	
 	protected BatchedExperiencePoolSequence sequence;
 	
@@ -124,11 +122,9 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 		this.rewardLikelihoodOut = rewardLikelihood != null ? new UUID[]{rewardLikelihood.getOutput().getId()} : null;
 		
 		this.config = DianneConfigHandler.getConfig(config, StateBeliefConfig.class);
-		this.sampling = SequenceSamplingFactory.createSamplingStrategy(this.config.sampling, this.pool, config);
-		
-		// Always sample from start index as we want to learn prior over initial states, not all states
-		indices = new int[this.config.batchSize];
-		Arrays.fill(indices, 0);
+		// set property to sample each sequence from index 0
+		config.put("fromStart", "true");
+		this.sampler = new ExperienceSampler(this.pool, this.config.sampling, config);
 		
 		this.priorRegulCriterion = CriterionFactory.createCriterion(CriterionConfig.GKL, config);
 		this.posteriorRegulCriterion = CriterionFactory.createCriterion(CriterionConfig.GKL, config);
@@ -167,8 +163,7 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 		Arrays.fill(dropped, false);
 
 		// Fetch sequence
-		int[] seq = sampling.sequence(config.batchSize);
-		sequence = pool.getBatchedSequence(sequence, seq, indices , config.sequenceLength);
+		sequence = sampler.nextSequence();
 		
 		// Initial action/state
 		// TODO: seeing as these are in principle a valid state & action, will this work?

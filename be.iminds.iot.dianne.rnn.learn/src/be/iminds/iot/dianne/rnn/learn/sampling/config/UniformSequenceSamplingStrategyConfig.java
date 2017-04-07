@@ -18,25 +18,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Contributors:
- *     Tim Verbelen, Steven Bohez, Elias De Coninck
+ *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.rnn.learn.sampling;
+package be.iminds.iot.dianne.rnn.learn.sampling.config;
 
-import java.util.Map;
+public class UniformSequenceSamplingStrategyConfig {
 
-import be.iminds.iot.dianne.api.dataset.SequenceDataset;
-import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory.SamplingConfig;
-
-public class SequenceSamplingFactory {
-	
-	public static SequenceSamplingStrategy createSamplingStrategy(SamplingConfig strategy, SequenceDataset<?,?> d, Map<String, String> config){
-		SequenceSamplingStrategy sampling = null;
-
-		switch(strategy){
-			default:
-				sampling = new UniformSequenceSamplingStrategy(d, config);
-		}
-		
-		return sampling;
-	}
+	/**
+	 * Force every sequence to start from index 0
+	 */
+	public boolean fromStart = false;
 }

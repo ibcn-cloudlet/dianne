@@ -27,8 +27,8 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import be.iminds.iot.dianne.api.dataset.Sequence;
 import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
+import be.iminds.iot.dianne.api.rl.dataset.BatchedExperiencePoolSequence;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch;
 import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory;
@@ -55,8 +55,8 @@ public class ExperienceSampler {
 	
 	private ExperiencePoolBatch batchInUse = null;
 	private ExperiencePoolBatch batchBuffer = null;
-	private Sequence<ExperiencePoolBatch> sequenceInUse = null;
-	private Sequence<ExperiencePoolBatch> sequenceBuffer = null;
+	private BatchedExperiencePoolSequence sequenceInUse = null;
+	private BatchedExperiencePoolSequence sequenceBuffer = null;
 	private volatile boolean ready = false;
 	
 	private Executor fetcher = Executors.newSingleThreadExecutor();
@@ -110,10 +110,10 @@ public class ExperienceSampler {
 	 * Get next sequence from the dataset. Once you call this method, the previous 
 	 * batch returned becomes obsolete and can be filled in with new data!
 	 */
-	public Sequence<ExperiencePoolBatch> nextSequence(){
+	public BatchedExperiencePoolSequence nextSequence(){
 		if(config.sequenceLength <= 1){
 			// one shouldn't be calling nextSequence when only 1 batch is requested
-			return new Sequence<ExperiencePoolBatch>(Collections.singletonList(nextBatch()));
+			return new BatchedExperiencePoolSequence(Collections.singletonList(nextBatch()));
 		}
 		
 		synchronized(this){
@@ -133,7 +133,7 @@ public class ExperienceSampler {
 		}
 		
 		// flip buffer and used sequence
-		Sequence<ExperiencePoolBatch> temp = sequenceInUse;
+		BatchedExperiencePoolSequence temp = sequenceInUse;
 		sequenceInUse = sequenceBuffer;
 		sequenceBuffer = temp;
 		

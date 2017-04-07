@@ -56,7 +56,7 @@ public interface SequenceSamplingStrategy {
 	
 	/**
 	 * get a start index for each sequence index in the array
-	 * @param sequence the sequenes of which to sample
+	 * @param sequence the sequences of which to sample
 	 * @param length the length of samples that are requested from the start index
 	 * @return
 	 */

@@ -37,11 +37,10 @@ import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch;
 import be.iminds.iot.dianne.api.rl.learn.QLearnProgress;
 import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
+import be.iminds.iot.dianne.rl.learn.sampling.ExperienceSampler;
 import be.iminds.iot.dianne.rl.learn.strategy.config.RecurrentDeepQConfig;
 import be.iminds.iot.dianne.rnn.learn.criterion.SequenceCriterion;
 import be.iminds.iot.dianne.rnn.learn.criterion.SequenceCriterionFactory;
-import be.iminds.iot.dianne.rnn.learn.sampling.SequenceSamplingFactory;
-import be.iminds.iot.dianne.rnn.learn.sampling.SequenceSamplingStrategy;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
@@ -58,7 +57,7 @@ public class RecurrentDeepQLearningStrategy implements LearningStrategy {
 	protected RecurrentDeepQConfig config;
 	
 	protected ExperiencePool pool;
-	protected SequenceSamplingStrategy sampling;
+	protected ExperienceSampler sampler;
 	
 	protected ExperiencePoolBatch batch;
 	
@@ -87,7 +86,7 @@ public class RecurrentDeepQLearningStrategy implements LearningStrategy {
 		this.targetNetwork = nns[1];
 		
 		this.config = DianneConfigHandler.getConfig(config, RecurrentDeepQConfig.class);
-		this.sampling = SequenceSamplingFactory.createSamplingStrategy(this.config.sampling, this.pool, config);
+		this.sampler = new ExperienceSampler(this.pool, this.config.sampling, config);
 		this.criterion = SequenceCriterionFactory.createCriterion(this.config.criterion, config);
 		this.gradientProcessor = ProcessorFactory.createGradientProcessor(this.config.method, valueNetwork, config);
 		
@@ -122,9 +121,7 @@ public class RecurrentDeepQLearningStrategy implements LearningStrategy {
 		this.targetNetwork.resetMemory(this.config.batchSize);
 		
 		// sample sequence
-		int[] seq = sampling.sequence(config.batchSize);
-		int[] index = sampling.next(seq, config.sequenceLength);
-		sequence = pool.getBatchedSequence(sequence, seq, index, config.sequenceLength);
+		sequence = sampler.nextSequence();
 		
 		List<Tensor> nextValues = targetNetwork.forward(sequence.getNextStates());
 		
