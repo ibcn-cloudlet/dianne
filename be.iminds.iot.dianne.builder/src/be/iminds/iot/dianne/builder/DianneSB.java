@@ -170,6 +170,25 @@ public class DianneSB extends HttpServlet {
 			}
 		} 
 
+		NeuralNetwork rewardEstimator = null;
+		String re = request.getParameter("reward");
+		if(re != null){
+			rewardEstimator = nns.get(re);
+			if(rewardEstimator == null){
+				try {
+					rewardEstimator = dianne.getNeuralNetwork(platform.deployNeuralNetwork(re, new String[]{tag})).getValue();
+					nns.put(re, rewardEstimator);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			} else {
+				try {
+					rewardEstimator.loadParameters(tag);
+				} catch (Exception e) {
+				}
+			}
+		} 
+		
 		
 		String seq = request.getParameter("sequence");
 		if(seq == null){
@@ -243,6 +262,14 @@ public class DianneSB extends HttpServlet {
 				reconstruction = decoder.forward(stateSample);
 				reconstruction = reconstruction.narrow(0, 0, reconstruction.size()/2);
 			}
+			
+			Tensor reward = null;
+			if(rewardEstimator != null){
+				UUID[] rins = rewardEstimator.getModuleIds("State","Action");
+				UUID[] routs = rewardEstimator.getModuleIds("Output");
+				
+				reward = rewardEstimator.forward(rins, routs, new Tensor[]{stateSample, action}).getValue().tensor;
+			}
 		
 			JsonObject result = new JsonObject();
 			result.add("state", converter.toJson(state));
@@ -257,6 +284,9 @@ public class DianneSB extends HttpServlet {
 			
 			if(reconstruction != null)
 				result.add("reconstruction", converter.toJson(reconstruction));
+		
+			if(reward != null)
+				result.add("reward", converter.toJson(reward));
 			
 			response.getWriter().println(result);
 			response.getWriter().flush();

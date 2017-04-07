@@ -29,21 +29,23 @@
 				<h4>Observation:</h4>
 				<canvas id='observation' width='256' height='256' style="border:1px solid #000000"></canvas>
 				<h4>State:</h4>
-				<canvas id='state' width='256' height='256' style="border:1px solid #000000"></canvas>
+				<canvas id='state' data-toggle="tooltip" title="" width='256' height='256' style="border:1px solid #000000"></canvas>
 				<h4>Action:</h4>
-				<canvas id='action' width='256' height='256' style="border:1px solid #000000"></canvas>
+				<canvas id='action' data-toggle="tooltip" title="" width='256' height='256' style="border:1px solid #000000"></canvas>
 			</div>
 			<div id="output" class="col-md-4">
 				<h4>Next State Prior</h4>		
-				<canvas id='prior' width='256' height='256' style="border:1px solid #000000"></canvas>		
+				<canvas id='prior' data-toggle="tooltip" title="" width='256' height='256' style="border:1px solid #000000"></canvas>		
 				<h4>Next State Posterior</h4>
-				<canvas id='posterior' width='256' height='256' style="border:1px solid #000000"></canvas>
+				<canvas id='posterior' data-toggle="tooltip" title="" width='256' height='256' style="border:1px solid #000000"></canvas>
 				<h4>Next State</h4>
-				<canvas id='sample' width='256' height='256' style="border:1px solid #000000"></canvas>
+				<canvas id='sample' data-toggle="tooltip" title="" width='256' height='256' style="border:1px solid #000000"></canvas>
 			</div>
 			<div id="recon" class="col-md-4">
 				<h4>State Reconstruction</h4>	
 				<canvas id='reconstruction' width='256' height='256' style="border:1px solid #000000"></canvas>
+				<h4>Reward Estimation</h4>	
+				<canvas id='reward' data-toggle="tooltip" title="" width='256' height='25' style="border:1px solid #000000"></canvas>
 				
 				<br/>
 				<br/>

@@ -366,3 +366,8 @@ footer {
 	height: 300px;
 	overflow-y: auto;
 }
+
+
+.ui-tooltip {
+    max-width: 600px;
+}
