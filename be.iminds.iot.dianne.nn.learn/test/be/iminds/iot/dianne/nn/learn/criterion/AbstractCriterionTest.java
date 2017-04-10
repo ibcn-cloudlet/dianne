@@ -35,7 +35,7 @@ import junit.framework.Assert;
 @Ignore
 public abstract class AbstractCriterionTest {
 	
-	private static final double eps = 1e-5;
+	private static final double eps = 1e-4;
 	
 	protected float[][] out;
 	protected float[][] tar;

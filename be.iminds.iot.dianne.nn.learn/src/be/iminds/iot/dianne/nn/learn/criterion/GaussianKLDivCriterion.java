@@ -29,7 +29,11 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 
 public class GaussianKLDivCriterion implements Criterion {
 	
-	protected Tensor meanDiff;
+	protected static final float EPS = 1e-6f;
+	
+	protected Tensor outStdev;
+	protected Tensor tarStdev;
+	
 	protected Tensor stdevRatio;
 	protected Tensor logStdevRatio;
 	
@@ -54,13 +58,15 @@ public class GaussianKLDivCriterion implements Criterion {
 		int dim = output.dim()-1;
 		int size = output.size(dim)/2;
 		
+		// loss = log(s_tar / s_out) + (s_out^2 + (mu_out - mu_tar)^2) / (2 * s_tar^2) - 1/2
+		//      = ((s_out / s_tar)^2 + ((mu_out - mu_tar) / s_tar)^2 - log((s_out / s_tar)^2) - 1) / 2
 		Tensor outMean = output.narrow(dim, 0, size);
-		Tensor outStdev = output.narrow(dim, size, size);
 		Tensor tarMean = target.narrow(dim, 0, size);
-		Tensor tarStdev = target.narrow(dim, size, size);
+		outStdev = TensorOps.add(outStdev, output.narrow(dim, size, size), EPS);
+		tarStdev = TensorOps.add(tarStdev, target.narrow(dim, size, size), EPS);
 		
-		meanDiff = TensorOps.sub(meanDiff, tarMean, outMean);
-		l = TensorOps.cdiv(l, meanDiff, tarStdev);
+		l = TensorOps.sub(l, outMean, tarMean);
+		l = TensorOps.cdiv(l, l, tarStdev);
 		TensorOps.cmul(l, l, l);
 		
 		stdevRatio = TensorOps.cdiv(stdevRatio, outStdev, tarStdev);
@@ -92,19 +98,22 @@ public class GaussianKLDivCriterion implements Criterion {
 		
 		grad = output.copyInto(grad);
 		
-		Tensor outStdev = output.narrow(dim, size, size);
+		Tensor outMean = output.narrow(dim, 0, size);
 		Tensor tarMean = target.narrow(dim, 0, size);
-		Tensor tarStdev = target.narrow(dim, size, size);
+		outStdev = TensorOps.add(outStdev, output.narrow(dim, size, size), EPS);
+		tarStdev = TensorOps.add(tarStdev, target.narrow(dim, size, size), EPS);
 		Tensor gradMean = grad.narrow(dim, 0, size);
 		Tensor gradStdev = grad.narrow(dim, size, size);
 		
 		sqTarStdev = TensorOps.cmul(sqTarStdev, tarStdev, tarStdev);
 		invOutStdev = TensorOps.pow(invOutStdev, outStdev, -1);
 		
-		TensorOps.sub(gradMean, gradMean, tarMean);
+		// grad mu_out = (mu_out - mu_tar) / s_tar^2
+		TensorOps.sub(gradMean, outMean, tarMean);
 		TensorOps.cdiv(gradMean, gradMean, sqTarStdev);
 		
-		TensorOps.cdiv(gradStdev, gradStdev, sqTarStdev);
+		// grad s_out = s_out / s_tar^2 - 1 / s_out
+		TensorOps.cdiv(gradStdev, outStdev, sqTarStdev);
 		TensorOps.sub(gradStdev, gradStdev, invOutStdev);
 		
 		if(b.batchAverage){
@@ -121,46 +130,35 @@ public class GaussianKLDivCriterion implements Criterion {
 		
 		grad = output.copyInto(grad);
 		
-		Tensor outStdev = output.narrow(dim, size, size);
+		Tensor outMean = output.narrow(dim, 0, size);
 		Tensor tarMean = target.narrow(dim, 0, size);
-		Tensor tarStdev = target.narrow(dim, size, size);
+		outStdev = TensorOps.add(outStdev, output.narrow(dim, size, size), EPS);
+		tarStdev = TensorOps.add(tarStdev, target.narrow(dim, size, size), EPS);
 		Tensor gradMean = grad.narrow(dim, 0, size);
 		Tensor gradStdev = grad.narrow(dim, size, size);
 		
 		sqTarStdev = TensorOps.cmul(sqTarStdev, tarStdev, tarStdev);
-		invTarStdev = TensorOps.pow(invTarStdev, tarStdev, -1);
 		
-		// grad mu = (mu_tar - mu_out)/ s_tar^2
-		TensorOps.sub(gradMean, tarMean, gradMean);
+		// grad mu_tar = (mu_tar - mu_out) / s_tar^2
+		TensorOps.sub(gradMean, tarMean, outMean);
 		TensorOps.cdiv(gradMean, gradMean, sqTarStdev);
 		
-	
-		// 2*s_out^2/s_tar^3
+		// grad s_tar = -s_out^2 / s_tar^3 - (mu_out - mu_tar)^2 / s_tar^3 + 1 / (2 * s_tar)
+		//            = (-(s_out^2 + (mu_out - mu_tar)^2) / s_tar^2 + 1/2) / s_tar
+		TensorOps.sub(gradStdev, outMean, tarMean);
 		TensorOps.cmul(gradStdev, gradStdev, gradStdev);
-		TensorOps.mul(gradStdev, gradStdev, 2.0f);
-		TensorOps.cmul(gradStdev, gradStdev, invTarStdev);
-		TensorOps.cmul(gradStdev, gradStdev, invTarStdev);
-		TensorOps.cmul(gradStdev, gradStdev, invTarStdev);
 		
-		// 2*(mu_tar - mu_out)^2/s_tar^3
-		TensorOps.cmul(meanDiff, gradMean, gradMean);
-		TensorOps.cmul(meanDiff, meanDiff, tarStdev);
-		TensorOps.mul(meanDiff, meanDiff, 2.0f);
-		TensorOps.add(gradStdev, gradStdev, meanDiff);
+		TensorOps.addcmul(gradStdev, gradStdev, 1, outStdev, outStdev);
+		TensorOps.cdiv(gradStdev, gradStdev, sqTarStdev);
 		
-		
-		// grad_s = 1/s_tar - 2*s_out^2/s_tar^3 - 2*(mu_tar - mu_out)^2/s_tar^3
-		TensorOps.sub(gradStdev, invTarStdev, gradStdev);
-		
-		// divided by 2
-		TensorOps.div(gradStdev, gradStdev, 2);
-		
+		TensorOps.mul(gradStdev, gradStdev, -1);
+		TensorOps.add(gradStdev, gradStdev, 0.5f);
+		TensorOps.cdiv(gradStdev, gradStdev, tarStdev);
 		
 		if(b.batchAverage){
 			TensorOps.div(grad, grad, b.batchSize);
 		}
-			
+		
 		return grad;
-	
 	}
 }
