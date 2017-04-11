@@ -190,9 +190,10 @@ public class ArcadeLearningEnvironment implements Environment {
     	
     	observation = new Tensor(this.config.observationLength, 84, 84);
 
+    	// parameters should be set before ROM is loaded!
+    	setFrameskip(this.config.skip);
     	
     	loadROM(this.config.rom);
-    	setFrameskip(this.config.skip);
 
     	active = true;
     	

@@ -74,6 +74,10 @@ JNIEXPORT jboolean JNICALL Java_be_iminds_iot_dianne_rl_environment_ale_ArcadeLe
 
 JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_rl_environment_ale_ArcadeLearningEnvironment_setFrameskip
   (JNIEnv * env, jobject o, jint skip){
+	if(ALE == NULL){
+		ALE = new ALEInterface();
+	}
+
 	ALE->setInt("frame_skip", skip);
 }
 
