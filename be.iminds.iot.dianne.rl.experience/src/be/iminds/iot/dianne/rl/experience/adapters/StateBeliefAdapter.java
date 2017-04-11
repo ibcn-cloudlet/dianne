@@ -24,6 +24,9 @@ package be.iminds.iot.dianne.rl.experience.adapters;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -32,6 +35,7 @@ import java.util.concurrent.Executors;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
@@ -45,6 +49,7 @@ import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
+import be.iminds.iot.dianne.api.repository.RepositoryListener;
 import be.iminds.iot.dianne.api.rl.dataset.BatchedExperiencePoolSequence;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch;
@@ -72,6 +77,8 @@ public class StateBeliefAdapter implements ExperiencePool {
 	private NeuralNetwork prior;
 	protected UUID[] priorIn;
 	protected UUID[] priorOut;
+	
+	private ServiceRegistration<RepositoryListener> repoListenerReg;
 	
 	private int stateSize;
 	
@@ -132,6 +139,32 @@ public class StateBeliefAdapter implements ExperiencePool {
 			this.sampleSize = Integer.parseInt(properties.get("sampleSize").toString());
 		}
 		
+		
+		Dictionary<String, Object> props = new Hashtable<>();
+		String[] t = new String[]{":"+tag};
+		props.put("targets", t);
+		props.put("aiolos.unique", true);
+		repoListenerReg = context.registerService(RepositoryListener.class, new RepositoryListener() {
+			@Override
+			public synchronized void onParametersUpdate(UUID nnId, Collection<UUID> moduleIds, String... tag) {
+				if(posterior.getId().equals(nnId)){
+					try {
+						posterior.loadParameters(tag);
+					} catch (Exception e) {
+						System.out.println("Failed to update posterior parameters");
+					}
+				}
+				
+				if(prior != null && prior.getId().equals(nnId)){
+					try {
+						prior.loadParameters(tag);
+					} catch (Exception e) {
+						System.out.println("Failed to update prior parameters");
+					}
+				}
+			}
+		}, props);
+		
 	}
 
 	@Deactivate
@@ -139,6 +172,9 @@ public class StateBeliefAdapter implements ExperiencePool {
 		platform.undeployNeuralNetwork(posterior.getId());
 		if(prior != null)
 			platform.undeployNeuralNetwork(prior.getId());
+		
+		if(repoListenerReg!=null)
+			repoListenerReg.unregister();
 	}
 	
 	@Override
@@ -305,5 +341,5 @@ public class StateBeliefAdapter implements ExperiencePool {
 		TensorOps.cmul(state, state, stdev);
 		TensorOps.add(state, state, mean);
 	}
-	
+
 }
