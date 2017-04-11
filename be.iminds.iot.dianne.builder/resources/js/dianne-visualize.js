@@ -12,7 +12,7 @@ function render(tensor, canvasCtx, type, config){
 	} else if(type==="character"){
 		text(tensor, canvasCtx, config.labels);
 	} else if(type==="gaussian"){
-		gauss(tensor, canvasCtx, false);
+		gauss(tensor, canvasCtx);
 	} else {
 		// image by default?
 		image(tensor, canvasCtx);
@@ -232,7 +232,7 @@ function text(tensor, canvasCtx, labels){
 }
 
 
-function gauss(tensor, canvasCtx){
+function gauss(tensor, canvasCtx, scale=2){
 	var canvasW = canvasCtx.canvas.clientWidth;
 	var canvasH = canvasCtx.canvas.clientHeight;
 	canvasCtx.clearRect(0,0,canvasW,canvasH);
@@ -253,14 +253,14 @@ function gauss(tensor, canvasCtx){
 			index = index + stateSize;
 		}
 			
-		gauss_rect(mu, sigma, canvasCtx,0, posY, canvasW, Math.round(height));
+		gauss_rect(mu, sigma, canvasCtx,0, posY, canvasW, Math.round(height), scale);
 	}
 }
 
-function gauss_rect(mu, sigma, canvasCtx, posX, posY, width, height){
+function gauss_rect(mu, sigma, canvasCtx, posX, posY, width, height, scale){
 	var imageData = canvasCtx.createImageData(width, height);
 	for (var i = 0; i < width; i++) {
-		var x = -3 + i*6/width;
+		var x = -scale + i*2*scale/width;
 		var y = Math.exp(-(x-mu)*(x-mu)/(2*sigma*sigma))/Math.sqrt(2*sigma*sigma*Math.PI);
 	
 		for(var k=0;k<height;k++){

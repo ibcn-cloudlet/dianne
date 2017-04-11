@@ -47,11 +47,11 @@ function update(){
 
 				ctx = $('#prior')[0].getContext('2d');
 				$('#prior')[0].title = getTitle(result.prior.data, true);
-				render(result.prior, ctx, 'gaussian');
+				gauss(result.prior, ctx, 10);
 				
 				ctx = $('#posterior')[0].getContext('2d');
 				$('#posterior')[0].title = getTitle(result.posterior.data, true);
-				render(result.posterior, ctx, 'gaussian');
+				gauss(result.posterior, ctx, 10);
 
 				ctx = $('#sample')[0].getContext('2d');
 				$('#sample')[0].title = getTitle(result.sample.data);
@@ -62,7 +62,7 @@ function update(){
 
 				ctx = $('#reward')[0].getContext('2d');
 				$('#reward')[0].title = getTitle(result.reward.data , true);
-				render(result.reward, ctx, 'gaussian');
+				gauss(result.reward, ctx, 1);
 				
 				index = index + 1;
 		}
