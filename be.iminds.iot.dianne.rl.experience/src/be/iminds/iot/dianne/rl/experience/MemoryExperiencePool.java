@@ -45,7 +45,7 @@ import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
 		configurationPid="be.iminds.iot.dianne.dataset.MemoryExperiencePool")
 public class MemoryExperiencePool extends AbstractExperiencePool {
 
-	private final static int MAX_BUFFER_SIZE = Integer.MAX_VALUE;
+	private final static int MAX_BUFFER_SIZE = 1000000000;
 	
 	private float[][] buffers;
 	private int bufferSize;
@@ -63,7 +63,7 @@ public class MemoryExperiencePool extends AbstractExperiencePool {
 			buffers = new float[noBuffers][bufferSize];
 		} catch(OutOfMemoryError e){
 			System.err.println("Failed to setup Experience Pool "+name+" in memory: failed to allocate "+(bufferSize/1000000)*noBuffers+" MB");
-			throw new RuntimeException("Failed to instantiate experience pool, not enough memory");
+			throw new RuntimeException("Failed to instantiate experience pool, not enough memory", e);
 		}
 	}
 
