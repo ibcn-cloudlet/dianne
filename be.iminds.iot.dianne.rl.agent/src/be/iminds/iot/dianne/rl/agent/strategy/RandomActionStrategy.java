@@ -23,10 +23,13 @@
 package be.iminds.iot.dianne.rl.agent.strategy;
 
 import java.util.Map;
+import java.util.Random;
 
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.rl.agent.ActionStrategy;
 import be.iminds.iot.dianne.api.rl.environment.Environment;
+import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
+import be.iminds.iot.dianne.rl.agent.strategy.config.RandomConfig;
 import be.iminds.iot.dianne.tensor.ModuleOps;
 import be.iminds.iot.dianne.tensor.Tensor;
 
@@ -38,17 +41,28 @@ import be.iminds.iot.dianne.tensor.Tensor;
  */
 public class RandomActionStrategy implements ActionStrategy {
 
+	private RandomConfig config;
+	private Random random = new Random(System.currentTimeMillis());
+	
 	private Tensor action;
 	
 	@Override
 	public void setup(Map<String, String> config, Environment env, NeuralNetwork... nns) throws Exception {
-		 action = new Tensor(env.actionDims());
+		this.config = DianneConfigHandler.getConfig(config, RandomConfig.class);
+		this.action = new Tensor(env.actionDims());
 	}
 
 	@Override
 	public Tensor processIteration(long s, long i, Tensor state) throws Exception {
-		action.randn();
-		ModuleOps.tanh(action, action);
+		
+		if(config.discrete){
+			int a = random.nextInt(action.size());
+			action.fill(0.0f);
+			action.set(1.0f, a);
+		} else {
+			action.randn();
+			ModuleOps.tanh(action, action);
+		}
 		
 		return action;
 	}
