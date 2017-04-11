@@ -36,9 +36,7 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
-import be.iminds.iot.dianne.api.dataset.Sequence;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
-import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch;
 
 @Component(
 		service={ExperiencePool.class, Dataset.class},
@@ -47,48 +45,78 @@ import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch;
 		configurationPid="be.iminds.iot.dianne.dataset.MemoryExperiencePool")
 public class MemoryExperiencePool extends AbstractExperiencePool {
 
-	private float[] samples;
-
+	private final static int MAX_BUFFER_SIZE = Integer.MAX_VALUE;
+	
+	private float[][] buffers;
+	private int bufferSize;
+	
 	@Override
 	protected void setup(Map<String, Object> config) {
-		if(Integer.MAX_VALUE/sampleSize < maxSize){
-			System.err.println("Failed to setup Experience Pool "+name+" in memory, maxSize "+maxSize+" too big to allocate in memory");
-			throw new RuntimeException("Failed to instantiate experience pool, too big to allocate in memory");
-		}
+		int maxSamplesPerBuffer = MAX_BUFFER_SIZE/sampleSize;
+		int noBuffers = maxSize  / maxSamplesPerBuffer;
+		if(maxSize % maxSamplesPerBuffer != 0)
+			noBuffers += 1;
+		
+		bufferSize = noBuffers == 1 ? maxSize*sampleSize : maxSamplesPerBuffer*sampleSize;
+		
 		try {
-			samples = new float[maxSize*sampleSize];
+			buffers = new float[noBuffers][bufferSize];
 		} catch(OutOfMemoryError e){
-			System.err.println("Failed to setup Experience Pool "+name+" in memory: failed to allocate "+maxSize*sampleSize/1000000+" MB");
+			System.err.println("Failed to setup Experience Pool "+name+" in memory: failed to allocate "+(bufferSize/1000000)*noBuffers+" MB");
 			throw new RuntimeException("Failed to instantiate experience pool, not enough memory");
 		}
 	}
 
 	@Override
 	protected void loadData(long position, float[] data) {
-		System.arraycopy(samples, (int)position, data, 0, data.length);
+		int buffer = (int)(position / bufferSize);
+		int pos = (int)(position % bufferSize);
+		
+		if(pos+data.length <= bufferSize){
+			System.arraycopy(buffers[buffer], pos, data, 0, data.length);
+		} else {
+			int s = bufferSize-pos;
+			System.arraycopy(buffers[buffer], pos, data, 0, s);
+			System.arraycopy(buffers[buffer+1], 0, data, s+1, data.length-s);
+		}
 	}
 
 	@Override
 	protected void writeData(long position, float[] data) {
-		System.arraycopy(data, 0, samples, (int)position, data.length);
+		int buffer = (int)(position / bufferSize);
+		int pos = (int)(position % bufferSize);
+		
+		if(pos+data.length <= bufferSize){
+			System.arraycopy(data, 0, buffers[buffer], pos, data.length);
+		} else {
+			int s = bufferSize-pos;
+			System.arraycopy(data, 0, buffers[buffer], pos, s);
+			System.arraycopy(data, s+1, buffers[buffer+1], 0, data.length-s);
+		}
 	}
 
 	@Override
 	protected void dumpData() throws IOException {
-		try (DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(new File(dir+File.separator+"data.bin"))))){
-			for(int i=0;i<samples.length;i++){
-				out.writeFloat(samples[i]);
+		for(int k=0;k<buffers.length;k++){
+			float[] buffer = buffers[k];
+			try (DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(new File(dir+File.separator+"data-"+k+".bin"))))){
+				for(int i=0;i<buffer.length;i++){
+					out.writeFloat(buffer[i]);
+				}
+				out.flush();
 			}
-			out.flush();
 		}
 	}
 
 	@Override
 	protected void recoverData() {
-		try (DataInputStream in = new DataInputStream(new BufferedInputStream(new FileInputStream(new File(dir+File.separator+"data.bin"))))){
-			for(int i=0;i<samples.length;i++){
-				samples[i] = in.readFloat();
-			}
-		} catch(Exception e){}
+		for(int k=0;k<buffers.length;k++){
+			float[] buffer = buffers[k];
+			try (DataInputStream in = new DataInputStream(new BufferedInputStream(new FileInputStream(new File(dir+File.separator+"data-"+k+".bin"))))){
+				for(int i=0;i<buffer.length;i++){
+					buffer[i] = in.readFloat();
+				}
+			} catch(Exception e){}
+		}
 	}
 }
