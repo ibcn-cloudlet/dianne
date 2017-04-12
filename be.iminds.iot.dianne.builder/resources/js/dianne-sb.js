@@ -13,7 +13,11 @@ $( document ).ready(function() {
 	    config[pair[0]] = decodeURIComponent(pair[1] || '');
 	});
 	
-    $('[data-toggle="tooltip"]').tooltip(); 
+    $('[data-toggle="tooltip"]').tooltip({
+        content: function () {
+            return this.getAttribute("title");
+        },
+    });
 	
 	index = 0;
 	update();
@@ -29,6 +33,8 @@ function update(){
 	
 	$.post("/dianne/sb", config, 
 		function( result ) {
+				index = index + 1;
+
 				// render
 				state = result.sample;
 				
@@ -45,9 +51,11 @@ function update(){
 				$('#action')[0].title = getTitle(result.action.data);
 				render(result.action, ctx);
 
-				ctx = $('#prior')[0].getContext('2d');
-				$('#prior')[0].title = getTitle(result.prior.data, true);
-				gauss(result.prior, ctx, 10);
+				if(result.prior !== undefined){
+					ctx = $('#prior')[0].getContext('2d');
+					$('#prior')[0].title = getTitle(result.prior.data, true);
+					gauss(result.prior, ctx, 10);
+				}
 				
 				ctx = $('#posterior')[0].getContext('2d');
 				$('#posterior')[0].title = getTitle(result.posterior.data, true);
@@ -57,14 +65,17 @@ function update(){
 				$('#sample')[0].title = getTitle(result.sample.data);
 				render(result.sample, ctx);
 
-				ctx = $('#reconstruction')[0].getContext('2d');
-				render(result.reconstruction, ctx, config.type);
-
-				ctx = $('#reward')[0].getContext('2d');
-				$('#reward')[0].title = getTitle(result.reward.data , true);
-				gauss(result.reward, ctx, 1);
+				if(result.reconstruction !== undefined){
+					ctx = $('#reconstruction')[0].getContext('2d');
+					render(result.reconstruction, ctx, config.type);
+				}
 				
-				index = index + 1;
+				if(result.reward !== undefined){
+					ctx = $('#reward')[0].getContext('2d');
+					$('#reward')[0].title = getTitle(result.reward.data , true);
+					gauss(result.reward, ctx, 1);
+				}
+				
 		}
 		, "json");
 	
@@ -78,8 +89,8 @@ function reset(){
 
 function getTitle(data, gaussian){
 	if(gaussian){
-		return 'Mean: '+data.slice(0, data.length/2).toString().replace(/[,]/g, ', ')
-		+'   Stdev: '+data.slice(data.length/2+1).toString().replace(/[,]/g, ', ');
+		return '<b>Mean:</b> '+data.slice(0, data.length/2).toString().replace(/[,]/g, ', ')
+		+'<br/>   <b>Stdev:</b> '+data.slice(data.length/2).toString().replace(/[,]/g, ', ');
 	} else {
 		return data.toString().replace(/[,]/g, ', ');
 	}
