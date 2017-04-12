@@ -32,6 +32,7 @@ import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.agent.strategy.config.RandomConfig;
 import be.iminds.iot.dianne.tensor.ModuleOps;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 /**
  * Select a random discrete action.
@@ -45,23 +46,41 @@ public class RandomActionStrategy implements ActionStrategy {
 	private Random random = new Random(System.currentTimeMillis());
 	
 	private Tensor action;
+	private Tensor t;
 	
 	@Override
 	public void setup(Map<String, String> config, Environment env, NeuralNetwork... nns) throws Exception {
 		this.config = DianneConfigHandler.getConfig(config, RandomConfig.class);
 		this.action = new Tensor(env.actionDims());
+		if(this.config.momentum > 0.0f){
+			t = new Tensor(env.actionDims());
+		}
 	}
 
 	@Override
 	public Tensor processIteration(long s, long i, Tensor state) throws Exception {
-		
 		if(config.discrete){
+			if(config.momentum > 0.0f){
+				float r = random.nextFloat();
+				// return previous action
+				if(r <= config.momentum)
+					return action;
+			}
+			
 			int a = random.nextInt(action.size());
 			action.fill(0.0f);
 			action.set(1.0f, a);
 		} else {
-			action.randn();
-			ModuleOps.tanh(action, action);
+			if(config.momentum > 0.0f){
+				t.randn();
+				ModuleOps.tanh(t, t);
+				
+				TensorOps.mul(action, action, config.momentum);
+				TensorOps.add(action, action, 1-config.momentum, t);
+			} else {
+				action.randn();
+				ModuleOps.tanh(action, action);
+			}
 		}
 		
 		return action;

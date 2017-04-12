@@ -30,4 +30,10 @@ public class RandomConfig {
 	 */
 	public boolean discrete = false;
 
+	/**
+	 * Use momentum to define next action
+	 * In case of discrete actions, momentum = probability to repeat previous action
+	 * In case of continuous actions, nextAction = momentum * prevAction + (1-momentum) newAction
+	 */
+	public float momentum = 0.0f;
 }
