@@ -23,7 +23,6 @@
 package be.iminds.iot.dianne.rl.agent.strategy;
 
 import java.util.Map;
-import java.util.Random;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
@@ -42,24 +41,17 @@ import be.iminds.iot.dianne.tensor.TensorOps;
  */
 public class StateBeliefActionStrategy implements ActionStrategy {
 	
-	private Random rand = new Random();
-	
 	private StateBeliefConfig config;
 	private NeuralNetwork posterior;
 	private NeuralNetwork policy;
 	
 	// prev state (in case we use p(s_t | s_t-1, a_t-1, o_t) )
 	private Tensor state;
-	// sampled states from posterior
-	private Tensor states;
-
-	private Tensor means;
-	private Tensor stdevs;
+	
+	private Tensor sample;
 	
 	// sampled action
 	private Tensor action;
-	// histogram for actions based on policy and sampled states
-	private Tensor actions;
 	
 	private UUID[] posteriorIn;
 	private UUID[] posteriorOut;
@@ -77,11 +69,8 @@ public class StateBeliefActionStrategy implements ActionStrategy {
 		this.policy = nns[1];
 		
 		this.action = new Tensor(env.actionDims());
-		this.actions = new Tensor(env.actionDims());
 		
-		this.states = new Tensor(this.config.batchSize, this.config.stateSize);
-		this.means = new Tensor(this.config.batchSize, this.config.stateSize);
-		this.stdevs = new Tensor(this.config.batchSize, this.config.stateSize);
+		this.sample = new Tensor(this.config.stateSize);
 
 		this.state = new Tensor(this.config.stateSize);
 	}
@@ -101,52 +90,30 @@ public class StateBeliefActionStrategy implements ActionStrategy {
 
 		state = posteriorParams.narrow(0, 0, config.stateSize).copyInto(state);
 		
-		sampleStates(posteriorParams);
+		// get an action by sampling a state and determining the Q values
+		// this is equivalent with Thompson Sampling https://en.wikipedia.org/wiki/Thompson_sampling
+		sampleState(posteriorParams);
 		
-		Tensor q = policy.forward(states);
+		Tensor q = policy.forward(sample);
 
-		// determine action from q's
-		sampleAction(q);
+		// get max Q action in one hot action vector
+		action.fill(0.0f);
+		int a = TensorOps.argmax(q);
+		action.set(1.0f, a);
 		
 		return action;
 	}
 
 	
-	private void sampleStates(Tensor posteriorParams){
+	private void sampleState(Tensor posteriorParams){
 		// sample states from posterior params
 		Tensor mean = posteriorParams.narrow(0, 0, config.stateSize);
 		Tensor stdev = posteriorParams.narrow(0, config.stateSize, config.stateSize);
-		for(int b = 0;b<config.batchSize;b++){
-			mean.copyInto(means.select(0, b));
-			stdev.copyInto(stdevs.select(0, b));
-		}
 		
-		states.randn();
+		state.randn();
 		
-		TensorOps.cmul(states, states, stdevs);
-		TensorOps.add(states, states, means);
+		TensorOps.cmul(state, state, stdev);
+		TensorOps.add(state, state, mean);
 	}
 	
-	private void sampleAction(Tensor q){
-		// fill actions tensor
-		actions.fill(0.0f);
-		for(int b = 0;b<config.batchSize;b++){
-			int bestAction = TensorOps.argmax(q.select(0, b));
-			actions.set(actions.get(bestAction)+1, bestAction);
-		}
-		
-		// sample action (or get max voted)
-		action.fill(0.0f);
-		int a = 0;
-		if(config.sampleAction){
-			int r = rand.nextInt((int)TensorOps.sum(actions));
-			float s = 0;
-			while (a < actions.size() && (s += actions.get(a)) < r) {
-				a++;
-			}
-		} else {
-			a = TensorOps.argmax(actions);
-		}
-		action.set(1.0f, a);
-	}
 }

@@ -25,9 +25,6 @@ package be.iminds.iot.dianne.rl.agent.strategy.config;
 
 public class StateBeliefConfig {
 
-	public int batchSize = 1;
-	
 	public int stateSize;
 	
-	public boolean sampleAction = false;
 }
