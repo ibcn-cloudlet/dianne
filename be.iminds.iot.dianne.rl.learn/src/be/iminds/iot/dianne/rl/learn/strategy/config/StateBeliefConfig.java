@@ -37,8 +37,6 @@ public class StateBeliefConfig {
 	
 	public float priorRegularization = 0;
 	
-	public float mutualInformationRegularization = 0;
-
 	public float dropRate = 0;
 	
 	/**

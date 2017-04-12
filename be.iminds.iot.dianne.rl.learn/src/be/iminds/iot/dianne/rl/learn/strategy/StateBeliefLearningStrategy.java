@@ -87,12 +87,9 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 	
 	protected Tensor action;
 	protected Tensor stateSample;
-	protected Tensor observationSample;
 	protected Tensor random4state;
-	protected Tensor random4observation;
 	
 	protected Tensor stateDistributionGrad;
-	protected Tensor observationDistributionGrad;
 	protected Tensor referenceDistribution;
 	
 	protected boolean[] dropped;
@@ -141,12 +138,9 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 
 		this.action = new Tensor(this.config.batchSize, this.pool.actionDims());
 		this.stateSample = new Tensor(this.config.batchSize, this.config.stateSize);
-		this.observationSample = new Tensor(this.config.batchSize, this.pool.stateDims());
 		this.random4state = new Tensor(this.config.batchSize, this.config.stateSize);
-		this.random4observation = new Tensor(this.config.batchSize, this.pool.stateDims());
 
 		this.stateDistributionGrad = new Tensor(this.config.batchSize, 2*this.config.stateSize);
-		this.observationDistributionGrad = new Tensor(this.config.batchSize, Arrays.stream(this.pool.stateDims()).map(d -> 2*d).toArray());
 		this.referenceDistribution = new Tensor(this.config.batchSize, 2*this.config.stateSize);
 		this.referenceDistribution.narrow(1, 0, this.config.stateSize).fill(0.0f);
 		this.referenceDistribution.narrow(1, this.config.stateSize, this.config.stateSize).fill(1.0f);
@@ -199,18 +193,14 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 			action = sequence.getAction(t);
 		}
 		
-		// Reset initial action/state
-		action.fill(0.0f);
-		stateSample.fill(0.0f);
-		
 		// Keep separate regularization and reconstruction loss
-		float priorRegulLoss = 0, posteriorRegulLoss = 0, mutualInformationLoss = 0;
+		float priorRegulLoss = 0, posteriorRegulLoss = 0;
 		float observationReconLoss = 0, rewardReconLoss = 0;
 		
-		Tensor stateGrad, observationDistribution = null;
+		Tensor stateGrad;
 		if(!dropped[sequence.size()-1]) {
 			// Additional for final timestep: reconstruction loss on o_T-1
-			observationDistribution = observationLikelihood.forward(states.get(sequence.size()-1));
+			Tensor observationDistribution = observationLikelihood.forward(states.get(sequence.size()-1));
 			Tensor observation = sequence.getState(sequence.size()-1);
 			
 			observationReconLoss += TensorOps.mean(observationReconCriterion.loss(observationDistribution, observation));
@@ -236,26 +226,6 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 			TensorOps.add(stateGrad, stateGrad, rewardLikelihood.backward(rewardLikelihoodOut, rewardLikelihoodIn, new Tensor[]{grad}, true).getValue().tensors.get(rewardLikelihoodIn[0]));
 		}
 		
-		// Add optional mutual information loss (conditional entropy)
-		if(config.mutualInformationRegularization > 0) {
-			if(dropped[sequence.size()-1])
-				observationDistribution = observationLikelihood.forward(states.get(sequence.size()-1));
-			
-			sample(observationSample, observationDistribution, random4observation);
-			
-			Tensor posteriorDistribution = posterior.forward(posteriorIn, posteriorOut, new Tensor[]{states.get(sequence.size()-2), sequence.getAction(sequence.size()-2), observationSample}).getValue().tensor;
-			
-			mutualInformationLoss += config.mutualInformationRegularization*entropy(posteriorDistribution);
-			Tensor entropyGrad = entropyGrad(posteriorDistribution);
-			TensorOps.mul(entropyGrad, entropyGrad, config.mutualInformationRegularization);
-			
-			// TODO: currently ignoring gradient w.r.t. s_T-2
-			Tensor observationSampleGrad = posterior.backward(posteriorOut, posteriorIn, new Tensor[]{entropyGrad}, true).getValue().tensors.get(posteriorIn[2]);
-			distributionGrad(observationDistributionGrad, observationSampleGrad, random4observation);
-			
-			TensorOps.add(stateGrad, stateGrad, observationLikelihood.backward(observationDistributionGrad));
-		}
-		
 		// Other timesteps:
 		// * If next observation dropped:
 		//   - Convert gradient of next state sample to gradient on next state prior distribution
@@ -270,25 +240,19 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 		//   - Add gradient from current observation likelihood if not dropped
 		//   - Add gradient from current reward likelihood if modeled
 		for(int t = sequence.size()-2; t >= 0; t--){
-			// Get prior distribution of s_t+1
-			Tensor priorDistribution = prior.forward(priorIn, priorOut, new Tensor[]{states.get(t), sequence.getAction(t)}).getValue().tensor;
-			// Get posterior distribution of s_t+1 if required
-			Tensor posteriorDistribution = !dropped[t+1] ? posterior.forward(posteriorIn, posteriorOut, new Tensor[]{states.get(t), sequence.getAction(t), sequence.getState(t+1)}).getValue().tensor : null;
-			
 			// Convert gradient of s_t+1 to gradient on its distribution
 			distributionGrad(stateDistributionGrad, stateGrad, randoms.get(t+1));
 			
-			// Add optional mutual information loss (unconditional entropy)
-			if(config.mutualInformationRegularization > 0) {
-				Tensor distribution = dropped[t+1] ? priorDistribution : posteriorDistribution;
-				mutualInformationLoss += -config.mutualInformationRegularization*entropy(distribution);
-				TensorOps.add(stateDistributionGrad, stateDistributionGrad, -config.mutualInformationRegularization, entropyGrad(distribution));
-			}
+			// Get prior distribution of s_t+1
+			Tensor priorDistribution = prior.forward(priorIn, priorOut, new Tensor[]{states.get(t), sequence.getAction(t)}).getValue().tensor;
 			
 			// If dropped, gradient on prior of s_t+1 is gradient on distribution of s_t+1
 			Tensor priorDistributionGrad = stateDistributionGrad;
 			
 			if(!dropped[t+1]) {
+				// Get posterior distribution of s_t+1
+				Tensor posteriorDistribution = posterior.forward(posteriorIn, posteriorOut, new Tensor[]{states.get(t), sequence.getAction(t), sequence.getState(t+1)}).getValue().tensor;
+				
 				// Add regularization loss based on prior on s_t+1 to gradient on distribution of s_t+1
 				posteriorRegulLoss += TensorOps.mean(posteriorRegulCriterion.loss(posteriorDistribution, priorDistribution));
 				TensorOps.add(stateDistributionGrad, stateDistributionGrad, posteriorRegulCriterion.grad(posteriorDistribution, priorDistribution));
@@ -312,7 +276,7 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 			
 			if(!dropped[t]) {
 				// If o_t not dropped, add gradient from likelihood of o_t
-				observationDistribution = observationLikelihood.forward(states.get(t));
+				Tensor observationDistribution = observationLikelihood.forward(states.get(t));
 				Tensor observation = sequence.getState(t);
 				
 				observationReconLoss += TensorOps.mean(observationReconCriterion.loss(observationDistribution, observation));
@@ -334,51 +298,27 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 				rmul(grad, grad, terminal);
 				TensorOps.add(stateGrad, stateGrad, rewardLikelihood.backward(rewardLikelihoodOut, rewardLikelihoodIn, new Tensor[]{grad}, true).getValue().tensors.get(rewardLikelihoodIn[0]));
 			}
-			
-			// Add optional mutual information loss (conditional entropy)
-			if(config.mutualInformationRegularization > 0) {
-				if(dropped[t])
-					observationDistribution = observationLikelihood.forward(states.get(t));
-				
-				sample(observationSample, observationDistribution, random4observation);
-				
-				posteriorDistribution = posterior.forward(posteriorIn, posteriorOut, 
-						t > 0 ? new Tensor[]{states.get(t-1), sequence.getAction(t-1), observationSample} : new Tensor[]{stateSample, action, observationSample}).getValue().tensor;
-				
-				mutualInformationLoss += config.mutualInformationRegularization*entropy(posteriorDistribution);
-				Tensor entropyGrad = entropyGrad(posteriorDistribution);
-				TensorOps.mul(entropyGrad, entropyGrad, config.mutualInformationRegularization);
-				
-				// TODO: currently ignoring gradient w.r.t. s_t-1
-				Tensor observationSampleGrad = posterior.backward(posteriorOut, posteriorIn, new Tensor[]{entropyGrad}, true).getValue().tensors.get(posteriorIn[2]);
-				distributionGrad(observationDistributionGrad, observationSampleGrad, random4observation);
-				
-				TensorOps.add(stateGrad, stateGrad, observationLikelihood.backward(observationDistributionGrad));
-			}
 		}
 		
 		// Additional for first timestep: loss on posterior and prior of s_0
-		
-		// Get prior distribution of s_0
-		Tensor priorDistribution = prior.forward(priorIn, priorOut, new Tensor[]{stateSample, action}).getValue().tensor;
-		// Get posterior distribution of s_0 if required
-		Tensor posteriorDistribution = !dropped[0] ? posterior.forward(posteriorIn, posteriorOut, new Tensor[]{stateSample, action, sequence.getState(0)}).getValue().tensor : null;
+		action.fill(0.0f);
+		stateSample.fill(0.0f);
 		
 		// Convert gradient of s_0 to gradient on its distribution
 		distributionGrad(stateDistributionGrad, stateGrad, randoms.get(0));
 		
-		// Add optional mutual information loss (unconditional entropy)
-		if(config.mutualInformationRegularization > 0) {
-			Tensor distribution = dropped[0] ? priorDistribution : posteriorDistribution;
-			mutualInformationLoss += -config.mutualInformationRegularization*entropy(distribution);
-			TensorOps.add(stateDistributionGrad, stateDistributionGrad, -config.mutualInformationRegularization, entropyGrad(distribution));
-		}
+		// Get prior distribution of s_0
+		Tensor priorDistribution = prior.forward(priorIn, priorOut, new Tensor[]{stateSample, action}).getValue().tensor;
+		
 		
 		// If dropped, gradient on prior of s_0 is gradient on distribution of s_0
 		Tensor priorDistributionGrad = stateDistributionGrad;
 		
 		// Check if dropped
 		if(!dropped[0]) {
+			// Get posterior distribution of s_0
+			Tensor posteriorDistribution = posterior.forward(posteriorIn, posteriorOut, new Tensor[]{stateSample, action, sequence.getState(0)}).getValue().tensor;
+			
 			// Add regularization loss based on prior on s_0 to gradient on distribution of s_0
 			posteriorRegulLoss += TensorOps.mean(posteriorRegulCriterion.loss(posteriorDistribution, priorDistribution));
 			TensorOps.add(stateDistributionGrad, stateDistributionGrad, posteriorRegulCriterion.grad(posteriorDistribution, priorDistribution));
@@ -443,19 +383,6 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 		
 		sampleGrad.copyInto(gradMeans);
 		TensorOps.cmul(gradStdevs, sampleGrad, random);
-	}
-	
-	private static float entropy(Tensor distribution) {
-		int size = distribution.size(1)/2;
-		return (size*((float)Math.log(2*Math.PI)+1)/2
-				+ TensorOps.sum(TensorOps.log(null, distribution.narrow(1,size, size))))/distribution.size(0);
-	}
-	
-	private static Tensor entropyGrad(Tensor distribution) {
-		Tensor grad = TensorOps.pow(null, distribution, -1);
-		grad.narrow(1, 0, distribution.size(1)).fill(0);
-		TensorOps.div(grad, grad, distribution.size(0));
-		return grad;
 	}
 	
 	//TODO: add this to TensorOps?
