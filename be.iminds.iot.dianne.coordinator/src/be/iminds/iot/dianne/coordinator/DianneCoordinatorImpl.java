@@ -85,7 +85,6 @@ import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.api.rl.agent.Agent;
 import be.iminds.iot.dianne.api.rl.agent.AgentProgress;
-import be.iminds.iot.dianne.api.rl.learn.QLearnProgress;
 import be.iminds.iot.dianne.coordinator.util.DianneCoordinatorWriter;
 
 @SuppressWarnings("rawtypes")
@@ -629,15 +628,15 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	void sendLearnProgress(UUID jobId, LearnProgress progress, Evaluation validation){
 		Map<String, Object> properties = new HashMap<>();
 		properties.put("jobId", jobId.toString());
-		properties.put("iteration", progress.iteration);
-		properties.put("minibatchLoss", progress.minibatchLoss);
+	
+		for(Field f : progress.getClass().getFields()){
+			try {			
+				properties.put(f.getName(), f.get(progress).toString());
+			} catch (Exception e) {} 
+		}
 		
 		if(validation!=null)
 			properties.put("validationLoss", validation.metric());
-		
-		if(progress instanceof QLearnProgress){
-			properties.put("q", ((QLearnProgress)progress).q);
-		}
 		
 		String topic = "dianne/jobs/"+jobId.toString()+"/progress";
 		Event e = new Event(topic, properties);

@@ -74,47 +74,16 @@ public class DianneSSEServlet extends HttpServlet implements EventHandler {
 		// construct server sent event
 		JsonObject data = new JsonObject();
 		
+		for(String key : event.getPropertyNames()){
+			if(!key.equals("event.topics"))
+				data.add(key, new JsonPrimitive(event.getProperty(key).toString()));
+		}
+		
 		if(event.getTopic().contains("progress")){
 			// progress
 			data.add("type", new JsonPrimitive("progress"));
-			data.add("jobId", new JsonPrimitive(event.getProperty("jobId").toString()));
-
-			if(event.containsProperty("iteration")){
-				data.add("iteration", new JsonPrimitive((Long)event.getProperty("iteration")));
-			}
-			
-			if(event.containsProperty("minibatchLoss")){
-				data.add("minibatchLoss", new JsonPrimitive((Float)event.getProperty("minibatchLoss")));
-			}
-			
-			if(event.containsProperty("validationLoss")){
-				data.add("validationLoss", new JsonPrimitive((Float)event.getProperty("validationLoss")));
-			}
-			
-			if(event.containsProperty("q")){
-				data.add("q", new JsonPrimitive((Float)event.getProperty("q")));
-			}
-			
-			if(event.containsProperty("reward")){
-				data.add("reward", new JsonPrimitive((Float)event.getProperty("reward")));
-			}
-			
-			if(event.containsProperty("sequence")){
-				data.add("sequence", new JsonPrimitive((Long)event.getProperty("sequence")));
-			}
-			
-			if(event.containsProperty("worker")){
-				data.add("worker", new JsonPrimitive((Integer)event.getProperty("worker")));
-			}
 		} else {
-			// notification
-			if(event.containsProperty("jobId"))
-				data.add("jobId", new JsonPrimitive(event.getProperty("jobId").toString()));
 			data.add("type", new JsonPrimitive("notification"));
-			data.add("message", new JsonPrimitive((String)event.getProperty("message")));
-			data.add("level", new JsonPrimitive(event.getProperty("level").toString()));
-			long timestamp = (Long)event.getProperty("timestamp");
-			data.add("timestamp", new JsonPrimitive(timestamp));
 		}
 		
 		StringBuilder builder = new StringBuilder();

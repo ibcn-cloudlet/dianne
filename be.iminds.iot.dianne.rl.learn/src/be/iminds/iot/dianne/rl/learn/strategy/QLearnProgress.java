@@ -20,7 +20,7 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.api.rl.learn;
+package be.iminds.iot.dianne.rl.learn.strategy;
 
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 
