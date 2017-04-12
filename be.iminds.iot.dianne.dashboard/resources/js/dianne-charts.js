@@ -61,35 +61,36 @@ function createResultChart(container, job, scale){
 	// in case of learn chart, plot learn progress curve
 	if(job.type==="LEARN"){
 		DIANNE.learnResult(job.id).then(function(learnprogress){
-			if(learnprogress[0] !== undefined && learnprogress[0].q !== undefined){
-				 var q = [];
-				 $.each(learnprogress, function(i) {
-					var progress = learnprogress[i];
-					q.push({
-						x: progress.iteration,
-		                y: progress.q
-		            });
-				 });
-				 createQChart(container, scale, q);
-			} else {
-				var minibatchLoss = [];
-				var validationLoss = [];
-				$.each(learnprogress, function(i) {
-					 var progress = learnprogress[i];
-					 minibatchLoss.push({
-						x: progress.iteration,
-		                y: progress.minibatchLoss
-		             });
-					 if(progress.validationLoss !== undefined){
-							 validationLoss.push({
-								 x: progress.iteration,
-								 y: progress.validationLoss
-							 });
-					 }
-					 
-				 });
-				 createLossChart(container, scale, minibatchLoss, validationLoss);	
+			if(learnprogress[0] === undefined){
+				return;
 			}
+			
+			var series = [];
+			$.each(learnprogress, function(i) {
+				var progress = learnprogress[i];
+				var s = 0;
+				for (var key in progress) {
+					if (progress.hasOwnProperty(key) && key !=='iteration') {
+						var ok = false;
+						// add data point to correct series
+						$.each(series, function(i) {
+							if(series[i].name === key){
+								series[i].data.push({x: progress.iteration, y:progress[key]});
+								ok = true;
+							}
+						});
+						if(!ok){
+							// add new series
+							var serie = {name: key, data: []};
+							serie.data.push({x: progress.iteration, y:progress[key]});
+							series.push(serie);
+						}
+						
+					}
+				}
+			});
+			
+			createLineChart(container, 'Iterations', 'Learn progress', scale, series);
 		});
 	} else if(job.type==="EVALUATE"){
 		// in case of evaluate jobs, plot a progress bar if still busy, confusion matrix heatmap otherwise
@@ -134,7 +135,8 @@ function createResultChart(container, job, scale){
 				
 				series.push({name:'reward', data: reward});
 			});
-			createRewardChart(container, scale, series);
+			
+			createLineChart(container, 'Sequences', 'Reward', scale, series);
 		});
 	}
 }
@@ -146,42 +148,39 @@ function updateResultsChart(container, data){
 	
 	var x;
 	var y;
-	if(data.q !== undefined){
-		x = Number(data.iteration);
-		y = Number(data.q);
-	} else if(data.minibatchLoss !== undefined){
-		x = Number(data.iteration);
-		y = Number(data.minibatchLoss);
-	} else if(data.reward !== undefined){
-		x = Number(data.sequence);
-		y = Number(data.reward);
-	}
 	
-	var s = 0;
-	if(data.worker !== undefined){
-		s = Number(data.worker);
-	}
-	
-	if(Highcharts.charts[index].series[s]!==undefined){
-		Highcharts.charts[index].series[s].addPoint([x, y], true, false, false);
-	}
-	
-	if(data.validationLoss !== undefined){
-		var v = Number(data.validationLoss);
-		Highcharts.charts[index].series[1].addPoint([x, v], true, false, false);
-	}
-}
+	for (var key in data) {
+		if (data.hasOwnProperty(key) 
+				&& key !=='iteration'
+				&& key !=='sequence'	
+				&& key !=='worker'
+				&& key !=='jobId'
+				&& key !=='type') {
+			// get data point (x might be iteration (learn progress) or sequence (agent progress))
+			if(data.iteration !== undefined){
+				x = Number(data.iteration);
+			}else if(data.sequence !== undefined){
+				x = Number(data.sequence);
+			}
+			y = Number(data[key]);
 
-function createLossChart(container, scale, minibatchLoss, validationLoss){
-	createLineChart(container, 'Iterations', 'Loss', scale, [{name:'minibatch loss',data: minibatchLoss},{name:'validation loss',data: validationLoss}]);
-}
+			// check out which series 
+			var s = 0;
+			$.each(Highcharts.charts[index].series, function(i) {
+				if(Highcharts.charts[index].series[i].name === key){
+					s = i;
+				}
+			});
+			if(data.worker !== undefined){
+				s = Number(data.worker);
+			}
+			
+			if(Highcharts.charts[index].series[s]!==undefined){
+				Highcharts.charts[index].series[s].addPoint([x, y], true, false, false);
+			}
+		}
+	}
 
-function createQChart(container, scale, q){
-	createLineChart(container, 'Iterations', 'Q', scale, [{name:'Q',data: q}]);
-}
-
-function createRewardChart(container, scale, rewardseries){
-	createLineChart(container, 'Sequences', 'Reward', scale, rewardseries);
 }
 
 
@@ -239,8 +238,22 @@ function createLineChart(container, xAxis, yAxis, scale, series) {
             softMin: 0,
             softMax: 0
         },
-        legend: {
-            enabled: false
+        legend:{
+            layout:'vertical',
+            align:'right',
+            verticalAlign:'top',
+            backgroundColor:'#fff',
+            borderColor:'#ccc',
+            borderWidth:.5,
+            y:30,
+            x:0,
+            itemWidth:135,
+            itemStyle:{
+                fontWeight:'bold'
+            },
+            itemHiddenStyle:{
+                fontWeight:'bold'
+            }
         },
         exporting: {
             enabled: false
