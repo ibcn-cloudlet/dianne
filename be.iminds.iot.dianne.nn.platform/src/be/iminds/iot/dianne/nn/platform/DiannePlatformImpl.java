@@ -41,6 +41,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
+import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
@@ -58,8 +59,11 @@ public class DiannePlatformImpl implements DiannePlatform {
 	
 	private Map<UUID, Map<UUID, Module>> modules = new ConcurrentHashMap<>();
 	
-	// available neural networks
+	// available neural networks deployed by this platform manager
 	private Map<UUID, NeuralNetworkInstanceDTO> nnis = new ConcurrentHashMap<UUID, NeuralNetworkInstanceDTO>();
+	
+	// any external neural network instances
+	private Map<UUID, NeuralNetworkInstanceDTO> external = new ConcurrentHashMap<UUID, NeuralNetworkInstanceDTO>();
 
 	private UUID frameworkId;
 
@@ -141,7 +145,6 @@ public class DiannePlatformImpl implements DiannePlatform {
 	@Override
 	public NeuralNetworkInstanceDTO deployNeuralNetwork(String name, String description, Map<String, String> properties,
 			UUID runtimeId, Map<UUID, UUID> deployment, String... tags) throws InstantiationException {
-		
 		NeuralNetworkDTO neuralNetwork = null;
 		try {
 			 neuralNetwork = repository.loadNeuralNetwork(name);
@@ -364,13 +367,15 @@ public class DiannePlatformImpl implements DiannePlatform {
 	public List<NeuralNetworkInstanceDTO> getNeuralNetworkInstances() {
 		List<NeuralNetworkInstanceDTO> list = new ArrayList<NeuralNetworkInstanceDTO>();
 		list.addAll(nnis.values());
+		list.addAll(external.values());
 		return list;
 	}
 
 
 	@Override
 	public NeuralNetworkInstanceDTO getNeuralNetworkInstance(UUID nnId) {
-		return nnis.get(nnId);
+		NeuralNetworkInstanceDTO nni = nnis.get(nnId);
+		return nni == null ? external.get(nnId) : nni;
 	}
 	
 	@Override
@@ -469,5 +474,18 @@ public class DiannePlatformImpl implements DiannePlatform {
 					module.properties.put(key, e.getValue());
 				}
 			});
+	}
+	
+	
+	@Reference(cardinality=ReferenceCardinality.MULTIPLE, 
+			policy=ReferencePolicy.DYNAMIC)
+	public void addNeuralNetwork(NeuralNetwork nn, Map<String, Object> properties){
+		// also list neural network instances that are deployed from other sources
+		if(!nnis.containsKey(nn.getId()))
+			external.put(nn.getId(), nn.getNeuralNetworkInstance());
+	}
+	
+	public void removeNeuralNetwork(NeuralNetwork nn, Map<String, Object> properties){
+		external.remove(nn.getId());
 	}
 }
