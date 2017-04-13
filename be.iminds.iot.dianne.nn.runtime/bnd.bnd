@@ -5,7 +5,9 @@ Bundle-Version: 0.6.0.${tstamp}
 	osgi.core;version=5.0,\
 	osgi.enterprise;version=5.0,\
 	be.iminds.iot.dianne.tensor;version=latest,\
-	be.iminds.iot.dianne.api;version=latest
+	be.iminds.iot.dianne.api;version=latest,\
+	be.iminds.iot.dianne.nn.util;version=latest,\
+	osgi.promise;version=6.0
 Private-Package: be.iminds.iot.dianne.nn.runtime
 -dsannotations: *
 Export-Package: \
