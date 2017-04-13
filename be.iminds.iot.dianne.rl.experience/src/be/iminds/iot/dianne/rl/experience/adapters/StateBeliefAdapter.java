@@ -114,14 +114,14 @@ public class StateBeliefAdapter implements ExperiencePool {
 		
 		String tag = (String)properties.get("tag");
 		String post = (String)properties.get("posterior");
-		NeuralNetworkInstanceDTO nnPosterior = platform.deployNeuralNetwork(post, frameworkId, new String[]{tag});
+		NeuralNetworkInstanceDTO nnPosterior = platform.deployNeuralNetwork(post, name, frameworkId, new String[]{tag});
 		this.posterior = dianne.getNeuralNetwork(nnPosterior).getValue();
 		this.posteriorIn = posterior.getModuleIds("State","Action","Observation");
 		this.posteriorOut = new UUID[]{posterior.getOutput().getId()};
 		
 		String pri = (String)properties.get("prior");
 		if(pri != null){
-			NeuralNetworkInstanceDTO nnPrior = platform.deployNeuralNetwork(pri, frameworkId, new String[]{tag});
+			NeuralNetworkInstanceDTO nnPrior = platform.deployNeuralNetwork(pri, name, frameworkId, new String[]{tag});
 			prior = dianne.getNeuralNetwork(nnPrior).getValue();
 			this.priorIn = prior.getModuleIds("State","Action");
 			this.priorOut = new UUID[]{prior.getOutput().getId()};
