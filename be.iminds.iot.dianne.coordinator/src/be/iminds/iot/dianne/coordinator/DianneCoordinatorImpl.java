@@ -630,8 +630,16 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		properties.put("jobId", jobId.toString());
 	
 		for(Field f : progress.getClass().getFields()){
-			try {			
-				properties.put(f.getName(), f.get(progress).toString());
+			try {
+				// flatten 'extra' properties
+				if(Map.class.isAssignableFrom(f.getType())){
+					Map m = (Map)f.get(progress);
+					for(Object k : m.keySet()){
+						properties.put(k.toString(), m.get(k));
+					}
+				} else {
+					properties.put(f.getName(), f.get(progress).toString());
+				}
 			} catch (Exception e) {} 
 		}
 		

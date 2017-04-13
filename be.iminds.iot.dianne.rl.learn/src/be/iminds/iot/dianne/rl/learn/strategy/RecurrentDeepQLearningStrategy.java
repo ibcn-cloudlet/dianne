@@ -172,8 +172,7 @@ public class RecurrentDeepQLearningStrategy implements LearningStrategy {
 		// Note: target network gets updated automatically by setting the syncInterval option
 		valueNetwork.updateParameters();
 		
-		
-		return new QLearnProgress(i, loss, value);
+		return new LearnProgress(i, loss, new String[]{"q"}, new float[]{value});
 	}
 
 }

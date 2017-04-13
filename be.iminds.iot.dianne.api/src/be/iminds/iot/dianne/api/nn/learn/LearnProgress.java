@@ -22,6 +22,10 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.nn.learn;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Represents the progress made by a Learner
  * 
@@ -36,13 +40,30 @@ public class LearnProgress {
 	/** The current minibatch loss perceived by the Learner */
 	public float minibatchLoss;
 	
+	/** Any additional metrics to stuff into the LearnProgress */
+	public Map<String, Float> extra;
+	
 	public LearnProgress(long iteration, float loss){
 		this.iteration = iteration;
 		this.minibatchLoss = loss;
 	}
 	
+	public LearnProgress(long iteration, float loss, String[] labels, float[] values){
+		this(iteration, loss);
+		assert labels.length == values.length;
+		Map<String, Float> map = new HashMap<>();
+		for(int i=0;i<labels.length;i++){
+			map.put(labels[i], values[i]);
+		}
+		extra = Collections.unmodifiableMap(map);
+	}
+	
 	@Override
 	public String toString(){
-		return "[LEARNER] Iteration: "+iteration+" Loss: "+minibatchLoss;
+		StringBuilder builder = new StringBuilder(); 
+		builder.append("[LEARNER] Iteration: ").append(iteration)
+				.append("Loss: ").append(minibatchLoss).append(" ");
+		extra.entrySet().forEach(e -> builder.append(e.getKey()).append(": ").append(e.getValue()).append(" "));
+		return builder.toString();
 	}
 }

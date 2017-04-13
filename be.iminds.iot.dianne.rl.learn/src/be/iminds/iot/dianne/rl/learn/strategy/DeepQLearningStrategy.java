@@ -173,7 +173,7 @@ public class DeepQLearningStrategy implements LearningStrategy {
 		// Add samples for priority sampling
 		prioritySampler.addBatch(l, batch);
 		
-		return new QLearnProgress(i, loss, value);
+		return new LearnProgress(i, loss, new String[]{"q"}, new float[]{value});
 	}
 
 }

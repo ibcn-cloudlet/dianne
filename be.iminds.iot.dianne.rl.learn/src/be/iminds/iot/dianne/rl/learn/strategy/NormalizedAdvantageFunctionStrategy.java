@@ -176,8 +176,9 @@ public class NormalizedAdvantageFunctionStrategy implements LearningStrategy {
 		// Apply the updates
 		// Note: target network gets updated automatically by setting the syncInterval option
 		valueNetwork.updateParameters();
-		
-		return new QLearnProgress(i, totalLoss/config.batchSize, totalValue/config.batchSize);
+
+		return new LearnProgress(i, totalLoss/config.batchSize, new String[]{"q"}, new float[]{ totalValue/config.batchSize});
+
 	}
 
 }

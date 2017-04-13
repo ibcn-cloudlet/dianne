@@ -179,7 +179,7 @@ public class ValueIterationLearningStrategy implements LearningStrategy {
 		gradientProcessor.calculateDelta(i);
 		valueNetwork.updateParameters();
 
-		return new QLearnProgress(i, loss/config.episodeLength, value/config.episodeLength);
+		return new LearnProgress(i, loss/config.episodeLength, new String[]{"q"}, new float[]{value/config.episodeLength});
 	}
 	
 	private static void storeTensor(List<Tensor> list, Tensor tensor, int index){

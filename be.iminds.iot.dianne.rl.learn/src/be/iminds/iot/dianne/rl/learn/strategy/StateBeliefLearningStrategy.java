@@ -354,8 +354,11 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 		if(rewardLikelihood != null)
 			rewardLikelihood.updateParameters();
 		
-		return new StateBeliefLearnProgress(i, priorRegulLoss/sequence.size, posteriorRegulLoss/sequence.size,
-				observationReconLoss/sequence.size, rewardReconLoss/sequence.size);
+		return new LearnProgress(i,
+				(priorRegulLoss+posteriorRegulLoss+observationReconLoss+rewardReconLoss)/sequence.size,
+				new String[]{"priorRegulLoss", "posteriorRegulLoss", "observationReconLoss", "rewardReconLoss"},
+				new float[]{priorRegulLoss/sequence.size, posteriorRegulLoss/sequence.size,
+						observationReconLoss/sequence.size, rewardReconLoss/sequence.size});
 	}
 	
 	private static void storeTensor(List<Tensor> list, Tensor tensor, int index){

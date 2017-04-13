@@ -258,7 +258,7 @@ public class DeepStochasticPolicyGradientStrategy implements LearningStrategy {
 		
 		// Report the average loss and value of the current policy
 		// Note: currently this is the value of the last actor sample only
-		return new QLearnProgress(i, loss, TensorOps.sum(value)/config.batchSize);
+		return new LearnProgress(i, loss, new String[]{"q"}, new float[]{ TensorOps.sum(value)/config.batchSize});
 	}
 
 	private static void sampleAction(Tensor action, Tensor random, Tensor actionParams) {

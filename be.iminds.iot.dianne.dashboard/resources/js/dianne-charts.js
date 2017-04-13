@@ -66,26 +66,25 @@ function createResultChart(container, job, scale){
 			}
 			
 			var series = [];
+			series.push({name:'minibatchLoss', data:[]});
 			$.each(learnprogress, function(i) {
 				var progress = learnprogress[i];
-				var s = 0;
-				for (var key in progress) {
-					if (progress.hasOwnProperty(key) && key !=='iteration') {
-						var ok = false;
-						// add data point to correct series
-						$.each(series, function(i) {
-							if(series[i].name === key){
-								series[i].data.push({x: progress.iteration, y:progress[key]});
-								ok = true;
-							}
-						});
-						if(!ok){
-							// add new series
-							var serie = {name: key, data: []};
-							serie.data.push({x: progress.iteration, y:progress[key]});
-							series.push(serie);
+				series[0].data.push({x: progress.iteration, y:progress.minibatchLoss});
+				
+				for (var key in progress.extra) {
+					var ok = false;
+					// add data point to correct series
+					$.each(series, function(i) {
+						if(series[i].name === key){
+							series[i].data.push({x: progress.iteration, y:progress.extra[key]});
+							ok = true;
 						}
-						
+					});
+					if(!ok){
+						// add new series
+						var serie = {name: key, data: []};
+						serie.data.push({x: progress.iteration, y:progress.extra[key]});
+						series.push(serie);
 					}
 				}
 			});
@@ -133,7 +132,7 @@ function createResultChart(container, job, scale){
 		            });
 				});
 				
-				series.push({name:'reward', data: reward});
+				series.push({name:'reward '+i, data: reward});
 			});
 			
 			createLineChart(container, 'Sequences', 'Reward', scale, series);

@@ -197,7 +197,7 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 		critic.updateParameters();
 		
 		// Report the average loss and value of the current policy
-		return new QLearnProgress(i, loss, TensorOps.sum(value)/config.batchSize);
+		return new LearnProgress(i, loss, new String[]{"q"}, new float[]{TensorOps.sum(value)/config.batchSize});
 	}
 
 }
