@@ -29,6 +29,8 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -38,6 +40,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.osgi.framework.Constants;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -72,7 +75,7 @@ public class DianneDownload extends HttpServlet{
 		if(zip != null){
 			ServletOutputStream out = resp.getOutputStream();
 			resp.setContentType("application/zip");
-			resp.setHeader("Content-Disposition", "attachment; filename=\""+nnName+".zip\"");
+			resp.setHeader("Content-Disposition", "attachment; filename=\""+nnName+".jar\"");
 	
 			out.write(zip);
 			out.flush();
@@ -85,19 +88,33 @@ public class DianneDownload extends HttpServlet{
             ZipOutputStream zos = new ZipOutputStream(baos);
         	DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(zos))
         ) {
+        	// add manifest
+        	Manifest manifest = new Manifest();
+    		Attributes atts = manifest.getMainAttributes();
+    		atts.put(Attributes.Name.MANIFEST_VERSION, "1.0");
+    		atts.putValue(Constants.BUNDLE_MANIFESTVERSION, "2");
+    		atts.putValue(Constants.BUNDLE_NAME, "Dianne NN "+nnName);
+    		atts.putValue(Constants.BUNDLE_SYMBOLICNAME, "be.iminds.iot.dianne.nn."+nnName);
+    		atts.putValue(Constants.BUNDLE_VERSION, "0.0.0");
+    		atts.putValue("NeuralNetwork", nnName);
+    		// TODO add requirement on DIANNE runtime?
+    		
+    		zos.putNextEntry(new ZipEntry("META-INF/MANIFEST.MF"));
+    		manifest.write(zos);
+    		zos.closeEntry();
         	
         	// add nn description
 			NeuralNetworkDTO nn = repository.loadNeuralNetwork(nnName);
 			String nnString = DianneJSONConverter.toJsonString(nn, true);
 			
-			zos.putNextEntry(new ZipEntry(nnName+"/modules.txt"));
+			zos.putNextEntry(new ZipEntry("modules.txt"));
 			zos.write(nnString.getBytes());
 			zos.closeEntry();
 			
 			// add nn layout if present
 			try {
 				String layout = repository.loadLayout(nnName);
-				zos.putNextEntry(new ZipEntry(nnName+"/layout.txt"));
+				zos.putNextEntry(new ZipEntry("layout.txt"));
 				zos.write(layout.getBytes());
 				zos.closeEntry();
 			} catch(Exception e){}
@@ -111,7 +128,7 @@ public class DianneDownload extends HttpServlet{
 						weightName+="-"+t;
 					}
 				}
-				zos.putNextEntry(new ZipEntry(nnName+"/"+weightName));
+				zos.putNextEntry(new ZipEntry(weightName));
 				
 				float[] data = e.getValue().get();
 				dos.writeInt(data.length);
