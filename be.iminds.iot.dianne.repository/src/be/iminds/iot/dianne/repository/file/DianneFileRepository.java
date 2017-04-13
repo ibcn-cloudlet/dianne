@@ -40,16 +40,16 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
@@ -97,12 +97,22 @@ public class DianneFileRepository implements DianneRepository {
 		List<String> nns = new ArrayList<String>();
 		File d = new File(dir);
 		for(File f : d.listFiles()){
-			if(!f.isDirectory())
-				continue;
-				
+			if(!f.isDirectory()){
+				try (ZipFile zip = new ZipFile(f)){
+					if(zip.getEntry("modules.txt")==null)
+						continue;
+				} catch(IOException e){
+					continue;
+				}
+			}
+			
 			String name = f.getName();
+			if(name.contains(".")){
+				name = name.substring(0, name.indexOf('.'));
+			}
+			
 			if(!name.equals("weights")){
-				nns.add(f.getName());
+				nns.add(name);
 			}
 		}
 		return nns;
@@ -110,12 +120,19 @@ public class DianneFileRepository implements DianneRepository {
 
 	@Override
 	public NeuralNetworkDTO loadNeuralNetwork(String nnName){
-		try {
-			String nn = new String(Files.readAllBytes(Paths.get(dir+"/"+nnName+"/modules.txt")));
-			return DianneJSONConverter.parseJSON(nn);
-		} catch (IOException e) {
-			throw new RuntimeException("Failed to load neural network "+nnName, e);
+		String nn = null;
+		File nnDir = new File(dir+"/"+nnName);
+		if(nnDir.exists()){
+			try {
+				nn = new String(Files.readAllBytes(Paths.get(dir+"/"+nnName+"/modules.txt")));
+			} catch (IOException e) {
+				throw new RuntimeException("Failed to load neural network "+nnName, e);
+			}
+		} else {
+			String path = findZip(nnName);
+			nn = new String(findInZip(path, "modules.txt"));
 		}
+		return DianneJSONConverter.parseJSON(nn);
 	}
 	
 	@Override
@@ -141,7 +158,18 @@ public class DianneFileRepository implements DianneRepository {
 
 	@Override
 	public String loadLayout(String nnName) throws IOException {
-		String layout = new String(Files.readAllBytes(Paths.get(dir+"/"+nnName+"/layout.txt")));
+		String layout = null;
+		File nnDir = new File(dir+"/"+nnName);
+		if(nnDir.exists()){
+			try {
+				layout = new String(Files.readAllBytes(Paths.get(dir+"/"+nnName+"/layout.txt")));
+			} catch (IOException e) {
+				throw new RuntimeException("Failed to load neural network "+nnName, e);
+			}
+		} else {
+			String path = findZip(nnName);
+			layout = new String(findInZip(path, "layout.txt"));
+		}
 		return layout;
 	}
 	
@@ -228,18 +256,27 @@ public class DianneFileRepository implements DianneRepository {
 		return tags;
 	}
 	
-	private Collection<String> listTags(UUID moduleId, File dir){
+	private Collection<String> listTags(UUID moduleId, File f){
 		Set<String> tags = new TreeSet<>();
 		
-		if(!dir.exists() || !dir.isDirectory())
+		if(!f.exists())
 			return tags;
 		
-		String[] candidates = dir.list(new FilenameFilter() {
-			@Override
-			public boolean accept(File dir, String name) {
-				return name.startsWith(moduleId.toString());
+		List<String> candidates = null;
+		if(!f.isDirectory()){
+			try(ZipFile zip = new ZipFile(f)){
+				candidates = zip.stream().filter(e -> e.getName().startsWith(moduleId.toString())).map(e -> e.getName()).collect(Collectors.toList());
+			} catch(Exception e){
+				return tags;
 			}
-		});
+		} else {
+			candidates = Arrays.asList(f.list(new FilenameFilter() {
+				@Override
+				public boolean accept(File dir, String name) {
+					return name.startsWith(moduleId.toString());
+				}
+			}));
+		}
 		if(candidates != null){
 			for(String candidate : candidates){
 				parseTags(candidate.substring(37), tags);
@@ -308,46 +345,24 @@ public class DianneFileRepository implements DianneRepository {
 				for(String l : d.list()){
 					f = new File(dir+"/"+l+"/"+parametersId(moduleId, tag));
 					if(f.exists()){
-						break;
+						try (DataInputStream is = new DataInputStream(
+								new BufferedInputStream(new FileInputStream(f)));
+						){
+							return readTensor(is);
+						} catch(IOException e){
+							throw e;
+						} 
 					} else {
-						f = null;
+						try (
+							ZipFile zip = new ZipFile(dir+"/"+l);
+							DataInputStream is = new DataInputStream(
+									new BufferedInputStream(
+										zip.getInputStream(zip.getEntry(parametersId(moduleId, tag)))));
+						){
+							return readTensor(is);
+						} catch(IOException e){} 
 					}
 				}
-			}
-			if(f!=null){
-				// System.out.println("Load weights file "+f.getAbsolutePath());
-				
-				// load tensor in chunks, slightly slower than one copy from Java to native,
-				// but reduces memory usage a lot for big tensors
-				int bufferSize = 10000;
-				float[] data = new float[bufferSize];
-				try (
-					DataInputStream is = new DataInputStream(
-							new BufferedInputStream(new FileInputStream(f)));
-				){
-					int length = is.readInt();
-					Tensor t = new Tensor(length);
-					int index = 0;
-					while(length > 0){
-						if(length<bufferSize){
-							bufferSize = length;
-							data = new float[bufferSize];
-						}
-						
-						for(int i=0;i<bufferSize;i++){
-							data[i] = is.readFloat();
-						}
-						
-						t.narrow(0, index, bufferSize).set(data);;
-						
-						length -= bufferSize;
-						index+= bufferSize;
-					}
-					return t;
-				} catch(IOException e){
-					e.printStackTrace();
-					throw e;
-				} 
 			}
 			throw new FileNotFoundException();
 		} catch(Exception e){
@@ -356,6 +371,34 @@ public class DianneFileRepository implements DianneRepository {
 			lock.free(moduleId);
 		}
 	}
+	
+	private Tensor readTensor(DataInputStream is) throws IOException{
+		// load tensor in chunks, slightly slower than one copy from Java to native,
+		// but reduces memory usage a lot for big tensors
+		int bufferSize = 10000;
+		float[] data = new float[bufferSize];
+		
+		int length = is.readInt();
+		Tensor t = new Tensor(length);
+		int index = 0;
+		while(length > 0){
+			if(length<bufferSize){
+				bufferSize = length;
+				data = new float[bufferSize];
+			}
+			
+			for(int i=0;i<bufferSize;i++){
+				data[i] = is.readFloat();
+			}
+			
+			t.narrow(0, index, bufferSize).set(data);;
+			
+			length -= bufferSize;
+			index+= bufferSize;
+		}
+		return t;
+	}
+	
 	
 	private void store(UUID moduleId, Tensor parameters, String... tag){
 		try {
@@ -410,6 +453,35 @@ public class DianneFileRepository implements DianneRepository {
 			}
 		}
 		return pid;
+	}
+	
+	private String findZip(String nnName){
+		File d = new File(dir);
+		for(File f : d.listFiles()){
+			if(!f.isDirectory()){
+				String name = f.getName();
+				name = name.substring(0, name.indexOf("."));
+				if(name.equals(nnName)){
+					return f.getAbsolutePath();
+				}
+			}
+		}
+		throw new RuntimeException("Failed to find "+nnName);
+	}
+	
+	private byte[] findInZip(String path, String entry){
+		// check whether this is a .zip with modules.txt inside...
+		try(ZipFile zip = new ZipFile(path)) {
+			ZipEntry e = zip.getEntry(entry);
+			
+			byte[] data = new byte[(int)e.getSize()];
+			DataInputStream is = new DataInputStream(zip.getInputStream(e));
+			is.readFully(data);
+			return data;
+		} catch (IOException ex) {
+			throw new RuntimeException("Failed to find entry "+entry+" in zip "+path, ex);
+		}
+			
 	}
 	
 	private void notifyListeners(UUID nnId, Collection<UUID> moduleIds, String... tag){
