@@ -24,6 +24,7 @@ package be.iminds.iot.dianne.builder;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -66,6 +67,7 @@ public class DianneSB extends HttpServlet {
 	private Dianne dianne;
 	private DiannePlatform platform;
 	private DianneDatasets datasets;
+	private Random random = new Random();
 	
 	private Map<String, NeuralNetwork> nns = new ConcurrentHashMap<>();
 	
@@ -87,50 +89,42 @@ public class DianneSB extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-
-		
-		
 	}
 	
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		response.setContentType("application/json");
+		
+		ExperiencePool dataset = null;
+		
 		String d = request.getParameter("pool");
-		if(d == null){
-			System.out.println("No xp pool provided");
-			return;
+		if(d != null){
+			dataset = (ExperiencePool)datasets.getDataset(d);
 		}
-		
-		ExperiencePool dataset = (ExperiencePool)datasets.getDataset(d);
-		if(dataset == null){
-			System.out.println("No such xp pool found: "+d);
-			return;
-		}
-		
-		String enc = request.getParameter("encoder");
-		if(enc == null){
-			System.out.println("No encoder provided");
-			return;
-		}
-		
+
 		String tag = request.getParameter("tag");
 		
-		NeuralNetwork encoder = nns.get(enc);
-		if(encoder == null){
-			try {
-				encoder = dianne.getNeuralNetwork(platform.deployNeuralNetwork(enc, new String[]{tag})).getValue();
-				nns.put(enc, encoder);
-			} catch (Exception e) {
-				e.printStackTrace();
-				return;
-			}
-		} else {
-			try {
-				encoder.loadParameters(tag);
-			} catch (Exception e) {
+		NeuralNetwork encoder = null;
+		String enc = request.getParameter("encoder");
+		if(enc != null){
+			encoder = nns.get(enc);
+			if(encoder == null){
+				try {
+					encoder = dianne.getNeuralNetwork(platform.deployNeuralNetwork(enc, new String[]{tag})).getValue();
+					nns.put(enc, encoder);
+				} catch (Exception e) {
+					e.printStackTrace();
+					return;
+				}
+			} else {
+				try {
+					encoder.loadParameters(tag);
+				} catch (Exception e) {
+				}
 			}
 		}
+		
 		
 		NeuralNetwork decoder = null;
 		String dec = request.getParameter("decoder");
@@ -190,19 +184,18 @@ public class DianneSB extends HttpServlet {
 		} 
 		
 		
+		int sequence = 0;
 		String seq = request.getParameter("sequence");
-		if(seq == null){
-			System.out.println("No sequence provided");
-			return;
+		if(seq != null){
+			sequence = Integer.parseInt(seq);
 		}
-		int sequence = Integer.parseInt(seq);
 		
+
+		int index = 0;
 		String in = request.getParameter("index");
-		if(in == null){
-			System.out.println("No index provided");
-			return;
+		if(in != null){
+			index = Integer.parseInt(in);
 		}
-		int index = Integer.parseInt(in);
 		
 		
 		Tensor state = null;
@@ -218,30 +211,40 @@ public class DianneSB extends HttpServlet {
 			state = new Tensor(Integer.parseInt(sz));
 			state.fill(0.0f);
 		}
+
+		Tensor action = null;
+		Tensor observation = null;
 		
 		try {
-			Tensor action = null;
-			Tensor observation = null;
-	
-			Sequence<ExperiencePoolSample> xp = dataset.getSequence(sequence);
-			if(index > 0){
-				ExperiencePoolSample prev = xp.get(index-1);
-				ExperiencePoolSample current = xp.get(index);
-				action = prev.getAction();
-				observation = current.getState();
+			if(dataset != null){
+				Sequence<ExperiencePoolSample> xp = dataset.getSequence(sequence);
+				if(index > 0){
+					ExperiencePoolSample prev = xp.get(index-1);
+					ExperiencePoolSample current = xp.get(index);
+					action = prev.getAction();
+					observation = current.getState();
+				} else {
+					ExperiencePoolSample current = xp.get(0);
+					action = current.getAction().clone();
+					action.fill(0.0f);
+					observation = current.getState();
+				}
 			} else {
-				ExperiencePoolSample current = xp.get(0);
-				action = current.getAction().clone();
+				String as = request.getParameter("actionSize");
+				if(as == null){
+					System.out.println("No xp pool given and no action size given...");
+					return;
+				}
+				action = new Tensor(Integer.parseInt(as));
 				action.fill(0.0f);
-				observation = current.getState();
+				if(index > 0){
+					action.set(1.0f, random.nextInt(action.size()));
+				}
 			}
 			
+			
 			Tensor prior = null;
-			if(predictor == null){
-				prior = state.clone();
-				prior.fill(0.0f);
-				prior.narrow(0, prior.size()/2, prior.size()/2).fill(1.0f);;
-			} else if(predictor != null){
+			if(predictor != null){
 				if(index==0){
 					state.fill(0.0f);
 					action.fill(0.0f);
@@ -251,11 +254,14 @@ public class DianneSB extends HttpServlet {
 				prior = predictor.forward(pins, pouts, new Tensor[]{state, action}).getValue().tensor;
 			}
 			
-			UUID[] eins = encoder.getModuleIds("State","Action","Observation");
-			UUID[] eouts = encoder.getModuleIds("Output");
-			Tensor posterior = encoder.forward(eins, eouts, new Tensor[]{state, action, observation}).getValue().tensor;
-	
-			Tensor stateSample = sampleState(posterior);
+			Tensor posterior = null;
+			if(encoder != null){
+				UUID[] eins = encoder.getModuleIds("State","Action","Observation");
+				UUID[] eouts = encoder.getModuleIds("Output");
+				posterior = encoder.forward(eins, eouts, new Tensor[]{state, action, observation}).getValue().tensor;
+			}
+			
+			Tensor stateSample = sampleState(posterior == null ? prior : posterior);
 			
 			Tensor reconstruction = null;
 			if(decoder != null){
@@ -274,12 +280,16 @@ public class DianneSB extends HttpServlet {
 			JsonObject result = new JsonObject();
 			result.add("state", converter.toJson(state));
 			result.add("action", converter.toJson(action));
-			result.add("observation", converter.toJson(observation));
+			
+			if(observation != null)
+				result.add("observation", converter.toJson(observation));
 			
 			if(prior != null)
 				result.add("prior", converter.toJson(prior));
 			
-			result.add("posterior", converter.toJson(posterior));
+			if(posterior != null)
+				result.add("posterior", converter.toJson(posterior));
+			
 			result.add("sample", converter.toJson(stateSample));
 			
 			if(reconstruction != null)

@@ -40,8 +40,10 @@ function update(){
 				
 				var ctx;
 				
-				ctx = $('#observation')[0].getContext('2d');
-				render(result.observation, ctx, config.type);
+				if(result.observation !== undefined){
+					ctx = $('#observation')[0].getContext('2d');
+					render(result.observation, ctx, config.type);
+				}
 
 				ctx = $('#state')[0].getContext('2d');
 				$('#state')[0].title = getTitle(result.state.data);
@@ -56,10 +58,12 @@ function update(){
 					$('#prior')[0].title = getTitle(result.prior.data, true);
 					gauss(result.prior, ctx, 10);
 				}
-				
-				ctx = $('#posterior')[0].getContext('2d');
-				$('#posterior')[0].title = getTitle(result.posterior.data, true);
-				gauss(result.posterior, ctx, 10);
+
+				if(result.posterior !== undefined){
+					ctx = $('#posterior')[0].getContext('2d');
+					$('#posterior')[0].title = getTitle(result.posterior.data, true);
+					gauss(result.posterior, ctx, 10);
+				}
 
 				ctx = $('#sample')[0].getContext('2d');
 				$('#sample')[0].title = getTitle(result.sample.data);
