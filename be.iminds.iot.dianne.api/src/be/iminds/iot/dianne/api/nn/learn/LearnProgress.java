@@ -62,7 +62,7 @@ public class LearnProgress {
 	public String toString(){
 		StringBuilder builder = new StringBuilder(); 
 		builder.append("[LEARNER] Iteration: ").append(iteration)
-				.append("Loss: ").append(minibatchLoss).append(" ");
+				.append(" Loss: ").append(minibatchLoss).append(" ");
 		extra.entrySet().forEach(e -> builder.append(e.getKey()).append(": ").append(e.getValue()).append(" "));
 		return builder.toString();
 	}
