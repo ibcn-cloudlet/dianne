@@ -196,7 +196,7 @@ function refreshStatus(){
 }
 
 function addNotification(notification){
-	notification.time = moment(notification.timestamp).fromNow();
+	notification.time = moment(Number(notification.timestamp)).fromNow();
 	notification.level = notification.level.toLowerCase();
 	var template = $('#notification').html();
 	Mustache.parse(template);
