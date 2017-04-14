@@ -339,29 +339,38 @@ public class DianneFileRepository implements DianneRepository {
 			
 			// first check weights, next check all other nn dirs
 			File f = new File(dir+"/weights/"+parametersId(moduleId, tag));
-			if(!f.exists()){
-				f = null;
-				File d = new File(dir);
-				for(String l : d.list()){
-					f = new File(dir+"/"+l+"/"+parametersId(moduleId, tag));
+			if(f.exists()){
+				try (DataInputStream is = new DataInputStream(
+						new BufferedInputStream(new FileInputStream(f)));
+				){
+					return readTensor(is);
+				} catch(IOException e){
+				} 
+			}
+			
+			File d = new File(dir);
+			for(File dd : d.listFiles()){
+				if(dd.isDirectory()){
+					f = new File(dir+"/"+dd.getName()+"/"+parametersId(moduleId, tag));
 					if(f.exists()){
 						try (DataInputStream is = new DataInputStream(
 								new BufferedInputStream(new FileInputStream(f)));
 						){
 							return readTensor(is);
 						} catch(IOException e){
-							throw e;
-						} 
-					} else {
-						try (
-							ZipFile zip = new ZipFile(dir+"/"+l);
-							DataInputStream is = new DataInputStream(
-									new BufferedInputStream(
-										zip.getInputStream(zip.getEntry(parametersId(moduleId, tag)))));
-						){
-							return readTensor(is);
-						} catch(IOException e){} 
+						}
 					}
+				} else {	
+					try (
+						ZipFile zip = new ZipFile(dd);
+						DataInputStream is = new DataInputStream(
+								new BufferedInputStream(
+									zip.getInputStream(zip.getEntry(parametersId(moduleId, tag)))));
+					){
+						return readTensor(is);
+					} catch(IOException e){
+						throw e;
+					} 
 				}
 			}
 			throw new FileNotFoundException();
