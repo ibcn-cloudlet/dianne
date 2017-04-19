@@ -78,16 +78,16 @@ public class AdamProcessor extends GradientProcessor {
 			
 			
 			// update delta params
-			float beta1_t = (float) Math.pow(config.beta1, i);
-			float beta2_t = (float) Math.pow(config.beta2, i);
+			float beta1_t = (float) Math.pow(config.beta1, i+1);
+			float beta2_t = (float) Math.pow(config.beta2, i+1);
 
-			float at = i == 0 ? config.learningRate : (float) (config.learningRate*Math.sqrt(1-beta2_t)/(1-beta1_t));
+			float at = (float) (config.learningRate*Math.sqrt(1-beta2_t)/(1-beta1_t));
 			
 			root_v = TensorOps.sqrt(root_v, vt);
 			root_v = TensorOps.add(root_v, root_v, config.epsilon);
 			deltaParams = TensorOps.cdiv(deltaParams, mt, root_v);
 			deltaParams = TensorOps.mul(deltaParams, deltaParams, -at);
-		
+			
 			// set DeltaParameters to be sure in case of remote module instance
 			e.getValue().setDeltaParameters(deltaParams);
 		});
