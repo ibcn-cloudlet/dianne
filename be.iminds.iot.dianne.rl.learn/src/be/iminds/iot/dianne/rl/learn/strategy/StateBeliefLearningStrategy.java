@@ -198,7 +198,7 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 		float observationReconLoss = 0, rewardReconLoss = 0;
 		
 		Tensor stateGrad;
-		if(!dropped[sequence.size()-1]) {
+		if(!dropped[sequence.size()-1] || config.reconstructOnDrop) {
 			// Additional for final timestep: reconstruction loss on o_T-1
 			Tensor observationDistribution = observationLikelihood.forward(states.get(sequence.size()-1));
 			Tensor observation = sequence.getState(sequence.size()-1);
@@ -274,7 +274,7 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 			if(!dropped[t+1])
 				TensorOps.add(stateGrad, stateGrad, posterior.backward(posteriorOut, posteriorIn, new Tensor[]{stateDistributionGrad}, true).getValue().tensors.get(posteriorIn[0]));
 			
-			if(!dropped[t]) {
+			if(!dropped[t] || config.reconstructOnDrop) {
 				// If o_t not dropped, add gradient from likelihood of o_t
 				Tensor observationDistribution = observationLikelihood.forward(states.get(t));
 				Tensor observation = sequence.getState(t);

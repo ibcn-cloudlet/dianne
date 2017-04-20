@@ -89,7 +89,7 @@ public class ValueIterationLearningStrategy implements LearningStrategy {
 		this.valueNetwork = nns[0];
 		this.targetNetwork = nns[1];
 		this.stateModel = nns[2];
-		this.rewardModel = nns[2];
+		this.rewardModel = nns[3];
 		
 		this.stateModelIn = stateModel.getModuleIds("State","Action");
 		this.stateModelOut = new UUID[]{stateModel.getOutput().getId()};
