@@ -37,6 +37,9 @@ import be.iminds.iot.dianne.tensor.TensorOps;
  */
 public class GaussianCriterion implements Criterion {
 	
+	protected static final float EPS = 1e-6f;
+	
+	protected Tensor stdev;
 	protected Tensor meanDiff;
 	protected Tensor logStdev;
 	
@@ -59,7 +62,7 @@ public class GaussianCriterion implements Criterion {
 		int size = params.size(dim)/2;
 		
 		Tensor mean = params.narrow(dim, 0, size);
-		Tensor stdev = params.narrow(dim, size, size);
+		stdev = TensorOps.add(stdev, params.narrow(dim, size, size), EPS);
 		
 		meanDiff = TensorOps.sub(meanDiff, data, mean);
 		
@@ -89,7 +92,7 @@ public class GaussianCriterion implements Criterion {
 		
 		grad = params.copyInto(grad);
 		
-		Tensor stdev = params.narrow(dim, size, size);
+		stdev = TensorOps.add(stdev, params.narrow(dim, size, size), EPS);
 		Tensor gradMean = grad.narrow(dim, 0, size);
 		Tensor gradStdev = grad.narrow(dim, size, size);
 		
