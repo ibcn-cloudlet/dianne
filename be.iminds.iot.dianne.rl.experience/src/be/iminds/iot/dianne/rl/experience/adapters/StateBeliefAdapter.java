@@ -282,17 +282,23 @@ public class StateBeliefAdapter implements ExperiencePool {
 	private void getStateSamplesFromObservations(Sequence<ExperiencePoolSample> sequence) {
 		
 		Tensor state = new Tensor(stateSize);
-		state.fill(0.0f);
 		Tensor action = new Tensor(pool.actionDims());
-		action.fill(0.0f);
 		
 		try {
 			for(int k = 0;k<sampleSize;k++){
-				for(ExperiencePoolSample xp : sequence){
-					Tensor posteriorParams = posterior.forward(posteriorIn, posteriorOut, new Tensor[]{state, action, xp.getState()}).getValue().tensor;
-		
-					// generate state sample
-					sampleState(state, posteriorParams);
+				state.fill(0.0f);
+				action.fill(0.0f);
+				
+				for(int l = 0;l<sequence.size();l++){
+					
+					ExperiencePoolSample xp = sequence.get(l);
+					
+					if(prior!=null || l == 0){ // if not using prior, just reuse previous nextState
+						Tensor posteriorParams = posterior.forward(posteriorIn, posteriorOut, new Tensor[]{state, action, xp.getState()}).getValue().tensor;
+			
+						// generate state sample
+						sampleState(state, posteriorParams);
+					}
 					
 					xp.getAction().copyInto(action);
 					
@@ -306,7 +312,7 @@ public class StateBeliefAdapter implements ExperiencePool {
 					}
 					
 					s.input = state.copyInto(s.input);
-					s.target = xp.target.copyInto(s.target);
+					s.target = action.copyInto(s.target);
 					s.reward = xp.reward.copyInto(s.reward);
 					s.terminal = xp.terminal.copyInto(s.terminal);
 					
@@ -330,7 +336,7 @@ public class StateBeliefAdapter implements ExperiencePool {
 			}
 		
 		} catch(Exception e){
-			throw new RuntimeException("Failed to get state from observations...");
+			throw new RuntimeException("Failed to get state from observations...", e);
 		}
 	}
 	
