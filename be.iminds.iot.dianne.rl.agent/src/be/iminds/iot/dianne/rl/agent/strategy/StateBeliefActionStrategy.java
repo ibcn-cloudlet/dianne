@@ -95,7 +95,7 @@ public class StateBeliefActionStrategy implements ActionStrategy {
 		sampleState(posteriorParams);
 		
 		Tensor q = policy.forward(sample);
-
+		
 		// get max Q action in one hot action vector
 		action.fill(0.0f);
 		int a = TensorOps.argmax(q);
@@ -110,10 +110,10 @@ public class StateBeliefActionStrategy implements ActionStrategy {
 		Tensor mean = posteriorParams.narrow(0, 0, config.stateSize);
 		Tensor stdev = posteriorParams.narrow(0, config.stateSize, config.stateSize);
 		
-		state.randn();
+		sample.randn();
 		
-		TensorOps.cmul(state, state, stdev);
-		TensorOps.add(state, state, mean);
+		TensorOps.cmul(sample, sample, stdev);
+		TensorOps.add(sample, sample, mean);
 	}
 	
 }

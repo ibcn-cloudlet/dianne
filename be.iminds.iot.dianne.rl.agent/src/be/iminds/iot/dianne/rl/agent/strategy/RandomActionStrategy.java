@@ -51,7 +51,10 @@ public class RandomActionStrategy implements ActionStrategy {
 	@Override
 	public void setup(Map<String, String> config, Environment env, NeuralNetwork... nns) throws Exception {
 		this.config = DianneConfigHandler.getConfig(config, RandomConfig.class);
+		
 		this.action = new Tensor(env.actionDims());
+		this.action.fill(0.0f);
+		
 		if(this.config.momentum > 0.0f){
 			t = new Tensor(env.actionDims());
 		}

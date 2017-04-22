@@ -88,7 +88,6 @@ public class AgentImpl implements Agent {
 	private Map<String, String> properties;
 	
 	private Thread actingThread;
-	private long i = 0;
 	private long seq = 0;
 	private long episode = 0;
 	private volatile boolean acting;
