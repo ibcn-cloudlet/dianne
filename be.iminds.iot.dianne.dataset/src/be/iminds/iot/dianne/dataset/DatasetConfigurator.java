@@ -40,6 +40,7 @@ import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
@@ -62,9 +63,12 @@ public class DatasetConfigurator implements DianneDatasets {
 	
 	private String path = "datasets";
 	
-	protected Map<String, Dataset> datasets = new HashMap<String, Dataset>();
+	private Map<String, Dataset> datasets = new HashMap<String, Dataset>();
 
-	protected Map<Dataset, List<Configuration>> adapters = new HashMap<Dataset, List<Configuration>>();
+	private Map<Dataset, List<Configuration>> adapters = new HashMap<Dataset, List<Configuration>>();
+	
+	private Map<String, DirectoryWatcher> watchers = new HashMap<>();
+	private Map<String, Configuration> configs = new HashMap<>();
 	
 	@Activate
 	void activate(BundleContext context) {
@@ -77,9 +81,14 @@ public class DatasetConfigurator implements DianneDatasets {
 			final File dir = new File(path);
 			if(!dir.exists())
 				dir.mkdirs();
-			Thread t = new Thread(() -> searchDirectory(dir, true));
+			Thread t = new Thread(() -> searchDatasetConfigs(dir, true));
 			t.start();
 		}
+	}
+	
+	@Deactivate
+	void deactivate(){
+		watchers.values().forEach(watcher -> watcher.close());
 	}
 	
 	@Override
@@ -459,24 +468,55 @@ public class DatasetConfigurator implements DianneDatasets {
 	}
 
 	
-	private void searchDirectory(File dir, boolean recurse){
-		if(!dir.isDirectory())
-			return;
-		
-		for(File f : dir.listFiles()){
-			if(f.getName().endsWith(".json")){
-				parseDatasetConfiguration(f);
-			}
+	private void searchDatasetConfigs(File file, boolean recurse){
+		if(file.isDirectory()){
+			watchers.put(file.getAbsolutePath(), new DirectoryWatcher(file, 
+				p->{
+					searchDatasetConfigs(p.toFile(), false);
+				}, null, 
+				p->{
+					// TODO problem : when saving file on Linux, 
+					// it returns a temporary filename instead of the actual filename
+					// so if you just change .json and save it, the old dataset remains...
+					Configuration c = configs.get(p.toAbsolutePath().toString());
+					if(c != null){
+						try {
+							c.delete();
+						} catch (Exception e) {
+						}
+					}
+					DirectoryWatcher w = watchers.get(p.toAbsolutePath().toString());
+					if(w != null){
+						w.close();
+					}
+				}
+			));
 			
-			// go one level deep
-			if(f.isDirectory()){
-				searchDirectory(f, false);
+			for(File f : file.listFiles()){
+				if(f.getName().endsWith(".json")){
+					Configuration c = parseDatasetConfiguration(f);
+					if(c != null){
+						configs.put(f.getAbsolutePath(), c);
+					}
+				}
+				
+				// go one level deep
+				if(f.isDirectory()){
+					searchDatasetConfigs(f, false);
+				}
+			}
+		} else {
+			if(file.getName().endsWith(".json")){
+				Configuration c = parseDatasetConfiguration(file);
+				if(c != null){
+					configs.put(file.getAbsolutePath(), c);
+				}
 			}
 		}
 	}
 	
 	
-	private void parseDatasetConfiguration(File f){
+	private Configuration parseDatasetConfiguration(File f){
 		try {
 			// parse any adapter configurations from JSON and apply config?
 			JsonParser parser = new JsonParser();
@@ -484,7 +524,7 @@ public class DatasetConfigurator implements DianneDatasets {
 			
 			String name = json.get("name").getAsString();
 			if(name == null)
-				return;  // should have a name
+				return null;  // should have a name
 			
 			
 			Hashtable<String, Object> props = new Hashtable<>();
@@ -545,9 +585,11 @@ public class DatasetConfigurator implements DianneDatasets {
 				}
 			});
 			config.update(props);
+			return config;
 		} catch(Exception e){
 			System.err.println("Error parsing Dataset config file: "+f.getAbsolutePath());
 			e.printStackTrace();
+			return null;
 		}
 	}
 	
@@ -560,6 +602,11 @@ public class DatasetConfigurator implements DianneDatasets {
 			policy=ReferencePolicy.DYNAMIC)
 	void addDataset(Dataset dataset, Map<String, Object> properties){
 		String name = (String) properties.get("name");
+		if(dataset == null){
+			System.out.println(name+" dataset is inproperly configured, null service...");
+			return;
+		}
+		
 		if(properties.containsKey("aiolos.framework.uuid")){
 			this.datasets.put(name, 
 					(Dataset) Proxy.newProxyInstance(
