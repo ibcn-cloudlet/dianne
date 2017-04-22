@@ -71,6 +71,9 @@ public abstract class AbstractTrainableModule extends AbstractModule implements 
 	@Override
 	public void updateParameters() {
 		if(!fixed){
+			if(TRACE){
+				System.out.println("UPDATE PARAMETERS "+this.id+" ("+this.getClass().getName()+")  "+deltaParameters);
+			}
 			TensorOps.add(parameters, parameters, deltaParameters);
 		}
 	}
