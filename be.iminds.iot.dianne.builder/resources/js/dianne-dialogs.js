@@ -120,6 +120,7 @@ function createBuildModuleDialog(id, moduleItem){
 						{
 							name: property.name,
 							id: property.id,
+							type: property.type,
 							value: module[property.id]
 						}, dialog.find('.form-items'));
 				});

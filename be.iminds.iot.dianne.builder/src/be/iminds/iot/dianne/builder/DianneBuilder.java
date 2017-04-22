@@ -138,6 +138,11 @@ public class DianneBuilder extends HttpServlet {
 			JsonObject jsonProperty = new JsonObject();
 			jsonProperty.addProperty("id", p.id);
 			jsonProperty.addProperty("name", p.name);
+			String t = "text";
+			if(p.clazz.endsWith("Integer") || p.clazz.endsWith("Float")){
+				t = "number";
+			} 
+			jsonProperty.addProperty("type", t);
 			
 			jsonProperties.add(jsonProperty);
 		}
