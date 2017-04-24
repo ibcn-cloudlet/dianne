@@ -5,6 +5,7 @@ config['type'] = "laser";
 
 var index = 0;
 var state = undefined;
+var pause = true;
 
 $( document ).ready(function() {
 	var pairs = window.location.search.slice(1).split('&');
@@ -33,59 +34,74 @@ function update(){
 	
 	$.post("/dianne/sb", config, 
 		function( result ) {
-				index = index + 1;
+		
+			index = index + 1;
 
-				// render
-				state = result.sample;
-				
-				var ctx;
-				
-				if(result.observation !== undefined){
-					ctx = $('#observation')[0].getContext('2d');
-					render(result.observation, ctx, config.type);
-				}
+			// render
+			state = result.sample;
+			
+			var ctx;
+			
+			if(result.observation !== undefined){
+				ctx = $('#observation')[0].getContext('2d');
+				render(result.observation, ctx, config.type);
+			}
 
-				ctx = $('#state')[0].getContext('2d');
-				$('#state')[0].title = getTitle(result.state.data);
-				render(result.state, ctx);
+			ctx = $('#state')[0].getContext('2d');
+			$('#state')[0].title = getTitle(result.state.data);
+			render(result.state, ctx);
 
-				ctx = $('#action')[0].getContext('2d');
-				$('#action')[0].title = getTitle(result.action.data);
-				render(result.action, ctx);
+			ctx = $('#action')[0].getContext('2d');
+			$('#action')[0].title = getTitle(result.action.data);
+			render(result.action, ctx);
 
-				if(result.prior !== undefined){
-					ctx = $('#prior')[0].getContext('2d');
-					$('#prior')[0].title = getTitle(result.prior.data, true);
-					gauss(result.prior, ctx, 10);
-				}
+			if(result.prior !== undefined){
+				ctx = $('#prior')[0].getContext('2d');
+				$('#prior')[0].title = getTitle(result.prior.data, true);
+				gauss(result.prior, ctx, 10);
+			}
 
-				if(result.posterior !== undefined){
-					ctx = $('#posterior')[0].getContext('2d');
-					$('#posterior')[0].title = getTitle(result.posterior.data, true);
-					gauss(result.posterior, ctx, 10);
-				}
+			if(result.posterior !== undefined){
+				ctx = $('#posterior')[0].getContext('2d');
+				$('#posterior')[0].title = getTitle(result.posterior.data, true);
+				gauss(result.posterior, ctx, 10);
+			}
 
-				ctx = $('#sample')[0].getContext('2d');
-				$('#sample')[0].title = getTitle(result.sample.data);
-				render(result.sample, ctx);
+			ctx = $('#sample')[0].getContext('2d');
+			$('#sample')[0].title = getTitle(result.sample.data);
+			render(result.sample, ctx);
 
-				if(result.reconstruction !== undefined){
-					ctx = $('#reconstruction')[0].getContext('2d');
-					render(result.reconstruction, ctx, config.type);
-				}
-				
-				if(result.reward !== undefined){
-					ctx = $('#reward')[0].getContext('2d');
-					$('#reward')[0].title = getTitle(result.reward.data , true);
-					gauss(result.reward, ctx, 1);
-				}
+			if(result.reconstruction !== undefined){
+				ctx = $('#reconstruction')[0].getContext('2d');
+				render(result.reconstruction, ctx, config.type);
+			}
+			
+			if(result.reward !== undefined){
+				ctx = $('#reward')[0].getContext('2d');
+				$('#reward')[0].title = getTitle(result.reward.data , true);
+				gauss(result.reward, ctx, 1);
+			}
+			
+			if(!pause && index < 100){
+				update();
+			}
 				
 		}
 		, "json");
 	
 }
 
+function play(){
+	pause = false;
+	update(true);
+}
+
+function stop(){
+	pause = true;
+}
+
 function reset(){
+	pause = true;
 	index = 0;
 	current = undefined;
 	update();
