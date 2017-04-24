@@ -35,9 +35,9 @@
 			</div>
 			<div id="output" class="col-md-4">
 				<h4>Next State Prior</h4>		
-				<canvas id='prior' data-toggle="tooltip" title="" width='256' height='256' style="border:1px solid #000000"></canvas>		
+				<canvas id='prior' onclick='sampleFromPrior()' data-toggle="tooltip" title="" width='256' height='256' style="border:1px solid #000000"></canvas>		
 				<h4>Next State Posterior</h4>
-				<canvas id='posterior' data-toggle="tooltip" title="" width='256' height='256' style="border:1px solid #000000"></canvas>
+				<canvas id='posterior' onclick='sampleFromPosterior()' data-toggle="tooltip" title="" width='256' height='256' style="border:1px solid #000000"></canvas>
 				<h4>Next State</h4>
 				<canvas id='sample' onclick='sample()' data-toggle="tooltip" title="" width='256' height='256' style="border:1px solid #000000"></canvas>
 			</div>

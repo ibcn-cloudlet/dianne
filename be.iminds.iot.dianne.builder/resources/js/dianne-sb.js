@@ -101,6 +101,16 @@ function getTitle(data, gaussian){
 }
 
 
+function sampleFromPrior(){
+	config.sampleFrom = 'prior';
+	update();
+}
+
+function sampleFromPosterior(){
+	config.sampleFrom = 'posterior';
+	update();
+}
+
 function sample(){
 	// show dialog
 	$("#sliders").empty();

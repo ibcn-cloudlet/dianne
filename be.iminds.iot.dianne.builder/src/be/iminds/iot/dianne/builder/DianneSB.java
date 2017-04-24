@@ -204,6 +204,7 @@ public class DianneSB extends HttpServlet {
 			stateSample = converter.fromJson(parser.parse(sa).getAsJsonObject());		
 		}
 		
+		String sampleFrom = request.getParameter("sampleFrom");
 		
 		Tensor state = null;
 		String s = request.getParameter("state");
@@ -269,7 +270,11 @@ public class DianneSB extends HttpServlet {
 			}
 			
 			if(stateSample == null){
-				stateSample = sampleState(posterior == null ? prior : posterior);
+				if(prior != null && (posterior == null )|| "prior".equals(sampleFrom)){
+					stateSample = sampleState(prior);
+				} else if(posterior != null){
+					stateSample = sampleState(posterior);
+				}
 			}
 			
 			Tensor reconstruction = null;
