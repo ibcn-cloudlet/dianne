@@ -198,20 +198,29 @@ public class DianneSB extends HttpServlet {
 		}
 		
 		
+		Tensor stateSample = null;
+		String sa = request.getParameter("stateSample");
+		if(sa!=null){
+			stateSample = converter.fromJson(parser.parse(sa).getAsJsonObject());		
+		}
+		
+		
 		Tensor state = null;
 		String s = request.getParameter("state");
 		if(s!=null){
 			state = converter.fromJson(parser.parse(s).getAsJsonObject());		
 		} else {
 			String sz = request.getParameter("stateSize");
-			if(sz == null){
-				System.out.println("You should provide either state or stateSize");
+			if(sz != null){
+				state = new Tensor(Integer.parseInt(sz));
+				state.fill(0.0f);
+			} else if(stateSample == null){
+				System.out.println("You should provide either state, stateSize or stateSample");
 				return;
 			}
-			state = new Tensor(Integer.parseInt(sz));
-			state.fill(0.0f);
 		}
-
+		
+		
 		Tensor action = null;
 		Tensor observation = null;
 		
@@ -231,20 +240,18 @@ public class DianneSB extends HttpServlet {
 				}
 			} else {
 				String as = request.getParameter("actionSize");
-				if(as == null){
-					System.out.println("No xp pool given and no action size given...");
-					return;
-				}
-				action = new Tensor(Integer.parseInt(as));
-				action.fill(0.0f);
-				if(index > 0){
-					action.set(1.0f, random.nextInt(action.size()));
+				if(as != null){
+					action = new Tensor(Integer.parseInt(as));
+					action.fill(0.0f);
+					if(index > 0){
+						action.set(1.0f, random.nextInt(action.size()));
+					}
 				}
 			}
 			
 			
 			Tensor prior = null;
-			if(predictor != null){
+			if(predictor != null && action != null && state != null){
 				if(index==0){
 					state.fill(0.0f);
 					action.fill(0.0f);
@@ -255,13 +262,15 @@ public class DianneSB extends HttpServlet {
 			}
 			
 			Tensor posterior = null;
-			if(encoder != null){
+			if(encoder != null && action != null && state != null){
 				UUID[] eins = encoder.getModuleIds("State","Action","Observation");
 				UUID[] eouts = encoder.getModuleIds("Output");
 				posterior = encoder.forward(eins, eouts, new Tensor[]{state, action, observation}).getValue().tensor;
 			}
 			
-			Tensor stateSample = sampleState(posterior == null ? prior : posterior);
+			if(stateSample == null){
+				stateSample = sampleState(posterior == null ? prior : posterior);
+			}
 			
 			Tensor reconstruction = null;
 			if(decoder != null){
@@ -278,8 +287,11 @@ public class DianneSB extends HttpServlet {
 			}
 		
 			JsonObject result = new JsonObject();
-			result.add("state", converter.toJson(state));
-			result.add("action", converter.toJson(action));
+			if(state != null)
+				result.add("state", converter.toJson(state));
+			
+			if(action != null)
+				result.add("action", converter.toJson(action));
 			
 			if(observation != null)
 				result.add("observation", converter.toJson(observation));

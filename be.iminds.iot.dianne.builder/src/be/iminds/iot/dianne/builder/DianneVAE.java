@@ -114,6 +114,8 @@ public class DianneVAE extends HttpServlet {
 		}
 		
 		
+		String tag = request.getParameter("tag");
+		
 		String enc = request.getParameter("encoder");
 		if(enc == null){
 			System.out.println("No encoder provided");
@@ -123,7 +125,7 @@ public class DianneVAE extends HttpServlet {
 		NeuralNetwork encoder = nns.get(enc);
 		if(encoder == null){
 			try {
-				encoder = dianne.getNeuralNetwork(platform.deployNeuralNetwork(enc, new String[]{"vae"})).getValue();
+				encoder = dianne.getNeuralNetwork(platform.deployNeuralNetwork(enc, new String[]{tag})).getValue();
 				nns.put(enc, encoder);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -138,7 +140,7 @@ public class DianneVAE extends HttpServlet {
 			decoder = nns.get(dec);
 			if(decoder == null){
 				try {
-					decoder = dianne.getNeuralNetwork(platform.deployNeuralNetwork(dec, new String[]{"vae"})).getValue();
+					decoder = dianne.getNeuralNetwork(platform.deployNeuralNetwork(dec, new String[]{tag})).getValue();
 					nns.put(dec, decoder);
 				} catch (Exception e) {
 					e.printStackTrace();

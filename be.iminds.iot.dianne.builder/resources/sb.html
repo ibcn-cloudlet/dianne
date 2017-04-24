@@ -39,7 +39,7 @@
 				<h4>Next State Posterior</h4>
 				<canvas id='posterior' data-toggle="tooltip" title="" width='256' height='256' style="border:1px solid #000000"></canvas>
 				<h4>Next State</h4>
-				<canvas id='sample' data-toggle="tooltip" title="" width='256' height='256' style="border:1px solid #000000"></canvas>
+				<canvas id='sample' onclick='sample()' data-toggle="tooltip" title="" width='256' height='256' style="border:1px solid #000000"></canvas>
 			</div>
 			<div id="recon" class="col-md-4">
 				<h4>State Reconstruction</h4>	
@@ -57,10 +57,42 @@
 		</div>
 	</div>
 
+	<div class="modal fade" id="sample-modal" role="dialog">
+	  	<div class="modal-dialog modal-lg">
+	    	<div class="modal-content">
+		      	<div class="modal-header">
+		        	<button type="button" class="close" data-dismiss="modal">&times;</button>
+		        	<h4 class="modal-title">Explore state space</h4>
+		      	</div>
+		     	<div class="modal-body">
+		     		<center>
+		      			<canvas id='sampleReconstruction' width='256' height='256' style="border:1px solid #000000"></canvas>
+		      			<p>Tune the state variables:</p>
+		        		<div id="sliders"></div>
+		        	</center>
+		      	</div>
+		      	<div class="modal-footer">
+		        	<button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+		      	</div>
+	    	</div>
+	  	</div>
+	</div>
+	
+	<script type="x-tmpl-mustache" id="slider">
+	<div class="slider">
+		<div class="slider-wrapper">
+  			<input type="range" index="{{i}}" value="{{value}}" onchange="sliderChanged()" min="-10" max="10" step="0.001" />
+		</div>
+		<div class="output-wrapper">
+  			<output id="{{i}}-val">{{value}}</output>
+		</div>
+	</div>
+	</script>
 
 	<script src="js/lib/jquery.min.js"></script>
 	<script src="js/lib/bootstrap.min.js"></script>
 	<script src="js/lib/jquery-ui.min.js"></script>
+	<script src="js/lib/mustache.js"></script>
 	<script src="js/dianne-sb.js"></script>
 	<script src="js/dianne-visualize.js"></script>
 	

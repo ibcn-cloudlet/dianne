@@ -99,3 +99,60 @@ function getTitle(data, gaussian){
 		return data.toString().replace(/[,]/g, ', ');
 	}
 }
+
+
+function sample(){
+	// show dialog
+	$("#sliders").empty();
+	for(var k=0; k<state.data.length;k++){ 
+		var slider = renderTemplate("slider", {
+			i : k,
+			value : state.data[k]
+		}, $("#sliders"));
+	}
+	
+	$("#sample-modal").modal();
+	$("#sample-modal").on('shown.bs.modal', function() {
+		sliderChanged();
+    });
+	
+}
+
+
+function sliderChanged(){
+	var sliders = $("#sliders").find(".slider");
+	var state = [];
+	sliders.each(function(i, slider){
+		var input = $(slider).find("input")[0];
+		var output = $(slider).find("output")[0];
+		
+		var index = $(input).attr('index');
+		var value = $(input).val();
+		$(output).val(value);
+		
+		state.push(parseFloat(value));
+	});
+
+	var dims = [];
+	dims.push(state.length);
+	
+	var sampleConfig = {};
+	sampleConfig.stateSample = JSON.stringify({"dims":dims, "data":state});
+	sampleConfig.decoder = config.decoder;
+	
+	$.post("/dianne/sb", sampleConfig, 
+		function( result ) {
+			if(result.reconstruction !== undefined){
+				var ctx = $('#sampleReconstruction')[0].getContext('2d');
+				render(result.reconstruction, ctx, config.type);
+			}
+	});
+}
+
+
+function renderTemplate(template, options, target){
+	var template = $('#'+template).html();
+	Mustache.parse(template);
+	var rendered = Mustache.render(template, options);
+	return $(rendered).appendTo(target);
+}
