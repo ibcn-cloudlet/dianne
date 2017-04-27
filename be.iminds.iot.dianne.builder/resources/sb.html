@@ -69,6 +69,7 @@
 		     	<div class="modal-body">
 		     		<center>
 		      			<canvas id='sampleReconstruction' width='256' height='256' style="border:1px solid #000000"></canvas>
+		      			<button type="button" class="btn" onclick='sliderChanged()'>refresh</button>
 		      			<p>Tune the state variables:</p>
 		        		<div id="sliders"></div>
 		        	</center>
@@ -81,9 +82,9 @@
 	</div>
 	
 	<script type="x-tmpl-mustache" id="slider">
-	<div class="slider">
+	<div class="slider">{{i}}&nbsp;&nbsp;
 		<div class="slider-wrapper">
-  			<input type="range" index="{{i}}" value="{{value}}" onchange="sliderChanged()" min="-10" max="10" step="0.001" />
+  			<input style="display:inline;" type="range" index="{{i}}" value="{{value}}" onchange="sliderChanged()" min="-10" max="10" step="0.001" />
 		</div>
 		<div class="output-wrapper">
   			<output id="{{i}}-val">{{value}}</output>

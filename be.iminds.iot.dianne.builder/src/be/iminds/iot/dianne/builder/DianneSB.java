@@ -221,6 +221,11 @@ public class DianneSB extends HttpServlet {
 			}
 		}
 		
+		boolean sampleReconstruction = true;
+		if("false".equals(request.getParameter("sampleReconstruction"))){
+			sampleReconstruction = false;
+		}
+		
 		
 		Tensor action = null;
 		Tensor observation = null;
@@ -271,16 +276,19 @@ public class DianneSB extends HttpServlet {
 			
 			if(stateSample == null){
 				if(prior != null && (posterior == null )|| "prior".equals(sampleFrom)){
-					stateSample = sampleState(prior);
+					stateSample = sampleFromDistribution(prior);
 				} else if(posterior != null){
-					stateSample = sampleState(posterior);
+					stateSample = sampleFromDistribution(posterior);
 				}
 			}
 			
 			Tensor reconstruction = null;
 			if(decoder != null){
-				reconstruction = decoder.forward(stateSample);
-				reconstruction = reconstruction.narrow(0, 0, reconstruction.size()/2);
+				Tensor reconstructionDistribution = decoder.forward(stateSample);
+				if(sampleReconstruction)
+					reconstruction = sampleFromDistribution(reconstructionDistribution);
+				else 
+					reconstruction = reconstructionDistribution.narrow(0, 0, reconstructionDistribution.size()/2);
 			}
 			
 			Tensor reward = null;
@@ -325,10 +333,10 @@ public class DianneSB extends HttpServlet {
 	
 
 	
-	private Tensor sampleState( Tensor stateDistribution) {
-		int size = stateDistribution.size()/2;
-		Tensor means = stateDistribution.narrow(0, 0, size);
-		Tensor stdevs = stateDistribution.narrow(0, size, size);
+	private Tensor sampleFromDistribution( Tensor distribution) {
+		int size = distribution.size()/2;
+		Tensor means = distribution.narrow(0, 0, size);
+		Tensor stdevs = distribution.narrow(0, size, size);
 		
 		Tensor random = new Tensor(means.size());
 		random.randn();
