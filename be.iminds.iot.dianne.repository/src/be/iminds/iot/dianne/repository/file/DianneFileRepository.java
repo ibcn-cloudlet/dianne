@@ -52,6 +52,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.SynchronousBundleListener;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -358,9 +359,10 @@ public class DianneFileRepository implements DianneRepository {
 						){
 							return readTensor(is);
 						} catch(IOException e){
+							// ignore errors
 						}
 					}
-				} else {	
+				} else {
 					try (
 						ZipFile zip = new ZipFile(dd);
 						DataInputStream is = new DataInputStream(
@@ -368,8 +370,8 @@ public class DianneFileRepository implements DianneRepository {
 									zip.getInputStream(zip.getEntry(parametersId(moduleId, tag)))));
 					){
 						return readTensor(is);
-					} catch(IOException e){
-						throw e;
+					} catch(IOException|NullPointerException e){
+						// ignore errors and/or nullpointer (in case zip does not contain module params)
 					} 
 				}
 			}
