@@ -508,14 +508,22 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		descriptor.append("\"").append(this.getClass().getSimpleName()).append("\",\n\t");
 		descriptor.append("\"stateDims\":");
 		descriptor.append(Arrays.toString(stateDims)).append(",\n\t");
+		if(inputType!=null){
+			descriptor.append("\"stateType\":");
+			descriptor.append(inputType).append(",\n\t");
+		}
 		descriptor.append("\"actionDims\":");
 		descriptor.append(Arrays.toString(actionDims)).append(",\n\t");
+		if(targetType!=null){
+			descriptor.append("\"actionType\":");
+			descriptor.append(targetType).append(",\n\t");
+		}
 		descriptor.append("\"maxSize\":");
 		descriptor.append(maxSize);
 		descriptor.append("\n}");
 		
 		
-		Files.write( Paths.get(dir+File.separator+name+".json"), descriptor.toString().getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
+		Files.write( Paths.get(dir+File.separator+name+".json"), descriptor.toString().getBytes(StandardCharsets.UTF_8), StandardOpenOption.TRUNCATE_EXISTING);
 		
 		try {
 			lock.writeLock().lock();
