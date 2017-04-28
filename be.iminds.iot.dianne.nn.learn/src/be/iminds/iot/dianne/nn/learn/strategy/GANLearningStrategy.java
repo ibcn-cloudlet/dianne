@@ -145,7 +145,7 @@ public class GANLearningStrategy implements LearningStrategy {
 		// Update parameters
 		generator.updateParameters();
 		
-		return new LearnProgress(i, d_loss_positive + d_loss_negative + g_loss, new String[]{"D real","D fake", "G"}, new float[]{d_loss_positive, d_loss_negative, g_loss});
+		return new LearnProgress(i, g_loss);
 	}
 
 }
