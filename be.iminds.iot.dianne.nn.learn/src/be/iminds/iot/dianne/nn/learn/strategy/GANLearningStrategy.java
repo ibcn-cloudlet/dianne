@@ -35,7 +35,7 @@ import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory;
 import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory.CriterionConfig;
 import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory;
 import be.iminds.iot.dianne.nn.learn.sampling.BatchSampler;
-import be.iminds.iot.dianne.nn.learn.strategy.config.GenerativeAdverserialConfig;
+import be.iminds.iot.dianne.nn.learn.strategy.config.GANConfig;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
@@ -55,7 +55,7 @@ public class GANLearningStrategy implements LearningStrategy {
 	protected NeuralNetwork generator;
 	protected NeuralNetwork discriminator;
 	
-	protected GenerativeAdverserialConfig config;
+	protected GANConfig config;
 	
 	protected GradientProcessor gradientProcessorG;
 	protected GradientProcessor gradientProcessorD;
@@ -73,7 +73,7 @@ public class GANLearningStrategy implements LearningStrategy {
 		this.generator = nns[0];
 		this.discriminator = nns[1];
 		
-		this.config = DianneConfigHandler.getConfig(config, GenerativeAdverserialConfig.class);
+		this.config = DianneConfigHandler.getConfig(config, GANConfig.class);
 
 		sampler = new BatchSampler(dataset, this.config.sampling, config);
 		criterion = CriterionFactory.createCriterion(CriterionConfig.BCE, config);
@@ -99,7 +99,7 @@ public class GANLearningStrategy implements LearningStrategy {
 		target.fill(0.85f);
 		
 		Tensor output = discriminator.forward(batch.input);
-		float d_loss_positive = TensorOps.mean(criterion.loss(output, target));
+		float d_loss_real = TensorOps.mean(criterion.loss(output, target));
 		Tensor gradOutput = criterion.grad(output, target);
 		discriminator.backward(gradOutput);
 		
@@ -112,7 +112,7 @@ public class GANLearningStrategy implements LearningStrategy {
 		target.fill(0.15f);
 		Tensor generated = generator.forward(random);
 		output = discriminator.forward(generated);
-		float d_loss_negative = TensorOps.mean(criterion.loss(output, target));
+		float d_loss_fake = TensorOps.mean(criterion.loss(output, target));
 		gradOutput = criterion.grad(output, target);
 		discriminator.backward(gradOutput);
 		

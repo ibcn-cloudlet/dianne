@@ -33,7 +33,7 @@ import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.learn.LearningStrategy;
 import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory;
 import be.iminds.iot.dianne.nn.learn.sampling.BatchSampler;
-import be.iminds.iot.dianne.nn.learn.strategy.config.GenerativeAdverserialConfig;
+import be.iminds.iot.dianne.nn.learn.strategy.config.WGANConfig;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
@@ -42,6 +42,8 @@ import be.iminds.iot.dianne.tensor.TensorOps;
  * Wasserstein GAN Learning strategy
  * 
  * https://arxiv.org/abs/1701.07875
+ * 
+ * https://github.com/martinarjovsky/WassersteinGAN
  * 
  * @author tverbele
  *
@@ -53,7 +55,7 @@ public class WGANLearningStrategy implements LearningStrategy {
 	protected NeuralNetwork generator;
 	protected NeuralNetwork discriminator;
 	
-	protected GenerativeAdverserialConfig config;
+	protected WGANConfig config;
 	
 	protected GradientProcessor gradientProcessorG;
 	protected GradientProcessor gradientProcessorD;
@@ -71,7 +73,7 @@ public class WGANLearningStrategy implements LearningStrategy {
 		this.generator = nns[0];
 		this.discriminator = nns[1];
 		
-		this.config = DianneConfigHandler.getConfig(config, GenerativeAdverserialConfig.class);
+		this.config = DianneConfigHandler.getConfig(config, WGANConfig.class);
 
 		sampler = new BatchSampler(dataset, this.config.sampling, config);
 
@@ -80,6 +82,10 @@ public class WGANLearningStrategy implements LearningStrategy {
 		
 		grad = new Tensor(this.config.batchSize, 1);
 		random = new Tensor(this.config.batchSize, this.config.generatorDim);
+		
+		// Clamp discriminator weights
+		discriminator.getParameters().values().forEach(t -> TensorOps.clamp(t, t, -this.config.clamp, this.config.clamp));
+
 	}
 
 	@Override
@@ -88,43 +94,48 @@ public class WGANLearningStrategy implements LearningStrategy {
 		generator.zeroDeltaParameters();
 		discriminator.zeroDeltaParameters();
 		
+		int Diterations = config.Diterations;
+		if(i < config.initIterations){
+			Diterations = config.initDiterations;
+		}
+		
 		// First update the discriminator
-		
-		// Load minibatch of real data for the discriminator 
-		Batch batch = sampler.nextBatch();
-		
-		
-		Tensor output = discriminator.forward(batch.input);
-		float d_loss_positive = TensorOps.mean(output);
-		grad.fill(-1.0f/this.config.batchSize);
-		discriminator.backward(grad);
-		
-		// Keep gradients to the parameters
-		discriminator.accGradParameters();
-		
-		// Now sample a minibatch of generated data
-		random.randn();
+		float wloss = 0;
+		for(int k=0;k<Diterations;k++){
+			// Load minibatch of real data for the discriminator
+			Batch batch = sampler.nextBatch();
 
-		Tensor generated = generator.forward(random);
-		output = discriminator.forward(generated);
-		float d_loss_negative = TensorOps.mean(output);
-		grad.fill(1.0f/this.config.batchSize);
-		Tensor gradInput = discriminator.backward(grad);
-		
-		// Update discriminator weights
-		discriminator.accGradParameters();
-		
-		// Clamp discriminator weights
-		discriminator.getParameters().values().forEach(t -> TensorOps.clamp(t, t, -0.01f, 0.01f));
-		
-		// Run gradient processors
-		gradientProcessorD.calculateDelta(i);
-		
-		discriminator.updateParameters();
+			Tensor output = discriminator.forward(batch.input);
+			float d_loss_real = TensorOps.mean(output);
+			grad.fill(1.0f/this.config.batchSize);
+			discriminator.backward(grad);
+			discriminator.accGradParameters();
+			
+			// Now sample a minibatch of generated data
+			random.randn();
+			Tensor generated = generator.forward(random);
+			output = discriminator.forward(generated);
+			float d_loss_fake = TensorOps.mean(output);
+			grad.fill(-1.0f/this.config.batchSize);
+			discriminator.backward(grad);
+			discriminator.accGradParameters();
+			
+			// Update discriminator weights
+			gradientProcessorD.calculateDelta(i);
+			discriminator.updateParameters();
+			
+			// Clamp discriminator weights
+			discriminator.getParameters().values().forEach(t -> TensorOps.clamp(t, t, -config.clamp, config.clamp));
+			
+			wloss +=  -(d_loss_real - d_loss_fake)/Diterations;
+		}
 		
 		// Now update the generator
-		// Just flip the sign of the gradIn of discriminator backward 
-		TensorOps.mul(gradInput, gradInput, -1.0f);
+		Tensor generated = generator.forward(random);
+		Tensor output = discriminator.forward(generated);
+		float g_loss = -TensorOps.mean(output);
+		grad.fill(1.0f/this.config.batchSize);
+		Tensor gradInput = discriminator.backward(grad);
 		generator.backward(gradInput);
 		
 		// Update generator weights
@@ -136,8 +147,7 @@ public class WGANLearningStrategy implements LearningStrategy {
 		// Update parameters
 		generator.updateParameters();
 		
-		
-		return new LearnProgress(i, -( d_loss_positive - d_loss_negative));
+		return new LearnProgress(i, wloss);
 	}
 
 }

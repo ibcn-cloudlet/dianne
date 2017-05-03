@@ -25,7 +25,7 @@ package be.iminds.iot.dianne.nn.learn.strategy.config;
 import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory.ProcessorConfig;
 import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory.SamplingConfig;
 
-public class GenerativeAdverserialConfig {
+public class WGANConfig {
 
 	/**
 	 * Batch size in which samples are processed before updating parameters
@@ -34,12 +34,13 @@ public class GenerativeAdverserialConfig {
 	
 	/**
 	 * The gradient optimization method to use
-	 *  * SGD - stochastic gradient descent (optionally with (nesterov) momentum and regularization parameters)
-	 *  * Adadelta
-	 *  * Adagrad
-	 *  * RMSprop
 	 */
-	public ProcessorConfig method = ProcessorConfig.SGD;
+	public ProcessorConfig method = ProcessorConfig.RMSPROP;
+	
+	/**
+	 * The learningRate to use
+	 */
+	public float learningRate = 1e-4f;
 	
 	/**
 	 * The sampling strategy to use to sample real data
@@ -48,10 +49,28 @@ public class GenerativeAdverserialConfig {
 	 */
 	public SamplingConfig sampling = SamplingConfig.UNIFORM;
 
-	
 	/**
 	 * Input dimension of the generator (TODO get this from the NN?)
 	 */
 	public int generatorDim;
 	
+	/**
+	 * Values to clamp the discriminator weight
+	 */
+	public float clamp = 0.01f;
+	
+	/**
+	 * Number of iterations to train D before G
+	 */
+	public int Diterations = 5;
+	
+	/**
+	 * Number of iterations to train D the first initIterations
+	 */
+	public int initDiterations = 100;
+	
+	/**
+	 * Number of first iterations to use initDiterations
+	 */
+	public int initIterations = 25;
 }
