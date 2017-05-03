@@ -76,10 +76,16 @@ function update(){
 				render(result.reconstruction, ctx, config.type);
 			}
 			
+			if(result.rewardEstimate !== undefined){
+				ctx = $('#rewardEstimate')[0].getContext('2d');
+				$('#rewardEstimate')[0].title = getTitle(result.rewardEstimate.data , true);
+				gauss(result.rewardEstimate, ctx, 1);
+			}
+			
 			if(result.reward !== undefined){
-				ctx = $('#reward')[0].getContext('2d');
-				$('#reward')[0].title = getTitle(result.reward.data , true);
-				gauss(result.reward, ctx, 1);
+				$('#reward').text(result.reward);
+			} else {
+				$('#reward').text('');
 			}
 			
 			if(!pause && index < 100){

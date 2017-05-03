@@ -39,6 +39,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 
 import be.iminds.iot.dianne.api.dataset.DianneDatasets;
 import be.iminds.iot.dianne.api.dataset.Sequence;
@@ -229,7 +230,7 @@ public class DianneSB extends HttpServlet {
 		
 		Tensor action = null;
 		Tensor observation = null;
-		
+		Tensor reward = null;
 		try {
 			if(dataset != null){
 				Sequence<ExperiencePoolSample> xp = dataset.getSequence(sequence);
@@ -238,6 +239,7 @@ public class DianneSB extends HttpServlet {
 					ExperiencePoolSample current = xp.get(index);
 					action = prev.getAction();
 					observation = current.getState();
+					reward = prev.getReward();
 				} else {
 					ExperiencePoolSample current = xp.get(0);
 					action = current.getAction().clone();
@@ -282,6 +284,11 @@ public class DianneSB extends HttpServlet {
 				}
 			}
 			
+			if(stateSample == null){
+				// error?!
+				return;
+			}
+			
 			Tensor reconstruction = null;
 			if(decoder != null){
 				Tensor reconstructionDistribution = decoder.forward(stateSample);
@@ -291,12 +298,12 @@ public class DianneSB extends HttpServlet {
 					reconstruction = reconstructionDistribution.narrow(0, 0, reconstructionDistribution.size()/2);
 			}
 			
-			Tensor reward = null;
+			Tensor rewardEstimate = null;
 			if(rewardEstimator != null){
 				UUID[] rins = rewardEstimator.getModuleIds("State","Action");
 				UUID[] routs = rewardEstimator.getModuleIds("Output");
 				
-				reward = rewardEstimator.forward(rins, routs, new Tensor[]{stateSample, action}).getValue().tensor;
+				rewardEstimate = rewardEstimator.forward(rins, routs, new Tensor[]{stateSample, action}).getValue().tensor;
 			}
 		
 			JsonObject result = new JsonObject();
@@ -320,8 +327,11 @@ public class DianneSB extends HttpServlet {
 			if(reconstruction != null)
 				result.add("reconstruction", converter.toJson(reconstruction));
 		
+			if(rewardEstimate != null)
+				result.add("rewardEstimate", converter.toJson(rewardEstimate));
+			
 			if(reward != null)
-				result.add("reward", converter.toJson(reward));
+				result.add("reward", new JsonPrimitive(reward.get(0)));
 			
 			response.getWriter().println(result);
 			response.getWriter().flush();
