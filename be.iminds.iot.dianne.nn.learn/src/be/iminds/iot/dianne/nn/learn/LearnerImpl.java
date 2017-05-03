@@ -243,6 +243,11 @@ public class LearnerImpl implements Learner {
 					
 					return;
 				} finally {
+					// store final weights!
+					for(NeuralNetwork nn : nns){
+						nn.storeParameters(this.config.tag);
+					}
+					
 					datasets.releaseDataset(dataset);
 					System.gc();
 				}
