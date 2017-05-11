@@ -545,11 +545,11 @@ public class DatasetConfigurator implements DianneDatasets {
 					JsonArray a = e.getValue().getAsJsonArray();
 					String[] val = new String[a.size()];
 					for(int i=0;i<val.length;i++){
-						val[i] = a.get(i).getAsString();
+						val[i] = a.get(i).getAsString().trim();
 					}
 					props.put(e.getKey(), val);
 				} else {
-					props.put(e.getKey(), e.getValue().getAsString());
+					props.put(e.getKey(), e.getValue().getAsString().trim());
 				}
 			});
 			config.update(props);
