@@ -355,6 +355,12 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 			int index = getBufferEnd();
 			int start = index == maxSize ? 0 : index;
 			
+			if(start == 0 && !sequences.isEmpty()
+					&& sequences.get(0).start == 0){
+				SequenceLocation removed = sequences.remove(0);
+				noSamples -= removed.length;
+			}
+			
 			for(ExperiencePoolSample s : sequence.data){
 				System.arraycopy(s.input.get(), 0, buffer, 0 , stateSize);
 				System.arraycopy(s.target.get(), 0, buffer, stateSize, actionSize);
@@ -371,7 +377,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 					}
 				}
 
-				if(getBufferStart() > 0 && index == getBufferStart()){
+				if( getBufferStart() > 0 && index == getBufferStart()){
 					SequenceLocation removed = sequences.remove(0);
 					noSamples -= removed.length;
 				}

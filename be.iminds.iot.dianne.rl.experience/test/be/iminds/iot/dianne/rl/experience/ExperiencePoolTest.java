@@ -255,6 +255,35 @@ public class ExperiencePoolTest {
 		
 	}
 	
+	
+	@Test
+	public void testExperiencePoolCycle2() throws Exception {
+		Assert.assertEquals(0, pool.size());
+		Assert.assertEquals(0, pool.sequences());
+		
+		List<ExperiencePoolSample> sequence = new ArrayList<>();
+		sequence.add(new ExperiencePoolSample(s0, a0, 0, s1));
+		sequence.add(new ExperiencePoolSample(s1, a0, 0, s0));
+		sequence.add(new ExperiencePoolSample(s0, a0, 0, s1));
+		sequence.add(new ExperiencePoolSample(s1, a0, 0, s0));
+		sequence.add(new ExperiencePoolSample(s0, a0, 0, s1));
+		sequence.add(new ExperiencePoolSample(s1, a0, 0, null));
+		pool.addSequence(new Sequence<ExperiencePoolSample>(sequence, 6));
+		
+		Assert.assertEquals(6, pool.size());
+		Assert.assertEquals(1, pool.sequences());
+
+		pool.addSequence(new Sequence<ExperiencePoolSample>(sequence, 6));
+
+		Assert.assertEquals(12, pool.size());
+		Assert.assertEquals(2, pool.sequences());
+
+		pool.addSequence(new Sequence<ExperiencePoolSample>(sequence, 6));
+
+		Assert.assertEquals(12, pool.size());
+		Assert.assertEquals(2, pool.sequences());
+	}
+	
 	@Test
 	public void testSequenceTooLarge(){
 		Assert.assertEquals(0, pool.size());
