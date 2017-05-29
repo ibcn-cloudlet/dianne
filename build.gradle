@@ -111,6 +111,18 @@ subprojects {
 		cleanAll.dependsOn("cleanAllNative")
 	}
 
+
+	fileTree(projectDir) {
+		include 'Dockerfile'
+	}.each { File file ->
+		logger.info "Found Dockerfile in folder: {}", file.absolutePath
+		task("docker", type: Exec, description: "Build docker container", group: "util", dependsOn: ":docker") {
+			def tag = 'dianne/' + file.parent.tokenize('.')[-1]
+			workingDir file.parent
+			commandLine "docker", "build", "-t", "$tag", "."
+		}
+	}
+
 	/* fix native tests */
     tasks.withType(Test) {
       systemProperty "java.library.path", "${bnd.workspace}/be.iminds.iot.dianne.tensor.native/native/${lib}/${os}/${arch}/"
@@ -145,6 +157,16 @@ task("models") {
 		
 		directory(dir)
 		download(download_url + "models/" + mod, dir)
+	}
+}
+
+task("docker") {
+	description "Generate main dianne docker container."
+	group 'util'
+	doLast {
+		exec {
+			commandLine "docker", "build", "-t", "dianne", "."
+		}
 	}
 }
 
