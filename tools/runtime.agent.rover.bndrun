@@ -1,0 +1,56 @@
+##
+#
+# DIANNE agent worker bndrun 
+#
+# launches a node with RL agent with Erlerover Gazebo Environments
+#
+#
+
+-include: all.bndrun
+
+-runbundles.rl:\
+	be.iminds.iot.dianne.rl.learn;version=${dianne.version},\
+	be.iminds.iot.dianne.rl.agent;version=${dianne.version},\
+	be.iminds.iot.dianne.rl.eval;version=${dianne.version},\
+	be.iminds.iot.dianne.rl.module;version=${dianne.version}
+
+-runbundles.runtime.agent.rover: \
+	com.google.guava;version='[12.0,13.0)',\
+	org.jboss.netty;version='[3.5,4)',\
+	org.apache.commons.logging;version='[1.1,2)',\
+	org.apache.commons.net;version='[2.0,3)',\
+	org.apache.commons.httpclient;version='[3.1,4)',\
+	org.apache.commons.codec;version='[1.3,2.0)',\
+	org.apache.commons.io;version='[1.4,2.0)',\
+	org.apache.commons.lang;version='[2.6,3)',\
+	org.apache.commons.pool;version='[1.6,2)',\
+	ws-commons-util;version='[1.0.1,1.0.2)',\
+	org.ros.rosjava_core.apache_xmlrpc_common;version='[0.2.1,0.2.2)',\
+	org.ros.rosjava_core.apache_xmlrpc_client;version='[0.2.1,0.2.2)',\
+	org.ros.rosjava_core.apache_xmlrpc_server;version='[0.2.1,0.2.2)',\
+	org.ros.rosjava;version='[0.2.2,0.2.3)',\
+	org.ros.rosjava.message_generation;version='[0.2.1,0.2.2)',\
+	org.ros.rosjava_messages.rosgraph_msgs;version='[1.11.1,1.12)',\
+	org.ros.rosjava_messages.std_msgs;version='[0.5.9,0.6)',\
+	org.ros.rosjava_messages.std_srvs;version='[1.11.1,1.11.2)',\
+	org.ros.rosjava_messages.geometry_msgs;version='[1.11.7,1.11.8)',\
+	org.ros.rosjava_messages.sensor_msgs;version='[1.11.7,1.11.8)',\
+	org.ros.rosjava_messages.mavros_msgs;version='[0.17.3,0.18)',\
+	org.ros.rosjava_messages.trajectory_msgs;version='[1.11.7,1.12)',\
+	org.ros.rosjava_messages.gazebo_msgs;version='[2.4.13,2.5)',\
+	be.iminds.iot.ros.core;version='[0.2.0,0.3.0)',\
+	be.iminds.iot.keyboard.servlet;version='[0.2.0,0.3.0)',\
+	be.iminds.iot.robot.input.keyboard;version='[0.3.0,0.4.0)',\
+	be.iminds.iot.ros.configurator;version='[0.3.0,0.4.0)',\
+	be.iminds.iot.robot.erlerover.ros;version='[0.3.0,0.4.0)',\
+	be.iminds.iot.sensor.range.ros;version='[0.3.0,0.4.0)',\
+	be.iminds.iot.simulator.gazebo;version='[0.3.0,0.4.0)',\
+	be.iminds.iot.dianne.rl.environment.erlerover;version=${dianne.version}
+	
+	
+-runproperties.runtime.agent.rover: \
+	ros.core.native=true,\
+	aiolos.proxy.ignore.extra="be.iminds.iot.ros.*,org.ros.*,\
+		be.iminds.iot.dianne.api.rl.environment.*,be.iminds.iot.dianne.rl.environment.*,\
+		be.iminds.iot.simulator.api.*,be.iminds.iot.robot.api.*,be.iminds.iot.sensor.api.*",\
+	org.apache.commons.logging.Log=org.apache.commons.logging.impl.NoOpLog	
