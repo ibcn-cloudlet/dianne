@@ -222,4 +222,77 @@ public class ActivationTest extends ModuleTest {
 		Module m = new LogSoftmax();
 		testModule(m, input, expOutput, gradOutput, expGradInput);
 	}
+	
+	@Test
+	public void testLogSoftmaxBatch() throws Exception {
+		float[] eo = new float[] { 
+				-10.458658f, -9.458658f, -8.458658f, -7.458658f, -6.458658f,
+				-5.458658f, -4.458658f, -3.4586585f, -2.4586585f, -1.4586585f, -0.45865846f, 
+				
+				-10.458658f, -9.458658f, -8.458658f, -7.458658f, -6.458658f,
+				-5.458658f, -4.458658f, -3.4586585f, -2.4586585f, -1.4586585f, -0.45865846f
+		};
+		Tensor expOutput = new Tensor(eo, 2, 11);
+
+		float[] eg = new float[] {0.99968433f, 0.9991419f, 0.9976674f,
+				0.99365926f, 0.9827641f, 0.95314807f, 0.87264323f,
+				0.6538085f, 0.058953933f, -1.5580285f, -5.953442f,
+				
+				0.99968433f, 0.9991419f, 0.9976674f,
+				0.99365926f, 0.9827641f, 0.95314807f, 0.87264323f,
+				0.6538085f, 0.058953933f, -1.5580285f, -5.953442f};
+
+		Tensor expGradInput = new Tensor(eg, 2, 11);
+
+		Module m = new LogSoftmax();
+		testModule(m, inputBatch, expOutput, gradOutputBatch, expGradInput);
+	}
+	
+	@Test
+	public void testLogSoftmax3D() throws Exception {
+		Tensor in = new Tensor(11, 1, 2);
+		int v = -5;
+		for (int i = 0; i < 11; i++) {
+			in.set(v, i, 0, 0);
+			in.set(v, i, 0, 1);
+			v++;
+		}
+		
+		float[] eo = new float[] { 
+				-10.458658f,-10.458658f,
+				-9.458658f,-9.458658f,
+				-8.458658f,-8.458658f,
+				-7.458658f,-7.458658f,
+				-6.458658f,-6.458658f,
+				-5.458658f,-5.458658f,
+				-4.458658f,-4.458658f,
+				-3.4586585f,-3.4586585f,
+				-2.4586585f,-2.4586585f,
+				-1.4586585f,-1.4586585f,
+				-0.45865846f,-0.45865846f
+		};
+		Tensor expOutput = new Tensor(eo, 11, 1, 2);  // two "beams" of 11 bins
+
+		Tensor gradOut = new Tensor(11, 1, 2);
+		gradOut.fill(1.0f);
+		
+		float[] eg = new float[] {
+				0.99968433f, 0.99968433f,
+				0.9991419f, 0.9991419f,
+				0.9976674f, 0.9976674f,
+				0.99365926f, 0.99365926f,
+				0.9827641f, 0.9827641f,
+				0.95314807f, 0.95314807f,
+				0.87264323f, 0.87264323f,
+				0.6538085f, 0.6538085f,
+				0.058953933f, 0.058953933f,
+				-1.5580285f, -1.5580285f,
+				-5.953442f, -5.953442f
+		};
+
+		Tensor expGradInput = new Tensor(eg, 11, 1, 2);
+
+		Module m = new LogSoftmax();
+		testModule(m, in, expOutput, gradOut, expGradInput);
+	}
 }

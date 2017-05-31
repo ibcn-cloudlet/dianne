@@ -62,4 +62,7 @@ public class StateBeliefConfig {
 	 */
 	public SamplingConfig sampling = SamplingConfig.UNIFORM;
 	
+	public float quantizeMin = 0;
+	public float quantizeMax = 4;
+	public int quantizeSteps = 400;
 }

@@ -278,9 +278,9 @@ public class DianneSB extends HttpServlet {
 			
 			if(stateSample == null){
 				if(prior != null && (posterior == null )|| "prior".equals(sampleFrom)){
-					stateSample = sampleFromDistribution(prior);
+					stateSample = sampleFromGaussian(prior);
 				} else if(posterior != null){
-					stateSample = sampleFromDistribution(posterior);
+					stateSample = sampleFromGaussian(posterior);
 				}
 			}
 			
@@ -292,10 +292,18 @@ public class DianneSB extends HttpServlet {
 			Tensor reconstruction = null;
 			if(decoder != null){
 				Tensor reconstructionDistribution = decoder.forward(stateSample);
-				if(sampleReconstruction)
-					reconstruction = sampleFromDistribution(reconstructionDistribution);
-				else 
-					reconstruction = reconstructionDistribution.narrow(0, 0, reconstructionDistribution.size()/2);
+				if(reconstructionDistribution.dim() == 3){
+					// softmax'ed!!!
+					if(sampleReconstruction)
+						reconstruction = sampleFromSoftmax(reconstructionDistribution);
+					else
+						reconstruction = reconstructionDistribution;
+				} else {
+					if(sampleReconstruction)
+						reconstruction = sampleFromGaussian(reconstructionDistribution);
+					else 
+						reconstruction = reconstructionDistribution.narrow(0, 0, reconstructionDistribution.size()/2);
+				}
 			}
 			
 			Tensor rewardEstimate = null;
@@ -343,7 +351,7 @@ public class DianneSB extends HttpServlet {
 	
 
 	
-	private Tensor sampleFromDistribution( Tensor distribution) {
+	private Tensor sampleFromGaussian( Tensor distribution) {
 		int size = distribution.size()/2;
 		Tensor means = distribution.narrow(0, 0, size);
 		Tensor stdevs = distribution.narrow(0, size, size);
@@ -358,4 +366,27 @@ public class DianneSB extends HttpServlet {
 		return sample;
 	}
 	
+	
+	private Tensor sampleFromSoftmax(Tensor distribution) {
+		if(TensorOps.max(distribution) < 0){
+			TensorOps.exp(distribution, distribution);
+		}
+		
+		int size = distribution.dims()[2];
+		Tensor sample = new Tensor(size);
+		
+		for(int i=0;i<size;i++){
+			Tensor softmax = distribution.select(2, i);
+			
+			double s = 0, r = Math.random();
+			int o = 0;
+			while (o < softmax.size() && (s += softmax.get(o, 0)) < r) {
+				o++;
+			}
+			
+			sample.set((float)o/softmax.size(), i);
+		}
+		
+		return sample;
+	}
 }

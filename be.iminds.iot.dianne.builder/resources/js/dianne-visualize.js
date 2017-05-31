@@ -151,11 +151,11 @@ function image_rect(tensor, canvasCtx, offset, posX, posY, targetW, targetH){
 function laser(tensor, canvasCtx, angleMin = -Math.PI/2, angleMax = Math.PI/2){
 	var canvasW = canvasCtx.canvas.clientWidth;
 	var canvasH = canvasCtx.canvas.clientHeight;
+	var scanPoints = tensor.dims[tensor.dims.length-1];
 	
-	if(tensor.dims.length >= 2){
+	if(tensor.dims.length == 2 || tensor.dims.length==4){
 		// render in a mosaic
-		var scanPoints = tensor.dims[tensor.dims.length-1];
-		var batchSize = tensor.size/scanPoints;
+		var batchSize = tensor.dims[0];
 		var mosaic = Math.ceil(Math.sqrt(batchSize));
 		var mosaicW = canvasW/mosaic;
 		var mosaicH = canvasH/mosaic;
@@ -202,12 +202,35 @@ function laser_rect(tensor, canvasCtx, offset, scanPoints, posX, posY, targetW, 
 	for (var i = 0; i < scanPoints; i++) {
 		canvasCtx.moveTo(srcX, srcY);
 		
-		length = tensor.data[offset+i]*targetH/2;
-		
-		var x = srcX-length*Math.sin(angle);
-		var y = srcY-length*Math.cos(angle);
-		
-		canvasCtx.lineTo(parseInt(x),parseInt(y));
+		if(tensor.dims.length > 2){
+			// softmax'ed form
+			var steps = tensor.dims.length === 3 ? tensor.dims[0] :tensor.dims[1]; 
+			
+			length = 0;
+			// this is dreadfully slow ... lower the resolution?!
+			for (var k = 0; k < steps; k++){
+				var val = Math.floor(255*(1-Math.exp(tensor.data[offset*steps+i*steps+k])));
+				length += step*targetH/2;
+				
+				var x = srcX+length*Math.cos(angle);
+				var y = srcY-length*Math.sin(angle);
+				
+				canvasCtx.strokeStyle = 'rgb('+val+', '+val+', '+val+')';
+				canvasCtx.lineTo(parseInt(x),parseInt(y));
+				canvasCtx.stroke();
+				canvasCtx.closePath();
+				canvasCtx.beginPath();
+				canvasCtx.moveTo(parseInt(x),parseInt(y));
+			} 
+			
+		} else {
+			length = tensor.data[offset+i]*targetH/2;
+			
+			var x = srcX+length*Math.cos(angle);
+			var y = srcY-length*Math.sin(angle);
+			
+			canvasCtx.lineTo(parseInt(x),parseInt(y));
+		}
 		angle+=step;
 	}
 	canvasCtx.stroke();

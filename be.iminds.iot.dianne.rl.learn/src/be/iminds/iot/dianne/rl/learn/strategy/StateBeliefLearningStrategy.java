@@ -88,6 +88,7 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 	protected Tensor action;
 	protected Tensor stateSample;
 	protected Tensor random4state;
+	protected Tensor quantized;
 	
 	protected Tensor stateDistributionGrad;
 	protected Tensor referenceDistribution;
@@ -202,9 +203,16 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 			// Additional for final timestep: reconstruction loss on o_T-1
 			Tensor observationDistribution = observationLikelihood.forward(states.get(sequence.size()-1));
 			Tensor observation = sequence.getState(sequence.size()-1);
-			
-			observationReconLoss += TensorOps.mean(observationReconCriterion.loss(observationDistribution, observation));
-			stateGrad = observationLikelihood.backward(observationReconCriterion.grad(observationDistribution, observation),true);
+			if(config.criterion == CriterionConfig.NLL){
+				// observationDistribution needs to be a (Log)Softmax of the form [batchSize, discreteSize, y, x] with x=#laser beams, y=1 in case of LIDAR data
+				// we need to quantize the observation of dims [batchSize, y, x] that way
+				quantized = quantize(quantized, observation, config.quantizeMin, config.quantizeMax, config.quantizeSteps);
+				observationReconLoss += TensorOps.mean(observationReconCriterion.loss(observationDistribution, quantized));
+				stateGrad = observationLikelihood.backward(observationReconCriterion.grad(observationDistribution, quantized),true);
+			} else {
+				observationReconLoss += TensorOps.mean(observationReconCriterion.loss(observationDistribution, observation));
+				stateGrad = observationLikelihood.backward(observationReconCriterion.grad(observationDistribution, observation),true);
+			}
 		} else {
 			stateGrad = new Tensor(this.config.batchSize, this.config.stateSize);
 			stateGrad.fill(0.0f);
@@ -278,9 +286,16 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 				// If o_t not dropped, add gradient from likelihood of o_t
 				Tensor observationDistribution = observationLikelihood.forward(states.get(t));
 				Tensor observation = sequence.getState(t);
-				
-				observationReconLoss += TensorOps.mean(observationReconCriterion.loss(observationDistribution, observation));
-				TensorOps.add(stateGrad, stateGrad, observationLikelihood.backward(observationReconCriterion.grad(observationDistribution, observation), true));
+				if(config.criterion == CriterionConfig.NLL){
+					// observationDistribution needs to be a (Log)Softmax of the form [batchSize, discreteSize, y, x] with x=#laser beams, y=1 in case of LIDAR data
+					// we need to quantize the observation of dims [batchSize, y, x] that way
+					quantized = quantize(quantized, observation, config.quantizeMin, config.quantizeMax, config.quantizeSteps);
+					observationReconLoss += TensorOps.mean(observationReconCriterion.loss(observationDistribution, quantized));
+					stateGrad = observationLikelihood.backward(observationReconCriterion.grad(observationDistribution, quantized),true);
+				} else {
+					observationReconLoss += TensorOps.mean(observationReconCriterion.loss(observationDistribution, observation));
+					stateGrad = observationLikelihood.backward(observationReconCriterion.grad(observationDistribution, observation),true);
+				}
 			}
 			
 			if(rewardLikelihood != null) {
@@ -396,5 +411,43 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 			TensorOps.mul(row, row, vec.get(i));
 		}
 		return res;
+	}
+	
+	private static Tensor quantize(Tensor quantized, Tensor t, float min, float max, int steps){
+		float step = (max-min)/(float)(steps-2);
+		int[] dims = t.dims();
+ 		int batchSize = dims[0];
+ 		int x = 1;
+ 		int y = 1;
+ 		if(dims.length == 2){
+ 			x = dims[1];
+ 		} else if(dims.length == 3){
+ 			y = dims[1];
+ 			x = dims[2];
+ 		}
+		
+		if(quantized == null){
+			quantized = new Tensor(batchSize, steps, y, x);
+		}
+		quantized.fill(0.0f);
+		
+		float[] data = t.get();
+		for(int b=0;b<batchSize;b++){
+			for(int j=0;j<y;j++){
+				for(int i=0;i<x;i++){
+					int index = b*y*x+j*x+i;
+					float d = data[index];
+					if(d < min){
+						quantized.set(1.0f, b, 0, j, i);
+					} else if(d >= max){
+						quantized.set(1.0f, b, steps-1, j, i);
+					} else {
+						quantized.set(1.0f, b, (int)Math.floor((d - min)/step)+1, j, i);
+					}
+				}
+			}
+		}
+		
+		return quantized;
 	}
 }
