@@ -69,6 +69,8 @@ subprojects {
 				javaexec {
 					main '-jar'
 					args executableJar
+					if (project.hasProperty('arguments'))
+						jvmArgs arguments.split()
 					standardInput System.in
 					ignoreExitValue true
 					workingDir projectDir

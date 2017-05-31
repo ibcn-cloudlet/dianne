@@ -40,7 +40,7 @@
 	
 -runproperties.runtime.agent.kuka: \
 	ros.core.native=true,\
-	vrep.dir=/opt/vrep-3.3.2,\
+	vrep.dir=/opt/vrep,\
 	vrep.launch=true,\
 	aiolos.proxy.ignore.extra="be.iminds.iot.ros.*,org.ros.*,\
 		be.iminds.iot.dianne.api.rl.environment.*,be.iminds.iot.dianne.rl.environment.*,\
