@@ -44,4 +44,4 @@ RUN ./gradlew -x :be.iminds.iot.dianne.rl.environment.ale:assemble assemble expo
 
 
 # run
-CMD xvfb-run -s "-screen 0 1400x900x24" ./gradlew -q run.runtime.agent.gym
+ENTRYPOINT ["/home/dianne/be.iminds.iot.dianne.rl.environment.gym/entrypoint.sh"]

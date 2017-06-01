@@ -54,4 +54,4 @@ RUN ./gradlew -x :be.iminds.iot.dianne.rl.environment.ale:assemble assemble expo
 
 ENV DISPLAY :99
 # run
-CMD /home/dianne/be.iminds.iot.dianne.rl.environment.kuka/entrypoint.sh
+ENTRYPOINT ["/home/dianne/be.iminds.iot.dianne.rl.environment.kuka/entrypoint.sh"]

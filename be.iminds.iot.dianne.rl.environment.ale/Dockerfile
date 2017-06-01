@@ -18,4 +18,4 @@ RUN ./gradlew assemble export.runtime.agent.ale
 
 
 # run
-CMD ./gradlew -q run.runtime.agent.ale
+ENTRYPOINT ["./gradlew", "-q", "run.runtime.agent.ale"]
