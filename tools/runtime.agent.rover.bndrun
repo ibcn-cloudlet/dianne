@@ -6,13 +6,7 @@
 #
 #
 
--include: all.bndrun
-
--runbundles.rl:\
-	be.iminds.iot.dianne.rl.learn;version=${dianne.version},\
-	be.iminds.iot.dianne.rl.agent;version=${dianne.version},\
-	be.iminds.iot.dianne.rl.eval;version=${dianne.version},\
-	be.iminds.iot.dianne.rl.module;version=${dianne.version}
+-include: runtime.agent.bndrun
 
 -runbundles.runtime.agent.rover: \
 	com.google.guava;version='[12.0,13.0)',\

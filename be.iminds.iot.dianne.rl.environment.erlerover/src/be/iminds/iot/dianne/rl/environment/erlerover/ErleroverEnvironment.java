@@ -93,6 +93,12 @@ public class ErleroverEnvironment implements Environment {
 	
 	@Activate
 	void activate(BundleContext context) throws Exception {
+		boolean headless = false;
+		String h = context.getProperty("gazebo.headless");
+		if(h != null){
+			headless = Boolean.parseBoolean(h);
+		}
+		
 		try {
 			// unpack the models into the current dir
 			Enumeration<URL> urls = context.getBundle().findEntries("scenes", "*.sdf", true);
@@ -124,6 +130,7 @@ public class ErleroverEnvironment implements Environment {
 			cmd.add("roslaunch");
 			cmd.add("ardupilot_sitl_gazebo_plugin");
 			cmd.add("rover_spawn.launch");
+			cmd.add("gui:="+!headless);
 			ProcessBuilder builder = new ProcessBuilder(cmd);
 			builder.inheritIO();
 			process = builder.start();

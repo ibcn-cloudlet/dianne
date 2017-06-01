@@ -1,0 +1,13 @@
+diff --git a/ardupilot_sitl_gazebo_plugin/src/rover/ardupilot_sitl_gazebo_plugin.cpp b/ardupilot_sitl_gazebo_plugin/src/rover/ardupilot_sitl_gazebo_plugin.cpp
+index a17fdcc..1465d14 100644
+--- a/ardupilot_sitl_gazebo_plugin/src/rover/ardupilot_sitl_gazebo_plugin.cpp
++++ b/ardupilot_sitl_gazebo_plugin/src/rover/ardupilot_sitl_gazebo_plugin.cpp
+@@ -62,7 +62,7 @@ ArdupilotSitlGazeboPlugin::ArdupilotSitlGazeboPlugin()
+       _is_control_socket_open(false),
+       _is_fdm_socket_open(false),
+       _rosnode(NULL),
+-      _isSimPaused(false),       // starts in running state
++      _isSimPaused(true),       // starts in running state
+       _timeMsgAlreadyDisplayed(false),
+       _is_parachute_available(true),
+       _modelName(UAV_MODEL_NAME),
