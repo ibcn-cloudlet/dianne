@@ -91,6 +91,29 @@ A number of different precompiled binaries are available on the DIANNE [download
 
 **Note**: These binaries are assembled automatically and provided as is, there is no guarantee these will work flawlessly (let alone optimally) on all systems.
 
+Using docker containers
+-----------------------
+
+In case you run on a machine with an unsupported OS, DIANNE comes with a Dockerfile specification that allows you to build a Docker container. To use this feature, you need to have [Docker](https://www.docker.com/) installed on your system. You can build the Docker image via the build system:
+
+	./gradlew :docker
+
+This will build a Docker image, tagged dianne. Launch the Docker image as follows:
+
+	docker run --rm -it dianne
+	
+This will launch the standard all configuration of DIANNE. In case you want to launch one of the other configurations (available in `tools/*.bndrun`), set the TARGET environment variable, e.g.:
+
+	docker run --rm -it -e TARGET=runtime dianne
+	
+will launch a minimal DIANNE runtime.
+
+You can also attach models and/or datasets from your host system to the docker container by specifying volumes:
+
+	docker run --rm -it -v <host datasets dir>:/home/dianne/tools/datasets -v <host models dir>:/home/dianne/tools/models dianne
+	
+Some bundles require additional software installed, especially the reinforcement learning environments (ALE, Gym, etc.) have external dependencies. To cope with these dependencies, these bundles provide a separate Dockerfile that will build a dedicated Docker image for launching such an RL agent runtime. `./gradlew docker` will build all these images.
+
 Deploy your first neural network
 ----------------------------------
 
