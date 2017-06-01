@@ -230,9 +230,7 @@ public class ErleroverEnvironment implements Environment {
 		updateObservation();
 		
 		// get reward
-		float min = TensorOps.min(observation);
-		
-		if(min < 0.4){
+		if(isTerminal()){
 			reward = -1;
 			terminal = true;
 		} else {
@@ -269,13 +267,16 @@ public class ErleroverEnvironment implements Environment {
 		
 		simulator.start(true);
 		
-		try {
-			simulator.tick();
-		} catch (TimeoutException e) {
-			throw new RuntimeException("The Environment timed out!");
+		while(isTerminal()){
+			// TODO might loop forever if start position is terminal :-/
+			try {
+				simulator.tick();
+			} catch (TimeoutException e) {
+				throw new RuntimeException("The Environment timed out!");
+			}
+			
+			updateObservation();
 		}
-		
-		updateObservation();
 		scanPoints = observation.size();
 		
 		listeners.stream().forEach(l -> l.onAction(0, observation));
@@ -328,6 +329,18 @@ public class ErleroverEnvironment implements Environment {
 		active = false;
 	}
 	
+	protected boolean isTerminal(){
+		if(observation == null)
+			return true;
+		
+		float min = TensorOps.min(observation);
+		
+		if(min < 0.4){
+			return true;
+		} 
+		
+		return false;
+	}
 	
 	private void updateObservation(){
 		float[] data = laser.getValue().data;
