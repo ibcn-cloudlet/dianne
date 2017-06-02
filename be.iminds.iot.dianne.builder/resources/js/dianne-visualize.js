@@ -206,11 +206,17 @@ function laser_rect(tensor, canvasCtx, offset, scanPoints, posX, posY, targetW, 
 			// softmax'ed form
 			var steps = tensor.dims.length === 3 ? tensor.dims[0] :tensor.dims[1]; 
 			
+			var cluster = 2;
 			length = 0;
 			// this is dreadfully slow ... lower the resolution?!
-			for (var k = 0; k < steps; k++){
-				var val = Math.floor(255*(1-Math.exp(tensor.data[offset*steps+i*steps+k])));
-				length += step*targetH/2;
+			for (var k = 0; k < steps; k+=cluster){
+				var val = 0;
+				for(var l = 0; l < cluster; l++){
+					val += Math.exp(tensor.data[offset*steps+(k+l)*scanPoints+i]);
+				}
+				
+				val = Math.floor(255*(1-val));
+				length += cluster*step*targetH/5;
 				
 				var x = srcX+length*Math.cos(angle);
 				var y = srcY-length*Math.sin(angle);

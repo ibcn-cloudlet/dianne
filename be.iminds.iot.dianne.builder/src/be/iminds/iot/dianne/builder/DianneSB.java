@@ -384,7 +384,7 @@ public class DianneSB extends HttpServlet {
 				o++;
 			}
 			
-			sample.set((float)o/softmax.size(), i);
+			sample.set(4*(float)o/softmax.size(), i);
 		}
 		
 		return sample;
