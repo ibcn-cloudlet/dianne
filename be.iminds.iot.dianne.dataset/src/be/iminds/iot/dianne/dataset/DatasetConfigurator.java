@@ -60,7 +60,7 @@ public class DatasetConfigurator implements DianneDatasets {
 
 	private ConfigurationAdmin ca;
 	
-	private String path = null;
+	private String path = "datasets";
 	
 	protected Map<String, Dataset> datasets = new HashMap<String, Dataset>();
 
@@ -75,6 +75,8 @@ public class DatasetConfigurator implements DianneDatasets {
 		
 		if(path != null){
 			final File dir = new File(path);
+			if(!dir.exists())
+				dir.mkdirs();
 			Thread t = new Thread(() -> searchDirectory(dir, true));
 			t.start();
 		}
