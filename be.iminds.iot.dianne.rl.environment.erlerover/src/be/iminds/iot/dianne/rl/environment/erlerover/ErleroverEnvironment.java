@@ -53,10 +53,14 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.api.rl.environment.EnvironmentListener;
+import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
+import be.iminds.iot.dianne.rl.environment.erlerover.config.ErleroverConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 import be.iminds.iot.robot.api.rover.Rover;
 import be.iminds.iot.sensor.api.LaserScanner;
+import be.iminds.iot.sensor.api.SensorListener;
+import be.iminds.iot.sensor.api.SensorValue;
 import be.iminds.iot.simulator.api.Simulator;
 
 /**
@@ -66,7 +70,7 @@ import be.iminds.iot.simulator.api.Simulator;
  *
  */
 @Component(immediate = true,
-	property = { "name="+ErleroverEnvironment.NAME, "aiolos.unique=be.iminds.iot.dianne.api.rl.Environment" })
+	property = { "name="+ErleroverEnvironment.NAME, "aiolos.unique=be.iminds.iot.dianne.api.rl.Environment"})
 public class ErleroverEnvironment implements Environment {
 	
 	public static final String NAME = "Rover";
@@ -75,6 +79,8 @@ public class ErleroverEnvironment implements Environment {
 	
 	private Tensor observation; 
 
+	private ErleroverConfig config;
+	
 	private volatile Rover rover;
 	private volatile LaserScanner laser;
 	private volatile Simulator simulator;
@@ -179,7 +185,7 @@ public class ErleroverEnvironment implements Environment {
 
 	@Override
 	public int[] actionDims() {
-		return new int[]{4};
+		return new int[]{config.numActions};
 	}
 	
 	@Override
@@ -202,18 +208,28 @@ public class ErleroverEnvironment implements Environment {
 			yaw = 0;
 			break;
 		case 1:
-			// stop
-			throttle = 0;
-			yaw = 0;
-			break;
-		case 2:
 			// left
 			throttle = 1;
 			yaw = -1;
 			break;
-		case 3:
+		case 2:
 			// right
 			throttle = 1;
+			yaw = 1;
+			break;
+		case 3:
+			// break
+			throttle = 0;
+			yaw = 0;
+			break;
+		case 4:
+			// left break
+			throttle = 0;
+			yaw = -1;
+			break;
+		case 5:
+			// right break
+			throttle = 0;
 			yaw = 1;
 			break;
 		}
@@ -234,6 +250,7 @@ public class ErleroverEnvironment implements Environment {
 			reward = -1;
 			terminal = true;
 		} else {
+			// TODO get actual velocity as reward?
 			reward = throttle;
 		}
 		
@@ -301,6 +318,8 @@ public class ErleroverEnvironment implements Environment {
 		
 		active = true;
 
+		this.config = DianneConfigHandler.getConfig(config, ErleroverConfig.class);
+		
 		while(simulator == null && active){
 			try {
 				Thread.sleep(1000); //TODO timeout
@@ -327,6 +346,8 @@ public class ErleroverEnvironment implements Environment {
 	@Override
 	public void cleanup() {
 		active = false;
+		
+		this.simulator.stop();
 	}
 	
 	protected boolean isTerminal(){
@@ -386,4 +407,5 @@ public class ErleroverEnvironment implements Environment {
 	void setConfigurationAdmin(ConfigurationAdmin ca){
 		this.ca = ca;
 	}
+
 }

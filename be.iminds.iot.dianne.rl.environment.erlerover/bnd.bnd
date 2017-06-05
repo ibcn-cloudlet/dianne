@@ -22,3 +22,4 @@ Import-Package: \
 	
 -includeresource: scenes=scenes	
 Private-Package: be.iminds.iot.dianne.rl.environment.erlerover
+Export-Package: be.iminds.iot.dianne.rl.environment.erlerover.config
