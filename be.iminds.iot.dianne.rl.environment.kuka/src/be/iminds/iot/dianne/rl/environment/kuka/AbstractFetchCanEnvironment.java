@@ -49,18 +49,12 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 	protected Random r = new Random(System.currentTimeMillis());
 
 	private float previousDistance;
-	private int count = 0;
 	
 	protected boolean grip = false;
 
 
 	@Override
 	protected float calculateReward() throws Exception {
-		if(count++ == config.maxActions){
-			terminal = true;
-			count = 0;
-		}
-		
 		// calculate reward based on simulator info
 		if(simulator != null){
 			Position d = simulator.getPosition("Can1", "youBot");
@@ -69,7 +63,6 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 			if(simulator.checkCollisions("Border") || Math.abs(d.y) < 0.23 && Math.abs(d.z) < 0.37){
 				if (config.collisionTerminal) {
 					terminal = true;
-					count = 0;
 				} else {
 					return -1.0f;
 				}
@@ -95,7 +88,6 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 					if(distance <= config.margin){
 						// succesful grip, mark as terminal
 						terminal = true;
-						count = 0;
 						return 1.0f * config.gripRewardScale;
 					} 
 				} else {
@@ -103,7 +95,6 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 					if(d.x > 0){
 						// can is lifted, reward 1 and mark as terminal
 						terminal = true;
-						count = 0;
 						return 1.0f * config.gripRewardScale;
 					} 
 				}
@@ -151,8 +142,6 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 	}
 	
 	protected void initSimulator() throws Exception {
-		count = 0;
-		
 		// in simulation we can control the position of the youbot and can
 		// random init position and orientation of the robot
 		resetYoubot();

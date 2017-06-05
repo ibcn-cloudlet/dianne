@@ -22,7 +22,6 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rl.agent.config;
 
-
 public class AgentConfig {
 
 	/**
@@ -49,5 +48,10 @@ public class AgentConfig {
 	 * Interval to publish intermediate results
 	 */
 	public int traceInterval = 1;
+	
+	/**
+	 * Max number of actions before terminating anyhow
+	 */
+	public int maxActions = -1;
 
 }

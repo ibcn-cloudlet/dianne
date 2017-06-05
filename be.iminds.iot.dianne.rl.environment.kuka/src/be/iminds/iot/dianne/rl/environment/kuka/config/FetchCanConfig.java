@@ -101,11 +101,6 @@ public class FetchCanConfig {
 	public float speed = 0.1f;
 	
 	/**
-	 * Max number of actions before terminating anyhow
-	 */
-	public int maxActions = 100;
-	
-	/**
 	 * Whether the environment has to tick the simulator
 	 * 
 	 * Set to false when using simulator to mimick real world ...

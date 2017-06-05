@@ -152,9 +152,6 @@ public class GymEnvironment implements Environment {
 					reward = reward * this.config.rewardFactor;
 
 					end = (Boolean) jep.getValue("done");
-					if (this.config.maxActions != -1 && count++ > this.config.maxActions) {
-						end = true;
-					} 
 					if(!end){	
 						observation = gymArrayToTensor(observation, nextState);
 					} else {

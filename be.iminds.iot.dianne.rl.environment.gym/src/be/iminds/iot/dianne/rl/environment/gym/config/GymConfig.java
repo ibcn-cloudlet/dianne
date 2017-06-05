@@ -45,8 +45,4 @@ public class GymConfig {
 	 */
 	public float actionFactor = 1.0f;
 	
-	/**
-	 * Max number of actions before terminating anyhow
-	 */
-	public int maxActions = -1;
 }
