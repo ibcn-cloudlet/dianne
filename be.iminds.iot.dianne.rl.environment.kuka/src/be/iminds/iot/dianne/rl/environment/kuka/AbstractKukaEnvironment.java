@@ -160,6 +160,7 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		try {
 			reward = calculateReward();
 			reward -= config.energyPenalization*calculateEnergy(action);
+			reward -= config.velocityPenalization*calculateVelocity(action);
 		} catch(Exception e){
 			throw new RuntimeException("Failed calculating reward");
 		}
@@ -224,6 +225,10 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 	protected abstract float calculateReward() throws Exception;
 	
 	protected float calculateEnergy(Tensor a) throws Exception {
+		return 1;
+	}
+	
+	protected float calculateVelocity(Tensor a) throws Exception {
 		return 1;
 	}
 	

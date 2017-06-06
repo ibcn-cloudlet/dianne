@@ -27,8 +27,11 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeoutException;
 
+import org.osgi.util.promise.Promise;
+
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.environment.kuka.config.FetchCanConfig;
+import be.iminds.iot.robot.api.Arm;
 import be.iminds.iot.simulator.api.Orientation;
 import be.iminds.iot.simulator.api.Position;
 
@@ -83,12 +86,17 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 				distance = (float)Math.hypot(p.x, p.y);
 				canHeight = p.z;
 			}
-			
-			System.err.printf("1) distance: %f, can height: %f\n", distance, canHeight);
+
+			// can is invisible to laser and can't be gripped anymore
+			if (canHeight < -0.003) {
+				terminal = true;
+				count = 0;
+			}
 			
 			// max reward in radius of can by setting the distance to 0
-			if(distance <= config.margin)
+			if(distance <= config.margin) {
 				distance = 0.0f;
+			}
 			
 			// if grip give reward according to position relative to can
 			if(grip){
@@ -101,7 +109,7 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 					} 
 				} else {
 					// simulate actual grip action
-					if(canHeight > 0.001){
+					if(canHeight > 0){
 						// can is lifted, reward 1 and mark as terminal
 						terminal = true;
 						return 1.0f * config.gripRewardScale;
@@ -115,9 +123,9 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 					return -1.0f * config.gripRewardScale;
 			}
 			
+			float r;
 			// also give intermediate reward for each action?
 			if(config.intermediateReward) {
-				float r;
 				if(config.relativeReward){
 					// give +1 if closer -1 if further
 					r = previousDistance - distance;
@@ -139,10 +147,11 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 				}
 				
 				if (config.grip) {
-					if (canHeight > 0.001) { // can is lifted if height is higher then 0
-						r += 1.0f * config.gripRewardScale + canHeight;
+					if (canHeight > 0) { // can is lifted if height is higher then 0
+						r += canHeight;
+						r *= config.gripRewardScale;
 					}
-					if (canHeight > 0.5) {
+					if (canHeight > 0.10) {
 						r = 100;
 						terminal = true;
 						count=0;
@@ -151,12 +160,11 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 				
 				// reward offset
 				r += config.maxReward;
-				System.err.printf("2) distance: %f, can height: %f, reward: %f\n", distance, canHeight, reward);
-				previousDistance = distance;
-				return r;
 			} else {
-				return 0.0f;
+				r=0.0f;
 			}
+			previousDistance = distance;
+			return r;
 		} 
 		
 		// in case no simulator ... return reward variable that might be set manually
@@ -185,12 +193,24 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 				if(config.tick){
 					simulator.tick();
 				}
-			} catch (InterruptedException|TimeoutException e) {
-			} 
+			} catch (InterruptedException|TimeoutException e) {}
 			
 			if(System.currentTimeMillis()-start > config.timeout){
 				System.out.println("Failed to initialize youbot/laserscanner in environment... Try again");
 				throw new Exception("Failed to initialize Kuka environment");
+			}
+		}
+		
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {} 
+		
+		// reset arm to candle
+		Promise<Arm> p = kukaArm.setPositions(2.92510465f, 1.103709733f, -2.478948503f, 1.72566195f, 2.765485f);
+		// simulate an iteration further
+		while(!p.isDone()) {
+			if (config.tick) {
+				simulator.tick();
 			}
 		}
 		

@@ -28,4 +28,12 @@ public class FetchCanReacherConfig {
 	public static final int VELOCITY = 1;
 	public static final int TORQUE = 2;
 	public int mode = POSITION;
+	
+	/**
+	 * Scale factor for lowering or increasing the min/max outputs.
+	 * Can be used for all control modes but is not recommended in position control. 
+	 * If value equals 1 the real min/max values are used.
+	 * This value should be positive.
+	 */
+	public float outputScaleFactor = 1.0f;
 }

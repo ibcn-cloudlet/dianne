@@ -97,7 +97,7 @@ public class FetchCanReacherEnvironment extends AbstractFetchCanEnvironment {
 			minPos = joint.getPositionMin();
 			maxPos = joint.getPositionMax();
 			result[offset] = (state.position - minPos)/(maxPos - minPos); // tranform to new range [0,1].
-			maxV = (float) Math.PI/2; // should be set in rososgi
+			maxV = (float) Math.PI/2+1; // should be set in rososgi (PID and torque control are different) 2.5rad/s is for torque control
 			minV = -maxV;
 			result[offset + jointLength] = (state.velocity - minV)/(maxV - minV); // tranform to new range [0,1].
 			offset += 1;
@@ -132,6 +132,8 @@ public class FetchCanReacherEnvironment extends AbstractFetchCanEnvironment {
 			default:
 				throw new Exception("Unsupported mode for reacher.");
 			}
+			a *= config.outputScaleFactor;
+			b *= config.outputScaleFactor;
 			f[i] = (f[i]-min)/(max - min)*(b-a) + a; // tranform to new range.
 		}
 		switch (config.mode) {
@@ -139,6 +141,7 @@ public class FetchCanReacherEnvironment extends AbstractFetchCanEnvironment {
 			kukaArm.setPositions(f);
 			break;
 		case FetchCanReacherConfig.VELOCITY:
+			kukaArm.setVelocities(f);
 			break;
 		case FetchCanReacherConfig.TORQUE:
 			kukaArm.setTorques(f);
@@ -155,10 +158,17 @@ public class FetchCanReacherEnvironment extends AbstractFetchCanEnvironment {
 	
 	@Override
 	protected float calculateEnergy(Tensor a) throws Exception {
-		if (config.mode == FetchCanReacherConfig.TORQUE || config.mode == FetchCanReacherConfig.VELOCITY)
-			return TensorOps.dot(a, a);
+		if (config.mode == FetchCanReacherConfig.TORQUE)
+			return TensorOps.dot(a, a); // normalized torques
 		else 
 			return super.calculateEnergy(a);
+	}
+	
+	@Override
+	protected float calculateVelocity(Tensor a) throws Exception {
+		int nrJoints = this.kukaArm.getState().size();
+		Tensor v = this.observation.narrow(0, this.observation.size() - nrJoints, nrJoints); // normalized velocities
+		return TensorOps.dot(v, v);
 	}
 	
 	@Override
