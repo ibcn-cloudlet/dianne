@@ -26,4 +26,6 @@ public class ErleroverConfig {
 	
 	public int numActions = 6;
 
+	public String[] circuits = new String[]{"circuit1","circuit2","circuit3"};
+	
 }

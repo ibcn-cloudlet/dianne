@@ -59,8 +59,6 @@ import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 import be.iminds.iot.robot.api.rover.Rover;
 import be.iminds.iot.sensor.api.LaserScanner;
-import be.iminds.iot.sensor.api.SensorListener;
-import be.iminds.iot.sensor.api.SensorValue;
 import be.iminds.iot.simulator.api.Simulator;
 
 /**
@@ -89,6 +87,7 @@ public class ErleroverEnvironment implements Environment {
 	private Configuration laserConfig;
 	private Configuration roverConfig;
 	
+	private Map<String, Circuit> circuits = new HashMap<>();
 	
 	private int scanPoints = 128;
 	
@@ -129,6 +128,17 @@ public class ErleroverEnvironment implements Environment {
 		} catch(Exception e){
 			e.printStackTrace();
 		}
+		
+		// TODO read this from config file?
+		circuits.put("circuit1", new Circuit("circuit1", 
+				-2.4f, 2.1f, 0f, 0f, 0f, 0f,
+				1.6f, -2.2f, 0f, 0f, 0f, 3.14f));
+		circuits.put("circuit2", new Circuit("circuit2", 
+				-1f, 3.67f, 0f, 0f, 0f, 0f,
+				0f, -2f, 0f, 0f, 0f, 1.57f));
+		circuits.put("circuit3", new Circuit("circuit3", 
+				-3.6f, 0f, 0f, 0f, 0f, 1.57f,
+				-1.8f, 2.2f, 0f, 0f, 0f, -1.57f));
 		
 		// initiate gazebo process?
 		try {
@@ -282,18 +292,32 @@ public class ErleroverEnvironment implements Environment {
 		rover.stop();
 		terminal = false;
 		
+		String circuit = config.circuits[(int)(Math.random()*config.circuits.length)];
+		Circuit c = circuits.get(circuit);
+		if(c == null){
+			throw new RuntimeException("Invalid circuit: "+circuit);
+		}
+		c.spawn(simulator);
+		
 		simulator.start(true);
 		
-		while(isTerminal()){
-			// TODO might loop forever if start position is terminal :-/
+		for(int i=0;i<5;i++){ // TODO: how many "warmup" ticks are required?
 			try {
 				simulator.tick();
 			} catch (TimeoutException e) {
 				throw new RuntimeException("The Environment timed out!");
 			}
-			
-			updateObservation();
+		}			
+		
+		updateObservation();
+		
+		if(isTerminal()){
+			// something went wrong?! try again...
+			System.out.println("Wrong initialization? Try again...");
+			reset();
+			return;
 		}
+		
 		scanPoints = observation.size();
 		
 		listeners.stream().forEach(l -> l.onAction(0, observation));
@@ -392,9 +416,6 @@ public class ErleroverEnvironment implements Environment {
 	@Reference(cardinality=ReferenceCardinality.OPTIONAL, policy=ReferencePolicy.DYNAMIC)
 	void setSimulator(Simulator s){
 		this.simulator = s;
-		Map<String, String> config = new HashMap<>();
-		config.put("pose", "2.4, -2.1, 0");
-		this.simulator.loadScene("scenes/circuit1.sdf", config);
 	}
 	
 	void unsetSimulator(Simulator s){
