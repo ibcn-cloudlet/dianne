@@ -1,7 +1,5 @@
 FROM dianne
 
-WORKDIR /home/dianne
-
 USER root
 
 # install base packages and MAVProxy dependencies
@@ -41,7 +39,7 @@ RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main"
 
 # source ROS stuff
 RUN echo "source /opt/ros/indigo/setup.bash" >> /home/dianne/.bashrc &&\
-    echo "source /home/dianne/ros_catkin_ws/devel/setup.bash" >> /home/dianne/.bashrc
+    echo "source /opt/ros_catkin_ws/devel/setup.bash" >> /home/dianne/.bashrc
 
 # install Gazebo
 RUN sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list' &&\
@@ -56,6 +54,7 @@ RUN mkdir -p ~/.gazebo/models && \
     mv erle_gazebo_models/* ~/.gazebo/models
 
 USER dianne
+WORKDIR /opt
 
 # download additional ROS packages
 RUN rosdep update && \
@@ -67,7 +66,7 @@ RUN rosdep update && \
     catkin_init_workspace && \
     cd .. && \
     catkin_make && \
-    echo "source ~/ros_catkin_ws/devel/setup.bash" >> ~/.bashrc && \
+    echo "source /opt/ros_catkin_ws/devel/setup.bash" >> ~/.bashrc && \
     cd src && \
     git clone https://github.com/erlerobot/ardupilot_sitl_gazebo_plugin && \
     git clone https://github.com/tu-darmstadt-ros-pkg/hector_gazebo/ && \
@@ -91,6 +90,10 @@ RUN cd ros_catkin_ws && \
 
 # build APMrover
 RUN cd ardupilot/APMrover2 && make sitl -j 4
+
+# Go back to dianne home
+WORKDIR ${home}
+USER dianne
 
 # build and export Rover runtime
 RUN ./gradlew -x :be.iminds.iot.dianne.rl.environment.ale:assemble assemble export.runtime.agent.rover

@@ -1,7 +1,5 @@
 FROM dianne
 
-WORKDIR /home/dianne
-
 USER root
 
 # install ROS
@@ -15,6 +13,8 @@ RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main"
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
 USER dianne
+
+WORKDIR /opt
 
 RUN rosdep update &&\
     source /opt/ros/indigo/setup.bash &&\
@@ -33,7 +33,7 @@ USER root
 
 # source ROS stuff
 RUN echo "source /opt/ros/indigo/setup.bash" >> /home/dianne/.bashrc &&\
-    echo "source /home/dianne/ros_catkin_ws/devel/setup.bash" >> /home/dianne/.bashrc
+    echo "source /opt/ros_catkin_ws/devel/setup.bash" >> /home/dianne/.bashrc
 
 # install V-REP 
 RUN wget http://coppeliarobotics.com/files/V-REP_PRO_EDU_V3_4_0_Linux.tar.gz &&\
@@ -46,7 +46,8 @@ USER root
 RUN apt-get update &&\
     apt-get install -y xvfb qt5-default
 
-
+# Go back to dianne home
+WORKDIR ${home}
 USER dianne
 
 # build and export Kuka runtime

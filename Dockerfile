@@ -33,7 +33,7 @@ ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
 
 
 # add DIANNE code
-ADD ./ $home 
+ADD ./ $home
 RUN chown -R dianne:dianne $home
 
 
@@ -42,7 +42,7 @@ USER dianne
 
 
 # build DIANNE, exclude ALE
-RUN ./gradlew cleanAll -x :be.iminds.iot.dianne.rl.environment.ale:assemble assemble export.all
+RUN ./gradlew cleanAll -x :be.iminds.iot.dianne.rl.environment.ale:assemble assemble :tools:export
 
 
 # set default bndrun target
@@ -50,4 +50,4 @@ ENV TARGET all
 
 
 # run
-CMD ./gradlew -q run.$TARGET
+ENTRYPOINT ["/home/dianne/entrypoint.sh"]

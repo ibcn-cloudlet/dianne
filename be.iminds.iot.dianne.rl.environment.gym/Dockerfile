@@ -1,6 +1,5 @@
 FROM dianne
 
-
 # install Gym dependencies
 USER root
 
@@ -17,7 +16,7 @@ RUN apt-get update &&\
     easy_install pip
 
 # install Gym
-WORKDIR /home/dianne/be.iminds.iot.dianne.rl.environment.gym/generated
+WORKDIR /opt
 
 RUN git clone https://github.com/openai/gym &&\
     cd gym &&\
@@ -35,7 +34,7 @@ ENV LD_PRELOAD /usr/lib/x86_64-linux-gnu/libpython2.7.so
 
 
 # go back to DIANNE home
-WORKDIR /home/dianne
+WORKDIR ${home}
 USER dianne
 
 

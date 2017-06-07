@@ -1,6 +1,5 @@
 FROM dianne
 
-
 # install ALE dependencies
 USER root
 
@@ -18,4 +17,4 @@ RUN ./gradlew assemble export.runtime.agent.ale
 
 
 # run
-ENTRYPOINT ["./gradlew", "-q", "run.runtime.agent.ale"]
+ENTRYPOINT ["/home/dianne/be.iminds.iot.dianne.rl.environment.ale/entrypoint.sh"]

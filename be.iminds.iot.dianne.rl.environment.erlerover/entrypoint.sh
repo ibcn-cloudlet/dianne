@@ -1,11 +1,11 @@
 #!/bin/bash
 
 source /opt/ros/indigo/setup.bash
-source /home/dianne/ros_catkin_ws/devel/setup.bash
+source /opt/ros_catkin_ws/devel/setup.bash
 
 Xvfb :99 &
 
-/home/dianne/ardupilot/APMrover2/APMrover2.elf -S -I0 --home -35.363261,149.165230,584,353 --model Gazebo --speedup=1 --autotest-dir /home/dianne/ardupilot/Tools/autotest &
+/opt/ardupilot/APMrover2/APMrover2.elf -S -I0 --home -35.363261,149.165230,584,353 --model Gazebo --speedup=1 --autotest-dir /opt/ardupilot/Tools/autotest &
 
 sleep 1
 
@@ -13,4 +13,5 @@ sleep 1
 
 sleep 5
 
-./gradlew -q -Parguments="-Dgazebo.headless=true" run.runtime.agent.rover
+cd /home/dianne/tools
+java -Dgazebo.headless=true $* -jar generated/distributions/executable/runtime.agent.rover.jar

@@ -1,3 +1,6 @@
 #!/bin/bash
 
-xvfb-run -s "-screen 0 1400x900x24" ./gradlew -q run.runtime.agent.gym
+Xvfb :99 &
+
+cd /home/dianne/tools
+java $* -jar generated/distributions/executable/runtime.agent.gym.jar
