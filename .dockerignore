@@ -1,0 +1,43 @@
+# ignore hidden folders and OS specific folders
+**/.recommenders
+**/.metadata
+**/RemoteSystemsTempFiles
+**/.DSStore
+**/.git
+**/.gitmodules
+**/.cache
+.gradle
+
+# ignore all *.class files in all folders, including build root
+**/*.class
+
+# ignore all *.md files and docs except for README.md
+*.md
+!README*.md
+
+# ignore build folders
+build
+testdir
+bin
+generated
+*/build
+*/testdir
+*/bin
+*/generated
+
+# ignore docker files (not needed on containers)
+**/Dockerfile
+
+# folders in root
+datasets
+models
+experience
+jobs
+scenes
+
+# folders in sub dir tools
+tools/datasets
+tools/models
+tools/experience
+tools/jobs
+tools/scenes
