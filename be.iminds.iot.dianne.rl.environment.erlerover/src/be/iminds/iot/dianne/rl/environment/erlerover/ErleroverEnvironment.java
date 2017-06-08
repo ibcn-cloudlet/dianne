@@ -73,6 +73,7 @@ public class ErleroverEnvironment implements Environment {
 	
 	public static final String NAME = "Rover";
 	
+	private BundleContext context;
 	private Set<EnvironmentListener> listeners = Collections.synchronizedSet(new HashSet<>());
 	
 	private Tensor observation; 
@@ -98,11 +99,16 @@ public class ErleroverEnvironment implements Environment {
 	
 	@Activate
 	void activate(BundleContext context) throws Exception {
+		this.context = context;
+		
 		boolean headless = false;
 		String h = context.getProperty("gazebo.headless");
 		if(h != null){
 			headless = Boolean.parseBoolean(h);
 		}
+		
+		unpack("scenes","*.sdf");
+		unpack("urdf","*.urdf");
 		
 		try {
 			// unpack the models into the current dir
@@ -147,6 +153,8 @@ public class ErleroverEnvironment implements Environment {
 			cmd.add("ardupilot_sitl_gazebo_plugin");
 			cmd.add("rover_spawn.launch");
 			cmd.add("gui:="+!headless);
+			cmd.add("model:="+(new File("urdf")).getAbsolutePath()+"/rover.urdf");
+			System.out.println(cmd);
 			ProcessBuilder builder = new ProcessBuilder(cmd);
 			builder.inheritIO();
 			process = builder.start();
@@ -391,6 +399,33 @@ public class ErleroverEnvironment implements Environment {
 		float[] data = laser.getValue().data;
 		float[] result = Arrays.copyOf(data, data.length);
 		observation = new Tensor(result, data.length);
+	}
+	
+	private void unpack(String dirName, String filePattern){
+		try {
+			// unpack the models into the current dir
+			Enumeration<URL> urls = context.getBundle().findEntries(dirName, filePattern, true);
+			while(urls.hasMoreElements()){
+				URL url = urls.nextElement();
+				
+				// make scenes directory
+				File dir = new File(dirName);
+				dir.mkdirs();
+				
+				try(InputStream inputStream = url.openStream();
+					OutputStream outputStream =
+							new FileOutputStream(new File(url.getFile().substring(1)));){
+					int read = 0;
+					byte[] bytes = new byte[1024];
+	
+					while ((read = inputStream.read(bytes)) != -1) {
+						outputStream.write(bytes, 0, read);
+					}
+				}
+			}
+		} catch(Exception e){
+			e.printStackTrace();
+		}
 	}
 	
 	@Reference(cardinality=ReferenceCardinality.OPTIONAL, policy=ReferencePolicy.DYNAMIC)

@@ -20,6 +20,6 @@ Import-Package: \
 	be.iminds.iot.input.keyboard.api;resolution:=optional,\
 	*
 	
--includeresource: scenes=scenes	
+-includeresource: scenes=scenes, urdf=urdf	
 Private-Package: be.iminds.iot.dianne.rl.environment.erlerover
 Export-Package: be.iminds.iot.dianne.rl.environment.erlerover.config
