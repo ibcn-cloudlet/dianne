@@ -34,10 +34,12 @@ models
 experience
 jobs
 scenes
+urdf
 
 # folders in sub dir tools
 tools/datasets
 tools/models
 tools/experience
 tools/jobs
+tools/urdf
 tools/scenes
