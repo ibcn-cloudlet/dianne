@@ -1,12 +1,16 @@
 
 
-function render(tensor, canvasCtx, type, labels){
+function render(tensor, canvasCtx, type, config){
 	if(type==="image"){
 		image(tensor, canvasCtx);
 	} else if(type==="laser"){
-		laser(tensor, canvasCtx, false);
+		if(config.angleMin!== undefined && config.angleMax !== undefined){
+			laser(tensor, canvasCtx, Number(config.angleMin), Number(config.angleMax));
+		} else {
+			laser(tensor, canvasCtx);
+		}
 	} else if(type==="character"){
-		text(tensor, canvasCtx, labels);
+		text(tensor, canvasCtx, config.labels);
 	} else {
 		// image by default?
 		image(tensor, canvasCtx);
@@ -142,7 +146,7 @@ function image_rect(tensor, canvasCtx, offset, posX, posY, targetW, targetH){
 }
 
 
-function laser(tensor, canvasCtx){
+function laser(tensor, canvasCtx, angleMin = -Math.PI/2, angleMax = Math.PI/2){
 	var canvasW = canvasCtx.canvas.clientWidth;
 	var canvasH = canvasCtx.canvas.clientHeight;
 	
@@ -160,17 +164,17 @@ function laser(tensor, canvasCtx){
 				if(offset >= tensor.size)
 					continue;
 				
-				laser_rect(tensor, canvasCtx, offset, scanPoints, k*mosaicW, l*mosaicH, mosaicW, mosaicH);
+				laser_rect(tensor, canvasCtx, offset, scanPoints, k*mosaicW, l*mosaicH, mosaicW, mosaicH, angleMin, angleMax);
 				offset = offset + scanPoints;
 			}
 		}
 	} else {
-		laser_rect(tensor, canvasCtx, 0, tensor.size, 0, 0, canvasW, canvasH);
+		laser_rect(tensor, canvasCtx, 0, tensor.size, 0, 0, canvasW, canvasH, angleMin, angleMax);
 	}
 }
 
 
-function laser_rect(tensor, canvasCtx, offset, scanPoints, posX, posY, targetW, targetH){
+function laser_rect(tensor, canvasCtx, offset, scanPoints, posX, posY, targetW, targetH, angleMin, angleMax){
 	// render laserdata
 	
 	// define clipping region
@@ -180,20 +184,26 @@ function laser_rect(tensor, canvasCtx, offset, scanPoints, posX, posY, targetW, 
 	canvasCtx.clip();
 	
 	// draw rays
-	var step = Math.PI/scanPoints;
-	var angle = 0;
+	var step = (angleMax-angleMin)/scanPoints;
+	var angle = angleMin;
+	// source point is bottom center
+	var srcX = posX+targetW/2;
+	var srcY = posY+targetH;
+	// unless we have also rays "behind", then move src up a bit
+	if(angleMin < -Math.PI/2){
+		srcY += Math.cos(angleMin)*targetH/2;
+	} else if(angleMax > Math.PI/2){
+		srcY += Math.cos(angleMax)*targetH/2;
+	}
 	var length;
 	canvasCtx.beginPath();
 	for (var i = 0; i < scanPoints; i++) {
-		var srcX = posX+targetW/2;
-		var srcY = posY+targetH;
-		
 		canvasCtx.moveTo(srcX, srcY);
 		
 		length = tensor.data[offset+i]*targetH/2;
 		
-		var x = srcX+length*Math.cos(angle);
-		var y = srcY-length*Math.sin(angle);
+		var x = srcX-length*Math.sin(angle);
+		var y = srcY-length*Math.cos(angle);
 		
 		canvasCtx.lineTo(parseInt(x),parseInt(y));
 		angle+=step;

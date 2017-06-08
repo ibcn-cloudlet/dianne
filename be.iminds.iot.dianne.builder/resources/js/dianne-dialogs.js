@@ -566,7 +566,7 @@ function createRunModuleDialog(id, moduleItem){
 						} else if(module.type === "LaserScan"){
 							var laserCanvas = dialog.find('.laserCanvas')[0];
 							var laserCanvasCtx = laserCanvas.getContext('2d');
-							laser(output, laserCanvasCtx, false);
+							laser(output, laserCanvasCtx);
 						} else if (module.type === "TimeSeries") {
 							var attr = $("#dialog-"+module.id).find(".content").attr("data-highcharts-chart");
 							if(attr!==undefined){
@@ -936,7 +936,7 @@ function sample(dataset, input, source){
 			function( sample ) {
 				var sampleCanvas = $(source).parent().find('.sampleCanvas')[0];
 				var sampleCanvasCtx = sampleCanvas.getContext('2d');
-				render(sample, sampleCanvasCtx, datasets[dataset].inputType, datasets[dataset].labels);
+				render(sample, sampleCanvasCtx, datasets[dataset].inputType, datasets[dataset]);
 				if(sample.target !== undefined)
 					$('.expected').text('Expected output: '+sample.target);
 			}
