@@ -24,8 +24,19 @@ package be.iminds.iot.dianne.rl.environment.erlerover.config;
 
 public class ErleroverConfig {
 	
+	/**
+	 * Number of discrete actions to allow 3-6
+	 */
 	public int numActions = 6;
 
+	/**
+	 * Min laser sensor value below which we determine collision
+	 */
+	public float crashThreshold = 0.4f;
+	
+	/**
+	 * Circuits to use in the agent
+	 */
 	public String[] circuits = new String[]{"circuit1","circuit2","circuit3"};
 	
 }

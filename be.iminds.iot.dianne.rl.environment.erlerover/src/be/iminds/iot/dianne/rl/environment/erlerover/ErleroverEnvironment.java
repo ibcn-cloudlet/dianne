@@ -388,7 +388,7 @@ public class ErleroverEnvironment implements Environment {
 		
 		float min = TensorOps.min(observation);
 		
-		if(min < 0.4){
+		if(min < config.crashThreshold){
 			return true;
 		} 
 		
