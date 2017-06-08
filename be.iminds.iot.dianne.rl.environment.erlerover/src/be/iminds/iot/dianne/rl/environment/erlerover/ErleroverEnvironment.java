@@ -90,7 +90,8 @@ public class ErleroverEnvironment implements Environment {
 	
 	private Map<String, Circuit> circuits = new HashMap<>();
 	
-	private int scanPoints = 128;
+	private int scanPoints;
+	private float maxRange;
 	
 	private boolean terminal = false;
 	private volatile boolean active = false;
@@ -265,11 +266,15 @@ public class ErleroverEnvironment implements Environment {
 		
 		// get reward
 		if(isTerminal()){
-			reward = -1;
+			reward = config.crashPenalty;
 			terminal = true;
 		} else {
+			// penalty to encourage staying away from walls
+			float penalty = config.dangerousPenalty * (1 - TensorOps.min(observation)/maxRange)
+							+ config.steeringPenalty * Math.abs(yaw);
 			// TODO get actual velocity as reward?
-			reward = throttle;
+			reward = throttle + penalty;
+			
 		}
 		
 		synchronized(listeners){
@@ -441,6 +446,7 @@ public class ErleroverEnvironment implements Environment {
 	@Reference(cardinality=ReferenceCardinality.OPTIONAL, policy=ReferencePolicy.DYNAMIC)
 	void setLaserScanner(LaserScanner l){
 		this.laser = l;
+		this.maxRange = laser.getMaxRange();
 	}
 	
 	void unsetLaserScanner(LaserScanner l){

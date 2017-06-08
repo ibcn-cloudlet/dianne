@@ -35,6 +35,21 @@ public class ErleroverConfig {
 	public float crashThreshold = 0.4f;
 	
 	/**
+	 * Add penalty to reward the closer you are to a wall : negative scale factor for (1 - shortest normalized distance measured to wall)
+	 */
+	public float dangerousPenalty = 0.0f;
+	
+	/**
+	 * Add penalty to reward for steering : negative scale factor for abs(yaw)
+	 */
+	public float steeringPenalty = -0.5f;
+	
+	/**
+	 * Penalty for crashing
+	 */
+	public float crashPenalty = -1.0f;
+	
+	/**
 	 * Circuits to use in the agent
 	 */
 	public String[] circuits = new String[]{"circuit1","circuit2","circuit3"};

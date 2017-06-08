@@ -10,7 +10,7 @@ Bundle-Name: Dianne Erlerover Environments
 	be.iminds.iot.dianne.tensor.util;version=latest,\
 	osgi.promise,\
 	be.iminds.iot.dianne.nn.util;version=latest,\
-	be.iminds.iot.sensor.api;version=0.2,\
+	be.iminds.iot.sensor.api;version=0.3,\
 	be.iminds.iot.simulator.api;version=0.2,\
 	be.iminds.iot.input.api;version=0.2,\
 	be.iminds.iot.robot.api;version=0.3
