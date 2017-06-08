@@ -89,6 +89,11 @@ public class DianneData extends HttpServlet {
 						}
 						r.add("labels", labels);
 					}
+					
+					d.properties.entrySet().forEach(e -> {
+						r.add(e.getKey(), new JsonPrimitive(e.getValue()));
+					});
+					
 					result.add(r);
 				}
 			}

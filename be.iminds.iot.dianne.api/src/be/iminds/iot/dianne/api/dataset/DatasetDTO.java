@@ -22,14 +22,23 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.dataset;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class DatasetDTO {
 
 	public String name;
+	
 	public int size;
+	
 	public int[] inputDims;
 	public String inputType;
+	
 	public int[] targetDims;
 	public String targetType;
+
 	public String[] labels;
+	
+	public Map<String, String> properties = new HashMap<String, String>();
 	
 }

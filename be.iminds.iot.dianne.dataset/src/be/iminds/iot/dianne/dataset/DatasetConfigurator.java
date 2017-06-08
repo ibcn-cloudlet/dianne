@@ -84,17 +84,7 @@ public class DatasetConfigurator implements DianneDatasets {
 	
 	@Override
 	public List<DatasetDTO> getDatasets() {
-		return datasets.values().stream().map(dataset -> {
-				DatasetDTO dto = new DatasetDTO();
-				dto.name = dataset.getName();
-				dto.inputDims = dataset.inputDims();
-				dto.inputType = dataset.inputType();
-				dto.targetDims = dataset.targetDims();
-				dto.targetType = dataset.targetType();
-				dto.size = dataset.size();
-				dto.labels = dataset.getLabels();
-				return dto;
-			}).collect(Collectors.toList());
+		return datasets.values().stream().map(dataset -> dataset.getDTO()).collect(Collectors.toList());
 	}
 
 	@Override

@@ -42,6 +42,8 @@ package be.iminds.iot.dianne.api.dataset;
  */
 public interface Dataset {
 	
+	DatasetDTO getDTO();
+	
 	/**
 	 * Returns the number of samples in the dataset
 	 * 

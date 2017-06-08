@@ -22,6 +22,7 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.dataset;
 
+import java.lang.reflect.Field;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Activate;
@@ -41,9 +42,12 @@ public abstract class AbstractDataset implements Dataset {
 	protected String[] labels;
 	protected String labelsFile;
 	protected String dir;
-	
+	protected Map<String, Object> properties;
+
 	@Activate
 	protected void activate(Map<String, Object> properties) {
+		this.properties = properties;
+		
 		String d = (String)properties.get("dir");
 		if(d != null){
 			dir = d;
@@ -117,6 +121,31 @@ public abstract class AbstractDataset implements Dataset {
 	protected abstract Tensor getInputSample(Tensor t, int index);
 
 	protected abstract Tensor getTargetSample(Tensor t, int index);
+
+	@Override
+	public DatasetDTO getDTO(){
+		DatasetDTO dto = new DatasetDTO();
+		dto.name = getName();
+		dto.inputDims = inputDims();
+		dto.inputType = inputType();
+		dto.targetDims = targetDims();
+		dto.targetType = targetType();
+		dto.size = size();
+		dto.labels = getLabels();
+		
+		properties.entrySet().forEach(e -> {
+			if(e.getKey().contains("."))
+				return;
+			
+			for(Field f : DatasetDTO.class.getFields()){
+				if(f.getName().equals(e.getKey()))
+					return;
+			}
+			dto.properties.put(e.getKey(), e.getValue().toString());
+		});
+		
+		return dto;
+	}
 	
 	@Override
 	public Sample getSample(Sample s, final int index){

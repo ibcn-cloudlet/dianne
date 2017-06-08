@@ -23,11 +23,13 @@
 package be.iminds.iot.dianne.rl.experience.adapters;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Reference;
 
+import be.iminds.iot.dianne.api.dataset.DatasetDTO;
 import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.api.dataset.Sequence;
 import be.iminds.iot.dianne.api.rl.dataset.BatchedExperiencePoolSequence;
@@ -40,6 +42,7 @@ public abstract class AbstractExperiencePoolAdapter implements ExperiencePool {
 
 	protected ExperiencePool pool;
 	protected String name;
+	protected Map<String, Object> properties;
 	
 	@Reference
 	void setDataset(ExperiencePool p){
@@ -48,6 +51,7 @@ public abstract class AbstractExperiencePoolAdapter implements ExperiencePool {
 	
 	@Activate
 	void activate(Map<String, Object> properties) {
+		this.properties = properties;
 		this.name = (String)properties.get("name");
 		configure(properties);
 	}
@@ -57,6 +61,32 @@ public abstract class AbstractExperiencePoolAdapter implements ExperiencePool {
 	protected abstract void adaptAddingSample(ExperiencePoolSample s);
 	
 	protected abstract void configure(Map<String, Object> properties);
+	
+	@Override
+	public DatasetDTO getDTO(){
+		DatasetDTO dto = pool.getDTO();
+		
+		dto.name = getName();
+		dto.inputDims = inputDims();
+		dto.inputType = inputType();
+		dto.targetDims = targetDims();
+		dto.targetType = targetType();
+		dto.size = size();
+		dto.labels = getLabels();
+		
+		properties.entrySet().forEach(e -> {
+			if(e.getKey().contains("."))
+				return;
+			
+			for(Field f : DatasetDTO.class.getFields()){
+				if(f.getName().equals(e.getKey()))
+					return;
+			}
+			dto.properties.put(e.getKey(), e.getValue().toString());
+		});
+		
+		return dto;
+	}
 	
 	@Override
 	public String getName(){

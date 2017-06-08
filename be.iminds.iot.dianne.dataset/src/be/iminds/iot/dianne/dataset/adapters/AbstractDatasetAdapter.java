@@ -22,18 +22,21 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.dataset.adapters;
 
+import java.lang.reflect.Field;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.DatasetDTO;
 import be.iminds.iot.dianne.api.dataset.Sample;
 
 public abstract class AbstractDatasetAdapter implements Dataset {
 
 	protected Dataset data;
 	protected String name;
+	protected Map<String, Object> properties;
 	
 	protected boolean targetDimsSameAsInput = false;
 
@@ -46,6 +49,7 @@ public abstract class AbstractDatasetAdapter implements Dataset {
 	
 	@Activate
 	void activate(Map<String, Object> properties) {
+		this.properties = properties;
 		this.name = (String)properties.get("name");
 
 		// mark if targetDims are same as inputs
@@ -68,6 +72,32 @@ public abstract class AbstractDatasetAdapter implements Dataset {
 	}
 	
 	protected abstract void configure(Map<String, Object> properties);
+	
+	@Override
+	public DatasetDTO getDTO(){
+		DatasetDTO dto = data.getDTO();
+		
+		dto.name = getName();
+		dto.inputDims = inputDims();
+		dto.inputType = inputType();
+		dto.targetDims = targetDims();
+		dto.targetType = targetType();
+		dto.size = size();
+		dto.labels = getLabels();
+		
+		properties.entrySet().forEach(e -> {
+			if(e.getKey().contains("."))
+				return;
+			
+			for(Field f : DatasetDTO.class.getFields()){
+				if(f.getName().equals(e.getKey()))
+					return;
+			}
+			dto.properties.put(e.getKey(), e.getValue().toString());
+		});
+		
+		return dto;
+	}
 	
 	@Override
 	public String getName(){
