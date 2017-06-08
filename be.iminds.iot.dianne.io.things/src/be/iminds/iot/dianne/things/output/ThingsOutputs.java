@@ -39,8 +39,9 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.io.DianneOutputs;
 import be.iminds.iot.dianne.api.io.OutputDescription;
-import be.iminds.iot.robot.api.Arm;
-import be.iminds.iot.robot.api.OmniDirectional;
+import be.iminds.iot.robot.api.arm.Arm;
+import be.iminds.iot.robot.api.omni.OmniDirectional;
+import be.iminds.iot.robot.api.rover.Rover;
 import be.iminds.iot.things.api.Thing;
 import be.iminds.iot.things.api.lamp.Lamp;
 
@@ -125,6 +126,32 @@ public class ThingsOutputs implements DianneOutputs {
 	}
 	
 	void removeArm(Arm a, Map<String, Object> properties){
+		String name = (String) properties.get("name");
+		UUID id = UUID.nameUUIDFromBytes(name.getBytes());
+		ThingOutput t = things.remove(id);
+		if(t != null){
+			t.disconnect();
+		}
+	}
+	
+	@Reference(
+			cardinality=ReferenceCardinality.MULTIPLE, 
+			policy=ReferencePolicy.DYNAMIC)
+	void addRover(Rover r, Map<String, Object> properties){
+		String name = (String) properties.get("name");
+		UUID id = UUID.nameUUIDFromBytes(name.getBytes());
+		
+		synchronized(things){
+			ThingOutput t = things.get(id);
+			if(t == null){
+				t = new RoverOutput(id, name, context);
+				things.put(id, t);
+			}
+			((RoverOutput)t).setRover(r);
+		}
+	}
+	
+	void removeRover(Rover r, Map<String, Object> properties){
 		String name = (String) properties.get("name");
 		UUID id = UUID.nameUUIDFromBytes(name.getBytes());
 		ThingOutput t = things.remove(id);

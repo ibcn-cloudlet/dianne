@@ -1,4 +1,5 @@
 /*******************************************************************************
+act null FetchCan null strategy=RandomActionStrategy discrete=true trace=true maxActions=100
  * DIANNE  - Framework for distributed artificial neural networks
  * Copyright (C) 2015  iMinds - IBCN - UGent
  *
@@ -32,12 +33,12 @@ import be.iminds.iot.dianne.api.nn.module.ModuleException;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 import be.iminds.iot.input.joystick.api.JoystickEvent;
-import be.iminds.iot.input.joystick.api.JoystickListener;
 import be.iminds.iot.input.joystick.api.JoystickEvent.JoystickButton;
+import be.iminds.iot.input.joystick.api.JoystickListener;
 import be.iminds.iot.input.keyboard.api.KeyboardEvent;
 import be.iminds.iot.input.keyboard.api.KeyboardListener;
-import be.iminds.iot.robot.api.Arm;
-import be.iminds.iot.robot.api.OmniDirectional;
+import be.iminds.iot.robot.api.arm.Arm;
+import be.iminds.iot.robot.api.omni.OmniDirectional;
 
 public class YoubotOutput extends ThingOutput implements JoystickListener, KeyboardListener {
 	
