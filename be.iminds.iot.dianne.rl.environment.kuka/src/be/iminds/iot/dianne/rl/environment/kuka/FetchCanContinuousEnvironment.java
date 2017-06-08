@@ -33,7 +33,7 @@ import be.iminds.iot.dianne.rl.environment.kuka.api.KukaEnvironment;
 import be.iminds.iot.dianne.rl.environment.kuka.config.FetchCanContinuousConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
-import be.iminds.iot.robot.api.Arm;
+import be.iminds.iot.robot.api.arm.Arm;
 
 
 @Component(immediate = true,

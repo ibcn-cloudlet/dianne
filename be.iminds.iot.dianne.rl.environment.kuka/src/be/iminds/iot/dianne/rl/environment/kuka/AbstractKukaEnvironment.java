@@ -52,8 +52,8 @@ import be.iminds.iot.dianne.rl.environment.kuka.api.KukaEnvironment;
 import be.iminds.iot.dianne.rl.environment.kuka.config.KukaConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
-import be.iminds.iot.robot.api.Arm;
-import be.iminds.iot.robot.api.OmniDirectional;
+import be.iminds.iot.robot.api.arm.Arm;
+import be.iminds.iot.robot.api.omni.OmniDirectional;
 import be.iminds.iot.sensor.api.LaserScanner;
 import be.iminds.iot.simulator.api.Simulator;
 
