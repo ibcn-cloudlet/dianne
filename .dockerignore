@@ -7,6 +7,11 @@
 **/.gitmodules
 **/.cache
 .gradle
+.metadata
+.recommenders
+.git
+.gitmodules
+.config
 
 # ignore all *.class files in all folders, including build root
 **/*.class
