@@ -43,6 +43,12 @@ var deployment = {};
 // keep a map of all trainable module types
 var trainable = {};
 
+// keep a map of all known inputs
+var inputs = {};
+
+// keep a map of all known outputs
+var outputs = {};
+
 /*
  * UI Mode
  */
@@ -218,6 +224,7 @@ function setupRunToolbox(){
 	$.post("/dianne/output", {action : "available-outputs"}, 
 			function( data ) {
 				$.each(data, function(index, output){
+					outputs[output.name] = output;
 					addToolboxItem(output.name, output.type, 'Output', 'run');
 				});
 			}
@@ -226,6 +233,7 @@ function setupRunToolbox(){
 	$.post("/dianne/input", {action : "available-inputs"}, 
 			function( data ) {
 				$.each(data, function(index, input){
+					inputs[input.name] = input;
 					addToolboxItem(input.name, input.type, 'Input', 'run');
 				});
 			}

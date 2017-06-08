@@ -564,6 +564,7 @@ function createRunModuleDialog(id, moduleItem){
 								}
 							}
 						} else if(module.type === "LaserScan"){
+							// TODO how to determine min and maxAngle in this case?
 							var laserCanvas = dialog.find('.laserCanvas')[0];
 							var laserCanvasCtx = laserCanvas.getContext('2d');
 							laser(output, laserCanvasCtx);
@@ -681,7 +682,7 @@ function createRunModuleDialog(id, moduleItem){
 		var inputEventSource = new EventSource("/dianne/input?name=" + encodeURIComponent(module.name));
 		inputEventSource.onmessage = function(event){
 			var tensor = JSON.parse(event.data);
-			laser(tensor, laserCanvasCtx);
+			render(tensor, laserCanvasCtx,"laser", inputs[module.name]);
 		};
 		
 		dialog.on('hidden.bs.modal', function () {

@@ -90,7 +90,7 @@ public class ThingsInputs implements DianneInputs {
 		UUID id = UUID.nameUUIDFromBytes(name.getBytes());
 		
 		String cap = name.substring(0, 1).toUpperCase() + name.substring(1).toLowerCase();
-		LaserScanInput laser = new LaserScanInput(id, cap);
+		LaserScanInput laser = new LaserScanInput(id, cap, l);
 		things.put(id, laser);
 	}
 	

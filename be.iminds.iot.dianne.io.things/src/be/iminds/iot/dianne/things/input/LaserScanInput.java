@@ -23,27 +23,41 @@
 package be.iminds.iot.dianne.things.input;
 
 import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.UUID;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
+import be.iminds.iot.dianne.api.io.InputDescription;
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.sensor.api.LaserScanner;
 import be.iminds.iot.sensor.api.SensorListener;
 import be.iminds.iot.sensor.api.SensorValue;
 
 public class LaserScanInput extends ThingInput implements SensorListener {
 
+	private LaserScanner laser;
 	private Tensor t;
 	
 	private ServiceRegistration registration;
 	
-	public LaserScanInput(UUID id, String name){
+	public LaserScanInput(UUID id, String name, LaserScanner l){
 		super(id, name, "LaserScanner");
+		this.laser = l;
 	}
 
+	@Override
+	public InputDescription getInputDescription(){
+		Map<String, String> properties = new HashMap<>();
+		properties.put("minAngle", ""+laser.getMinAngle());
+		properties.put("maxAngle", ""+laser.getMaxAngle());
+		return new InputDescription(name, type, properties);
+	}
+	
 	@Override
 	public void update(SensorValue value) {
 		try {
