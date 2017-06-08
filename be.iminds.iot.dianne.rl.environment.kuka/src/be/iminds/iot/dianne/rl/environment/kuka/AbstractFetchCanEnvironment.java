@@ -31,7 +31,7 @@ import org.osgi.util.promise.Promise;
 
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.environment.kuka.config.FetchCanConfig;
-import be.iminds.iot.robot.api.Arm;
+import be.iminds.iot.robot.api.arm.Arm;
 import be.iminds.iot.simulator.api.Orientation;
 import be.iminds.iot.simulator.api.Position;
 
@@ -90,7 +90,6 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 			// can is invisible to laser and can't be gripped anymore
 			if (canHeight < -0.003) {
 				terminal = true;
-				count = 0;
 			}
 			
 			// max reward in radius of can by setting the distance to 0
@@ -154,7 +153,6 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 					if (canHeight > 0.10) {
 						r = 100;
 						terminal = true;
-						count=0;
 					}
 				}
 				
