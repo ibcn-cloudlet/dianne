@@ -142,7 +142,7 @@ function image_rect(tensor, canvasCtx, offset, posX, posY, targetW, targetH){
 }
 
 
-function laser(tensor, canvasCtx, showTarget){
+function laser(tensor, canvasCtx){
 	var canvasW = canvasCtx.canvas.clientWidth;
 	var canvasH = canvasCtx.canvas.clientHeight;
 	
@@ -160,17 +160,17 @@ function laser(tensor, canvasCtx, showTarget){
 				if(offset >= tensor.size)
 					continue;
 				
-				laser_rect(tensor, canvasCtx, offset, scanPoints, k*mosaicW, l*mosaicH, mosaicW, mosaicH, showTarget);
+				laser_rect(tensor, canvasCtx, offset, scanPoints, k*mosaicW, l*mosaicH, mosaicW, mosaicH);
 				offset = offset + scanPoints;
 			}
 		}
 	} else {
-		laser_rect(tensor, canvasCtx, 0, tensor.size, 0, 0, canvasW, canvasH, showTarget);
+		laser_rect(tensor, canvasCtx, 0, tensor.size, 0, 0, canvasW, canvasH);
 	}
 }
 
 
-function laser_rect(tensor, canvasCtx, offset, scanPoints, posX, posY, targetW, targetH, showTarget){
+function laser_rect(tensor, canvasCtx, offset, scanPoints, posX, posY, targetW, targetH){
 	// render laserdata
 	
 	// define clipping region
@@ -200,15 +200,6 @@ function laser_rect(tensor, canvasCtx, offset, scanPoints, posX, posY, targetW, 
 	}
 	canvasCtx.stroke();
 	canvasCtx.closePath();
-	
-	if(showTarget){
-		canvasCtx.beginPath();
-		canvasCtx.arc(targetW/2, 0.876953125*targetH, 6, 0, 2 * Math.PI, false);
-		canvasCtx.fillStyle = 'red';
-		canvasCtx.fill();
-		canvasCtx.closePath();
-	}
-	
 	canvasCtx.restore();
 }
 

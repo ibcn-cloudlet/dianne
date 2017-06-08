@@ -674,7 +674,6 @@ function createRunModuleDialog(id, moduleItem){
 		}, $(document.body));
 		
 		dialog.find(".content").append("<canvas class='laserCanvas' width='512' height='512' style=\"border:1px solid #000000; margin-left:25px\"></canvas>");
-		dialog.find(".content").append("<br/><input type='checkbox' checked onclick='toggleTarget()'> show target position</input>");
 		
 		var laserCanvas = dialog.find('.laserCanvas')[0];
 		var laserCanvasCtx = laserCanvas.getContext('2d');
@@ -682,7 +681,7 @@ function createRunModuleDialog(id, moduleItem){
 		var inputEventSource = new EventSource("/dianne/input?name=" + encodeURIComponent(module.name));
 		inputEventSource.onmessage = function(event){
 			var tensor = JSON.parse(event.data);
-			laser(tensor, laserCanvasCtx, laserTarget);
+			laser(tensor, laserCanvasCtx);
 		};
 		
 		dialog.on('hidden.bs.modal', function () {
@@ -844,12 +843,6 @@ function findPos(obj) {
 var inputCanvas;
 var inputCanvasCtx;
 var mousePos = {x: 0, y:0};
-
-var laserTarget = true;
-
-function toggleTarget(){
-	laserTarget = !laserTarget;
-}
 
 function downListener(e) {
 	e.preventDefault();
