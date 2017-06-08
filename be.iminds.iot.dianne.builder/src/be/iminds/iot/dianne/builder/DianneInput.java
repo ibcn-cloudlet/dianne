@@ -135,8 +135,11 @@ public class DianneInput extends HttpServlet {
 				for(DianneInputs i : inputs){
 					for(InputDescription input : i.getAvailableInputs()){
 						JsonObject o = new JsonObject();
-						o.add("name", new JsonPrimitive(input.getName()));
-						o.add("type", new JsonPrimitive(input.getType()));
+						o.add("name", new JsonPrimitive(input.name));
+						o.add("type", new JsonPrimitive(input.type));
+						input.properties.entrySet().forEach(e -> {
+							o.add(e.getKey(), new JsonPrimitive(e.getValue().toString()));
+						});
 						availableInputs.add(o);
 					}
 				}

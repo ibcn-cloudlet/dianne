@@ -22,6 +22,8 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.io;
 
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Describe an output by name and type. This corresponds to the name and type of 
@@ -34,17 +36,17 @@ public class OutputDescription {
 
 	public final String name;
 	public final String type;
+	public final Map<String, String> properties;
 	
 	public OutputDescription(String name, String type){
 		this.name = name;
 		this.type = type;
+		this.properties = new HashMap<>();
 	}
-	
-	public String getName(){
-		return name;
-	}
-	
-	public String getType(){
-		return type;
+
+	public OutputDescription(String name, String type, Map<String, String> properties){
+		this.name = name;
+		this.type = type;
+		this.properties = properties;
 	}
 }

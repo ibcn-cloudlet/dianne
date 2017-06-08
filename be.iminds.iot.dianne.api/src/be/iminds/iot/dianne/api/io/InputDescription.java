@@ -22,6 +22,9 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.io;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Describe an input by name and type. This corresponds to the name and type of 
  * things in the IoT Things API.
@@ -33,17 +36,18 @@ public class InputDescription {
 
 	public final String name;
 	public final String type;
+	public final Map<String, String> properties;
 	
 	public InputDescription(String name, String type){
 		this.name = name;
 		this.type = type;
+		this.properties = new HashMap<>();
 	}
-	
-	public String getName(){
-		return name;
+
+	public InputDescription(String name, String type, Map<String, String> properties){
+		this.name = name;
+		this.type = type;
+		this.properties = properties;
 	}
-	
-	public String getType(){
-		return type;
-	}
+
 }

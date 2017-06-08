@@ -78,8 +78,11 @@ public class DianneOutput extends HttpServlet {
 				for(DianneOutputs o : outputs){
 					for(OutputDescription output : o.getAvailableOutputs()){
 						JsonObject ob = new JsonObject();
-						ob.add("name", new JsonPrimitive(output.getName()));
-						ob.add("type", new JsonPrimitive(output.getType()));
+						ob.add("name", new JsonPrimitive(output.name));
+						ob.add("type", new JsonPrimitive(output.type));
+						output.properties.entrySet().forEach(e -> {
+							ob.add(e.getKey(), new JsonPrimitive(e.getValue().toString()));
+						});
 						availableOutputs.add(ob);
 					}
 				}
