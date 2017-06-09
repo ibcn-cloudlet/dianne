@@ -147,4 +147,5 @@ public class FetchCanConfig {
 	 * Use relative distance from the gripper instead of from the base platform
 	 */
 	public boolean grip = false;
+	
 }

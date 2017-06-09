@@ -378,6 +378,16 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		}
 	}
 	
+	protected boolean checkCollisions(){
+		if(simulator == null)
+			return false;
+		
+		return simulator.checkCollisions("Border") 
+				|| simulator.checkCollisions("BorderArm") 
+				|| simulator.checkCollisions("SelfCollision")
+				|| simulator.checkCollisions("Floor")
+				|| simulator.checkCollisions("Gripper");
+	}
 
 	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
 	void addEnvironmentListener(EnvironmentListener l, Map<String, Object> properties){
@@ -439,8 +449,6 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		
 		this.config = DianneConfigHandler.getConfig(config, KukaConfig.class);
 		this.configMap = config;
-		
-		
 		
 		configure(configMap);
 		

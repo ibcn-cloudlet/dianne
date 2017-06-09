@@ -48,10 +48,10 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 	protected static final float EPSILON = 1e-4f;
 	
 	protected FetchCanConfig config;
-	
+
 	protected Random r = new Random(System.currentTimeMillis());
 
-	private float previousDistance;
+	protected float previousDistance;
 	
 	protected boolean grip = false;
 
@@ -61,11 +61,7 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 		// calculate reward based on simulator info
 		if(simulator != null){
 			// if collision or can is too close
-			if(simulator.checkCollisions("Border") 
-					|| simulator.checkCollisions("BorderArm") 
-					|| simulator.checkCollisions("SelfCollision")
-					|| simulator.checkCollisions("Floor")
-					|| simulator.checkCollisions("Gripper")) {
+			if(checkCollisions()) {
 				if (config.collisionTerminal) {
 					terminal = true;
 				} else {
@@ -170,14 +166,24 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 	}
 	
 	protected void initSimulator() throws Exception {
-		// in simulation we can control the position of the youbot and can
-		// random init position and orientation of the robot
-		resetYoubot();
+		boolean init = false;
+		do {
+			resetEnvironment();
+			
+			simulator.start(config.tick);
+			if(config.tick){
+				simulator.tick();
+			}
+			
+			init = !checkCollisions();
+			
+			if(!init){
+				simulator.stop();
+				Thread.sleep(200);
+			}
+			
+		} while(!init);
 		
-		// set random can position
-		resetCan();
-		
-		simulator.start(config.tick);
 		
 		// TODO there might be an issue with range sensor not coming online at all
 		// should be fixed in robot project?
@@ -205,9 +211,11 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 		// reset arm to candle
 		Promise<Arm> p = kukaArm.setPositions(2.92510465f, 1.103709733f, -2.478948503f, 1.72566195f, 2.765485f);
 		// simulate an iteration further
-		while(!p.isDone()) {
+		while(!p.isDone() && System.currentTimeMillis()-start <= config.timeout) {
 			if (config.tick) {
 				simulator.tick();
+			} else {
+				Thread.sleep(100);
 			}
 		}
 		
@@ -215,7 +223,16 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 		calculateReward();
 	}
 	
-	public void resetYoubot(){
+	protected void resetEnvironment(){
+		// in simulation we can control the position of the youbot and can
+		// random init position and orientation of the robot
+		resetYoubot();
+					
+		// set random can position
+		resetCan();
+	}
+	
+	protected void resetYoubot(){
 		float x,y,o;
 		
 		switch (config.difficulty) {
@@ -237,47 +254,41 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 		simulator.setOrientation("youBot", new Orientation(-1.5707963f, o, -1.5707965f));
 	}
 	
-	public void resetCan(){
+	protected void resetCan(){
 		float x,y;
 		
-		// set random can position
-		float s = 0;
-		while(s < 0.15f) { // can should not be colliding with youbot from start
-			switch (config.difficulty) {
-			case FetchCanConfig.FIXED:
-				x = 0;
-				y = GRIP_DISTANCE;
-				break;
-			case FetchCanConfig.WORKSPACE:
-				// start position in front in workspace
-				float d = r.nextFloat()*0.25f;
-				double a = (r.nextFloat()-0.5f)*Math.PI;
-				x = (float)Math.sin(a)*d;
-				y = 0.4f + (float)Math.cos(a)*d;
-				break;
-			case FetchCanConfig.VISIBLE:
-				x = (r.nextFloat()-0.5f)*1.6f;
-				y = (0.125f + 3*r.nextFloat()/8f)*2.4f;
-				break;
-			case FetchCanConfig.RANDOM:
-			default:
-				x = (r.nextFloat()-0.5f)*1.6f;
-				y = (r.nextFloat()-0.5f)*2.4f;
-			}
+		switch (config.difficulty) {
+		case FetchCanConfig.FIXED:
+			x = 0;
+			y = GRIP_DISTANCE;
+			break;
+		case FetchCanConfig.WORKSPACE:
+			// start position in front in workspace
+			float d = r.nextFloat()*0.25f;
+			double a = (r.nextFloat()-0.5f)*Math.PI;
+			x = (float)Math.sin(a)*d;
+			y = 0.4f + (float)Math.cos(a)*d;
+			break;
+		case FetchCanConfig.VISIBLE:
+			x = (r.nextFloat()-0.5f)*1.6f;
+			y = (0.125f + 3*r.nextFloat()/8f)*2.4f;
+			break;
+		case FetchCanConfig.RANDOM:
+		default:
+			x = (r.nextFloat()-0.5f)*1.6f;
+			y = (r.nextFloat()-0.5f)*2.4f;
+		}
 
-			simulator.setOrientation("Can1", new Orientation(0, 0 ,1.6230719f));
-			simulator.setPosition("Can1", new Position(x, y, 0.06f));
-			
-			Position d = simulator.getPosition("Can1", "youBot");
-			s = d.y*d.y+d.z*d.z;
-		} 
+		simulator.setOrientation("Can1", new Orientation(0, 0 ,1.6230719f));
+		simulator.setPosition("Can1", new Position(x, y, 0.06f));
+		
 	}
 	
 	
 	@Override
 	public void configure(Map<String, String> config) {
 		this.config = DianneConfigHandler.getConfig(config, FetchCanConfig.class);
-		
+
 		if(this.config.seed != 0){
 			r = new Random(this.config.seed);
 		}
@@ -328,4 +339,6 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 		} 
 		
 	}
+	
+
 }
