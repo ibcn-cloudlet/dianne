@@ -23,6 +23,7 @@
 package be.iminds.iot.dianne.rl.experience.adapters;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Dictionary;
@@ -43,6 +44,7 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
+import be.iminds.iot.dianne.api.dataset.DatasetDTO;
 import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.api.dataset.Sequence;
 import be.iminds.iot.dianne.api.nn.Dianne;
@@ -64,6 +66,8 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 		configurationPid="be.iminds.iot.dianne.dataset.adapters.StateBeliefAdapter")
 public class StateBeliefAdapter implements ExperiencePool {
 
+	private Map<String, Object> properties;
+	
 	private ExperiencePool pool;
 	private String name;
 
@@ -110,6 +114,7 @@ public class StateBeliefAdapter implements ExperiencePool {
 		// deploy the posterior/prior on local runtime
 		UUID frameworkId = UUID.fromString(context.getProperty(Constants.FRAMEWORK_UUID));
 		
+		this.properties = properties;
 		this.name = (String)properties.get("name");
 		
 		String tag = (String)properties.get("tag");
@@ -175,6 +180,32 @@ public class StateBeliefAdapter implements ExperiencePool {
 		
 		if(repoListenerReg!=null)
 			repoListenerReg.unregister();
+	}
+	
+	@Override
+	public DatasetDTO getDTO(){
+		DatasetDTO dto = pool.getDTO();
+		
+		dto.name = getName();
+		dto.inputDims = inputDims();
+		dto.inputType = inputType();
+		dto.targetDims = targetDims();
+		dto.targetType = targetType();
+		dto.size = size();
+		dto.labels = getLabels();
+		
+		properties.entrySet().forEach(e -> {
+			if(e.getKey().contains("."))
+				return;
+			
+			for(Field f : DatasetDTO.class.getFields()){
+				if(f.getName().equals(e.getKey()))
+					return;
+			}
+			dto.properties.put(e.getKey(), e.getValue().toString());
+		});
+		
+		return dto;
 	}
 	
 	@Override
