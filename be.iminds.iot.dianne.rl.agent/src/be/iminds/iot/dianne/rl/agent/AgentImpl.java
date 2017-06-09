@@ -234,6 +234,7 @@ public class AgentImpl implements Agent {
 		} catch(Exception e){
 			System.err.println("Failed starting agent");
 			e.printStackTrace();
+			env.cleanup();
 			acting = false;
 			throw e;
 		}
@@ -362,7 +363,7 @@ public class AgentImpl implements Agent {
 						b.nextState = s.isTerminal() ? null : s.nextState.copyInto(b.nextState);
 						count++;
 						
-						if(b.isTerminal()){
+						if(b.isTerminal() || (config.maxActions > 0 && config.maxActions <= progress.iterations)){
 							// sequence finished, upload to pool
 							upload = new Sequence<ExperiencePoolSample>(uploadBuffer.subList(0, count), count);
 							if(pool!=null){
@@ -377,7 +378,6 @@ public class AgentImpl implements Agent {
 					}
 	
 					// if this is a terminal state - reset environment and start over
-					// TODO what with infinite horizon environments?
 					if(s.isTerminal() || (config.maxActions > 0 && config.maxActions <= progress.iterations)){
 						
 						// trace agent per sequence
