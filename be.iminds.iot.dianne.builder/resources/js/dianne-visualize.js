@@ -4,7 +4,7 @@ function render(tensor, canvasCtx, type, config){
 	if(type==="image"){
 		image(tensor, canvasCtx);
 	} else if(type==="laser"){
-		if(config.angleMin!== undefined && config.angleMax !== undefined){
+		if(config !== undefined && config.angleMin!== undefined && config.angleMax !== undefined){
 			laser(tensor, canvasCtx, Number(config.angleMin), Number(config.angleMax));
 		} else {
 			laser(tensor, canvasCtx);
@@ -232,8 +232,8 @@ function laser_rect(tensor, canvasCtx, offset, scanPoints, posX, posY, targetW, 
 		} else {
 			length = tensor.data[offset+i]*targetH/2;
 			
-			var x = srcX+length*Math.cos(angle);
-			var y = srcY-length*Math.sin(angle);
+			var x = srcX-length*Math.sin(angle);
+			var y = srcY-length*Math.cos(angle);
 			
 			canvasCtx.lineTo(parseInt(x),parseInt(y));
 		}
