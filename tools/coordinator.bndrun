@@ -24,4 +24,4 @@
 -runproperties.coordinator:\
 	be.iminds.iot.dianne.runtime.name="Coordinator",\
 	be.iminds.iot.dianne.storage="models",\
-	be.iminds.iot.dianne.datasets.location="experience"
+	be.iminds.iot.dianne.datasets.location="datasets"
