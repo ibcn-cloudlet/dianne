@@ -102,7 +102,7 @@ public class FetchCanConfig {
 	/**
 	 * Speed (in m/s) the Kuka base is steered (max speed in case of continuous actions)
 	 */
-	public float speed = 0.1f;
+	public float speed = 0.2f;
 	
 	/**
 	 * Whether the environment has to tick the simulator
