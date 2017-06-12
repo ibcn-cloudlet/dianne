@@ -348,7 +348,7 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 			} catch(Exception e){
 				// try to kill the simulator?! - this is hacky!
 				// TODO this should be fixed in the robot project?
-				Runtime.getRuntime().exec("killall vrep");
+				Runtime.getRuntime().exec("pkill vrep");
                 simulator = null;
             	System.out.println("Unexpected simulator error, waiting for simulator to come back online...");
 				long start = System.currentTimeMillis();
