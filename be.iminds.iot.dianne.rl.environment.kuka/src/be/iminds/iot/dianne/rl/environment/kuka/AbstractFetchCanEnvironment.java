@@ -204,18 +204,20 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 			}
 		}
 		
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {} 
-		
-		// reset arm to candle
-		Promise<Arm> p = kukaArm.setPositions(2.92510465f, 1.103709733f, -2.478948503f, 1.72566195f, 2.765485f);
-		// simulate an iteration further
-		while(!p.isDone() && System.currentTimeMillis()-start <= config.timeout) {
-			if (config.tick) {
-				simulator.tick();
-			} else {
-				Thread.sleep(100);
+		if(config.candleInit){
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {} 
+			
+			// reset arm to candle
+			Promise<Arm> p = kukaArm.setPositions(2.92510465f, 1.103709733f, -2.478948503f, 1.72566195f, 2.765485f);
+			// simulate an iteration further
+			while(!p.isDone() && System.currentTimeMillis()-start <= config.timeout) {
+				if (config.tick) {
+					simulator.tick();
+				} else {
+					Thread.sleep(100);
+				}
 			}
 		}
 		

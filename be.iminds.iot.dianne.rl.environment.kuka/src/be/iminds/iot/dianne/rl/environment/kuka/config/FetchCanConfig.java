@@ -148,4 +148,8 @@ public class FetchCanConfig {
 	 */
 	public boolean grip = false;
 	
+	/**
+	 * Initialize arm to candle
+	 */
+	public boolean candleInit = false;
 }
