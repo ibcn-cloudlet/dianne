@@ -64,9 +64,8 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 			if(simulator.checkCollisions("Border")) {
 				if (config.collisionTerminal) {
 					terminal = true;
-				} else {
-					return -1.0f;
-				}
+				} 
+				return -1.0f;
 			}
 			
 			float distance, canHeight;

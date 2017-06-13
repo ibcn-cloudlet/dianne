@@ -92,7 +92,7 @@ public class FetchCanReacherEnvironment extends AbstractFetchCanEnvironment {
 				if (super.config.collisionTerminal) {
 					terminal = true;
 				} 
-				return -super.config.maxReward;
+				return -1.0f;
 			}
 		}
 		return super.calculateReward();
