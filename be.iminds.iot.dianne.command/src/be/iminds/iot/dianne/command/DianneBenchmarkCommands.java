@@ -225,11 +225,11 @@ public class DianneBenchmarkCommands {
 		long t1 = System.nanoTime();
 		Tensor result = null;
 		for(int i=0;i<times;i++)
-			result = nn.forward(null, null, input).then(
+			result = nn.forward("", "", input).then(
 				p -> {
 					if(backward){
 						Tensor out = p.getValue().tensor;
-						return nn.backward(null, null, out);
+						return nn.backward("", "", out);
 					} else {
 						return p;
 					}

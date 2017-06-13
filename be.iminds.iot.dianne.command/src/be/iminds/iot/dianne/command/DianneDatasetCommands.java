@@ -138,7 +138,7 @@ public class DianneDatasetCommands {
 		try {
 			Tensor in = d.getSample(index).input;
 			long t1 = System.currentTimeMillis();
-			nn.forward(null, null, in, tags).then(
+			nn.forward("", "", in, tags).then(
 				p -> {
 						long t2 = System.currentTimeMillis();
 

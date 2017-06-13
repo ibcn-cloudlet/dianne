@@ -116,6 +116,9 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 
 	@Override
 	public UUID getModuleId(String name) {
+		if(name.isEmpty())
+			return null;
+		
 		try {
 			return getNeuralNetworkInstance().modules.entrySet().stream().filter(e -> name.equalsIgnoreCase(e.getValue().module.properties.get("name"))).findFirst().map(e -> e.getKey()).get();
 		} catch(NoSuchElementException e){
@@ -176,7 +179,7 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	@Override
 	public Tensor forward(Tensor input, String... tags){
 		Tensor result = null;
-		Promise<NeuralNetworkResult> p = forward(null, null, input, tags);
+		Promise<NeuralNetworkResult> p = forward((UUID)null, (UUID)null, input, tags);
 		try {
 			if(p.getFailure()!=null){
 				throw new RuntimeException("Error forwarding input", p.getFailure());
@@ -236,7 +239,7 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	
 	public List<Tensor> forward(List<Tensor> input, String... tags){
 		List<Tensor> result = null;
-		Promise<NeuralNetworkSequenceResult> p = forward(null, null, input, tags);
+		Promise<NeuralNetworkSequenceResult> p = forward((UUID)null, (UUID)null, input, tags);
 		try {
 			if(p.getFailure()!=null){
 				throw new RuntimeException("Error forwarding input", p.getFailure());
@@ -304,7 +307,7 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	@Override
 	public Tensor backward(Tensor gradOutput, boolean accGradParameters, String... tags){
 		Tensor result = null;
-		Promise<NeuralNetworkResult> p = backward(null, null, gradOutput, accGradParameters, tags);
+		Promise<NeuralNetworkResult> p = backward((UUID)null, (UUID)null, gradOutput, accGradParameters, tags);
 		try {
 			if(p.getFailure()!=null){
 				throw new RuntimeException("Error back propagating gradOutput", p.getFailure());
@@ -368,7 +371,7 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 
 	public List<Tensor> backward(List<Tensor> gradOutput, boolean accGradParameters, String... tags){
 		List<Tensor> result = null;
-		Promise<NeuralNetworkSequenceResult> p = backward(null, null, gradOutput, accGradParameters, tags);
+		Promise<NeuralNetworkSequenceResult> p = backward((UUID)null, (UUID)null, gradOutput, accGradParameters, tags);
 		try {
 			if(p.getFailure()!=null){
 				throw new RuntimeException("Error back propagating gradOutput", p.getFailure());

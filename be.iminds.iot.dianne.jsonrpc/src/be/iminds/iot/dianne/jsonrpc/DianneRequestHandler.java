@@ -175,7 +175,7 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 				
 				JsonArray in = params.get(1).getAsJsonArray();
 				Tensor input = asTensor(in);
-				nn.forward(null, null, input).then(p -> {
+				nn.forward("", "", input).then(p -> {
 					int argmax = TensorOps.argmax(p.getValue().tensor);
 					writeResult(writer, id, nn.getOutputLabels()[argmax]);
 					return null;

@@ -78,6 +78,10 @@ public interface NeuralNetwork {
 	 */
 	Promise<NeuralNetworkResult> forward(UUID inputId, UUID outputId, Tensor input, String... tags);
 	
+	default Promise<NeuralNetworkResult> forward(String inputName, String outputName, Tensor input, String... tags){
+		return forward(getModuleId(inputName), getModuleId(outputName), input, tags);
+	}
+	
 	/**
 	 * Forward inputs through the neural network
 	 * @param inputIds ids of the Input modules to forward the inputs to
@@ -86,7 +90,11 @@ public interface NeuralNetwork {
 	 * @param tags optional array of tags
 	 * @return result
 	 */
-	Promise<NeuralNetworkResult> forward(UUID[] inputId, UUID[] outputId, Tensor[] input, String... tags);
+	Promise<NeuralNetworkResult> forward(UUID[] inputIds, UUID[] outputIds, Tensor[] inputs, String... tags);
+	
+	default Promise<NeuralNetworkResult> forward(String[] inputNames, String[] outputNames, Tensor[] inputs, String... tags){
+		return forward(getModuleIds(inputNames), getModuleIds(outputNames), inputs, tags);
+	}
 
 	/**
 	 * Blocking call that returns the output Tensor after forwarding input.
@@ -102,7 +110,16 @@ public interface NeuralNetwork {
 	
 	Promise<NeuralNetworkSequenceResult> forward(UUID inputId, UUID outputId, List<Tensor> input, String... tags);
 	
-	Promise<NeuralNetworkSequenceResult> forward(UUID[] inputId, UUID[] outputId, List<Tensor>[] input, String... tags);
+	default Promise<NeuralNetworkSequenceResult> forward(String inputName, String outputName, List<Tensor> input, String... tags){
+		return forward(getModuleId(inputName), getModuleId(outputName), input, tags);
+	}
+
+	
+	Promise<NeuralNetworkSequenceResult> forward(UUID[] inputIds, UUID[] outputIds, List<Tensor>[] inputs, String... tags);
+	
+	default Promise<NeuralNetworkSequenceResult> forward(String[] inputNames, String[] outputNames, List<Tensor>[] inputs, String... tags){
+		return forward(getModuleIds(inputNames), getModuleIds(outputNames), inputs, tags);
+	}
 
 	List<Tensor> forward(List<Tensor> input, String... tags);
 
@@ -119,10 +136,17 @@ public interface NeuralNetwork {
 	 */
 	Promise<NeuralNetworkResult> backward(UUID outputId, UUID inputId, Tensor gradOutput, boolean accGradParameters, String... tags);
 
+	default Promise<NeuralNetworkResult> backward(String outputName, String inputName, Tensor gradOutput, boolean accGradParameters, String... tags){
+		return backward(getModuleId(outputName), getModuleId(inputName), gradOutput, accGradParameters, tags);
+	}
+	
 	default Promise<NeuralNetworkResult> backward(UUID outputId, UUID inputId, Tensor gradOutput, String... tags){
 		return backward(outputId, inputId, gradOutput, false, tags);
 	}
 
+	default Promise<NeuralNetworkResult> backward(String outputName, String inputName, Tensor gradOutput, String... tags){
+		return backward(getModuleId(outputName), getModuleId(inputName), gradOutput, false, tags);
+	}
 	
 	/**
 	 * Backward gradOutput through the neural network
@@ -135,10 +159,17 @@ public interface NeuralNetwork {
 	 */
 	Promise<NeuralNetworkResult> backward(UUID[] outputIds, UUID[] inputIds, Tensor[] gradOutputs, boolean accGradParameters, String... tags);
 
+	default Promise<NeuralNetworkResult> backward(String[] outputNames, String[] inputNames, Tensor[] gradOutputs, boolean accGradParameters, String... tags){
+		return backward(getModuleIds(outputNames), getModuleIds(inputNames), gradOutputs, accGradParameters, tags);
+	}
+
 	default Promise<NeuralNetworkResult> backward(UUID[] outputIds, UUID[] inputIds, Tensor[] gradOutputs, String... tags){
 		return backward(outputIds, inputIds, gradOutputs, false, tags);
 	}
 
+	default Promise<NeuralNetworkResult> backward(String[] outputNames, String[] inputNames, Tensor[] gradOutputs, String... tags){
+		return backward(getModuleIds(outputNames), getModuleIds(inputNames), gradOutputs, false, tags);
+	}
 	
 	/**
 	 * Blocking call that returns the gradInput Tensor after back propagating gradOutput.
@@ -160,7 +191,15 @@ public interface NeuralNetwork {
 	
 	Promise<NeuralNetworkSequenceResult> backward(UUID outputId, UUID inputId, List<Tensor> gradOutput, boolean accGradParameters, String... tags);
 	
+	default Promise<NeuralNetworkSequenceResult> backward(String outputName, String inputName, List<Tensor> gradOutput, boolean accGradParameters, String... tags){
+		return backward(getModuleId(outputName), getModuleId(inputName), gradOutput, accGradParameters, tags);
+	}
+	
 	Promise<NeuralNetworkSequenceResult> backward(UUID[] outputIds, UUID[] inputIds, List<Tensor>[] gradOutputs, boolean accGradParameters, String... tags);
+	
+	default Promise<NeuralNetworkSequenceResult> backward(String[] outputNames, String[] inputNames, List<Tensor>[] gradOutputs, boolean accGradParameters, String...tags){
+		return backward(getModuleIds(outputNames), getModuleIds(inputNames), gradOutputs, accGradParameters, tags);
+	}
 
 	List<Tensor> backward(List<Tensor> gradOutput, boolean accGradParameters, String... tags);
 	
