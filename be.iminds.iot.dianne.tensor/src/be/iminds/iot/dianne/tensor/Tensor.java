@@ -23,6 +23,8 @@
 package be.iminds.iot.dianne.tensor;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Represents an n-dimensional tensor in Java
@@ -36,6 +38,8 @@ import java.util.Arrays;
 public class Tensor {
 
 	public long address;
+	
+	private Map<String, Tensor> map;
 	
 	public Tensor(){
 		this(null, null);
@@ -66,6 +70,48 @@ public class Tensor {
 	
 	private Tensor(long address){
 		this.address = address;
+	}
+	
+	/**
+	 * Map parts of the Tensor to a String key
+	 * @param key key
+	 * @param ranges  this is interpreted
+	 * as narrowing dimension 1 from ranges[0] with size ranges[1], narrowing dimension 2 from
+	 * ranges[2] with size ranges[3], etc.
+	 * @param shape shape of the resulting tensor 
+	 */
+	public void map(String key, int[] ranges, int[] shape){
+		if(map == null) {
+			map = new HashMap<>();
+		}
+		Tensor sub = this.narrow(ranges);
+		sub.reshape(shape);
+		map.put(key, sub);	}
+	
+	/**
+	 * Map parts of the Tensor to a String key
+	 * @param ranges  this is interpreted
+	 * as narrowing dimension 1 from ranges[0] with size ranges[1], narrowing dimension 2 from
+	 * ranges[2] with size ranges[3], etc.
+	 */
+	public void map(String key, int[] ranges){
+		if(map == null) {
+			map = new HashMap<>();
+		}
+		Tensor sub = this.narrow(ranges);
+		map.put(key, sub);
+	}
+	
+	/**
+	 * Get a part of the Tensor by a String key
+	 * @param key
+	 * @return part of the Tensor mapped by this key - null if this key does not exist
+	 */
+	public Tensor get(String key){
+		if(map == null)
+			return null;
+		
+		return map.get(key);
 	}
 	
 	/**
