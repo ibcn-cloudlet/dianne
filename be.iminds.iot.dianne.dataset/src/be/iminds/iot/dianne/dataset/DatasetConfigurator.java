@@ -507,10 +507,12 @@ public class DatasetConfigurator implements DianneDatasets {
 			}
 		} else {
 			if(file.getName().endsWith(".json")){
-				Configuration c = parseDatasetConfiguration(file);
-				if(c != null){
-					configs.put(file.getAbsolutePath(), c);
-				}
+				try {
+					Configuration c = parseDatasetConfiguration(file);
+					if(c != null){
+						configs.put(file.getAbsolutePath(), c);
+					}
+				} catch(Exception e){}
 			}
 		}
 	}

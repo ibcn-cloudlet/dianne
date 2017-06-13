@@ -528,8 +528,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		descriptor.append(maxSize);
 		descriptor.append("\n}");
 		
-		
-		Files.write( Paths.get(dir+File.separator+name+".json"), descriptor.toString().getBytes(StandardCharsets.UTF_8), StandardOpenOption.TRUNCATE_EXISTING);
+		Files.write( Paths.get(dir+File.separator+name+".json"), descriptor.toString().getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 		
 		try {
 			lock.writeLock().lock();
