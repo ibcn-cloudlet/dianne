@@ -81,6 +81,24 @@ public class FetchCanReacherEnvironment extends AbstractFetchCanEnvironment {
 	}
 	
 	@Override
+	protected float calculateReward() throws Exception {
+		// calculate reward based on simulator info
+		if(simulator != null){
+			// additional collision checks here
+			if(simulator.checkCollisions("BorderArm") 
+				|| simulator.checkCollisions("SelfCollision")
+				|| simulator.checkCollisions("Floor")
+				|| simulator.checkCollisions("Gripper")) {
+				if (super.config.collisionTerminal) {
+					terminal = true;
+				} 
+				return -super.config.maxReward;
+			}
+		}
+		return super.calculateReward();
+	}
+	
+	@Override
 	protected void updateObservation(){
 		super.updateObservation();
 		int jointLength = this.kukaArm.getState().size();

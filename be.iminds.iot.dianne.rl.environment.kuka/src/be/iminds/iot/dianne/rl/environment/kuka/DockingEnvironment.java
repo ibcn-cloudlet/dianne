@@ -96,11 +96,7 @@ public class DockingEnvironment extends AbstractFetchCanEnvironment {
 		// calculate reward based on simulator info
 		if(simulator != null){
 			// if collision or can is too close
-			if(simulator.checkCollisions("Border") 
-					|| simulator.checkCollisions("BorderArm") 
-					|| simulator.checkCollisions("SelfCollision")
-					|| simulator.checkCollisions("Floor")
-					|| simulator.checkCollisions("Gripper")) {
+			if(simulator.checkCollisions("Border")) {
 				if (config.collisionTerminal) {
 					terminal = true;
 				} else {
@@ -147,7 +143,6 @@ public class DockingEnvironment extends AbstractFetchCanEnvironment {
 				r=0.0f;
 			}
 			previousDistance = distance;
-			
 			return r;
 		} 
 		
