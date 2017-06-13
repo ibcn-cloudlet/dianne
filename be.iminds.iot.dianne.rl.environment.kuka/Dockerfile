@@ -6,19 +6,21 @@ USER root
 RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list' &&\
 	apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net --recv-key 0xB01FA116 &&\
 	apt-get update &&\
-	apt-get install -y ros-indigo-desktop-full python-rosinstall python-catkin-tools wget &&\
+	apt-get install -y ros-indigo-desktop-full python-rosinstall python-catkin-tools wget curl &&\
 	rosdep init
 
 # use bash instead of sh
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
-USER dianne
-
 WORKDIR /opt
+
+RUN mkdir -p ros_catkin_ws &&\
+    chown dianne:dianne ros_catkin_ws
+
+USER dianne
 
 RUN rosdep update &&\
     source /opt/ros/indigo/setup.bash &&\
-    mkdir -p ros_catkin_ws &&\
     cd ros_catkin_ws &&\
     git clone https://github.com/ibcn-cloudlet/ros.git src &&\
     cd src &&\
@@ -27,7 +29,6 @@ RUN rosdep update &&\
     catkin_init_workspace &&\
     cd .. &&\
     catkin build --continue-on-failure; exit 0
-    
 
 USER root
 
@@ -36,8 +37,7 @@ RUN echo "source /opt/ros/indigo/setup.bash" >> /home/dianne/.bashrc &&\
     echo "source /opt/ros_catkin_ws/devel/setup.bash" >> /home/dianne/.bashrc
 
 # install V-REP 
-RUN wget http://coppeliarobotics.com/files/V-REP_PRO_EDU_V3_4_0_Linux.tar.gz &&\
-    tar -xvzf V-REP_PRO_EDU_V3_4_0_Linux.tar.gz &&\
+RUN curl http://coppeliarobotics.com/files/V-REP_PRO_EDU_V3_4_0_Linux.tar.gz | tar -xz &&\
     mv V-REP_PRO_EDU_V3_4_0_Linux /opt/vrep &&\
     cp ros_catkin_ws/devel/lib/libv_repExtRosInterface.so /opt/vrep/
 

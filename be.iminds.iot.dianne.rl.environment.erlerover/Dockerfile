@@ -53,15 +53,18 @@ RUN mkdir -p ~/.gazebo/models && \
     git clone https://github.com/erlerobot/erle_gazebo_models && \
     mv erle_gazebo_models/* ~/.gazebo/models
 
-USER dianne
 WORKDIR /opt
+
+RUN mkdir -p ros_catkin_ws/src &&\
+    chown -R dianne:dianne ros_catkin_ws
+
+USER dianne
 
 # download additional ROS packages
 RUN rosdep update && \
     git clone https://github.com/erlerobot/ardupilot -b gazebo && \
     source /opt/ros/indigo/setup.bash && \
     echo "source /opt/ros/indigo/setup.bash" >> ~/.bashrc && \
-    mkdir -p ros_catkin_ws/src && \
     cd ros_catkin_ws/src && \
     catkin_init_workspace && \
     cd .. && \
