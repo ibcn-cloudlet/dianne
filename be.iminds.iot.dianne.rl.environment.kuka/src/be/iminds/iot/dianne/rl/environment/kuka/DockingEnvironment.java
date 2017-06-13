@@ -151,7 +151,8 @@ public class DockingEnvironment extends AbstractFetchCanEnvironment {
 
 	@Override
 	protected void resetEnvironment(){
-		simulator.setPosition("Plane1", new Position(-0.2925f, -0.9f, 0.15f));
-		super.resetEnvironment();
+		simulator.setPosition("Plane1", new Position(0.2925f, 0.9f, 0.15f));
+		simulator.setPosition("dock_ref", new Position(0.6f, 0.9f, 0f));
+		super.resetYoubot();
 	}
 }
