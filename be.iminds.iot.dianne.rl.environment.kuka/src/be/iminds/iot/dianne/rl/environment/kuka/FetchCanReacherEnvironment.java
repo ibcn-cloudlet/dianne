@@ -108,7 +108,10 @@ public class FetchCanReacherEnvironment extends AbstractFetchCanEnvironment {
 	@Override
 	protected void executeAction(Tensor t) throws Exception {
 		float[] f = Arrays.copyOf(t.get(), t.get().length + 1);
-		f[f.length - 2] = f[f.length - 2] >= 0 ? max : min; 
+		if (config.gripperFixed)
+			f[f.length - 2] = min;
+		else 
+			f[f.length - 2] = f[f.length - 2] >= 0 ? max : min; 
 		f[f.length - 1] = f[f.length - 2] * (config.mode == FetchCanReacherConfig.POSITION ? 1 : -1);
 		
 		List<JointDescription> joints = kukaArm.getJoints();

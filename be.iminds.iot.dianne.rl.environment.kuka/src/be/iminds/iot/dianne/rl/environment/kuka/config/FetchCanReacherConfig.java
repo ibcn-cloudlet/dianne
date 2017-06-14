@@ -36,4 +36,9 @@ public class FetchCanReacherConfig {
 	 * This value should be positive.
 	 */
 	public float outputScaleFactor = 1.0f;
+	
+	/**
+	 * Fix gripper open if true
+	 */
+	public boolean gripperFixed = false;
 }
