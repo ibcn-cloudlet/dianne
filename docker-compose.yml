@@ -1,0 +1,61 @@
+version: '3'
+services:
+  coordinator:
+    image: dianne:latest
+    ports:
+     - "8080:8080"
+    volumes:
+     - ./tools/datasets:/home/dianne/tools/datasets
+     - ./tools/experience:/home/dianne/tools/experience
+     - ./tools/models:/home/dianne/tools/models
+     - ./tools/jobs:/home/dianne/tools/jobs
+    stdin_open: true
+    tty: true
+    environment:
+      TARGET: coordinator
+      JAVA_TOOL_OPTIONS: ''
+    healthcheck:
+      test: nc -z localhost 9278
+      interval: 10s
+      timeout: 60s
+      retries: 10
+    networks:
+     - net
+  agent:
+    image: dianne/kuka:latest
+    stdin_open: true
+    tty: true
+    depends_on:
+     - coordinator
+    deploy:
+      replicas: 5
+    environment:
+      JAVA_TOOL_OPTIONS: '-Daiolos.connect=coordinator'
+    healthcheck:
+      test: nc -z localhost 9278
+      interval: 10s
+      timeout: 60s
+      retries: 10
+    networks:
+     - net
+  learner:
+    image: dianne:latest
+    stdin_open: true
+    tty: true
+    depends_on:
+     - coordinator
+    deploy:
+      replicas: 1
+    environment:
+      TARGET: runtime.learner
+      JAVA_TOOL_OPTIONS: '-Daiolos.connect=coordinator'
+    healthcheck:
+      test: nc -z localhost 9278
+      interval: 10s
+      timeout: 60s
+      retries: 10
+    networks:
+     - net
+networks:
+ net:
+   internal: true
