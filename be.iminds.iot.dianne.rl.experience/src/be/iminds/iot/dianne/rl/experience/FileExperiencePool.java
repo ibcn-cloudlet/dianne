@@ -57,7 +57,7 @@ public class FileExperiencePool extends AbstractExperiencePool {
 	@Override
 	protected void setup(Map<String, Object> config) {
 		if(config.containsKey("sizePerBuffer")){
-			SIZE_PER_BUFFER = Integer.parseInt(config.get("sizePerBuffer").toString());
+			SIZE_PER_BUFFER = Integer.parseInt(config.get("sizePerBuffer").toString().trim());
 		}
 		
 		FLOATS_PER_BUFFER = SIZE_PER_BUFFER/4;

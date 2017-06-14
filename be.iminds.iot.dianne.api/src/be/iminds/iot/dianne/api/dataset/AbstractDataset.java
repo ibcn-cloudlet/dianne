@@ -60,7 +60,7 @@ public abstract class AbstractDataset implements Dataset {
 		if(id!=null){
 			inputDims= new int[id.length];
 			for(int i=0;i<id.length;i++){
-				inputDims[i] = Integer.parseInt(id[i]);
+				inputDims[i] = Integer.parseInt(id[i].trim());
 			}
 		}
 		
@@ -71,7 +71,7 @@ public abstract class AbstractDataset implements Dataset {
 		if(od != null){
 			targetDims= new int[od.length];
 			for(int i=0;i<od.length;i++){
-				targetDims[i] = Integer.parseInt(od[i]);
+				targetDims[i] = Integer.parseInt(od[i].trim());
 			}
 		}
 		
@@ -81,7 +81,7 @@ public abstract class AbstractDataset implements Dataset {
 		
 		String ns = (String)properties.get("noSamples");
 		if(ns != null)
-			noSamples = Integer.parseInt(ns);
+			noSamples = Integer.parseInt(ns.trim());
 		
 		if(properties.containsKey("labels")){
 			labels = (String[])properties.get("labels");

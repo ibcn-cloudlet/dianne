@@ -66,8 +66,8 @@ public class DatasetRandomRotationAdapter extends AbstractDatasetAdapter {
 		if(properties.containsKey("rotationTheta")){
 			Object t = properties.get("rotationTheta");
 			if(t instanceof String[]){
-				minTheta = Float.parseFloat(((String[]) t)[0]);
-				maxTheta = Float.parseFloat(((String[]) t)[1]);
+				minTheta = Float.parseFloat(((String[]) t)[0].trim());
+				maxTheta = Float.parseFloat(((String[]) t)[1].trim());
 			} else {
 				maxTheta = Float.parseFloat((String) t);
 				minTheta = -maxTheta;
@@ -78,8 +78,8 @@ public class DatasetRandomRotationAdapter extends AbstractDatasetAdapter {
 			Object c = properties.get("rotationCenter");
 			// center = [x,y] means : center rotation around x,y
 			if(c instanceof String[]){
-				center[0] = Integer.parseInt(((String[])c)[0]);
-				center[1] = Integer.parseInt(((String[])c)[1]);
+				center[0] = Integer.parseInt(((String[])c)[0].trim());
+				center[1] = Integer.parseInt(((String[])c)[1].trim());
 			} else {
 				// center = true means: center around image center	
 				middle = Boolean.parseBoolean((String)c);

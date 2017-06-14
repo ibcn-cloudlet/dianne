@@ -58,7 +58,7 @@ public class DatasetFrameAdapter extends AbstractDatasetAdapter {
 		String[] d = (String[])properties.get("frame");
 		dims = new int[d.length];
 		for(int i=0;i<d.length;i++){
-			dims[i] = Integer.parseInt(d[i]);
+			dims[i] = Integer.parseInt(d[i].trim());
 		}
 	}
 	

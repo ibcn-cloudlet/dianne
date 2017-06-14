@@ -68,13 +68,13 @@ public class CSVDataset extends FileDataset{
 		// how many columns to skip before input begins
 		String io = (String)properties.get("inputOffset");
 		if(io != null){
-			inputOffset = Integer.parseInt(io);
+			inputOffset = Integer.parseInt(io.trim());
 		}
 		
 		// how many columns to skip before target begins
 		String to = (String)properties.get("targetOffset");
 		if(to != null){
-			targetOffset = Integer.parseInt(to);
+			targetOffset = Integer.parseInt(to.trim());
 		}
 		
 		// check whether it is a classification problem or not

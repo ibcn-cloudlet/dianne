@@ -63,18 +63,18 @@ public class DatasetRangeAdapter extends AbstractDatasetAdapter {
 		if(r instanceof String[]){
 			String[] range = (String[]) r;
 			if(range.length == 1){
-				end = Integer.parseInt(range[0]);
+				end = Integer.parseInt(range[0].trim());
 			} else if(range.length == 2){
-				start = Integer.parseInt(range[0]);
-				end = Integer.parseInt(range[1]);
+				start = Integer.parseInt(range[0].trim());
+				end = Integer.parseInt(range[1].trim());
 			} else {
 				indices = new int[range.length];
 				for(int i=0;i<range.length;i++){
-					indices[i] = Integer.parseInt(range[i]);
+					indices[i] = Integer.parseInt(range[i].trim());
 				}
 			}
 		} else {
-			end = Integer.parseInt((String)r);
+			end = Integer.parseInt(((String)r).trim());
 		}
 	}
 	

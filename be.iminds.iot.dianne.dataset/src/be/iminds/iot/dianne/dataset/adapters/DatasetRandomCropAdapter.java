@@ -68,8 +68,8 @@ public class DatasetRandomCropAdapter extends AbstractDatasetAdapter {
 	protected void configure(Map<String, Object> properties) {
 		Object w = properties.get("cropWidth");
 		if(w instanceof String[]){
-			minWidth = Integer.parseInt(((String[]) w)[0]);
-			maxWidth = Integer.parseInt(((String[]) w)[1]);
+			minWidth = Integer.parseInt(((String[]) w)[0].trim());
+			maxWidth = Integer.parseInt(((String[]) w)[1].trim());
 		} else {
 			minWidth = Integer.parseInt((String)w);
 			maxWidth = minWidth;
@@ -77,15 +77,15 @@ public class DatasetRandomCropAdapter extends AbstractDatasetAdapter {
 		
 		Object h = properties.get("cropHeight");
 		if(h instanceof String[]){
-			minHeight = Integer.parseInt(((String[]) h)[0]);
-			maxHeight = Integer.parseInt(((String[]) h)[1]);
+			minHeight = Integer.parseInt(((String[]) h)[0].trim());
+			maxHeight = Integer.parseInt(((String[]) h)[1].trim());
 		} else {
-			minHeight = Integer.parseInt((String)h);
+			minHeight = Integer.parseInt(((String)h).trim());
 			maxHeight = minHeight;
 		}
 		
 		if(properties.containsKey("cropPadding")){
-			padding = Integer.parseInt((String) properties.get("cropPadding"));
+			padding = Integer.parseInt(((String) properties.get("cropPadding")).trim());
 		}
 	}
 	

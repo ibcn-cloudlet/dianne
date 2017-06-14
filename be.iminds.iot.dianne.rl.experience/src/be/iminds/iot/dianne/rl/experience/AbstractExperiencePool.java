@@ -101,13 +101,13 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	@Override
 	protected void init(Map<String, Object> properties) {
 		if(properties.containsKey("maxSize"))
-			this.maxSize = Integer.parseInt((String) properties.get("maxSize"));
+			this.maxSize = Integer.parseInt(properties.get("maxSize").toString().trim());
 		
 		String[] id = (String[])properties.get("stateDims");
 		if(id!=null){
 			inputDims= new int[id.length];
 			for(int i=0;i<id.length;i++){
-				inputDims[i] = Integer.parseInt(id[i]);
+				inputDims[i] = Integer.parseInt(id[i].trim());
 			}
 		}
 		
@@ -117,7 +117,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		if(od!=null){
 			targetDims= new int[od.length];
 			for(int i=0;i<od.length;i++){
-				targetDims[i] = Integer.parseInt(od[i]);
+				targetDims[i] = Integer.parseInt(od[i].trim());
 			}
 		}
 		

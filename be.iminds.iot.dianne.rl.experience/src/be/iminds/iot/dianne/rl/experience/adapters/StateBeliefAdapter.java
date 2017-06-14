@@ -132,16 +132,16 @@ public class StateBeliefAdapter implements ExperiencePool {
 			this.priorOut = new UUID[]{prior.getOutput().getId()};
 		}
 		
-		this.stateSize = Integer.parseInt(properties.get("stateSize").toString());
+		this.stateSize = Integer.parseInt(properties.get("stateSize").toString().trim());
 		
 		if(properties.containsKey("maxSize")){
-			this.maxSize = Integer.parseInt(properties.get("maxSize").toString());
+			this.maxSize = Integer.parseInt(properties.get("maxSize").toString().trim());
 		}
 		
 		samples = new ArrayList<>(maxSize);
 		
 		if(properties.containsKey("sampleSize")){
-			this.sampleSize = Integer.parseInt(properties.get("sampleSize").toString());
+			this.sampleSize = Integer.parseInt(properties.get("sampleSize").toString().trim());
 		}
 		
 		

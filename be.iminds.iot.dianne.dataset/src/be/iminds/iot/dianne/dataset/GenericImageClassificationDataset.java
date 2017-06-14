@@ -69,7 +69,7 @@ public class GenericImageClassificationDataset extends ImageClassificationDatase
 					targetsInput));
 			String s;
 			while ((s = reader.readLine()) != null) {
-				int clazz = Integer.parseInt(s);
+				int clazz = Integer.parseInt(s.trim());
 				targets[i++] = clazz;
 			}
 			reader.close();
