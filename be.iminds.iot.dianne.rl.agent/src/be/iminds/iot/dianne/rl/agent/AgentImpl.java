@@ -334,6 +334,10 @@ public class AgentImpl implements Agent {
 					}
 					s.reward.set(reward, 0);
 					
+					// update progress
+					progress.reward+=reward;
+					progress.iterations++;
+					
 					// get the next state
 					s.nextState = env.getObservation(s.nextState);
 					
@@ -347,10 +351,6 @@ public class AgentImpl implements Agent {
 						s.terminal = new Tensor(1);
 					}
 					s.terminal.set(s.nextState == null ? 0.0f : 1.0f, 0);
-					
-					// update progress
-					progress.reward+=reward;
-					progress.iterations++;
 					
 					// upload in batch
 					if(pool != null) {
