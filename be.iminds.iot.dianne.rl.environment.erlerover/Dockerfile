@@ -56,7 +56,9 @@ RUN mkdir -p ~/.gazebo/models && \
 WORKDIR /opt
 
 RUN mkdir -p ros_catkin_ws/src &&\
-    chown -R dianne:dianne ros_catkin_ws
+    chown -R dianne:dianne ros_catkin_ws &&\
+    mkdir ardupilot &&\
+    chown dianne:dianne ardupilot
 
 USER dianne
 

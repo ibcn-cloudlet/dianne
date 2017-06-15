@@ -48,5 +48,7 @@ RUN ./gradlew cleanAll -x :be.iminds.iot.dianne.rl.environment.ale:assemble asse
 # set default bndrun target
 ENV TARGET all
 
+EXPOSE 8080
+
 # run
 ENTRYPOINT ["/home/dianne/entrypoint.sh"]

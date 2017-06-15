@@ -27,8 +27,6 @@ services:
     tty: true
     depends_on:
      - coordinator
-    deploy:
-      replicas: 5
     environment:
       JAVA_TOOL_OPTIONS: '-Daiolos.connect=coordinator'
     healthcheck:
@@ -44,8 +42,6 @@ services:
     tty: true
     depends_on:
      - coordinator
-    deploy:
-      replicas: 1
     environment:
       TARGET: runtime.learner
       JAVA_TOOL_OPTIONS: '-Daiolos.connect=coordinator'
