@@ -442,6 +442,9 @@ public class AgentImpl implements Agent {
 		if(!acting)
 			return;
 		
+		// in case we are still processing the previous onProgrss, stall the agent
+		// this is to allow a listener to set the pace of the Agent, e.g. when
+		// the listener is a demo UI that wants to control the update rate
 		synchronized(listenerExecutor){
 			if(wait){
 				try {
