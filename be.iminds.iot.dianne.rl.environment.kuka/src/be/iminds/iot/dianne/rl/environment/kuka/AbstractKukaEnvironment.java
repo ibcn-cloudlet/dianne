@@ -92,6 +92,9 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 	
 	protected volatile boolean active = false;
 	protected boolean terminal = false;
+	protected Tensor simState = new Tensor(9);
+	protected Tensor lidar;
+	
 	protected Tensor observation;
 	protected Tensor noise;
 	
@@ -139,8 +142,14 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 	
 	@Override
 	public int[] observationDims() {
-		// observation from laser range scanner
-		return config.simState ? new int[]{9} : this.rangeSensors.size() > 1 ? new int[]{this.rangeSensors.size(), config.scanPoints} : new int[]{config.scanPoints};
+		if(config.simState)
+			return new int[]{9};
+		else if(config.appendSimState)
+			return new int[]{rangeSensors.size()*config.scanPoints+9};
+		else if(rangeSensors.size() > 1)
+			return  new int[]{rangeSensors.size(),config.scanPoints};
+		else 
+			return new int[]{config.scanPoints};
 	}
 
 	@Override
@@ -284,53 +293,64 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 	}
 	
 	protected void updateObservation(){
-		if(config.simState){
-			observation = new Tensor(9);
-			
+		if(config.simState || config.appendSimState){
 			// use simulator state as observation
 			Position youbotPosition = simulator.getPosition("youBot");
 			Orientation youbotOrientation = simulator.getOrientation("youBot");
 			Position canPosition = simulator.getPosition("Can1");
 			
-			observation.set(youbotPosition.x, 0);
-			observation.set(youbotPosition.y, 1);
-			observation.set(youbotPosition.z, 2);
+			simState.set(youbotPosition.x, 0);
+			simState.set(youbotPosition.y, 1);
+			simState.set(youbotPosition.z, 2);
 	
-			observation.set(youbotOrientation.alfa, 3);
-			observation.set(youbotOrientation.beta, 4);
-			observation.set(youbotOrientation.gamma, 5);
+			simState.set(youbotOrientation.alfa, 3);
+			simState.set(youbotOrientation.beta, 4);
+			simState.set(youbotOrientation.gamma, 5);
 	
-			observation.set(canPosition.x, 6);
-			observation.set(canPosition.y, 7);
-			observation.set(canPosition.z, 8);
-		} else {
-			// use sensor inputs as observation
-			int totalLength = 0;
-			synchronized (rangeSensors) {
-				for (LaserScanner ls : rangeSensors.values()) {
-					totalLength += ls.getValue().data.length;
-				}
-				try {
-					Iterator<LaserScanner> it = rangeSensors.values().iterator();
-					float[] data = it.next().getValue().data; // thorws NoSuchElementException on empty list
-					float[] result = Arrays.copyOf(data, totalLength);
-					int offset = data.length;
-					int dimension = data.length;
-					while(it.hasNext()) {
-						data = it.next().getValue().data;
-						System.arraycopy(data, 0, result, offset, data.length);
-					    offset += data.length;
-					}
-					observation = new Tensor(result, rangeSensors.size(), dimension);
-					if(config.rangeSensorNoise > 0) {
-						if(noise == null || !noise.sameDim(observation))
-							noise = new Tensor(observation.dims());
-						
-						noise.randn();
-						TensorOps.add(observation, observation, config.rangeSensorNoise, noise);
-					}
-				} catch (NoSuchElementException ex) {}
+			simState.set(canPosition.x, 6);
+			simState.set(canPosition.y, 7);
+			simState.set(canPosition.z, 8);
+		}
+		
+		// use sensor inputs as observation
+		int totalLength = 0;
+		synchronized (rangeSensors) {
+			for (LaserScanner ls : rangeSensors.values()) {
+				totalLength += ls.getValue().data.length;
 			}
+			try {
+				Iterator<LaserScanner> it = rangeSensors.values().iterator();
+				float[] data = it.next().getValue().data; // thorws NoSuchElementException on empty list
+				float[] result = Arrays.copyOf(data, totalLength);
+				int offset = data.length;
+				int dimension = data.length;
+				while(it.hasNext()) {
+					data = it.next().getValue().data;
+					System.arraycopy(data, 0, result, offset, data.length);
+				    offset += data.length;
+				}
+				if(lidar == null)
+					lidar = new Tensor(rangeSensors.size(), dimension);
+				
+				lidar.set(result);
+				if(config.rangeSensorNoise > 0) {
+					if(noise == null || !noise.sameDim(lidar))
+						noise = new Tensor(lidar.dims());
+					
+					noise.randn();
+					TensorOps.add(lidar, lidar, config.rangeSensorNoise, noise);
+				}
+			} catch (NoSuchElementException ex) {}
+		}
+		
+		if(config.simState){
+			observation = simState.clone();
+		} else if(config.appendSimState){
+			observation = new Tensor(lidar.size()+simState.size());
+			lidar.copyInto(observation.narrow(0, lidar.size()));
+			simState.copyInto(observation).narrow(lidar.size(), simState.size());
+		} else {
+			observation = lidar.clone();
 		}
 	}
 	

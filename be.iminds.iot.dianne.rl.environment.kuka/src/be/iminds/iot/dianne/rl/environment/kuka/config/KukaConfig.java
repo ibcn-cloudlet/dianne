@@ -8,6 +8,11 @@ public class KukaConfig {
 	public boolean simState = false;
 	
 	/**
+	 * Append simulation state to the observations
+	 */
+	public boolean appendSimState = false;
+	
+	/**
 	 * Energy penalization, discouraging the policy to go full speed on the motors. Energy is calculated as the norm of the action tensor.
 	 */
 	public float energyPenalization = 0f;
