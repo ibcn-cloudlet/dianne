@@ -97,7 +97,7 @@ public class Sequence<T extends Sample> implements Iterable <T>{
 		StringBuilder b = new StringBuilder();
 		for(int i=0;i<size;i++){
 			b.append("[").append(i).append("] ")
-			.append(data.get(i));
+			.append(data.get(i)).append("\n");
 		}
 		return b.toString();
 	}
