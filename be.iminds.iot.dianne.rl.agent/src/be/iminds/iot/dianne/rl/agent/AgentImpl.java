@@ -337,6 +337,11 @@ public class AgentImpl implements Agent {
 					// get the next state
 					s.nextState = env.getObservation(s.nextState);
 					
+					if(config.maxActions > 0 && config.maxActions <= progress.iterations){
+						// mark as terminal on maxActions?
+						s.nextState = null;
+					}
+					
 					// check if terminal
 					if(s.terminal == null){
 						s.terminal = new Tensor(1);
@@ -363,7 +368,7 @@ public class AgentImpl implements Agent {
 						b.nextState = s.isTerminal() ? null : s.nextState.copyInto(b.nextState);
 						count++;
 						
-						if(b.isTerminal() || (config.maxActions > 0 && config.maxActions <= progress.iterations)){
+						if(b.isTerminal()){
 							// sequence finished, upload to pool
 							upload = new Sequence<ExperiencePoolSample>(uploadBuffer.subList(0, count), count);
 							if(pool!=null){
@@ -378,7 +383,7 @@ public class AgentImpl implements Agent {
 					}
 	
 					// if this is a terminal state - reset environment and start over
-					if(s.isTerminal() || (config.maxActions > 0 && config.maxActions <= progress.iterations)){
+					if(s.isTerminal()){
 						
 						// trace agent per sequence
 						if(seq % config.traceInterval == 0){
