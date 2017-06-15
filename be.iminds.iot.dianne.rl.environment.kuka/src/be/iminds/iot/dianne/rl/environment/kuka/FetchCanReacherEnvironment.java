@@ -89,10 +89,12 @@ public class FetchCanReacherEnvironment extends AbstractFetchCanEnvironment {
 				|| simulator.checkCollisions("SelfCollision")
 				|| simulator.checkCollisions("Floor")
 				|| simulator.checkCollisions("Gripper")) {
+				// end sequence with original reward OR return negative reward
 				if (super.config.collisionTerminal) {
 					terminal = true;
-				} 
-				return -1.0f;
+				} else {
+					return -1.0f;
+				}
 			}
 		}
 		return super.calculateReward();

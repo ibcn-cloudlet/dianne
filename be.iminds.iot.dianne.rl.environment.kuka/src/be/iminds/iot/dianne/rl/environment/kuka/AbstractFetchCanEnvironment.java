@@ -62,10 +62,12 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 		if(simulator != null){
 			// if collision or can is too close
 			if(simulator.checkCollisions("Border")) {
+				// end sequence with original reward OR return negative reward
 				if (config.collisionTerminal) {
 					terminal = true;
-				} 
-				return -1.0f;
+				} else {
+					return -1.0f;
+				}
 			}
 			
 			float distance, canHeight;

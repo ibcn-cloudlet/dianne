@@ -97,10 +97,12 @@ public class DockingEnvironment extends AbstractFetchCanEnvironment {
 		if(simulator != null){
 			// if collision or can is too close
 			if(simulator.checkCollisions("Border")) {
+				// end sequence with original reward OR return negative reward
 				if (config.collisionTerminal) {
 					terminal = true;
+				} else {
+					return -1.0f;
 				}
-				return -1.0f;
 			}
 			
 			// calculate distance of youBot relative to dock point
