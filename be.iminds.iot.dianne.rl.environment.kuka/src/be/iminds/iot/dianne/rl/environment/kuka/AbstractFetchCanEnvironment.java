@@ -165,13 +165,17 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 	}
 	
 	protected void initSimulator() throws Exception {
+		long start = System.currentTimeMillis();
+
 		boolean init = false;
 		do {
 			resetEnvironment();
 			
 			simulator.start(config.tick);
 			if(config.tick){
-				simulator.tick();
+				try {
+					simulator.tick();
+				} catch(TimeoutException e){}
 			}
 			
 			init = !checkCollisions();
@@ -181,12 +185,15 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 				Thread.sleep(200);
 			}
 			
+			if(System.currentTimeMillis()-start > config.timeout){
+				System.out.println("Failed to find non colliding start setup in environment... Try again");
+				throw new Exception("Failed to initialize Kuka environment");
+			}
 		} while(!init);
 		
 		
 		// TODO there might be an issue with range sensor not coming online at all
 		// should be fixed in robot project?
-		long start = System.currentTimeMillis();
 		while(kukaArm == null 
 				|| kukaPlatform == null
 				|| (!super.config.simState && rangeSensors.size() !=  1 + config.environmentSensors)){
@@ -195,7 +202,7 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 				if(config.tick){
 					simulator.tick();
 				}
-			} catch (InterruptedException|TimeoutException e) {}
+			} catch (TimeoutException e) {}
 			
 			if(System.currentTimeMillis()-start > config.timeout){
 				System.out.println("Failed to initialize youbot/laserscanner in environment... Try again");
@@ -204,16 +211,16 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 		}
 		
 		if(config.candleInit){
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {} 
+			Thread.sleep(1000);
 			
 			// reset arm to candle
 			Promise<Arm> p = kukaArm.setPositions(2.92510465f, 1.103709733f, -2.478948503f, 1.72566195f, 2.765485f);
 			// simulate an iteration further
 			while(!p.isDone() && System.currentTimeMillis()-start <= config.timeout) {
 				if (config.tick) {
-					simulator.tick();
+					try {
+						simulator.tick();
+					} catch(TimeoutException e){}
 				} else {
 					Thread.sleep(100);
 				}
