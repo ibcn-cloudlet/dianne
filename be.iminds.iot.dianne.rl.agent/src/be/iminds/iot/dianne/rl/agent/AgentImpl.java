@@ -70,8 +70,8 @@ public class AgentImpl implements Agent {
 
 	private UUID agentId;
 	
-	private ExecutorService listenerExecutor = Executors.newSingleThreadExecutor(); 
-	private List<AgentListener> listeners = Collections.synchronizedList(new ArrayList<>());
+	private final ExecutorService listenerExecutor = Executors.newSingleThreadExecutor(); 
+	private final List<AgentListener> listeners = Collections.synchronizedList(new ArrayList<>());
 	private volatile boolean wait = false;
 	
 	private Map<String, Environment> envs = new HashMap<String, Environment>();
