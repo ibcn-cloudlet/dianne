@@ -41,6 +41,8 @@ USER dianne
 # build and export Gym runtime
 RUN ./gradlew -x :be.iminds.iot.dianne.rl.environment.ale:assemble assemble export.runtime.agent.gym
 
+# set default target
+ENV TARGET runtime.agent.gym
 
 # run
 ENTRYPOINT ["/home/dianne/be.iminds.iot.dianne.rl.environment.gym/entrypoint.sh"]

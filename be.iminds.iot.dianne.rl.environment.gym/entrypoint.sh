@@ -3,4 +3,4 @@
 Xvfb :99 &
 
 cd /home/dianne/tools
-java $* -jar generated/distributions/executable/runtime.agent.gym.jar
+java $* -jar generated/distributions/executable/$TARGET.jar

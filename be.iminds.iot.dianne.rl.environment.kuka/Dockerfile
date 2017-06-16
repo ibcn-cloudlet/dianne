@@ -54,5 +54,9 @@ USER dianne
 RUN ./gradlew -x :be.iminds.iot.dianne.rl.environment.ale:assemble assemble export.runtime.agent.kuka
 
 ENV DISPLAY :99
+
+# set default target
+ENV TARGET runtime.agent.kuka
+
 # run
 ENTRYPOINT ["/home/dianne/be.iminds.iot.dianne.rl.environment.kuka/entrypoint.sh"]

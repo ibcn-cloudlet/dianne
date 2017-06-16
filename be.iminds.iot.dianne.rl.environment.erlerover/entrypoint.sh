@@ -14,4 +14,4 @@ sleep 1
 sleep 5
 
 cd /home/dianne/tools
-java -Dgazebo.headless=true $* -jar generated/distributions/executable/runtime.agent.rover.jar
+java -Dgazebo.headless=true $* -jar generated/distributions/executable/$TARGET.jar

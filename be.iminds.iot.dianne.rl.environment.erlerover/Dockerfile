@@ -103,7 +103,10 @@ USER dianne
 # build and export Rover runtime
 RUN ./gradlew -x :be.iminds.iot.dianne.rl.environment.ale:assemble assemble export.runtime.agent.rover
 
-
 ENV DISPLAY :99
+
+# set default target
+ENV TARGET runtime.agent.rover
+
 # run
 ENTRYPOINT ["/home/dianne/be.iminds.iot.dianne.rl.environment.erlerover/entrypoint.sh"]
