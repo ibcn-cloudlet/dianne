@@ -499,4 +499,92 @@ public class ExperiencePoolTest {
 			}
 		}
 	}
+	
+	@Test
+	public void testInfiniteHorizon() throws Exception {
+		Assert.assertEquals(0, pool.size());
+		Assert.assertEquals(0, pool.sequences());
+		
+		// first sequence
+		List<ExperiencePoolSample> sequence = new ArrayList<>();
+		sequence.add(new ExperiencePoolSample(s0, a0, 0, s1));
+		sequence.add(new ExperiencePoolSample(s1, a1, 0, s2));
+		sequence.add(new ExperiencePoolSample(s2, a2, 0, s3));
+		sequence.add(new ExperiencePoolSample(s3, a3, 1, s4));
+		pool.addSequence(new Sequence<ExperiencePoolSample>(sequence, 4));
+		
+		Assert.assertEquals(4, pool.size());
+		Assert.assertEquals(1, pool.sequences());
+
+		// second sequence
+		List<ExperiencePoolSample> sequence2 = new ArrayList<>();
+		// use s1 here as start so we can check whether we correctly cycled
+		// this sample should be sample 0 after cycling
+		sequence2.add(new ExperiencePoolSample(s1, a0, 0, s1));
+		sequence2.add(new ExperiencePoolSample(s1, a1, 0, s2));
+		sequence2.add(new ExperiencePoolSample(s2, a2, 0, s3));
+		sequence2.add(new ExperiencePoolSample(s3, a3, 0, s4));
+		sequence2.add(new ExperiencePoolSample(s4, a4, 0, s5));
+		pool.addSequence(new Sequence<ExperiencePoolSample>(sequence2, 5));
+		
+		Assert.assertEquals(9, pool.size());
+		Assert.assertEquals(2, pool.sequences());
+		
+		// this should be last sample of sequence1
+		ExperiencePoolSample s = pool.getSample(3);
+		Assert.assertEquals(s3, s.getState());
+		Assert.assertEquals(a3, s.getAction());
+		Assert.assertEquals(1.0f, s.getScalarReward());
+		Assert.assertEquals(s4, s.getNextState()); //next state should be correct!
+		Assert.assertEquals(false, s.isTerminal());
+		
+		// this should be first sample of sequence2
+		s = pool.getSample(4);
+		Assert.assertEquals(s1, s.getState());
+		Assert.assertEquals(a0, s.getAction());
+		Assert.assertEquals(0.0f, s.getScalarReward());
+		Assert.assertEquals(s1, s.getNextState());
+		Assert.assertEquals(false, s.isTerminal());
+		
+		// this should be second sample of sequence2
+		s = pool.getSample(5);
+		Assert.assertEquals(s1, s.getState());
+		Assert.assertEquals(a1, s.getAction());
+		Assert.assertEquals(0.0f, s.getScalarReward());
+		Assert.assertEquals(s2, s.getNextState());
+		Assert.assertEquals(false, s.isTerminal());
+		
+		
+		// should cycle when adding sequence3 - sequence 1 removed
+		List<ExperiencePoolSample> sequence3 = new ArrayList<>();
+		sequence3.add(new ExperiencePoolSample(s0, a0, 0, s1));
+		sequence3.add(new ExperiencePoolSample(s1, a1, 0, s2));
+		sequence3.add(new ExperiencePoolSample(s2, a2, 0, s3));
+		sequence3.add(new ExperiencePoolSample(s3, a3, 1, s4));
+		pool.addSequence(new Sequence<ExperiencePoolSample>(sequence3, 4));
+		
+		// this should now be first sample of sequence2
+		s = pool.getSample(0);
+		Assert.assertEquals(s1, s.getState());
+		Assert.assertEquals(a0, s.getAction());
+		Assert.assertEquals(0.0f, s.getScalarReward());
+		Assert.assertEquals(s1, s.getNextState());
+		Assert.assertEquals(false, s.isTerminal());
+		
+		// this should be last sample of sequence2
+		s = pool.getSample(4);
+		Assert.assertEquals(s4, s.getState());
+		Assert.assertEquals(a4, s.getAction());
+		Assert.assertEquals(0.0f, s.getScalarReward());
+		Assert.assertEquals(s5, s.getNextState()); //next state should be correct!
+		Assert.assertEquals(false, s.isTerminal());
+		
+		// this should be first sample of sequence3
+		s = pool.getSample(5);
+		Assert.assertEquals(s0, s.getState());
+		Assert.assertEquals(a0, s.getAction());
+		Assert.assertEquals(0.0f, s.getScalarReward());
+		Assert.assertEquals(s1, s.getNextState()); //next state should be correct!
+		Assert.assertEquals(false, s.isTerminal());
+	}
 }

@@ -61,19 +61,29 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	protected int actionSize;
 	protected int sampleSize;
 	
+	protected boolean infiniteHorizon = false;
+	
 	protected ExecutorService queuedAddSequenceThread = Executors.newSingleThreadExecutor();
 	
 	public class SequenceLocation {
 		public final int start;
 		public final int length;
+		public final boolean infinite;
 		
 		public SequenceLocation(int start, int length){
 			this.start = start;
 			this.length = length;
+			this.infinite = false;
+		}
+		
+		public SequenceLocation(int start, int length, boolean infinite){
+			this.start = start;
+			this.length = length;
+			this.infinite = infinite;
 		}
 		
 		public String toString(){
-			return "Sequence start: "+start+" length: "+length;
+			return "Sequence start: "+start+" length: "+length+" infinite: "+infinite;
 		}
 	}
 	
@@ -167,7 +177,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	@Override
 	public ExperiencePoolSample getSample(ExperiencePoolSample s, int index){
 		// no locking since that kills performance and every part of the experience pool should be a valid xp sample
-		return getSample(s, index, sequences.get(0).start, true);
+		return getSample(s, index, 0, true);
 	}
 		
 	@Override
@@ -178,7 +188,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		
 		int i = 0;
 		for(int index : indices){
-			getSample(b.getSample(i++), index, sequences.get(0).start, true);
+			getSample(b.getSample(i++), index, 0, true);
 		}
 		
 		return b;
@@ -227,9 +237,9 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 				}
 				
 				if(i==0){
-					getSample(sample, i, seq.start+index, true);
+					getSample(sample, i+index, sequence, true);
 				} else {
-					getSample(sample, i, seq.start+index, false);
+					getSample(sample, i+index, sequence, false);
 				}
 				
 				previous = sample;
@@ -322,7 +332,15 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 			throw new RuntimeException("Null sequence given");
 		}
 
-		int size = sequence.size();
+		int length = sequence.size();
+		int size = length;
+		boolean infinite = false;
+		if(!sequence.get(size-1).isTerminal()){
+			size += 1;
+			infinite = true;
+			infiniteHorizon = true;
+		}
+		
 		if(size > maxSize){
 			// this cannot be stored in this pool
 			System.out.println("Warning, a sequence of length "+size+" cannot be stored in this pool");
@@ -361,11 +379,19 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 				noSamples -= removed.length;
 			}
 			
-			for(ExperiencePoolSample s : sequence.data){
-				System.arraycopy(s.input.get(), 0, buffer, 0 , stateSize);
-				System.arraycopy(s.target.get(), 0, buffer, stateSize, actionSize);
-				buffer[stateSize+actionSize] = s.getScalarReward();
-				buffer[stateSize+actionSize+1] = s.isTerminal() ? 0.0f : 1.0f;
+			for(int i=0;i<size;i++){
+				Arrays.fill(buffer, 0.0f);
+				if(sequence.size() == i){
+					ExperiencePoolSample s = sequence.get(sequence.size()-1);
+					System.arraycopy(s.nextState.get(), 0, buffer, 0 , stateSize);
+					buffer[stateSize+actionSize+1] = 1.0f;
+				} else {
+					ExperiencePoolSample s = sequence.get(i);
+					System.arraycopy(s.input.get(), 0, buffer, 0 , stateSize);
+					System.arraycopy(s.target.get(), 0, buffer, stateSize, actionSize);
+					buffer[stateSize+actionSize] = s.getScalarReward();
+					buffer[stateSize+actionSize+1] = s.isTerminal() ? 0.0f : 1.0f;
+				}
 				
 				if(index == maxSize){
 					// cycle 
@@ -386,9 +412,9 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 				index++;
 			}
 			
-			SequenceLocation seq = new SequenceLocation(start, size);
+			SequenceLocation seq = new SequenceLocation(start, length, infinite);
 			sequences.add(seq);
-			noSamples+= size;
+			noSamples+= length;
 			
 		} catch(Throwable t){ 
 			t.printStackTrace();
@@ -410,10 +436,11 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		
 	}
 
-	protected ExperiencePoolSample getSample(ExperiencePoolSample s, int index, int start, boolean loadState){
+	protected ExperiencePoolSample getSample(ExperiencePoolSample s, int index, int startSequence, boolean loadState){
 		float[] sampleBuffer = new float[sampleSize];
 		
-		loadData(getBufferPosition(index, start), sampleBuffer);
+		long bufferPosition  = getBufferPosition(index, startSequence);
+		loadData(bufferPosition*sampleSize, sampleBuffer);
 		
 		if(s == null){
 			s = new ExperiencePoolSample();	
@@ -457,7 +484,11 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		if(!s.isTerminal()){
 			// load next state
 			float[] nextStateBuffer = new float[stateSize];
-			loadData(getBufferPosition(index+1, start), nextStateBuffer);
+			bufferPosition += 1;
+			if(bufferPosition == maxSize)
+				bufferPosition = 0;
+			
+			loadData((bufferPosition*sampleSize) , nextStateBuffer);
 
 			if(s.nextState == null){
 				s.nextState = new Tensor(nextStateBuffer, stateDims);
@@ -474,9 +505,29 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		return s;
 	}
 	
-	private long getBufferPosition(long index, long start){
-		long pos = (start+index) % maxSize;
-		return pos*sampleSize;
+	private long getBufferPosition(long index, int startSequence){
+		long pos;
+		long start = sequences.get(startSequence).start;
+		if(!infiniteHorizon){
+			pos = (start+index) % maxSize;
+		} else {
+			int i = startSequence;
+			long trackedIndex = 0;
+			long correctedIndex = 0;
+			while(i < sequences.size() && trackedIndex < index){
+				int length = sequences.get(i).length;
+				trackedIndex += length;
+				correctedIndex += length;
+				if(trackedIndex > index){
+					correctedIndex -= (trackedIndex-index);
+				} else if(sequences.get(i).infinite){
+					correctedIndex +=1;
+				}
+				i++;
+			}
+			pos = (start+correctedIndex) % maxSize;
+		}
+		return pos;
 	}
 	
 	private int getBufferStart(){
@@ -489,7 +540,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		if(sequences.isEmpty())
 			return 0;
 		SequenceLocation last = sequences.get(sequences.size() - 1);
-		return  (last.start+last.length) % maxSize;
+		return  (last.start+last.length + (last.infinite ? 1 : 0)) % maxSize;
 	}
 	
 	protected abstract void setup(Map<String, Object> config);
@@ -538,6 +589,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 				for(SequenceLocation s : sequences){
 					out.writeInt(s.start);
 					out.writeInt(s.length);
+					out.writeBoolean(s.infinite);
 				}
 				out.flush();
 			}
@@ -559,8 +611,11 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 				while(true){
 					int start = in.readInt();
 					int length = in.readInt();
+					boolean infinite = in.readBoolean();
+					if(infinite)
+						infiniteHorizon = true;
 					
-					SequenceLocation s = new SequenceLocation(start, length);
+					SequenceLocation s = new SequenceLocation(start, length, infinite);
 					sequences.add(s);
 		
 					noSamples+=length;
