@@ -38,6 +38,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
@@ -369,8 +370,17 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 				e.printStackTrace();
 				// try to kill the simulator?! - this is hacky!
 				// TODO this should be fixed in the robot project?
-				System.out.println("Kill vrep!");
-				Runtime.getRuntime().exec("pkill -9 vrep");
+				System.out.println("Shutdown vrep!");
+				Process process = Runtime.getRuntime().exec("pkill vrep");
+				boolean done = process.waitFor(10, TimeUnit.SECONDS);
+				if (!done || process.exitValue() != 0) {
+					System.err.println("Kill vrep!");
+					process = Runtime.getRuntime().exec("pkill -9 vrep");
+					done = process.waitFor(1, TimeUnit.MINUTES);
+					if (!done || process.exitValue() != 0) {
+						System.err.println("Unable to kill vrep!");
+					}
+				}
                 simulator = null;
             	System.out.println("Unexpected simulator error, waiting for simulator to come back online...");
 				long start = System.currentTimeMillis();
