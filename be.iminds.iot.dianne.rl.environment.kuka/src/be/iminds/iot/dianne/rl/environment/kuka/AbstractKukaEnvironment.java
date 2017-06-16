@@ -404,11 +404,7 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		if(simulator == null)
 			return false;
 		
-		return simulator.checkCollisions("Border") 
-				|| simulator.checkCollisions("BorderArm") 
-				|| simulator.checkCollisions("SelfCollision")
-				|| simulator.checkCollisions("Floor")
-				|| simulator.checkCollisions("Gripper");
+		return simulator.checkCollisions("Border");
 	}
 
 	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)

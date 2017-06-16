@@ -81,26 +81,6 @@ public class FetchCanReacherEnvironment extends AbstractFetchCanEnvironment {
 	}
 	
 	@Override
-	protected float calculateReward() throws Exception {
-		// calculate reward based on simulator info
-		if(simulator != null){
-			// additional collision checks here
-			if(simulator.checkCollisions("BorderArm") 
-				|| simulator.checkCollisions("SelfCollision")
-				|| simulator.checkCollisions("Floor")
-				|| simulator.checkCollisions("Gripper")) {
-				// end sequence with original reward OR return negative reward
-				if (super.config.collisionTerminal) {
-					terminal = true;
-				} else {
-					return -1.0f;
-				}
-			}
-		}
-		return super.calculateReward();
-	}
-	
-	@Override
 	protected void updateObservation(){
 		super.updateObservation();
 		int jointLength = this.kukaArm.getState().size();
@@ -199,5 +179,17 @@ public class FetchCanReacherEnvironment extends AbstractFetchCanEnvironment {
 		this.config = DianneConfigHandler.getConfig(config, FetchCanReacherConfig.class);
 		
 		super.configure(config);
+	}
+	
+	@Override
+	protected boolean checkCollisions(){
+		if(simulator == null)
+			return false;
+		
+		return simulator.checkCollisions("Border") 
+				|| simulator.checkCollisions("BorderArm") 
+				|| simulator.checkCollisions("SelfCollision")
+				|| simulator.checkCollisions("Floor")
+				|| simulator.checkCollisions("Gripper");
 	}
 }
