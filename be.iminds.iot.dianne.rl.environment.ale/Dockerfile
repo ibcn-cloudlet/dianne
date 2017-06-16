@@ -15,6 +15,8 @@ USER dianne
 # build and export ALE runtime
 RUN ./gradlew assemble export.runtime.agent.ale
 
+# set default target
+ENV TARGET runtime.agent.ale
 
 # run
 ENTRYPOINT ["/home/dianne/be.iminds.iot.dianne.rl.environment.ale/entrypoint.sh"]
