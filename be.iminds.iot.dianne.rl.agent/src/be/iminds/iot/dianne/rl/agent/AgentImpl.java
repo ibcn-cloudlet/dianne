@@ -90,6 +90,8 @@ public class AgentImpl implements Agent {
 	private Thread actingThread;
 	private long seq = 0;
 	private long episode = 0;
+	private float maxReward = Float.MIN_VALUE;
+
 	private volatile boolean acting;
 	
 	private ActionStrategy strategy;
@@ -99,6 +101,7 @@ public class AgentImpl implements Agent {
 	private List<ExperiencePoolSample> uploadBuffer;
 	private Sequence<ExperiencePoolSample> upload; 
 	private int count = 0;
+
 	
 	// repository listener to sync with repo
 	private BundleContext context;
@@ -291,6 +294,7 @@ public class AgentImpl implements Agent {
 				count = 0;
 				seq = 0;
 				episode = 0;
+				maxReward = -Float.MAX_VALUE;
 				
 				// setup action strategy
 				strategy.setup(properties, env, nns);
@@ -391,6 +395,15 @@ public class AgentImpl implements Agent {
 								System.out.println(progress);
 							
 							publishProgress(progress);
+						}
+						
+						if(config.tagBest){
+							if(progress.reward > maxReward){
+								maxReward = progress.reward;
+								for(NeuralNetwork nn : nns){
+									nn.storeParameters(config.tag,"best");
+								}
+							}
 						}
 						
 						seq++;

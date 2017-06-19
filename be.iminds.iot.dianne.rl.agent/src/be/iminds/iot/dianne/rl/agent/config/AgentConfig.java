@@ -54,4 +54,8 @@ public class AgentConfig {
 	 */
 	public int maxActions = -1;
 
+	/**
+	 * Tag parameters that got best reward in a sequence
+	 */
+	public boolean tagBest = true;
 }
