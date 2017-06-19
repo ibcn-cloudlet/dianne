@@ -23,6 +23,7 @@
 package be.iminds.iot.dianne.api.dataset;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Activate;
@@ -91,9 +92,6 @@ public abstract class AbstractDataset implements Dataset {
 		
 		init(properties);
 
-		if(labelsFile != null)
-			readLabels(labelsFile);
-		
 		if(inputDims != null){
 			inputSize = 1;
 			for(int i=0;i<inputDims.length;i++){
@@ -102,7 +100,7 @@ public abstract class AbstractDataset implements Dataset {
 		} else {
 			inputSize = -1;
 		}
-		
+
 		if(targetDims != null){
 			targetSize = 1;
 			for(int i=0;i<targetDims.length;i++){
@@ -111,7 +109,9 @@ public abstract class AbstractDataset implements Dataset {
 		} else {
 			targetSize = -1;
 		}
-		
+
+		if(labelsFile != null)
+			readLabels(labelsFile);
 	}
 	
 	protected abstract void init(Map<String, Object> properties);
