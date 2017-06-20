@@ -448,7 +448,7 @@ function createRunModuleDialog(id, moduleItem){
 		
 		dialog.find(".content").append("<button class='btn' onclick='forwardRawInput(this, \""+module.input+"\")' style=\"margin-left:10px\">Submit</button>");
 		
-	} else if(module.category ==="Visualize" || module.type==="Youbot"){
+	} else if(module.category ==="Visualize" || module.type==="Youbot" || module.type==="Rover"){
 		if(module.type ==="ProbabilityOutput"){		
 			dialog = renderTemplate("dialog", {
 				id : id,
@@ -462,7 +462,7 @@ function createRunModuleDialog(id, moduleItem){
 			var index = Number($("#dialog-"+module.id).find(".content").attr("data-highcharts-chart"));
 			Highcharts.charts[index].yAxis[0].setExtremes(0,1);
 			
-		} else if(module.type ==="Youbot"){		
+		} else if(module.type ==="Youbot" || module.type ==="Rover"){		
 			dialog = renderTemplate("dialog", {
 				id : id,
 				type: "output",
@@ -562,6 +562,21 @@ function createRunModuleDialog(id, moduleItem){
 										Highcharts.charts[index].series[0].setData(output.probabilities, true, true, true);
 										Highcharts.charts[index].xAxis[0].setCategories(['Left','Right','Forward','Backward','Turn Left','Turn Right','Grip']);
 									}
+								}
+							}
+						}  else if(module.type === "Rover"){
+							var attr = $("#dialog-"+module.id).find(".content").attr("data-highcharts-chart");
+							if(attr!==undefined){
+								var index = Number(attr);
+								if(output.data.length == 2){
+									Highcharts.charts[index].series[0].setData(output.data, true, true, true);
+									Highcharts.charts[index].xAxis[0].setCategories(['throttle','yaw']);
+								} else if(output.data.length == 3){
+									Highcharts.charts[index].series[0].setData(output.data, true, true, true);
+									Highcharts.charts[index].xAxis[0].setCategories(['forward','left','right']);
+								} else if(output.data.length == 4){
+									Highcharts.charts[index].series[0].setData(output.data, true, true, true);
+									Highcharts.charts[index].xAxis[0].setCategories(['forward','left','right','stop']);
 								}
 							}
 						} else if(module.type === "LaserScan"){
