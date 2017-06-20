@@ -105,8 +105,9 @@ public class DockingEnvironment extends AbstractFetchCanEnvironment {
 				}
 			}
 			
-			// calculate distance of youBot relative to dock point
-			Position p = simulator.getPosition("dock_ref", "youBot_ref");
+			// calculate distance of youBot relative to dock point ... 
+			// reuse positionTargetCan to encourage the robot to turn towards the dock point
+			Position p = simulator.getPosition("dock_ref", "youBot_positionTargetCan");
 			float distance = (float)Math.hypot(p.x, p.y);
 			
 			// max reward in radius of can by setting the distance to 0
@@ -154,7 +155,8 @@ public class DockingEnvironment extends AbstractFetchCanEnvironment {
 	@Override
 	protected void resetEnvironment(){
 		simulator.setPosition("Plane1", new Position(0.2925f, 0.9f, 0.15f));
-		simulator.setPosition("dock_ref", new Position(0.6f, 0.9f, 0f));
+		// put the dock_ref slightly outside the border and train to match this with the targetCanPosition
+		simulator.setPosition("dock_ref", new Position(0.6f, 1.5f, 0f));
 		super.resetYoubot();
 	}
 }

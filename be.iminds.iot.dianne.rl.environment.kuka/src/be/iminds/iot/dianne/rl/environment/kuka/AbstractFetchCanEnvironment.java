@@ -79,11 +79,11 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 				distance = (float)Math.sqrt(p.x*p.x+p.y*p.y+p.z*p.z);
 			} else {
 				// calculate distance of youBot relative to can
-				Position p = simulator.getPosition("can_ref", "youBot_ref");
+				Position p = simulator.getPosition("can_ref", "youBot_positionTargetCan");
 				distance = (float)Math.hypot(p.x, p.y);
 				canHeight = p.z;
 			}
-
+			
 			// can is invisible to laser and can't be gripped anymore
 			if (canHeight < -0.003) {
 				terminal = true;
@@ -293,7 +293,6 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 		simulator.setPosition("Can1", new Position(x, y, 0.06f));
 		
 	}
-	
 	
 	@Override
 	public void configure(Map<String, String> config) {
