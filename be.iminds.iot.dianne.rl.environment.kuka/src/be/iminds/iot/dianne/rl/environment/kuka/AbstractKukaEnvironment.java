@@ -364,38 +364,49 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 			waitForResume();
 			
 		} else {
-			try {
-				initSimulator();
-			} catch(Exception e){
-				e.printStackTrace();
-				// try to kill the simulator?! - this is hacky!
-				// TODO this should be fixed in the robot project?
-				System.out.println("Shutdown vrep!");
-				Process process = Runtime.getRuntime().exec("pkill vrep");
-				boolean done = process.waitFor(10, TimeUnit.SECONDS);
-				if (!done || process.exitValue() != 0) {
-					System.err.println("Kill vrep!");
-					process = Runtime.getRuntime().exec("pkill -9 vrep");
-					done = process.waitFor(1, TimeUnit.MINUTES);
-					if (!done || process.exitValue() != 0) {
-						System.err.println("Unable to kill vrep!");
+			int count = 0;
+			boolean retrying = true;
+			while (retrying) {
+				if (count > 0) System.out.printf("Retrying simulator initialization: %d/%d retries\n", count+1, config.maxRetries);
+				try {
+					try {
+						initSimulator();
+					} catch(Exception e){
+						e.printStackTrace();
+						// try to kill the simulator?! - this is hacky!
+						// TODO this should be fixed in the robot project?
+						System.out.println("Shutdown vrep!");
+						Process process = Runtime.getRuntime().exec("pkill vrep");
+						boolean done = process.waitFor(10, TimeUnit.SECONDS);
+						if (!done || process.exitValue() != 0) {
+							System.err.println("Kill vrep!");
+							process = Runtime.getRuntime().exec("pkill -9 vrep");
+							done = process.waitFor(1, TimeUnit.MINUTES);
+							if (!done || process.exitValue() != 0) {
+								throw new Exception("Unable to kill vrep!");
+							}
+						}
+		                simulator = null;
+		            	System.out.println("Unexpected simulator error, waiting for simulator to come back online...");
+						long start = System.currentTimeMillis();
+		                while(simulator == null){
+		                	if(System.currentTimeMillis()-start > config.timeout){
+		                      	throw new Exception("Failed to restart simulator. Timeout exceeded.");
+		                    }
+		                	
+		                	Thread.sleep(1000);
+		                }
+		                
+		                // configure it again from scratch
+		                configure(configMap);
+		                
+		                initSimulator();
 					}
+					retrying = false;
+				} catch (Exception e2) {
+					e2.printStackTrace();
+					if (++count >= config.maxRetries) throw new Exception("Maximum retries exceeded.", e2);
 				}
-                simulator = null;
-            	System.out.println("Unexpected simulator error, waiting for simulator to come back online...");
-				long start = System.currentTimeMillis();
-                while(simulator == null){
-                	if(System.currentTimeMillis()-start > config.timeout){
-                      	throw new Exception("Failed to restart simulator");
-                    }
-                	
-                	Thread.sleep(1000);
-                }
-                
-                // configure it again from scratch
-                configure(configMap);
-                
-                initSimulator();
 			}
 		}
 	}

@@ -46,4 +46,9 @@ public class KukaConfig {
 	 * Ms to wait when stopping a simulation of the simulator.
 	 */
 	public int wait = 200;
+	
+	/**
+	 * Maximum simulator initialization retries.
+	 */
+	public int maxRetries = 10;
 }
