@@ -46,6 +46,7 @@ public class LearnProgress {
 	public LearnProgress(long iteration, float loss){
 		this.iteration = iteration;
 		this.minibatchLoss = loss;
+		this.extra = Collections.unmodifiableMap(new HashMap<>());
 	}
 	
 	public LearnProgress(long iteration, float loss, String[] labels, float[] values){
