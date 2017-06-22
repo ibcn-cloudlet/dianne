@@ -23,6 +23,7 @@
 package be.iminds.iot.dianne.nn.eval.strategy;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -40,6 +41,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 public abstract class AbstractEvaluationStrategy implements EvaluationStrategy {
 	
+	protected Map<String, String> configMap;
 	protected EvaluationStrategyConfig config;
 	
 	protected Dataset dataset;
@@ -59,6 +61,7 @@ public abstract class AbstractEvaluationStrategy implements EvaluationStrategy {
 
 	@Override
 	public void setup(Map<String, String> config, Dataset dataset, NeuralNetwork... nns) throws Exception {
+		this.configMap = config;
 		this.dataset = dataset;
 		this.nn = nns[0];
 		
@@ -84,6 +87,9 @@ public abstract class AbstractEvaluationStrategy implements EvaluationStrategy {
 			if(i+indices.length > total){
 				indices = new int[(int)(total-i)];
 				batch = null;
+				HashMap<String, String> newConfig = new HashMap<>(configMap);
+				newConfig.put("batchSize", ""+indices.length);
+				init(newConfig);
 			}
 			
 			for(int b=0;b<indices.length;b++)
