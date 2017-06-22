@@ -75,7 +75,7 @@ public class DianneData extends HttpServlet {
 			synchronized(datasets){
 				for(DatasetDTO d : datasets.getDatasets()){
 					JsonObject r = new JsonObject();
-					r.add("dataset", new JsonPrimitive(d.name));
+					r.add("name", new JsonPrimitive(d.name));
 					r.add("size", new JsonPrimitive(d.size));
 					if(d.inputType != null)
 						r.add("inputType", new JsonPrimitive(d.inputType));

@@ -199,8 +199,8 @@ function setupLearnToolbox(){
 			function( data ) {
 				$.each(data, function(index, dataset){
 					// add datasets to learn/run toolboxes
-					datasets[dataset.dataset] = dataset;
-					addToolboxItem(dataset.dataset, dataset.dataset, 'Dataset', 'learn');
+					datasets[dataset.name] = dataset;
+					addToolboxItem(dataset.name, dataset.name, 'Dataset', 'learn');
 				});
 			}
 			, "json");
@@ -215,8 +215,8 @@ function setupRunToolbox(){
 			function( data ) {
 				$.each(data, function(index, dataset){
 					// add datasets to learn/run toolboxes
-					datasets[dataset.dataset] = dataset;
-					addToolboxItem(dataset.dataset, dataset.dataset, 'Dataset', 'run');
+					datasets[dataset.name] = dataset;
+					addToolboxItem(dataset.name, dataset.name, 'Dataset', 'run');
 				});
 			}
 			, "json");
