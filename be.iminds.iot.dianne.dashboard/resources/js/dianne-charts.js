@@ -71,6 +71,15 @@ function createResultChart(container, job, scale){
 				var progress = learnprogress[i];
 				series[0].data.push({x: progress.iteration, y:progress.minibatchLoss});
 				
+				// handle validation loss separately
+				if(progress.validationLoss !== undefined){
+					if(series.length==1){
+						series.push({name:'validationLoss', data:[]});
+					} 
+					series[1].data.push({x: progress.iteration, y:progress.validationLoss});
+				}
+				
+				// any other stuff in learn progress
 				for (var key in progress.extra) {
 					var ok = false;
 					// add data point to correct series
