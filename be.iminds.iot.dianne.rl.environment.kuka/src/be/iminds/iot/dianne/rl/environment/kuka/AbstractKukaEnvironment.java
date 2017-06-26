@@ -371,6 +371,9 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 				try {
 					try {
 						initSimulator();
+					} catch(InterruptedException ie){
+						// just forward interrupt!
+						throw ie;
 					} catch(Exception e){
 						e.printStackTrace();
 						// try to kill the simulator?! - this is hacky!
@@ -403,6 +406,9 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		                initSimulator();
 					}
 					retrying = false;
+				} catch (InterruptedException ie2){
+					// just forward interrupt!
+					throw ie2;
 				} catch (Exception e2) {
 					e2.printStackTrace();
 					if (++count >= config.maxRetries) throw new Exception("Maximum retries exceeded.", e2);
