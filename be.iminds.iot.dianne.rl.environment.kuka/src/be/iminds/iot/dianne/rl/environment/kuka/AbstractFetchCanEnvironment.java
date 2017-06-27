@@ -184,7 +184,6 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 			
 			if(!init){
 				simulator.stop();
-				Thread.sleep(200);
 			}
 			
 			if(System.currentTimeMillis()-start > config.timeout){
@@ -199,12 +198,13 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 		while(kukaArm == null 
 				|| kukaPlatform == null
 				|| (!super.config.simState && rangeSensors.size() !=  1 + config.environmentSensors)){
-			try {
-				Thread.sleep(100);
-				if(config.tick){
+			if (config.tick) {
+				try {
 					simulator.tick();
-				}
-			} catch (TimeoutException e) {}
+				} catch(TimeoutException e){}
+			} else {
+				Thread.sleep(100);
+			}
 			
 			if(System.currentTimeMillis()-start > config.timeout){
 				System.out.println("Failed to initialize youbot/laserscanner in environment... Try again");
@@ -213,8 +213,6 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 		}
 		
 		if(config.candleInit){
-			Thread.sleep(1000);
-			
 			// reset arm to candle
 			Promise<Arm> p = kukaArm.setPositions(2.92510465f, 1.103709733f, -2.478948503f, 1.72566195f, 2.765485f);
 			// simulate an iteration further
