@@ -338,6 +338,10 @@ public class AgentImpl implements Agent {
 					}
 					s.reward.set(reward, 0);
 					
+					if(config.traceReward){
+						System.out.println("[AGENT] Iteration: "+progress.iterations+" Reward: "+reward);
+					}
+
 					// update progress
 					progress.reward+=reward;
 					progress.iterations++;

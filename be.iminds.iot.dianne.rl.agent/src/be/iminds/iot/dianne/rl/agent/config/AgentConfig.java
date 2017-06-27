@@ -43,11 +43,16 @@ public class AgentConfig {
 	 * Output intermediate results to the console
 	 */
 	public boolean trace = false;
-	
+
 	/**
 	 * Interval to publish intermediate results
 	 */
 	public int traceInterval = 1;
+
+	/**
+	 * Trace rewards of all actions
+	 */
+	public boolean traceReward = false;
 	
 	/**
 	 * Max number of actions before terminating anyhow
