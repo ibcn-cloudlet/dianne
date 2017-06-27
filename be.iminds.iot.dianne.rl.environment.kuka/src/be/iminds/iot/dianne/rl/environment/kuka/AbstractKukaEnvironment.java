@@ -296,9 +296,15 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 	protected void updateObservation(){
 		if(config.simState || config.appendSimState){
 			// use simulator state as observation
-			Position youbotPosition = simulator.getPosition("youBot");
-			Orientation youbotOrientation = simulator.getOrientation("youBot");
-			Position canPosition = simulator.getPosition("Can1");
+			Position youbotPosition = simulator.getPosition("youBot_ref");
+			Orientation youbotOrientation = simulator.getOrientation("youBot_ref");
+			Position canPosition;
+			if(config.relativeCanState){
+				// relative position wrt arm reference frame
+				canPosition = simulator.getPosition("can_ref", "arm_ref");
+			} else {
+				canPosition = simulator.getPosition("can_ref");
+			}
 			
 			simState.set(youbotPosition.x, 0);
 			simState.set(youbotPosition.y, 1);
@@ -349,7 +355,7 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		} else if(config.appendSimState){
 			observation = new Tensor(lidar.size()+simState.size());
 			lidar.copyInto(observation.narrow(0, lidar.size()));
-			simState.copyInto(observation).narrow(lidar.size(), simState.size());
+			simState.copyInto(observation.narrow(lidar.size(), simState.size()));
 		} else {
 			observation = lidar.clone();
 		}

@@ -13,6 +13,11 @@ public class KukaConfig {
 	public boolean appendSimState = false;
 	
 	/**
+	 * Use relative can position (to the youbot) in simulation state
+	 */
+	public boolean relativeCanState = false;
+	
+	/**
 	 * Energy penalization, discouraging the policy to go full speed on the motors. Energy is calculated as the norm of the action tensor.
 	 */
 	public float energyPenalization = 0f;
