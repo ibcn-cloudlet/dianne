@@ -280,6 +280,11 @@ public class AgentImpl implements Agent {
 				repoListenerReg = context.registerService(RepositoryListener.class, new RepositoryListener() {
 					@Override
 					public synchronized void onParametersUpdate(UUID nnId, Collection<UUID> moduleIds, String... tag) {
+						for(String t : tag){
+							if(t.equals("best")){
+								return; // don't sync if we update ourselves with "best" tag
+							}
+						}
 						if(sync == false){
 							sync = true;
 							episode++;
