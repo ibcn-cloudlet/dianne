@@ -157,6 +157,11 @@ public class DockingEnvironment extends AbstractFetchCanEnvironment {
 		simulator.setPosition("Plane1", new Position(0.2925f, 0.9f, 0.15f));
 		// put the dock_ref slightly outside the border and train to match this with the targetCanPosition
 		simulator.setPosition("dock_ref", new Position(0.6f, 1.5f, 0f));
-		super.resetYoubot();
+		
+		Position p;
+		do {
+			super.resetYoubot();
+			p = simulator.getPosition("youBot");
+		} while(p.x > -0.1 && p.y > 0.1);
 	}
 }

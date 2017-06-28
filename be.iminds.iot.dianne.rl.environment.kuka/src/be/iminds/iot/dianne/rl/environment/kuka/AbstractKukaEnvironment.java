@@ -55,6 +55,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 import be.iminds.iot.robot.api.arm.Arm;
 import be.iminds.iot.robot.api.omni.OmniDirectional;
+import be.iminds.iot.ros.api.Ros;
 import be.iminds.iot.sensor.api.LaserScanner;
 import be.iminds.iot.simulator.api.Orientation;
 import be.iminds.iot.simulator.api.Position;
@@ -100,12 +101,17 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 	protected Tensor noise;
 	
 	// TODO for now limited to 1 youbot
-	protected OmniDirectional kukaPlatform;
-	protected Arm kukaArm;
+	protected volatile OmniDirectional kukaPlatform;
+	protected volatile Arm kukaArm;
 	protected SortedMap<String,LaserScanner> rangeSensors = Collections.synchronizedSortedMap(new TreeMap<>());;
 	
 	// Environment can be both simulated or on real robot
 	protected Simulator simulator;
+	
+	// Hook into ROS to check whether subscribers are there?
+	protected Ros ros;
+	
+	protected Object mutex = new Object();
 	
 	protected float reward = 0;
 	private volatile boolean pause = false;
@@ -245,6 +251,8 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 	}
 	
 	protected abstract void initSimulator() throws Exception;
+	
+	protected abstract void deinitSimulator();
 	
 	protected abstract void configure(Map<String, String> config);
 		
@@ -402,8 +410,7 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		                	if(System.currentTimeMillis()-start > config.timeout){
 		                      	throw new Exception("Failed to restart simulator. Timeout exceeded.");
 		                    }
-		                	
-		                	Thread.sleep(1000);
+		                	Thread.sleep(100);
 		                }
 		                
 		                // configure it again from scratch
@@ -425,7 +432,7 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 	
 	private void deinit(){
 		if(simulator != null){
-			simulator.stop();
+			deinitSimulator();
 		}
 	}
 	
@@ -453,29 +460,46 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 	@Reference(cardinality=ReferenceCardinality.OPTIONAL, policy=ReferencePolicy.DYNAMIC)
 	void setArm(Arm a){
 		this.kukaArm = a;
+		synchronized(mutex){
+			mutex.notifyAll();
+		}
 	}
 	
 	void unsetArm(Arm a){
 		this.kukaArm = null;
+		synchronized(mutex){
+			mutex.notifyAll();
+		}
 	}
 	
 	@Reference(cardinality=ReferenceCardinality.OPTIONAL, policy=ReferencePolicy.DYNAMIC)
 	void setPlatform(OmniDirectional o){
 		this.kukaPlatform = o;
+		synchronized(mutex){
+			mutex.notifyAll();
+		}
 	}
 	
 	void unsetPlatform(OmniDirectional o){
-		if(this.kukaPlatform==o)
-			this.kukaPlatform = null;
+		this.kukaPlatform = null;
+		synchronized(mutex){
+			mutex.notifyAll();
+		}
 	}
 	
 	@Reference(cardinality=ReferenceCardinality.MULTIPLE, policy=ReferencePolicy.DYNAMIC)
 	void bindLaserScanner(LaserScanner l, Map<String,String> config){
 		this.rangeSensors.put(config.get("name"), l);
+		synchronized(mutex){
+			mutex.notifyAll();
+		}
 	}
 	
 	void unbindLaserScanner(LaserScanner l, Map<String,String> config){
 		this.rangeSensors.remove(config.get("name"));
+		synchronized(mutex){
+			mutex.notifyAll();
+		}
 	}
 	
 	@Reference(cardinality=ReferenceCardinality.OPTIONAL, policy=ReferencePolicy.DYNAMIC)
@@ -487,6 +511,11 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		if(this.simulator == s){
 			this.simulator = s;
 		}
+	}
+	
+	@Reference
+	void setRos(Ros ros){
+		this.ros = ros;
 	}
 	
 	@Override

@@ -43,7 +43,7 @@ import be.iminds.iot.simulator.api.Position;
  */
 public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironment {
 	
-	protected static final float MAX_DISTANCE = 2.4f;
+	protected static final float MAX_DISTANCE = 3f;
 	protected static final float GRIP_DISTANCE = 0.565f;
 	protected static final float EPSILON = 1e-4f;
 	
@@ -169,29 +169,9 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 	protected void initSimulator() throws Exception {
 		long start = System.currentTimeMillis();
 
-		boolean init = false;
-		do {
-			resetEnvironment();
-			
-			simulator.start(config.tick);
-			if(config.tick){
-				try {
-					simulator.tick();
-				} catch(TimeoutException e){}
-			}
-			
-			init = !checkCollisions();
-			
-			if(!init){
-				simulator.stop();
-			}
-			
-			if(System.currentTimeMillis()-start > config.timeout){
-				System.out.println("Failed to find non colliding start setup in environment... Try again");
-				throw new Exception("Failed to initialize Kuka environment");
-			}
-		} while(!init);
-		
+		resetEnvironment();
+
+		simulator.start(config.tick);
 		
 		// TODO there might be an issue with range sensor not coming online at all
 		// should be fixed in robot project?
@@ -203,20 +183,40 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 					simulator.tick();
 				} catch(TimeoutException e){}
 			} else {
+				// TODO use wait/notify?
 				Thread.sleep(100);
 			}
-			
+
 			if(System.currentTimeMillis()-start > config.timeout){
 				System.out.println("Failed to initialize youbot/laserscanner in environment... Try again");
 				throw new Exception("Failed to initialize Kuka environment");
 			}
+			
+			if(!active)
+				throw new InterruptedException();
 		}
-		
+
+		// hack to make sure our commands are getting through
+		int cmd = 0;
+		do {
+			kukaArm.setPosition(0, 0.0f);
+			cmd = (int)simulator.getProperty("cmd");
+
+			if(System.currentTimeMillis()-start > config.timeout){
+				System.out.println("Failed to initialize youbot/laserscanner in environment... Try again");
+				throw new Exception("Failed to initialize Kuka environment");
+			}
+			
+			if(!active)
+				throw new InterruptedException();
+			
+		} while(cmd!=1);
+			
 		if(config.candleInit){
 			// reset arm to candle
 			Promise<Arm> p = kukaArm.setPositions(2.92510465f, 1.103709733f, -2.478948503f, 1.72566195f, 2.765485f);
 			// simulate an iteration further
-			while(!p.isDone() && System.currentTimeMillis()-start <= config.timeout) {
+			while(!p.isDone() && System.currentTimeMillis()-start <= config.timeout && active) {
 				if (config.tick) {
 					try {
 						simulator.tick();
@@ -231,13 +231,29 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 		calculateReward();
 	}
 	
+	protected void deinitSimulator(){
+		simulator.stop();
+
+		while(kukaArm != null 
+				|| kukaPlatform != null
+				|| rangeSensors.size() != 0){
+			try {
+				synchronized(mutex){
+					mutex.wait();
+				}
+			} catch (InterruptedException e) {
+			}		
+		}
+	}
+	
 	protected void resetEnvironment(){
 		// in simulation we can control the position of the youbot and can
 		// random init position and orientation of the robot
 		resetYoubot();
-					
+		
 		// set random can position
 		resetCan();
+				
 	}
 	
 	protected void resetYoubot(){
@@ -265,31 +281,37 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 	protected void resetCan(){
 		float x,y;
 		
-		switch (config.difficulty) {
-		case FetchCanConfig.FIXED:
-			x = 0;
-			y = GRIP_DISTANCE;
-			break;
-		case FetchCanConfig.WORKSPACE:
-			// start position in front in workspace
-			float d = r.nextFloat()*0.25f;
-			double a = (r.nextFloat()-0.5f)*Math.PI;
-			x = (float)Math.sin(a)*d;
-			y = 0.4f + (float)Math.cos(a)*d;
-			break;
-		case FetchCanConfig.VISIBLE:
-			x = (r.nextFloat()-0.5f)*1.6f;
-			y = (0.125f + 3*r.nextFloat()/8f)*2.4f;
-			break;
-		case FetchCanConfig.RANDOM:
-		default:
-			x = (r.nextFloat()-0.5f)*1.6f;
-			y = (r.nextFloat()-0.5f)*2.4f;
-		}
-
-		simulator.setOrientation("Can1", new Orientation(0, 0 ,1.6230719f));
-		simulator.setPosition("Can1", new Position(x, y, 0.06f));
+		float s = 0;
+		while(s < 0.15f) { // can should not be colliding with youbot from start	
 		
+			switch (config.difficulty) {
+			case FetchCanConfig.FIXED:
+				x = 0;
+				y = GRIP_DISTANCE;
+				break;
+			case FetchCanConfig.WORKSPACE:
+				// start position in front in workspace
+				float d = r.nextFloat()*0.25f;
+				double a = (r.nextFloat()-0.5f)*Math.PI;
+				x = (float)Math.sin(a)*d;
+				y = 0.4f + (float)Math.cos(a)*d;
+				break;
+			case FetchCanConfig.VISIBLE:
+				x = (r.nextFloat()-0.5f)*1.6f;
+				y = (0.125f + 3*r.nextFloat()/8f)*2.4f;
+				break;
+			case FetchCanConfig.RANDOM:
+			default:
+				x = (r.nextFloat()-0.5f)*1.6f;
+				y = (r.nextFloat()-0.5f)*2.4f;
+			}
+	
+			simulator.setOrientation("Can1", new Orientation(0, 0 ,1.6230719f));
+			simulator.setPosition("Can1", new Position(x, y, 0.06f));
+			
+			Position d = simulator.getPosition("Can1", "youBot");
+			s = d.y*d.y+d.z*d.z;
+		}
 	}
 	
 	@Override
@@ -308,11 +330,11 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 				entities.put("hokuyo", "be.iminds.iot.sensor.range.ros.LaserScanner");
 
 			// only activate configured sensors
-			simulator.setProperty("hokuyo", "active", false);
-			simulator.setProperty("hokuyo#0", "active", false);
-			simulator.setProperty("hokuyo#1", "active", false);
-			simulator.setProperty("hokuyo#2", "active", false);
-			simulator.setProperty("hokuyo#3", "active", false);
+			simulator.setProperty("hokuyo_active", false);
+			simulator.setProperty("hokuyo#0_active", false);
+			simulator.setProperty("hokuyo#1_active", false);
+			simulator.setProperty("hokuyo#2_active", false);
+			simulator.setProperty("hokuyo#3_active", false);
 			
 			switch(this.config.environmentSensors){
 			case 0:
@@ -338,9 +360,9 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 			
 			for(String key : entities.keySet()){
 				if(key.startsWith("hokuyo")){
-					simulator.setProperty(key, "active", true);
-					simulator.setProperty(key, "scanPoints", super.config.scanPoints);
-					simulator.setProperty(key, "showLaser", super.config.showLaser);
+					simulator.setProperty(key+"_active", true);
+					simulator.setProperty(key+"_scanPoints", super.config.scanPoints);
+					simulator.setProperty(key+"_showLaser", super.config.showLaser);
 				}
 			}
 		} 
