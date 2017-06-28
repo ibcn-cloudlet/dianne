@@ -142,7 +142,7 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 					}
 				}
 				
-				if (config.grip) {
+				if (config.grip && r >= config.maxReward - 0.10) { // if the reward is high (can is close)
 					if (canHeight > 0) { // can is lifted if height is higher then 0
 						r += canHeight;
 						r *= config.gripRewardScale;
