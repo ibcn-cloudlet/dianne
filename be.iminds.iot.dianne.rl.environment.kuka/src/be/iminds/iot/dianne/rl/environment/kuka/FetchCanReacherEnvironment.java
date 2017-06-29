@@ -25,8 +25,10 @@ package be.iminds.iot.dianne.rl.environment.kuka;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.util.promise.Promise;
 
 import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
@@ -36,6 +38,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 import be.iminds.iot.robot.api.JointDescription;
 import be.iminds.iot.robot.api.JointState;
+import be.iminds.iot.robot.api.arm.Arm;
 
 
 @Component(immediate = true,
@@ -191,5 +194,24 @@ public class FetchCanReacherEnvironment extends AbstractFetchCanEnvironment {
 				|| simulator.checkCollisions("SelfCollision")
 				|| simulator.checkCollisions("Floor")
 				|| simulator.checkCollisions("Gripper");
+	}
+	
+	@Override
+	protected void initAction(){
+		// reset arm to candle
+		Promise<Arm> p = kukaArm.setPositions(2.92510465f, 1.103709733f, -2.478948503f, 1.72566195f, 2.765485f);
+		// simulate an iteration further
+		while(!p.isDone() && active) {
+			if (super.config.tick) {
+				try {
+					simulator.tick();
+				} catch(TimeoutException e){}
+			} else {
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+				}
+			}
+		}
 	}
 }
