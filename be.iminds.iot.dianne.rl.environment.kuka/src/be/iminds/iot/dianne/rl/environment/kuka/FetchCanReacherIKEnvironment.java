@@ -33,7 +33,7 @@ import be.iminds.iot.robot.api.arm.Arm;
 
 @Component(immediate = true,
 	service = {Environment.class, KukaEnvironment.class},
-	property = { "name="+ReacherEnvironment.NAME, 
+	property = { "name="+FetchCanReacherIKEnvironment.NAME, 
 				 "aiolos.unique=true",
 				 "aiolos.combine=*",
 				 "osgi.command.scope=reacher",
@@ -42,9 +42,9 @@ import be.iminds.iot.robot.api.arm.Arm;
 				 "osgi.command.function=pause",
 				 "osgi.command.function=resume",
 				 "osgi.command.function=reward"})
-public class ReacherEnvironment extends AbstractFetchCanEnvironment {
+public class FetchCanReacherIKEnvironment extends AbstractFetchCanEnvironment {
 	
-	public static final String NAME = "Reacher";
+	public static final String NAME = "FetchCanReacherIK";
 	
 	@Override
 	public String getName(){
