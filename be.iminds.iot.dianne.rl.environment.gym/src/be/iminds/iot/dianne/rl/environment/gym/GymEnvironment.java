@@ -22,7 +22,9 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rl.environment.gym;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -46,7 +48,11 @@ import jep.NDArray;
  *
  */
 @Component(immediate = true,
-property = { "name="+GymEnvironment.NAME, "aiolos.unique=be.iminds.iot.dianne.api.rl.Environment" })
+	service={Environment.class, GymEnvironment.class},
+	property = { "name="+GymEnvironment.NAME, 
+		"aiolos.unique=be.iminds.iot.dianne.api.rl.Environment",
+		"osgi.command.scope=gym",
+		"osgi.command.function=envs"})
 public class GymEnvironment implements Environment {
 
 	public static final String NAME = "Gym";
@@ -80,10 +86,6 @@ public class GymEnvironment implements Environment {
 					jep.eval("import gym");
 					
 					// TODO check if successfully initialized?!
-					
-					// list envs
-					jep.eval("from gym import envs");
-					jep.eval("envs.registry.all()");
 				} catch(Exception e){
 					e.printStackTrace();
 				}
@@ -404,4 +406,26 @@ public class GymEnvironment implements Environment {
 		
 	}
 
+	
+	public void envs(){
+		try {
+			thread.submit(()->{
+				try {
+					// list envs
+					jep.eval("from gym import envs");
+					jep.eval("envs = envs.registry.all()");
+					List<String> envs = (ArrayList<String>)jep.getValue("envs");
+					for(String env : envs){
+						System.out.println("* "+env.substring(8, env.length()-1));
+					}
+				} catch(Exception e){
+					e.printStackTrace();
+				}
+			}).get();
+		} catch(InterruptedException e){
+			// ignore interrupted exceptions
+		} catch(ExecutionException e){
+			e.printStackTrace();
+		}
+	}
 }
