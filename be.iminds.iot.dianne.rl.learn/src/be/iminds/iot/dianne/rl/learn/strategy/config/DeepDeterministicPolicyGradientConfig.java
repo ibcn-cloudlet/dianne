@@ -25,6 +25,11 @@ package be.iminds.iot.dianne.rl.learn.strategy.config;
 public class DeepDeterministicPolicyGradientConfig extends DeepQConfig {
 
 	/**
+	 * Learning rate
+	 */
+	public float learningRate = 0.001f;
+	
+	/**
 	 * Policy learning rate scaling
 	 */
 	public float policyRateScaling = 0.1f;
