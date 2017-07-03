@@ -42,6 +42,7 @@
 	ros.core.native=true,\
 	vrep.dir=/opt/vrep,\
 	vrep.launch=true,\
+	be.iminds.iot.robot.youbot.joint.threshold=0.01,\
 	aiolos.proxy.ignore.extra="be.iminds.iot.ros.*,org.ros.*,\
 		be.iminds.iot.dianne.api.rl.environment.*,be.iminds.iot.dianne.rl.environment.*,\
 		be.iminds.iot.simulator.api.*,be.iminds.iot.robot.api.*,be.iminds.iot.sensor.api.*",\

@@ -37,16 +37,16 @@ dianne.version='[0.6.0,0.7.0)'
 	org.ros.rosjava_messages.geometry_msgs;version='[1.11.7,1.11.8)',\
 	org.ros.rosjava_messages.sensor_msgs;version='[1.11.7,1.11.8)',\
 	org.ros.rosjava_messages.brics_actuator;version='[0.7,0.8)',\
-	be.iminds.iot.ros.core;version='[0.2.0,0.3.0)',\
-	be.iminds.iot.ros.configurator;version='[0.2.0,0.3.0)',\
+	be.iminds.iot.ros.core;version='[0.3.0,0.4.0)',\
+	be.iminds.iot.ros.configurator;version='[0.3.0,0.4.0)',\
 	be.iminds.iot.ros.youbot;version='[0.2.0,0.3.0)',\
 	be.iminds.iot.ros.range;version='[0.2.0,0.3.0)',\
-	be.iminds.iot.sensor.range.ros;version='[0.2.0,0.3.0)',\
-	be.iminds.iot.robot.youbot.ros;version='[0.2.0,0.3.0)',\
+	be.iminds.iot.sensor.range.ros;version='[0.3.0,0.4.0)',\
+	be.iminds.iot.robot.youbot.ros;version='[0.3.0,0.4.0)',\
 	be.iminds.iot.keyboard.servlet;version='[0.2.0,0.3.0)',\
-	be.iminds.iot.robot.input.keyboard;version='[0.2.0,0.3.0)',\
-	be.iminds.iot.ros.joystick;version='[0.2.0,0.3.0]',\
-	be.iminds.iot.robot.input.joystick;version='[0.2.0,0.3.0]'
+	be.iminds.iot.robot.input.keyboard;version='[0.3.0,0.4.0)',\
+	be.iminds.iot.ros.joystick;version='[0.2.0,0.3.0)',\
+	be.iminds.iot.robot.input.joystick;version='[0.3.0,0.4.0)'
 		
 -runproperties.xkuka: \
 	ros.core.native=true,\
