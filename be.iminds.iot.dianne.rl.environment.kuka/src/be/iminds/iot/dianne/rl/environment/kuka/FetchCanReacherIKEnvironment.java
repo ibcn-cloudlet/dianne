@@ -29,6 +29,8 @@ import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.rl.environment.kuka.api.KukaEnvironment;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.robot.api.arm.Arm;
+import be.iminds.iot.simulator.api.Orientation;
+import be.iminds.iot.simulator.api.Position;
 
 
 @Component(immediate = true,
@@ -36,7 +38,7 @@ import be.iminds.iot.robot.api.arm.Arm;
 	property = { "name="+FetchCanReacherIKEnvironment.NAME, 
 				 "aiolos.unique=true",
 				 "aiolos.combine=*",
-				 "osgi.command.scope=reacher",
+				 "osgi.command.scope=reacherIK",
 				 "osgi.command.function=start",
 				 "osgi.command.function=stop",
 				 "osgi.command.function=pause",
@@ -94,4 +96,36 @@ public class FetchCanReacherIKEnvironment extends AbstractFetchCanEnvironment {
 		return reward;
 	}
 
+	protected void resetEnvironment(){
+		// youbot x,y and orientation
+		float x,y,o;
+		// can x,y
+		float cx,cy;
+		
+		if(super.config.difficulty <= 0){
+			// fix youbot at 0,0
+			x = 0;
+			y = 0;
+			o = 0;
+		} else {
+			// random youbot position and orientation
+			x = (r.nextFloat()-0.5f)*0.7f;
+			y = (r.nextFloat()-0.5f)*1.5f;
+			o = (r.nextFloat()-0.5f)*6.28f;
+		}
+
+		// put can in workspace of robot
+		float d = r.nextFloat()*0.25f;
+		double a = (r.nextFloat()-0.5f)*Math.PI;
+		
+		cx = x + (float)Math.sin(o)*0.4f + (float)Math.sin(o+a)*d;
+		cy = y + (float)Math.cos(o)*0.4f + (float)Math.cos(o+a)*d;
+		
+		simulator.setPosition("youBot", new Position(x, y, 0.0957f));
+		simulator.setOrientation("youBot", new Orientation(-1.5707963f, o, -1.5707965f));
+		
+		simulator.setOrientation("Can1", new Orientation(0, 0 ,1.6230719f));
+		simulator.setPosition("Can1", new Position(cx, cy, 0.06f));
+	}
+	
 }
