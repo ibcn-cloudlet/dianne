@@ -43,29 +43,40 @@ public class GreedyActionStrategy implements ActionStrategy {
 	
 	private GreedyConfig config;
 	private NeuralNetwork nn;
+	
+	private Tensor action;
 
 	@Override
 	public void setup(Map<String, String> config, Environment env, NeuralNetwork... nns) throws Exception {
 		this.config = DianneConfigHandler.getConfig(config, GreedyConfig.class);
 		this.nn = nns[0];
+		this.action = new Tensor(env.actionDims());
 	}
 
 	@Override
 	public Tensor processIteration(long s, long i, Tensor state) throws Exception {
 		Tensor output = nn.forward(state);
-		
-		Tensor action = new Tensor(output.size());
-		action.fill(0);
-		
+	
 		double epsilon = config.epsilonMin + (config.epsilonMax - config.epsilonMin) * Math.exp(-s * config.epsilonDecay);
 		
-		if (Math.random() < epsilon) {
-			action.set(1, (int) (Math.random() * action.size()));
-		} else {
-			action.set(1, TensorOps.argmax(output));
+		if(config.trace && s % config.traceInterval == 0 && i == 0){
+			System.out.println("Epsilon: "+epsilon);
 		}
 		
-		return action;
+		if (Math.random() < epsilon) {
+			if(config.momentum > 0.0f){
+				if(Math.random() < config.momentum){
+					return action;
+				}
+			} 
+			action.fill(0);
+			action.set(1, (int) (Math.random() * action.size()));
+			return action;
+		} else {
+			action.fill(0);
+			action.set(1, TensorOps.argmax(output));
+			return action;
+		}
 	}
 
 }

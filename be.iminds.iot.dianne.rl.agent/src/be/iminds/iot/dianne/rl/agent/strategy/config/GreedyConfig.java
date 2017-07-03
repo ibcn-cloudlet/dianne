@@ -25,10 +25,33 @@ package be.iminds.iot.dianne.rl.agent.strategy.config;
 
 public class GreedyConfig {
 
+	/**
+	 * Maximal epsilon 
+	 */
 	public double epsilonMax = 1e0;
+	
+	/**
+	 * Minimal epsilon
+	 */
 	public double epsilonMin = 0;
+	
+	/**
+	 * Exponential decay rate to decay epsilon from epsilonMax to epsilonMin
+	 */
 	public double epsilonDecay = 1e-6;
 
+	/**
+	 * Momentum : the probabiblity that the previous action is repeated in case of a "random" action
+	 */
+	public float momentum = 0.0f;
+	
+	/**
+	 * Trace the current epsilon value
+	 */
 	public boolean trace = false;
+	
+	/**
+	 * The interval to trace
+	 */
 	public int traceInterval=1000;
 }
