@@ -27,11 +27,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeoutException;
 
-import org.osgi.util.promise.Promise;
-
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.environment.kuka.config.FetchCanConfig;
-import be.iminds.iot.robot.api.arm.Arm;
 import be.iminds.iot.simulator.api.Orientation;
 import be.iminds.iot.simulator.api.Position;
 
@@ -223,7 +220,7 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 		// initial action to execute before starting the environment
 	}
 	
-	protected void deinitSimulator(){
+	protected void deinitSimulator() throws Exception {
 		simulator.stop();
 
 		while(kukaArm != null 
@@ -236,6 +233,14 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 			} catch (InterruptedException e) {
 			}		
 		}
+
+		int cmd = 1;
+		do {
+			cmd = (int)simulator.getProperty("cmd");
+			if(!active)
+				throw new InterruptedException();
+			
+		} while(cmd!=0);
 	}
 	
 	protected void resetEnvironment(){

@@ -252,7 +252,7 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 	
 	protected abstract void initSimulator() throws Exception;
 	
-	protected abstract void deinitSimulator();
+	protected abstract void deinitSimulator() throws Exception;
 	
 	protected abstract void configure(Map<String, String> config);
 		
@@ -432,7 +432,9 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 	
 	private void deinit(){
 		if(simulator != null){
-			deinitSimulator();
+			try {
+				deinitSimulator();
+			} catch(Exception e){}
 		}
 	}
 	
