@@ -148,7 +148,8 @@ public class DianneModuleFactory implements ModuleFactory {
 		
 		addSupportedType(new ModuleTypeDTO("Split", "Fork", false,
 				new ModulePropertyDTO("Wait for all", "waitForAll", Boolean.class.getName()),
-				new ModulePropertyDTO("Split dimension", "dim", Integer.class.getName())));
+				new ModulePropertyDTO("Split dimension", "dim", Integer.class.getName()),
+				new ModulePropertyDTO("Splits (comma separated)", "split", String.class.getName())));
 		
 		addSupportedType(new ModuleTypeDTO("Concat", "Join", false,
 				new ModulePropertyDTO("Wait for all", "waitForAll", Boolean.class.getName()),
@@ -395,8 +396,18 @@ public class DianneModuleFactory implements ModuleFactory {
 		case "Split":
 		{
 			int dim = Integer.parseInt(dto.properties.get("dim"));
+			int[] splits = null;
+			String s = dto.properties.get("split");
+			if(s != null && !s.isEmpty()){
+				String[] ss = s.split(",");
+				splits = new int[]{ss.length};
+				for(int i=0;i<ss.length;i++){
+					splits[i] =  Integer.parseInt(ss[i].trim());
+				}
+			}
+			
 			module = hasProperty(dto.properties, "waitForAll") ? 
-					new Split(id, Boolean.parseBoolean(dto.properties.get("waitForAll")), dim) : new Split(id, dim);
+					new Split(id, Boolean.parseBoolean(dto.properties.get("waitForAll")), dim, splits) : new Split(id, dim, splits);
 			break;
 		}
 		case "Concat":

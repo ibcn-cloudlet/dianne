@@ -35,24 +35,55 @@ public class Split extends Fork {
 	// this allows to have the desired split in case of batched tensors
 	private final int dim;
 	
+	private final int[] splits;
+	
 	public Split(int dim) {
 		super();
 		this.dim = dim;
+		this.splits = null;
+	}
+	
+	public Split(int dim, int[] splits) {
+		super();
+		this.dim = dim;
+		this.splits = splits;
 	}
 	
 	public Split(UUID id, int dim) {
 		super(id);
 		this.dim = dim;
+		this.splits = null;
 	}
+	
+	public Split(UUID id, int dim, int[] splits) {
+		super(id);
+		this.dim = dim;
+		this.splits = splits;
+	}
+	
 	
 	public Split(boolean waitForAll, int dim) {
 		super(waitForAll);
 		this.dim = dim;
+		this.splits = null;
+	}
+
+	public Split(boolean waitForAll, int dim, int[] splits) {
+		super(waitForAll);
+		this.dim = dim;
+		this.splits = splits;
 	}
 	
 	public Split(UUID id, boolean waitForAll, int dim) {
 		super(id, waitForAll);
 		this.dim = dim;
+		this.splits = null;
+	}
+	
+	public Split(UUID id, boolean waitForAll, int dim, int[] splits) {
+		super(id, waitForAll);
+		this.dim = dim;
+		this.splits = splits;
 	}
 	
 	@Override
@@ -61,9 +92,24 @@ public class Split extends Fork {
 		int[] inputDims = input.dims();
 		int splitDim = inputDims.length-1-dim;
 		if(next!=null){
-			int size = inputDims[splitDim]/next.length;
-			for(int i=0;i<next.length;i++){
-				outputs.put(nextIds[i], input.narrow(splitDim, i*size, size));
+			if(splits == null){
+				// all equal size
+				int size = inputDims[splitDim]/next.length;
+				for(int i=0;i<next.length;i++){
+					outputs.put(nextIds[i], input.narrow(splitDim, i*size, size));
+				}
+			} else {
+				int start = 0;
+				int size = splits[0];
+				for(int i=0;i<next.length;i++){
+					outputs.put(nextIds[i], input.narrow(splitDim, start, size));
+					start += size;
+					if(i+1 < splits.length){
+						size = splits[i+1] - start;
+					} else {
+						size = inputDims[splitDim] - start;
+					}
+				}
 			}
 		}
 	}
@@ -73,14 +119,34 @@ public class Split extends Fork {
 		if(next!=null){
 			int[] dims = gradOutputs.values().iterator().next().dims();
 			int splitDim = dims.length-1-dim;
-			int size = dims[splitDim];
 			if(gradInput==null){
-				dims[splitDim] = dims[splitDim]*gradOutputs.size();
+				dims[splitDim] = 0;
+				for(Tensor gradOut : gradOutputs.values()){
+					dims[splitDim] += gradOut.dims()[splitDim];
+				}
 				gradInput = new Tensor(dims);
 			}
+			int[] inputDims = gradInput.dims();
 
-			for(int i=0;i<next.length;i++){
-				gradOutputs.get(nextIds[i]).copyInto(gradInput.narrow(splitDim, i*size, size));
+			if(splits == null){
+				// all equal size
+				for(int i=0;i<next.length;i++){
+					Tensor gradOut = gradOutputs.get(nextIds[i]);
+					int size = gradOut.dims()[splitDim];
+					gradOut.copyInto(gradInput.narrow(splitDim, i*size, size));
+				}
+			} else {
+				int start = 0;
+				int size = splits[0];
+				for(int i=0;i<next.length;i++){
+					gradOutputs.get(nextIds[i]).copyInto(gradInput.narrow(splitDim, start, size));
+					start += size;
+					if(i+1 < splits.length){
+						size = splits[i+1] - start;
+					} else {
+						size = inputDims[splitDim] - start;
+					}
+				}
 			}
 		}
 		

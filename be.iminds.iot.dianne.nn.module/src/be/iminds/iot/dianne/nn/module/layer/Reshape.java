@@ -22,6 +22,7 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.module.layer;
 
+import java.util.Arrays;
 import java.util.UUID;
 
 import be.iminds.iot.dianne.api.nn.module.AbstractModule;
@@ -70,7 +71,7 @@ public class Reshape extends AbstractModule {
 				}
 				output.reshape(newDim);
 			} else {
-				throw new RuntimeException("Invalid input dimensions to reshape?!");
+				throw new RuntimeException("Invalid input dimensions to reshape?! input dims : " +Arrays.toString(input.dims())+" target dims: "+Arrays.toString(targetDims));
 			}
 		} else {
 			output.reshape(targetDims);
