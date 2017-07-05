@@ -51,7 +51,12 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 	protected float previousDistance;
 	
 	protected boolean grip = false;
-
+	
+	/**
+	 * Default can ref height. This will be updated with the actual ref height in
+	 * resetCan().
+	 */
+	private float canRefInitHeight = 0.5f;
 
 	@Override
 	protected float calculateReward() throws Exception {
@@ -68,17 +73,15 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 			}
 			
 			float distance, canHeight;
+			canHeight = simulator.getPosition("can_ref").z - this.canRefInitHeight;
 			if (config.grip) {
-				Position p = simulator.getPosition("can_ref", "youBot_ref");
-				canHeight = p.z-0.03f;
 				// calculate distance of gripper tip relative to can
-				p = simulator.getPosition("can_ref", "youBot_positionTip");
+				Position p = simulator.getPosition("can_ref", "youBot_positionTip");
 				distance = (float)Math.sqrt(p.x*p.x+p.y*p.y+p.z*p.z);
 			} else {
 				// calculate distance of youBot relative to can
 				Position p = simulator.getPosition("can_ref", "youBot_positionTargetCan");
 				distance = (float)Math.hypot(p.x, p.y);
-				canHeight = p.z-0.08f;
 			}
 			
 			// max reward in radius of can by setting the distance to 0
@@ -304,6 +307,7 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 			Position d = simulator.getPosition("Can1", "youBot");
 			s = d.y*d.y+d.z*d.z;
 		}
+		canRefInitHeight = simulator.getPosition("can_ref").z;
 	}
 	
 	@Override
