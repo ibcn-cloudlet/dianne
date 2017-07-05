@@ -36,11 +36,12 @@ public class CriterionEvaluationStrategy extends AbstractEvaluationStrategy {
 	
 	@Override
 	protected void init(Map<String, String> config) {
+		config.put("batchAverage", "false");
 		criterion = CriterionFactory.createCriterion(super.config.criterion, config);
 	}
 
 	protected float eval(Tensor output, Tensor target){
-		return TensorOps.mean(criterion.loss(output, target));
+		return TensorOps.sum(criterion.loss(output, target));
 	}
 
 	@Override
