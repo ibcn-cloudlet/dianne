@@ -108,6 +108,10 @@ public class FetchCanReacherEnvironment extends AbstractFetchCanEnvironment {
 		observation = new Tensor(result, totalLength);
 	}
 	
+	final float middlePos = 2.92510465f;
+	final float minPos = middlePos - ((float)Math.PI/2);
+	final float maxPos = minPos + (float)Math.PI;
+	
 	@Override
 	protected void executeAction(Tensor t) throws Exception {
 		float[] f = Arrays.copyOf(t.get(), t.get().length + 1);
@@ -140,13 +144,23 @@ public class FetchCanReacherEnvironment extends AbstractFetchCanEnvironment {
 			}
 			a *= config.outputScaleFactor;
 			b *= config.outputScaleFactor;
-			f[i] = (f[i]-min)/(max - min)*(b-a) + a; // tranform to new range.
+			f[i] = (f[i]-min)/(max - min)*(b-a) + a; // tranform from [min,max] to new range.
 		}
 		switch (config.mode) {
 		case FetchCanReacherConfig.POSITION:
 			kukaArm.setPositions(f);
 			break;
 		case FetchCanReacherConfig.VELOCITY:
+			// Clamp the movement between -Math.PI, Math.PI
+			int jointNr = 0;
+			float joint0Pos = this.kukaArm.getState().get(jointNr).position;
+			if (joint0Pos <= minPos) {
+				this.kukaArm.setPosition(jointNr, minPos);
+				f[0]=0; // set joint `jointNr` speed to 0
+			} else if (joint0Pos >= maxPos) {
+				this.kukaArm.setPosition(jointNr, maxPos);
+				f[0]=0; // set joint `jointNr` speed to 0
+			}
 			kukaArm.setVelocities(f);
 			break;
 		case FetchCanReacherConfig.TORQUE:
@@ -199,7 +213,7 @@ public class FetchCanReacherEnvironment extends AbstractFetchCanEnvironment {
 	@Override
 	protected void initAction(){
 		// reset arm to candle
-		Promise<Arm> p = kukaArm.setPositions(2.92510465f, 1.103709733f, -2.478948503f, 1.72566195f, 2.765485f);
+		Promise<Arm> p = kukaArm.setPositions(middlePos, 1.103709733f, -2.478948503f, 1.72566195f, 2.765485f);
 		// simulate an iteration further
 		while(!p.isDone() && active) {
 			if (super.config.tick) {
