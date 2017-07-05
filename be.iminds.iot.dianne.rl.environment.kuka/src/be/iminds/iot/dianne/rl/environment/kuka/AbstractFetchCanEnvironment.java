@@ -70,7 +70,7 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 			float distance, canHeight;
 			if (config.grip) {
 				Position p = simulator.getPosition("can_ref", "youBot_ref");
-				canHeight = p.z;
+				canHeight = p.z-0.03f;
 				// calculate distance of gripper tip relative to can
 				p = simulator.getPosition("can_ref", "youBot_positionTip");
 				distance = (float)Math.sqrt(p.x*p.x+p.y*p.y+p.z*p.z);
@@ -78,7 +78,7 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 				// calculate distance of youBot relative to can
 				Position p = simulator.getPosition("can_ref", "youBot_positionTargetCan");
 				distance = (float)Math.hypot(p.x, p.y);
-				canHeight = p.z;
+				canHeight = p.z-0.08f;
 			}
 			
 			// max reward in radius of can by setting the distance to 0
