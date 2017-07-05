@@ -81,11 +81,6 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 				canHeight = p.z;
 			}
 			
-			// can is invisible to laser and can't be gripped anymore
-			if (canHeight < -0.003) {
-				terminal = true;
-			}
-			
 			// max reward in radius of can by setting the distance to 0
 			if(distance <= config.margin) {
 				distance = 0.0f;
