@@ -196,12 +196,17 @@ public class DianneCoordinatorWriter {
 					writer.name("accuracy");
 					writer.value(new Float(ceval.accuracy()));
 					
-					writer.name("top3");
-					writer.value(new Float(ceval.topNaccuracy(3)));
-
-					writer.name("top5");
-					writer.value(new Float(ceval.topNaccuracy(5)));
-
+					try {
+						float top3 = ceval.topNaccuracy(3);
+						writer.name("top3");
+						writer.value(new Float(top3));
+	
+						float top5 = ceval.topNaccuracy(5);
+						writer.name("top5");
+						writer.value(new Float(top5));
+					} catch(Exception ex){
+						// top-n errors might not be applicable
+					}
 					// write confusion matrix
 					writer.name("confusionMatrix");
 					writer.beginArray();

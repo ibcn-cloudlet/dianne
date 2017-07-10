@@ -54,6 +54,9 @@ public class ClassificationEvaluation extends ErrorEvaluation {
 	 * @return the top-n classification accuracy
 	 */
 	public float topNaccuracy(int n){
+		if(rankings == null || rankings.length < n)
+			throw new IndexOutOfBoundsException("Top-"+n+" accuracy not applicable here");
+		
 		int correct = 0;
 		for(int i=0;i<rankings.length;i++){
 			if(rankings[i] < n){

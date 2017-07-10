@@ -77,8 +77,12 @@ public class EvaluationJob extends AbstractJob<EvaluationResult> {
 						if(e instanceof ClassificationEvaluation){
 							ClassificationEvaluation ce = (ClassificationEvaluation)e;
 							System.out.println("Accuracy: "+ce.accuracy());
-							System.out.println("Top-1 accuracy: "+ce.topNaccuracy(1));
-							System.out.println("Top-3 accuracy: "+ce.topNaccuracy(3));
+							try {
+								System.out.println("Top-1 accuracy: "+ce.topNaccuracy(1));
+								System.out.println("Top-3 accuracy: "+ce.topNaccuracy(3));
+							} catch(Exception ex){
+								// ignore if top accuracies are not applicable
+							}
 						}
 						System.out.println("---");
 						
