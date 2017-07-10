@@ -25,15 +25,13 @@ package be.iminds.iot.dianne.rl.agent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -70,9 +68,7 @@ public class AgentImpl implements Agent {
 
 	private UUID agentId;
 	
-	private final ExecutorService listenerExecutor = Executors.newSingleThreadExecutor(); 
-	private final List<AgentListener> listeners = Collections.synchronizedList(new ArrayList<>());
-	private volatile boolean wait = false;
+	private final List<AgentListener> listeners = new CopyOnWriteArrayList<>();
 	
 	private Map<String, Environment> envs = new HashMap<String, Environment>();
 	private Dianne dianne;
@@ -173,7 +169,7 @@ public class AgentImpl implements Agent {
 			System.out.println("Agent Configuration");
 			System.out.println("===================");
 	
-			this.config = DianneConfigHandler.getConfig(config, AgentConfig.class);
+			this.config = DianneConfigHandler.getConfig(config, AgentConfig.class, false);
 			this.properties = config;
 			
 			strategy = factory.create(this.config.strategy);
@@ -464,53 +460,19 @@ public class AgentImpl implements Agent {
 		if(!acting)
 			return;
 		
-		// in case we are still processing the previous onProgrss, stall the agent
-		// this is to allow a listener to set the pace of the Agent, e.g. when
-		// the listener is a demo UI that wants to control the update rate
-		synchronized(listenerExecutor){
-			if(wait){
-				try {
-					listenerExecutor.wait();
-				} catch (InterruptedException e) {
-					wait = false;
-					return;
-				}
-			}
-			wait = true;
+		for(AgentListener l : listeners){
+			l.onProgress(agentId, progress);
 		}
-		
-		listenerExecutor.submit(()->{
-			List<AgentListener> copy = new ArrayList<>();
-			synchronized(listeners){
-				copy.addAll(listeners);
-			}
-			for(AgentListener l : copy){
-				l.onProgress(agentId, progress);
-			}
-			
-			synchronized(listenerExecutor){
-				wait = false;
-				listenerExecutor.notifyAll();
-			}
-		});
 	}
 	
 	private void publishError(final Throwable t){
-		List<AgentListener> copy = new ArrayList<>();
-		synchronized(listeners){
-			copy.addAll(listeners);
-		}
-		for(AgentListener l : copy){
+		for(AgentListener l : listeners){
 			l.onException(agentId, t.getCause()!=null ? t.getCause() : t);
 		}
 	}
 	
 	private void publishDone(){
-		List<AgentListener> copy = new ArrayList<>();
-		synchronized(listeners){
-			copy.addAll(listeners);
-		}
-		for(AgentListener l : copy){
+		for(AgentListener l : listeners){
 			l.onFinish(agentId);
 		}
 	}

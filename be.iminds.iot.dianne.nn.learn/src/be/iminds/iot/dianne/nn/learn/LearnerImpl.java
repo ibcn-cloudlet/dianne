@@ -22,14 +22,11 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.learn;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 import org.osgi.framework.BundleContext;
@@ -59,9 +56,7 @@ import be.iminds.iot.dianne.tensor.Tensor;
 public class LearnerImpl implements Learner {
 	
 	// Listeners
-	private ExecutorService listenerExecutor = Executors.newSingleThreadExecutor(); 
-	private List<LearnerListener> listeners = Collections.synchronizedList(new ArrayList<>());
-	private volatile boolean wait = false;
+	private List<LearnerListener> listeners = new CopyOnWriteArrayList<>();
 
 	// Identification
 	private UUID learnerId;
@@ -126,15 +121,13 @@ public class LearnerImpl implements Learner {
 			System.out.println("Learner Configuration");
 			System.out.println("=====================");
 			
-			this.config = DianneConfigHandler.getConfig(config, LearnerConfig.class);
-			
+			this.config = DianneConfigHandler.getConfig(config, LearnerConfig.class, false);
 			
 			// Fetch the dataset
 			dataset = datasets.configureDataset(d, config);
 			
 			if(dataset==null)
 				throw new RuntimeException("Dataset "+d+" not available");
-			
 			
 			// Load neural network instance(s)
 			System.out.println("Neural Network(s)");
@@ -202,13 +195,6 @@ public class LearnerImpl implements Learner {
 							throw new Exception("Learner error became NaN");
 						}
 						
-						if(i % this.config.traceInterval == 0){
-							if(this.config.trace)
-								System.out.println(progress);
-							
-							publishProgress(progress);
-						}
-						
 						// Publish parameters to repository
 						for(int k=0;k<nns.length;k++){
 							int syncInterval = (k < this.config.syncInterval.length) ? this.config.syncInterval[k] : this.config.syncInterval[0];
@@ -223,6 +209,14 @@ public class LearnerImpl implements Learner {
 							if(storeInterval > 0 && i > 0 && i % storeInterval == 0){
 								nns[k].storeParameters(this.config.tag, ""+i);
 							}
+						}
+						
+						// Publish progress
+						if(i % this.config.traceInterval == 0){
+							if(this.config.trace)
+								System.out.println(progress);
+							
+							publishProgress(progress);
 						}
 						
 					}
@@ -439,50 +433,19 @@ public class LearnerImpl implements Learner {
 		if(!learning)
 			return;
 		
-		synchronized(listenerExecutor){
-			if(wait){
-				try {
-					listenerExecutor.wait();
-				} catch (InterruptedException e) {
-					wait = false;
-					return;
-				}
-			}
-			wait = true;
+		for(LearnerListener l : listeners){
+			l.onProgress(learnerId, progress);
 		}
-		
-		listenerExecutor.submit(()->{
-			List<LearnerListener> copy = new ArrayList<>();
-			synchronized(listeners){
-				copy.addAll(listeners);
-			}
-			for(LearnerListener l : copy){
-				l.onProgress(learnerId, progress);
-			}
-			
-			synchronized(listenerExecutor){
-				wait = false;
-				listenerExecutor.notifyAll();
-			}
-		});
 	}
 	
 	private void publishError(final Throwable t){
-		List<LearnerListener> copy = new ArrayList<>();
-		synchronized(listeners){
-			copy.addAll(listeners);
-		}
-		for(LearnerListener l : copy){
+		for(LearnerListener l : listeners){
 			l.onException(learnerId, t.getCause()!=null ? t.getCause() : t);
 		}
 	}
 	
 	private void publishDone(){
-		List<LearnerListener> copy = new ArrayList<>();
-		synchronized(listeners){
-			copy.addAll(listeners);
-		}
-		for(LearnerListener l : copy){
+		for(LearnerListener l : listeners){
 			l.onFinish(learnerId);
 		}
 	}

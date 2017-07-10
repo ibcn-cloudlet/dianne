@@ -90,7 +90,6 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 			validationInterval = Integer.parseInt(config.get("validationInterval"));
 		}
 		
-		
 		if(config.containsKey("minibatchLossThreshold")){
 			minibatchLossThreshold = Float.parseFloat(config.get("minibatchLossThreshold"));
 		}

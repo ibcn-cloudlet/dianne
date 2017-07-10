@@ -22,13 +22,10 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.nn.eval;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -66,8 +63,7 @@ import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 @Component(property={"aiolos.unique=true"})
 public class EvaluatorImpl implements Evaluator {
 	
-	private ExecutorService listenerExecutor = Executors.newSingleThreadExecutor(); 
-	private List<EvaluatorListener> listeners = Collections.synchronizedList(new ArrayList<>());
+	private List<EvaluatorListener> listeners = new CopyOnWriteArrayList<>();
 	
 	private UUID evaluatorId;
 	
@@ -102,7 +98,7 @@ public class EvaluatorImpl implements Evaluator {
 			System.out.println("Evaluator Configuration");
 			System.out.println("=======================");
 			
-			this.config = DianneConfigHandler.getConfig(config, EvaluatorConfig.class);
+			this.config = DianneConfigHandler.getConfig(config, EvaluatorConfig.class, false);
 
 			// Fetch the dataset
 			d = datasets.configureDataset(dataset, config);
@@ -165,15 +161,9 @@ public class EvaluatorImpl implements Evaluator {
 				i = next;
 				
 				// TODO how frequently publish progress
-				listenerExecutor.execute(()->{
-					List<EvaluatorListener> copy = new ArrayList<>();
-					synchronized(listeners){
-						copy.addAll(listeners);
-					}
-					for(EvaluatorListener l : copy){
-						l.onProgress(evaluatorId, progress);
-					}
-				});
+				for(EvaluatorListener l : listeners){
+					l.onProgress(evaluatorId, progress);
+				}
 			}
 			tEnd = System.currentTimeMillis();
 			
@@ -195,21 +185,13 @@ public class EvaluatorImpl implements Evaluator {
 			return eval;
 		} catch(Throwable t){
 			System.err.println("Error during evaluation");
-			List<EvaluatorListener> copy = new ArrayList<>();
-			synchronized(listeners){
-				copy.addAll(listeners);
-			}
-			for(EvaluatorListener l : copy){
+			for(EvaluatorListener l : listeners){
 				l.onException(evaluatorId, t);
 			}
 			throw t;
 		} finally {
-			List<EvaluatorListener> copy = new ArrayList<>();
-			synchronized(listeners){
-				copy.addAll(listeners);
-			}
 			EvaluationProgress progress =  getProgress();
-			for(EvaluatorListener l : copy){
+			for(EvaluatorListener l : listeners){
 				l.onFinish(evaluatorId, progress);
 			}
 			evaluating = false;

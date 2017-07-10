@@ -66,7 +66,7 @@ public class NLLCriterion implements Criterion {
 		} else {
 			loss.set(-TensorOps.dot(log==null ? output : log , target), 0);
 		}
-	
+		
 		return loss;
 	}
 

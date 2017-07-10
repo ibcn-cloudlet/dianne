@@ -29,9 +29,14 @@ import java.util.UUID;
 
 public class DianneConfigHandler {
 
-	// TODO use Object Conversion spec implementation for this?!
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static <T> T getConfig(Map<String, String> config, Class<T> c){
+		return getConfig(config, c, true);
+	}
+	
+	// TODO use Object Conversion spec implementation for this?!
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static <T> T getConfig(Map<String, String> config, Class<T> c, boolean print){
 		T instance = null;
 		try {
 			instance = c.newInstance();
@@ -92,7 +97,8 @@ public class DianneConfigHandler {
 				}
 			}
 		
-			printConfig(instance);
+			if(print)
+				printConfig(instance);
 		} catch(Exception e){
 			e.printStackTrace();
 		}
