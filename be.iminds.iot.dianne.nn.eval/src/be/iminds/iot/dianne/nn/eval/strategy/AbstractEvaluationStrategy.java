@@ -89,7 +89,7 @@ public abstract class AbstractEvaluationStrategy implements EvaluationStrategy {
 				batch = null;
 				HashMap<String, String> newConfig = new HashMap<>(configMap);
 				newConfig.put("batchSize", ""+indices.length);
-				init(newConfig);
+				update(newConfig);
 			}
 			
 			for(int b=0;b<indices.length;b++)
@@ -143,6 +143,8 @@ public abstract class AbstractEvaluationStrategy implements EvaluationStrategy {
 	protected abstract float eval(Tensor output, Tensor target);
 	
 	protected abstract void init(Map<String, String> config);
+	
+	protected void update(Map<String, String> config){};
 	
 	protected abstract Evaluation finish();
 }
