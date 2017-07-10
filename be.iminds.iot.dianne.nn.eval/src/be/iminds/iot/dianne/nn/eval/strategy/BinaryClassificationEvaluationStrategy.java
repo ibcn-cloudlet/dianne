@@ -30,10 +30,15 @@ import be.iminds.iot.dianne.tensor.Tensor;
 
 public class BinaryClassificationEvaluationStrategy extends ClassificationEvaluationStrategy {
 	
+	private float threshold = 0.5f; // value before something is considered 1 class
 	
 	protected void init(Map<String, String> config){
 		// reset
 		confusion = null;
+		
+		if(config.containsKey("threshold")){
+			this.threshold = Float.parseFloat(config.get("threshold"));
+		}
 	}
 	
 	protected float eval(Tensor output, Tensor target){
@@ -59,8 +64,8 @@ public class BinaryClassificationEvaluationStrategy extends ClassificationEvalua
 	private float calculateError(Tensor out, Tensor expected){
 		float error = 0.0f;
 		
-		int predicted = out.get(0) > 0.5f ? 1 : 0;
-		int real = expected.get(0) > 0.5f ? 1 : 0;
+		int predicted = out.get(0) > threshold ? 1 : 0;
+		int real = expected.get(0) > threshold ? 1 : 0;
 		if(real!=predicted)
 			error = 1.0f;
 		
