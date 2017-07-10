@@ -259,7 +259,7 @@ public class DianneRunner extends HttpServlet {
 		JsonObject data = jsonConverter.toJson(output);
 
 		float max = TensorOps.max(output);
-		if(outputLabels != null || isProbability(output)){
+		if(output.dim()==1 && (outputLabels != null || isProbability(output))){
 			// format output as [['label', val],['label2',val2],...] for in highcharts
 			String[] labels;
 			float[] values;
