@@ -25,6 +25,28 @@ package be.iminds.iot.dianne.rl.agent.strategy.config;
 
 public class StateBeliefConfig {
 
+	/**
+	 * Size of the latent state
+	 */
 	public int stateSize;
 	
+	/**
+	 * Maximal epsilon 
+	 */
+	public double epsilonMax = 0;
+	
+	/**
+	 * Minimal epsilon
+	 */
+	public double epsilonMin = 0;
+	
+	/**
+	 * Exponential decay rate to decay epsilon from epsilonMax to epsilonMin
+	 */
+	public double epsilonDecay = 1e-6;
+
+	/**
+	 * Momentum : the probabiblity that the previous action is repeated in case of a "random" action
+	 */
+	public float momentum = 0.0f;
 }

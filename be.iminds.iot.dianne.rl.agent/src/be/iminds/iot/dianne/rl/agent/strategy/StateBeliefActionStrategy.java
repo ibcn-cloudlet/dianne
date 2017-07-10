@@ -96,12 +96,23 @@ public class StateBeliefActionStrategy implements ActionStrategy {
 		
 		Tensor q = policy.forward(sample);
 		
-		// get max Q action in one hot action vector
-		action.fill(0.0f);
-		int a = TensorOps.argmax(q);
-		action.set(1.0f, a);
+		// allow for combination with epsilon greedy exploration
+		double epsilon = config.epsilonMin + (config.epsilonMax - config.epsilonMin) * Math.exp(-s * config.epsilonDecay);
 		
-		return action;
+		if (Math.random() < epsilon) {
+			if(config.momentum > 0.0f){
+				if(Math.random() < config.momentum){
+					return action;
+				}
+			} 
+			action.fill(0);
+			action.set(1, (int) (Math.random() * action.size()));
+			return action;
+		} else {
+			action.fill(0);
+			action.set(1, TensorOps.argmax(q));
+			return action;
+		}
 	}
 
 	
