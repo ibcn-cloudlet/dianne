@@ -219,6 +219,8 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 	}
 	
 	protected void deinitSimulator() throws Exception {
+		long start = System.currentTimeMillis();
+
 		simulator.stop();
 
 		while(kukaArm != null 
@@ -226,7 +228,7 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 				|| rangeSensors.size() != 0){
 			try {
 				synchronized(mutex){
-					mutex.wait();
+					mutex.wait(config.timeout);
 				}
 			} catch (InterruptedException e) {
 			}		
@@ -238,7 +240,7 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 			if(!active)
 				throw new InterruptedException();
 			
-		} while(cmd!=0);
+		} while(cmd!=0 && System.currentTimeMillis()-start < config.timeout);
 	}
 	
 	protected void resetEnvironment(){

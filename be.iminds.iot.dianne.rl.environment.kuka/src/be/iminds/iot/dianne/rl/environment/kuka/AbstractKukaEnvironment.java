@@ -180,7 +180,7 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 			reward -= config.energyPenalization*calculateEnergy(action);
 			reward -= config.velocityPenalization*calculateVelocity(action);
 		} catch(Exception e){
-			throw new RuntimeException("Failed calculating reward");
+			throw new RuntimeException("Failed calculating reward", e);
 		}
 		
 		if(simulator == null && terminal){
