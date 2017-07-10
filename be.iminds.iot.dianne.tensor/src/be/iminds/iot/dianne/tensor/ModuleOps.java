@@ -44,6 +44,11 @@ public class ModuleOps {
 	public static native Tensor eluGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor input, final Tensor output, float alpha, boolean inPlace);
 	
 	
+	public static native Tensor selu(Tensor output, final Tensor input, float alpha, float lambda);
+
+	public static native Tensor seluGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor input, final Tensor output, float alpha, float lambda);
+	
+	
 	public static native Tensor threshold(Tensor output, final Tensor input, 
 			final float threshold, final float val);
 

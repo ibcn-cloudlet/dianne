@@ -41,6 +41,7 @@ import be.iminds.iot.dianne.api.nn.module.factory.ModuleTypeNotSupportedExceptio
 import be.iminds.iot.dianne.nn.module.activation.LogSoftmax;
 import be.iminds.iot.dianne.nn.module.activation.PReLU;
 import be.iminds.iot.dianne.nn.module.activation.ReLU;
+import be.iminds.iot.dianne.nn.module.activation.SELU;
 import be.iminds.iot.dianne.nn.module.activation.Sigmoid;
 import be.iminds.iot.dianne.nn.module.activation.SoftPlus;
 import be.iminds.iot.dianne.nn.module.activation.Softmax;
@@ -123,6 +124,8 @@ public class DianneModuleFactory implements ModuleFactory {
 		addSupportedType(new ModuleTypeDTO("LogSoftmax", "Activation", false));	
 	
 		addSupportedType(new ModuleTypeDTO("ReLU", "Activation", false));
+		
+		addSupportedType(new ModuleTypeDTO("SELU", "Activation", false));
 
 		addSupportedType(new ModuleTypeDTO("PReLU", "Activation", true));
 		
@@ -341,6 +344,11 @@ public class DianneModuleFactory implements ModuleFactory {
 		case "ReLU":
 		{
 			module = new ReLU(id);
+			break;
+		}
+		case "SELU":
+		{
+			module = new SELU(id);
 			break;
 		}
 		case "PReLU":
