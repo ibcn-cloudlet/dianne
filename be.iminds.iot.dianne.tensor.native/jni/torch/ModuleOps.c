@@ -24,6 +24,10 @@
 #include "TensorLoader.h"
 
 #ifdef CUDA
+#include "THCudaModuleOps.h"
+#endif
+
+#ifdef CUDA
 THCState* state;
 #else
 THNNState* state;
@@ -169,10 +173,14 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_selu
 	THTensor* input = getTensor(env, in);
 	THTensor* output = getTensor(env, out);
 
+#ifdef CUDA
+	THCudaModule_selu(state, input, output, alpha, lambda);
+#else
 	THTensor_(resizeAs)(output, input);
-	    TH_TENSOR_APPLY2(real, input, real, output,
-	      *output_data = *input_data <= 0 ? (exp(*input_data)-1)*alpha*lambda : (*input_data)*lambda;
-	    );
+	TH_TENSOR_APPLY2(real, input, real, output,
+	  *output_data = *input_data <= 0 ? (exp(*input_data)-1)*alpha*lambda : (*input_data)*lambda;
+	);
+#endif
 
 	return out == NULL ? createTensorObject(env, output) : out;
 }
@@ -184,11 +192,15 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_seluGradIn
 	THTensor* input = getTensor(env, in);
 	THTensor* output = getTensor(env, out);
 
+#ifdef CUDA
+	THCudaTensor_seluGradIn(state, input, gradOutput,
+			  gradInput, output, alpha, lambda);
+#else
     THTensor_(resizeAs)(gradInput, output);
     TH_TENSOR_APPLY3(real, gradInput, real, gradOutput, real, output,
       *gradInput_data = *output_data <= 0 ? *gradOutput_data * (*output_data + alpha*lambda) : (*gradOutput_data)*lambda;
     );
-
+#endif
 	return gradIn == NULL ? createTensorObject(env, gradInput) : gradIn;
 }
 
