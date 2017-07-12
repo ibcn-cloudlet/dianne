@@ -22,11 +22,15 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rl.environment.kuka;
 
+import java.util.Map;
+
 import org.osgi.service.component.annotations.Component;
 import org.osgi.util.promise.Promise;
 
 import be.iminds.iot.dianne.api.rl.environment.Environment;
+import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.environment.kuka.api.KukaEnvironment;
+import be.iminds.iot.dianne.rl.environment.kuka.config.FetchCanReacherIKConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.robot.api.arm.Arm;
 import be.iminds.iot.simulator.api.Orientation;
@@ -48,6 +52,8 @@ public class FetchCanReacherIKEnvironment extends AbstractFetchCanEnvironment {
 	
 	public static final String NAME = "FetchCanReacherIK";
 	
+	protected FetchCanReacherIKConfig config;
+	
 	@Override
 	public String getName(){
 		return NAME;
@@ -59,13 +65,28 @@ public class FetchCanReacherIKEnvironment extends AbstractFetchCanEnvironment {
 	}
 	
 	@Override
-	protected void executeAction(Tensor a) throws Exception {
-		float[] xyz = a.get();
+	public void configure(Map<String, String> config) {
+		this.config = DianneConfigHandler.getConfig(config, FetchCanReacherIKConfig.class);
 		
-		Promise<Arm> p = kukaArm.moveTo(xyz[0], xyz[1], 0.1f)
-			.then(pp -> kukaArm.moveTo(xyz[0], xyz[1], 0.05f))
+		super.configure(config);
+	}
+	
+	@Override
+	protected void executeAction(Tensor a) throws Exception {
+		float x,y;
+		if(config.baseline && simulator != null){
+			Position p = simulator.getPosition("can_ref", "arm_ref");
+			x = p.x;
+			y = p.y;
+		} else {
+			x = a.get(0);
+			y = a.get(1);
+		}
+
+		Promise<Arm> p = kukaArm.moveTo(x, y, config.hoverHeight)
+			.then(pp -> kukaArm.moveTo(x, y, config.gripHeight))
 			.then(pp -> kukaArm.closeGripper())
-			.then(pp -> kukaArm.moveTo(xyz[0], xyz[1], 0.2f));
+			.then(pp -> kukaArm.moveTo(0.4f, 0.0f, 0.4f));
 		
 		// simulate an iteration further
 		int i = 0;
