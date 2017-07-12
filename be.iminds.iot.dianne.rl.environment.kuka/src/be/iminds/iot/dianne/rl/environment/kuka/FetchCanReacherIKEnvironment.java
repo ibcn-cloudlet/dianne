@@ -23,6 +23,7 @@
 package be.iminds.iot.dianne.rl.environment.kuka;
 
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.util.promise.Promise;
@@ -104,9 +105,7 @@ public class FetchCanReacherIKEnvironment extends AbstractFetchCanEnvironment {
 	protected float calculateReward() throws Exception {
 		// calculate reward based on simulator info
 		if(simulator != null){
-			if(checkCollisions()){
-				return -1;
-			} else if(simulator.getPosition("can_ref").z > 0.1f){
+			if(simulator.getPosition("can_ref").z > 0.2f){
 				return 1;
 			} else {
 				return 0;
@@ -149,4 +148,24 @@ public class FetchCanReacherIKEnvironment extends AbstractFetchCanEnvironment {
 		simulator.setPosition("Can1", new Position(cx, cy, 0.06f));
 	}
 	
+	
+	@Override
+	protected void initAction(){
+		// reset arm to candle
+		Promise<Arm> p = kukaArm.moveTo(0.4f, 0.0f, 0.4f);
+		int i = 0;
+		while(!p.isDone() && active && i < 100) {
+			if (super.config.tick) {
+				try {
+					simulator.tick();
+					i++;
+				} catch(TimeoutException e){}
+			} else {
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+				}
+			}
+		}
+	}
 }

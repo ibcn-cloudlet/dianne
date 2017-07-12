@@ -40,5 +40,5 @@ public class FetchCanReacherIKConfig {
 	/**
 	 * Height on which to grip
 	 */
-	public float gripHeight = 0.08f;
+	public float gripHeight = 0.085f;
 }

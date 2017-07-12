@@ -43,7 +43,7 @@ public class ArmOutput extends ThingOutput {
 	
 	private float threshold = 0.01f;
 	private float hoverHeight = 0.15f;
-	private float gripHeight = 0.08f;
+	private float gripHeight = 0.085f;
 	
 	public ArmOutput(UUID id, String name, BundleContext context){
 		super(id, name, "Arm");
