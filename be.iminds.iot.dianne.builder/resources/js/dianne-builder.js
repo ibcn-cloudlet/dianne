@@ -520,7 +520,7 @@ function setupModule(moduleItem, type, category){
 	} else if(category==="Visualize"){ 
 		jsPlumb.addEndpoint(moduleItem, targetStyle, {anchor: "Left",endpoint:"Rectangle"});
 	} else if(category==="Output"){ 
-		jsPlumb.addEndpoint(moduleItem, targetStyle, {anchor: "Left",endpoint:"Rectangle"});
+		jsPlumb.addEndpoint(moduleItem, targetStyle, {anchor: "Left",endpoint:"Rectangle",maxConnections:-1});
 	} else if(category==="RNN"){ 
 		jsPlumb.addEndpoint(moduleItem, sourceStyle, {anchor: "Left",endpoint:"Rectangle"});
 		jsPlumb.addEndpoint(moduleItem, targetStyle, {anchor: "Right",endpoint:"Rectangle"});
