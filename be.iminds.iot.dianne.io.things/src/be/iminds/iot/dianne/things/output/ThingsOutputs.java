@@ -123,12 +123,25 @@ public class ThingsOutputs implements DianneOutputs {
 			}
 			((YoubotOutput)t).setArm(a);
 		}
+		
+		// also expose arm as separate thing
+		UUID armId = UUID.nameUUIDFromBytes(a.toString().getBytes());
+		ArmOutput t = new ArmOutput(armId, name+" (Arm)", context);
+		things.put(armId, t);
+		t.setArm(a);
 	}
 	
 	void removeArm(Arm a, Map<String, Object> properties){
 		String name = (String) properties.get("name");
 		UUID id = UUID.nameUUIDFromBytes(name.getBytes());
 		ThingOutput t = things.remove(id);
+		if(t != null){
+			t.disconnect();
+		}
+		
+		// arm also exposed as separate thing
+		UUID armId = UUID.nameUUIDFromBytes(a.toString().getBytes());
+		t = things.remove(armId);
 		if(t != null){
 			t.disconnect();
 		}

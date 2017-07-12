@@ -18,7 +18,7 @@ public abstract class ThingOutput implements ForwardListener {
 	protected final String name;
 	protected final String type;
 	
-	private Map<String, ServiceRegistration> registrations = new HashMap<>();
+	protected Map<String, ServiceRegistration> registrations = new HashMap<>();
 	
 	public ThingOutput(UUID id, String name, String type){
 		this.id = id;
