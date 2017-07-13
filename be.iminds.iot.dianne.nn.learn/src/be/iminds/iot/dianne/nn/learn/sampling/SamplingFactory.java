@@ -35,7 +35,8 @@ public class SamplingFactory {
 		UNIFORM,
 		WEIGHTED,
 		SEQUENTIAL,
-		PERMUTATION
+		PERMUTATION,
+		UNIFORMCLASS
 	}
 	
 	public static SamplingStrategy createSamplingStrategy(SamplingConfig strategy, Dataset d, Map<String, String> config){
@@ -50,6 +51,9 @@ public class SamplingFactory {
 			break;
 		case WEIGHTED:
 			sampling = new WeightedUniformSamplingStrategy(d, DianneConfigHandler.getConfig(config, WeightedUniformConfig.class));
+			break;
+		case UNIFORMCLASS:
+			sampling = new UniformClassSamplingStrategy(d);
 			break;
 		default:
 			sampling = new UniformSamplingStrategy(d);
