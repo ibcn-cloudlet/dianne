@@ -41,12 +41,27 @@ public class ArmOutput extends ThingOutput {
 	private volatile boolean init = false;
 	private volatile boolean active = true;
 	
-	private float threshold = 0.01f;
+	private float threshold = 0.25f;
 	private float hoverHeight = 0.15f;
 	private float gripHeight = 0.085f;
 	
 	public ArmOutput(UUID id, String name, BundleContext context){
 		super(id, name, "Arm");
+		
+		String s = context.getProperty("be.iminds.iot.dianne.youbot.arm.hoverHeight");
+		if(s!=null){
+			hoverHeight = Float.parseFloat(s);
+		}
+		
+		s = context.getProperty("be.iminds.iot.dianne.youbot.arm.gripHeight");
+		if(s!=null){
+			gripHeight = Float.parseFloat(s);
+		}
+		
+		s = context.getProperty("be.iminds.iot.dianne.youbot.arm.valueThreshold");
+		if(s!=null){
+			threshold = Float.parseFloat(s);
+		}
 	}
 	
 	public void setArm(Arm a){
@@ -68,7 +83,7 @@ public class ArmOutput extends ThingOutput {
 		}
 		
 		
-		if(value.get(0) > threshold){
+		if(value.get(0) >= threshold){
 			if(!active){
 				active = true;
 
