@@ -98,9 +98,11 @@
 				<div class="modal-body">
 					<div class="content"></div>
 					<br/>
-					<form role="form" class="form-horizontal">
+					<form role="form" class="form-horizontal" onsubmit="{return false;}">
 						<input class="module-id" type="hidden" name="id" value="{{id}}"/>
 						<div class="form-items"></div>
+						<!-- hidden submit button enabling on enter when applicable -->
+						<button type=submit class="submit" hidden> 
 					</form>
 				</div>
 				<div class="modal-footer">
