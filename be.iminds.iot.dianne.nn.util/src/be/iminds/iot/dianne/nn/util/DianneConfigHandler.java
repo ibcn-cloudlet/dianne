@@ -61,7 +61,12 @@ public class DianneConfigHandler {
 							f.setBoolean(instance, Boolean.parseBoolean(value));
 						}
 					} else if(f.getType().isEnum()){
-						f.set(instance, Enum.valueOf((Class<Enum>) f.getType(), value.toUpperCase()));
+						try {
+							int index = Integer.parseInt(value);
+							f.set(instance,((Class<Enum>) f.getType()).getEnumConstants()[index]);
+						} catch(Exception e){
+							f.set(instance, Enum.valueOf((Class<Enum>) f.getType(), value.toUpperCase()));
+						}
 					} else if(f.getType().isArray()){
 						String[] array = value.split(",");
 						if(f.getType().getComponentType().equals(Integer.TYPE)){
