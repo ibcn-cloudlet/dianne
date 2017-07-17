@@ -27,9 +27,12 @@ import java.util.Hashtable;
 import java.util.UUID;
 
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.util.promise.Promise;
 
 import be.iminds.iot.dianne.api.nn.module.ModuleException;
+import be.iminds.iot.dianne.tensor.ModuleOps;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 import be.iminds.iot.input.joystick.api.JoystickEvent;
@@ -39,6 +42,8 @@ import be.iminds.iot.input.keyboard.api.KeyboardEvent;
 import be.iminds.iot.input.keyboard.api.KeyboardListener;
 import be.iminds.iot.robot.api.arm.Arm;
 import be.iminds.iot.robot.api.omni.OmniDirectional;
+import be.iminds.iot.sensor.api.LaserScanner;
+import be.iminds.iot.sensor.api.SensorValue;
 
 public class YoubotOutput extends ThingOutput implements JoystickListener, KeyboardListener {
 	
@@ -50,13 +55,17 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 		STOCHASTIC,
 		ANY
 	}
+
+	private final BundleContext context;
 	
 	private OmniDirectional base;
 	private Arm arm;
+	private LaserScanner laserScanner;
 	
 	private float speed = 0.1f;
 	private float gripThreshold = 0.05f;
 	private float ignoreGripThreshold = -0.02f;
+	private boolean fixedGrip = false;
 	
 	private float vx = 0;
 	private float vy = 0;
@@ -75,6 +84,8 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 	public YoubotOutput(UUID id, String name, BundleContext context){
 		super(id, name, "Youbot");
 		
+		this.context = context;
+		
 		String s = context.getProperty("be.iminds.iot.dianne.youbot.speed");
 		if(s!=null){
 			speed = Float.parseFloat(s);
@@ -88,6 +99,11 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 		s = context.getProperty("be.iminds.iot.dianne.youbot.ignoreGripThreshold");
 		if(s!=null){
 			ignoreGripThreshold = Float.parseFloat(s);
+		}
+
+		s = context.getProperty("be.iminds.iot.dianne.youbot.fixedGrip");
+		if(s!=null){
+			fixedGrip = Boolean.parseBoolean(s);
 		}
 
 	}
@@ -213,19 +229,12 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 			}
 		}
 		
-		
 		if(grip){
-			base.stop();	
-			arm.openGripper()
-					.then(p -> arm.setPositions(2.92f, 0.0f, 0.0f, 0.0f, 2.875f))
-					.then(p -> arm.setPositions(2.92f, 1.76f, -1.37f, 2.55f))
-					.then(p -> arm.closeGripper())
-					.then(p -> arm.setPositions(0.01f, 0.8f))
-					.then(p -> arm.setPositions(0.01f, 0.8f, -1f, 2.9f))
-					.then(p -> arm.openGripper())
-					.then(p -> arm.setPosition(1, -1.3f))
-					.then(p -> arm.reset()).then(p -> {skip = false; return null;});
-			skip = true;
+			if(!fixedGrip){
+				gripCustom();
+			} else {
+				gripFixed();
+			}
 		} else {
 			base.move(vx, vy, va);
 		}
@@ -253,6 +262,7 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 	
 			base.stop();
 			arm.stop();
+			arm.reset();
 			
 			registration.unregister();
 		}
@@ -321,5 +331,102 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 		default:
 			break;
 		}
+	}
+	
+	
+	private void gripFixed(){
+		base.stop();	
+		arm.openGripper()
+				.then(p -> arm.setPositions(2.92f, 0.0f, 0.0f, 0.0f, 2.875f))
+				.then(p -> arm.setPositions(2.92f, 1.76f, -1.37f, 2.55f))
+				.then(p -> arm.closeGripper())
+				.then(p -> arm.setPositions(0.01f, 0.8f))
+				.then(p -> arm.setPositions(0.01f, 0.8f, -1f, 2.9f))
+				.then(p -> arm.openGripper())
+				.then(p -> arm.setPosition(1, -1.3f))
+				.then(p -> arm.reset()).then(p -> {skip = false; return null;});
+		skip = true;
+	}
+
+	private void gripCustom(){
+		base.stop();
+		
+		Promise<Arm> hover = arm.moveTo(0.4f, 0f, 0.4f);
+		arm.openGripper();
+		
+		final float x,y;
+		if(laserScanner == null){
+			try {
+				ServiceReference[] refs = context.getServiceReferences(LaserScanner.class.getName(), "(|(name=Hokuyo)(name=hokuyo))");
+				if(refs != null){
+					laserScanner = (LaserScanner) context.getService(refs[0]);
+				}
+			} catch (Exception e) {
+			}
+		}
+		
+		if(laserScanner != null){
+			int size = laserScanner.getValue().data.length;
+			double step = Math.PI/size;
+			
+			int count = 0;
+			
+			int kw = 3;
+			int pad = 1;
+			
+			float distance = 0;
+			double alfa = 0;
+			Tensor ind = new Tensor(1, 1, size);
+			Tensor pooled = new Tensor(1, 1, size);
+			while(!hover.isDone()){
+				SensorValue v = laserScanner.getValue();
+				Tensor laserScan = new Tensor(v.data, size);
+				laserScan.reshape(1, 1, size);
+				// pool to filter out single 0 values
+				pooled = ModuleOps.spatialmaxpool(pooled, laserScan, ind, kw, 1, 1, 1, pad, 0);
+
+				float d =  TensorOps.min(pooled);
+				double a = (TensorOps.argmin(pooled)-0.5)*step; 
+
+				if(d > 0.1){
+					distance += d;
+					alfa += a;
+					count++;
+				} else {
+					// make the maxpool broader?
+					kw+=2;
+					pad+=1;
+				}
+				
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {}
+			}
+			
+			distance /= count;
+			alfa /= count;
+			
+			if(distance > 0.1 ){
+				x = 0.22f + (float) (distance * Math.sin(alfa));
+				y = (float)(-distance * Math.cos(alfa));
+			} else {
+				x = 0.44f;
+				y = 0;
+			}
+			System.out.println(distance+" "+alfa+" "+x+" "+y);
+		} else {
+			x = 0.4f;
+			y = 0f;
+		}
+
+		hover.then(p -> arm.moveTo(x, y, 0.15f), p -> {skip = false; arm.reset();})
+				.then(p -> arm.moveTo(x, y, 0.085f), p -> {skip = false; arm.reset();})
+				.then(p -> arm.closeGripper(), p -> {skip = false; arm.reset();})
+				.then(p -> arm.setPositions(0.01f, 0.8f))
+				.then(p -> arm.setPositions(0.01f, 0.8f, -1f, 2.9f))
+				.then(p -> arm.openGripper())
+				.then(p -> arm.setPosition(1, -1.3f))
+				.then(p -> arm.reset()).then(p -> {skip = false; return null;});
+		skip = true;
 	}
 }

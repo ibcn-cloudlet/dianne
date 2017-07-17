@@ -80,6 +80,9 @@ public class ArmOutput extends ThingOutput {
 			output.copyInto(value);
 		} else if(output.size()==3){
 			output.copyInto(position);
+		} else {
+			// invalid output dimension
+			return;
 		}
 		
 		

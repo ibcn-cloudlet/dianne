@@ -22,6 +22,9 @@ Export-Package: \
 	be.iminds.iot.things.api.lamp,\
 	be.iminds.iot.sensor.api,\
 	be.iminds.iot.robot.api,\
+	be.iminds.iot.robot.api.arm,\
+	be.iminds.iot.robot.api.omni,\
+	be.iminds.iot.robot.api.rover,\
 	be.iminds.iot.input.joystick.api,\
 	be.iminds.iot.input.keyboard.api
 Bundle-Name: Dianne Thing I/O adapters
