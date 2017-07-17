@@ -127,16 +127,29 @@ public class FetchCanReacherIKEnvironment extends AbstractFetchCanEnvironment {
 			x = 0;
 			y = 0;
 			o = 0;
-		} else {
-			// random youbot position and orientation
-			x = (r.nextFloat()-0.5f)*0.7f;
+		} else if(super.config.difficulty == 1){
+			// random youbot position and orientation (ensure it fits in boundaries)
+			x = (r.nextFloat()-0.5f)*0.6f;
 			y = (r.nextFloat()-0.5f)*1.5f;
+			o = (r.nextFloat()-0.5f)*6.28f;
+		} else {
+			// no assumptions made on can being graspable
+			x = (r.nextFloat()-0.5f);
+			y = (r.nextFloat()-0.5f)*1.8f;
 			o = (r.nextFloat()-0.5f)*6.28f;
 		}
 
-		// put can in workspace of robot
-		float d = r.nextFloat()*0.25f;
-		double a = (r.nextFloat()-0.5f)*Math.PI;
+		float d;
+		double a;
+		if(super.config.difficulty <= 1){
+			// make sure can is in workspace of robot
+			d = r.nextFloat()*0.25f;
+			a = (r.nextFloat()-0.5f)*Math.PI;
+		} else {
+			// can might be just to far out
+			d = r.nextFloat()*0.5f;
+			a = (r.nextFloat()-0.5f)*Math.PI;
+		}
 		
 		cx = x + (float)Math.sin(o)*0.4f + (float)Math.sin(o+a)*d;
 		cy = y + (float)Math.cos(o)*0.4f + (float)Math.cos(o+a)*d;
