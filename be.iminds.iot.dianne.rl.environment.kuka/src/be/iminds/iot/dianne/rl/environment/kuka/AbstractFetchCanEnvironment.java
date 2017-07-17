@@ -29,6 +29,7 @@ import java.util.concurrent.TimeoutException;
 
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.environment.kuka.config.FetchCanConfig;
+import be.iminds.iot.dianne.rl.environment.kuka.config.FetchCanConfig.Difficulty;
 import be.iminds.iot.simulator.api.Orientation;
 import be.iminds.iot.simulator.api.Position;
 
@@ -243,28 +244,18 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 		} while(cmd!=0 && System.currentTimeMillis()-start < config.timeout);
 	}
 	
-	protected void resetEnvironment(){
-		// in simulation we can control the position of the youbot and can
-		// random init position and orientation of the robot
-		resetYoubot();
-		
-		// set random can position
-		resetCan();
-				
-	}
-	
 	protected void resetYoubot(){
 		float x,y,o;
 		
 		switch (config.difficulty) {
-		case FetchCanConfig.FIXED:
-		case FetchCanConfig.WORKSPACE:
-		case FetchCanConfig.VISIBLE:
+		case FIXED:
+		case WORKSPACE:
+		case VISIBLE:
 			x = 0;
 			y = 0;
 			o = 0;
 			break;
-		case FetchCanConfig.RANDOM:
+		case RANDOM:
 		default:
 			x = (r.nextFloat()-0.5f);
 			y = (r.nextFloat()-0.5f)*1.8f;
@@ -282,22 +273,22 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 		while(s < 0.15f) { // can should not be colliding with youbot from start	
 		
 			switch (config.difficulty) {
-			case FetchCanConfig.FIXED:
+			case FIXED:
 				x = 0;
 				y = GRIP_DISTANCE;
 				break;
-			case FetchCanConfig.WORKSPACE:
+			case WORKSPACE:
 				// start position in front in workspace
 				float d = r.nextFloat()*0.25f;
 				double a = (r.nextFloat()-0.5f)*Math.PI;
 				x = (float)Math.sin(a)*d;
 				y = 0.4f + (float)Math.cos(a)*d;
 				break;
-			case FetchCanConfig.VISIBLE:
+			case VISIBLE:
 				x = (r.nextFloat()-0.5f)*1.6f;
 				y = (0.125f + 3*r.nextFloat()/8f)*2.4f;
 				break;
-			case FetchCanConfig.RANDOM:
+			case RANDOM:
 			default:
 				x = (r.nextFloat()-0.5f)*1.6f;
 				y = (r.nextFloat()-0.5f)*2.4f;
@@ -310,6 +301,63 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 			s = d.y*d.y+d.z*d.z;
 		}
 		canRefInitHeight = simulator.getPosition("can_ref").z;
+	}
+	
+	protected void resetEnvironment(){
+		int plane;
+		if(config.difficulty==Difficulty.START_DOCKED
+				|| config.difficulty==Difficulty.RANDOM_DOCK){
+			plane = r.nextInt(2)+1;
+		} else {
+			plane = 0;
+		}
+		
+		// set plane and/or youBot position
+		Position p;
+		switch(plane){
+		case 0:
+			simulator.setOrientation("Plane1", new Orientation(0, (float)Math.PI/2, (float)Math.PI/2));
+			simulator.setPosition("Plane1", new Position(-1, -0.9f, 0.15f));
+			simulator.setPosition("dock_ref", new Position(-0.6f, -1.5f, 0f));
+			
+			resetYoubot();
+			break;
+		case 1:
+			simulator.setOrientation("Plane1", new Orientation(0, (float)Math.PI/2, (float)Math.PI/2));
+			float x = -0.3f + r.nextFloat()/10;
+			simulator.setPosition("Plane1", new Position(x, -0.9f, 0.15f));
+			simulator.setPosition("dock_ref", new Position(-0.6f, -1.5f, 0f));
+			
+			if(config.difficulty == Difficulty.START_DOCKED){
+				simulator.setPosition("youBot", new Position(-0.583f, -0.939f, 0.0957f));
+				simulator.setOrientation("youBot", new Orientation(1.5707963f, 0, 1.5707965f));
+			} else {
+				do {
+					resetYoubot();
+					p = simulator.getPosition("youBot");
+				} while(p.x < 0.1 && p.y < -0.1);
+			}
+			break;
+		case 2:
+			float y = -0.6f + (r.nextFloat()-0.5f)/5;
+			simulator.setOrientation("Plane1", new Orientation((float)Math.PI/2, 0, 0));
+			simulator.setPosition("Plane1", new Position(-0.45f, y, 0.15f));
+			simulator.setPosition("dock_ref", new Position(-1f, -1f, 0f));
+			
+			if(config.difficulty == Difficulty.START_DOCKED){
+				simulator.setPosition("youBot", new Position(-0.431f, -1f, 0.0957f));
+				simulator.setOrientation("youBot", new Orientation(-1.5707963f, -1.5707963f, -1.5707965f));
+			} else {
+				do {
+					resetYoubot();
+					p = simulator.getPosition("youBot");
+				} while(p.y < -0.2);
+			}
+			break;
+		}
+		
+		// set random can position
+		resetCan();
 	}
 	
 	@Override

@@ -24,6 +24,15 @@ package be.iminds.iot.dianne.rl.environment.kuka.config;
 
 public class FetchCanConfig {
 
+	public enum Difficulty {
+		FIXED,
+		WORKSPACE,
+		VISIBLE,
+		RANDOM,
+		START_DOCKED,
+		RANDOM_DOCK
+	}
+	
 	/**
 	 * stop early when simulating
 	 * 
@@ -37,10 +46,6 @@ public class FetchCanConfig {
 	 */
 	public float margin = 0.005f;
 	
-	public static final int FIXED = -1;
-	public static final int WORKSPACE = 0;
-	public static final int VISIBLE = 1;
-	public static final int RANDOM = 2;
 	/**
 	 * environment difficulty (the higher the more difficult)
 	 * 
@@ -54,7 +59,7 @@ public class FetchCanConfig {
 	 * 
 	 * TODO make enum for this?
 	 */
-	public int difficulty = 2;
+	public Difficulty difficulty = Difficulty.RANDOM;
 	
 	/**
 	 * Give intermediate reward on each action based on the distance towards Can

@@ -122,35 +122,39 @@ public class FetchCanReacherIKEnvironment extends AbstractFetchCanEnvironment {
 		// can x,y
 		float cx,cy;
 		
-		if(super.config.difficulty <= 0){
+		// distance and angle of can
+		float d;
+		double a;
+		
+		switch(super.config.difficulty){
+		case FIXED:
 			// fix youbot at 0,0
 			x = 0;
 			y = 0;
 			o = 0;
-		} else if(super.config.difficulty == 1){
+			
+			d = r.nextFloat()*0.25f;
+			a = (r.nextFloat()-0.5f)*Math.PI;
+			break;
+		case WORKSPACE:
 			// random youbot position and orientation (ensure it fits in boundaries)
 			x = (r.nextFloat()-0.5f)*0.6f;
 			y = (r.nextFloat()-0.5f)*1.5f;
 			o = (r.nextFloat()-0.5f)*6.28f;
-		} else {
+			
+			d = r.nextFloat()*0.25f;
+			a = (r.nextFloat()-0.5f)*Math.PI;
+			break;
+		default:
 			// no assumptions made on can being graspable
 			x = (r.nextFloat()-0.5f);
 			y = (r.nextFloat()-0.5f)*1.8f;
-			o = (r.nextFloat()-0.5f)*6.28f;
-		}
-
-		float d;
-		double a;
-		if(super.config.difficulty <= 1){
-			// make sure can is in workspace of robot
-			d = r.nextFloat()*0.25f;
-			a = (r.nextFloat()-0.5f)*Math.PI;
-		} else {
-			// can might be just to far out
+			o = (r.nextFloat()-0.5f)*6.28f;	
+			
 			d = r.nextFloat()*0.5f;
 			a = (r.nextFloat()-0.5f)*Math.PI;
 		}
-		
+
 		cx = x + (float)Math.sin(o)*0.4f + (float)Math.sin(o+a)*d;
 		cy = y + (float)Math.cos(o)*0.4f + (float)Math.cos(o+a)*d;
 		

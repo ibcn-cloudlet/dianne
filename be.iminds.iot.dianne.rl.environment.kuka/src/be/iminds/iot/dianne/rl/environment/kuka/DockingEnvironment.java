@@ -28,6 +28,7 @@ import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.rl.environment.kuka.api.KukaEnvironment;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
+import be.iminds.iot.simulator.api.Orientation;
 import be.iminds.iot.simulator.api.Position;
 
 
@@ -151,17 +152,10 @@ public class DockingEnvironment extends AbstractFetchCanEnvironment {
 		// in case no simulator ... return reward variable that might be set manually
 		return reward;
 	}
-
-	@Override
-	protected void resetEnvironment(){
-		simulator.setPosition("Plane1", new Position(0.2925f, 0.9f, 0.15f));
-		// put the dock_ref slightly outside the border and train to match this with the targetCanPosition
-		simulator.setPosition("dock_ref", new Position(0.6f, 1.5f, 0f));
-		
-		Position p;
-		do {
-			super.resetYoubot();
-			p = simulator.getPosition("youBot");
-		} while(p.x > -0.1 && p.y > 0.1);
+	
+	protected void resetCan(){
+		// no can when docking?
+		simulator.setOrientation("Can1", new Orientation(0, 0 ,1.6230719f));
+		simulator.setPosition("Can1", new Position(-1.0f, 0.0f, 0.06f));
 	}
 }
