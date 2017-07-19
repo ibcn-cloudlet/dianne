@@ -49,7 +49,7 @@ import be.iminds.iot.simulator.api.Position;
 				 "osgi.command.function=pause",
 				 "osgi.command.function=resume",
 				 "osgi.command.function=reward"})
-public class FetchCanReacherIKEnvironment extends AbstractFetchCanEnvironment {
+public class FetchCanReacherIKEnvironment extends FetchCanEnvironment {
 	
 	public static final String NAME = "FetchCanReacherIK";
 	
@@ -68,8 +68,6 @@ public class FetchCanReacherIKEnvironment extends AbstractFetchCanEnvironment {
 	@Override
 	public void configure(Map<String, String> config) {
 		this.config = DianneConfigHandler.getConfig(config, FetchCanReacherIKConfig.class);
-		
-		super.configure(config);
 	}
 	
 	@Override
@@ -126,7 +124,7 @@ public class FetchCanReacherIKEnvironment extends AbstractFetchCanEnvironment {
 		float d;
 		double a;
 		
-		switch(super.config.difficulty){
+		switch(config.difficulty){
 		case FIXED:
 			// fix youbot at 0,0
 			x = 0;

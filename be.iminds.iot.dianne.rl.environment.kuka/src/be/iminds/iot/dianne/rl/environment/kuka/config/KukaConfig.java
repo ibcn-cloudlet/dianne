@@ -61,4 +61,14 @@ public class KukaConfig {
 	 * Let the environment have control of time and tick each iteration
 	 */
 	public boolean tick = true;
+	
+	/**
+	 * The scene file to load
+	 */
+	public String scene = "youbot_fetch_can.ttt";
+	
+	/**
+	 * A seed for initializing the environment
+	 */
+	public long seed = 0;
 }

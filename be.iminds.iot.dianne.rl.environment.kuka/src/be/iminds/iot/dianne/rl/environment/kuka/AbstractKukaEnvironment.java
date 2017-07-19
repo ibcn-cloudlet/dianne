@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Random;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -92,6 +93,8 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 	private Map<String, String> configMap;
 	
 	private Set<EnvironmentListener> listeners = Collections.synchronizedSet(new HashSet<>());
+	
+	protected Random r = new Random(System.currentTimeMillis());
 	
 	protected volatile boolean active = false;
 	protected boolean terminal = false;
@@ -523,7 +526,7 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 				System.out.println("Invalid number of environment sensors given: "+this.config.environmentSensors+", should be 0,1,2 or 4");
 			}
 			
-			simulator.loadScene("scenes/youbot_fetch_can.ttt", entities);
+			simulator.loadScene("scenes/"+config.scene, entities);
 			
 			for(String key : entities.keySet()){
 				if(key.startsWith("hokuyo")){
@@ -630,6 +633,10 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		
 		this.config = DianneConfigHandler.getConfig(config, KukaConfig.class);
 		this.configMap = config;
+		
+		if(this.config.seed != 0){
+			r = new Random(this.config.seed);
+		}
 		
 		configure(configMap);
 		configureSimulator();

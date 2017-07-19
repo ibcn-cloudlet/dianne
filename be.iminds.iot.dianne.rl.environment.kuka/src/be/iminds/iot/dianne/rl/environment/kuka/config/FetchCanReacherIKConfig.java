@@ -24,7 +24,17 @@ package be.iminds.iot.dianne.rl.environment.kuka.config;
 
 public class FetchCanReacherIKConfig {
 
-
+	public enum Difficulty {
+		FIXED,
+		WORKSPACE,
+		RANDOM
+	}
+	
+	/**
+	 * Difficulty
+	 */
+	public Difficulty difficulty = Difficulty.RANDOM;
+	
 	/**
 	 * Ignore what comes in as action.
 	 * 

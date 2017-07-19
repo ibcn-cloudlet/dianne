@@ -53,7 +53,7 @@ import be.iminds.iot.robot.api.arm.Arm;
 				 "osgi.command.function=resume",
 				 "osgi.command.function=reward",
 				 "osgi.command.function=resetCan"})
-public class FetchCanReacherEnvironment extends AbstractFetchCanEnvironment {
+public class FetchCanReacherEnvironment extends FetchCanEnvironment {
 	
 	public static final String NAME = "FetchCanReacher";
 	

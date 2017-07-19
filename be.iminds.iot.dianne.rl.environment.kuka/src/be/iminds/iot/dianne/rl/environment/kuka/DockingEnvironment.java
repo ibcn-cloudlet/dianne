@@ -26,6 +26,7 @@ import org.osgi.service.component.annotations.Component;
 
 import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.rl.environment.kuka.api.KukaEnvironment;
+import be.iminds.iot.dianne.rl.environment.kuka.config.FetchCanConfig.Difficulty;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 import be.iminds.iot.simulator.api.Orientation;
@@ -43,7 +44,7 @@ import be.iminds.iot.simulator.api.Position;
 				 "osgi.command.function=pause",
 				 "osgi.command.function=resume",
 				 "osgi.command.function=reward"})
-public class DockingEnvironment extends AbstractFetchCanEnvironment {
+public class DockingEnvironment extends FetchCanEnvironment {
 	
 	public static final String NAME = "Docking";
 	
@@ -151,6 +152,11 @@ public class DockingEnvironment extends AbstractFetchCanEnvironment {
 		
 		// in case no simulator ... return reward variable that might be set manually
 		return reward;
+	}
+	
+	protected void resetEnvironment(){
+		super.config.difficulty = Difficulty.RANDOM_DOCK;
+		super.resetEnvironment();
 	}
 	
 	protected void resetCan(){

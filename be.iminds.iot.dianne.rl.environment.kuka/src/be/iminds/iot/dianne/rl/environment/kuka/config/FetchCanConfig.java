@@ -51,13 +51,12 @@ public class FetchCanConfig {
 	 * 
 	 * can be used for curriculum learning
 	 * 
-	 * difficulty = -1 : fixed youBot, fixed Can
-	 * difficulty = 0 : fixed youBot, Can right in front
-	 * difficulty = 1 : fixed youBot, Can in front in sight
-	 * difficulty = 2 : random youBot / Can positions
-	 * ...
-	 * 
-	 * TODO make enum for this?
+	 * difficulty = 0  (FIXED): fixed youBot, fixed Can
+	 * difficulty = 1  (WORKSPACE): fixed youBot, Can right in front
+	 * difficulty = 2  (VISIBLE): fixed youBot, Can in front in sight
+	 * difficulty = 3  (RANDOM): random youBot / Can positions
+	 * difficulty = 4  (START_DOCKED): start youBot in docked position
+	 * difficulty = 5  (RANDOM_DOCK): start youBot randomly with also dock present
 	 */
 	public Difficulty difficulty = Difficulty.RANDOM;
 	
@@ -108,11 +107,6 @@ public class FetchCanConfig {
 	 * Speed (in m/s) the Kuka base is steered (max speed in case of continuous actions)
 	 */
 	public float speed = 0.2f;
-	
-	/**
-	 * A seed for initializing the environment
-	 */
-	public long seed = 0;
 
 	/**
 	 * Whether a collision in the environment is terminal.
