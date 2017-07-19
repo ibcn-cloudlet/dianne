@@ -920,6 +920,14 @@ function showLoadDialog(){
 				name: "Neural network: "
 			},
 			dialog.find('.form-items'));
+	
+	renderTemplate('form-checkbox',
+			{
+				name: "Add to canvas",
+				id: "add",
+				checked: ""
+			}, dialog.find('.form-items'));
+	
 	$.post("/dianne/load", {"action" : "list"}, 
 			function( data ) {
 				data.sort();
@@ -932,7 +940,9 @@ function showLoadDialog(){
 	// submit button callback
 	dialog.find(".submit").click(function(e){
 		var name = $(this).closest('.modal').find('.options').val();
-		load(name);
+		var add = $(this).closest('.modal').find('.add').is(':checked');
+
+		load(name, add);
 	});
 	
 	// remove cancel button
@@ -945,16 +955,22 @@ function showLoadDialog(){
 	
 }
 
-function load(name){
+function load(name, add){
 	console.log("load "+name);
 	$.post("/dianne/load", {"action":"load", "name":name}, 
 			function( data ) {
-				resetCanvas();
+				if(!add){
+					resetCanvas();
 		
-				nn.name = name;
-				$('#name').text(nn.name);
+					nn.name = name;
+					$('#name').text(nn.name);
 				
-				nn.modules = data.nn.modules;
+					nn.modules = data.nn.modules;
+				} else {
+					for(var m in data.nn.modules){ 
+						nn.modules[m]=data.nn.modules[m];
+					}
+				}
 				loadLayout(data.layout);
 		
 				$('#dialog-load').remove();
