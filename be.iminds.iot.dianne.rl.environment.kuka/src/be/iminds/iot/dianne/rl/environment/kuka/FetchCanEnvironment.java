@@ -228,6 +228,9 @@ public class FetchCanEnvironment extends AbstractKukaEnvironment {
 						r = ((float)Math.expm1( -config.exponentialDecayingRewardScale * previousDistance));
 					else {
 						r = - previousDistance / MAX_DISTANCE;
+						if(r < -1){
+							r = -1;
+						}
 					}
 				}
 				
