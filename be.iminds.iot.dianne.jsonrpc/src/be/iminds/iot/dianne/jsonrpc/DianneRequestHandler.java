@@ -255,7 +255,11 @@ public class DianneRequestHandler implements JSONRPCRequestHandler {
 			} else if(method.equals("act")){
 				Promise<AgentResult> result = null;
 				if(nnName!=null){
-					result= coordinator.act(dataset, config, nnName);
+					if(nnName[0].equals("null") || nnName[0].isEmpty()){
+						result = coordinator.act(dataset, config, (String[])null);
+					} else {
+						result = coordinator.act(dataset, config, nnName);
+					}
 				} else {
 					result = coordinator.act(dataset, config, nn);
 				}
