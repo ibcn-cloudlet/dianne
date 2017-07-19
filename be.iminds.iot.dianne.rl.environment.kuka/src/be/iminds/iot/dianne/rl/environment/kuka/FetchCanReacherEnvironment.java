@@ -169,7 +169,7 @@ public class FetchCanReacherEnvironment extends AbstractFetchCanEnvironment {
 		}
 	
 		// simulate an iteration further
-		if(simulator != null && super.config.tick){
+		if(simulator != null){
 			for(int i=0;i<=super.config.skip;i++){
 				simulator.tick();
 			}
@@ -216,16 +216,9 @@ public class FetchCanReacherEnvironment extends AbstractFetchCanEnvironment {
 		Promise<Arm> p = kukaArm.setPositions(middlePos, 1.103709733f, -2.478948503f, 1.72566195f, 2.765485f);
 		// simulate an iteration further
 		while(!p.isDone() && active) {
-			if (super.config.tick) {
-				try {
-					simulator.tick();
-				} catch(TimeoutException e){}
-			} else {
-				try {
-					Thread.sleep(100);
-				} catch (InterruptedException e) {
-				}
-			}
+			try {
+				simulator.tick();
+			} catch(TimeoutException e){}
 		}
 	}
 }

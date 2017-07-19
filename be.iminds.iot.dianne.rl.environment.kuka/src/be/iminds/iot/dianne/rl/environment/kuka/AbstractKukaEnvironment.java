@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
@@ -63,7 +64,7 @@ import be.iminds.iot.simulator.api.Simulator;
 
 /**
  * Abstract Kuka environment that can be used as base for running the Kuka with
- * laser range scanner in our cage
+ * laser range scanner(s) in our cage
  * 
  * In case no simulator is available, the environment will pause after each termination.
  * 
@@ -100,12 +101,13 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 	protected Tensor observation;
 	protected Tensor noise;
 	
-	// TODO for now limited to 1 youbot
+	// For now we support 1 base, 1 arm and x range sensors.
+	// When adding additional sensors, make sure to also update getObservation and observationDims!
 	protected volatile OmniDirectional kukaPlatform;
 	protected volatile Arm kukaArm;
 	protected SortedMap<String,LaserScanner> rangeSensors = Collections.synchronizedSortedMap(new TreeMap<>());;
 	
-	// Environment can be both simulated or on real robot
+	// Environment can be both simulated or on real robot - in case of real robot simulator will be null
 	protected Simulator simulator;
 	
 	// Hook into ROS to check whether subscribers are there?
@@ -167,7 +169,7 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		if(!active)
 			throw new RuntimeException("The Environment is not active!");
 		
-		// execute action
+		// execute action - implemented in the subclasses
 		try {
 			executeAction(action);
 		} catch (Exception e) {
@@ -237,68 +239,40 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		listeners.stream().forEach(l -> l.onAction(0, observation));
 	}
 	
+	// methods to be implemented in concrete Kuka environments
 	
+	// configure the environment - called when starting an act job
+	protected abstract void configure(Map<String, String> config);
+	
+	// execute an actual action given a Tensor a
 	protected abstract void executeAction(Tensor a) throws Exception; 
 	
+	// calculate the reward - is also called initially e.g. to bootstrap some stuff
 	protected abstract float calculateReward() throws Exception;
 	
+	// optional initial action to execute before starting the environment
+	protected void initAction(){
+	}
+	
+	// reset the environment if we are running in simulation
+	protected abstract void resetEnvironment() throws Exception;
+
+	// helper method to check collisions in simulator
+	protected boolean checkCollisions(){
+		if(simulator == null)
+			return false;
+		
+		return simulator.checkCollisions("Border");
+	}
+	
 	protected float calculateEnergy(Tensor a) throws Exception {
+		// optionally calculate energy for penalizing
 		return 1;
 	}
 	
 	protected float calculateVelocity(Tensor a) throws Exception {
+		// optionally calculate velocity for penalizing
 		return 1;
-	}
-	
-	protected abstract void initSimulator() throws Exception;
-	
-	protected abstract void deinitSimulator() throws Exception;
-	
-	protected abstract void configure(Map<String, String> config);
-		
-	public void reward(float r){
-		this.reward = r;
-		resume();
-	}
-	
-	public void stop(){
-		cleanup();
-	}
-	
-	public void pause(){
-		pause = true;
-	}
-	
-	public void resume(){
-		pause = false;
-		synchronized(this){
-			this.notifyAll();
-		}
-	}
-	
-	public void start(String... params){
-		HashMap<String, String> config = new HashMap<>();
-		config.put("tick", "false");
-		for(String p : params){
-			if(p.contains("=")){
-				String[] keyval = p.split("=");
-				config.put(keyval[0], keyval[1]);
-			}
-		}
-		setup(config);
-	}
-	
-	private void waitForResume(){
-		synchronized(this){
-			if(pause){
-				try {
-					this.wait();
-				} catch (InterruptedException e) {
-					System.out.println("Environment interrupted!");
-				}
-				pause = false;
-			}
-		}
 	}
 	
 	protected void updateObservation(){
@@ -415,6 +389,8 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		                
 		                // configure it again from scratch
 		                configure(configMap);
+		        		configureSimulator();
+
 		                
 		                initSimulator();
 					}
@@ -438,13 +414,140 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		}
 	}
 	
-	protected boolean checkCollisions(){
-		if(simulator == null)
-			return false;
-		
-		return simulator.checkCollisions("Border");
-	}
+	protected void initSimulator() throws Exception {
+		long start = System.currentTimeMillis();
 
+		resetEnvironment();
+
+		simulator.start(config.tick);
+		
+		// TODO there might be an issue with range sensor not coming online at all
+		// should be fixed in robot project?
+		while(kukaArm == null 
+				|| kukaPlatform == null
+				|| (!config.simState && rangeSensors.size() !=  1 + config.environmentSensors)){
+			try {
+				if(config.tick){
+					simulator.tick();
+				}
+			} catch(TimeoutException e){}
+
+			if(System.currentTimeMillis()-start > config.timeout){
+				System.out.println("Failed to initialize youbot/laserscanner in environment... Try again");
+				throw new Exception("Failed to initialize Kuka environment");
+			}
+			
+			if(!active)
+				throw new InterruptedException();
+		}
+
+		// hack to make sure our commands are getting through
+		int cmd = 0;
+		do {
+			kukaArm.setPosition(0, 0.0f);
+			cmd = (int)simulator.getProperty("cmd");
+
+			if(System.currentTimeMillis()-start > config.timeout){
+				System.out.println("Failed to initialize youbot/laserscanner in environment... Try again");
+				throw new Exception("Failed to initialize Kuka environment");
+			}
+			
+			if(!active)
+				throw new InterruptedException();
+			
+		} while(cmd!=1);
+			
+		initAction();
+		
+		// calculate reward here to initialize previousDistance
+		calculateReward();
+	}
+	
+	protected void deinitSimulator() throws Exception {
+		long start = System.currentTimeMillis();
+
+		simulator.stop();
+
+		while(kukaArm != null 
+				|| kukaPlatform != null
+				|| rangeSensors.size() != 0){
+			try {
+				synchronized(mutex){
+					mutex.wait(config.timeout);
+				}
+			} catch (InterruptedException e) {
+			}		
+		}
+
+		int cmd = 1;
+		do {
+			cmd = (int)simulator.getProperty("cmd");
+			if(!active)
+				throw new InterruptedException();
+			
+		} while(cmd!=0 && System.currentTimeMillis()-start < config.timeout);
+	}
+	
+	protected void configureSimulator(){
+		// configure the simulated environment
+		if(simulator != null){
+			Map<String, String> entities = new HashMap<String, String>();
+			entities.put("youBot", "be.iminds.iot.robot.youbot.ros.Youbot");
+			if(!this.config.simState)
+				entities.put("hokuyo", "be.iminds.iot.sensor.range.ros.LaserScanner");
+
+			// only activate configured sensors
+			simulator.setProperty("hokuyo_active", false);
+			simulator.setProperty("hokuyo#0_active", false);
+			simulator.setProperty("hokuyo#1_active", false);
+			simulator.setProperty("hokuyo#2_active", false);
+			simulator.setProperty("hokuyo#3_active", false);
+			
+			switch(this.config.environmentSensors){
+			case 0:
+				break;
+			case 1:
+				entities.put("hokuyo#0", "be.iminds.iot.sensor.range.ros.LaserScanner");
+				break;
+			case 2:
+				entities.put("hokuyo#0", "be.iminds.iot.sensor.range.ros.LaserScanner");
+				entities.put("hokuyo#3", "be.iminds.iot.sensor.range.ros.LaserScanner");
+				break;
+			case 4:
+				entities.put("hokuyo#0", "be.iminds.iot.sensor.range.ros.LaserScanner");
+				entities.put("hokuyo#1", "be.iminds.iot.sensor.range.ros.LaserScanner");
+				entities.put("hokuyo#2", "be.iminds.iot.sensor.range.ros.LaserScanner");
+				entities.put("hokuyo#3", "be.iminds.iot.sensor.range.ros.LaserScanner");
+				break;
+			default:
+				System.out.println("Invalid number of environment sensors given: "+this.config.environmentSensors+", should be 0,1,2 or 4");
+			}
+			
+			simulator.loadScene("scenes/youbot_fetch_can.ttt", entities);
+			
+			for(String key : entities.keySet()){
+				if(key.startsWith("hokuyo")){
+					simulator.setProperty(key+"_active", true);
+					simulator.setProperty(key+"_scanPoints", this.config.scanPoints);
+					simulator.setProperty(key+"_showLaser", this.config.showLaser);
+				}
+			}
+		} 
+	}
+	
+	private void waitForResume(){
+		synchronized(this){
+			if(pause){
+				try {
+					this.wait();
+				} catch (InterruptedException e) {
+					System.out.println("Environment interrupted!");
+				}
+				pause = false;
+			}
+		}
+	}
+	
 	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
 	void addEnvironmentListener(EnvironmentListener l, Map<String, Object> properties){
 		String target = (String) properties.get("target");
@@ -529,7 +632,8 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		this.configMap = config;
 		
 		configure(configMap);
-		
+		configureSimulator();
+
 		active = true;
 		
 		reset();
@@ -540,5 +644,46 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		active = false;
 		
 		deinit();
+	}
+	
+	/*
+	 * Some helper command line functions
+	 */
+	
+	// set custom reward when paused (can be used on real platform to provide reward on the spot)
+	public void reward(float r){
+		this.reward = r;
+		resume();
+	}
+	
+	// stop environment
+	public void stop(){
+		cleanup();
+	}
+	
+	// pause environment
+	public void pause(){
+		pause = true;
+	}
+	
+	// resume environment
+	public void resume(){
+		pause = false;
+		synchronized(this){
+			this.notifyAll();
+		}
+	}
+	
+	// directly start environment for debugging/demo purposes
+	public void start(String... params){
+		HashMap<String, String> config = new HashMap<>();
+		config.put("tick", "false");
+		for(String p : params){
+			if(p.contains("=")){
+				String[] keyval = p.split("=");
+				config.put(keyval[0], keyval[1]);
+			}
+		}
+		setup(config);
 	}
 }

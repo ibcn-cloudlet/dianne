@@ -43,7 +43,12 @@ public class KukaConfig {
 	public boolean showLaser = false;
 	
 	/**
-	 * Ms to wait when trying to restart simulator
+	 * Number of sensors to activate in the environment
+	 */
+	public int environmentSensors = 0;
+	
+	/**
+	 * Ms to wait at initialization time before regarding this as failure
 	 */
 	public int timeout = 100000;
 	
@@ -51,4 +56,9 @@ public class KukaConfig {
 	 * Maximum simulator initialization retries.
 	 */
 	public int maxRetries = 10;
+	
+	/**
+	 * Let the environment have control of time and tick each iteration
+	 */
+	public boolean tick = true;
 }

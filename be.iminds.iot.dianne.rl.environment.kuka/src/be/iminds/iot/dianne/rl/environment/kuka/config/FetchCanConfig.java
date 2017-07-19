@@ -110,23 +110,6 @@ public class FetchCanConfig {
 	public float speed = 0.2f;
 	
 	/**
-	 * Whether the environment has to tick the simulator
-	 * 
-	 * Set to false when using simulator to mimick real world ...
-	 */
-	public boolean tick = true;
-	
-	/**
-	 * Number of sensors to activate in the environment
-	 */
-	public int environmentSensors = 0;
-	
-	/**
-	 * Ms to wait at initialization time before regarding this as failure
-	 */
-	public int timeout = 100000;
-	
-	/**
 	 * A seed for initializing the environment
 	 */
 	public long seed = 0;

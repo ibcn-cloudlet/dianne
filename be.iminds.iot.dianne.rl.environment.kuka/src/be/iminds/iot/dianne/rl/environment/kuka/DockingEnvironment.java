@@ -85,7 +85,7 @@ public class DockingEnvironment extends AbstractFetchCanEnvironment {
 		}
 		
 		// simulate an iteration further
-		if(simulator != null && super.config.tick){
+		if(simulator != null){
 			for(int i=0;i<=config.skip;i++){
 				simulator.tick();
 			}

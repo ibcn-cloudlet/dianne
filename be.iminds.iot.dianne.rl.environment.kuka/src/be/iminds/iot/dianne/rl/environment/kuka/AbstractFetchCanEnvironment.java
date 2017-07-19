@@ -22,10 +22,8 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rl.environment.kuka;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.TimeoutException;
 
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.environment.kuka.config.FetchCanConfig;
@@ -162,87 +160,6 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 		return reward;
 	}
 	
-	protected void initSimulator() throws Exception {
-		long start = System.currentTimeMillis();
-
-		resetEnvironment();
-
-		simulator.start(config.tick);
-		
-		// TODO there might be an issue with range sensor not coming online at all
-		// should be fixed in robot project?
-		while(kukaArm == null 
-				|| kukaPlatform == null
-				|| (!super.config.simState && rangeSensors.size() !=  1 + config.environmentSensors)){
-			if (config.tick) {
-				try {
-					simulator.tick();
-				} catch(TimeoutException e){}
-			} else {
-				// TODO use wait/notify?
-				Thread.sleep(100);
-			}
-
-			if(System.currentTimeMillis()-start > config.timeout){
-				System.out.println("Failed to initialize youbot/laserscanner in environment... Try again");
-				throw new Exception("Failed to initialize Kuka environment");
-			}
-			
-			if(!active)
-				throw new InterruptedException();
-		}
-
-		// hack to make sure our commands are getting through
-		int cmd = 0;
-		do {
-			kukaArm.setPosition(0, 0.0f);
-			cmd = (int)simulator.getProperty("cmd");
-
-			if(System.currentTimeMillis()-start > config.timeout){
-				System.out.println("Failed to initialize youbot/laserscanner in environment... Try again");
-				throw new Exception("Failed to initialize Kuka environment");
-			}
-			
-			if(!active)
-				throw new InterruptedException();
-			
-		} while(cmd!=1);
-			
-		initAction();
-		
-		// calculate reward here to initialize previousDistance
-		calculateReward();
-	}
-	
-	
-	protected void initAction(){
-		// initial action to execute before starting the environment
-	}
-	
-	protected void deinitSimulator() throws Exception {
-		long start = System.currentTimeMillis();
-
-		simulator.stop();
-
-		while(kukaArm != null 
-				|| kukaPlatform != null
-				|| rangeSensors.size() != 0){
-			try {
-				synchronized(mutex){
-					mutex.wait(config.timeout);
-				}
-			} catch (InterruptedException e) {
-			}		
-		}
-
-		int cmd = 1;
-		do {
-			cmd = (int)simulator.getProperty("cmd");
-			if(!active)
-				throw new InterruptedException();
-			
-		} while(cmd!=0 && System.currentTimeMillis()-start < config.timeout);
-	}
 	
 	protected void resetYoubot(){
 		float x,y,o;
@@ -367,53 +284,6 @@ public abstract class AbstractFetchCanEnvironment extends AbstractKukaEnvironmen
 		if(this.config.seed != 0){
 			r = new Random(this.config.seed);
 		}
-		
-		// configure the simulated environment
-		if(simulator != null){
-			Map<String, String> entities = new HashMap<String, String>();
-			entities.put("youBot", "be.iminds.iot.robot.youbot.ros.Youbot");
-			if(!super.config.simState)
-				entities.put("hokuyo", "be.iminds.iot.sensor.range.ros.LaserScanner");
-
-			// only activate configured sensors
-			simulator.setProperty("hokuyo_active", false);
-			simulator.setProperty("hokuyo#0_active", false);
-			simulator.setProperty("hokuyo#1_active", false);
-			simulator.setProperty("hokuyo#2_active", false);
-			simulator.setProperty("hokuyo#3_active", false);
-			
-			switch(this.config.environmentSensors){
-			case 0:
-				break;
-			case 1:
-				entities.put("hokuyo#0", "be.iminds.iot.sensor.range.ros.LaserScanner");
-				break;
-			case 2:
-				entities.put("hokuyo#0", "be.iminds.iot.sensor.range.ros.LaserScanner");
-				entities.put("hokuyo#3", "be.iminds.iot.sensor.range.ros.LaserScanner");
-				break;
-			case 4:
-				entities.put("hokuyo#0", "be.iminds.iot.sensor.range.ros.LaserScanner");
-				entities.put("hokuyo#1", "be.iminds.iot.sensor.range.ros.LaserScanner");
-				entities.put("hokuyo#2", "be.iminds.iot.sensor.range.ros.LaserScanner");
-				entities.put("hokuyo#3", "be.iminds.iot.sensor.range.ros.LaserScanner");
-				break;
-			default:
-				System.out.println("Invalid number of environment sensors given: "+this.config.environmentSensors+", should be 0,1,2 or 4");
-			}
-			
-			simulator.loadScene("scenes/youbot_fetch_can.ttt", entities);
-			
-			for(String key : entities.keySet()){
-				if(key.startsWith("hokuyo")){
-					simulator.setProperty(key+"_active", true);
-					simulator.setProperty(key+"_scanPoints", super.config.scanPoints);
-					simulator.setProperty(key+"_showLaser", super.config.showLaser);
-				}
-			}
-		} 
-		
 	}
-	
 
 }
