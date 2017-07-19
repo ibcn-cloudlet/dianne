@@ -22,33 +22,23 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rl.environment.kuka.config;
 
-public class FetchCanReacherIKConfig {
+public class ReacherConfig {
 
-	public enum Difficulty {
-		FIXED,
-		WORKSPACE,
-		RANDOM
-	}
+	public static final int POSITION = 0;
+	public static final int VELOCITY = 1;
+	public static final int TORQUE = 2;
+	public int mode = POSITION;
 	
 	/**
-	 * Difficulty
+	 * Scale factor for lowering or increasing the min/max outputs.
+	 * Can be used for all control modes but is not recommended in position control. 
+	 * If value equals 1 the real min/max values are used.
+	 * This value should be positive.
 	 */
-	public Difficulty difficulty = Difficulty.RANDOM;
+	public float outputScaleFactor = 1.0f;
 	
 	/**
-	 * Ignore what comes in as action.
-	 * 
-	 * Just grip on the location given by the simulator as a baseline.
+	 * Fix gripper open if true
 	 */
-	public boolean baseline = false;
-	
-	/**
-	 * Height on which to hover before gripping
-	 */
-	public float hoverHeight = 0.15f;
-	
-	/**
-	 * Height on which to grip
-	 */
-	public float gripHeight = 0.085f;
+	public boolean gripperFixed = false;
 }

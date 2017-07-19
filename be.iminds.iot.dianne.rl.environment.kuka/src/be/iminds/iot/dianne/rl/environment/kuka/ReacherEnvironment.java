@@ -33,7 +33,7 @@ import org.osgi.util.promise.Promise;
 import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.environment.kuka.api.KukaEnvironment;
-import be.iminds.iot.dianne.rl.environment.kuka.config.FetchCanReacherConfig;
+import be.iminds.iot.dianne.rl.environment.kuka.config.ReacherConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 import be.iminds.iot.robot.api.JointDescription;
@@ -43,7 +43,7 @@ import be.iminds.iot.robot.api.arm.Arm;
 
 @Component(immediate = true,
 	service = {Environment.class, KukaEnvironment.class},
-	property = { "name="+FetchCanReacherEnvironment.NAME, 
+	property = { "name="+ReacherEnvironment.NAME, 
 				 "aiolos.unique=true",
 				 "aiolos.combine=*",
 				 "osgi.command.scope=reacher",
@@ -53,11 +53,11 @@ import be.iminds.iot.robot.api.arm.Arm;
 				 "osgi.command.function=resume",
 				 "osgi.command.function=reward",
 				 "osgi.command.function=resetCan"})
-public class FetchCanReacherEnvironment extends FetchCanEnvironment {
+public class ReacherEnvironment extends FetchCanEnvironment {
 	
-	public static final String NAME = "FetchCanReacher";
+	public static final String NAME = "Reacher";
 	
-	protected FetchCanReacherConfig config;
+	protected ReacherConfig config;
 	private float min = -1.0f;
 	private float max = 1.0f;
 	
@@ -119,7 +119,7 @@ public class FetchCanReacherEnvironment extends FetchCanEnvironment {
 			f[f.length - 2] = min;
 		else 
 			f[f.length - 2] = f[f.length - 2] >= 0 ? max : min; 
-		f[f.length - 1] = f[f.length - 2] * (config.mode == FetchCanReacherConfig.POSITION ? 1 : -1);
+		f[f.length - 1] = f[f.length - 2] * (config.mode == ReacherConfig.POSITION ? 1 : -1);
 		
 		List<JointDescription> joints = kukaArm.getJoints();
 		float a,b;
@@ -127,15 +127,15 @@ public class FetchCanReacherEnvironment extends FetchCanEnvironment {
 		for (int i=0; i < f.length; i++) {
 			joint = joints.get(i);
 			switch (config.mode) {
-			case FetchCanReacherConfig.POSITION:
+			case ReacherConfig.POSITION:
 				a = joint.getPositionMin();
 				b = joint.getPositionMax();
 				break;
-			case FetchCanReacherConfig.VELOCITY:
+			case ReacherConfig.VELOCITY:
 				a = joint.getVelocityMin();
 				b = joint.getVelocityMax();
 				break;
-			case FetchCanReacherConfig.TORQUE:
+			case ReacherConfig.TORQUE:
 				a = joint.getTorqueMin();
 				b = joint.getTorqueMax();
 				break;
@@ -147,10 +147,10 @@ public class FetchCanReacherEnvironment extends FetchCanEnvironment {
 			f[i] = (f[i]-min)/(max - min)*(b-a) + a; // tranform from [min,max] to new range.
 		}
 		switch (config.mode) {
-		case FetchCanReacherConfig.POSITION:
+		case ReacherConfig.POSITION:
 			kukaArm.setPositions(f);
 			break;
-		case FetchCanReacherConfig.VELOCITY:
+		case ReacherConfig.VELOCITY:
 			// Clamp the movement between -Math.PI, Math.PI
 			int jointNr = 0;
 			float joint0Pos = this.kukaArm.getState().get(jointNr).position;
@@ -163,7 +163,7 @@ public class FetchCanReacherEnvironment extends FetchCanEnvironment {
 			}
 			kukaArm.setVelocities(f);
 			break;
-		case FetchCanReacherConfig.TORQUE:
+		case ReacherConfig.TORQUE:
 			kukaArm.setTorques(f);
 			break;
 		}
@@ -178,7 +178,7 @@ public class FetchCanReacherEnvironment extends FetchCanEnvironment {
 	
 	@Override
 	protected float calculateEnergy(Tensor a) throws Exception {
-		if (config.mode == FetchCanReacherConfig.TORQUE)
+		if (config.mode == ReacherConfig.TORQUE)
 			return TensorOps.dot(a, a); // normalized torques
 		else 
 			return super.calculateEnergy(a);
@@ -193,7 +193,7 @@ public class FetchCanReacherEnvironment extends FetchCanEnvironment {
 	
 	@Override
 	public void configure(Map<String, String> config) {
-		this.config = DianneConfigHandler.getConfig(config, FetchCanReacherConfig.class);
+		this.config = DianneConfigHandler.getConfig(config, ReacherConfig.class);
 		
 		super.configure(config);
 	}

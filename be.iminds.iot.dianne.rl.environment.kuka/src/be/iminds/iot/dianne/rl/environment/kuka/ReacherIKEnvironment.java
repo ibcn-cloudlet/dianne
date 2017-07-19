@@ -31,7 +31,7 @@ import org.osgi.util.promise.Promise;
 import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.environment.kuka.api.KukaEnvironment;
-import be.iminds.iot.dianne.rl.environment.kuka.config.FetchCanReacherIKConfig;
+import be.iminds.iot.dianne.rl.environment.kuka.config.ReacherIKConfig;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.robot.api.arm.Arm;
 import be.iminds.iot.simulator.api.Orientation;
@@ -40,7 +40,7 @@ import be.iminds.iot.simulator.api.Position;
 
 @Component(immediate = true,
 	service = {Environment.class, KukaEnvironment.class},
-	property = { "name="+FetchCanReacherIKEnvironment.NAME, 
+	property = { "name="+ReacherIKEnvironment.NAME, 
 				 "aiolos.unique=true",
 				 "aiolos.combine=*",
 				 "osgi.command.scope=reacherIK",
@@ -49,11 +49,11 @@ import be.iminds.iot.simulator.api.Position;
 				 "osgi.command.function=pause",
 				 "osgi.command.function=resume",
 				 "osgi.command.function=reward"})
-public class FetchCanReacherIKEnvironment extends FetchCanEnvironment {
+public class ReacherIKEnvironment extends AbstractKukaEnvironment {
 	
-	public static final String NAME = "FetchCanReacherIK";
+	public static final String NAME = "ReacherIK";
 	
-	protected FetchCanReacherIKConfig config;
+	protected ReacherIKConfig config;
 	
 	@Override
 	public String getName(){
@@ -67,7 +67,7 @@ public class FetchCanReacherIKEnvironment extends FetchCanEnvironment {
 	
 	@Override
 	public void configure(Map<String, String> config) {
-		this.config = DianneConfigHandler.getConfig(config, FetchCanReacherIKConfig.class);
+		this.config = DianneConfigHandler.getConfig(config, ReacherIKConfig.class);
 	}
 	
 	@Override
