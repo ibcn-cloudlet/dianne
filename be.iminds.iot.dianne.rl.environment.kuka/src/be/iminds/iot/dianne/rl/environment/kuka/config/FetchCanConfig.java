@@ -114,7 +114,8 @@ public class FetchCanConfig {
 		RELATIVE_DISCRETE,
 		RELATIVE_CONTINUOUS,
 		LINEAR,
-		EXPONENTIAL,
+		EXPONENTIAL, 
+		HYPERBOLIC,
 	}
 	
 	/**
@@ -125,6 +126,7 @@ public class FetchCanConfig {
 	 * intermediateReward = 2  (RELATIVE_CONTINUOUS): reward based on relative distance covered towards Can
 	 * intermediateReward = 3  (LINEAR): reward based on negative linear distance
 	 * intermediateReward = 4  (EXPONENTIAL): reward based on exponential decaying function (sharp edge at 0)
+	 * intermediateReward = 5  (HYPERBOLIC): reward based on hyperbolic decaying function (smooth edge at 0)
 	 * 
 	 * default = LINEAR
 	 */

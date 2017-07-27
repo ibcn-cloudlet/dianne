@@ -230,6 +230,12 @@ public class FetchCanEnvironment extends AbstractKukaEnvironment {
 				// where x: previousDistance, a: exponentialDecayingRewardScale, b: rewardOffset and expm1 =  e^x -1
 				r = ((float)Math.expm1( -config.distanceScale * previousDistance));
 				break;
+			case HYPERBOLIC:
+				// wolfram function: plot -tanh(a*x)^2 + b with a=1.3 and b=1 for x = -2..2
+				// smooth function around 0 distance
+				// where x: previousDistance, a: exponentialDecayingRewardScale, b: rewardOffset
+				r = (float) -Math.pow(Math.atan(config.distanceScale * previousDistance),2);
+				break;
 			default:
 				// this should never happen and is a programming error.
 				throw new UnsupportedOperationException(String.format("The reward function '%s' is currently unsupported", config.intermediateReward));
