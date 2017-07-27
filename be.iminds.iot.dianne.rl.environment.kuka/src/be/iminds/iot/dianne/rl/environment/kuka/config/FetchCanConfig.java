@@ -123,11 +123,19 @@ public class FetchCanConfig {
 	/**
 	 * Offset for the reward function. Can be used to make a reward function positive or negative.
 	 */
-	public float maxReward = 0.0f;
+	public float rewardOffset = 0.0f;
 	
 	/**
 	 * Use relative distance from the gripper instead of from the base platform
 	 */
 	public boolean grip = false;
+
+	/**
+	 * Scale factor to modify the reward.
+	 * 
+	 * A scale factor lower than one reduces the reward and a factor higher than one boosts the reward.
+	 */
+	public float rewardScale = 1.0f;
+	
 	
 }

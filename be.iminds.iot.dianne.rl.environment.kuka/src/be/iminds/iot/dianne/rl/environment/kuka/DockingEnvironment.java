@@ -133,19 +133,25 @@ public class DockingEnvironment extends FetchCanEnvironment {
 				} else {
 					// linear or exponential decaying reward function
 					if (config.exponentialDecayingReward)
-						// wolfram function: plot expm1(-a*x) + b with a=2.5 and b=1 for x = 0..2.4
-						// where x: previousDistance, a: absoluteRewardScale, b: maxReward and expm1 =  e^x -1
+						// wolfram function: plot expm1(-a*|x|) + b with a=2.5 and b=1 for x = -2..2
+						// sharp point at max value
+						// where x: previousDistance, a: exponentialDecayingRewardScale, b: rewardOffset and expm1 =  e^x -1
 						r = ((float)Math.expm1( -config.exponentialDecayingRewardScale * previousDistance));
 					else {
 						r = - previousDistance / MAX_DISTANCE;
+						if(r < -1){
+							r = -1;
+						}
 					}
 				}
-				
-				// reward offset
-				r += config.maxReward;
 			} else {
 				r=0.0f;
 			}
+			
+			// reward offset and scale
+			r += config.rewardOffset;
+			r *= config.rewardScale;
+			
 			previousDistance = distance;
 			return r;
 		} 

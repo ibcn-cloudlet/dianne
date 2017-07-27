@@ -223,8 +223,9 @@ public class FetchCanEnvironment extends AbstractKukaEnvironment {
 				} else {
 					// linear or exponential decaying reward function
 					if (config.exponentialDecayingReward)
-						// wolfram function: plot expm1(-a*x) + b with a=2.5 and b=1 for x = 0..2.4
-						// where x: previousDistance, a: absoluteRewardScale, b: maxReward and expm1 =  e^x -1
+						// wolfram function: plot expm1(-a*|x|) + b with a=2.5 and b=1 for x = -2..2
+						// sharp point at max value
+						// where x: previousDistance, a: exponentialDecayingRewardScale, b: rewardOffset and expm1 =  e^x -1
 						r = ((float)Math.expm1( -config.exponentialDecayingRewardScale * previousDistance));
 					else {
 						r = - previousDistance / MAX_DISTANCE;
@@ -233,23 +234,14 @@ public class FetchCanEnvironment extends AbstractKukaEnvironment {
 						}
 					}
 				}
-				
-				if (config.grip && r >= config.maxReward - 0.10) { // if the reward is high (can is close)
-					if (canHeight > 0) { // can is lifted if height is higher then 0
-						r += canHeight;
-						r *= config.gripRewardScale;
-					}
-					if (canHeight > 0.10) {
-						r = 100;
-						terminal = true;
-					}
-				}
-				
-				// reward offset
-				r += config.maxReward;
 			} else {
 				r=0.0f;
 			}
+
+			// reward offset and scale
+			r += config.rewardOffset;
+			r *= config.rewardScale;
+			
 			previousDistance = distance;
 			return r;
 		} 
