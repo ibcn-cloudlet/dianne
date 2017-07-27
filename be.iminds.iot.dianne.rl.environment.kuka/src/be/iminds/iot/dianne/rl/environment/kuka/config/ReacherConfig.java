@@ -24,10 +24,20 @@ package be.iminds.iot.dianne.rl.environment.kuka.config;
 
 public class ReacherConfig {
 
-	public static final int POSITION = 0;
-	public static final int VELOCITY = 1;
-	public static final int TORQUE = 2;
-	public int mode = POSITION;
+	public enum Mode {
+		POSITION,
+		VELOCITY,
+		TORQUE
+	}
+	
+	/**
+	 * environment control mode
+	 * 
+	 * mode = 0  (POSITION)
+	 * mode = 1  (VELOCITY) 
+	 * mode = 2  (TORQUE) 
+	 */
+	public Mode mode = Mode.POSITION;
 	
 	/**
 	 * Scale factor for lowering or increasing the min/max outputs.

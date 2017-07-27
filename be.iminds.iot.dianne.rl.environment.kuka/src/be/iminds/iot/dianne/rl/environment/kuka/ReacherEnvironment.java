@@ -34,6 +34,7 @@ import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.environment.kuka.api.KukaEnvironment;
 import be.iminds.iot.dianne.rl.environment.kuka.config.ReacherConfig;
+import be.iminds.iot.dianne.rl.environment.kuka.config.ReacherConfig.Mode;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 import be.iminds.iot.robot.api.JointDescription;
@@ -119,7 +120,7 @@ public class ReacherEnvironment extends FetchCanEnvironment {
 			f[f.length - 2] = min;
 		else 
 			f[f.length - 2] = f[f.length - 2] >= 0 ? max : min; 
-		f[f.length - 1] = f[f.length - 2] * (config.mode == ReacherConfig.POSITION ? 1 : -1);
+		f[f.length - 1] = f[f.length - 2] * (config.mode == Mode.POSITION ? 1 : -1);
 		
 		List<JointDescription> joints = kukaArm.getJoints();
 		float a,b;
@@ -127,15 +128,15 @@ public class ReacherEnvironment extends FetchCanEnvironment {
 		for (int i=0; i < f.length; i++) {
 			joint = joints.get(i);
 			switch (config.mode) {
-			case ReacherConfig.POSITION:
+			case POSITION:
 				a = joint.getPositionMin();
 				b = joint.getPositionMax();
 				break;
-			case ReacherConfig.VELOCITY:
+			case VELOCITY:
 				a = joint.getVelocityMin();
 				b = joint.getVelocityMax();
 				break;
-			case ReacherConfig.TORQUE:
+			case TORQUE:
 				a = joint.getTorqueMin();
 				b = joint.getTorqueMax();
 				break;
@@ -147,11 +148,11 @@ public class ReacherEnvironment extends FetchCanEnvironment {
 			f[i] = (f[i]-min)/(max - min)*(b-a) + a; // tranform from [min,max] to new range.
 		}
 		switch (config.mode) {
-		case ReacherConfig.POSITION:
+		case POSITION:
 			kukaArm.setPositions(f);
 			break;
-		case ReacherConfig.VELOCITY:
-			// Clamp the movement between -Math.PI, Math.PI
+		case VELOCITY:
+			// Clamp the first joints' movement between -Math.PI, Math.PI
 			int jointNr = 0;
 			float joint0Pos = this.kukaArm.getState().get(jointNr).position;
 			if (joint0Pos <= minPos) {
@@ -163,7 +164,7 @@ public class ReacherEnvironment extends FetchCanEnvironment {
 			}
 			kukaArm.setVelocities(f);
 			break;
-		case ReacherConfig.TORQUE:
+		case TORQUE:
 			kukaArm.setTorques(f);
 			break;
 		}
@@ -178,7 +179,7 @@ public class ReacherEnvironment extends FetchCanEnvironment {
 	
 	@Override
 	protected float calculateEnergy(Tensor a) throws Exception {
-		if (config.mode == ReacherConfig.TORQUE)
+		if (config.mode == Mode.TORQUE)
 			return TensorOps.dot(a, a); // normalized torques
 		else 
 			return super.calculateEnergy(a);
