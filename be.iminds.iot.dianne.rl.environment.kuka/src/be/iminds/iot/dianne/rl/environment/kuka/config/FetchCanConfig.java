@@ -59,40 +59,12 @@ public class FetchCanConfig {
 	 * difficulty = 5  (RANDOM_DOCK): start youBot randomly with also dock present
 	 */
 	public Difficulty difficulty = Difficulty.RANDOM;
-	
+		
 	/**
-	 * Give intermediate reward on each action based on the distance towards Can
+	 * Distance scale factor used to spread or tighten reward functions.
 	 */
-	public boolean intermediateReward = true;
-	
-	/**
-	 * In case of intermediateReward, give reward on relative distance covered towards Can 
-	 * (in case of false return the (normalized) distance to Can of the state)
-	 */
-	public boolean relativeReward = false;
-	
-	/**
-	 * In case of relativeReward, use this scale factor to multiply diff in distance to the Can with
-	 */
-	public float relativeRewardScale = 5.0f;
-	
-	/**
-	 * In case of intermediateReward, give reward based on exponential decaying function.
-	 * (in case of false use the linear reward function)
-	 */
-	public boolean exponentialDecayingReward = false;
-	
-	/**
-	 * In case of exponentialDecayingReward, use this scale factor to modify the decay rate.
-	 * (]0,R[)
-	 */
-	public float exponentialDecayingRewardScale = 2.5f;
-	
-	/**
-	 * Only give +1 or -1 rewards in case of relative rewards
-	 */
-	public boolean discreteReward = false;
-	
+	public float distanceScale = 1.0f;
+		
 	/**
 	 * Punish wrong grip action with a -1 reward
 	 */
@@ -121,14 +93,14 @@ public class FetchCanConfig {
 	public float gripRewardScale = 1.0f;
 
 	/**
+	 * Use relative distance from the gripper instead of from the base platform
+	 */
+	public boolean gripperDistance = false;
+	
+	/**
 	 * Offset for the reward function. Can be used to make a reward function positive or negative.
 	 */
 	public float rewardOffset = 0.0f;
-	
-	/**
-	 * Use relative distance from the gripper instead of from the base platform
-	 */
-	public boolean grip = false;
 
 	/**
 	 * Scale factor to modify the reward.
@@ -137,5 +109,25 @@ public class FetchCanConfig {
 	 */
 	public float rewardScale = 1.0f;
 	
+	public enum IntermediateReward {
+		NONE,
+		RELATIVE_DISCRETE,
+		RELATIVE_CONTINUOUS,
+		LINEAR,
+		EXPONENTIAL,
+	}
+	
+	/**
+	 * Give intermediate reward on each action based on the distance towards the Can.
+	 * 
+	 * intermediateReward = 0  (NONE): no intermediate rewards
+	 * intermediateReward = 1  (RELATIVE_DISCRETE): discrete reward based on relative distance covered towards Can: 0,1,-1
+	 * intermediateReward = 2  (RELATIVE_CONTINUOUS): reward based on relative distance covered towards Can
+	 * intermediateReward = 3  (LINEAR): reward based on negative linear distance
+	 * intermediateReward = 4  (EXPONENTIAL): reward based on exponential decaying function (sharp edge at 0)
+	 * 
+	 * default = LINEAR
+	 */
+	public IntermediateReward intermediateReward = IntermediateReward.LINEAR;
 	
 }

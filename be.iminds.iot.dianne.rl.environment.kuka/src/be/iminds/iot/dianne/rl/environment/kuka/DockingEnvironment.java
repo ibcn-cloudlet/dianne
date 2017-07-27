@@ -117,37 +117,33 @@ public class DockingEnvironment extends FetchCanEnvironment {
 				distance = 0.0f;
 			}
 			
-			// if stop give reward according to position relative to docking point
-			// also give intermediate reward for each action?
-			float r;
-			if(config.intermediateReward) {
-				if(config.relativeReward){
-					// give +1 if closer -1 if further
-					r = previousDistance - distance;
-					if(config.discreteReward){
-						r = r > EPSILON ? 1 : r < -EPSILON ? -1 : 0;
-					} else {
-						// boost it a bit
-						r *= config.relativeRewardScale/(config.skip+1);
-					}
-				} else {
-					// linear or exponential decaying reward function
-					if (config.exponentialDecayingReward)
-						// wolfram function: plot expm1(-a*|x|) + b with a=2.5 and b=1 for x = -2..2
-						// sharp point at max value
-						// where x: previousDistance, a: exponentialDecayingRewardScale, b: rewardOffset and expm1 =  e^x -1
-						r = ((float)Math.expm1( -config.exponentialDecayingRewardScale * previousDistance));
-					else {
-						r = - previousDistance / MAX_DISTANCE;
-						if(r < -1){
-							r = -1;
-						}
-					}
-				}
-			} else {
-				r=0.0f;
+			float r = 0;			
+			switch(config.intermediateReward) {
+			case NONE:
+				r=0;
+				break;
+			case RELATIVE_DISCRETE:
+				// give +1 if closer -1 if further
+				float d = previousDistance - distance;
+				r = d > EPSILON ? 1 : d < -EPSILON ? -1 : 0;
+				break;
+			case RELATIVE_CONTINUOUS:
+				r = (previousDistance - distance)/(config.skip+1);
+				break;
+			case LINEAR:
+				r = Math.max(- previousDistance / MAX_DISTANCE, -1);
+				break;
+			case EXPONENTIAL:
+				// wolfram function: plot expm1(-a*|x|) + b with a=2.5 and b=1 for x = -2..2
+				// sharp point around 0 distance
+				// where x: previousDistance, a: exponentialDecayingRewardScale, b: rewardOffset and expm1 =  e^x -1
+				r = ((float)Math.expm1( -config.distanceScale * previousDistance));
+				break;
+			default:
+				// this should never happen and is a programming error.
+				throw new UnsupportedOperationException(String.format("The reward function '%s' is currently unsupported", config.intermediateReward));
 			}
-			
+
 			// reward offset and scale
 			r += config.rewardOffset;
 			r *= config.rewardScale;
