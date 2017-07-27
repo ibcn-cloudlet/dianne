@@ -71,4 +71,11 @@ public class KukaConfig {
 	 * A seed for initializing the environment
 	 */
 	public long seed = 0;
+
+	/**
+	 * The simulation time step (i.e. dt).
+	 * 
+	 * Vrep remark: Can only be written when using a custom dt value (which can be set in the simulation settings dialog).
+	 */
+	public float simTimeStep = 0.100f;
 }
