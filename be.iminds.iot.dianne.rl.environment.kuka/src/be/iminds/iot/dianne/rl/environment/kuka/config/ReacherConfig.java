@@ -51,4 +51,9 @@ public class ReacherConfig {
 	 * Fix gripper open if true
 	 */
 	public boolean gripperFixed = false;
+
+	/**
+	 * limits the first joint to -PI/2 to PI/2
+	 */
+	public boolean limitFirstJoint = false;
 }

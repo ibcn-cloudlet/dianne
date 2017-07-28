@@ -152,15 +152,17 @@ public class ReacherEnvironment extends FetchCanEnvironment {
 			kukaArm.setPositions(f);
 			break;
 		case VELOCITY:
-			// Clamp the first joints' movement between -Math.PI, Math.PI
-			int jointNr = 0;
-			float joint0Pos = this.kukaArm.getState().get(jointNr).position;
-			if (joint0Pos <= minPos) {
-				this.kukaArm.setPosition(jointNr, minPos);
-				f[0]=0; // set joint `jointNr` speed to 0
-			} else if (joint0Pos >= maxPos) {
-				this.kukaArm.setPosition(jointNr, maxPos);
-				f[0]=0; // set joint `jointNr` speed to 0
+			if (config.limitFirstJoint) {
+				// Clamp the first joints' movement between -Math.PI, Math.PI
+				int jointNr = 0;
+				float joint0Pos = this.kukaArm.getState().get(jointNr).position;
+				if (joint0Pos <= minPos) {
+					this.kukaArm.setPosition(jointNr, minPos);
+					f[0]=0; // set joint `jointNr` speed to 0
+				} else if (joint0Pos >= maxPos) {
+					this.kukaArm.setPosition(jointNr, maxPos);
+					f[0]=0; // set joint `jointNr` speed to 0
+				}
 			}
 			kukaArm.setVelocities(f);
 			break;
