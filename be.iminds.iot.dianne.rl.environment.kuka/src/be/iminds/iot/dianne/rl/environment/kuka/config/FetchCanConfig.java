@@ -109,8 +109,8 @@ public class FetchCanConfig {
 	 */
 	public float rewardScale = 1.0f;
 	
-	public enum IntermediateReward {
-		NONE,
+	public enum Reward {
+		GOAL,
 		RELATIVE_DISCRETE,
 		RELATIVE_CONTINUOUS,
 		LINEAR,
@@ -121,7 +121,7 @@ public class FetchCanConfig {
 	/**
 	 * Give intermediate reward on each action based on the distance towards the Can.
 	 * 
-	 * intermediateReward = 0  (NONE): no intermediate rewards
+	 * intermediateReward = 0  (GOAL): no intermediate rewards
 	 * intermediateReward = 1  (RELATIVE_DISCRETE): discrete reward based on relative distance covered towards Can: 0,1,-1
 	 * intermediateReward = 2  (RELATIVE_CONTINUOUS): reward based on relative distance covered towards Can
 	 * intermediateReward = 3  (LINEAR): reward based on negative linear distance
@@ -130,6 +130,6 @@ public class FetchCanConfig {
 	 * 
 	 * default = LINEAR
 	 */
-	public IntermediateReward intermediateReward = IntermediateReward.LINEAR;
+	public Reward reward = Reward.LINEAR;
 	
 }

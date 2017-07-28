@@ -118,8 +118,8 @@ public class DockingEnvironment extends FetchCanEnvironment {
 			}
 			
 			float r = 0;			
-			switch(config.intermediateReward) {
-			case NONE:
+			switch(config.reward) {
+			case GOAL:
 				r=0;
 				break;
 			case RELATIVE_DISCRETE:
@@ -147,7 +147,7 @@ public class DockingEnvironment extends FetchCanEnvironment {
 				break;
 			default:
 				// this should never happen and is a programming error.
-				throw new UnsupportedOperationException(String.format("The reward function '%s' is currently unsupported", config.intermediateReward));
+				throw new UnsupportedOperationException(String.format("The reward function '%s' is currently unsupported", config.reward));
 			}
 
 			// reward offset and scale
