@@ -102,6 +102,9 @@ public class DianneSB extends HttpServlet {
 		String d = request.getParameter("pool");
 		if(d != null){
 			dataset = (ExperiencePool)datasets.getDataset(d);
+			if(dataset == null){
+				System.out.println("Dataset "+d+" does not exist");
+			}
 		}
 
 		String tag = request.getParameter("tag");
@@ -233,18 +236,36 @@ public class DianneSB extends HttpServlet {
 		Tensor reward = null;
 		try {
 			if(dataset != null){
+				if(dataset.sequences() <= sequence){
+					System.out.println("Sequence "+sequence+" does not exist for dataset "+d);
+					return;
+				}
 				Sequence<ExperiencePoolSample> xp = dataset.getSequence(sequence);
 				if(index > 0){
+					if(index >= xp.size){
+						System.out.println("Index "+index+" does not exist for sequence "+sequence+" in dataset "+d);
+						return;
+					}
 					ExperiencePoolSample prev = xp.get(index-1);
 					ExperiencePoolSample current = xp.get(index);
 					action = prev.getAction();
-					observation = current.getState();
+					if(current.getState().size() == state.size()){
+						// this is an xp pool with state samples... allows to inspect reconstructions
+						stateSample = current.getState();
+					} else {
+						observation = current.getState();
+					}
 					reward = prev.getReward();
 				} else {
 					ExperiencePoolSample current = xp.get(0);
 					action = current.getAction().clone();
 					action.fill(0.0f);
-					observation = current.getState();
+					if(current.getState().size() == state.size()){
+						// this is an xp pool with state samples... allows to inspect reconstructions
+						stateSample = current.getState();
+					} else {
+						observation = current.getState();
+					}
 				}
 			} else {
 				String as = request.getParameter("actionSize");
@@ -270,7 +291,7 @@ public class DianneSB extends HttpServlet {
 			}
 			
 			Tensor posterior = null;
-			if(encoder != null && action != null && state != null){
+			if(encoder != null && action != null && state != null && observation!=null){
 				UUID[] eins = encoder.getModuleIds("State","Action","Observation");
 				UUID[] eouts = encoder.getModuleIds("Output");
 				posterior = encoder.forward(eins, eouts, new Tensor[]{state, action, observation}).getValue().tensor;
