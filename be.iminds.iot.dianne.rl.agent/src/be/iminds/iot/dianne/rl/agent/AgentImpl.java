@@ -257,7 +257,6 @@ public class AgentImpl implements Agent {
 				actingThread.join();
 			}
 		} catch (InterruptedException e) {
-			e.printStackTrace();
 		}
 	}
 	
@@ -394,14 +393,7 @@ public class AgentImpl implements Agent {
 					// if this is a terminal state - reset environment and start over
 					if(s.isTerminal()){
 						
-						// trace agent per sequence
-						if(seq % config.traceInterval == 0){
-							if(config.trace)
-								System.out.println(progress);
-							
-							publishProgress(progress);
-						}
-						
+						// store if we observed best reward so far
 						if(config.tagBest){
 							if(progress.reward > maxReward){
 								maxReward = progress.reward;
@@ -409,6 +401,14 @@ public class AgentImpl implements Agent {
 									nn.storeParameters(config.tag,"best");
 								}
 							}
+						}
+						
+						// trace agent per sequence
+						if(seq % config.traceInterval == 0){
+							if(config.trace)
+								System.out.println(progress);
+							
+							publishProgress(progress);
 						}
 						
 						seq++;
