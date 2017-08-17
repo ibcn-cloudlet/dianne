@@ -89,6 +89,7 @@ public class StateBeliefAdapter implements ExperiencePool {
 	private int maxSize = 100000;
 	
 	private List<ExperiencePoolSample> samples;
+	private List<Integer> endOfSequences = new ArrayList<>();
 	private int index = 0;
 	private int sampleSize = 10;
 	
@@ -245,12 +246,12 @@ public class StateBeliefAdapter implements ExperiencePool {
 	
 	@Override
 	public int sequences(){
-		return 0;
+		return endOfSequences.size();
 	}
 	
 	@Override
 	public int sequenceLength(int sequence){
-		return 0;
+		return samples.size();
 	}
 
 	@Override
@@ -285,7 +286,69 @@ public class StateBeliefAdapter implements ExperiencePool {
 	
 	@Override
 	public ExperiencePoolSequence getSequence(ExperiencePoolSequence s, int sequence, int index, int length){
-		throw new UnsupportedOperationException("Not implemented...");
+		if(sequence >= endOfSequences.size()){
+			throw new RuntimeException("Invalid sequence "+sequence);
+		}
+		
+		int end = endOfSequences.get(sequence);
+		int start = 0;
+		int l = end+1;
+		if(sequence == 0){ 
+			if(samples.size() == maxSize){
+				//we are cycling ... start is the last end + 1
+				start = endOfSequences.get(endOfSequences.size()-1)+1;
+				l += maxSize-start; 
+			}
+		} else {
+			start = endOfSequences.get(sequence-1)+1;
+			l = end - start + 1;
+		}
+		
+		if(length != -1){
+			l = length;
+		}
+		
+		if(start+index > end){
+			throw new RuntimeException("Invalid sequence index "+index);
+		}
+		
+		start = start+index;
+		if(start > maxSize){
+			start -= maxSize;
+		}
+		
+		if(start+l-1 > end){
+			throw new RuntimeException("Invalid sequence length "+length);
+		}
+		
+		end = start+l-1;
+		if(end > maxSize){
+			end -= maxSize;
+		}
+		
+		if(s == null){
+			s = new ExperiencePoolSequence();
+		}
+		
+		List<ExperiencePoolSample> list = s.data;
+		int i = start;
+		int k = 0;
+		do {
+			if(list.size() <= k){
+				list.add(samples.get(i));
+			} else {
+				samples.get(i).copyInto(list.get(k));
+			}
+			
+			k++;
+			i++;
+			if(i == maxSize){
+				i = 0;
+			}
+		} while(i != end+1);
+		
+		s.size = l;
+		return s;
 	}
 	
 	@Override
@@ -335,9 +398,12 @@ public class StateBeliefAdapter implements ExperiencePool {
 					
 					// store this sample
 					ExperiencePoolSample s;
-					if(index < samples.size())
+					if(index < samples.size()){
 						s = samples.get(index);
-					else {
+						if(s.isTerminal()){
+							endOfSequences.remove((Integer)index);
+						}
+					} else {
 						s = new ExperiencePoolSample();
 						samples.add(s);
 					}
@@ -357,6 +423,8 @@ public class StateBeliefAdapter implements ExperiencePool {
 							sampleState(state, posteriorParams2);
 						}
 						s.nextState = state.copyInto(s.nextState);
+					} else {
+						endOfSequences.add(index);
 					}
 					
 					index++;
