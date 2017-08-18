@@ -383,7 +383,8 @@ public class AgentImpl implements Agent {
 								try {
 									pool.addSequence(upload);
 								} catch(Exception e){
-									System.out.println("Failed to upload to experience pool "+e.getMessage());
+									System.out.println("Failed to upload to experience pool ");
+									e.printStackTrace();
 								}
 							}
 							count = 0;
