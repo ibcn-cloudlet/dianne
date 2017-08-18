@@ -422,7 +422,7 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 
 		resetEnvironment();
 
-		simulator.start(config.tick);
+		simulator.start(config.tick, config.simTimeStep);
 		
 		// TODO there might be an issue with range sensor not coming online at all
 		// should be fixed in robot project?
@@ -527,9 +527,6 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 			}
 			
 			simulator.loadScene("scenes/"+config.scene, entities);
-			
-			// allow custom simulation step time.
-			simulator.setProperty("sim_floatparam_simulation_time_step", config.simTimeStep);
 			
 			for(String key : entities.keySet()){
 				if(key.startsWith("hokuyo")){
