@@ -486,6 +486,7 @@ public class DiannePlatformImpl implements DiannePlatform {
 	}
 	
 	public void removeNeuralNetwork(NeuralNetwork nn, Map<String, Object> properties){
-		external.remove(nn.getId());
+		UUID id = UUID.fromString((String)properties.get("nn.id"));
+		external.remove(id);
 	}
 }
