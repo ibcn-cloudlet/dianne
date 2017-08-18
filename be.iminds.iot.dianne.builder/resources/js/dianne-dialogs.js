@@ -599,6 +599,14 @@ function createRunModuleDialog(id, moduleItem){
 									serie.addPoint(output.data[i], true, shift, false);
 								}
 							}
+						} else if(module.type === "Gaussian"){
+							var outputCanvas = dialog.find('.outputCanvas')[0];
+							if(outputCanvas === undefined){
+								$("#dialog-"+module.id).find(".content").append("<canvas class='outputCanvas' width='256' height='256' style=\"border:1px solid #000000; margin-left:150px\"></canvas>");
+								 outputCanvas = dialog.find('.outputCanvas')[0];
+							}
+							var outputCanvasCtx = outputCanvas.getContext('2d');
+							gauss(output, outputCanvasCtx);
 						} else {
 							// render raw output
 							if(output.dims.length > 1){

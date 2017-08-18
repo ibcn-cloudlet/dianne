@@ -246,6 +246,8 @@ function setupRunToolbox(){
 	addToolboxItem('Raw outputs','RawOutput','Visualize','run');
 	addToolboxItem('Timeseries output', 'TimeSeries', 'Visualize', 'run');
 	addToolboxItem('Laserscan output','LaserScan','Visualize','run');
+	addToolboxItem('Multivariate Gaussian output','Gaussian','Visualize','run');
+
 	
 	$.post("/dianne/builder", {action : "available-modules"}, 
 			function( data ) {
