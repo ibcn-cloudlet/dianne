@@ -139,7 +139,7 @@ public class StateBeliefAdapter implements ExperiencePool {
 			this.maxSize = Integer.parseInt(properties.get("maxSize").toString().trim());
 		}
 		
-		samples = new ArrayList<>(maxSize);
+		samples = new ArrayList<ExperiencePoolSample>(maxSize);
 		
 		if(properties.containsKey("sampleSize")){
 			this.sampleSize = Integer.parseInt(properties.get("sampleSize").toString().trim());
@@ -366,6 +366,10 @@ public class StateBeliefAdapter implements ExperiencePool {
 	@Override
 	public void reset() {
 		pool.reset();
+		
+		samples.clear();
+		endOfSequences.clear();
+		index = 0;
 	}
 	
 	@Override
@@ -447,4 +451,5 @@ public class StateBeliefAdapter implements ExperiencePool {
 		TensorOps.add(state, state, mean);
 	}
 
+	
 }
