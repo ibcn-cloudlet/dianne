@@ -157,6 +157,11 @@ public class DeepQLearningStrategy implements LearningStrategy {
 		
 		Tensor l = criterion.loss(valueBatch, targetValueBatch);
 		float loss = TensorOps.mean(l);
+		
+		if(loss > 1.0f){
+			System.out.println("High Loss: "+loss+"\n"+l+"\n"+batch);
+		}
+		
 		Tensor grad = criterion.grad(valueBatch, targetValueBatch);
 		
 		// Backward pass of the critic
