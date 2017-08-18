@@ -52,10 +52,4 @@ public class EnergyPenalizationAdapter extends AbstractExperiencePoolAdapter {
 		TensorOps.sub(s.reward, s.reward, energyPenalization*TensorOps.dot(s.target, s.target));
 	}
 
-	@Override
-	protected void adaptAddingSample(ExperiencePoolSample s) {
-	}
-
-
-
 }

@@ -56,9 +56,9 @@ public abstract class AbstractExperiencePoolAdapter implements ExperiencePool {
 		configure(properties);
 	}
 
-	protected abstract void adaptFetchedSample(ExperiencePoolSample s);
+	protected void adaptFetchedSample(ExperiencePoolSample s){};
 	
-	protected abstract void adaptAddingSample(ExperiencePoolSample s);
+	protected void adaptAddingSample(ExperiencePoolSample s){};
 	
 	protected abstract void configure(Map<String, Object> properties);
 	
