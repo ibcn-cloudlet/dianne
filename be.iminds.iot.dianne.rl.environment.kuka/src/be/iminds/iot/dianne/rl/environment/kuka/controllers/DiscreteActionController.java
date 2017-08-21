@@ -35,11 +35,11 @@ import be.iminds.iot.input.keyboard.api.KeyboardListener;
  *
  */
 @Component()
-public class FetchCanController implements KeyboardListener {
+public class DiscreteActionController implements KeyboardListener {
 
 	private ActionController controller;
 	
-	@Reference(target="(environment=FetchCan)")
+	@Reference(target="(|(environment=FetchCan)(environment=Docking))")
 	void setActionController(ActionController a) {
 		this.controller = a;
 	}
