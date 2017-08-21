@@ -32,7 +32,6 @@ import org.osgi.util.promise.Promise;
 import be.iminds.iot.dianne.api.rl.environment.Environment;
 import be.iminds.iot.dianne.rl.environment.kuka.api.KukaEnvironment;
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorOps;
 import be.iminds.iot.robot.api.JointDescription;
 import be.iminds.iot.robot.api.JointState;
 import be.iminds.iot.robot.api.arm.Arm;
@@ -63,8 +62,6 @@ public class ReacherGoalEnvironment extends AbstractKukaEnvironment {
 	private int goalSize = 3;
 	private Tensor goal;
 	private Tensor start;
-	
-	private float stdev = 0.1f;
 	
 	@Override
 	public String getName(){
@@ -176,14 +173,16 @@ public class ReacherGoalEnvironment extends AbstractKukaEnvironment {
 
 	@Override
 	protected void resetEnvironment() throws Exception {
-		// generate a new goal (TODO - create sensible goals in workspace?)
-		goal.randn();
-		// TODO, anneal the stdev?!
-		TensorOps.mul(goal, goal, stdev);
-		TensorOps.add(goal, goal, start);
 		
-		if(goal.get(2) < 0){
-			goal.set(0.0f, 2);
-		}
+		double d = Math.random()*0.3+0.3;
+		double a = (Math.random()-0.5)*Math.PI;
+		double z = Math.random()*0.3;
+		
+		float[] g = new float[3];
+		g[0] = (float) (d*Math.cos(a));
+		g[1] = (float) (d*Math.sin(a));
+		g[2] = (float) z;
+		
+		goal.set(g);
 	}
 }
