@@ -56,9 +56,9 @@ public class ReacherGoalEnvironment extends AbstractKukaEnvironment {
 	// TODO make this configurable?
 	private float min = -1.0f;
 	private float max = 1.0f;
-	private float threshold = 0.05f;
+	private float threshold = 0.01f;
 	
-	private int stateSize = 5;
+	private int stateSize = 10;
 	private int goalSize = 3;
 	private Tensor goal;
 	private Tensor start;
@@ -70,7 +70,7 @@ public class ReacherGoalEnvironment extends AbstractKukaEnvironment {
 
 	@Override
 	public int[] actionDims() {
-		return new int[]{stateSize};
+		return new int[]{stateSize/2};
 	}
 	
 	@Override
@@ -86,16 +86,25 @@ public class ReacherGoalEnvironment extends AbstractKukaEnvironment {
 		float[] result = new float[stateSize+2*goalSize];
 		JointDescription joint = null;
 		JointState state = null;
-		float minPos, maxPos;
-		for (int i=0; i<stateSize; i++) {
+		float minPos, maxPos, minVel, maxVel;
+		for (int i=0; i<stateSize/2; i++) {
 			state = this.kukaArm.getState().get(i);
 			joint = this.kukaArm.getJoints().get(i);
 			minPos = joint.getPositionMin();
 			maxPos = joint.getPositionMax();
-			result[i] = (state.position - minPos)/(maxPos - minPos); // tranform to new range [0,1].
+			result[i] = 2*(state.position - minPos)/(maxPos - minPos)-1;
+			
+			minVel = joint.getVelocityMin();
+			maxVel = joint.getVelocityMax();
+			result[stateSize/2+i] = 2*(state.velocity - minVel)/(maxVel - minVel)-1;
 		}
 		
 		// environment goal
+		float[] g = goal.get();
+		result[stateSize] = g[0];
+		result[stateSize+1] = g[1];
+		result[stateSize+2] = g[2];
+		
 		System.arraycopy(goal.get(), 0, result, stateSize, goalSize);
 		
 		// currently "reached" goal
@@ -166,6 +175,7 @@ public class ReacherGoalEnvironment extends AbstractKukaEnvironment {
 		Tensor current = new Tensor(new float[]{p.x, p.y, p.z},3);
 		if(current.equals(goal, threshold)){
 			terminal = true;
+			return 0;
 		}
 		
 		return -1;
@@ -174,7 +184,7 @@ public class ReacherGoalEnvironment extends AbstractKukaEnvironment {
 	@Override
 	protected void resetEnvironment() throws Exception {
 		
-		double d = Math.random()*0.3+0.3;
+		double d = Math.random()*0.3+0.24;
 		double a = (Math.random()-0.5)*Math.PI;
 		double z = Math.random()*0.3;
 		
@@ -182,7 +192,9 @@ public class ReacherGoalEnvironment extends AbstractKukaEnvironment {
 		g[0] = (float) (d*Math.cos(a));
 		g[1] = (float) (d*Math.sin(a));
 		g[2] = (float) z;
-		
 		goal.set(g);
+
+		simulator.setPosition("dock_ref", "arm_ref", new Position(g[0],g[1],g[2]));
+				
 	}
 }
