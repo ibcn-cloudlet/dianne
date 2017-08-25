@@ -31,7 +31,6 @@ import be.iminds.iot.dianne.api.nn.learn.Criterion;
 import be.iminds.iot.dianne.api.nn.learn.GradientProcessor;
 import be.iminds.iot.dianne.api.nn.learn.LearnProgress;
 import be.iminds.iot.dianne.api.nn.learn.LearningStrategy;
-import be.iminds.iot.dianne.api.nn.learn.SamplingStrategy;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleInstanceDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
@@ -40,8 +39,8 @@ import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory;
 import be.iminds.iot.dianne.nn.learn.criterion.CriterionFactory.BatchConfig;
 import be.iminds.iot.dianne.nn.learn.criterion.PseudoHuberCriterion;
 import be.iminds.iot.dianne.nn.learn.processors.ProcessorFactory;
-import be.iminds.iot.dianne.nn.learn.sampling.SamplingFactory;
 import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
+import be.iminds.iot.dianne.rl.learn.sampling.ExperienceSampler;
 import be.iminds.iot.dianne.rl.learn.strategy.config.DeepDeterministicPolicyGradientConfig;
 import be.iminds.iot.dianne.tensor.ModuleOps;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -52,8 +51,7 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 	protected DeepDeterministicPolicyGradientConfig config;
 	
 	protected ExperiencePool pool;
-	protected SamplingStrategy sampling;
-	protected ExperiencePoolBatch batch;
+	protected ExperienceSampler sampler;
 	
 	protected NeuralNetwork actor;
 	protected NeuralNetwork targetActor;
@@ -91,7 +89,7 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 		this.targetCritic = nns[3];
 		
 		this.config = DianneConfigHandler.getConfig(config, DeepDeterministicPolicyGradientConfig.class);
-		this.sampling = SamplingFactory.createSamplingStrategy(this.config.sampling, dataset, config);
+		this.sampler = new ExperienceSampler(pool, this.config.sampling, config);
 		this.reconCriterion = CriterionFactory.createCriterion(this.config.criterion, config);
 		this.regulCriterion = new PseudoHuberCriterion(DianneConfigHandler.getConfig(config, BatchConfig.class));
 		
@@ -143,7 +141,7 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 		critic.zeroDeltaParameters();
 		
 		// Fill in the batch
-		batch = pool.getBatch(batch, sampling.next(config.batchSize));
+		ExperiencePoolBatch batch = sampler.nextBatch();
 		
 		// Calculate targetValues
 		Tensor nextAction = targetActor.forward(batch.getNextState());
@@ -154,7 +152,8 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 		Tensor value = critic.forward(inputIds, outputIds, new Tensor[]{batch.getState(), batch.getAction()}).getValue().tensor;
 		
 		// Calculate the loss and gradient with respect to the target value
-		float loss = TensorOps.mean(reconCriterion.loss(value, targetValue));
+		Tensor l = reconCriterion.loss(value, targetValue);
+		float loss = TensorOps.mean(l);
 		Tensor criticGrad = reconCriterion.grad(value, targetValue);
 		
 		// Add value smoothing on critic gradient when required
@@ -197,7 +196,7 @@ public class DeepDeterministicPolicyGradientStrategy implements LearningStrategy
 		critic.updateParameters();
 		
 		// Report the average loss and value of the current policy
-		return new LearnProgress(i, loss, new String[]{"q"}, new float[]{TensorOps.sum(value)/config.batchSize});
+		return new LearnProgress(i, loss, new String[]{"Average Value", "Max Value"}, new float[]{TensorOps.sum(value)/config.batchSize, TensorOps.max(value)});
 	}
 
 }
