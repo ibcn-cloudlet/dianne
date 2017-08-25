@@ -46,11 +46,15 @@ public class GoalAdapter extends AbstractExperiencePoolAdapter {
 	
 	// the actual state size
 	public int stateSize;
+	
 	// the size of the goal vector
 	public int goalSize;
 	
 	// goalsamples = 0, only add final 
 	public int goalSamples = 4;
+	
+	// store states with total discounted reward given the sequence
+	public float discount = 0.0f;
 	
 	@Override
 	protected void configure(Map<String, Object> properties) {
@@ -69,6 +73,10 @@ public class GoalAdapter extends AbstractExperiencePoolAdapter {
 		if(properties.containsKey("goalSamples")){
 			this.goalSamples = Integer.parseInt(properties.get("goalSamples").toString());
 		} 
+		
+		if(properties.containsKey("discount")){
+			this.discount = Float.parseFloat(properties.get("discount").toString());
+		} 
 	}
 
 	@Override
@@ -82,6 +90,16 @@ public class GoalAdapter extends AbstractExperiencePoolAdapter {
 			ss.nextState = ss.nextState == null ? null : ss.nextState.narrow(0, stateSize+goalSize);
 			l.add(ss);
 		}
+		
+		if(discount > 0){
+			float reward = 0;
+			for(int i=l.size()-1;i>=0;i--){
+				ExperiencePoolSample ss = l.get(i);
+				reward = reward*discount + ss.getScalarReward();
+				ss.reward.set(reward, 0);
+			}
+		}
+		
 		Sequence<ExperiencePoolSample> original = new Sequence<>(l, l.size());
 		pool.addSequence(original);
 		
@@ -98,6 +116,16 @@ public class GoalAdapter extends AbstractExperiencePoolAdapter {
 				endGoal.copyInto(ss.nextState.narrow(stateSize, goalSize));
 				l.add(ss);
 			}
+			
+			if(discount > 0){
+				float reward = 0;
+				for(int i=l.size()-1;i>=0;i--){
+					ExperiencePoolSample ss = l.get(i);
+					reward = reward*discount + ss.getScalarReward();
+					ss.reward.set(reward, 0);
+				}
+			}
+			
 			Sequence<ExperiencePoolSample> endState = new Sequence<>(l, l.size());
 			pool.addSequence(endState);
 		} else {	
@@ -117,6 +145,16 @@ public class GoalAdapter extends AbstractExperiencePoolAdapter {
 				}
 				l.get(l.size()-1).nextState = null;
 				l.get(l.size()-1).terminal.set(0.0f, 0);
+				l.get(l.size()-1).reward.set(0.0f, 0);
+				
+				if(discount > 0){
+					float reward = 0;
+					for(int i=l.size()-1;i>=0;i--){
+						ExperiencePoolSample ss = l.get(i);
+						reward = reward*discount + ss.getScalarReward();
+						ss.reward.set(reward, 0);
+					}
+				}
 				
 				Sequence<ExperiencePoolSample> endState = new Sequence<>(l, l.size());
 				pool.addSequence(endState);
