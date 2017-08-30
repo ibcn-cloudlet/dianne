@@ -116,7 +116,7 @@ public class GoalAdapter extends AbstractExperiencePoolAdapter {
 		if(discount > 0){
 			float reward = 0;
 			if(!l.get(l.size()-1).isTerminal()){
-				reward = 1/(1-discount);
+				reward = -1/(1-discount);
 			}
 			for(int i=l.size()-1;i>=0;i--){
 				ExperiencePoolSample ss = l.get(i);
