@@ -25,9 +25,9 @@ package be.iminds.iot.dianne.api.rl.agent;
 public class AgentProgress {
 	
 	/**
-	/* every time the agent gets a parameter update, episode is increased by 1
+	/* every time the agent gets a parameter update, epoch is increased by 1
 	 */
-	public long episode;
+	public long epoch;
 	
 	/**
 	 * the sequence the agent executed in this act job
@@ -48,11 +48,11 @@ public class AgentProgress {
 		this.sequence = s;
 		this.iterations = i;
 		this.reward = r;
-		this.episode = e;
+		this.epoch = e;
 	}
 	
 	@Override
 	public String toString(){
-		return "[AGENT] Sequence: "+sequence+" Iterations: "+iterations+" Reward: "+reward+" Episode: "+episode;
+		return "[AGENT] Sequence: "+sequence+" Iterations: "+iterations+" Reward: "+reward+" Epoch: "+epoch;
 	}
 }

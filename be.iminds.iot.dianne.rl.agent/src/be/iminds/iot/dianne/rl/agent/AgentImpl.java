@@ -85,7 +85,7 @@ public class AgentImpl implements Agent {
 	
 	private Thread actingThread;
 	private long seq = 0;
-	private long episode = 0;
+	private long epoch = 0;
 	private float maxReward = Float.MIN_VALUE;
 
 	private volatile boolean acting;
@@ -282,7 +282,7 @@ public class AgentImpl implements Agent {
 						}
 						if(sync == false){
 							sync = true;
-							episode++;
+							epoch++;
 						}
 					}
 				}, props);
@@ -293,7 +293,7 @@ public class AgentImpl implements Agent {
 				// set count to zero
 				count = 0;
 				seq = 0;
-				episode = 0;
+				epoch = 0;
 				maxReward = -Float.MAX_VALUE;
 				
 				// setup action strategy
@@ -309,7 +309,7 @@ public class AgentImpl implements Agent {
 		
 				s.input = env.getObservation(s.input);
 	
-				progress = new AgentProgress(seq, 0, 0, episode);
+				progress = new AgentProgress(seq, 0, 0, epoch);
 				
 				if(config.clear){
 					pool.reset();
@@ -408,7 +408,7 @@ public class AgentImpl implements Agent {
 						}
 						
 						seq++;
-						progress = new AgentProgress(seq, 0, 0, episode);
+						progress = new AgentProgress(seq, 0, 0, epoch);
 						
 						do {
 							env.reset();
