@@ -36,6 +36,28 @@ import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
 import be.iminds.iot.dianne.tensor.Tensor;
 
+/**
+ * Experience adapter to use for hindsight xp replay and goal based environments
+ * 
+ * This adapter receives as state samples :
+ * - the recorded state
+ * - the goal with which the xp sample is collected
+ * - the actual goal achieved in this state
+ * 
+ * The adapter then stores
+ * - a state + goal concat
+ * - a next state + goal concat
+ * - a reward
+ * 
+ * For each sequence it may also sample additional experience with actual goals achieved
+ * during the sequence, with adapted reward
+ * 
+ * The discount parameter can be used to store the actual cumulated discounted reward for
+ * each sample in the sequence.
+ * 
+ * @author tverbele
+ *
+ */
 @Component(
 		service={Dataset.class, ExperiencePool.class},	
 		configurationPolicy=ConfigurationPolicy.REQUIRE,
@@ -93,6 +115,9 @@ public class GoalAdapter extends AbstractExperiencePoolAdapter {
 		
 		if(discount > 0){
 			float reward = 0;
+			if(!l.get(l.size()-1).isTerminal()){
+				reward = 1/(1-discount);
+			}
 			for(int i=l.size()-1;i>=0;i--){
 				ExperiencePoolSample ss = l.get(i);
 				reward = reward*discount + ss.getScalarReward();
