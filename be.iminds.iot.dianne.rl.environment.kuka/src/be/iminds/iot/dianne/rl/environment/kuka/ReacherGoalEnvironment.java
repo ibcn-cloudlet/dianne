@@ -53,7 +53,6 @@ public class ReacherGoalEnvironment extends AbstractKukaEnvironment {
 	
 	public static final String NAME = "ReacherGoal";
 	
-	// TODO make this configurable?
 	private float min = -1.0f;
 	private float max = 1.0f;
 	private float threshold = 0.01f;
@@ -166,6 +165,10 @@ public class ReacherGoalEnvironment extends AbstractKukaEnvironment {
 		goal = new Tensor(goalSize);
 		
 		observation = new Tensor(stateSize+2*goalSize);
+		
+		if(config.containsKey("threshold")){
+			this.threshold = Float.parseFloat(config.get("threshold"));
+		}
 	}
 
 	@Override
