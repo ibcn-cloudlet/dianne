@@ -160,6 +160,8 @@ public class ReacherGoalEnvironment extends AbstractKukaEnvironment {
 	protected void configure(Map<String, String> config) {
 		// hacky way to disable front facing hokuyo sensor
 		super.config.simState = true;
+		super.config.simReset = 20; // reset each 20 episodes to avoid memory leaking V-REP with Newton dynamics
+		super.config.scene = "youbot_reacher.ttt";
 		
 		start = new Tensor(new float[]{0.4f, 0.0f, 0.4f}, 3);
 		goal = new Tensor(goalSize);
@@ -197,7 +199,7 @@ public class ReacherGoalEnvironment extends AbstractKukaEnvironment {
 		g[2] = (float) z;
 		goal.set(g);
 
-		simulator.setPosition("dock_ref", "arm_ref", new Position(g[0],g[1],g[2]));
+		simulator.setPosition("target", "arm_ref", new Position(g[0],g[1],g[2]));
 				
 	}
 }
