@@ -239,8 +239,6 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 			throw new RuntimeException("Failed to initialize the environment ...", e);
 		}
 		
-		updateObservation();
-		
 		listeners.stream().forEach(l -> l.onAction(0, observation));
 		
 		resets++;
@@ -370,14 +368,21 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 						}
 						
 						initSimulator();
+						
+						updateObservation();
+
 					} catch(InterruptedException ie){
 						// just forward interrupt!
 						throw ie;
 					} catch(Exception e){
 						e.printStackTrace();
+
 						restart();
 						
 		                initSimulator();
+		                
+		        		updateObservation();
+
 					}
 					retrying = false;
 				} catch (InterruptedException ie2){
@@ -407,7 +412,7 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 			}
 		}
         simulator = null;
-    	System.out.println("Unexpected simulator error, waiting for simulator to come back online...");
+    	System.out.println("Simulator got killed, waiting for simulator to come back online...");
 		long start = System.currentTimeMillis();
         while(simulator == null){
         	if(System.currentTimeMillis()-start > config.timeout){
