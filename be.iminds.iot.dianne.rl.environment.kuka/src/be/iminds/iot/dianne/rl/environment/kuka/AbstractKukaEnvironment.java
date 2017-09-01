@@ -121,6 +121,8 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 	protected float reward = 0;
 	private volatile boolean pause = false;
 	
+	protected int resets = 0;
+	
 	public abstract String getName();
 	
 	@Activate
@@ -240,6 +242,8 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		updateObservation();
 		
 		listeners.stream().forEach(l -> l.onAction(0, observation));
+		
+		resets++;
 	}
 	
 	// methods to be implemented in concrete Kuka environments
@@ -361,40 +365,18 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 				if (count > 0) System.out.printf("Retrying simulator initialization: %d/%d retries\n", count+1, config.maxRetries);
 				try {
 					try {
+						if(config.simReset > 0 && resets % config.simReset == 0){
+							restart();
+						}
+						
 						initSimulator();
 					} catch(InterruptedException ie){
 						// just forward interrupt!
 						throw ie;
 					} catch(Exception e){
 						e.printStackTrace();
-						// try to kill the simulator?! - this is hacky!
-						// TODO this should be fixed in the robot project?
-						System.out.println("Shutdown vrep!");
-						Process process = Runtime.getRuntime().exec("pkill vrep");
-						boolean done = process.waitFor(10, TimeUnit.SECONDS);
-						if (!done || process.exitValue() != 0) {
-							System.err.println("Kill vrep!");
-							process = Runtime.getRuntime().exec("pkill -9 vrep");
-							done = process.waitFor(1, TimeUnit.MINUTES);
-							if (!done || process.exitValue() != 0) {
-								throw new Exception("Unable to kill vrep!");
-							}
-						}
-		                simulator = null;
-		            	System.out.println("Unexpected simulator error, waiting for simulator to come back online...");
-						long start = System.currentTimeMillis();
-		                while(simulator == null){
-		                	if(System.currentTimeMillis()-start > config.timeout){
-		                      	throw new Exception("Failed to restart simulator. Timeout exceeded.");
-		                    }
-		                	Thread.sleep(100);
-		                }
-		                
-		                // configure it again from scratch
-		                configure(configMap);
-		        		configureSimulator();
-
-		                
+						restart();
+						
 		                initSimulator();
 					}
 					retrying = false;
@@ -407,6 +389,36 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 				}
 			}
 		}
+	}
+	
+	// try to kill and restart the simulator?! 
+	// this is hacky, but helps to mitigate memory hogging of V-REP
+	private void restart() throws Exception {
+		// TODO this should be fixed in the robot project?
+		System.out.println("Shutdown vrep!");
+		Process process = Runtime.getRuntime().exec("pkill vrep");
+		boolean done = process.waitFor(10, TimeUnit.SECONDS);
+		if (!done || process.exitValue() != 0) {
+			System.err.println("Kill vrep!");
+			process = Runtime.getRuntime().exec("pkill -9 vrep");
+			done = process.waitFor(1, TimeUnit.MINUTES);
+			if (!done || process.exitValue() != 0) {
+				throw new Exception("Unable to kill vrep!");
+			}
+		}
+        simulator = null;
+    	System.out.println("Unexpected simulator error, waiting for simulator to come back online...");
+		long start = System.currentTimeMillis();
+        while(simulator == null){
+        	if(System.currentTimeMillis()-start > config.timeout){
+              	throw new Exception("Failed to restart simulator. Timeout exceeded.");
+            }
+        	Thread.sleep(100);
+        }
+        
+        // configure it again from scratch
+        configure(configMap);
+		configureSimulator();
 	}
 	
 	private void deinit(){

@@ -58,6 +58,11 @@ public class KukaConfig {
 	public int maxRetries = 10;
 	
 	/**
+	 * Hard reset the simulator each number of episodes
+	 */
+	public int simReset = 0;
+	
+	/**
 	 * Let the environment have control of time and tick each iteration
 	 */
 	public boolean tick = true;
