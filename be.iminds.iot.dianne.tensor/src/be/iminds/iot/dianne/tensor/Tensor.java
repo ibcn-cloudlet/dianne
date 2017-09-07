@@ -52,6 +52,14 @@ public class Tensor {
 		this.address = init(null, d);
 	}
 	
+	public Tensor(int d0, int d1, int[] dims){
+		int[] d = new int[dims.length+1];
+		d[0] = d0;
+		d[1] = d1;
+		System.arraycopy(dims, 0, d, 2, dims.length);
+		this.address = init(null, d);
+	}
+	
 	public Tensor(float[] data, int... dims) {
 		this.address = init(data, dims);
 	}

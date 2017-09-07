@@ -39,7 +39,7 @@ public class StateBeliefConfig {
 	
 	public float dropRate = 0;
 	
-	public boolean reconstructOnDrop = false;
+	public boolean reconstructOnDrop = true;
 	
 	/**
 	 * The criterion to use to evaluate the loss between output and target

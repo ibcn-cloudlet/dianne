@@ -65,6 +65,7 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 	protected NeuralNetwork posterior;
 	protected NeuralNetwork observationLikelihood;
 	protected NeuralNetwork rewardLikelihood;
+	protected NeuralNetwork encoder;
 	
 	protected UUID[] priorIn;
 	protected UUID[] priorOut;
@@ -88,10 +89,13 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 	protected Tensor action;
 	protected Tensor stateSample;
 	protected Tensor random4state;
+	protected Tensor observationSample;
+	protected Tensor random4observation;
 	protected Tensor quantized;
 	
 	protected Tensor stateDistributionGrad;
 	protected Tensor referenceDistribution;
+	protected Tensor observationDistributionGrad;
 	
 	protected boolean[] dropped;
 	
@@ -105,13 +109,14 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 		
 		this.pool = (ExperiencePool) dataset;
 		
-		if(nns.length != 3 && nns.length != 4)
-			throw new RuntimeException("Invalid number of NN instances provided: "+nns.length+" (expected 3 or 4)");
+		if(nns.length < 3 || nns.length > 5)
+			throw new RuntimeException("Invalid number of NN instances provided: "+nns.length+" (expected 3, 4 or 5)");
 			
 		this.prior = nns[0];
 		this.posterior = nns[1];
 		this.observationLikelihood = nns[2];
-		this.rewardLikelihood = nns.length == 4 ? nns[3] : null;
+		this.rewardLikelihood = nns.length > 3 ? nns[3] : null;
+		this.encoder = nns.length > 4 ? nns[4] : null;
 		
 		this.posteriorIn = posterior.getModuleIds("State","Action","Observation");
 		this.posteriorOut = new UUID[]{posterior.getOutput().getId()};
@@ -130,21 +135,26 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 		this.priorRegulCriterion = CriterionFactory.createCriterion(CriterionConfig.GKL, config);
 		this.posteriorRegulCriterion = CriterionFactory.createCriterion(CriterionConfig.GKL, config);
 		this.observationReconCriterion = CriterionFactory.createCriterion(this.config.criterion, config);
-		this.rewardReconCriterion = rewardLikelihood != null ? CriterionFactory.createCriterion(CriterionConfig.GAU, config) : null;
+		this.rewardReconCriterion = rewardLikelihood != null ? CriterionFactory.createCriterion(this.config.criterion, config) : null;
 		
 		this.posteriorProcessor = ProcessorFactory.createGradientProcessor(this.config.method, posterior, config);
 		this.priorProcessor = ProcessorFactory.createGradientProcessor(this.config.method, prior, config);
 		this.observationLikelihoodProcessor = ProcessorFactory.createGradientProcessor(this.config.method, observationLikelihood, config);
 		this.rewardLikelihoodProcessor = rewardLikelihood != null ? ProcessorFactory.createGradientProcessor(this.config.method, rewardLikelihood, config) : null;
-
+		
 		this.action = new Tensor(this.config.batchSize, this.pool.actionDims());
 		this.stateSample = new Tensor(this.config.batchSize, this.config.stateSize);
 		this.random4state = new Tensor(this.config.batchSize, this.config.stateSize);
-
+		this.observationSample = encoder != null ? new Tensor(this.config.batchSize, this.pool.stateDims()) : null;
+		this.random4observation = encoder != null ? new Tensor(this.config.batchSize, this.pool.stateDims()) : null;
+		
 		this.stateDistributionGrad = new Tensor(this.config.batchSize, 2*this.config.stateSize);
 		this.referenceDistribution = new Tensor(this.config.batchSize, 2*this.config.stateSize);
 		this.referenceDistribution.narrow(1, 0, this.config.stateSize).fill(0.0f);
 		this.referenceDistribution.narrow(1, this.config.stateSize, this.config.stateSize).fill(1.0f);
+		this.observationDistributionGrad = encoder != null ?
+				new Tensor(this.config.batchSize, 2*this.pool.stateDims()[0],
+						Arrays.copyOfRange(this.pool.stateDims(), 1, this.pool.stateDims().length)) : null;
 		
 		this.dropped = new boolean[this.config.sequenceLength];
 		
@@ -203,15 +213,27 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 			// Additional for final timestep: reconstruction loss on o_T-1
 			Tensor observationDistribution = observationLikelihood.forward(states.get(sequence.size()-1));
 			Tensor observation = sequence.getState(sequence.size()-1);
-			if(config.criterion == CriterionConfig.NLL){
+			
+			if(encoder != null){
+				sample(observationSample, observationDistribution, random4observation);
+				
+				Tensor targetFeatures = encoder.forward(observation);
+				Tensor sampleFeatures = encoder.forward(observationSample);
+				
+				observationReconLoss += TensorOps.mean(observationReconCriterion.loss(sampleFeatures, targetFeatures));
+				Tensor observationGrad = encoder.backward(observationReconCriterion.grad(sampleFeatures, targetFeatures), false);
+				
+				distributionGrad(observationDistributionGrad, observationGrad, random4observation);
+				stateGrad = observationLikelihood.backward(observationDistributionGrad, true);
+			} else if(config.criterion == CriterionConfig.NLL){
 				// observationDistribution needs to be a (Log)Softmax of the form [batchSize, discreteSize, y, x] with x=#laser beams, y=1 in case of LIDAR data
 				// we need to quantize the observation of dims [batchSize, y, x] that way
 				quantized = quantize(quantized, observation, config.quantizeMin, config.quantizeMax, config.quantizeSteps);
 				observationReconLoss += TensorOps.mean(observationReconCriterion.loss(observationDistribution, quantized));
-				stateGrad = observationLikelihood.backward(observationReconCriterion.grad(observationDistribution, quantized),true);
+				stateGrad = observationLikelihood.backward(observationReconCriterion.grad(observationDistribution, quantized), true);
 			} else {
 				observationReconLoss += TensorOps.mean(observationReconCriterion.loss(observationDistribution, observation));
-				stateGrad = observationLikelihood.backward(observationReconCriterion.grad(observationDistribution, observation),true);
+				stateGrad = observationLikelihood.backward(observationReconCriterion.grad(observationDistribution, observation), true);
 			}
 		} else {
 			stateGrad = new Tensor(this.config.batchSize, this.config.stateSize);
@@ -286,15 +308,27 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 				// If o_t not dropped, add gradient from likelihood of o_t
 				Tensor observationDistribution = observationLikelihood.forward(states.get(t));
 				Tensor observation = sequence.getState(t);
-				if(config.criterion == CriterionConfig.NLL){
+				
+				if(encoder != null){
+					sample(observationSample, observationDistribution, random4observation);
+					
+					Tensor targetFeatures = encoder.forward(observation);
+					Tensor sampleFeatures = encoder.forward(observationSample);
+					
+					observationReconLoss += TensorOps.mean(observationReconCriterion.loss(sampleFeatures, targetFeatures));
+					Tensor observationGrad = encoder.backward(observationReconCriterion.grad(sampleFeatures, targetFeatures), false);
+					
+					distributionGrad(observationDistributionGrad, observationGrad, random4observation);
+					stateGrad = observationLikelihood.backward(observationDistributionGrad, true);
+				} else if(config.criterion == CriterionConfig.NLL){
 					// observationDistribution needs to be a (Log)Softmax of the form [batchSize, discreteSize, y, x] with x=#laser beams, y=1 in case of LIDAR data
 					// we need to quantize the observation of dims [batchSize, y, x] that way
 					quantized = quantize(quantized, observation, config.quantizeMin, config.quantizeMax, config.quantizeSteps);
 					observationReconLoss += TensorOps.mean(observationReconCriterion.loss(observationDistribution, quantized));
-					stateGrad = observationLikelihood.backward(observationReconCriterion.grad(observationDistribution, quantized),true);
+					stateGrad = observationLikelihood.backward(observationReconCriterion.grad(observationDistribution, quantized), true);
 				} else {
 					observationReconLoss += TensorOps.mean(observationReconCriterion.loss(observationDistribution, observation));
-					stateGrad = observationLikelihood.backward(observationReconCriterion.grad(observationDistribution, observation),true);
+					stateGrad = observationLikelihood.backward(observationReconCriterion.grad(observationDistribution, observation), true);
 				}
 			}
 			
@@ -324,7 +358,6 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 		
 		// Get prior distribution of s_0
 		Tensor priorDistribution = prior.forward(priorIn, priorOut, new Tensor[]{stateSample, action}).getValue().tensor;
-		
 		
 		// If dropped, gradient on prior of s_0 is gradient on distribution of s_0
 		Tensor priorDistributionGrad = stateDistributionGrad;
