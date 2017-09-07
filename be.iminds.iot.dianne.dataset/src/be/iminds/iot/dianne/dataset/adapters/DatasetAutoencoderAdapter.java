@@ -28,6 +28,8 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.Sample;
+import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 /**
  * This Dataset adapter will set the target output the same as the input.
@@ -42,9 +44,15 @@ import be.iminds.iot.dianne.api.dataset.Sample;
 	configurationPolicy=ConfigurationPolicy.REQUIRE,
 	configurationPid="be.iminds.iot.dianne.dataset.adapters.AutoencoderAdapter")
 public class DatasetAutoencoderAdapter extends AbstractDatasetAdapter {
+	
+	// Noise
+	private float sigma = 0.0f;
+	private Tensor noise = null;
 
 	@Override
 	protected void configure(Map<String, Object> properties) {
+		if(properties.containsKey("encoder_noise"))
+			this.sigma = Float.parseFloat((String) properties.get("encoder_noise"));
 	}
 	
 	@Override
@@ -61,6 +69,15 @@ public class DatasetAutoencoderAdapter extends AbstractDatasetAdapter {
 	protected void adaptSample(Sample original, Sample adapted) {
 		adapted.input = original.input.copyInto(adapted.input);
 		adapted.target = original.input.copyInto(adapted.target);
+		
+		if(sigma > 0) {
+			if(noise == null || !adapted.input.hasDim(noise.dims())) {
+				noise = new Tensor(noise.dims());
+			}
+			
+			noise.randn();
+			TensorOps.add(adapted.input, adapted.input, sigma, noise);
+		}
 	}
 
 }
