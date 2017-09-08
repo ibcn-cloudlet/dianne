@@ -91,7 +91,9 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 	protected Tensor random4state;
 	protected Tensor observationSample;
 	protected Tensor random4observation;
+	
 	protected Tensor quantized;
+	protected Tensor targetFeatures;
 	
 	protected Tensor stateDistributionGrad;
 	protected Tensor referenceDistribution;
@@ -217,7 +219,7 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 			if(encoder != null){
 				sample(observationSample, observationDistribution, random4observation);
 				
-				Tensor targetFeatures = encoder.forward(observation);
+				targetFeatures = encoder.forward(observation).copyInto(targetFeatures);
 				Tensor sampleFeatures = encoder.forward(observationSample);
 				
 				observationReconLoss += TensorOps.mean(observationReconCriterion.loss(sampleFeatures, targetFeatures));
@@ -312,7 +314,7 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 				if(encoder != null){
 					sample(observationSample, observationDistribution, random4observation);
 					
-					Tensor targetFeatures = encoder.forward(observation);
+					targetFeatures = encoder.forward(observation).copyInto(targetFeatures);
 					Tensor sampleFeatures = encoder.forward(observationSample);
 					
 					observationReconLoss += TensorOps.mean(observationReconCriterion.loss(sampleFeatures, targetFeatures));

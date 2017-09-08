@@ -352,6 +352,16 @@ public class DatasetConfigurator implements DianneDatasets {
 				props.put("autoencode", s);
 				System.out.println("* autoencode = "+s);
 			}
+			if(config.containsKey("encoder_noise")){
+				String s = config.get("encoder_noise");
+				props.put("encoder_noise", s);
+				System.out.println("* encoder_noise = "+s);
+			}
+			if(config.containsKey("encoder_drop")){
+				String s = config.get("encoder_drop");
+				props.put("encoder_drop", s);
+				System.out.println("* encoder_drop = "+s);
+			}
 			
 			try {
 				Configuration c = ca.createFactoryConfiguration(pid, null);

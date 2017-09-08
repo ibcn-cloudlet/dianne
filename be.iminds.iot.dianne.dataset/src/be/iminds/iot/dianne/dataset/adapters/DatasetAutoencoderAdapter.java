@@ -47,12 +47,16 @@ public class DatasetAutoencoderAdapter extends AbstractDatasetAdapter {
 	
 	// Noise
 	private float sigma = 0.0f;
+	private float drop = 0.0f;
 	private Tensor noise = null;
 
 	@Override
 	protected void configure(Map<String, Object> properties) {
 		if(properties.containsKey("encoder_noise"))
 			this.sigma = Float.parseFloat((String) properties.get("encoder_noise"));
+		
+		if(properties.containsKey("encoder_drop"))
+			this.drop = Float.parseFloat((String) properties.get("encoder_drop"));
 	}
 	
 	@Override
@@ -70,13 +74,20 @@ public class DatasetAutoencoderAdapter extends AbstractDatasetAdapter {
 		adapted.input = original.input.copyInto(adapted.input);
 		adapted.target = original.input.copyInto(adapted.target);
 		
-		if(sigma > 0) {
+		if(sigma > 0 || drop > 0) {
 			if(noise == null || !adapted.input.hasDim(noise.dims())) {
-				noise = new Tensor(noise.dims());
+				noise = new Tensor(adapted.input.dims());
 			}
 			
-			noise.randn();
-			TensorOps.add(adapted.input, adapted.input, sigma, noise);
+			if(sigma > 0) {
+				noise.randn();
+				TensorOps.add(adapted.input, adapted.input, sigma, noise);
+			}
+			
+			if(drop > 0) {
+				noise.bernoulli(1-drop);
+				TensorOps.cmul(adapted.input, adapted.input, noise);
+			}
 		}
 	}
 

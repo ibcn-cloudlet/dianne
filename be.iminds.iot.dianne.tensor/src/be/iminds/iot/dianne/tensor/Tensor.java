@@ -53,7 +53,7 @@ public class Tensor {
 	}
 	
 	public Tensor(int d0, int d1, int[] dims){
-		int[] d = new int[dims.length+1];
+		int[] d = new int[dims.length+2];
 		d[0] = d0;
 		d[1] = d1;
 		System.arraycopy(dims, 0, d, 2, dims.length);
