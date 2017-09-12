@@ -41,6 +41,8 @@ public class StateBeliefConfig {
 	
 	public boolean reconstructOnDrop = true;
 	
+	public boolean useMeanReconstruction = true;
+	
 	/**
 	 * The criterion to use to evaluate the loss between output and target
 	 */

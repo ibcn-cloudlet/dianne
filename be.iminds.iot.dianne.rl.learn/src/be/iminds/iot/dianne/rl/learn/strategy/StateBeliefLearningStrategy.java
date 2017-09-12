@@ -217,7 +217,7 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 			Tensor observation = sequence.getState(sequence.size()-1);
 			
 			if(encoder != null){
-				sample(observationSample, observationDistribution, random4observation);
+				sample(observationSample, observationDistribution, random4observation, config.useMeanReconstruction);
 				
 				targetFeatures = encoder.forward(observation).copyInto(targetFeatures);
 				Tensor sampleFeatures = encoder.forward(observationSample);
@@ -312,7 +312,7 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 				Tensor observation = sequence.getState(t);
 				
 				if(encoder != null){
-					sample(observationSample, observationDistribution, random4observation);
+					sample(observationSample, observationDistribution, random4observation, config.useMeanReconstruction);
 					
 					targetFeatures = encoder.forward(observation).copyInto(targetFeatures);
 					Tensor sampleFeatures = encoder.forward(observationSample);
@@ -419,11 +419,18 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 	}
 	
 	private static void sample(Tensor sample, Tensor distribution, Tensor random) {
+		sample(sample, distribution, random, false);
+	}
+	
+	private static void sample(Tensor sample, Tensor distribution, Tensor random, boolean useMean) {
 		int size = distribution.size(1)/2;
 		Tensor means = distribution.narrow(1, 0, size);
 		Tensor stdevs = distribution.narrow(1, size, size);
 		
-		random.randn();
+		if(useMean)
+			random.fill(0.f);
+		else
+			random.randn();
 		
 		TensorOps.cmul(sample, random, stdevs);
 		TensorOps.add(sample, sample, means);
