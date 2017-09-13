@@ -35,9 +35,11 @@ public class StateBeliefConfig {
 	
 	public int batchSize = 32;
 	
-	public float priorRegularization = 0;
+	public float posteriorRegularization = 1f;
 	
-	public float dropRate = 0;
+	public float priorRegularization = 0f;
+	
+	public float dropRate = 0f;
 	
 	public boolean reconstructOnDrop = true;
 	

@@ -286,11 +286,12 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 				Tensor posteriorDistribution = posterior.forward(posteriorIn, posteriorOut, new Tensor[]{states.get(t), sequence.getAction(t), sequence.getState(t+1)}).getValue().tensor;
 				
 				// Add regularization loss based on prior on s_t+1 to gradient on distribution of s_t+1
-				posteriorRegulLoss += TensorOps.mean(posteriorRegulCriterion.loss(posteriorDistribution, priorDistribution));
-				TensorOps.add(stateDistributionGrad, stateDistributionGrad, posteriorRegulCriterion.grad(posteriorDistribution, priorDistribution));
+				posteriorRegulLoss += config.posteriorRegularization*TensorOps.mean(posteriorRegulCriterion.loss(posteriorDistribution, priorDistribution));
+				TensorOps.add(stateDistributionGrad, stateDistributionGrad, config.posteriorRegularization, posteriorRegulCriterion.grad(posteriorDistribution, priorDistribution));
 				
 				// Calculate gradient to prior of s_t+1 using regularization loss
 				priorDistributionGrad = posteriorRegulCriterion.gradTarget(posteriorDistribution, priorDistribution);
+				TensorOps.mul(priorDistributionGrad, priorDistributionGrad, config.posteriorRegularization);
 			}
 			
 			// Optional prior regularization
@@ -370,11 +371,12 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 			Tensor posteriorDistribution = posterior.forward(posteriorIn, posteriorOut, new Tensor[]{stateSample, action, sequence.getState(0)}).getValue().tensor;
 			
 			// Add regularization loss based on prior on s_0 to gradient on distribution of s_0
-			posteriorRegulLoss += TensorOps.mean(posteriorRegulCriterion.loss(posteriorDistribution, priorDistribution));
-			TensorOps.add(stateDistributionGrad, stateDistributionGrad, posteriorRegulCriterion.grad(posteriorDistribution, priorDistribution));
+			posteriorRegulLoss += config.posteriorRegularization*TensorOps.mean(posteriorRegulCriterion.loss(posteriorDistribution, priorDistribution));
+			TensorOps.add(stateDistributionGrad, stateDistributionGrad, config.posteriorRegularization, posteriorRegulCriterion.grad(posteriorDistribution, priorDistribution));
 			
 			// Calculate gradient to prior of s_0 using regularization loss
 			priorDistributionGrad = posteriorRegulCriterion.gradTarget(posteriorDistribution, priorDistribution);
+			TensorOps.mul(priorDistributionGrad, priorDistributionGrad, config.posteriorRegularization);
 		}
 		
 		// Optional prior regularization
