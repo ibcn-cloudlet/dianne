@@ -554,7 +554,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	protected abstract void recoverData();
 	
 	@Override
-	public void dump() throws IOException {
+	public void dump() {
 		// write json if not preset
 		StringBuilder descriptor = new StringBuilder();
 		
@@ -579,9 +579,9 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		descriptor.append(maxSize);
 		descriptor.append("\n}");
 		
-		Files.write( Paths.get(dir+File.separator+name+".json"), descriptor.toString().getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-		
 		try {
+			Files.write( Paths.get(dir+File.separator+name+".json"), descriptor.toString().getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+		
 			lock.writeLock().lock();
 		
 			// write sequences
@@ -597,7 +597,9 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 			// dump data
 			dumpData();
 		
-		} finally {
+		} catch(Exception e){ 
+			e.printStackTrace();
+		}finally {
 			lock.writeLock().unlock();
 		}
 	}

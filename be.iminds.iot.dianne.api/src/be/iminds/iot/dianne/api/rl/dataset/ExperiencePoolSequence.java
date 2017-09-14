@@ -107,4 +107,21 @@ public class ExperiencePoolSequence extends Sequence<ExperiencePoolSample> {
 	public Tensor getTerminal(int index){
 		return get(index).terminal;
 	}
+	
+	public boolean equals(Object other){
+		if(!(other instanceof ExperiencePoolSequence))
+			return false;
+		
+		ExperiencePoolSequence o = (ExperiencePoolSequence) other;
+		
+		if(o.size() != size())
+			return false;
+		
+		for(int i=0;i<size();i++){
+			if(!o.get(i).equals(get(i)))
+				return false;
+		}
+		
+		return true;
+	}
 }

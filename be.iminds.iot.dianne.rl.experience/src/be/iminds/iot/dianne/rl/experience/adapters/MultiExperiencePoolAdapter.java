@@ -22,12 +22,15 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rl.experience.adapters;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 
 import be.iminds.iot.dianne.api.dataset.DatasetDTO;
 import be.iminds.iot.dianne.api.dataset.Sample;
@@ -38,33 +41,31 @@ import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSequence;
 
-public abstract class AbstractExperiencePoolAdapter implements ExperiencePool {
+public class MultiExperiencePoolAdapter implements ExperiencePool {
 
-	protected ExperiencePool pool;
+	protected List<ExperiencePool> pools = Collections.synchronizedList(new ArrayList<>());
 	protected String name;
 	protected Map<String, Object> properties;
 	
-	@Reference
-	void setDataset(ExperiencePool p){
-		this.pool = p;
+	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE)
+	public void addDataset(ExperiencePool p){
+		this.pools.add(p);
+		// TODO check whether all pools have same dimensions?!
+	}
+	
+	public void removeDataset(ExperiencePool p){
+		this.pools.remove(p);
 	}
 	
 	@Activate
-	void activate(Map<String, Object> properties) {
+	public void activate(Map<String, Object> properties) {
 		this.properties = properties;
 		this.name = (String)properties.get("name");
-		configure(properties);
 	}
 
-	protected void adaptFetchedSample(ExperiencePoolSample s){};
-	
-	protected void adaptAddingSample(ExperiencePoolSample s){};
-	
-	protected abstract void configure(Map<String, Object> properties);
-	
 	@Override
 	public DatasetDTO getDTO(){
-		DatasetDTO dto = pool.getDTO();
+		DatasetDTO dto = pools.get(0).getDTO();
 		
 		dto.name = getName();
 		dto.inputDims = inputDims();
@@ -95,72 +96,104 @@ public abstract class AbstractExperiencePoolAdapter implements ExperiencePool {
 	
 	@Override
 	public int[] inputDims() {
-		return pool.inputDims();
+		return pools.get(0).inputDims();
 	}
 	
 	@Override
 	public String inputType(){
-		return pool.inputType();
+		return pools.get(0).inputType();
 	}
 
 	@Override
 	public int[] targetDims() {
-		return pool.targetDims();
+		return pools.get(0).targetDims();
 	}
 
 	@Override
 	public String targetType(){
-		return pool.inputType();
+		return pools.get(0).inputType();
 	}
 	
 	@Override
 	public String[] getLabels() {
-		return pool.getLabels();
+		return pools.get(0).getLabels();
 	}
 
 	@Override
 	public int size() {
-		return pool.size();
+		return pools.stream().mapToInt(p -> p.size()).sum();
 	}
 	
 	@Override
 	public int sequences(){
-		return pool.sequences();
+		return pools.stream().mapToInt(p -> p.sequences()).sum();
 	}
 	
 	@Override
 	public int sequenceLength(int sequence){
-		return pool.sequenceLength(sequence);
+		for(ExperiencePool pool : pools){
+			int s = pool.sequences();
+			if(sequence >= s){
+				sequence -= s;
+			} else {
+				return pool.sequenceLength(sequence);
+			}
+		}
+		return 0;
 	}
 
 	@Override
 	public Sample getSample(Sample s, int index) {
-		s = pool.getSample(s, index);
-		adaptFetchedSample((ExperiencePoolSample)s);
+		for(ExperiencePool pool : pools){
+			int size = pool.size();
+			if(index >= size){
+				index -= size;
+			} else {
+				s = pool.getSample(s, index);
+				return s;
+			}
+		}
 		return s;
 	}
 	
 	@Override
 	public ExperiencePoolSample getSample(ExperiencePoolSample s, int index){
-		s = pool.getSample(s, index);
-		adaptFetchedSample(s);
+		for(ExperiencePool pool : pools){
+			int size = pool.size();
+			if(index >= size){
+				index -= size;
+			} else {
+				s = pool.getSample(s, index);
+				return s;
+			}
+		}
 		return s;
 	}
 		
 	@Override
 	public ExperiencePoolBatch getBatch(ExperiencePoolBatch b, int... indices) {
-		b =  pool.getBatch(b, indices);
-		for(int i=0;i<indices.length;i++){
-			adaptFetchedSample(b.getSample(i));
+		if(b == null){
+			b = new ExperiencePoolBatch(indices.length, stateDims(), actionDims());
 		}
+		
+		int i = 0;
+		for(int index : indices){
+			getSample(b.getSample(i++), index);
+		}
+		
 		return b;
 	}
 	
 	@Override
 	public ExperiencePoolSequence getSequence(ExperiencePoolSequence s, int sequence, int index, int length){
-		s = pool.getSequence(s, sequence, index, length);
-		for(ExperiencePoolSample sample : s){
-			adaptFetchedSample(sample);
+		for(ExperiencePool pool : pools){
+			int size = pool.sequences();
+			if(sequence >= size){
+				sequence -= size;
+			} else {
+				s = pool.getSequence(s, sequence, index, length);
+				return s;
+			}
 		}
 		return s;
 	}
@@ -168,32 +201,52 @@ public abstract class AbstractExperiencePoolAdapter implements ExperiencePool {
 	@Override
 	public BatchedExperiencePoolSequence getBatchedSequence(BatchedExperiencePoolSequence b, int[] sequences, int[] indices,
 			int length) {
-		b = pool.getBatchedSequence(b, sequences, indices, length);
-		for(int i=0; i< sequences.length;i++){
-			for(int j=0;j<indices.length;j++){
-				ExperiencePoolSample s = b.get(i).getSample(j);
-				adaptFetchedSample(s);
+		if(b == null){
+			b = new BatchedExperiencePoolSequence();
+		}
+		List<ExperiencePoolBatch> list = b.data; 
+		
+		// TODO reuse memory from the intermediate sequences fetched?
+		// or better approach: fill in batch per batch directly (requires transforming the indices)
+		List<Sequence<ExperiencePoolSample>> seqs = new ArrayList<>();
+		for(int k=0;k<sequences.length; k++){
+			seqs.add(getSequence(sequences[k], indices[k], length));
+		}
+		
+		for(int i=0; i<length; i++){
+			ExperiencePoolBatch batch;
+			if(list.size() > i){
+				batch = list.get(i);
+			} else {
+				batch = new ExperiencePoolBatch(sequences.length, stateDims(), actionDims());
+				list.add(batch);
+			}
+			
+			for(int k=0; k<seqs.size(); k++){
+				seqs.get(k).get(i).copyInto(batch.getSample(k));
 			}
 		}
+		
+		b.size = length;
+		
 		return b;
 	}
 	
 	@Override
 	public void addSequence(Sequence<ExperiencePoolSample> sequence){
-		for(ExperiencePoolSample sample : sequence){
-			adaptAddingSample(sample);
-		}
+		// add to random pool?
+		ExperiencePool pool = pools.get((int)(Math.random()*pools.size()));
 		pool.addSequence(sequence);
 	}
 	
 	@Override
 	public void reset() {
-		pool.reset();
+		pools.forEach(p -> p.reset());
 	}
 	
 	@Override
 	public void dump() {
-		pool.dump();
+		pools.forEach(p -> p.dump());
 	}
 	
 }

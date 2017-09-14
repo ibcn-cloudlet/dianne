@@ -373,7 +373,7 @@ public class StateBeliefAdapter implements ExperiencePool {
 	}
 	
 	@Override
-	public void dump() throws IOException {
+	public void dump() {
 		pool.dump();
 	}
 
@@ -450,6 +450,5 @@ public class StateBeliefAdapter implements ExperiencePool {
 		TensorOps.cmul(state, state, stdev);
 		TensorOps.add(state, state, mean);
 	}
-
 	
 }

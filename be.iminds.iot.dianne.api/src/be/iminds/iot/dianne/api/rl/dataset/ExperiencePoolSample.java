@@ -121,4 +121,29 @@ public class ExperiencePoolSample extends Sample {
 	public ExperiencePoolSample clone(){
 		return copyInto(null);
 	}
+	
+	public boolean equals(Object other){
+		if(!(other instanceof ExperiencePoolSample))
+			return false;
+		
+		ExperiencePoolSample o = (ExperiencePoolSample) other;
+		
+		if(!o.getState().equals(getState()))
+			return false;
+		
+		if(!o.getAction().equals(getAction()))
+			return false;
+		
+		if(!o.getReward().equals(getReward()))
+			return false;
+		
+		if(!o.getTerminal().equals(getTerminal()))
+			return false;
+		
+		if(!o.isTerminal()){
+			return o.getNextState().equals(getNextState());
+		}
+		
+		return true;
+	}
 }

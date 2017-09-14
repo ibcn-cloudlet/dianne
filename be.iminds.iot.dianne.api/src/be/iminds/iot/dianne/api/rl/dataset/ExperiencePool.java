@@ -170,8 +170,7 @@ public interface ExperiencePool extends SequenceDataset<ExperiencePoolSample, Ex
 	
 	/**
 	 * Dump the data of the experience pool to file for later recovery
-	 * @throws IOException
 	 */
-	void dump() throws IOException;
+	void dump();
 	
 }

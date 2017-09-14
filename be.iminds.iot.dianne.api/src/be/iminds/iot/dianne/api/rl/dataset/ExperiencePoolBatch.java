@@ -168,4 +168,21 @@ public class ExperiencePoolBatch extends Batch {
 	public ExperiencePoolBatch clone(){
 		return copyInto(null);
 	}
+	
+	public boolean equals(Object other){
+		if(!(other instanceof ExperiencePoolBatch))
+			return false;
+		
+		ExperiencePoolBatch o = (ExperiencePoolBatch) other;
+		
+		if(o.getSize() != getSize())
+			return false;
+		
+		for(int i=0;i<getSize();i++){
+			if(!o.getSample(i).equals(getSample(i)))
+				return false;
+		}
+		
+		return true;
+	}
 }
