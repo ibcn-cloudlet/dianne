@@ -43,16 +43,31 @@ public class AgentProgress {
 	 * total reward gathered in the sequence
 	 */
 	public float reward;
+
+	/**
+	 * last reward
+	 */
+	public float last;
 	
-	public AgentProgress(long s, long i, float r, long e){
-		this.sequence = s;
-		this.iterations = i;
-		this.reward = r;
-		this.epoch = e;
+	/**
+	 * whether this sequence was terminal
+	 */
+	public boolean terminal;
+	
+	
+	public AgentProgress(long sequence, long iterations, 
+			float reward, float last, 
+			boolean terminal, long epoch){
+		this.sequence = sequence;
+		this.iterations = iterations;
+		this.reward = reward;
+		this.last = last;
+		this.terminal = terminal;
+		this.epoch = epoch;
 	}
 	
 	@Override
 	public String toString(){
-		return "[AGENT] Sequence: "+sequence+" Iterations: "+iterations+" Reward: "+reward+" Epoch: "+epoch;
+		return "[AGENT] Sequence: "+sequence+" - Iterations: "+iterations+" - Total Reward: "+reward+" - Last Reward: "+last+" - Terminal: "+terminal+" - Epoch: "+epoch;
 	}
 }

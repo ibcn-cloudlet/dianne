@@ -12,8 +12,9 @@ Bundle-Version: 0.6.0.${tstamp}
 	be.iminds.iot.dianne.tensor;version=latest,\
 	be.iminds.iot.dianne.nn.util;version=latest,\
 	be.iminds.iot.dianne.tensor.util;version=latest,\
+	be.iminds.iot.dianne.coordinator;version=latest,\
 	osgi.promise,\
-	org.apache.felix.gogo.runtime
+	org.apache.felix.gogo.runtime,\
 	
 -dsannotations: *
 

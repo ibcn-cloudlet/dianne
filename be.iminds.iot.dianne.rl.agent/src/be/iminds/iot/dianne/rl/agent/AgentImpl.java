@@ -309,7 +309,7 @@ public class AgentImpl implements Agent {
 		
 				s.input = env.getObservation(s.input);
 	
-				progress = new AgentProgress(seq, 0, 0, epoch);
+				progress = new AgentProgress(seq, 0, 0, 0, false, epoch);
 				
 				if(config.clear){
 					pool.reset();
@@ -344,6 +344,7 @@ public class AgentImpl implements Agent {
 
 					// update progress
 					progress.reward+=reward;
+					progress.last = reward;
 					progress.iterations++;
 					
 					// get the next state
@@ -354,6 +355,9 @@ public class AgentImpl implements Agent {
 						s.terminal = new Tensor(1);
 					}
 					s.terminal.set(s.nextState == null ? 0.0f : 1.0f, 0);
+					if(s.nextState == null){
+						progress.terminal = true;
+					}
 					
 					// upload in batch
 					if(pool != null) {
@@ -408,7 +412,7 @@ public class AgentImpl implements Agent {
 						}
 						
 						seq++;
-						progress = new AgentProgress(seq, 0, 0, epoch);
+						progress = new AgentProgress(seq, 0, 0, 0, false, epoch);
 						
 						do {
 							env.reset();
