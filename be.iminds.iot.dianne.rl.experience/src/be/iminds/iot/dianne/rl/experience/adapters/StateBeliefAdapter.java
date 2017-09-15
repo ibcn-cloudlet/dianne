@@ -22,7 +22,6 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.rl.experience.adapters;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;

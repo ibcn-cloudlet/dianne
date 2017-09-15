@@ -540,8 +540,13 @@ public class DatasetConfigurator implements DianneDatasets {
 				String adapter = json.get("adapter").getAsString();
 				pid = adapter.contains(".") ? adapter : "be.iminds.iot.dianne.dataset.adapters."+adapter;
 				// in case of adapter, set Dataset target: the dataset it is adapting
-				String dataset = json.get("dataset").getAsString();
-				props.put("Dataset.target", "(name="+dataset+")");
+				if(json.has("targetFilter")){
+					String filter = json.get("targetFilter").getAsString();
+					props.put("Dataset.target", filter);
+				} else {
+					String dataset = json.get("dataset").getAsString();
+					props.put("Dataset.target", "(name="+dataset+")");
+				}
 			} else if(json.has("type")){
 				String type = json.get("type").getAsString();
 				pid = "be.iminds.iot.dianne.dataset."+type;

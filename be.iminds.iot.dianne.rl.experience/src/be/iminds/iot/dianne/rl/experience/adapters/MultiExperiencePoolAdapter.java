@@ -29,9 +29,13 @@ import java.util.List;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 
+import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.DatasetDTO;
 import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.api.dataset.Sequence;
@@ -41,13 +45,18 @@ import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolBatch;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
 import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSequence;
 
+@Component(
+		service={Dataset.class, ExperiencePool.class},	
+		configurationPolicy=ConfigurationPolicy.REQUIRE,
+		configurationPid="be.iminds.iot.dianne.dataset.adapters.MultiExperiencePoolAdapter")
 public class MultiExperiencePoolAdapter implements ExperiencePool {
 
 	protected List<ExperiencePool> pools = Collections.synchronizedList(new ArrayList<>());
 	protected String name;
 	protected Map<String, Object> properties;
 	
-	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE)
+	@Reference(cardinality=ReferenceCardinality.AT_LEAST_ONE,
+			policy=ReferencePolicy.DYNAMIC)
 	public void addDataset(ExperiencePool p){
 		this.pools.add(p);
 		// TODO check whether all pools have same dimensions?!
