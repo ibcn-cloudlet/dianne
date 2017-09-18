@@ -45,6 +45,8 @@ public class StateBeliefConfig {
 	
 	public boolean useMeanReconstruction = true;
 	
+	public boolean mapDirectlyToFeatures = false;
+	
 	/**
 	 * The criterion to use to evaluate the loss between output and target
 	 */

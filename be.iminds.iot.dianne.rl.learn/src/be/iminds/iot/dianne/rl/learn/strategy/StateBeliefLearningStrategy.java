@@ -93,7 +93,7 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 	protected Tensor random4observation;
 	
 	protected Tensor quantized;
-	protected Tensor targetFeatures;
+	protected Tensor features;
 	
 	protected Tensor stateDistributionGrad;
 	protected Tensor referenceDistribution;
@@ -217,16 +217,23 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 			Tensor observation = sequence.getState(sequence.size()-1);
 			
 			if(encoder != null){
-				sample(observationSample, observationDistribution, random4observation, config.useMeanReconstruction);
+				features = encoder.forward(observation).copyInto(features);
 				
-				targetFeatures = encoder.forward(observation).copyInto(targetFeatures);
-				Tensor sampleFeatures = encoder.forward(observationSample);
-				
-				observationReconLoss += TensorOps.mean(observationReconCriterion.loss(sampleFeatures, targetFeatures));
-				Tensor observationGrad = encoder.backward(observationReconCriterion.grad(sampleFeatures, targetFeatures), false);
-				
-				distributionGrad(observationDistributionGrad, observationGrad, random4observation);
-				stateGrad = observationLikelihood.backward(observationDistributionGrad, true);
+				if(config.mapDirectlyToFeatures) {
+					Tensor featureDistribution = observationDistribution;
+					
+					observationReconLoss += TensorOps.mean(observationReconCriterion.loss(featureDistribution, features));
+					stateGrad = observationLikelihood.backward(observationReconCriterion.grad(featureDistribution, features), true);
+				} else {
+					sample(observationSample, observationDistribution, random4observation, config.useMeanReconstruction);
+					Tensor featureDistribution = encoder.forward(observationSample);
+					
+					observationReconLoss += TensorOps.mean(observationReconCriterion.loss(featureDistribution, features));
+					Tensor observationGrad = encoder.backward(observationReconCriterion.grad(featureDistribution, features), false);
+					
+					distributionGrad(observationDistributionGrad, observationGrad, random4observation);
+					stateGrad = observationLikelihood.backward(observationDistributionGrad, true);
+				}
 			} else if(config.criterion == CriterionConfig.NLL){
 				// observationDistribution needs to be a (Log)Softmax of the form [batchSize, discreteSize, y, x] with x=#laser beams, y=1 in case of LIDAR data
 				// we need to quantize the observation of dims [batchSize, y, x] that way
@@ -313,16 +320,23 @@ public class StateBeliefLearningStrategy implements LearningStrategy {
 				Tensor observation = sequence.getState(t);
 				
 				if(encoder != null){
-					sample(observationSample, observationDistribution, random4observation, config.useMeanReconstruction);
+					features = encoder.forward(observation).copyInto(features);
 					
-					targetFeatures = encoder.forward(observation).copyInto(targetFeatures);
-					Tensor sampleFeatures = encoder.forward(observationSample);
-					
-					observationReconLoss += TensorOps.mean(observationReconCriterion.loss(sampleFeatures, targetFeatures));
-					Tensor observationGrad = encoder.backward(observationReconCriterion.grad(sampleFeatures, targetFeatures), false);
-					
-					distributionGrad(observationDistributionGrad, observationGrad, random4observation);
-					stateGrad = observationLikelihood.backward(observationDistributionGrad, true);
+					if(config.mapDirectlyToFeatures) {
+						Tensor featureDistribution = observationDistribution;
+						
+						observationReconLoss += TensorOps.mean(observationReconCriterion.loss(featureDistribution, features));
+						stateGrad = observationLikelihood.backward(observationReconCriterion.grad(featureDistribution, features), true);
+					} else {
+						sample(observationSample, observationDistribution, random4observation, config.useMeanReconstruction);
+						Tensor featureDistribution = encoder.forward(observationSample);
+						
+						observationReconLoss += TensorOps.mean(observationReconCriterion.loss(featureDistribution, features));
+						Tensor observationGrad = encoder.backward(observationReconCriterion.grad(featureDistribution, features), false);
+						
+						distributionGrad(observationDistributionGrad, observationGrad, random4observation);
+						stateGrad = observationLikelihood.backward(observationDistributionGrad, true);
+					}
 				} else if(config.criterion == CriterionConfig.NLL){
 					// observationDistribution needs to be a (Log)Softmax of the form [batchSize, discreteSize, y, x] with x=#laser beams, y=1 in case of LIDAR data
 					// we need to quantize the observation of dims [batchSize, y, x] that way
