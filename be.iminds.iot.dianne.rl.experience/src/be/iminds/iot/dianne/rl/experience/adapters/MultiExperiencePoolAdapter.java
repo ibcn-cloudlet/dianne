@@ -222,7 +222,14 @@ public class MultiExperiencePoolAdapter implements ExperiencePool {
 			seqs.add(getSequence(sequences[k], indices[k], length));
 		}
 		
-		for(int i=0; i<length; i++){
+		int minLength = length;
+		for(Sequence<ExperiencePoolSample> s : seqs){
+			if(s.size < minLength){
+				minLength = s.size;
+			}
+		}
+		
+		for(int i=0; i<minLength; i++){
 			ExperiencePoolBatch batch;
 			if(list.size() > i){
 				batch = list.get(i);
@@ -236,7 +243,7 @@ public class MultiExperiencePoolAdapter implements ExperiencePool {
 			}
 		}
 		
-		b.size = length;
+		b.size = minLength;
 		
 		return b;
 	}
