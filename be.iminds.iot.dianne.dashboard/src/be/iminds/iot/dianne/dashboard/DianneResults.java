@@ -141,7 +141,7 @@ public class DianneResults extends HttpServlet{
 						writer.print(",");
 						writer.print(p.minibatchLoss);
 						if(progress.get(0).extra != null && !progress.get(0).extra.isEmpty()){
-							progress.get(0).extra.entrySet()
+							p.extra.entrySet()
 								.forEach(extra -> {
 										writer.print(",");
 										writer.print(extra.getValue());
