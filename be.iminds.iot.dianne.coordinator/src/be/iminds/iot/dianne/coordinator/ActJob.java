@@ -101,7 +101,7 @@ public class ActJob extends AbstractJob<AgentResult> implements AgentListener {
 				agents.put(target, agent);
 				agent.act(environment, dataset, config, nnis.get(target));
 			} catch(Throwable c){
-				throw new JobFailedException(target, this.jobId, "Failed to start agent: "+c.getMessage(), c);
+				throw new JobFailedException(target, this.jobId, "Failed to start agent on "+target+" : "+c.getMessage(), c);
 			}
 		}
 	}
@@ -177,7 +177,7 @@ public class ActJob extends AbstractJob<AgentResult> implements AgentListener {
 		if(deferred.getPromise().isDone()){
 			return;
 		}
-		done(new JobFailedException(agentId, this.jobId, "Agent failed: "+e.getMessage(), e));
+		done(new JobFailedException(agentId, this.jobId, "Agent failed on "+agentId+" : "+e.getMessage(), e));
 	}
 
 	@Override

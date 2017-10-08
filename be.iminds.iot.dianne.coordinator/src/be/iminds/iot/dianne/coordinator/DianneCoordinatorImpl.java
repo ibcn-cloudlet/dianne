@@ -416,7 +416,7 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 						System.err.println("Failed to write job.json for Job "+job.jobId);
 					}
 					
-					sendNotification(job.jobId, Level.DANGER, "Job \""+job.name+"\" failed on device "+device+" : "+error.getMessage() == null ? error.getClass().getName() : error.getMessage());
+					sendNotification(job.jobId, Level.DANGER, "Job \""+job.name+"\" failed : "+error.getMessage() == null ? error.getClass().getName() : error.getMessage());
 				} else {
 					File resultFile = new File(dir.getAbsolutePath()+File.separator+"result.json");
 					try(JsonWriter writer = new JsonWriter(new FileWriter(resultFile))){

@@ -121,7 +121,7 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 						}
 						break;
 					} catch(Throwable c){
-						throw new JobFailedException(target, this.jobId, "Failed initialize validation: "+c.getMessage(), c);
+						throw new JobFailedException(target, this.jobId, "Failed initialize validation on "+target+" : "+c.getMessage(), c);
 					}
 				}
 			}
@@ -163,7 +163,7 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 				learners.put(target, learner);
 				learner.learn(dataset, learnConfig, nnis.get(target));
 			} catch(Throwable c){
-				throw new JobFailedException(target, this.jobId, "Failed to start learner: "+c.getMessage(), c);
+				throw new JobFailedException(target, this.jobId, "Failed to start learner on "+target+" : "+c.getMessage(), c);
 			}
 		}
 	}
@@ -269,7 +269,7 @@ public class LearnJob extends AbstractJob<LearnResult> implements LearnerListene
 		if(deferred.getPromise().isDone()){
 			return;
 		}
-		done(new JobFailedException(learnerId, this.jobId, "Learner failed: "+e.getMessage(), e));
+		done(new JobFailedException(learnerId, this.jobId, "Learner failed on "+learnerId+" : "+e.getMessage(), e));
 	}
 
 	@Override

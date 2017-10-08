@@ -88,7 +88,7 @@ public class EvaluationJob extends AbstractJob<EvaluationResult> {
 						
 						results.put(target, e);
 					} catch(Exception e){
-						done(new JobFailedException(target, EvaluationJob.this.jobId, "Evaluator failed: "+e.getMessage(), e));
+						done(new JobFailedException(target, EvaluationJob.this.jobId, "Evaluator failed on "+target+" : "+e.getMessage(), e));
 					}
 				}
 			});
