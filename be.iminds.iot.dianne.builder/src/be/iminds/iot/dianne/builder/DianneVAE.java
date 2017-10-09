@@ -85,7 +85,7 @@ public class DianneVAE extends HttpServlet {
 		platform = p;
 	}
 	
-	@Reference(cardinality=ReferenceCardinality.OPTIONAL)
+	@Reference
 	void setDianneDatasets(DianneDatasets d){
 		datasets = d;
 	}

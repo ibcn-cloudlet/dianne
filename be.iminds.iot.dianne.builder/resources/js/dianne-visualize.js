@@ -148,30 +148,49 @@ function image_rect(tensor, canvasCtx, offset, posX, posY, targetW, targetH){
 }
 
 
-function laser(tensor, canvasCtx, angleMin = -Math.PI/2, angleMax = Math.PI/2){
+function laser(tensor, canvasCtx, angleMin = -Math.PI/2, angleMax = Math.PI/2, minGrey = 0){
 	var canvasW = canvasCtx.canvas.clientWidth;
 	var canvasH = canvasCtx.canvas.clientHeight;
-	var scanPoints = tensor.dims[tensor.dims.length-1];
 	
-	if(tensor.dims.length == 2 || tensor.dims.length==4){
-		// render in a mosaic
-		var batchSize = tensor.dims[0];
-		var mosaic = Math.ceil(Math.sqrt(batchSize));
-		var mosaicW = canvasW/mosaic;
-		var mosaicH = canvasH/mosaic;
+	canvasCtx.clearRect(0,0,canvasW,canvasH);
+	canvasCtx.rect(0,0,canvasW,canvasH);
+	canvasCtx.clip();
+	
+	var scanPoints = tensor.dims[tensor.dims.length-1];
+	var batchSize = tensor.dims.length == 2 ? tensor.dims[0] : 1;
+
+	var srcX = canvasW / 2;
+	var srcY = canvasH;
+	
+	// unless we have also rays "behind", then move src up a bit
+	if(angleMin < -Math.PI/2 || angleMax > Math.PI/2){
+		srcY += (Math.cos(angleMin) > Math.cos(angleMax) ? Math.cos(angleMin) : Math.cos(angleMax))*canvasH/2;
+	}
+	
+	var angleStep = (angleMax-angleMin)/(scanPoints-1);
+	for(var i = 0; i < scanPoints; i++) {
+		var angle = angleMin + i*angleStep;
 		
-		var offset = 0;
-		for(l=0;l<mosaic;l++){
-			for(k=0;k<mosaic;k++){
-				if(offset >= tensor.size)
-					continue;
-				
-				laser_rect(tensor, canvasCtx, offset, scanPoints, k*mosaicW, l*mosaicH, mosaicW, mosaicH, angleMin, angleMax);
-				offset = offset + scanPoints;
-			}
+		var hist = new Array();
+		for(var j = 0; j < batchSize; j++)
+			hist[j] = tensor.data[j*scanPoints + i];
+		hist.sort();
+		
+		for(var j = 0; j < (255-minGrey); j++) {
+			var val = hist[batchSize - 1 - Math.floor(j/(255.-minGrey) * batchSize)];
+			var length = val*canvasH/2;
+			
+			var x = srcX - length*Math.sin(angle);
+			var y = srcY - length*Math.cos(angle);
+
+			canvasCtx.beginPath();
+			canvasCtx.moveTo(srcX, srcY);
+			canvasCtx.lineWidth = 0.05;
+			canvasCtx.strokeStyle = 'rgb('+(254-j)+', '+(254-j)+', '+(254-j)+')';
+			canvasCtx.lineTo(parseInt(x),parseInt(y));
+			canvasCtx.stroke();
+			canvasCtx.closePath();
 		}
-	} else {
-		laser_rect(tensor, canvasCtx, 0, tensor.size, 0, 0, canvasW, canvasH, angleMin, angleMax);
 	}
 }
 
@@ -181,7 +200,6 @@ function laser_rect(tensor, canvasCtx, offset, scanPoints, posX, posY, targetW, 
 	
 	// define clipping region
 	canvasCtx.save();
-	canvasCtx.clearRect(posX,posY,targetW,targetH);
 	canvasCtx.rect(posX,posY,targetW,targetH);
 	canvasCtx.clip();
 	
@@ -266,23 +284,44 @@ function gauss(tensor, canvasCtx, scale=2){
 	var canvasH = canvasCtx.canvas.clientHeight;
 	canvasCtx.clearRect(0,0,canvasW,canvasH);
 
-	var stateSize = tensor.dims[tensor.dims.length-1]/2;
-	var gaussians =  tensor.data.length/2;
+	var batchSize = 0;
+	var stateSize = 0;
+	if (tensor.dims.length == 1) {
+		batchSize = 1;
+		stateSize = tensor.dims[0]/2;
+	} else {
+		batchSize = tensor.dims[0];
+		stateSize = tensor.dims[1]/2;
+	}
 	
-	var height = canvasH/gaussians;
-	var index = 0;
-	for (var i = 0; i < gaussians; i++) {
-		var posY = i*height;
-		
-		var mu = tensor.data[index];
-		var sigma = tensor.data[index+stateSize];
-		
-		index = index + 1;
-		if(index % stateSize === 0){
-			index = index + stateSize;
+	var width = canvasW;
+	var height = canvasH/stateSize;
+	for (var i = 0; i < stateSize; i++) {
+		var posY = i * height;
+		var imageData = canvasCtx.getImageData(0, posY, width, Math.round(height));
+
+		for (var k = 0; k < width; k++) {
+			var x = -scale + k*2*scale/width;
+			var val = 0;
+
+			for(var j = 0; j < batchSize; j++) {
+				var mu = tensor.data[j*2*stateSize + i];
+				var sigma = tensor.data[(j*2 + 1)*stateSize + i];
+
+				var y = Math.exp(-(x-mu)*(x-mu)/(2*sigma*sigma))/Math.sqrt(2*sigma*sigma*Math.PI);
+				val += y;
+			}
+
+			val *= 500 / batchSize;
+
+			for(var l=0;l<height;l++){
+				var s = l*width*4+k*4;
+				imageData.data[s+0] = imageData.data[s+1] = imageData.data[s+2] = val > 255 ? 255 : val;
+				imageData.data[s+3] = 255;
+			}
 		}
-			
-		gauss_rect(mu, sigma, canvasCtx,0, posY, canvasW, Math.round(height), scale);
+
+		canvasCtx.putImageData(imageData, 0, posY);
 	}
 }
 
