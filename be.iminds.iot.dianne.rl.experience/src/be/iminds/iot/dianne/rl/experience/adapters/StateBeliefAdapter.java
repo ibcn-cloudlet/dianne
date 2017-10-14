@@ -91,6 +91,7 @@ public class StateBeliefAdapter implements ExperiencePool {
 	private List<Integer> endOfSequences = new ArrayList<>();
 	private int index = 0;
 	private int sampleSize = 10;
+	private boolean sample = true;
 	
 	private Executor sampleThread = Executors.newSingleThreadExecutor();
 	
@@ -143,7 +144,13 @@ public class StateBeliefAdapter implements ExperiencePool {
 		if(properties.containsKey("sampleSize")){
 			this.sampleSize = Integer.parseInt(properties.get("sampleSize").toString().trim());
 		}
-		
+
+		if(properties.containsKey("sample")){
+			this.sample = Boolean.parseBoolean(properties.get("sample").toString().trim());
+			if(!this.sample){
+				this.sampleSize = 1;
+			}
+		}
 		
 		Dictionary<String, Object> props = new Hashtable<>();
 		String[] t = new String[]{":"+tag};
@@ -444,10 +451,14 @@ public class StateBeliefAdapter implements ExperiencePool {
 	
 	private void sampleState(Tensor state, Tensor params){
 		Tensor mean = params.narrow(0, 0, stateSize);
-		Tensor stdev = params.narrow(0, stateSize, stateSize);	
-		state.randn();
-		TensorOps.cmul(state, state, stdev);
-		TensorOps.add(state, state, mean);
+		if(sample){
+			Tensor stdev = params.narrow(0, stateSize, stateSize);	
+			state.randn();
+			TensorOps.cmul(state, state, stdev);
+			TensorOps.add(state, state, mean);
+		} else {
+			mean.copyInto(state);
+		}
 	}
 	
 }
