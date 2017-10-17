@@ -30,8 +30,6 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -83,17 +81,11 @@ public class StateBeliefAdapter implements ExperiencePool {
 	
 	private ServiceRegistration<RepositoryListener> repoListenerReg;
 	
-	private int stateSize;
-	
-	private int maxSize = 100000;
-	
 	private List<ExperiencePoolSample> samples;
-	private List<Integer> endOfSequences = new ArrayList<>();
-	private int index = 0;
+
+	private int stateSize;
 	private int sampleSize = 10;
 	private boolean sample = true;
-	
-	private Executor sampleThread = Executors.newSingleThreadExecutor();
 	
 	@Reference
 	void setDataset(ExperiencePool p){
@@ -135,11 +127,7 @@ public class StateBeliefAdapter implements ExperiencePool {
 		
 		this.stateSize = Integer.parseInt(properties.get("stateSize").toString().trim());
 		
-		if(properties.containsKey("maxSize")){
-			this.maxSize = Integer.parseInt(properties.get("maxSize").toString().trim());
-		}
-		
-		samples = new ArrayList<ExperiencePoolSample>(maxSize);
+		samples = new ArrayList<ExperiencePoolSample>();
 		
 		if(properties.containsKey("sampleSize")){
 			this.sampleSize = Integer.parseInt(properties.get("sampleSize").toString().trim());
@@ -247,135 +235,53 @@ public class StateBeliefAdapter implements ExperiencePool {
 
 	@Override
 	public int size() {
-		return samples.size() < maxSize ? index : maxSize;
+		return pool.size();
 	}
 	
 	@Override
 	public int sequences(){
-		return endOfSequences.size();
+		return pool.sequences();
 	}
 	
 	@Override
 	public int sequenceLength(int sequence){
-		return samples.size();
+		return pool.sequenceLength(sequence);
 	}
 
 	@Override
 	public Sample getSample(Sample s, int index) {
-		if(s == null){
-			s = new Sample();
-		}
-		ExperiencePoolSample xp = getSample((ExperiencePoolSample)null, index);
-		s.input = xp.input.copyInto(s.input);
-		s.target = xp.target.copyInto(s.target);
-		return s;
+		return pool.getSample(s, index);
 	}
 	
 	@Override
 	public ExperiencePoolSample getSample(ExperiencePoolSample s, int index){
-		s = samples.get(index).copyInto(s);
-		return s;
+		return pool.getSample(s, index);
 	}
 		
 	@Override
 	public ExperiencePoolBatch getBatch(ExperiencePoolBatch b, int... indices) {
-		if(b == null){
-			b = new ExperiencePoolBatch(indices.length, new int[]{stateSize}, pool.actionDims());
-		}
-		
-		for(int i=0;i<indices.length;i++){
-			getSample(b.getSample(i), indices[i]);
-		}
-		
-		return b;
+		return pool.getBatch(b, indices);
 	}
 	
 	@Override
 	public ExperiencePoolSequence getSequence(ExperiencePoolSequence s, int sequence, int index, int length){
-		if(sequence >= endOfSequences.size()){
-			throw new RuntimeException("Invalid sequence "+sequence);
-		}
-		
-		int end = endOfSequences.get(sequence);
-		int start = 0;
-		int l = end+1;
-		if(sequence == 0){ 
-			if(samples.size() == maxSize){
-				//we are cycling ... start is the last end + 1
-				start = endOfSequences.get(endOfSequences.size()-1)+1;
-				l += maxSize-start; 
-			}
-		} else {
-			start = endOfSequences.get(sequence-1)+1;
-			l = end - start + 1;
-		}
-		
-		if(length != -1){
-			l = length;
-		}
-		
-		if(start+index > end){
-			throw new RuntimeException("Invalid sequence index "+index);
-		}
-		
-		start = start+index;
-		if(start > maxSize){
-			start -= maxSize;
-		}
-		
-		if(start+l-1 > end){
-			throw new RuntimeException("Invalid sequence length "+length);
-		}
-		
-		end = start+l-1;
-		if(end > maxSize){
-			end -= maxSize;
-		}
-		
-		if(s == null){
-			s = new ExperiencePoolSequence();
-		}
-		
-		List<ExperiencePoolSample> list = s.data;
-		int i = start;
-		int k = 0;
-		do {
-			if(list.size() <= k){
-				list.add(samples.get(i));
-			} else {
-				samples.get(i).copyInto(list.get(k));
-			}
-			
-			k++;
-			i++;
-			if(i == maxSize){
-				i = 0;
-			}
-		} while(i != end+1);
-		
-		s.size = l;
-		return s;
+		return pool.getSequence(s, sequence, index, length);
 	}
 	
 	@Override
 	public BatchedExperiencePoolSequence getBatchedSequence(BatchedExperiencePoolSequence b, int[] sequences, int[] indices,
 			int length) {
-		throw new UnsupportedOperationException("Not implemented...");
+		return pool.getBatchedSequence(b, sequences, indices, length);
 	}
 	
 	@Override
 	public void addSequence(Sequence<ExperiencePoolSample> sequence){
-		pool.addSequence(sequence);
-		sampleThread.execute(() -> getStateSamplesFromObservations(sequence));
+		getStateSamplesFromObservations(sequence);
 	}
 	
 	@Override
 	public void reset() {
 		pool.reset();
-		
-		samples.clear();
-		endOfSequences.clear();
-		index = 0;
 	}
 	
 	@Override
@@ -389,6 +295,7 @@ public class StateBeliefAdapter implements ExperiencePool {
 		Tensor action = new Tensor(pool.actionDims());
 		
 		try {
+			// TODO run in single batch with batchDim sampleSize
 			for(int k = 0;k<sampleSize;k++){
 				state.fill(0.0f);
 				action.fill(0.0f);
@@ -408,11 +315,8 @@ public class StateBeliefAdapter implements ExperiencePool {
 					
 					// store this sample
 					ExperiencePoolSample s;
-					if(index < samples.size()){
-						s = samples.get(index);
-						if(s.isTerminal()){
-							endOfSequences.remove((Integer)index);
-						}
+					if(l < samples.size()){
+						s = samples.get(l);
 					} else {
 						s = new ExperiencePoolSample();
 						samples.add(s);
@@ -433,15 +337,11 @@ public class StateBeliefAdapter implements ExperiencePool {
 							sampleState(state, posteriorParams2);
 						}
 						s.nextState = state.copyInto(s.nextState);
-					} else {
-						endOfSequences.add(index);
-					}
-					
-					index++;
-					if(index == maxSize){
-						index = 0;
-					}
+					} 
 				}
+				
+				ExperiencePoolSequence s = new ExperiencePoolSequence(samples, sequence.size());
+				pool.addSequence(s);
 			}
 		
 		} catch(Exception e){

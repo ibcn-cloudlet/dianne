@@ -390,6 +390,58 @@ public class DatasetConfigurator implements DianneDatasets {
 				}
 			}
 		}
+		
+		if(config.containsKey("stateSize") && config.containsKey("posterior")){
+			String target = adapter;
+			adapter = name+"-sb="+config.get("stateSize");
+			if(getDataset(adapter) == null){
+				String pid = "be.iminds.iot.dianne.dataset.adapters.StateBeliefAdapter";
+				Hashtable<String, Object> props = new Hashtable<>();
+				props.put("Dataset.target", "(name="+target+")");
+				props.put("name", adapter);
+				props.put("aiolos.instance.id", adapter);
+				props.put("aiolos.combine", "*");
+				props.put("aiolos.export", "false");
+	
+				if(config.containsKey("stateSize")){
+					String s = config.get("stateSize");
+					props.put("stateSize", s);
+					System.out.println("* stateSize = "+s);
+				}
+				
+				if(config.containsKey("sampleSize")){
+					String s = config.get("sampleSize");
+					props.put("sampleSize", s);
+					System.out.println("* sampleSize = "+s);
+				}
+				
+				if(config.containsKey("posterior")){
+					String s = config.get("posterior");
+					props.put("posterior", s);
+					System.out.println("* posterior = "+s);
+				} 
+				
+				if(config.containsKey("prior")){
+					String s = config.get("prior");
+					props.put("prior", s);
+					System.out.println("* prior = "+s);
+				}
+				
+				if(config.containsKey("tag")){
+					String s = config.get("tag");
+					props.put("tag", s);
+					System.out.println("* tag = "+s);
+				}
+				
+				try {
+					Configuration c = ca.createFactoryConfiguration(pid, null);
+					c.update(props);
+					adapterConfigurations.add(c);
+				} catch(Exception e){
+					e.printStackTrace();
+				}
+			}
+		}
 		System.out.println("---");
 		
 		// now wait for the adapter dataset to come online
