@@ -51,6 +51,7 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -116,9 +117,16 @@ public class DianneRunner extends HttpServlet {
 		platform = p;
 	}
 	
-	@Reference(cardinality=ReferenceCardinality.OPTIONAL)
+	@Reference(cardinality=ReferenceCardinality.OPTIONAL,
+			policy=ReferencePolicy.DYNAMIC)
 	void setDianneDatasets(DianneDatasets d){
 		datasets = d;
+	}
+	
+	void unsetDianneDatasets(DianneDatasets d){
+		if(datasets == d){
+			datasets = null;
+		}
 	}
 	
 	@Override
