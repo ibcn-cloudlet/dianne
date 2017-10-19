@@ -300,6 +300,8 @@ public class DiannePlatformImpl implements DiannePlatform {
 			
 			if(old!=null && old.runtimeId.equals(runtimeId)){
 				// already deployed on target runtime ...
+				// reload parameters
+				runtime.loadModuleParameters(old, tags);
 				continue;
 			}
 			

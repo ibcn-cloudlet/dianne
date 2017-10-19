@@ -104,6 +104,13 @@ public interface DianneRuntime {
 	Tensor getModuleParameters(ModuleInstanceDTO module);
 	
 	/**
+	 * Load module parameters 
+	 * @param module
+	 * @param tags
+	 */
+	void loadModuleParameters(ModuleInstanceDTO module, String... tags);
+	
+	/**
 	 * Get a list of supported module types that this runtime can deploy. 
 	 * 
 	 * This is the aggregated list of supported ModuleTypes that the ModuleFactories support

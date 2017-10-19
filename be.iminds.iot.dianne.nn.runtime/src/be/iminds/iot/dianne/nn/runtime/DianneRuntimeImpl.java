@@ -452,16 +452,7 @@ public class DianneRuntimeImpl implements DianneRuntime {
 			throw new RuntimeException("Module "+dto.id+" cannot be deployed on runtime "+name);
 		}
 		
-		Tensor parameters = null;
-		if(repository != null){
-			// TODO should we check first whether this module actually has parameters?
-			try {
-				parameters = repository.loadParameters(dto.id, tags);
-			} catch(Exception e){
-				// ignore
-				//System.out.println("Failed to load parameters for module "+dto.id+" with tags "+Arrays.toString(tags));
-			}
-		}
+		Tensor parameters = getParameters(dto.id, tags);
 		return deployModule(dto, nnId, parameters);
 	}
 
@@ -540,6 +531,22 @@ public class DianneRuntimeImpl implements DianneRuntime {
 			}
 		}
 		return t;
+	}
+	
+	@Override
+	public void loadModuleParameters(ModuleInstanceDTO module, String... tags){
+		Tensor parameters = getParameters(module.module.id, tags);
+		if(parameters == null)
+			return;
+		
+		Module m = modules.get(module.moduleId, module.nnId);
+		if(m != null){
+			if(m instanceof Trainable){
+				((Trainable)m).setParameters(parameters);
+			} else if(m instanceof Preprocessor){
+				((Preprocessor)m).setParameters(parameters);
+			}
+		}
 	}
 	
 	@Override
@@ -630,6 +637,20 @@ public class DianneRuntimeImpl implements DianneRuntime {
 			}
 		}
 		return result;
+	}
+	
+	private Tensor getParameters(UUID moduleId, String... tags){
+		Tensor parameters = null;
+		if(repository != null){
+			// TODO should we check first whether this module actually has parameters?
+			try {
+				parameters = repository.loadParameters(moduleId, tags);
+			} catch(Exception e){
+				// ignore
+				//System.out.println("Failed to load parameters for module "+dto.id+" with tags "+Arrays.toString(tags));
+			}
+		}
+		return parameters;
 	}
 	
 	private String[] parseStrings(String string){
