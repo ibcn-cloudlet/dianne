@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import org.osgi.framework.BundleContext;
@@ -56,7 +58,8 @@ import be.iminds.iot.dianne.tensor.Tensor;
 public class LearnerImpl implements Learner {
 	
 	// Listeners
-	private List<LearnerListener> listeners = new CopyOnWriteArrayList<>();
+	private final List<LearnerListener> listeners = new CopyOnWriteArrayList<>();
+	private final ExecutorService listenerThread = Executors.newSingleThreadExecutor();
 
 	// Identification
 	private UUID learnerId;
@@ -434,19 +437,19 @@ public class LearnerImpl implements Learner {
 			return;
 		
 		for(LearnerListener l : listeners){
-			l.onProgress(learnerId, progress);
+			listenerThread.submit(()->l.onProgress(learnerId, progress));
 		}
 	}
 	
 	private void publishError(final Throwable t){
 		for(LearnerListener l : listeners){
-			l.onException(learnerId, t.getCause()!=null ? t.getCause() : t);
+			listenerThread.submit(() ->l.onException(learnerId, t.getCause()!=null ? t.getCause() : t));
 		}
 	}
 	
 	private void publishDone(){
 		for(LearnerListener l : listeners){
-			l.onFinish(learnerId);
+			listenerThread.submit(()->l.onFinish(learnerId));
 		}
 	}
 }

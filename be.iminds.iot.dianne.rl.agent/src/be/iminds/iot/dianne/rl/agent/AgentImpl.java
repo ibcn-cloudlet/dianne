@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -69,7 +71,8 @@ public class AgentImpl implements Agent {
 	private UUID agentId;
 	
 	private final List<AgentListener> listeners = new CopyOnWriteArrayList<>();
-	
+	private final ExecutorService listenerThread = Executors.newSingleThreadExecutor();
+
 	private Map<String, Environment> envs = new HashMap<String, Environment>();
 	private Dianne dianne;
 
@@ -322,7 +325,7 @@ public class AgentImpl implements Agent {
 							try {
 								nns[k].loadParameters(config.tag);
 							} catch(Exception e){
-								System.out.println("Failed loading parameters for nn "+nns[k].getId());
+								System.out.println("Failed loading parameters for nn "+nns[k].getId()+" - "+nns[k].getNeuralNetworkInstance().name+" with tag(s) "+config.tag);
 							}
 						}
 						sync = false;
@@ -461,19 +464,19 @@ public class AgentImpl implements Agent {
 			return;
 		
 		for(AgentListener l : listeners){
-			l.onProgress(agentId, progress);
+			listenerThread.submit(()->l.onProgress(agentId, progress));
 		}
 	}
 	
 	private void publishError(final Throwable t){
 		for(AgentListener l : listeners){
-			l.onException(agentId, t.getCause()!=null ? t.getCause() : t);
+			listenerThread.submit(()->l.onException(agentId, t.getCause()!=null ? t.getCause() : t));
 		}
 	}
 	
 	private void publishDone(){
 		for(AgentListener l : listeners){
-			l.onFinish(agentId);
+			listenerThread.submit(()->l.onFinish(agentId));
 		}
 	}
 	
