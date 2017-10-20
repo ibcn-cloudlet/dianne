@@ -26,7 +26,8 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 @Component(
 		service=Object.class,
 		property={"osgi.command.scope=dianne",
-				  "osgi.command.function=entropy"},
+				  "osgi.command.function=entropy",
+				  "osgi.command.function=sweepEntropy"},
 		immediate=true)
 public class DianneSBCommands {
 	
@@ -37,6 +38,48 @@ public class DianneSBCommands {
 	Dianne dianne;
 	DiannePlatform platform;
 	DianneDatasets datasets;
+	
+	@Descriptor("Sweep the entropy for the SB model.")
+	public void sweepEntropy(
+			@Descriptor("prior model")
+			String priorName,
+			@Descriptor("posterior model")
+			String posteriorName,
+			@Descriptor("likelihood model")
+			String likelihoodName,
+			@Descriptor("encoder model")
+			String encoderName,
+			@Descriptor("parameter tag")
+			String tag,
+			@Descriptor("dataset")
+			String dataset,
+			@Descriptor("number of states")
+			int noStates,
+			@Descriptor("number of sequences")
+			int noSequences,
+			@Descriptor("max number of joint steps")
+			int noJointMax,
+			@Descriptor("number of separate steps")
+			int noSeparate,
+			@Descriptor("number of samples")
+			int noSamples
+		) {
+		for(int noJoint = 0; noJoint <= noJointMax; noJoint++) {
+			System.out.println("Running with noJoint = " + noJoint);
+			entropy(
+					priorName,
+					posteriorName,
+					likelihoodName,
+					encoderName,
+					tag,
+					dataset,
+					noStates,
+					noSequences,
+					noJoint,
+					noSeparate,
+					noSamples);
+		}
+	}
 	
 	@Descriptor("Trace the entropy for the SB model.")
 	public void entropy(
@@ -165,13 +208,13 @@ public class DianneSBCommands {
 			}
 			
 			Function<double[][], List<Double>> average = data -> Arrays.stream(data).mapToDouble(r -> Arrays.stream(r).average().getAsDouble()).boxed().collect(Collectors.toList());
-			
-			System.out.println("Prior entropy:\n" + average.apply(priorEntropy));
-			System.out.println("Posterior entropy:\n" + average.apply(posteriorEntropy));
-			System.out.println("Forward divergence:\n" + average.apply(forwardDivergence));
-			System.out.println("Backward divergence:\n" + average.apply(backwardDivergence));
-			System.out.println("Prior likelihood:\t" + average.apply(priorLikelihood));
-			System.out.println("Posterior likelihood:\t" + average.apply(posteriorLikelihood));
+			logResults(
+					average.apply(priorEntropy),
+					average.apply(posteriorEntropy),
+					average.apply(forwardDivergence),
+					average.apply(backwardDivergence),
+					average.apply(priorLikelihood),
+					average.apply(posteriorLikelihood));
 			
 			platform.undeployNeuralNetwork(priorDTO);
 			platform.undeployNeuralNetwork(posteriorDTO);
@@ -179,6 +222,25 @@ public class DianneSBCommands {
 			platform.undeployNeuralNetwork(encoderDTO);
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+	}
+	
+	private static void logResults(
+			List<Double> priorEntropy,
+			List<Double> posteriorEntropy,
+			List<Double> forwardDivergence,
+			List<Double> backwardDivergence,
+			List<Double> priorLikelihood,
+			List<Double> posteriorLikelihood) {
+		System.out.println("step,priorEntropy,posteriorEntropy,forwardDivergence,backwardDivergence,priorLikelihood,posteriorLikelihood");
+		for(int t = 0; t < priorEntropy.size(); t++) {
+			System.out.println((t+1)+","
+					+priorEntropy.get(t)+","
+					+posteriorEntropy.get(t)+","
+					+forwardDivergence.get(t)+","
+					+backwardDivergence.get(t)+","
+					+priorLikelihood.get(t)+","
+					+posteriorLikelihood.get(t));
 		}
 	}
 	
