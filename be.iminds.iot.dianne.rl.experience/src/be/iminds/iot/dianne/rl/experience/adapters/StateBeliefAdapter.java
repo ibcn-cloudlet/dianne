@@ -87,6 +87,10 @@ public class StateBeliefAdapter implements ExperiencePool {
 	private int sampleSize = 10;
 	private boolean sample = true;
 	
+	private Tensor state;
+	private Tensor action;
+	
+	
 	@Reference
 	void setDataset(ExperiencePool p){
 		this.pool = p;
@@ -139,6 +143,10 @@ public class StateBeliefAdapter implements ExperiencePool {
 				this.sampleSize = 1;
 			}
 		}
+		
+		state = new Tensor(stateSize);
+		action = new Tensor(pool.actionDims());
+		
 		
 		Dictionary<String, Object> props = new Hashtable<>();
 		String[] t = new String[]{":"+tag};
@@ -291,8 +299,6 @@ public class StateBeliefAdapter implements ExperiencePool {
 
 	private void getStateSamplesFromObservations(Sequence<ExperiencePoolSample> sequence) {
 		
-		Tensor state = new Tensor(stateSize);
-		Tensor action = new Tensor(pool.actionDims());
 		
 		try {
 			// TODO run in single batch with batchDim sampleSize
