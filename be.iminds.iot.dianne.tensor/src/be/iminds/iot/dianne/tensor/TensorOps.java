@@ -250,5 +250,18 @@ public class TensorOps {
 	 */
 	public static native Tensor clamp(Tensor res, final Tensor tensor, final float minvalue, final float maxvalue);
 	
+	/**
+	 * Expand a tensor to a batched version containing the same value in each batch dimension
+	 */
+	public static Tensor expand(Tensor res, Tensor t, int batchSize) {
+		if(res == null) {
+			res = new Tensor(batchSize, t.dims());
+		} else {
+			res.reshape(batchSize, t.dims());
+		}
+		for(int i = 0; i < batchSize; i++)
+			t.copyInto(res.select(0, i));
+		return res;
+	}
 }
 

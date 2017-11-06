@@ -101,6 +101,13 @@ public class Tensor {
 		reshape(dn);
 	}
 	
+	public void reshape(final int df, final int[] d){
+		int[] dn = new int[d.length+1];
+		System.arraycopy(d, 0, dn, 1, d.length);
+		dn[0] = df;
+		reshape(dn);
+	}
+	
 	/** 
 	 * get a value of the tensor
 	 * @param d indices of the element

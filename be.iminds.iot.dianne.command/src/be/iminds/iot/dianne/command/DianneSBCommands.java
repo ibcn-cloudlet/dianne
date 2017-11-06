@@ -152,7 +152,7 @@ public class DianneSBCommands {
 				
 				for(int t = 0; t < noJoint && t < sequence.size(); t++) {
 					ExperiencePoolSample sample = sequence.get(t);
-					expand(observation, sequence.get(t).getState(), noSamples);
+					TensorOps.expand(observation, sequence.get(t).getState(), noSamples);
 					
 					Tensor posteriorDistribution = posterior.forward(posteriorIn, posteriorOut, new Tensor[]{posteriorState, action, observation}).getValue().tensor;
 //					Tensor posteriorDistribution = new Tensor(1, noStates*2);
@@ -160,7 +160,7 @@ public class DianneSBCommands {
 //					posteriorDistribution.narrow(1, noStates, noStates).fill(1.f);
 					sampleFromGaussianMixture(posteriorState, posteriorDistribution, noSamples);
 					
-					expand(action, sample.getAction(), noSamples);
+					TensorOps.expand(action, sample.getAction(), noSamples);
 					System.out.print('-');
 				}
 				
@@ -168,7 +168,7 @@ public class DianneSBCommands {
 				
 				for(int t = noJoint; t < noJoint + noSeparate && t < sequence.size(); t++) {
 					ExperiencePoolSample sample = sequence.get(t);
-					expand(observation, sequence.get(t).getState(), noSamples);
+					TensorOps.expand(observation, sequence.get(t).getState(), noSamples);
 					
 					Tensor priorDistribution = prior.forward(priorIn, priorOut, new Tensor[]{priorState, action}).getValue().tensor;
 //					Tensor priorDistribution = new Tensor(1, noStates*2);
@@ -201,7 +201,7 @@ public class DianneSBCommands {
 					priorLikelihood[t - noJoint][s] = Math.log(gaussianMixtureLikelihood(features, priorDistribution).get(0));
 					posteriorLikelihood[t - noJoint][s] = Math.log(gaussianMixtureLikelihood(features, posteriorDistribution).get(0));
 					
-					expand(action, sample.getAction(), noSamples);
+					TensorOps.expand(action, sample.getAction(), noSamples);
 					System.out.print('*');
 				}
 				System.out.println();
@@ -260,7 +260,7 @@ public class DianneSBCommands {
 		TensorOps.log(scale, scale);
 		
 		for(int s = 0; s < noSamples; s++) {
-			expand(sample, samples.select(0, s), noComponents);
+			TensorOps.expand(sample, samples.select(0, s), noComponents);
 			
 			//var y = Math.exp(-(x-mu)*(x-mu)/(2*sigma*sigma))/Math.sqrt(2*sigma*sigma*Math.PI);
 			//var log_y = -(x-mu)*(x-mu)/(s*sigma*sigma)-Math.log(2*sigma*sigma*Math.PI)/2
@@ -280,12 +280,6 @@ public class DianneSBCommands {
 		return result;
 	}
 
-	private static Tensor expand(Tensor batch, Tensor value, int batchSize) {
-		for(int i = 0; i < batchSize; i++)
-			value.copyInto(batch.select(0, i));
-		return batch;
-	}
-	
 	private static Tensor sampleFromGaussianMixture(Tensor result, Tensor distribution, int batchSize) {
 		for(int i = 0; i < batchSize; i++)
 			sampleFromGaussianMixture(result.select(0, i), distribution);

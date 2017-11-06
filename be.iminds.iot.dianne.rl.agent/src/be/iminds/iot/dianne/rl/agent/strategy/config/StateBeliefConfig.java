@@ -24,7 +24,7 @@ package be.iminds.iot.dianne.rl.agent.strategy.config;
 
 
 public class StateBeliefConfig {
-
+	
 	/**
 	 * Size of the latent state
 	 */
@@ -49,4 +49,9 @@ public class StateBeliefConfig {
 	 * Momentum : the probabiblity that the previous action is repeated in case of a "random" action
 	 */
 	public float momentum = 0.0f;
+	
+	/**
+	 * Number of samples to take to select action from
+	 */
+	public int noSamples = 1;
 }

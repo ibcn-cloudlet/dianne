@@ -584,4 +584,20 @@ public class TensorOpsTest {
 		TensorOps.clamp(t1, t1, Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY);
 		Assert.assertEquals(exp, t1);
 	}
+	
+	@Test
+	public void testExpand() {
+		Tensor t1 = new Tensor(new float[] {1f,2f,3f},3);
+		Tensor t2 = new Tensor(new float[] {3f,2f,1f},3);
+
+		Tensor exp =  new Tensor(new float[] {1f,2f,3f,1f,2f,3f,1f,2f,3f,1f,2f,3f},4,3);
+		Tensor exp2 =  new Tensor(new float[] {3f,2f,1f,3f,2f,1f,3f,2f,1f,3f,2f,1f},4,3);
+
+		Tensor e1 = TensorOps.expand(null, t1, 4);
+		Assert.assertEquals(exp, e1);
+
+		TensorOps.expand(e1, t2, 4);
+		Assert.assertEquals(exp2, e1);
+
+	}
 }
