@@ -1,5 +1,4 @@
 /*******************************************************************************
-act null FetchCan null strategy=RandomActionStrategy discrete=true trace=true maxActions=100
  * DIANNE  - Framework for distributed artificial neural networks
  * Copyright (C) 2015  iMinds - IBCN - UGent
  *
@@ -33,6 +32,8 @@ import be.iminds.iot.robot.api.arm.Arm;
 
 public class ArmOutput extends ThingOutput {
 	
+	private BundleContext context;
+	
 	private Arm arm;
 	
 	private final Tensor value = new Tensor(new float[]{0.0f}, 1);
@@ -45,23 +46,8 @@ public class ArmOutput extends ThingOutput {
 	private float hoverHeight = 0.15f;
 	private float gripHeight = 0.085f;
 	
-	public ArmOutput(UUID id, String name, BundleContext context){
+	public ArmOutput(UUID id, String name){
 		super(id, name, "Arm");
-		
-		String s = context.getProperty("be.iminds.iot.dianne.youbot.arm.hoverHeight");
-		if(s!=null){
-			hoverHeight = Float.parseFloat(s);
-		}
-		
-		s = context.getProperty("be.iminds.iot.dianne.youbot.arm.gripHeight");
-		if(s!=null){
-			gripHeight = Float.parseFloat(s);
-		}
-		
-		s = context.getProperty("be.iminds.iot.dianne.youbot.arm.valueThreshold");
-		if(s!=null){
-			threshold = Float.parseFloat(s);
-		}
 	}
 	
 	public void setArm(Arm a){
@@ -104,6 +90,15 @@ public class ArmOutput extends ThingOutput {
 	public void onError(UUID moduleId, ModuleException e, String... tags) {
 	}
 
+	@Override
+	public void connect(UUID nnId, UUID outputId, BundleContext context){
+		if(this.context == null)
+			activate(context);
+		
+		super.connect(nnId, outputId, context);
+	}
+	
+	@Override
 	public void disconnect(UUID moduleId, UUID outputId){
 		// stop youbot on disconnect
 		super.disconnect(moduleId, outputId);
@@ -111,6 +106,23 @@ public class ArmOutput extends ThingOutput {
 		if(registrations.isEmpty()){
 			arm.stop();
 			arm.reset();
+		}
+	}
+	
+	private void activate(BundleContext context){
+		String s = context.getProperty("be.iminds.iot.dianne.youbot.arm.hoverHeight");
+		if(s!=null){
+			hoverHeight = Float.parseFloat(s);
+		}
+		
+		s = context.getProperty("be.iminds.iot.dianne.youbot.arm.gripHeight");
+		if(s!=null){
+			gripHeight = Float.parseFloat(s);
+		}
+		
+		s = context.getProperty("be.iminds.iot.dianne.youbot.arm.valueThreshold");
+		if(s!=null){
+			threshold = Float.parseFloat(s);
 		}
 	}
 

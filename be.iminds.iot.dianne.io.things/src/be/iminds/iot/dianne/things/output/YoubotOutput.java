@@ -1,5 +1,4 @@
 /*******************************************************************************
-act null FetchCan null strategy=RandomActionStrategy discrete=true trace=true maxActions=100
  * DIANNE  - Framework for distributed artificial neural networks
  * Copyright (C) 2015  iMinds - IBCN - UGent
  *
@@ -56,14 +55,15 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 		ANY
 	}
 
-	private final BundleContext context;
+	private BundleContext context;
 	
 	private OmniDirectional base;
 	private Arm arm;
 	private LaserScanner laserScanner;
 	
 	private float speed = 0.1f;
-	private float gripThreshold = 0.05f;
+	private float discreteGripThreshold = 0.8f;
+	private float continuousGripThreshold = 0.2f;
 	private float ignoreGripThreshold = -0.02f;
 	private boolean fixedGrip = false;
 	
@@ -81,31 +81,8 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 	
 	private Mode mode = Mode.ANY;
 	
-	public YoubotOutput(UUID id, String name, BundleContext context){
+	public YoubotOutput(UUID id, String name){
 		super(id, name, "Youbot");
-		
-		this.context = context;
-		
-		String s = context.getProperty("be.iminds.iot.dianne.youbot.speed");
-		if(s!=null){
-			speed = Float.parseFloat(s);
-		}
-		
-		s = context.getProperty("be.iminds.iot.dianne.youbot.gripThreshold");
-		if(s!=null){
-			gripThreshold = Float.parseFloat(s);
-		}
-		
-		s = context.getProperty("be.iminds.iot.dianne.youbot.ignoreGripThreshold");
-		if(s!=null){
-			ignoreGripThreshold = Float.parseFloat(s);
-		}
-
-		s = context.getProperty("be.iminds.iot.dianne.youbot.fixedGrip");
-		if(s!=null){
-			fixedGrip = Boolean.parseBoolean(s);
-		}
-
 	}
 	
 	public void setBase(OmniDirectional b){
@@ -139,7 +116,7 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 			int action = TensorOps.argmax(output);
 			
 			float sum = TensorOps.sum(TensorOps.exp(null, output));
-			Tensor narrowed = output.narrow(0, 5);
+			Tensor narrowed = output.narrow(0, 6);
 			if(Math.abs(1.0f - sum) < 0.001){
 				if(mode == Mode.DISCRETE)
 					return;
@@ -153,10 +130,12 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 				if(mode == Mode.DISCRETE_SOFTMAX){
 					return;
 				}
-				
+
 				// if gripThreshold specified, use that one instead of grip Q value (which is hard to train)
-				if(gripThreshold > 0 && TensorOps.dot(narrowed, narrowed) < gripThreshold){
-					action = 6;
+				if(discreteGripThreshold > 0){
+					if(TensorOps.dot(narrowed, narrowed) >= discreteGripThreshold){
+						action = TensorOps.argmax(narrowed);
+					}
 				}
 			}
 			
@@ -199,7 +178,7 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 		} else if(outputs == 3 && (mode == Mode.CONTINUOUS || mode == Mode.ANY)) {
 			float[] action = output.get();
 			// treat as continuous outputs
-			if(TensorOps.dot(output, output) < gripThreshold){
+			if(TensorOps.dot(output, output) < continuousGripThreshold){
 				// grip	
 				grip = true;
 			} else {
@@ -217,7 +196,7 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 		
 			float[] action = sample.get();
 			// treat as continuous outputs
-			if(TensorOps.dot(sample, sample) < gripThreshold){
+			if(TensorOps.dot(sample, sample) < continuousGripThreshold){
 				// grip	
 				grip = true;
 			} else {
@@ -227,6 +206,11 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 				vy = action[1]*speed;
 				va = action[2]*speed*2;
 			}
+		} else {
+			grip = false;
+			vx = 0;
+			vy = 0;
+			va = 0;
 		}
 		
 		if(grip){
@@ -244,25 +228,36 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 	public void onError(UUID moduleId, ModuleException e, String... tags) {
 	}
 
+	@Override
 	public void connect(UUID nnId, UUID outputId, BundleContext context){
+		if(this.context == null)
+			activate(context);
+		
 		if(!isConnected()){
 			stop = false;
 			registration = context.registerService(new String[]{JoystickListener.class.getName(),KeyboardListener.class.getName()}, this, new Hashtable<>());
+			
+			try {
+				hover().getValue();
+			} catch (Exception e) {
+			}
 		}
 		
 		super.connect(nnId, outputId, context);
 	}
 	
-	public void disconnect(UUID moduleId, UUID outputId){
+	@Override
+	public void disconnect(UUID nnId, UUID outputId){
 		// stop youbot on disconnect
-		super.disconnect(moduleId, outputId);
+		super.disconnect(nnId, outputId);
 		
 		if(!isConnected()){
 			stop = true;
-	
+
 			base.stop();
-			arm.stop();
-			arm.reset();
+			// go to candle and reset
+			arm.setPositions(2.92510465f, 1.103709733f, -2.478948503f, 1.72566195f)
+					.then(p -> arm.reset());
 			
 			registration.unregister();
 		}
@@ -272,17 +267,22 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 	public void onEvent(JoystickEvent e) {
 		switch(e.type){
 		case BUTTON_X_PRESSED:
-			base.stop();
 			mode = Mode.IGNORE;
+			base.stop();
 			System.out.println("Ignore any neural net robot control signals");
 			break;
 		case BUTTON_Y_PRESSED:
-			mode = Mode.DISCRETE;
-			System.out.println("Accept only discrete neural net robot control signals");
+			if(e.isPressed(JoystickButton.BUTTON_R1)){
+				mode = Mode.DISCRETE_SOFTMAX;
+				System.out.println("Accept only discrete softmax neural net robot control signals");
+			} else {
+				mode = Mode.DISCRETE;
+				System.out.println("Accept only discrete neural net robot control signals");
+			}
 			break;
 		case BUTTON_A_PRESSED:
-			mode = Mode.DISCRETE_SOFTMAX;
-			System.out.println("Accept only discrete softmax neural net robot control signals");
+			mode = Mode.ANY;
+			System.out.println("Accept any robot control signals");
 			break;	
 		case BUTTON_B_PRESSED:
 			if(e.isPressed(JoystickButton.BUTTON_R1)){
@@ -304,8 +304,8 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 		
 		switch(e.key){
 		case "1":
-			base.stop();
 			mode = Mode.IGNORE;
+			base.stop();
 			System.out.println("Ignore any neural net robot control signals");
 			break;
 		case "2":
@@ -335,6 +335,7 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 	
 	
 	private void gripFixed(){
+		skip = true;
 		base.stop();	
 		arm.openGripper()
 				.then(p -> arm.setPositions(2.92f, 0.0f, 0.0f, 0.0f, 2.875f))
@@ -344,15 +345,12 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 				.then(p -> arm.setPositions(0.01f, 0.8f, -1f, 2.9f))
 				.then(p -> arm.openGripper())
 				.then(p -> arm.setPosition(1, -1.3f))
-				.then(p -> arm.reset()).then(p -> {skip = false; return null;});
-		skip = true;
+				.then(p -> {skip = false; return arm.setPositions(2.92f, 0.0f, 0.0f, 0.0f, 2.875f);});
 	}
 
 	private void gripCustom(){
+		skip = true;
 		base.stop();
-		
-		Promise<Arm> hover = arm.moveTo(0.4f, 0f, 0.4f);
-		arm.openGripper();
 		
 		final float x,y;
 		if(laserScanner == null){
@@ -370,7 +368,6 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 			double step = Math.PI/size;
 			
 			int count = 0;
-			
 			int kw = 3;
 			int pad = 1;
 			
@@ -378,15 +375,18 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 			double alfa = 0;
 			Tensor ind = new Tensor(1, 1, size);
 			Tensor pooled = new Tensor(1, 1, size);
-			while(!hover.isDone()){
+			
+			for(int i=0;i<5;i++) {
 				SensorValue v = laserScanner.getValue();
 				Tensor laserScan = new Tensor(v.data, size);
 				laserScan.reshape(1, 1, size);
 				// pool to filter out single 0 values
 				pooled = ModuleOps.spatialmaxpool(pooled, laserScan, ind, kw, 1, 1, 1, pad, 0);
 
+				// TODO check whether there is actually a can to grip, ignore otherwise?
+				
 				float d =  TensorOps.min(pooled);
-				double a = (TensorOps.argmin(pooled)-0.5)*step; 
+				double a = (TensorOps.argmin(pooled))*step; 
 
 				if(d > 0.1){
 					distance += d;
@@ -413,20 +413,54 @@ public class YoubotOutput extends ThingOutput implements JoystickListener, Keybo
 				x = 0.44f;
 				y = 0;
 			}
-			System.out.println(distance+" "+alfa+" "+x+" "+y);
+			System.out.println("Grip at d: " +distance+" a: "+alfa+" x: "+x+" y: "+y);
 		} else {
 			x = 0.4f;
 			y = 0f;
 		}
 
-		hover.then(p -> arm.moveTo(x, y, 0.15f), p -> {skip = false; arm.reset();})
-				.then(p -> arm.moveTo(x, y, 0.085f), p -> {skip = false; arm.reset();})
-				.then(p -> arm.closeGripper(), p -> {skip = false; arm.reset();})
-				.then(p -> arm.setPositions(0.01f, 0.8f))
-				.then(p -> arm.setPositions(0.01f, 0.8f, -1f, 2.9f))
-				.then(p -> arm.openGripper())
-				.then(p -> arm.setPosition(1, -1.3f))
-				.then(p -> arm.reset()).then(p -> {skip = false; return null;});
-		skip = true;
+		arm.moveTo(x, y, 0.15f)
+			.then(p -> arm.moveTo(x, y, 0.085f), p -> hover())
+			.then(p -> arm.closeGripper(), p -> hover())
+			.then(p -> arm.setPositions(0.01f, 0.8f), p -> hover())
+			.then(p -> arm.setPositions(0.01f, 0.8f, -1f, 2.9f), p -> hover())
+			.then(p -> arm.openGripper(), p -> hover())
+			.then(p -> arm.setPosition(1, -1.3f), p -> hover())
+			.then(p -> hover());
+	}
+	
+	private Promise<Arm> hover(){
+		skip = false;
+		arm.openGripper();
+		return arm.setPosition(4, 2.9f).then(p ->  arm.moveTo(0.4f, 0f, 0.45f));
+	}
+	
+	private void activate(BundleContext context){
+		this.context = context;
+		
+		String s = context.getProperty("be.iminds.iot.dianne.youbot.speed");
+		if(s!=null){
+			speed = Float.parseFloat(s);
+		}
+		
+		s = context.getProperty("be.iminds.iot.dianne.youbot.gripThreshold.discrete");
+		if(s!=null){
+			discreteGripThreshold = Float.parseFloat(s);
+		}
+	
+		s = context.getProperty("be.iminds.iot.dianne.youbot.gripThreshold.continuous");
+		if(s!=null){
+			continuousGripThreshold = Float.parseFloat(s);
+		}
+		
+		s = context.getProperty("be.iminds.iot.dianne.youbot.ignoreGripThreshold");
+		if(s!=null){
+			ignoreGripThreshold = Float.parseFloat(s);
+		}
+
+		s = context.getProperty("be.iminds.iot.dianne.youbot.fixedGrip");
+		if(s!=null){
+			fixedGrip = Boolean.parseBoolean(s);
+		}
 	}
 }

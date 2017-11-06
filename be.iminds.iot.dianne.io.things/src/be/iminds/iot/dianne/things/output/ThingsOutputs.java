@@ -39,6 +39,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 
 import be.iminds.iot.dianne.api.io.DianneOutputs;
 import be.iminds.iot.dianne.api.io.OutputDescription;
+import be.iminds.iot.dianne.api.nn.module.Module;
 import be.iminds.iot.robot.api.arm.Arm;
 import be.iminds.iot.robot.api.omni.OmniDirectional;
 import be.iminds.iot.robot.api.rover.Rover;
@@ -92,7 +93,7 @@ public class ThingsOutputs implements DianneOutputs {
 		synchronized(things){
 			ThingOutput t = things.get(id);
 			if(t == null){
-				t = new YoubotOutput(id, name, context);
+				t = new YoubotOutput(id, name);
 				things.put(id, t);
 			}
 			((YoubotOutput)t).setBase(b);
@@ -118,7 +119,7 @@ public class ThingsOutputs implements DianneOutputs {
 		synchronized(things){
 			ThingOutput t = things.get(id);
 			if(t == null){
-				t = new YoubotOutput(id, name, context);
+				t = new YoubotOutput(id, name);
 				things.put(id, t);
 			}
 			((YoubotOutput)t).setArm(a);
@@ -126,7 +127,7 @@ public class ThingsOutputs implements DianneOutputs {
 		
 		// also expose arm as separate thing
 		UUID armId = UUID.nameUUIDFromBytes(a.toString().getBytes());
-		ArmOutput t = new ArmOutput(armId, name+" (Arm)", context);
+		ArmOutput t = new ArmOutput(armId, name+" (Arm)");
 		things.put(armId, t);
 		t.setArm(a);
 	}
@@ -210,4 +211,24 @@ public class ThingsOutputs implements DianneOutputs {
 		o.disconnect(nnId, outputId);
 	}
 
+	
+	@Reference(
+			cardinality=ReferenceCardinality.MULTIPLE, 
+			policy=ReferencePolicy.DYNAMIC)
+	void addModule(Module m, Map<String, Object> properties){
+	}
+	
+	void removeModule(Module m, Map<String, Object> properties){
+		UUID moduleId = UUID.fromString((String)properties.get("module.id"));
+		UUID nnId = UUID.fromString((String)properties.get("nn.id"));
+
+		String id = nnId+":"+moduleId;
+		synchronized(things){
+			for(ThingOutput t : things.values()){
+				if(t.registrations.containsKey(id)){
+					t.disconnect(nnId, moduleId);
+				}
+			}
+		}
+	}
 }
