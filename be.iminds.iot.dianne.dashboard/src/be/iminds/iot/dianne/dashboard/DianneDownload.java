@@ -40,7 +40,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
+import org.osgi.framework.Version;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -58,7 +61,13 @@ public class DianneDownload extends HttpServlet{
 	
 	private static final long serialVersionUID = 1L;
 	
+	private BundleContext context;
 	private DianneRepository repository;
+	
+	@Activate
+	void activate(BundleContext c){
+		this.context = c;
+	}
 	
 	@Reference
 	void setRepository(DianneRepository r){
@@ -88,6 +97,14 @@ public class DianneDownload extends HttpServlet{
             ZipOutputStream zos = new ZipOutputStream(baos);
         	DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(zos))
         ) {
+        	String version = "1.0.0";
+        	for(String t : tags){
+        		if(isVersion(t)){
+        			version = t;
+        			break;
+        		}
+        	}
+        	
         	// add manifest
         	Manifest manifest = new Manifest();
     		Attributes atts = manifest.getMainAttributes();
@@ -95,9 +112,10 @@ public class DianneDownload extends HttpServlet{
     		atts.putValue(Constants.BUNDLE_MANIFESTVERSION, "2");
     		atts.putValue(Constants.BUNDLE_NAME, "Dianne NN "+nnName);
     		atts.putValue(Constants.BUNDLE_SYMBOLICNAME, "be.iminds.iot.dianne.nn."+nnName);
-    		atts.putValue(Constants.BUNDLE_VERSION, "0.0.0");
+    		atts.putValue(Constants.BUNDLE_VERSION, version);
     		atts.putValue("NeuralNetwork", nnName);
-    		// TODO add requirement on DIANNE runtime?
+    		// TODO add requirement on a DIANNE runtime capability instead of Import-Package?
+    		atts.putValue("Import-Package", "be.iminds.iot.dianne.api.nn.runtime;version=\""+context.getBundle().getVersion()+"\"");
     		
     		zos.putNextEntry(new ZipEntry("META-INF/MANIFEST.MF"));
     		manifest.write(zos);
@@ -152,5 +170,14 @@ public class DianneDownload extends HttpServlet{
         }
         
         return null;
+	}
+	
+	public boolean isVersion(String v){
+		try {
+			Version version = Version.parseVersion(v);
+			return true;
+		} catch(Exception e){
+			return false;
+		}
 	}
 }
