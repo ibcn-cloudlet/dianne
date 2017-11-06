@@ -32,7 +32,7 @@ public class AgentConfig {
 	/**
 	 * Tag of fetched weights
 	 */
-	public String tag;
+	public String[] tag;
 	
 	/**
 	 * Clear experience pool at start

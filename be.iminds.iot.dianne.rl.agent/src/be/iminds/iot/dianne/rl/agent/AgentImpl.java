@@ -272,7 +272,10 @@ public class AgentImpl implements Agent {
 			try {
 				// setup repo listener
 				Dictionary<String, Object> props = new Hashtable<>();
-				String[] t = new String[]{":"+config.tag};
+				String[] t = new String[config.tag.length];
+				for(int i=0;i<config.tag.length;i++) {
+					t[i] = ":"+config.tag[i];
+				}
 				props.put("targets", t);
 				props.put("aiolos.unique", true);
 				repoListenerReg = context.registerService(RepositoryListener.class, new RepositoryListener() {
@@ -322,10 +325,11 @@ public class AgentImpl implements Agent {
 					// sync parameters
 					if(sync && count == 0){
 						for(int k=0;k<nns.length;k++){
+							String tag = (config.tag.length==nns.length) ? config.tag[k] : config.tag[0];
 							try {
-								nns[k].loadParameters(config.tag);
+								nns[k].loadParameters(tag);
 							} catch(Exception e){
-								System.out.println("Failed loading parameters for nn "+nns[k].getId()+" - "+nns[k].getNeuralNetworkInstance().name+" with tag(s) "+config.tag);
+								System.out.println("Failed loading parameters for nn "+nns[k].getId()+" - "+nns[k].getNeuralNetworkInstance().name+" with tag(s) "+tag);
 							}
 						}
 						sync = false;
@@ -400,8 +404,11 @@ public class AgentImpl implements Agent {
 						if(config.tagBest){
 							if(progress.reward > maxReward){
 								maxReward = progress.reward;
-								for(NeuralNetwork nn : nns){
-									nn.storeParameters(config.tag,"best");
+								for(int i=0;i<nns.length;i++){
+									if(config.tag.length == nns.length)
+										nns[i].storeParameters(config.tag[i],"best");
+									else
+										nns[i].storeParameters(config.tag[0],"best");
 								}
 							}
 						}
