@@ -22,6 +22,9 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.command;
 
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -43,6 +46,8 @@ import be.iminds.iot.dianne.api.nn.Dianne;
 import be.iminds.iot.dianne.api.nn.NeuralNetwork;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkInstanceDTO;
 import be.iminds.iot.dianne.api.nn.platform.DiannePlatform;
+import be.iminds.iot.dianne.api.rl.dataset.ExperiencePool;
+import be.iminds.iot.dianne.api.rl.dataset.ExperiencePoolSample;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 
@@ -53,9 +58,11 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 				  "osgi.command.function=classes",
 				  "osgi.command.function=forward",
 				  "osgi.command.function=sample",
+				  "osgi.command.function=batch",
 				  "osgi.command.function=sequence",
 				  "osgi.command.function=sequences",
 				  "osgi.command.function=dump",
+				  "osgi.command.function=dumpcsv",
 				  "osgi.command.function=clear"},
 		immediate=true)
 public class DianneDatasetCommands {
@@ -242,6 +249,29 @@ public class DianneDatasetCommands {
 			System.out.println("["+index+"] "+d.getSample(index).toString());
 	}
 	
+	@Descriptor("Print out a batch of the dataset")
+	public void batch(
+			@Descriptor("dataset name to fetch a sample from")
+			String dataset,
+			@Descriptor("start index")
+			int start,
+			@Descriptor("end index")
+			int end){ 
+		
+		Dataset d = datasets.getDataset(dataset);
+		if(d==null){
+			System.out.println("Dataset "+dataset+" not available");
+			return;
+		}
+		
+		int[] indices = new int[end-start];
+		for(int i=0;i<indices.length;i++) {
+			indices[i] = start + i;
+		}
+		
+		System.out.println(d.getBatch(indices));
+	}
+	
 	@Descriptor("Print out a sequence of the dataset")
 	public void sequence(
 			@Descriptor("dataset name to fetch a sample from")
@@ -335,6 +365,49 @@ public class DianneDatasetCommands {
 		}
 	}
 
+	@Descriptor("Dump the content of an experience pool in csv file")
+	public void dumpcsv(
+			@Descriptor("The experience pool to dump")
+			String dataset,
+			@Descriptor("Output csv file")
+			String file){ 
+		
+		Dataset d = datasets.getDataset(dataset);
+		if(d==null){
+			System.out.println("Dataset "+dataset+" not available");
+			return;
+		}
+		if(!datasets.isExperiencePool(dataset)){
+			System.out.println("Dataset "+dataset+" is not an experience pool");
+			return;
+		}
+		
+		ExperiencePool xp = (ExperiencePool)d;
+		
+		try(PrintWriter out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(file)))){
+			
+			for(int i=0;i<xp.size();i++){
+				ExperiencePoolSample s = xp.getSample(i);
+				
+				float[] state = s.getState().get();
+				
+				for(int k=0;k<state.length;k++)
+					out.print(state[k]+",");
+				
+				float[] action = s.getAction().get();
+				for(int k=0;k<action.length;k++)
+					out.print(action[k]+",");
+				
+				out.print(s.getScalarReward());
+				out.println();
+			}
+
+			out.flush();
+		} catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+	
 	
 	@Descriptor("Clear an experience pool")
 	public void clear(
