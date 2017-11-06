@@ -207,10 +207,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 		}
 		
 		try {
-			// only lock if you want the first sequence ... this is the only one that might get overridden when no lock taken
-			if(sequence==0){
-				lock.readLock().lock();
-			}
+			lock.readLock().lock();
 			
 			SequenceLocation seq = sequences.get(sequence);
 			if(index >= seq.length){
@@ -247,9 +244,7 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 			
 			s.size = length;
 		} finally {
-			if(sequence == 0){
-				lock.readLock().unlock();
-			}
+			lock.readLock().unlock();
 		}
 
 		return s;
@@ -439,8 +434,15 @@ public abstract class AbstractExperiencePool extends AbstractDataset implements 
 	protected ExperiencePoolSample getSample(ExperiencePoolSample s, int index, int startSequence, boolean loadState){
 		float[] sampleBuffer = new float[sampleSize];
 		
-		long bufferPosition  = getBufferPosition(index, startSequence);
-		loadData(bufferPosition*sampleSize, sampleBuffer);
+		long bufferPosition = 0;
+		try {
+			lock.readLock().lock();
+			bufferPosition = getBufferPosition(index, startSequence);
+			loadData(bufferPosition*sampleSize, sampleBuffer);
+		} finally {
+			lock.readLock().unlock();
+		}
+
 		
 		if(s == null){
 			s = new ExperiencePoolSample();	
