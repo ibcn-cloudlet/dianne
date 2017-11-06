@@ -44,17 +44,24 @@ public class StateBeliefActionStrategy implements ActionStrategy {
 	private StateBeliefConfig config;
 	private NeuralNetwork posterior;
 	private NeuralNetwork policy;
+
+	private NeuralNetwork prior;
+	private float drop = 0.0f;
+	private int warmup = 0;
 	
 	// prev state (in case we use p(s_t | s_t-1, a_t-1, o_t) )
 	private Tensor state;
 	
-	private Tensor sample;
+	private Tensor params;
 	
 	// sampled action
 	private Tensor action;
 	
 	private UUID[] posteriorIn;
 	private UUID[] posteriorOut;
+	
+	private UUID[] priorIn;
+	private UUID[] priorOut;
 	
 	@Override
 	public void setup(Map<String, String> config, Environment env, NeuralNetwork... nns) throws Exception {
@@ -68,9 +75,23 @@ public class StateBeliefActionStrategy implements ActionStrategy {
 		this.posteriorOut = new UUID[]{posterior.getOutput().getId()};
 		this.policy = nns[1];
 		
+		if(nns.length >= 3) {
+			this.prior = nns[2];
+			this.priorIn = prior.getModuleIds("State","Action");
+			this.priorOut = new UUID[]{prior.getOutput().getId()};
+			
+			if(config.containsKey("drop")) {
+				this.drop = Float.parseFloat(config.get("drop"));
+			}
+			
+			if(config.containsKey("warmup")) {
+				this.warmup = Integer.parseInt(config.get("warmup"));
+			}
+		}
+		
 		this.action = new Tensor(env.actionDims());
 		
-		this.sample = new Tensor(this.config.stateSize);
+		this.params = new Tensor(2*this.config.stateSize);
 
 		this.state = new Tensor(this.config.stateSize);
 	}
@@ -83,19 +104,7 @@ public class StateBeliefActionStrategy implements ActionStrategy {
 			state.fill(0.0f);
 			action.fill(0.0f);
 		}
-		
-		// forward o_t, s_t-1, a_t-1 to get state posterior  p(s_t | s_t-1, a_t-1, o_t)
-		// TODO we might need to keep all observations and sample p(s_t | a_0..a_t-1, o_0..o_t) here instead? 
-		Tensor posteriorParams = posterior.forward(posteriorIn, posteriorOut, new Tensor[]{state, action, observation}).getValue().tensor;
 
-		state = posteriorParams.narrow(0, 0, config.stateSize).copyInto(state);
-		
-		// get an action by sampling a state and determining the Q values
-		// this is equivalent with Thompson Sampling https://en.wikipedia.org/wiki/Thompson_sampling
-		sampleState(posteriorParams);
-		
-		Tensor q = policy.forward(sample);
-		
 		// allow for combination with epsilon greedy exploration
 		double epsilon = config.epsilonMin + (config.epsilonMax - config.epsilonMin) * Math.exp(-s * config.epsilonDecay);
 		
@@ -109,6 +118,21 @@ public class StateBeliefActionStrategy implements ActionStrategy {
 			action.set(1, (int) (Math.random() * action.size()));
 			return action;
 		} else {
+		
+			if(drop > 0 && i >= warmup && Math.random() < drop) {
+				// sample from prior
+				params = prior.forward(priorIn, priorOut, new Tensor[] {state, action}).getValue().tensor;
+			} else {
+				// forward o_t, s_t-1, a_t-1 to get state posterior  p(s_t | s_t-1, a_t-1, o_t)
+				// TODO we might need to keep all observations and sample p(s_t | a_0..a_t-1, o_0..o_t) here instead? 
+				params = posterior.forward(posteriorIn, posteriorOut, new Tensor[]{state, action, observation}).getValue().tensor;
+			}
+			
+			// get an action by sampling a state and determining the Q values
+			// this is equivalent with Thompson Sampling https://en.wikipedia.org/wiki/Thompson_sampling
+			sampleState();
+			
+			Tensor q = policy.forward(state);
 			action.fill(0);
 			action.set(1, TensorOps.argmax(q));
 			return action;
@@ -116,15 +140,15 @@ public class StateBeliefActionStrategy implements ActionStrategy {
 	}
 
 	
-	private void sampleState(Tensor posteriorParams){
-		// sample states from posterior params
-		Tensor mean = posteriorParams.narrow(0, 0, config.stateSize);
-		Tensor stdev = posteriorParams.narrow(0, config.stateSize, config.stateSize);
+	private void sampleState(){
+		// sample states from params
+		Tensor mean = params.narrow(0, 0, config.stateSize);
+		Tensor stdev = params.narrow(0, config.stateSize, config.stateSize);
 		
-		sample.randn();
+		state.randn();
 		
-		TensorOps.cmul(sample, sample, stdev);
-		TensorOps.add(sample, sample, mean);
+		TensorOps.cmul(state, state, stdev);
+		TensorOps.add(state, state, mean);
 	}
 	
 }

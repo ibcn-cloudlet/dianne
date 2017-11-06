@@ -51,19 +51,22 @@ public class GreedyActionStrategy implements ActionStrategy {
 		this.config = DianneConfigHandler.getConfig(config, GreedyConfig.class);
 		this.nn = nns[0];
 		this.action = new Tensor(env.actionDims());
+		this.action.fill(0.0f);
+		this.action.set(1, (int)(this.action.size()*Math.random()));
 	}
 
 	@Override
 	public Tensor processIteration(long s, long i, Tensor state) throws Exception {
-		Tensor output = nn.forward(state);
-	
 		double epsilon = config.epsilonMin + (config.epsilonMax - config.epsilonMin) * Math.exp(-s * config.epsilonDecay);
 		
 		if(config.trace && s % config.traceInterval == 0 && i == 0){
 			System.out.println("Epsilon: "+epsilon);
 		}
 		
-		if (Math.random() < epsilon) {
+		if(config.drop > 0 && Math.random() < config.drop){
+			// repeat action
+			return action;
+		} else if (Math.random() < epsilon) {
 			if(config.momentum > 0.0f){
 				if(Math.random() < config.momentum){
 					return action;
@@ -73,6 +76,7 @@ public class GreedyActionStrategy implements ActionStrategy {
 			action.set(1, (int) (Math.random() * action.size()));
 			return action;
 		} else {
+			Tensor output = nn.forward(state);
 			action.fill(0);
 			action.set(1, TensorOps.argmax(output));
 			return action;

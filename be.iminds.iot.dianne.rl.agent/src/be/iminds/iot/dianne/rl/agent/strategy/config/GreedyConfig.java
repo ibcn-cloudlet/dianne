@@ -46,6 +46,11 @@ public class GreedyConfig {
 	public float momentum = 0.0f;
 	
 	/**
+	 * Probability to drop the latest NN output and repeat last action instead (as if no sensor input was provided)
+	 */
+	public float drop = 0.0f;
+	
+	/**
 	 * Trace the current epsilon value
 	 */
 	public boolean trace = false;
