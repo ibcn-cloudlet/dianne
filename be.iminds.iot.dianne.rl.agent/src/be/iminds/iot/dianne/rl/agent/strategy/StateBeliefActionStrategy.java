@@ -120,6 +120,26 @@ public class StateBeliefActionStrategy implements ActionStrategy {
 			action.fill(0.0f);
 		}
 
+		// update state
+		if(drop > 0 && i >= warmup && Math.random() < drop) {
+			// sample from prior
+			params = prior.forward(priorIn, priorOut, new Tensor[] {state, action}).getValue().tensor;
+		} else {
+			// forward o_t, s_t-1, a_t-1 to get state posterior  p(s_t | s_t-1, a_t-1, o_t)
+			if(config.noSamples > 1)
+				observation = TensorOps.expand(observation, obs, config.noSamples);
+			else 
+				observation = obs;
+			
+			params = posterior.forward(posteriorIn, posteriorOut, new Tensor[]{state, action, observation}).getValue().tensor;
+		}
+		
+		if(config.noSamples > 1) 
+			state = sampleFromGaussianMixture(state, params, config.noSamples);
+		else
+			state = sampleFromGaussian(state, params);
+		
+		
 		// allow for combination with epsilon greedy exploration
 		double epsilon = config.epsilonMin + (config.epsilonMax - config.epsilonMin) * Math.exp(-s * config.epsilonDecay);
 		
@@ -131,27 +151,8 @@ public class StateBeliefActionStrategy implements ActionStrategy {
 			} 
 			act.fill(0);
 			act.set(1, (int) (Math.random() * act.size()));
-			return act;
+
 		} else {
-		
-			if(drop > 0 && i >= warmup && Math.random() < drop) {
-				// sample from prior
-				params = prior.forward(priorIn, priorOut, new Tensor[] {state, action}).getValue().tensor;
-			} else {
-				// forward o_t, s_t-1, a_t-1 to get state posterior  p(s_t | s_t-1, a_t-1, o_t)
-				if(config.noSamples > 1)
-					observation = TensorOps.expand(observation, obs, config.noSamples);
-				else 
-					observation = obs;
-				
-				params = posterior.forward(posteriorIn, posteriorOut, new Tensor[]{state, action, observation}).getValue().tensor;
-			}
-			
-			if(config.noSamples > 1) 
-				state = sampleFromGaussianMixture(state, params, config.noSamples);
-			else
-				state = sampleFromGaussian(state, params);
-			
 			q = policy.forward(state);
 			
 			int best = 0;
@@ -171,14 +172,14 @@ public class StateBeliefActionStrategy implements ActionStrategy {
 			
 			act.fill(0);
 			act.set(1, best);
-			
-			if(config.noSamples > 1)
-				TensorOps.expand(action, act, config.noSamples);
-			else 
-				action = act;
-			
-			return act;
 		}
+		
+		if(config.noSamples > 1)
+			TensorOps.expand(action, act, config.noSamples);
+		else 
+			action = act;
+		
+		return act;
 	}
 	
 	private Tensor sampleFromGaussianMixture(Tensor result, Tensor distribution, int batchSize) {
