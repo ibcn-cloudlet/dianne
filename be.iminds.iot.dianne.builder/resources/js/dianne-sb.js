@@ -171,7 +171,9 @@ function sliderChanged(){
 	dims.push(state.length);
 	
 	var sampleConfig = {};
+	sampleConfig.pool = config.pool;
 	sampleConfig.stateSample = JSON.stringify({"dims":dims, "data":state});
+	sampleConfig.noSamples = config.noSamples;
 	sampleConfig.decoder = config.decoder;
 	
 	$.post("/dianne/sb", sampleConfig, 

@@ -217,7 +217,7 @@ public class DianneSB extends HttpServlet {
 		} else {
 			String sz = request.getParameter("stateSize");
 			if(sz != null){
-				state = new Tensor(batchSize, Integer.parseInt(sz));
+				state = batchSize == 1 ? new Tensor(Integer.parseInt(sz)) : new Tensor(batchSize, Integer.parseInt(sz));
 				state.fill(0.0f);
 			} else if(stateSample == null){
 				System.out.println("You should provide either state, stateSize or stateSample");
@@ -248,29 +248,49 @@ public class DianneSB extends HttpServlet {
 					}
 					ExperiencePoolSample prev = xp.get(index-1);
 					ExperiencePoolSample current = xp.get(index);
-					action = expand(prev.getAction(), batchSize);
+					if(batchSize == 1) {
+						action = prev.getAction();
+					} else {
+						action = TensorOps.expand(action, prev.getAction(), batchSize);
+					}
 					if(current.getState().size() == state.size()){
 						// this is an xp pool with state samples... allows to inspect reconstructions
-						stateSample = expand(current.getState(), batchSize);
+						if(batchSize == 1) {
+							stateSample = current.getState();
+						} else {
+							stateSample = TensorOps.expand(stateSample, current.getState(), batchSize);
+						}
 					} else {
-						observation = expand(current.getState(), batchSize);
+						if(batchSize == 1) {
+							observation = current.getState();
+						} else {
+							observation = TensorOps.expand(observation, current.getState(), batchSize);
+						}
 					}
 					reward = prev.getReward();
 				} else {
 					ExperiencePoolSample current = xp.get(0);
-					action = new Tensor(batchSize, current.getAction().size());
+					action = batchSize == 1 ? new Tensor(current.getAction().size()) : new Tensor(batchSize, current.getAction().size());
 					action.fill(0.0f);
-					if(current.getState().size() == state.size()){
+					if(state != null && current.getState().size() == state.size()){
 						// this is an xp pool with state samples... allows to inspect reconstructions
-						stateSample = expand(current.getState(), batchSize);
+						if(batchSize == 1) {
+							stateSample = current.getState();
+						} else {
+							stateSample = TensorOps.expand(stateSample, current.getState(), batchSize);
+						}
 					} else {
-						observation = expand(current.getState(), batchSize);
+						if(batchSize == 1) {
+							observation = current.getState();
+						} else {
+							observation = TensorOps.expand(observation, current.getState(), batchSize);
+						}
 					}
 				}
 			} else {
 				String as = request.getParameter("actionSize");
 				if(as != null){
-					action = new Tensor(batchSize, Integer.parseInt(as));
+					action = batchSize == 1 ? new Tensor(Integer.parseInt(as)): new Tensor(batchSize, Integer.parseInt(as));
 					action.fill(0.0f);
 					if(index > 0){
 						action.select(1, random.nextInt(action.size())).fill(1.0f);
@@ -300,8 +320,12 @@ public class DianneSB extends HttpServlet {
 			if(stateSample == null){
 				Tensor stateDistribution = (prior != null && (posterior == null) || "prior".equals(sampleFrom)) ? prior : posterior;
 				stateSample = state.clone();
-				for(int i = 0; i < batchSize; i++)
-					sampleFromGaussianMixture(stateSample.select(0, i), stateDistribution);
+				if(batchSize == 1) {
+					sampleFromGaussian(stateSample, stateDistribution);
+				} else {
+					for(int i = 0; i < batchSize; i++)
+						sampleFromGaussianMixture(stateSample.select(0, i), stateDistribution);
+				}
 			}
 			
 			if(stateSample == null){
@@ -315,19 +339,33 @@ public class DianneSB extends HttpServlet {
 				if(reconstructionDistribution.dim() == 4){
 					// softmax'ed!!!
 					if(sampleReconstruction) {
-						reconstruction = new Tensor(batchSize, dataset.stateDims());
-						for(int i = 0; i < batchSize; i++)
-							sampleFromSoftmax(reconstruction.select(0, i), reconstructionDistribution.select(0, i));
+						if(batchSize == 1) {
+							reconstruction = new Tensor(dataset.stateDims());
+							sampleFromSoftmax(reconstruction, reconstructionDistribution);
+						} else {
+							reconstruction = new Tensor(batchSize, dataset.stateDims());
+							for(int i = 0; i < batchSize; i++)
+								sampleFromSoftmax(reconstruction.select(0, i), reconstructionDistribution.select(0, i));
+						}
 					} else {
 						reconstruction = reconstructionDistribution;
 					}
 				} else {
 					if(sampleReconstruction) {
-						reconstruction = new Tensor(batchSize, dataset.stateDims());
-						for(int i = 0; i < batchSize; i++)
-							sampleFromGaussian(reconstruction.select(0, i), reconstructionDistribution.select(0, i));
+						if(batchSize == 1) {
+							reconstruction = new Tensor(dataset.stateDims());
+							sampleFromGaussian(reconstruction, reconstructionDistribution);
+						} else {
+							reconstruction = new Tensor(batchSize, dataset.stateDims());
+							for(int i = 0; i < batchSize; i++)
+								sampleFromGaussian(reconstruction.select(0, i), reconstructionDistribution.select(0, i));
+						}
 					} else {
-						reconstruction = reconstructionDistribution.narrow(1, 0, reconstructionDistribution.size(1)/2);
+						if(batchSize == 1) {
+							reconstruction = reconstructionDistribution.narrow(0, 0, reconstructionDistribution.size(0)/2);
+						} else {
+							reconstruction = reconstructionDistribution.narrow(1, 0, reconstructionDistribution.size(1)/2);
+						}
 					}
 				}
 			}
@@ -345,10 +383,10 @@ public class DianneSB extends HttpServlet {
 				result.add("state", converter.toJson(state));
 			
 			if(action != null)
-				result.add("action", converter.toJson(action.select(0, 0)));
+				result.add("action", converter.toJson( batchSize == 1 ? action : action.select(0, 0)));
 			
 			if(observation != null)
-				result.add("observation", converter.toJson(observation.select(0, 0)));
+				result.add("observation", converter.toJson(batchSize == 1 ? observation : observation.select(0, 0)));
 			
 			if(prior != null)
 				result.add("prior", converter.toJson(prior));
@@ -373,13 +411,6 @@ public class DianneSB extends HttpServlet {
 		} catch(Exception e){
 			e.printStackTrace();
 		}
-	}
-
-	private Tensor expand(Tensor state, int batchSize) {
-		Tensor batch = new Tensor(batchSize, state.size());
-		for(int i = 0; i < batchSize; i++)
-			state.copyInto(batch.select(0, i));
-		return batch;
 	}
 
 	private Tensor sampleFromGaussianMixture(Tensor result, Tensor distribution) {
