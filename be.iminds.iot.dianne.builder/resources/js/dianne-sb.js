@@ -4,6 +4,7 @@ var config={};
 config['type'] = "laser";
 
 var index = 0;
+var prevState = undefined;
 var state = undefined;
 var pause = true;
 
@@ -21,25 +22,23 @@ $( document ).ready(function() {
     });
 	
 	index = 0;
-	update();
+	update(true);
 });
 
-function update(){
-	config.index = index;
-	if(state !== undefined){
-		config.state = JSON.stringify(state);
-	} else {
-		config.state = undefined;
-	}
+function update(advance){
+	config.index = advance ? index : index-1;
+	config.state = advance ? JSON.stringify(state) : JSON.stringify(prevState);
 	
 	$.post("/dianne/sb", config, 
 		function( result ) {
 		
-			index = index + 1;
-
-			// render
-			state = result.sample;
+			if(advance){
+				index = index + 1;
+				prevState = state;
+				state = result.sample;
+			}
 			
+			// render
 			var ctx;
 			
 			if(result.observation !== undefined){
@@ -89,7 +88,7 @@ function update(){
 			}
 			
 			if(!pause && index < 100){
-				update();
+				update(index, state);
 			}
 				
 		}
@@ -106,11 +105,14 @@ function stop(){
 	pause = true;
 }
 
+function next(){
+	update(true);
+}
+
 function reset(){
 	pause = true;
 	index = 0;
-	current = undefined;
-	update();
+	update(true);
 }
 
 function getTitle(data, gaussian){
@@ -125,12 +127,12 @@ function getTitle(data, gaussian){
 
 function sampleFromPrior(){
 	config.sampleFrom = 'prior';
-	update();
+	update(false);
 }
 
 function sampleFromPosterior(){
 	config.sampleFrom = 'posterior';
-	update();
+	update(false);
 }
 
 function sample(){
