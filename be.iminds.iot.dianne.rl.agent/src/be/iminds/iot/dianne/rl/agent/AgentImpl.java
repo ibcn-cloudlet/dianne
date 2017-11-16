@@ -272,11 +272,13 @@ public class AgentImpl implements Agent {
 			try {
 				// setup repo listener
 				Dictionary<String, Object> props = new Hashtable<>();
-				String[] t = new String[config.tag.length];
-				for(int i=0;i<config.tag.length;i++) {
-					t[i] = ":"+config.tag[i];
+				if(config.tag != null) {
+					String[] t = new String[config.tag.length];
+					for(int i=0;i<config.tag.length;i++) {
+						t[i] = ":"+config.tag[i];
+					}
+					props.put("targets", t);
 				}
-				props.put("targets", t);
 				props.put("aiolos.unique", true);
 				repoListenerReg = context.registerService(RepositoryListener.class, new RepositoryListener() {
 					@Override

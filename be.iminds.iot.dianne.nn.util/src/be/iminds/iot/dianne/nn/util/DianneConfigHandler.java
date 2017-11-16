@@ -118,7 +118,7 @@ public class DianneConfigHandler {
 		System.out.println("---");
 		for(Field f : config.getClass().getFields()){
 			try {
-				if(f.getType().isArray()){
+				if(f.getType().isArray() && f.get(config)!=null){
 					String s = "* "+f.getName()+" = [";
 					Object array = f.get(config);
 					int l = Array.getLength(array);
