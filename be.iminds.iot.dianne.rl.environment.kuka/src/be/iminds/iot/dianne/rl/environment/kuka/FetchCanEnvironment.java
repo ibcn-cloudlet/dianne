@@ -32,6 +32,7 @@ import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
 import be.iminds.iot.dianne.rl.environment.kuka.api.KukaEnvironment;
 import be.iminds.iot.dianne.rl.environment.kuka.config.FetchCanConfig;
 import be.iminds.iot.dianne.rl.environment.kuka.config.FetchCanConfig.Difficulty;
+import be.iminds.iot.dianne.rl.environment.kuka.config.FetchCanConfig.YoubotReference;
 import be.iminds.iot.dianne.tensor.Tensor;
 import be.iminds.iot.dianne.tensor.TensorOps;
 import be.iminds.iot.robot.api.arm.Arm;
@@ -168,7 +169,7 @@ public class FetchCanEnvironment extends AbstractKukaEnvironment {
 			
 			float distance, canHeight;
 			canHeight = simulator.getPosition("can_ref").z - this.canRefInitHeight;
-			if (config.gripperDistance) {
+			if (config.reference == YoubotReference.ARM_TIP) {
 				// calculate distance of gripper tip relative to can
 				Position p = simulator.getPosition("can_ref", "youBot_positionTip");
 				distance = (float)Math.sqrt(p.x*p.x+p.y*p.y+p.z*p.z);
@@ -258,6 +259,10 @@ public class FetchCanEnvironment extends AbstractKukaEnvironment {
 		if(config.difficulty==Difficulty.START_DOCKED
 				|| config.difficulty==Difficulty.RANDOM_DOCK){
 			plane = r.nextInt(2)+1;
+		} else if(config.difficulty==Difficulty.RANDOM_DOCK_1){
+			plane = 1;
+		} else if(config.difficulty==Difficulty.RANDOM_DOCK_2) {
+			plane = 2;
 		} else {
 			plane = 0;
 		}
@@ -268,7 +273,17 @@ public class FetchCanEnvironment extends AbstractKukaEnvironment {
 		case 0:
 			simulator.setOrientation("Plane1", new Orientation(0, (float)Math.PI/2, (float)Math.PI/2));
 			simulator.setPosition("Plane1", new Position(-1, -0.9f, 0.15f));
-			simulator.setPosition("dock_ref", new Position(-0.6f, -1.5f, 0f));
+			switch(config.reference) {
+			case BASE:
+				simulator.setPosition("dock_ref", new Position(-0.6f, -0.8f, 0f));
+				break;
+			case HOKUYO:
+				simulator.setPosition("dock_ref", new Position(-0.6f, -1.1f, 0f));
+				break;
+			default:
+				simulator.setPosition("dock_ref", new Position(-0.6f, -1.5f, 0f));
+				break;
+			}
 			
 			resetYoubot();
 			break;
@@ -276,7 +291,18 @@ public class FetchCanEnvironment extends AbstractKukaEnvironment {
 			simulator.setOrientation("Plane1", new Orientation(0, (float)Math.PI/2, (float)Math.PI/2));
 			float x = -0.3f + r.nextFloat()/10;
 			simulator.setPosition("Plane1", new Position(x, -0.9f, 0.15f));
-			simulator.setPosition("dock_ref", new Position(-0.6f, -1.5f, 0f));
+			
+			switch(config.reference) {
+			case BASE:
+				simulator.setPosition("dock_ref", new Position(-0.6f, -0.8f, 0f));
+				break;
+			case HOKUYO:
+				simulator.setPosition("dock_ref", new Position(-0.6f, -1.1f, 0f));
+				break;
+			default:
+				simulator.setPosition("dock_ref", new Position(-0.6f, -1.5f, 0f));
+				break;
+			}
 			
 			if(config.difficulty == Difficulty.START_DOCKED){
 				simulator.setPosition("youBot", new Position(-0.583f, -0.939f, 0.0957f));
@@ -292,8 +318,19 @@ public class FetchCanEnvironment extends AbstractKukaEnvironment {
 			float y = -0.6f + (r.nextFloat()-0.5f)/5;
 			simulator.setOrientation("Plane1", new Orientation((float)Math.PI/2, 0, 0));
 			simulator.setPosition("Plane1", new Position(-0.45f, y, 0.15f));
-			simulator.setPosition("dock_ref", new Position(-1f, -1f, 0f));
 			
+			switch(config.reference) {
+			case BASE:
+				simulator.setPosition("dock_ref", new Position(-0.35f, -1f, 0f));
+				break;
+			case HOKUYO:
+				simulator.setPosition("dock_ref", new Position(-0.65f, -1f, 0f));
+				break;
+			default:
+				simulator.setPosition("dock_ref", new Position(-1.05f, -1f, 0f));
+				break;
+			}
+						
 			if(config.difficulty == Difficulty.START_DOCKED){
 				simulator.setPosition("youBot", new Position(-0.431f, -1f, 0.0957f));
 				simulator.setOrientation("youBot", new Orientation(-1.5707963f, -1.5707963f, -1.5707965f));

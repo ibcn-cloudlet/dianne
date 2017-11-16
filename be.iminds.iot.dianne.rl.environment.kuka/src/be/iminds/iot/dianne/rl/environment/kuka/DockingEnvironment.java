@@ -109,9 +109,21 @@ public class DockingEnvironment extends FetchCanEnvironment {
 			
 			// calculate distance of youBot relative to dock point ... 
 			// reuse positionTargetCan to encourage the robot to turn towards the dock point
-			Position p = simulator.getPosition("dock_ref", "youBot_positionTargetCan");
+			String ref;
+			switch(config.reference) {
+			case BASE:
+				ref = "youBot_ref";
+				break;
+			case HOKUYO:
+				ref = "hokuyo";
+				break;
+			default:
+				ref= "youBot_positionTargetCan";
+				break;
+			}
+			Position p = simulator.getPosition("dock_ref", ref);
 			float distance = (float)Math.hypot(p.x, p.y);
-			
+				
 			// max reward in radius of can by setting the distance to 0
 			if(distance <= config.margin) {
 				distance = 0.0f;
@@ -163,7 +175,8 @@ public class DockingEnvironment extends FetchCanEnvironment {
 	}
 	
 	protected void resetEnvironment(){
-		super.config.difficulty = Difficulty.RANDOM_DOCK;
+		if(super.config.difficulty.ordinal() < Difficulty.RANDOM_DOCK.ordinal())
+			super.config.difficulty = Difficulty.RANDOM_DOCK;
 		super.resetEnvironment();
 	}
 	

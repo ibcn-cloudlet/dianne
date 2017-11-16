@@ -30,7 +30,16 @@ public class FetchCanConfig {
 		VISIBLE,
 		RANDOM,
 		START_DOCKED,
-		RANDOM_DOCK
+		RANDOM_DOCK,
+		RANDOM_DOCK_1,
+		RANDOM_DOCK_2
+	}
+	
+	public enum YoubotReference {
+		TARGET_CAN, // a fixed target position to grip a can
+		ARM_TIP, // the current position of the gripper tip
+		BASE, // base center
+		HOKUYO // laser scan
 	}
 	
 	/**
@@ -60,6 +69,11 @@ public class FetchCanConfig {
 	 */
 	public Difficulty difficulty = Difficulty.RANDOM;
 		
+	/**
+	 * The point of the youbot to use to calculate distances
+	 */
+	public YoubotReference reference = YoubotReference.TARGET_CAN;
+	
 	/**
 	 * Distance scale factor used to spread or tighten reward functions.
 	 */
@@ -91,11 +105,6 @@ public class FetchCanConfig {
 	 * Scale factor to modify the reward of a grip action.
 	 */
 	public float gripRewardScale = 1.0f;
-
-	/**
-	 * Use relative distance from the gripper instead of from the base platform
-	 */
-	public boolean gripperDistance = false;
 	
 	/**
 	 * Offset for the reward function. Can be used to make a reward function positive or negative.
