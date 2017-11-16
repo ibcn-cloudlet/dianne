@@ -351,11 +351,16 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 	
 	private void init() throws Exception {
 		if(simulator == null) {
-			// automatically pause the environment until the user resumes from CLI
-			pause = true;
-			System.out.println("Reset your environment and resume by typing the \"start\" command.");
-			waitForResume();
-			
+			if(config.waitForSimulator) {
+				waitForSimulator();
+				configureSimulator();
+				init();
+			} else {
+				// automatically pause the environment until the user resumes from CLI
+				pause = true;
+				System.out.println("Reset your environment and resume by typing the \"start\" command.");
+				waitForResume();
+			}
 		} else {
 			int count = 0;
 			boolean retrying = true;
@@ -413,13 +418,7 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		}
         simulator = null;
     	System.out.println("Simulator got killed, waiting for simulator to come back online...");
-		long start = System.currentTimeMillis();
-        while(simulator == null){
-        	if(System.currentTimeMillis()-start > config.timeout){
-              	throw new Exception("Failed to restart simulator. Timeout exceeded.");
-            }
-        	Thread.sleep(100);
-        }
+		waitForSimulator();
         
         // configure it again from scratch
         configure(configMap);
@@ -508,7 +507,7 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 		} while(cmd!=0 && System.currentTimeMillis()-start < config.timeout);
 	}
 	
-	protected void configureSimulator(){
+	protected void configureSimulator() {
 		// configure the simulated environment
 		if(simulator != null){
 			Map<String, String> entities = new HashMap<String, String>();
@@ -566,6 +565,17 @@ public abstract class AbstractKukaEnvironment implements Environment, KukaEnviro
 				pause = false;
 			}
 		}
+	}
+	
+	private void waitForSimulator() throws Exception {
+		System.out.println("Waiting for simulator...");
+		long start = System.currentTimeMillis();
+        while(simulator == null){
+        	if(System.currentTimeMillis()-start > config.timeout){
+              	throw new Exception("Failed to connect to simulator. Timeout exceeded.");
+            }
+        	Thread.sleep(100);
+        }
 	}
 	
 	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)

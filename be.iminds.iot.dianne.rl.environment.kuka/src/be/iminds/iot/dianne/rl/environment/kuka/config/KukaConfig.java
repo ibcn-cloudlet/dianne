@@ -3,6 +3,11 @@ package be.iminds.iot.dianne.rl.environment.kuka.config;
 public class KukaConfig {
 
 	/**
+	 * Make sure the simulator is there
+	 */
+	public boolean waitForSimulator = true;
+	
+	/**
 	 * Use internal simulation state instead of sensor input as state representation
 	 */
 	public boolean simState = false;
