@@ -74,6 +74,8 @@ public class DiscreteActionController implements KeyboardListener {
 		case "Enter":
 			action.set(1.0f, 6);
 			break;
+		default :
+			break;
 		}
 		
 		controller.setAction(action);

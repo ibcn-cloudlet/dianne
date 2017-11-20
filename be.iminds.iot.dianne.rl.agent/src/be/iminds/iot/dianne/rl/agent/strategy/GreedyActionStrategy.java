@@ -64,7 +64,8 @@ public class GreedyActionStrategy implements ActionStrategy {
 		}
 		
 		if(config.drop > 0 && Math.random() < config.drop){
-			// repeat action
+			// no-op action?
+			action.fill(0.0f);
 			return action;
 		} else if (Math.random() < epsilon) {
 			if(config.momentum > 0.0f){

@@ -87,61 +87,66 @@ public class FetchCanEnvironment extends AbstractKukaEnvironment {
 	protected void executeAction(Tensor a) throws Exception {
 		int action = TensorOps.argmax(a);
 		
-		switch(action){
-		case 0:
-			kukaPlatform.move(0f, config.speed, 0f);
-			break;
-		case 1:
-			kukaPlatform.move(0f, -config.speed, 0f);
-			break;
-		case 2:
-			kukaPlatform.move(config.speed, 0f, 0f);
-			break;
-		case 3:
-			kukaPlatform.move(-config.speed, 0f, 0f);
-			break;
-		case 4:
-			kukaPlatform.move(0f, 0.f, 2*config.speed);
-			break;
-		case 5:
-			kukaPlatform.move(0f, 0.f, -2*config.speed);
-			break;	
-		case 6:
-			grip = true;
-			
-			kukaPlatform.stop();	
-
-			if(config.earlyStop){
+		if(TensorOps.max(a) == 0.0f) {
+			// no-op?
+			kukaPlatform.stop();
+		} else {
+			switch(action){
+			case 0:
+				kukaPlatform.move(0f, config.speed, 0f);
+				break;
+			case 1:
+				kukaPlatform.move(0f, -config.speed, 0f);
+				break;
+			case 2:
+				kukaPlatform.move(config.speed, 0f, 0f);
+				break;
+			case 3:
+				kukaPlatform.move(-config.speed, 0f, 0f);
+				break;
+			case 4:
+				kukaPlatform.move(0f, 0.f, 2*config.speed);
+				break;
+			case 5:
+				kukaPlatform.move(0f, 0.f, -2*config.speed);
+				break;	
+			case 6:
+				grip = true;
+				
+				kukaPlatform.stop();	
+	
+				if(config.earlyStop){
+					break;
+				}
+				
+				Promise<Arm> result = kukaArm.openGripper()
+					.then(p -> kukaArm.setPositions(2.92f, 0.0f, 0.0f, 0.0f, 2.875f))
+					.then(p -> kukaArm.setPositions(2.92f, 1.76f, -1.37f, 2.55f))
+					.then(p -> kukaArm.closeGripper())
+					.then(p -> kukaArm.setPositions(0.01f, 0.8f))
+					.then(p -> kukaArm.setPositions(0.01f, 0.8f, -1f, 2.9f))
+					.then(p -> kukaArm.openGripper())
+					.then(p -> kukaArm.setPosition(1, -1.3f))
+					.then(p -> kukaArm.reset());
+				
+				
+				// in simulation keep on ticking to let the action complete
+				if(simulator != null){
+					for(int i=0;i<130;i++){
+						simulator.tick();
+						
+						// stop when colliding
+						if(simulator.checkCollisions("Border")){
+							return;
+						}
+					}
+				} else {
+					// wait until grip is done
+					result.getValue();
+				}
+				
 				break;
 			}
-			
-			Promise<Arm> result = kukaArm.openGripper()
-				.then(p -> kukaArm.setPositions(2.92f, 0.0f, 0.0f, 0.0f, 2.875f))
-				.then(p -> kukaArm.setPositions(2.92f, 1.76f, -1.37f, 2.55f))
-				.then(p -> kukaArm.closeGripper())
-				.then(p -> kukaArm.setPositions(0.01f, 0.8f))
-				.then(p -> kukaArm.setPositions(0.01f, 0.8f, -1f, 2.9f))
-				.then(p -> kukaArm.openGripper())
-				.then(p -> kukaArm.setPosition(1, -1.3f))
-				.then(p -> kukaArm.reset());
-			
-			
-			// in simulation keep on ticking to let the action complete
-			if(simulator != null){
-				for(int i=0;i<130;i++){
-					simulator.tick();
-					
-					// stop when colliding
-					if(simulator.checkCollisions("Border")){
-						return;
-					}
-				}
-			} else {
-				// wait until grip is done
-				result.getValue();
-			}
-			
-			break;
 		}
 		
 		// simulate an iteration further

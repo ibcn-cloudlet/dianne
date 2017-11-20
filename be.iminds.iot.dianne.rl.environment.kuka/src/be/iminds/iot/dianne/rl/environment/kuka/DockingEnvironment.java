@@ -62,27 +62,32 @@ public class DockingEnvironment extends FetchCanEnvironment {
 	protected void executeAction(Tensor a) throws Exception {
 		int action = TensorOps.argmax(a);
 		
-		switch(action){
-		case 0:
-			kukaPlatform.move(0f, config.speed, 0f);
-			break;
-		case 1:
-			kukaPlatform.move(0f, -config.speed, 0f);
-			break;
-		case 2:
-			kukaPlatform.move(config.speed, 0f, 0f);
-			break;
-		case 3:
-			kukaPlatform.move(-config.speed, 0f, 0f);
-			break;
-		case 4:
-			kukaPlatform.move(0f, 0.f, 2*config.speed);
-			break;
-		case 5:
-			kukaPlatform.move(0f, 0.f, -2*config.speed);
-			break;	
-		case 6:
-			kukaPlatform.stop();	
+		if(TensorOps.max(a) == 0.0f) {
+			// no-op?
+			kukaPlatform.stop();
+		} else {
+			switch(action){
+			case 0:
+				kukaPlatform.move(0f, config.speed, 0f);
+				break;
+			case 1:
+				kukaPlatform.move(0f, -config.speed, 0f);
+				break;
+			case 2:
+				kukaPlatform.move(config.speed, 0f, 0f);
+				break;
+			case 3:
+				kukaPlatform.move(-config.speed, 0f, 0f);
+				break;
+			case 4:
+				kukaPlatform.move(0f, 0.f, 2*config.speed);
+				break;
+			case 5:
+				kukaPlatform.move(0f, 0.f, -2*config.speed);
+				break;	
+			case 6:
+				kukaPlatform.stop();	
+			}
 		}
 		
 		// simulate an iteration further
