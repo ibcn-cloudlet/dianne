@@ -327,11 +327,18 @@ public class AgentImpl implements Agent {
 					// sync parameters
 					if(sync && count == 0){
 						for(int k=0;k<nns.length;k++){
-							String tag = (config.tag.length==nns.length) ? config.tag[k] : config.tag[0];
-							try {
-								nns[k].loadParameters(tag);
-							} catch(Exception e){
-								System.out.println("Failed loading parameters for nn "+nns[k].getId()+" - "+nns[k].getNeuralNetworkInstance().name+" with tag(s) "+tag);
+							if(config.tag.length == nns.length) {
+								try {
+									nns[k].loadParameters(config.tag[k]);
+								} catch(Exception e){
+									System.out.println("Failed loading parameters for nn "+nns[k].getId()+" - "+nns[k].getNeuralNetworkInstance().name+" with tag(s) "+config.tag[k]);
+								}
+							} else {
+								try {
+									nns[k].loadParameters(config.tag);
+								} catch(Exception e){
+									System.out.println("Failed loading parameters for nn "+nns[k].getId()+" - "+nns[k].getNeuralNetworkInstance().name+" with tag(s) "+Arrays.toString(config.tag));
+								}
 							}
 						}
 						sync = false;
