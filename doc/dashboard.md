@@ -7,7 +7,7 @@ In order to setup a DIANNE cluster, you need at least a `DianneCoordinator` serv
 
 Once you have setup the cluster, you can access the Dashboard by pointing your browser to:
 
-	http://<hostname_of_coordinator>:8080/dianne/ui/dashboard/dashboard.html
+	http://<hostname_of_coordinator>:8080/dianne/dashboard
 
 You should be greeted by the summary dashboard. On this page you get an overview of the infrastructure, queued, running and finished jobs as well a list of notifications, e.g. when jobs have started or finished:
 
@@ -33,11 +33,3 @@ Once you have set all the required details, just click the `Submit` button and y
 ![Job result](figures/dashboard_3.png)
 
 Depending on the job, you get a different visualization of the job. For training jobs, for example, you get a plot with the error as a function of the number of iterations (updates). You can also see the time the job was submitted, started and finished as well as resubmit the job.
-
-When you have multiple jobs running simultaneously, you can check their progress on the `Running jobs` tab. Here you get a grid which shows the progress for every running job.
-
-![Tracking running jobs](figures/dashboard_4.png)
-
-Finally, on the `Infrastructure` tab, you get an overview of the system load on all your connected machines, showing real-time information such as CPU and memory usage:
-
-![Infrastructure monitoring](figures/dashboard_5.png)
