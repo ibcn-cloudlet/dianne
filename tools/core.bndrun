@@ -6,7 +6,7 @@
 #
 #
 
-dianne.version='[0.6.0,0.7.0)'
+dianne.version='[0.7.0,0.8.0)'
 
 -include: common.bndrun
 
