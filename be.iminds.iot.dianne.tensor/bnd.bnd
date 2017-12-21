@@ -1,4 +1,4 @@
-Bundle-Version: 0.6.0.${tstamp}
+Bundle-Version: 0.6.0
 
 -buildpath: \
 	osgi.enterprise;version=5.0,\
