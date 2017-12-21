@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="author" content="Tim Verbelen">
+<title>Dianne SB Sequence Inspector</title>
+
+<!-- Bootstrap -->
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="css/bootstrap.min.css">
+<link rel="stylesheet" href="css/jquery-ui.css">
+<!-- Styles -->
+<link rel="stylesheet" href="css/jquery.mCustomScrollbar.min.css">
+<link rel="stylesheet" href="css/dianne.css">
+<link rel="stylesheet" href="css/vae.css">
+<!-- icon -->
+<link rel="icon" type="image/png" href="images/icon.png">
+
+<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+<!--[if lt IE 9]>
+      <script src="js/html5shiv.min.js"></script>
+      <script src="js/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+	<div class="container-fluid">
+		<div id="canvas" class="row">
+		</div>
+	</div>
+
+	<script type="x-tmpl-mustache" id="entry">
+		<div class="entry" class="col-md-4">
+			<p>{{index}}</p>
+			<canvas class='observation' width='{{size}}' height='{{size}}' style="border:0px solid #000000"></canvas>
+			<canvas class='posterior' data-toggle="tooltip" title="" width='{{size}}' height='{{size}}' style="border:0px solid #000000"></canvas>
+			<canvas class='rposterior' width='{{size}}' height='{{size}}' style="border:0px solid #000000"></canvas>
+			<canvas class='prior' data-toggle="tooltip" title="" width='{{size}}' height='{{size}}' style="border:0px solid #000000"></canvas>
+			<canvas class='rprior' width='{{size}}' height='{{size}}' style="border:0px solid #000000"></canvas>	
+		</div>
+	</script>
+
+	<script src="js/lib/jquery.min.js"></script>
+	<script src="js/lib/bootstrap.min.js"></script>
+	<script src="js/lib/jquery-ui.min.js"></script>
+	<script src="js/lib/mustache.js"></script>
+	<script src="js/dianne-sb-sequence.js"></script>
+	<script src="js/dianne-visualize.js"></script>
+	
+</body>
+</html>
