@@ -301,4 +301,23 @@ public class TensorTest {
 		expected.set(6.0f, 2);
 		Assert.assertEquals(expected, diag);
 	}
+	
+	@Test
+	public void testMap() {
+		Tensor t = new Tensor(3,3);
+		t.set(new float[] {1,2,3,4,5,6,7,8,9});
+
+		t.map("row1", new int[] {1,1,0,3});
+		Tensor row1 = new Tensor(1,3);
+		row1.set(new float[] {4,5,6});
+		Assert.assertEquals(row1, t.get("row1"));
+		
+		t.map("test", new int[] {0,2,0,2}, new int[] {4});
+		Tensor test = new Tensor(4);
+		test.set(new float[] {1,2,4,5});
+		// TODO this should be fixed?!
+		Assert.assertEquals(test, t.get("test"));
+		
+		Assert.assertNull(t.get("test2"));
+	}
 }
