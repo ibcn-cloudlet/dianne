@@ -54,12 +54,12 @@ public class Narrow extends AbstractModule {
 		}  else {
 			batched = 0;
 		}
-	
-		output = input;
+
+		Tensor narrowed = input;
 		for(int i=0;i<ranges.length-1;i+=2){
-			output = output.narrow(i/2 + batched, ranges[i], ranges[i+1]); 
+			narrowed = narrowed.narrow(i/2 + batched, ranges[i], ranges[i+1]); 
 		}
-	
+		output = narrowed.copyInto(output);
 	}
 
 	@Override
