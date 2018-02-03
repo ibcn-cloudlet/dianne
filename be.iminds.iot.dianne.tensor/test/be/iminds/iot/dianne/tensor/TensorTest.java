@@ -244,6 +244,39 @@ public class TensorTest {
 		Tensor exp = new Tensor(ed, 2,3);
 		Assert.assertEquals(exp, t);
 	}
+
+	@Test
+	public void testNarrowReshape() {
+		float[] data = new float[10];
+		for(int i=0;i<data.length;i++){
+			data[i] = i;
+		}
+		Tensor t = new Tensor(data, 10);
+		t = t.narrow(2, 4);
+		t.reshape(2,2);
+		
+		float[] ed = new float[]{2.0f,3.0f,4.0f,5.0f};
+		Tensor exp = new Tensor(ed, 2,2);
+		Assert.assertEquals(exp, t);
+	}
+
+	@Test
+	public void testNarrowReshape2() {
+		float[] data = new float[9];
+		for(int i=0;i<data.length;i++){
+			data[i] = i;
+		}
+		Tensor t = new Tensor(data, 3, 3);
+		
+		t = t.narrow(0, 2, 0, 2);
+		try {
+			t.reshape(4);
+		} catch(Exception e) {
+			// since t is non contiguous, this should throw an exception!
+			return;
+		}
+		Assert.fail("Reshaping this narrowed Tensor should fail!");
+	}
 	
 	@Test
 	public void testCopyIntoNarrow() {
@@ -304,20 +337,19 @@ public class TensorTest {
 	
 	@Test
 	public void testMap() {
-		Tensor t = new Tensor(3,3);
+		Tensor t = new Tensor(9);
 		t.set(new float[] {1,2,3,4,5,6,7,8,9});
 
-		t.map("row1", new int[] {1,1,0,3});
-		Tensor row1 = new Tensor(1,3);
-		row1.set(new float[] {4,5,6});
-		Assert.assertEquals(row1, t.get("row1"));
+		t.map("test1", new int[] {2,3});
+		Tensor test1 = new Tensor(3);
+		test1.set(new float[] {3,4,5});
+		Assert.assertEquals(test1, t.get("test1"));
 		
-		t.map("test", new int[] {0,2,0,2}, new int[] {4});
-		Tensor test = new Tensor(4);
-		test.set(new float[] {1,2,4,5});
-		// TODO this should be fixed?!
-		Assert.assertEquals(test, t.get("test"));
+		t.map("test2", new int[] {1,4}, new int[] {2,2});
+		Tensor test2 = new Tensor(2,2);
+		test2.set(new float[] {2,3,4,5});
+		Assert.assertEquals(test2, t.get("test2"));
 		
-		Assert.assertNull(t.get("test2"));
+		Assert.assertNull(t.get("test3"));
 	}
 }

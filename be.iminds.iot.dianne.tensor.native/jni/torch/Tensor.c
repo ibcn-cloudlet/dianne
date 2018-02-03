@@ -237,6 +237,11 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_reshape
   (JNIEnv * env, jobject t, jintArray dims){
 	THTensor* tensor = getTensor(env, t);
 
+	if(!THTensor_(isContiguous)(tensor)){
+		throwException("Error, trying to reshape a non-contiguous tensor! Take a copy first!");
+	}
+
+
 	jsize noDims = env->GetArrayLength(dims);
 
 	jint *index = env->GetIntArrayElements(dims, 0);
@@ -271,6 +276,7 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_reshape
 #endif
 				tensor, index[0], index[1], index[2], index[3], index[4]);
 	}
+
 	env->ReleaseIntArrayElements(dims, index, 0);
 }
 
