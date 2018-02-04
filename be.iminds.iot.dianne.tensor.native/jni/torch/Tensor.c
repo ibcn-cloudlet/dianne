@@ -237,7 +237,11 @@ JNIEXPORT void JNICALL Java_be_iminds_iot_dianne_tensor_Tensor_reshape
   (JNIEnv * env, jobject t, jintArray dims){
 	THTensor* tensor = getTensor(env, t);
 
-	if(!THTensor_(isContiguous)(tensor)){
+	if(!THTensor_(isContiguous)(
+#ifdef CUDA
+			state,
+#endif
+			tensor)){
 		throwException("Error, trying to reshape a non-contiguous tensor! Take a copy first!");
 	}
 
