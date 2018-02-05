@@ -28,6 +28,6 @@ javac.debug:  on
 -sources:       false
 -sourcepath:    ${project}/src
 
-Bundle-Copyright: Copyright (C) 2015  iMinds - IBCN - UGent
+Bundle-Copyright: Copyright (C) 2015-2018  imec - IDLab - UGent
 Bundle-License: AGPL-3.0 (http://www.gnu.org/licenses/agpl-3.0.txt)
 -includeresource.license: ../LICENSE
