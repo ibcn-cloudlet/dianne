@@ -1,0 +1,11 @@
+Bundle-Version: 1.0.1
+
+Bundle-Name: ONNX API
+Bundle-Description: Open Neural Network Exchange API
+-buildpath: \
+	com.google.protobuf;version=2.6.1
+Export-Package: onnx
+
+Bundle-Copyright: Copyright (c) Facebook, Inc. and Microsoft Corporation.
+Bundle-License: MIT
+-includeresource.license:
