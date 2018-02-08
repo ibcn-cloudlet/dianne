@@ -74,6 +74,7 @@ import be.iminds.iot.dianne.nn.module.preprocessing.Scale;
 import be.iminds.iot.dianne.nn.module.regularization.BatchNormalization;
 import be.iminds.iot.dianne.nn.module.regularization.DropPath;
 import be.iminds.iot.dianne.nn.module.regularization.Dropout;
+import be.iminds.iot.dianne.nn.module.regularization.LocalResponseNormalization;
 import be.iminds.iot.dianne.nn.module.vae.GaussianSampler;
 import be.iminds.iot.dianne.nn.module.vae.MultivariateGaussian;
 import be.iminds.iot.dianne.tensor.Tensor;
@@ -214,8 +215,13 @@ public class DianneModuleFactory implements ModuleFactory {
 				new ModulePropertyDTO("Stride Y", "strideY", Integer.class.getName()),
 				new ModulePropertyDTO("Stride Z", "strideZ", Integer.class.getName())));
 		
-		addSupportedType(new ModuleTypeDTO("Normalization", "Preprocessing", true));
-		addSupportedType(new ModuleTypeDTO("Denormalization", "Preprocessing", true));
+		addSupportedType(new ModuleTypeDTO("Normalization", "Preprocessing", true,
+				new ModulePropertyDTO("Mean", "mean", Float.class.getName()),
+				new ModulePropertyDTO("Stdev", "stdev", Float.class.getName())));
+		
+		addSupportedType(new ModuleTypeDTO("Denormalization", "Preprocessing", true,
+				new ModulePropertyDTO("Mean", "mean", Float.class.getName()),
+				new ModulePropertyDTO("Stdev", "stdev", Float.class.getName())));
 		
 		addSupportedType(new ModuleTypeDTO("Narrow", "Layer", false, 
 				new ModulePropertyDTO("Index dim 0", "index0", Integer.class.getName()),
@@ -253,6 +259,12 @@ public class DianneModuleFactory implements ModuleFactory {
 				new ModulePropertyDTO("Masks", "masks", String.class.getName())));
 
 		addSupportedType(new ModuleTypeDTO("Invert", "Layer", false));
+		
+		addSupportedType(new ModuleTypeDTO("LRN", "Regularization", false, 
+				new ModulePropertyDTO("Size", "size", Integer.class.getName()),
+				new ModulePropertyDTO("Alpha", "alpha", Float.class.getName()),
+				new ModulePropertyDTO("Beta", "beta", Float.class.getName()),
+				new ModulePropertyDTO("K", "k", Integer.class.getName())));
 	}
 	
 	
@@ -600,7 +612,17 @@ public class DianneModuleFactory implements ModuleFactory {
 		}
 		case "Normalization":
 		{
-			module = new Normalization(id);
+			float mean = 0;
+			float stdev = 1;
+			if(hasProperty(dto.properties, "mean")) {
+				mean = Float.parseFloat(dto.properties.get("mean"));
+			}
+			if(hasProperty(dto.properties, "stdev")) {
+				stdev = Float.parseFloat(dto.properties.get("stdev"));
+			}
+			
+			module = new Normalization(id, mean, stdev);
+			
 			if(parameters!=null){
 				((Normalization)module).setParameters(parameters);
 			}
@@ -608,7 +630,17 @@ public class DianneModuleFactory implements ModuleFactory {
 		}
 		case "Denormalization":
 		{
-			module = new Denormalization(id);
+			float mean = 0;
+			float stdev = 1;
+			if(hasProperty(dto.properties, "mean")) {
+				mean = Float.parseFloat(dto.properties.get("mean"));
+			}
+			if(hasProperty(dto.properties, "stdev")) {
+				stdev = Float.parseFloat(dto.properties.get("stdev"));
+			}
+			
+			module = new Denormalization(id, mean, stdev);
+			
 			if(parameters!=null){
 				((Denormalization)module).setParameters(parameters);
 			}
@@ -732,6 +764,19 @@ public class DianneModuleFactory implements ModuleFactory {
 		case "Invert":
 		{
 			module = new Invert(id);
+			break;
+		}
+		case "LRN":
+		{
+			int size = Integer.parseInt(dto.properties.get("size"));
+			if(dto.properties.containsKey("alpha")) {
+				float alpha = Float.parseFloat(dto.properties.get("alpha"));
+				float beta = Float.parseFloat(dto.properties.get("beta"));
+				float k = Float.parseFloat(dto.properties.get("k"));
+				module = new LocalResponseNormalization(id, size, alpha, beta, k);
+			} else {
+				module = new LocalResponseNormalization(id, size);
+			}
 			break;
 		}
 		default:
