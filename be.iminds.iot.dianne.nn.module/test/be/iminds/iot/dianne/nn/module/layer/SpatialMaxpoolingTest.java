@@ -194,4 +194,56 @@ public class SpatialMaxpoolingTest extends ModuleTest{
 		
 		testModule(pool, input, expOutput, gradOutput, expGradInput);
 	}
+	
+	
+	@Test
+	public void testSpatialMaxPoolingUnfixedWidth() throws Exception {
+		
+		MaxPooling pool = new MaxPooling(-1, -1, 1, 1); 
+		
+		float[] inputData = new float[]{
+				-1.0016336f, -0.3659996f, -0.561763f, 0.025022956f, 0.39551026f, 0.25571227f, 
+				-0.36720142f, -1.1175866f, 1.6601679f, 0.7697076f, 0.94416225f, -0.33390528f, 
+				-0.7185745f, -0.82316816f, -0.4198505f, 0.8720639f, -0.91903704f, 1.1918385f, 
+				0.9839494f, -1.1864451f, -0.2240562f, 0.1604332f, -1.2869335f, -0.3002753f, 
+				0.70621985f, 1.6712323f, 0.427771f, -1.1304947f, 1.5576284f, 0.8286627f, 
+				1.1835989f, -1.261588f, 0.109402984f, 0.31725317f, 1.2378355f, 0.40925455f, 
+
+				-0.56402963f, -1.0522915f, -0.9422165f, 1.0155184f, -0.31722248f, 1.1515416f, 
+				-0.14420497f, -1.6517973f, 0.4656332f, 1.050356f, -0.5541778f, -0.21497928f, 
+				-0.2700798f, 0.7216463f, 0.10998042f, -0.21850033f, 0.58419466f, 0.59096277f, 
+				-1.3353262f, 1.5876176f, -0.9639381f, 0.21641004f, 2.2216365f, -0.19380932f, 
+				-0.027697943f, 0.82068586f, 0.7767722f, 0.69155896f, -1.9302452f, 0.16983992f, 
+				1.1714138f, -1.4150684f, -0.7196508f, 0.74438053f, 0.88626957f, -1.6724747f
+		};
+		Tensor input = new Tensor(inputData, 2,6,6);
+		
+		float[] expOutputData = new float[]{
+				1.6712323f, 2.2216365f};
+		Tensor expOutput = new Tensor(expOutputData, 2,1,1);
+		
+		float[] gradOutputData = new float[]{
+				1.0f, 1.0f
+		};
+		Tensor gradOutput = new Tensor(gradOutputData, 2,1,1);
+		
+		float[] expGradInputData = new float[]{
+				0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+				0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+				0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+				0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+				0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+				0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+				
+				0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+				0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+				0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+				0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+				0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+				0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f
+		};
+		Tensor expGradInput = new Tensor(expGradInputData, 2,6,6);
+		
+		testModule(pool, input, expOutput, gradOutput, expGradInput);
+	}
 }

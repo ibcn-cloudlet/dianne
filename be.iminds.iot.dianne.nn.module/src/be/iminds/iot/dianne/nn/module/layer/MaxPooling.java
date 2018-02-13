@@ -113,14 +113,19 @@ public class MaxPooling extends Fork {
 	protected void forward() {
 		switch(type){
 		case TEMPORAL:
-			output = ModuleOps.temporalmaxpool(output, input, indices, width, strideX);
+			output = ModuleOps.temporalmaxpool(output, input, indices,
+					width == -1 ? input.dims()[input.dim()-1] : width, strideX);
 			break;
 		case SPATIAL:
-			output = ModuleOps.spatialmaxpool(output, input, indices, width, height, strideX, strideY, 0, 0);
+			output = ModuleOps.spatialmaxpool(output, input, indices,
+					width == -1 ? input.dims()[input.dim()-1] : width, 
+					height == -1 ? input.dims()[input.dim()-2] : height, strideX, strideY, padX, padY);
 			break;
 		case VOLUMETRIC:
 			output = ModuleOps.volumetricmaxpool(output, input, indices, 
-					width, height, depth, strideX, strideY, strideZ, padX, padY, padZ);
+					width == -1 ? input.dims()[input.dim()-1] : width,
+					height == -1 ? input.dims()[input.dim()-2] : height, 
+					depth == -1 ? input.dims()[input.dim()-3] : depth, strideX, strideY, strideZ, padX, padY, padZ);
 			break;
 		}
 		

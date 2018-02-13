@@ -114,15 +114,21 @@ public class AvgPooling extends AbstractModule {
 		case TEMPORAL:
 			// temporal avg pooling as spatial pooling with height = 1
 			input.reshape(input.dims(), 1);
-			output = ModuleOps.spatialavgpool(output, input, 1, width, 1, strideX, 0, padX, ceil, include_pad);
+			output = ModuleOps.spatialavgpool(output, input, 1, 
+					width == -1 ? input.dims()[input.dim()-1] : width, 1, strideX, 0, padX, ceil, include_pad);
 			int[] outputDims = output.dims();
 			output.reshape(Arrays.copyOf(outputDims, outputDims.length-1));
 			break;
 		case SPATIAL:
-			output = ModuleOps.spatialavgpool(output, input, width, height, strideX, strideY, padX, padY, ceil, include_pad);
+			output = ModuleOps.spatialavgpool(output, input, 
+					width == -1 ? input.dims()[input.dim()-1] : width,
+					height == -1 ? input.dims()[input.dim()-2] : height, strideX, strideY, padX, padY, ceil, include_pad);
 			break;
 		case VOLUMETRIC:
-			output = ModuleOps.volumetricavgpool(output, input, width, height, depth, strideX, strideY, strideZ);
+			output = ModuleOps.volumetricavgpool(output, input,
+					width == -1 ? input.dims()[input.dim()-1] : width,
+					height == -1 ? input.dims()[input.dim()-2] : height, 
+					depth == -1 ? input.dims()[input.dim()-3] : depth, strideX, strideY, strideZ);
 			break;
 		}
 	}
