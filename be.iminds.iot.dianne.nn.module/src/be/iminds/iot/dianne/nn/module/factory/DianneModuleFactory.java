@@ -197,7 +197,10 @@ public class DianneModuleFactory implements ModuleFactory {
 				new ModulePropertyDTO("Depth", "depth", Integer.class.getName()),
 				new ModulePropertyDTO("Stride X", "strideX", Integer.class.getName()),
 				new ModulePropertyDTO("Stride Y", "strideY", Integer.class.getName()),
-				new ModulePropertyDTO("Stride Z", "strideZ", Integer.class.getName())));
+				new ModulePropertyDTO("Stride Z", "strideZ", Integer.class.getName()),
+				new ModulePropertyDTO("Pad X", "padX", Integer.class.getName()),
+				new ModulePropertyDTO("Pad Y", "padY", Integer.class.getName()),
+				new ModulePropertyDTO("Pad Z", "padZ", Integer.class.getName())));
 
 		addSupportedType(new ModuleTypeDTO("MaxUnpooling" , "Layer", false, 
 				new ModulePropertyDTO("Width", "width", Integer.class.getName()),
@@ -205,7 +208,10 @@ public class DianneModuleFactory implements ModuleFactory {
 				new ModulePropertyDTO("Depth", "depth", Integer.class.getName()),
 				new ModulePropertyDTO("Stride X", "strideX", Integer.class.getName()),
 				new ModulePropertyDTO("Stride Y", "strideY", Integer.class.getName()),
-				new ModulePropertyDTO("Stride Z", "strideZ", Integer.class.getName())));
+				new ModulePropertyDTO("Stride Z", "strideZ", Integer.class.getName()),
+				new ModulePropertyDTO("Pad X", "padX", Integer.class.getName()),
+				new ModulePropertyDTO("Pad Y", "padY", Integer.class.getName()),
+				new ModulePropertyDTO("Pad Z", "padZ", Integer.class.getName())));
 		
 		addSupportedType(new ModuleTypeDTO("AvgPooling" , "Layer", false, 
 				new ModulePropertyDTO("Width", "width", Integer.class.getName()),
@@ -561,10 +567,14 @@ public class DianneModuleFactory implements ModuleFactory {
 			int sy = hasProperty(dto.properties,"strideY") ? Integer.parseInt(dto.properties.get("strideY")) : height;
 			int sz = hasProperty(dto.properties,"strideZ") ? Integer.parseInt(dto.properties.get("strideZ")) : depth;
 
+			int px = hasProperty(dto.properties, "padX") ? Integer.parseInt(dto.properties.get("padX")) : 0;
+			int py = hasProperty(dto.properties,"padY") ? Integer.parseInt(dto.properties.get("padY")) : 0;
+			int pz = hasProperty(dto.properties,"padZ") ? Integer.parseInt(dto.properties.get("padZ")) : 0;
+			
 			if(hasProperty(dto.properties, "depth")){
-				module = new MaxPooling(id, width, height, depth, sx, sy, sz);
+				module = new MaxPooling(id, width, height, depth, sx, sy, sz, px, py, pz);
 			} else if(hasProperty(dto.properties, "height")){
-				module = new MaxPooling(id, width, height, sx, sy);
+				module = new MaxPooling(id, width, height, sx, sy, px, py);
 			} else {
 				module = new MaxPooling(id, width, sx);
 			}
@@ -581,10 +591,14 @@ public class DianneModuleFactory implements ModuleFactory {
 			int sy = hasProperty(dto.properties,"strideY") ? Integer.parseInt(dto.properties.get("strideY")) : height;
 			int sz = hasProperty(dto.properties,"strideZ") ? Integer.parseInt(dto.properties.get("strideZ")) : depth;
 
+			int px = hasProperty(dto.properties, "padX") ? Integer.parseInt(dto.properties.get("padX")) : 0;
+			int py = hasProperty(dto.properties,"padY") ? Integer.parseInt(dto.properties.get("padY")) : 0;
+			int pz = hasProperty(dto.properties,"padZ") ? Integer.parseInt(dto.properties.get("padZ")) : 0;
+			
 			if(hasProperty(dto.properties, "depth")){
-				module = new MaxUnpooling(id, width, height, depth, sx, sy, sz);
+				module = new MaxUnpooling(id, width, height, depth, sx, sy, sz, px, py, pz);
 			} else if(hasProperty(dto.properties, "height")){
-				module = new MaxUnpooling(id, width, height, sx, sy);
+				module = new MaxUnpooling(id, width, height, sx, sy, px, py);
 			} else {
 				module = new MaxUnpooling(id, width, sx);
 			}
@@ -601,12 +615,16 @@ public class DianneModuleFactory implements ModuleFactory {
 			int sy = hasProperty(dto.properties,"strideY") ? Integer.parseInt(dto.properties.get("strideY")) : height;
 			int sz = hasProperty(dto.properties,"strideZ") ? Integer.parseInt(dto.properties.get("strideZ")) : depth;
 
+			int px = hasProperty(dto.properties, "padX") ? Integer.parseInt(dto.properties.get("padX")) : 0;
+			int py = hasProperty(dto.properties,"padY") ? Integer.parseInt(dto.properties.get("padY")) : 0;
+			int pz = hasProperty(dto.properties,"padZ") ? Integer.parseInt(dto.properties.get("padZ")) : 0;
+			
 			if(hasProperty(dto.properties, "depth")){
-				module = new AvgPooling(id, width, height, depth, sx, sy, sz);
+				module = new AvgPooling(id, width, height, depth, sx, sy, sz, px, py, pz);
 			} else if(hasProperty(dto.properties, "height")){
-				module = new AvgPooling(id, width, height, sx, sy);
+				module = new AvgPooling(id, width, height, sx, sy, px, py);
 			} else {
-				module = new AvgPooling(id, width, sx);
+				module = new AvgPooling(id, width, sx, px);
 			}
 			break;
 		}

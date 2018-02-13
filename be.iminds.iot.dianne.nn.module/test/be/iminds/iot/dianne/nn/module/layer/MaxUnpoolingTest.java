@@ -41,9 +41,9 @@ public class MaxUnpoolingTest extends ModuleTest{
 		UUID uuid1 = UUID.randomUUID();
 		UUID uuid2 = UUID.randomUUID();
 		UUID uuid3 = UUID.randomUUID();
-		MaxPooling mp = new MaxPooling(uuid1, 2, 2, 2, 2, 2, 2);
+		MaxPooling mp = new MaxPooling(uuid1, 2, 2, 2, 2, 2, 2, 0, 0, 0);
 		Reshape r = new Reshape(uuid2, 2, 2, 3, 3);
-		MaxUnpooling mup = new MaxUnpooling(uuid3, 2, 2, 2, 2, 2, 2);
+		MaxUnpooling mup = new MaxUnpooling(uuid3, 2, 2, 2, 2, 2, 2, 0, 0, 0);
 		mup.setPrevious(new Module[]{r, mp});
 		r.setNext(mup);
 		r.setPrevious(mp);
@@ -164,9 +164,9 @@ public class MaxUnpoolingTest extends ModuleTest{
 		UUID uuid1 = UUID.randomUUID();
 		UUID uuid2 = UUID.randomUUID();
 		UUID uuid3 = UUID.randomUUID();
-		MaxPooling mp = new MaxPooling(uuid1, 2, 2, 2, 2);
+		MaxPooling mp = new MaxPooling(uuid1, 2, 2, 2, 2, 0, 0);
 		Reshape r = new Reshape(uuid2, 2, 3, 3);
-		MaxUnpooling mup = new MaxUnpooling(uuid3, 2, 2, 2, 2);
+		MaxUnpooling mup = new MaxUnpooling(uuid3, 2, 2, 2, 2, 0, 0);
 		mup.setPrevious(new Module[]{r, mp});
 		r.setNext(mup);
 		r.setPrevious(mp);

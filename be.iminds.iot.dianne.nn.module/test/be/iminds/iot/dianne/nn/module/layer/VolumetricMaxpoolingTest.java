@@ -31,7 +31,7 @@ public class VolumetricMaxpoolingTest extends ModuleTest{
 
 	@Test
 	public void testVolumetricMaxpool1() throws InterruptedException {
-		MaxPooling mp = new MaxPooling(2, 2, 2, 2, 2, 2);
+		MaxPooling mp = new MaxPooling(2, 2, 2, 2, 2, 2, 0, 0, 0);
 		
 		Tensor input = new Tensor(2,4,6,6);
 		input.fill(1.0f);

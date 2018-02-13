@@ -64,6 +64,23 @@ public class AvgPooling extends AbstractModule {
 		type = Type.TEMPORAL;
 	}
 	
+	public AvgPooling(int width, int stride, int pad){
+		super();
+		this.width = width;
+		this.strideX = stride;
+		this.padX = pad;
+		type = Type.TEMPORAL;
+	}
+	
+	public AvgPooling(UUID id,
+			 int width, int stride, int pad){
+		super(id);
+		this.width = width;
+		this.strideX = stride;
+		this.padX = pad;
+		type = Type.TEMPORAL;
+	}
+	
 	/* Spatial constructors */
 	public AvgPooling(int width, int height, int strideX, int strideY){
 		super();
@@ -84,8 +101,33 @@ public class AvgPooling extends AbstractModule {
 		type = Type.SPATIAL;
 	}
 	
+	public AvgPooling(int width, int height, int strideX, int strideY, int padX, int padY){
+		super();
+		this.width = width;
+		this.height = height;
+		this.strideX = strideX;
+		this.strideY = strideY;
+		this.padX = padX;
+		this.padY = padY;
+		type = Type.SPATIAL;
+	}
+	
+	public AvgPooling(UUID id,
+			 int width, int height, int strideX, int strideY, int padX, int padY){
+		super(id);
+		this.width = width;
+		this.height = height;
+		this.strideX = strideX;
+		this.strideY = strideY;
+		this.padX = padX;
+		this.padY = padY;
+		type = Type.SPATIAL;
+	}
+	
 	/* Volumetric constructors */
-	public AvgPooling(int width, int height, int depth, int strideX, int strideY, int strideZ){
+	public AvgPooling(int width, int height, int depth, 
+			int strideX, int strideY, int strideZ,
+			int padX, int padY, int padZ){
 		super();
 		this.width = width;
 		this.height = height;
@@ -93,11 +135,16 @@ public class AvgPooling extends AbstractModule {
 		this.strideX = strideX;
 		this.strideY = strideY;
 		this.strideZ = strideZ;
+		this.padX = padX;
+		this.padY = padY;
+		this.padZ = padZ;
 		type = Type.VOLUMETRIC;
 	}
 	
 	public AvgPooling(UUID id,
-			 int width, int height, int depth, int strideX, int strideY, int strideZ){
+			 int width, int height, int depth, 
+			 int strideX, int strideY, int strideZ,
+			 int padX, int padY, int padZ){
 		super(id);
 		this.width = width;
 		this.height = height;
@@ -105,6 +152,9 @@ public class AvgPooling extends AbstractModule {
 		this.strideX = strideX;
 		this.strideY = strideY;
 		this.strideZ = strideZ;
+		this.padX = padX;
+		this.padY = padY;
+		this.padZ = padZ;
 		type = Type.VOLUMETRIC;
 	}
 

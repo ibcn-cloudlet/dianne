@@ -31,7 +31,7 @@ public class VolumetricAvgpoolingTest extends ModuleTest{
 
 	@Test
 	public void testVolumetricAvgpool1() throws InterruptedException {
-		AvgPooling ap = new AvgPooling(2, 2, 2, 2, 2, 2);
+		AvgPooling ap = new AvgPooling(2, 2, 2, 2, 2, 2, 0, 0, 0);
 		
 		Tensor input = new Tensor(2,4,6,6);
 		input.fill(1.0f);

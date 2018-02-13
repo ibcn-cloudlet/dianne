@@ -38,7 +38,6 @@ public class MaxPooling extends Fork {
 	private int strideY;
 	private int strideZ;
 	
-	// unused for now
 	private int padX = 0;
 	private int padY = 0;
 	private int padZ = 0;
@@ -84,8 +83,35 @@ public class MaxPooling extends Fork {
 		type = Type.SPATIAL;
 	}
 	
+	public MaxPooling(int width, int height, int strideX, int strideY,
+			int padX, int padY){
+		super();
+		this.width = width;
+		this.height = height;
+		this.strideX = strideX;
+		this.strideY = strideY;
+		this.padX = padX;
+		this.padY = padY;
+		type = Type.SPATIAL;
+	}
+	
+	public MaxPooling(UUID id,
+			 int width, int height, int strideX, int strideY, 
+			 int padX, int padY){
+		super(id);
+		this.width = width;
+		this.height = height;
+		this.strideX = strideX;
+		this.strideY = strideY;
+		this.padX = padX;
+		this.padY = padY;
+		type = Type.SPATIAL;
+	}
+	
 	/* Volumetric constructors */
-	public MaxPooling(int width, int height, int depth, int strideX, int strideY, int strideZ){
+	public MaxPooling(int width, int height, int depth, 
+			int strideX, int strideY, int strideZ, 
+			int padX, int padY, int padZ){
 		super();
 		this.width = width;
 		this.height = height;
@@ -93,11 +119,16 @@ public class MaxPooling extends Fork {
 		this.strideX = strideX;
 		this.strideY = strideY;
 		this.strideZ = strideZ;
+		this.padX = padX;
+		this.padY = padY;
+		this.padZ = padZ;
 		type = Type.VOLUMETRIC;
 	}
 	
 	public MaxPooling(UUID id,
-			 int width, int height, int depth, int strideX, int strideY, int strideZ){
+			 int width, int height, int depth, 
+			 int strideX, int strideY, int strideZ,
+			 int padX, int padY, int padZ){
 		super(id);
 		this.width = width;
 		this.height = height;
@@ -105,6 +136,9 @@ public class MaxPooling extends Fork {
 		this.strideX = strideX;
 		this.strideY = strideY;
 		this.strideZ = strideZ;
+		this.padX = padX;
+		this.padY = padY;
+		this.padZ = padZ;
 		type = Type.VOLUMETRIC;
 	}
 
@@ -156,7 +190,7 @@ public class MaxPooling extends Fork {
 			gradInput = ModuleOps.temporalmaxpoolGradIn(gradInput, gradOutput, input, output, indices, width, strideX);
 			break;
 		case SPATIAL:
-			gradInput = ModuleOps.spatialmaxpoolGradIn(gradInput, gradOutput, input, output, indices, width, height, strideX, strideY, 0, 0);
+			gradInput = ModuleOps.spatialmaxpoolGradIn(gradInput, gradOutput, input, output, indices, width, height, strideX, strideY, padX, padY);
 			break;
 		case VOLUMETRIC:
 			gradInput = ModuleOps.volumetricmaxpoolGradIn(gradInput, gradOutput, input, output, indices,

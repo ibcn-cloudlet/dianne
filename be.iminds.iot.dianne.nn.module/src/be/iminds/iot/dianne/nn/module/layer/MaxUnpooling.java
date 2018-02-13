@@ -38,7 +38,6 @@ public class MaxUnpooling extends Join {
 	private int strideY;
 	private int strideZ;
 	
-	// unused for now
 	private int padX = 0;
 	private int padY = 0;
 	private int padZ = 0;
@@ -84,8 +83,35 @@ public class MaxUnpooling extends Join {
 		type = Type.SPATIAL;
 	}
 	
+	public MaxUnpooling(int width, int height, int strideX, int strideY,
+			int padX, int padY){
+		super();
+		this.width = width;
+		this.height = height;
+		this.strideX = strideX;
+		this.strideY = strideY;
+		this.padX = padX;
+		this.padY = padY;
+		type = Type.SPATIAL;
+	}
+	
+	public MaxUnpooling(UUID id,
+			 int width, int height, int strideX, int strideY,
+			 int padX, int padY){
+		super(id);
+		this.width = width;
+		this.height = height;
+		this.strideX = strideX;
+		this.strideY = strideY;
+		this.padX = padX;
+		this.padY = padY;
+		type = Type.SPATIAL;
+	}
+	
 	/* Volumetric constructors */
-	public MaxUnpooling(int width, int height, int depth, int strideX, int strideY, int strideZ){
+	public MaxUnpooling(int width, int height, int depth, 
+			int strideX, int strideY, int strideZ,
+			int padX, int padY, int padZ){
 		super();
 		this.width = width;
 		this.height = height;
@@ -93,11 +119,16 @@ public class MaxUnpooling extends Join {
 		this.strideX = strideX;
 		this.strideY = strideY;
 		this.strideZ = strideZ;
+		this.padX = padX;
+		this.padY = padY;
+		this.padZ = padZ;
 		type = Type.VOLUMETRIC;
 	}
 	
 	public MaxUnpooling(UUID id,
-			 int width, int height, int depth, int strideX, int strideY, int strideZ){
+			 int width, int height, int depth, 
+			 int strideX, int strideY, int strideZ,
+			 int padX, int padY, int padZ){
 		super(id);
 		this.width = width;
 		this.height = height;
@@ -105,6 +136,9 @@ public class MaxUnpooling extends Join {
 		this.strideX = strideX;
 		this.strideY = strideY;
 		this.strideZ = strideZ;
+		this.padX = padX;
+		this.padY = padY;
+		this.padZ = padZ;
 		type = Type.VOLUMETRIC;
 	}
 
@@ -126,7 +160,7 @@ public class MaxUnpooling extends Join {
 			// TODO can we implement this with spatial variant?
 			throw new UnsupportedOperationException();
 		case SPATIAL:
-			output = ModuleOps.spatialmaxunpool(output, input, indices, width, height, strideX, strideY, 0, 0);
+			output = ModuleOps.spatialmaxunpool(output, input, indices, width, height, strideX, strideY, padX, padY);
 			break;
 		case VOLUMETRIC:
 			output = ModuleOps.volumetricmaxunpool(output, input, indices, 
@@ -146,7 +180,7 @@ public class MaxUnpooling extends Join {
 			// TODO can we implement this with spatial variant?
 			throw new UnsupportedOperationException();
 		case SPATIAL:
-			gradInput = ModuleOps.spatialmaxunpoolGradIn(gradInput, gradOutput, input, indices, width, height, strideX, strideY, 0, 0);
+			gradInput = ModuleOps.spatialmaxunpoolGradIn(gradInput, gradOutput, input, indices, width, height, strideX, strideY, padX, padY);
 			break;
 		case VOLUMETRIC:
 			gradInput = ModuleOps.volumetricmaxunpoolGradIn(gradInput, gradOutput, input, indices,
