@@ -13,7 +13,7 @@ public abstract class ThingInput {
 
 	protected final UUID id;
 	protected final String name;
-	protected final String type;
+	protected String type;
 	
 	protected final List<Input> inputs = new CopyOnWriteArrayList<>();
 	

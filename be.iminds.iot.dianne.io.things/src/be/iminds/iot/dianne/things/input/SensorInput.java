@@ -34,27 +34,49 @@ import org.osgi.framework.ServiceRegistration;
 import be.iminds.iot.dianne.api.io.InputDescription;
 import be.iminds.iot.dianne.api.nn.module.Input;
 import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.sensor.api.Camera;
+import be.iminds.iot.sensor.api.Frame;
 import be.iminds.iot.sensor.api.LaserScanner;
+import be.iminds.iot.sensor.api.PointCloud;
+import be.iminds.iot.sensor.api.Scanner3D;
+import be.iminds.iot.sensor.api.Sensor;
 import be.iminds.iot.sensor.api.SensorListener;
 import be.iminds.iot.sensor.api.SensorValue;
 
-public class LaserScanInput extends ThingInput implements SensorListener {
+public class SensorInput extends ThingInput implements SensorListener {
 
-	private LaserScanner laser;
+	private Sensor sensor;
 	private Tensor t;
 	
 	private ServiceRegistration registration;
 	
-	public LaserScanInput(UUID id, String name, LaserScanner l){
-		super(id, name, "LaserScanner");
-		this.laser = l;
+	public SensorInput(UUID id, String name, Sensor s){
+		super(id, name, "Sensor");
+		if(s instanceof LaserScanner) {
+			super.type = "LaserScanner";
+		} else if(s instanceof Camera) {
+			super.type = "Camera";
+		} else if(s instanceof Scanner3D) {
+			super.type = "Scanner3D";
+		}
+		this.sensor = s;
 	}
 
 	@Override
 	public InputDescription getInputDescription(){
 		Map<String, String> properties = new HashMap<>();
-		properties.put("minAngle", ""+laser.getMinAngle());
-		properties.put("maxAngle", ""+laser.getMaxAngle());
+		if(sensor instanceof LaserScanner) {
+			LaserScanner laser = (LaserScanner) sensor;
+			properties.put("minAngle", ""+laser.getMinAngle());
+			properties.put("maxAngle", ""+laser.getMaxAngle());
+		} else if(sensor instanceof Camera) {
+			Camera camera = (Camera) sensor;
+			properties.put("width", ""+camera.getWidth());
+			properties.put("height", ""+camera.getHeight());
+			properties.put("encoding", ""+camera.getEncoding());
+		} else if(sensor instanceof Scanner3D) {
+		}
+
 		return new InputDescription(name, type, properties);
 	}
 	
@@ -66,10 +88,22 @@ public class LaserScanInput extends ThingInput implements SensorListener {
 					t = new Tensor(value.data.length);
 				}
 				t.set(value.data);
+				
+				// adapt shape when needed
+				if(type.equals("Camera")) {
+					Frame f = (Frame) value;
+					if(f.encoding.equals("rgb8")) {
+						t.reshape(3, f.width, f.height);
+					}
+				} else if(type.equals("Scanner3D")) {
+					PointCloud pcl = (PointCloud) value;
+					t.reshape(pcl.size, pcl.fields.length);
+				}
 				in.input(t);
 			}
 		} catch(Exception e){
 			// ignore exception ... probably NN was deployed while forwarding input
+			e.printStackTrace();
 		}
 	}
 

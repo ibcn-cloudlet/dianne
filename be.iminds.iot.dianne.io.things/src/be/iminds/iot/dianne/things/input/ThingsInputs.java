@@ -40,7 +40,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import be.iminds.iot.dianne.api.io.DianneInputs;
 import be.iminds.iot.dianne.api.io.InputDescription;
 import be.iminds.iot.dianne.api.nn.module.Input;
-import be.iminds.iot.sensor.api.LaserScanner;
+import be.iminds.iot.sensor.api.Sensor;
 import be.iminds.iot.things.api.Thing;
 import be.iminds.iot.things.api.camera.Camera;
 
@@ -85,16 +85,16 @@ public class ThingsInputs implements DianneInputs {
 	@Reference(
 			cardinality=ReferenceCardinality.MULTIPLE, 
 			policy=ReferencePolicy.DYNAMIC)
-	void addLaserScanner(LaserScanner l, Map<String, Object> properties){
+	void addSensor(Sensor s, Map<String, Object> properties){
 		String name = (String) properties.get("name");
 		UUID id = UUID.nameUUIDFromBytes(name.getBytes());
 		
 		String cap = name.substring(0, 1).toUpperCase() + name.substring(1).toLowerCase();
-		LaserScanInput laser = new LaserScanInput(id, cap, l);
+		SensorInput laser = new SensorInput(id, cap, s);
 		things.put(id, laser);
 	}
 	
-	void removeLaserScanner(LaserScanner l, Map<String, Object> properties){
+	void removeSensor(Sensor s, Map<String, Object> properties){
 		String name = (String) properties.get("name");
 		UUID id = UUID.nameUUIDFromBytes(name.getBytes());		
 		things.remove(id);
