@@ -75,9 +75,13 @@ public class DianneLoader extends HttpServlet {
 			NeuralNetworkDTO nn = repository.loadNeuralNetwork(name);
 			String s = DianneJSONConverter.toJsonString(nn); 
 			response.getWriter().write(s);
-			response.getWriter().write(", \"layout\":");
-			String layout = repository.loadLayout(name);
-			response.getWriter().write(layout);
+			try {
+				String layout = repository.loadLayout(name);
+				response.getWriter().write(", \"layout\":");
+				response.getWriter().write(layout);
+			} catch(Exception e) {
+				// ignore layout if not available
+			}
 			response.getWriter().write("}");
 			response.getWriter().flush();
 		}

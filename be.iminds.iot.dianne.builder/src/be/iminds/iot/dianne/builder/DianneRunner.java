@@ -244,7 +244,7 @@ public class DianneRunner extends HttpServlet {
 
 			if(inputId != null){
 				start = System.currentTimeMillis();
-				nn.forward(UUID.fromString(inputId), null, s.input, "ui");
+				nn.forward(UUID.fromString(inputId), null, s.input, "ui", dataset);
 			}
 			
 			JsonObject sample = jsonConverter.toJson(s.input);			
@@ -266,6 +266,17 @@ public class DianneRunner extends HttpServlet {
 	private String outputSSEMessage(UUID outputId, String[] outputLabels, Tensor output, long time, String...tags){
 		JsonObject data = jsonConverter.toJson(output);
 
+		if(outputLabels == null) {
+			// try to fetch labels from dataset which is provided as tag ... kinda hacky, but works :-)
+			for(String tag : tags) {
+				Dataset d = datasets.getDataset(tag);
+				if(d != null) {
+					outputLabels = d.getLabels();
+					break;
+				}
+			}
+		}
+		
 		float max = TensorOps.max(output);
 		if(output.dim()==1 && (outputLabels != null || isProbability(output))){
 			// format output as [['label', val],['label2',val2],...] for in highcharts

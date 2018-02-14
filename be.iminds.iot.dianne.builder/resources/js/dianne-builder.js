@@ -973,7 +973,12 @@ function load(name, add){
 						nn.modules[m]=data.nn.modules[m];
 					}
 				}
-				loadLayout(data.layout);
+				// load layout
+				if(data.layout !== undefined){
+					loadLayout(data.layout);
+				} else {
+					createLayout();
+				}
 		
 				$('#dialog-load').remove();
 				console.log("Succesfully loaded");
@@ -995,12 +1000,52 @@ function loadLayout(layout){
         	target: elem.targetId,
         	anchors: elem.anchors,
         	paintStyle: connectorPaintStyle,
-        	paintHoverStyle: connectorHoverPaintStyle,
+        	paintHoverStyle: connectorHoverPaintStyle
         });
         
         if(connection!==undefined)
         	connection.bind("dblclick", connectionClicked);
     });
+}
+
+
+function createLayout(){
+	var index = 0;
+    $.each(nn.modules, function( id, module ) {
+    	if(module.type === "Input"){
+        	drawLink(module, 200, 100+index*400);
+        	index++;
+    	}
+    });
+}
+
+function drawLink(module, posX, posY){
+	if($('#'+module.id).length != 0){
+		return;
+	}
+	
+	redrawElement(module.id, posX, posY);
+	
+	$.each(module.next, function( index, id ){
+		var x = posX+150;
+		var y = posY+index*100;
+		if(x > 1200){
+			x = 300;
+			y = posY+170;
+		}
+		drawLink(nn.modules[id], x, y);
+		
+		var connection = jsPlumb.connect({
+        	source: module.id,
+        	target: id,
+        	anchors: [[1,0.5,1,0,0,0],[0,0.5,-1,0,0,0]],
+        	paintStyle: connectorPaintStyle,
+        	paintHoverStyle: connectorHoverPaintStyle
+        });
+        
+        if(connection!==undefined)
+        	connection.bind("dblclick", connectionClicked);
+	});
 }
 
 function redrawElement(id, posX, posY){
