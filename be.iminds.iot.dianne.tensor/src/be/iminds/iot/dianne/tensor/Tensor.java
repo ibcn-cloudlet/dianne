@@ -296,7 +296,7 @@ public class Tensor {
 		else if(other.address == this.address)
 			return true;
 		else
-			return equals(other, 0.0f);
+			return equals(other, 0.000001f);
 	}
 	
 	/**

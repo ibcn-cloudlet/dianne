@@ -6,6 +6,7 @@ Bundle-Version: 0.7.0.${tstamp}
 	biz.aQute.junit,\
 	com.google.gson;version=2.2,\
 	be.iminds.iot.dianne.tensor;version=latest,\
+	be.iminds.iot.dianne.tensor.util;version=latest,\
 	be.iminds.iot.dianne.api;version=latest,\
 	be.iminds.iot.dianne.nn.module;version=latest,\
 	be.iminds.iot.dianne.nn.runtime;version=latest,\
@@ -16,14 +17,17 @@ Bundle-Version: 0.7.0.${tstamp}
 	be.iminds.iot.dianne.nn.platform;version=latest,\
 	be.iminds.iot.dianne.nn;version=latest,\
 	be.iminds.iot.dianne.nn.eval;version=latest,\
-	be.iminds.iot.dianne.dataset;version=latest
+	be.iminds.iot.dianne.dataset;version=latest,\
+	be.iminds.iot.dianne.onnx;version=latest
 	
 Private-Package: \
 	be.iminds.iot.dianne.nn.test.integration,\
-	be.iminds.iot.dianne.nn.test
+	be.iminds.iot.dianne.nn.test,\
+	be.iminds.iot.dianne.nn.test.onnx
 
 Test-Cases: \
-	be.iminds.iot.dianne.nn.test.integration.WrongSizeTest
+	be.iminds.iot.dianne.nn.test.integration.WrongSizeTest,\
+	be.iminds.iot.dianne.nn.test.onnx.OnnxTest
 
 # how to make sure dataset/ NN models are there?
 #
@@ -48,6 +52,11 @@ Test-Cases: \
 	be.iminds.iot.dianne.repository;version=latest,\
 	be.iminds.iot.dianne.dataset;version=latest,\
 	be.iminds.iot.dianne.nn.test;version=latest
+	
+-runbundles.testonnx: \
+	com.google.protobuf;version='[2.6.1,2.7)',\
+	ai.onnx;version='[1.0.1,2.0)',\
+	be.iminds.iot.dianne.onnx;version=latest
 	
 -runproperties.test:\
 	be.iminds.iot.dianne.storage="models",\
