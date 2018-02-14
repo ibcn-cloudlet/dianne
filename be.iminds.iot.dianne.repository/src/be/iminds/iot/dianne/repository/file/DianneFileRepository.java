@@ -71,6 +71,7 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 public class DianneFileRepository implements DianneRepository {
 
 	private String dir = "models";
+	private String subdir = "weights";
 	
 	private Map<RepositoryListener, List<String>> listeners = Collections.synchronizedMap(new HashMap<RepositoryListener, List<String>>());
 	protected ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -83,7 +84,7 @@ public class DianneFileRepository implements DianneRepository {
 		if(s!=null){
 			dir = s;
 		}
-		File d = new File(dir+"/weights/");
+		File d = new File(dir+File.separator+subdir+File.separator);
 		d.mkdirs();
 	}
 	
@@ -111,7 +112,7 @@ public class DianneFileRepository implements DianneRepository {
 				name = name.substring(0, name.indexOf('.'));
 			}
 			
-			if(!name.equals("weights")){
+			if(!name.equals(subdir)){
 				nns.add(name);
 			}
 		}
@@ -217,18 +218,23 @@ public class DianneFileRepository implements DianneRepository {
 	
 	@Override
 	public void storeParameters(UUID nnId, UUID moduleId, Tensor parameters, String... tag) {
-		store(moduleId, parameters, tag);
+		store(subdir, moduleId, parameters, tag);
 		
 		notifyListeners(nnId, Collections.singleton(moduleId), tag);
 	}
 	
 	@Override
 	public void storeParameters(UUID nnId, Map<UUID, Tensor> parameters, String... tag) {
-		parameters.entrySet().stream().forEach(e -> store(e.getKey(), e.getValue(), tag));
+		parameters.entrySet().stream().forEach(e -> store(subdir, e.getKey(), e.getValue(), tag));
 		
 		List<UUID> uuids = new ArrayList<UUID>();
 		uuids.addAll(parameters.keySet());
 		notifyListeners(nnId, uuids, tag);
+	}
+
+	@Override
+	public void storeParameters(String nn, Map<UUID, Tensor> parameters, String... tag) {
+		parameters.entrySet().stream().forEach(e -> store(nn, e.getKey(), e.getValue(), tag));
 	}
 	
 	@Override
@@ -338,7 +344,7 @@ public class DianneFileRepository implements DianneRepository {
 			lock.read(moduleId);
 			
 			// first check weights, next check all other nn dirs
-			File f = new File(dir+"/weights/"+parametersId(moduleId, tag));
+			File f = new File(dir+File.separator+subdir+File.separator+parametersId(moduleId, tag));
 			if(f.exists()){
 				try (DataInputStream is = new DataInputStream(
 						new BufferedInputStream(new FileInputStream(f)));
@@ -351,7 +357,7 @@ public class DianneFileRepository implements DianneRepository {
 			File d = new File(dir);
 			for(File dd : d.listFiles()){
 				if(dd.isDirectory()){
-					f = new File(dir+"/"+dd.getName()+"/"+parametersId(moduleId, tag));
+					f = new File(dir+File.separator+dd.getName()+File.separator+parametersId(moduleId, tag));
 					if(f.exists()){
 						try (DataInputStream is = new DataInputStream(
 								new BufferedInputStream(new FileInputStream(f)));
@@ -410,11 +416,11 @@ public class DianneFileRepository implements DianneRepository {
 	}
 	
 	
-	private void store(UUID moduleId, Tensor parameters, String... tag){
+	private void store(String subdir, UUID moduleId, Tensor parameters, String... tag){
 		try {
 			lock.write(moduleId);
 			
-			File f = new File(dir+"/weights/"+parametersId(moduleId, tag));
+			File f = new File(dir+File.separator+subdir+File.separator+parametersId(moduleId, tag));
 	
 			try(DataOutputStream os = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(f)))) {
 				float[] data = parameters.get();
@@ -446,7 +452,7 @@ public class DianneFileRepository implements DianneRepository {
 				System.out.println("Failed to load parameters for "+moduleId+" "+Arrays.toString(tag)+", store as new");
 			}
 		
-			store(moduleId, parameters, tag);
+			store(subdir, moduleId, parameters, tag);
 		} catch(InterruptedException e){
 			// ignore?
 		} finally {

@@ -131,7 +131,17 @@ public interface DianneRepository {
 	 * @param tag optional tags for the parameters
 	 */
 	void storeParameters(UUID nnId, Map<UUID, Tensor> parameters, String... tag);
+
+	/**
+	 * Store parameters for a number of modules
+	 *
+	 * @param nn the name of the nn these parameters originate from
+	 * @param parameters the parameters Tensors mapped by moduleIds
+	 * @param tag optional tags for the parameters
+	 */
+	void storeParameters(String nn, Map<UUID, Tensor> parameters, String... tag);
 	 
+	
 	/**
 	 * Update the parameters for a number of modules with this diff
 	 * 
