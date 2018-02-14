@@ -64,12 +64,7 @@ public class Reshape extends AbstractModule {
 		if(inputSize != targetSize){
 			if(inputSize / inputDims[0] == targetSize){
 				// batch dimension
-				int[] newDim = new int[targetDims.length + 1];
-				newDim[0] = inputDims[0];
-				for(int i=0;i<targetDims.length;i++){
-					newDim[i+1] = targetDims[i];
-				}
-				output.reshape(newDim);
+				output.reshape(inputDims[0], targetDims);
 			} else {
 				throw new RuntimeException("Invalid input dimensions to reshape?! input dims : " +Arrays.toString(input.dims())+" target dims: "+Arrays.toString(targetDims));
 			}
