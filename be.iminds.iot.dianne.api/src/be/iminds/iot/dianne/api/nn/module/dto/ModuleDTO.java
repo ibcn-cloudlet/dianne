@@ -22,6 +22,7 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.nn.module.dto;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -50,6 +51,11 @@ public class ModuleDTO {
 	public Map<String, String> properties;
 
 	
+	public ModuleDTO() {
+		this.id = UUID.randomUUID();
+		this.properties = new HashMap<>();
+	}
+	
 	public ModuleDTO(UUID id, String type, 
 			UUID[] next, UUID[] prev, 
 			Map<String, String> properties){
@@ -73,5 +79,10 @@ public class ModuleDTO {
 	@Override
 	public int hashCode(){
 		return id.hashCode();
+	}
+	
+	@Override
+	public String toString() {
+		return id.toString()+"("+type+")";
 	}
 }
