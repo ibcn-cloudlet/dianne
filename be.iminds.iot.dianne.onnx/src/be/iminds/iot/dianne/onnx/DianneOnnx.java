@@ -22,12 +22,16 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.onnx;
 
+import java.util.Map;
+import java.util.UUID;
+
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
 import be.iminds.iot.dianne.onnx.api.OnnxConverter;
+import be.iminds.iot.dianne.tensor.Tensor;
 
 @Component(immediate=true, 
 	property={"osgi.command.scope=dianne",
@@ -51,7 +55,15 @@ public class DianneOnnx implements OnnxConverter {
 	}
 	
 	public void toOnnx(String onnxFile, String nnName, String... tag) {
-		
+		try {
+			NeuralNetworkDTO nn = repository.loadNeuralNetwork(nnName);
+			Map<UUID, Tensor> parameters = repository.loadParameters(nnName, tag);
+			OnnxExporter exporter = new OnnxExporter(nn, parameters);
+			exporter.export(onnxFile);
+		} catch(Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException("Failed to export "+nnName, e);
+		}
 	}
 	
 }

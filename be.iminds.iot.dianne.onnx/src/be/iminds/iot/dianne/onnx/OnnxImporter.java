@@ -26,7 +26,6 @@ import java.io.FileInputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -155,6 +154,11 @@ public class OnnxImporter {
 				case "Softmax":
 				{
 					dto.type = "Softmax";
+					break;
+				}
+				case "LogSoftmax":
+				{
+					dto.type = "LogSoftmax";
 					break;
 				}
 				case "Gemm":
