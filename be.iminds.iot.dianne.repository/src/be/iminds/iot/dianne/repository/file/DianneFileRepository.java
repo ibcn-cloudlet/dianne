@@ -285,7 +285,8 @@ public class DianneFileRepository implements DianneRepository {
 		}
 		if(candidates != null){
 			for(String candidate : candidates){
-				parseTags(candidate.substring(37), tags);
+				if(candidate.length() > 37)
+					parseTags(candidate.substring(37), tags);
 			}
 		}
 		
