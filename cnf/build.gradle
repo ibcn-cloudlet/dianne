@@ -1,3 +1,4 @@
-task cleanAll(description: "Clean index files so they can be regenerated", group: 'build') {
+task cleanAll(description: "Clean index files so they can be regenerated.", group: 'build') {
 	delete "localrepo/index.xml"
+	delete "localrepo/index.xml.sha"
 }
