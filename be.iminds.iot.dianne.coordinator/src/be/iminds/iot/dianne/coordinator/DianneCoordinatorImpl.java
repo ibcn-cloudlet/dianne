@@ -100,8 +100,8 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 	DianneRepository repository;
 	DianneDatasets datasets;
 	
-	PlatformManager aiolos;
-
+	DeviceManager deviceMgr;
+	
 	// separate queues for learn and eval jobs, 
 	// makes sure eval jobs are not blocked by big learn jobs
 	Queue<AbstractJob> queueLearn = new LinkedBlockingQueue<>();
@@ -676,11 +676,11 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 		d.mkdirs();
 	}
 	
-	// TODO here we use a name (AIOLOS) that is alphabetically before the others
+	// TODO here we use a name (ADeviceMgr) that is alphabetically before the others
 	// so that the reference is set in addLearer/addEvaluator
 	@Reference(cardinality=ReferenceCardinality.OPTIONAL)
-	void setAIOLOS(PlatformManager p){  
-		this.aiolos = p;
+	void setADeviceMgr(DeviceManager d){  
+		this.deviceMgr = d;
 	}
 	
 	@Reference
@@ -713,14 +713,10 @@ public class DianneCoordinatorImpl implements DianneCoordinator {
 			String os = "unknown";
 			String ip = "unknown";
 			
-			if(aiolos!=null){
-				NodeInfo n = aiolos.getNode(id.toString());
-				name = n.getName();
-				arch = n.getArch();
-				os = n.getOS();
-				ip = n.getIP();
-			}
 			device = new Device(id, name, arch, os, ip);
+			if(deviceMgr!=null){
+				device = deviceMgr.getDevice(id);
+			}
 			devices.put(id, device);
 		}
 		return device;

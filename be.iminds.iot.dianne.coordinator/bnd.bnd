@@ -17,3 +17,7 @@ Private-Package: be.iminds.iot.dianne.coordinator
 Export-Package: \
 	be.iminds.iot.dianne.api.coordinator,\
 	be.iminds.iot.dianne.coordinator.util
+Import-Package: \
+	be.iminds.aiolos.info;resolution:=optional,\
+	be.iminds.aiolos.platform.api;resolution:=optional,\
+	*
