@@ -90,8 +90,8 @@ public class ThingsInputs implements DianneInputs {
 		UUID id = UUID.nameUUIDFromBytes(name.getBytes());
 		
 		String cap = name.substring(0, 1).toUpperCase() + name.substring(1).toLowerCase();
-		SensorInput laser = new SensorInput(id, cap, s);
-		things.put(id, laser);
+		SensorInput sensor = new SensorInput(id, cap, s);
+		things.put(id, sensor);
 	}
 	
 	void removeSensor(Sensor s, Map<String, Object> properties){

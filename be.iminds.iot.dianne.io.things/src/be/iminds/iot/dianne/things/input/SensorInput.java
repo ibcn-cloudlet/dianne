@@ -92,7 +92,7 @@ public class SensorInput extends ThingInput implements SensorListener {
 				// adapt shape when needed
 				if(type.equals("Camera")) {
 					Frame f = (Frame) value;
-					if(f.encoding.equals("rgb8")) {
+					if(f.encoding == Frame.Encoding.RGB) {
 						t.reshape(3, f.width, f.height);
 					}
 				} else if(type.equals("Scanner3D")) {
