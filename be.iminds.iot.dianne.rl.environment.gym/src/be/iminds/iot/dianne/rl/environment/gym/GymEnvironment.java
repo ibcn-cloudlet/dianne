@@ -30,6 +30,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -75,7 +76,10 @@ public class GymEnvironment implements Environment {
 	private int count = 0;
 	
 	@Activate
-	void activate() {
+	void activate(BundleContext context) {
+		String paths = context.getProperty("be.iminds.iot.dianne.rl.environment.gym.extra.paths");
+		String extras = context.getProperty("be.iminds.iot.dianne.rl.environment.gym.extra");
+		
 		try {
 			thread.submit(()->{
 				try {
@@ -83,7 +87,19 @@ public class GymEnvironment implements Environment {
 					jep.eval("import sys");
 					jep.eval("sys.argv = []");
 					jep.eval("sys.argv.append('OpenAI Gym Environment')");
+					if(paths != null) {
+						for(String path : paths.split(",")) {
+							jep.eval("sys.path.append('"+path+"')");
+						}
+					}
+					
 					jep.eval("import gym");
+					
+					if(extras != null) {
+						for(String extra : extras.split(",")) {
+							jep.eval("import "+extra);
+						}
+					}
 					
 					// TODO check if successfully initialized?!
 				} catch(Exception e){
