@@ -30,7 +30,7 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.Sample;
-import be.iminds.iot.dianne.tensor.Tensor;
+import be.iminds.iot.dianne.tensor.TensorOps;
 
 /**
  * This Dataset adapter extends the Dataset by also rotating samples
@@ -91,29 +91,9 @@ public class DatasetRandomRotationAdapter extends AbstractDatasetAdapter {
 	protected void adaptSample(Sample original, Sample adapted) {
 		float theta = minTheta+r.nextFloat()*(maxTheta-minTheta);
 		
-		adapted.input = rotate(adapted.input, original.input, theta);
-		if(targetDimsSameAsInput){
-			adapted.target = rotate(adapted.target, original.target, theta);
-		} else {
-			adapted.target = original.target.copyInto(adapted.target);
-		}
-	}
-
-	// TODO implement this as (native) TensorOp
-	private Tensor rotate(Tensor res, final Tensor t, float theta){
-		float[] rotatedData = new float[t.size()];
-		
-		int[] dims = t.dims();
-		float[] data = t.get();
-		
-		int channels = dims.length == 3 ? dims[0] : 1;
+		int[] dims = original.input.dims();
 		int height = dims.length == 3 ? dims[1] : dims[0];
 		int width = dims.length == 3 ? dims[2] : dims[1];
-		
-		double sin_theta = Math.sin(theta);
-		double cos_theta = Math.cos(theta);
-		
-		
 		
 		int center_x = r.nextInt(width);
 		int center_y = r.nextInt(height);
@@ -125,28 +105,14 @@ public class DatasetRandomRotationAdapter extends AbstractDatasetAdapter {
 			center_y = center[1];
 		}
 		
-		for(int c = 0; c < channels ; c++){
-			for(int j=0;j<height;j++){
-				for(int i=0;i<width;i++){
-					
-					int heightIndex = (int)((i - center_x)*sin_theta + (j - center_y)*cos_theta + center_y);
-					int widthIndex = (int)((i - center_x)*cos_theta - (j - center_y)*sin_theta + center_x);
-					
-					if(heightIndex < 0 || heightIndex >= height
-							|| widthIndex < 0 || widthIndex >= width){
-						rotatedData[c*width*height+j*width+i] = 0;
-					} else {
-						rotatedData[c*width*height+j*width+i] = data[c*width*height+heightIndex*width+widthIndex]; 
-					}
-				}
-			}
-		}
-		
-		if(res == null){
-			res = new Tensor(rotatedData, dims);
+		adapted.input = TensorOps.rotate(adapted.input, original.input, theta, center_x, center_y);
+		if(targetDimsSameAsInput){
+			adapted.target = TensorOps.rotate(adapted.target, original.target, theta, center_x, center_y);
 		} else {
-			res.set(rotatedData);
+			adapted.target = original.target.copyInto(adapted.target);
 		}
-		return res;
 	}
+
+	// TODO implement this as (native) TensorOp
+	
 }
