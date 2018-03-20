@@ -38,7 +38,7 @@ public class GymConfig {
 	/**
 	 * Reward factor
 	 */
-	public float rewardFactor = 0.01f;
+	public float rewardFactor = 1.0f;
 
 	/**
 	 * action factor. Change range of the action.
