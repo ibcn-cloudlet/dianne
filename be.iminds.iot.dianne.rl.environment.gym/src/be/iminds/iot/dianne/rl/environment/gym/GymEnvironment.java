@@ -161,6 +161,8 @@ public class GymEnvironment implements Environment {
 						reward = ((Double)r).floatValue();
 					} else if(r.getClass().equals(Integer.class)){
 						reward = ((Integer)r).floatValue();
+					} else if(r.getClass().equals(Long.class)){
+						reward = ((Long)r).floatValue();
 					} else {
 						System.out.println("Invalid reward class?! "+r.getClass().getName());
 					}
