@@ -23,7 +23,6 @@
 package be.iminds.iot.dianne.api.dataset;
 
 import java.lang.reflect.Field;
-import java.util.Arrays;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Activate;

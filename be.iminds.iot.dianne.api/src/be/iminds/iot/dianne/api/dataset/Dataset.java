@@ -22,6 +22,8 @@
  *******************************************************************************/
 package be.iminds.iot.dianne.api.dataset;
 
+import java.util.stream.IntStream;
+
 /**
  * A Dataset is a collection of input data and the corresponding targets.
  * 
@@ -122,11 +124,9 @@ public interface Dataset {
 			}
 		}
 		
-		for(int i=0;i<indices.length;i++){
-			getSample(b.samples[i], indices[i]);
-		}
-		
-		return b;
+		final Batch result = b;
+		IntStream.range(0, indices.length).parallel().forEach(i -> getSample(result.samples[i], indices[i]));
+		return result;
 	}
 	
 	/**
