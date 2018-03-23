@@ -54,6 +54,7 @@ public class VariationalAutoEncoderLearningStrategy implements LearningStrategy 
 	
 	protected int latentDims = 1;
 	protected int sampleSize = 1;
+	protected float beta = 1;
 	
 	protected Dataset dataset;
 	protected BatchSampler sampler;
@@ -88,6 +89,9 @@ public class VariationalAutoEncoderLearningStrategy implements LearningStrategy 
 		
 		if(config.containsKey("sampleSize"))
 			this.sampleSize = Integer.parseInt(config.get("sampleSize"));
+		
+		if(config.containsKey("beta"))
+			this.beta = Float.parseFloat(config.get("beta"));
 
 		this.config = DianneConfigHandler.getConfig(config, FeedForwardConfig.class);
 		this.sampler = new BatchSampler(dataset, this.config.sampling, config);
@@ -153,6 +157,7 @@ public class VariationalAutoEncoderLearningStrategy implements LearningStrategy 
 		// Regularization error & gradient (latentParams => regularizationError,regularizationGrad)
 		float regularizationError = TensorOps.mean(regulCriterion.loss(latentParams, prior));
 		Tensor regularizationGrad = regulCriterion.grad(latentParams, prior);
+		TensorOps.mul(regularizationGrad, regularizationGrad, beta);
 		
 		// Add to latent gradient
 		TensorOps.add(latentParamsGrad, latentParamsGrad, regularizationGrad);
@@ -171,7 +176,9 @@ public class VariationalAutoEncoderLearningStrategy implements LearningStrategy 
 		encoder.updateParameters();
 		decoder.updateParameters();
 
-		return new LearnProgress(i, reconstructionError+regularizationError);
+		return new LearnProgress(i, reconstructionError+regularizationError,
+				new String[] {"Reconstruction Loss", "KL loss"}, 
+				new float[] {reconstructionError, regularizationError});
 	}
 	
 	private void sampleLatentVariables() {
