@@ -25,6 +25,7 @@ package be.iminds.iot.dianne.nn.learn.sampling;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import be.iminds.iot.dianne.api.dataset.Batch;
 import be.iminds.iot.dianne.api.dataset.Dataset;
@@ -41,60 +42,72 @@ import be.iminds.iot.dianne.nn.util.DianneConfigHandler;
  */
 public class BatchSampler {
 
+	// share fetcher threads for all samplers?
+	private static Executor fetchers = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+	
 	private final Dataset dataset;
 	private final SamplingStrategy sampling;
 	private final BatchSamplerConfig config;
 	
-	private Batch batchInUse = null;
-	private Batch batchBuffer = null;
-	private volatile boolean ready = false;
-	
-	private Executor fetcher = Executors.newSingleThreadExecutor();
+	private LinkedBlockingQueue<BatchFetcher> ready;
 	
 	public BatchSampler(Dataset d, SamplingConfig samplingStrategy, Map<String, String> config){
 		this.dataset = d;
 		this.sampling = SamplingFactory.createSamplingStrategy(samplingStrategy, d, config);;
 		this.config = DianneConfigHandler.getConfig(config, BatchSamplerConfig.class);
 		
-		// already fetch first batch
-		fetchBatch();
-	}
-	
-	/**
-	 * Get next batch from the dataset. Once you call this method, the previous 
-	 * batch returned becomes obsolete and can be filled in with new data!
-	 */
-	public Batch nextBatch(){
-		synchronized(this){
-			if(!ready){
-				try {
-					this.wait();
-				} catch (InterruptedException e) {
-					throw new RuntimeException("Interrupted while fetching batch?!", e);
-				}
-			}
-			
-			ready = false;
+		this.ready = new LinkedBlockingQueue<>(this.config.fetchThreads);
+		for(int i=0;i<this.config.fetchThreads;i++) {
+			BatchFetcher fetcher = new BatchFetcher();
+			fetcher.fetchBatch();
 		}
 		
-		// flip buffer and used batch
-		Batch temp = batchInUse;
-		batchInUse = batchBuffer;
-		batchBuffer = temp;
+	}
 		
-		// fetch new batch in buffer
-		fetchBatch();
+	public Batch nextBatch(){
+		BatchFetcher fetcher;
+		try {
+			fetcher = ready.take();
+			Batch b = fetcher.nextBatch();
+			return b;
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
 		
-		return batchInUse;
 	}
 	
-	protected void fetchBatch(){
-		fetcher.execute(()->{
-			batchBuffer = dataset.getBatch(batchBuffer, sampling.next(config.batchSize));
-			ready=true;
-			synchronized(BatchSampler.this){
-				BatchSampler.this.notify();
-			}
-		});
+	private class BatchFetcher {
+		
+		private Batch batchInUse = null;
+		private Batch batchBuffer = null;
+		
+		/**
+		 * Get next batch from the dataset. Once you call this method, the previous 
+		 * batch returned becomes obsolete and can be filled in with new data!
+		 */
+		public Batch nextBatch(){
+			// flip buffer and used batch
+			Batch temp = batchInUse;
+			batchInUse = batchBuffer;
+			batchBuffer = temp;
+			
+			// fetch new batch in buffer
+			fetchBatch();
+			
+			return batchInUse;
+		}
+		
+		protected void fetchBatch(){
+			fetchers.execute(()->{
+				batchBuffer = dataset.getBatch(batchBuffer, sampling.next(config.batchSize));
+				try {
+					ready.put(BatchFetcher.this);
+				} catch (InterruptedException e) {
+				}
+			});
+		}
+		
 	}
+	
+	
 }

@@ -28,5 +28,9 @@ public class BatchSamplerConfig {
 	 * Batch size to sample
 	 */
 	public int batchSize = 1;
-	
+
+	/**
+	 * Number of threads to fetch batches
+	 */
+	public int fetchThreads = 1;
 }
