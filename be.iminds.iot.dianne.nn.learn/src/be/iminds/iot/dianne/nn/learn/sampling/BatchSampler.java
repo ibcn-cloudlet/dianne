@@ -51,6 +51,10 @@ public class BatchSampler {
 	
 	private LinkedBlockingQueue<BatchFetcher> ready;
 	
+	private double fetchTime = 0;
+	private double waitTime = 0;
+	private int i = 0;
+	
 	public BatchSampler(Dataset d, SamplingConfig samplingStrategy, Map<String, String> config){
 		this.dataset = d;
 		this.sampling = SamplingFactory.createSamplingStrategy(samplingStrategy, d, config);;
@@ -67,8 +71,14 @@ public class BatchSampler {
 	public Batch nextBatch(){
 		BatchFetcher fetcher;
 		try {
+			long t1 = System.currentTimeMillis();
+			
 			fetcher = ready.take();
 			Batch b = fetcher.nextBatch();
+			
+			long t2 = System.currentTimeMillis();
+			waitTime = 0.5*waitTime + 0.5*(t2-t1);
+			
 			return b;
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
@@ -99,7 +109,16 @@ public class BatchSampler {
 		
 		protected void fetchBatch(){
 			fetchers.execute(()->{
+				long t1 = System.currentTimeMillis();
+				
 				batchBuffer = dataset.getBatch(batchBuffer, sampling.next(config.batchSize));
+				
+				long t2 = System.currentTimeMillis();
+				fetchTime = fetchTime*0.5 + (t2-t1)*0.5f;
+				if(config.traceBatchTime && i++ % config.traceInterval == 0) {
+					System.out.println("Batch fetch time: "+fetchTime+" ms - wait time: "+waitTime+" ms");
+				}
+				
 				try {
 					ready.put(BatchFetcher.this);
 				} catch (InterruptedException e) {

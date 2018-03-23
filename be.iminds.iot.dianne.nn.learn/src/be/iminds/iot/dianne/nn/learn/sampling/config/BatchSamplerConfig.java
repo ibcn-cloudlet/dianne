@@ -33,4 +33,14 @@ public class BatchSamplerConfig {
 	 * Number of threads to fetch batches
 	 */
 	public int fetchThreads = 1;
+	
+	/**
+	 * Log the batch time for debugging / adapting threads
+	 */
+	public boolean traceBatchTime = false;
+	
+	/**
+	 * Trace interval
+	 */
+	public int traceInterval = 100;
 }
