@@ -28,6 +28,7 @@ import java.util.Random;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 
+import be.iminds.iot.dianne.api.dataset.AbstractDatasetAdapter;
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.Sample;
 import be.iminds.iot.dianne.tensor.TensorOps;

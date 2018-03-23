@@ -20,17 +20,16 @@
  * Contributors:
  *     Tim Verbelen, Steven Bohez
  *******************************************************************************/
-package be.iminds.iot.dianne.dataset.adapters;
+package be.iminds.iot.dianne.api.dataset;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Reference;
-
-import be.iminds.iot.dianne.api.dataset.Dataset;
-import be.iminds.iot.dianne.api.dataset.DatasetDTO;
-import be.iminds.iot.dianne.api.dataset.Sample;
 
 public abstract class AbstractDatasetAdapter implements Dataset {
 
@@ -40,15 +39,15 @@ public abstract class AbstractDatasetAdapter implements Dataset {
 	
 	protected boolean targetDimsSameAsInput = false;
 
-	private Sample temp;
+	protected LinkedBlockingQueue<Sample> temp = new LinkedBlockingQueue<>();
 	
 	@Reference
-	void setDataset(Dataset d){
+	protected void setDataset(Dataset d){
 		this.data = d;
 	}
 	
 	@Activate
-	void activate(Map<String, Object> properties) {
+	protected void activate(Map<String, Object> properties) {
 		this.properties = properties;
 		this.name = (String)properties.get("name");
 
@@ -130,12 +129,14 @@ public abstract class AbstractDatasetAdapter implements Dataset {
 	}
 
 	@Override
-	public synchronized Sample getSample(Sample s, int index) {
-		temp = data.getSample(temp, index);
+	public Sample getSample(Sample s, int index) {
+		Sample t = this.temp.poll();
+		t = data.getSample(t, index);
 		if(s == null){
 			s = new Sample();
 		}
-		adaptSample(temp, s);
+		adaptSample(t, s);
+		temp.add(t);
 		return s;
 	};
 	
