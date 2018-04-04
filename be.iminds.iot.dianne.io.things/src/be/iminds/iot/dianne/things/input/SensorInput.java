@@ -90,12 +90,12 @@ public class SensorInput extends ThingInput implements SensorListener {
 				t.set(value.data);
 				
 				// adapt shape when needed
-				if(type.equals("Camera")) {
+				if(value instanceof Frame) {
 					Frame f = (Frame) value;
 					if(f.encoding == Frame.Encoding.RGB) {
 						t.reshape(3, f.height, f.width);
 					}
-				} else if(type.equals("Scanner3D")) {
+				} else if(value instanceof PointCloud) {
 					PointCloud pcl = (PointCloud) value;
 					t.reshape(pcl.size, pcl.fields.length);
 				}
