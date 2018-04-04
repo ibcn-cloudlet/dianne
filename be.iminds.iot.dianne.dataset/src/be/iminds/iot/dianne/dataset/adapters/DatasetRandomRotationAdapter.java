@@ -60,6 +60,7 @@ public class DatasetRandomRotationAdapter extends AbstractDatasetAdapter {
 	
 	private int[] center = null;
 	private boolean middle = false;
+	private boolean zeropad = false;
 	
 	private Random r = new Random(System.currentTimeMillis());
 	
@@ -86,6 +87,10 @@ public class DatasetRandomRotationAdapter extends AbstractDatasetAdapter {
 				middle = Boolean.parseBoolean((String)c);
 			}
 		}
+		
+		if(properties.containsKey("zeropad")){
+			zeropad = Boolean.parseBoolean(properties.get("zeropad").toString());
+		}
 	}
 	
 	@Override
@@ -106,9 +111,9 @@ public class DatasetRandomRotationAdapter extends AbstractDatasetAdapter {
 			center_y = center[1];
 		}
 		
-		adapted.input = TensorOps.rotate(adapted.input, original.input, theta, center_x, center_y);
+		adapted.input = TensorOps.rotate(adapted.input, original.input, theta, center_x, center_y, zeropad);
 		if(targetDimsSameAsInput){
-			adapted.target = TensorOps.rotate(adapted.target, original.target, theta, center_x, center_y);
+			adapted.target = TensorOps.rotate(adapted.target, original.target, theta, center_x, center_y, zeropad);
 		} else {
 			adapted.target = original.target.copyInto(adapted.target);
 		}

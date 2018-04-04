@@ -264,15 +264,15 @@ public class TensorOps {
 		return res;
 	}
 	
-	public static Tensor rotate(Tensor res, final Tensor t, float theta) {
+	public static Tensor rotate(Tensor res, final Tensor t, float theta, boolean zeropad) {
 		int[] dims = t.dims();
 		int height = dims.length == 3 ? dims[1] : dims[0];
 		int width = dims.length == 3 ? dims[2] : dims[1];
-		return rotate(res, t, theta, width/2, height/2);
+		return rotate(res, t, theta, width/2, height/2, zeropad);
 	}
 
 	// TODO native Tensor rotation implementation
-	public static Tensor rotate(Tensor res, final Tensor t, float theta, float center_x, float center_y){
+	public static Tensor rotate(Tensor res, final Tensor t, float theta, float center_x, float center_y, boolean zeropad){
 		float[] rotatedData = new float[t.size()];
 		
 		int[] dims = t.dims();
@@ -291,27 +291,30 @@ public class TensorOps {
 					
 					int heightIndex = (int)((i - center_x)*sin_theta + (j - center_y)*cos_theta + center_y);
 					int widthIndex = (int)((i - center_x)*cos_theta - (j - center_y)*sin_theta + center_x);
-					
-					// TODO outside boundaries, fill in black or use edge values?
-//					if(heightIndex < 0 || widthIndex < 0
-//							|| heightIndex >= height || widthIndex >= width){
-//						rotatedData[c*width*height+j*width+i] = 0.0f;
-//					} 
 
-					if(heightIndex < 0) {
-						heightIndex = 0;
-					} else if(heightIndex >= height) {
-						heightIndex = height -1;
-					}
-					
-					if(widthIndex < 0 ) {
-						widthIndex = 0;
-					} else if(widthIndex >= width) {
-						widthIndex = width - 1;
-					}
+					if(zeropad) {
+						if(heightIndex < 0 || widthIndex < 0
+								|| heightIndex >= height || widthIndex >= width){
+							rotatedData[c*width*height+j*width+i] = 0.0f;
+						} else {
+							rotatedData[c*width*height+j*width+i] = data[c*width*height+heightIndex*width+widthIndex]; 
+						}
+					} else {
+						// use boundary values to extend?
+						if(heightIndex < 0) {
+							heightIndex = 0;
+						} else if(heightIndex >= height) {
+							heightIndex = height -1;
+						}
+						
+						if(widthIndex < 0 ) {
+							widthIndex = 0;
+						} else if(widthIndex >= width) {
+							widthIndex = width - 1;
+						}
 
-					rotatedData[c*width*height+j*width+i] = data[c*width*height+heightIndex*width+widthIndex]; 
-					
+						rotatedData[c*width*height+j*width+i] = data[c*width*height+heightIndex*width+widthIndex]; 
+					}
 				}
 			}
 		}
