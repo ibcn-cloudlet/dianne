@@ -253,7 +253,7 @@ public class TensorOps {
 	/**
 	 * Expand a tensor to a batched version containing the same value in each batch dimension
 	 */
-	public static Tensor expand(Tensor res, Tensor t, int batchSize) {
+	public static Tensor expand(Tensor res, Tensor t, final int batchSize) {
 		if(res == null) {
 			res = new Tensor(batchSize, t.dims());
 		} else {
@@ -264,67 +264,72 @@ public class TensorOps {
 		return res;
 	}
 	
-	public static Tensor rotate(Tensor res, final Tensor t, float theta, boolean zeropad) {
+	public static Tensor rotate(Tensor res, final Tensor t, final float theta, final boolean zeropad) {
 		int[] dims = t.dims();
 		int height = dims.length == 3 ? dims[1] : dims[0];
 		int width = dims.length == 3 ? dims[2] : dims[1];
 		return rotate(res, t, theta, width/2, height/2, zeropad);
 	}
 
-	// TODO native Tensor rotation implementation
-	public static Tensor rotate(Tensor res, final Tensor t, float theta, float center_x, float center_y, boolean zeropad){
-		float[] rotatedData = new float[t.size()];
-		
-		int[] dims = t.dims();
-		float[] data = t.get();
-		
-		int channels = dims.length == 3 ? dims[0] : 1;
-		int height = dims.length == 3 ? dims[1] : dims[0];
-		int width = dims.length == 3 ? dims[2] : dims[1];
-		
-		double sin_theta = Math.sin(theta);
-		double cos_theta = Math.cos(theta);
-		
-		for(int c = 0; c < channels ; c++){
-			for(int j=0;j<height;j++){
-				for(int i=0;i<width;i++){
-					
-					int heightIndex = (int)((i - center_x)*sin_theta + (j - center_y)*cos_theta + center_y);
-					int widthIndex = (int)((i - center_x)*cos_theta - (j - center_y)*sin_theta + center_x);
+	public static native Tensor rotate(Tensor res, final Tensor tensor, 
+			final float theta, final float center_x, final float center_y, 
+			final boolean zeropad);
 
-					if(zeropad) {
-						if(heightIndex < 0 || widthIndex < 0
-								|| heightIndex >= height || widthIndex >= width){
-							rotatedData[c*width*height+j*width+i] = 0.0f;
-						} else {
-							rotatedData[c*width*height+j*width+i] = data[c*width*height+heightIndex*width+widthIndex]; 
-						}
-					} else {
-						// use boundary values to extend?
-						if(heightIndex < 0) {
-							heightIndex = 0;
-						} else if(heightIndex >= height) {
-							heightIndex = height -1;
-						}
-						
-						if(widthIndex < 0 ) {
-							widthIndex = 0;
-						} else if(widthIndex >= width) {
-							widthIndex = width - 1;
-						}
-
-						rotatedData[c*width*height+j*width+i] = data[c*width*height+heightIndex*width+widthIndex]; 
-					}
-				}
-			}
-		}
-		
-		if(res == null){
-			res = new Tensor(rotatedData, dims);
-		} else {
-			res.set(rotatedData);
-		}
-		return res;
-	}
+	
+//	// TODO native Tensor rotation implementation
+//	public static Tensor rotate(Tensor res, final Tensor t, float theta, float center_x, float center_y, boolean zeropad){
+//		float[] rotatedData = new float[t.size()];
+//		
+//		int[] dims = t.dims();
+//		float[] data = t.get();
+//		
+//		int channels = dims.length == 3 ? dims[0] : 1;
+//		int height = dims.length == 3 ? dims[1] : dims[0];
+//		int width = dims.length == 3 ? dims[2] : dims[1];
+//		
+//		double sin_theta = Math.sin(theta);
+//		double cos_theta = Math.cos(theta);
+//		
+//		for(int c = 0; c < channels ; c++){
+//			for(int j=0;j<height;j++){
+//				for(int i=0;i<width;i++){
+//					
+//					int heightIndex = (int)((i - center_x)*sin_theta + (j - center_y)*cos_theta + center_y);
+//					int widthIndex = (int)((i - center_x)*cos_theta - (j - center_y)*sin_theta + center_x);
+//
+//					if(zeropad) {
+//						if(heightIndex < 0 || widthIndex < 0
+//								|| heightIndex >= height || widthIndex >= width){
+//							rotatedData[c*width*height+j*width+i] = 0.0f;
+//						} else {
+//							rotatedData[c*width*height+j*width+i] = data[c*width*height+heightIndex*width+widthIndex]; 
+//						}
+//					} else {
+//						// use boundary values to extend?
+//						if(heightIndex < 0) {
+//							heightIndex = 0;
+//						} else if(heightIndex >= height) {
+//							heightIndex = height -1;
+//						}
+//						
+//						if(widthIndex < 0 ) {
+//							widthIndex = 0;
+//						} else if(widthIndex >= width) {
+//							widthIndex = width - 1;
+//						}
+//
+//						rotatedData[c*width*height+j*width+i] = data[c*width*height+heightIndex*width+widthIndex]; 
+//					}
+//				}
+//			}
+//		}
+//		
+//		if(res == null){
+//			res = new Tensor(rotatedData, dims);
+//		} else {
+//			res.set(rotatedData);
+//		}
+//		return res;
+//	}
 }
 

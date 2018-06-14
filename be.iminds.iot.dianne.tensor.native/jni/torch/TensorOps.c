@@ -30,6 +30,8 @@
 #include "Tensor.h"
 #endif
 
+#include <math.h>
+
 // convert tensor to 1d vector
 THTensor* getVector(THTensor* l){
 	THTensor* v = THTensor_(newContiguous)(
@@ -955,3 +957,63 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_clamp
 	return res == NULL ? createTensorObject(env, r) : res;
 }
 
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_TensorOps_rotate
+  (JNIEnv * env, jclass clazz, jobject res, jobject tensor, jfloat theta, jfloat center_x, jfloat center_y, jboolean zeropad){
+	THTensor* t = getTensor(env, tensor);
+
+	int width = t->size[t->nDimension-1];
+	int height = t->size[t->nDimension-2];
+	int channels = t->size[t->nDimension-3];
+
+	THTensor* r = getTensor3d(env, res, channels, height, width);
+
+#ifdef CUDA
+	THCudaTensor_rotate(state, r, t, theta, center_x, center_y, (int)zeropad);
+#else
+	real* src_ptr = THTensor_(data)(t);
+	real* dst_ptr = THTensor_(data)(r);
+
+	double sin_theta = sin((double)theta);
+	double cos_theta = cos((double)theta);
+
+	int c,y,x;
+	for(c=0;c<channels;c++){
+		for(y=0;y<height;y++){
+			for(x=0;x<width;x++){
+
+				int heightIndex = (int)((x - center_x)*sin_theta + (y - center_y)*cos_theta + center_y);
+				int widthIndex = (int)((x - center_x)*cos_theta - (y - center_y)*sin_theta + center_x);
+
+				if(zeropad) {
+					if(heightIndex < 0 || widthIndex < 0
+							|| heightIndex >= height || widthIndex >= width){
+						dst_ptr[c*width*height + y*width + x] = 0.0f;
+					} else {
+						dst_ptr[c*width*height + y*width + x] =
+								src_ptr[c*width*height + heightIndex*width + widthIndex];
+					}
+				} else {
+					// use boundary values to extend?
+					if(heightIndex < 0) {
+						heightIndex = 0;
+					} else if(heightIndex >= height) {
+						heightIndex = height - 1;
+					}
+
+					if(widthIndex < 0 ) {
+						widthIndex = 0;
+					} else if(widthIndex >= width) {
+						widthIndex = width - 1;
+					}
+
+					dst_ptr[c*width*height + y*width + x] =
+							src_ptr[c*width*height + heightIndex*width + widthIndex];
+				}
+			}
+		}
+	}
+#endif
+
+	return res == NULL ? createTensorObject(env, r) : res;
+}

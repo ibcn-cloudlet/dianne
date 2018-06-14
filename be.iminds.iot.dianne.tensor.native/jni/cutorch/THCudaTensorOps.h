@@ -29,5 +29,7 @@
 int THCudaTensor_argmax(THCState *state, THCudaTensor *t);
 int THCudaTensor_argmin(THCState *state, THCudaTensor *t);
 void THCudaTensor_scale2d(THCState *state, THCudaTensor *dst, THCudaTensor *src);
+void THCudaTensor_rotate(THCState *state, THCudaTensor *dst, THCudaTensor *src, float theta, float center_x, float center_y, int zeropad);
+
 
 #endif

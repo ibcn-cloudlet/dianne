@@ -40,7 +40,6 @@ __global__ void scale2d(float *input, float *output,
                         float s_x, float s_y)
 {
 	int c = blockIdx.x;
-	
 	int y = blockIdx.y*blockDim.y+threadIdx.y;
 	int x = blockIdx.z*blockDim.x+threadIdx.x;
 	
@@ -90,65 +89,127 @@ __global__ void scale2d(float *input, float *output,
 }
 
 
+__global__ void rotate(float *input, float *output,
+                        int channels, int height, int width,
+                        double sin_theta, double cos_theta, float center_x,
+                        float center_y, int zeropad)
+{
+	int c = blockIdx.x;
+	int y = blockIdx.y*blockDim.y+threadIdx.y;
+	int x = blockIdx.z*blockDim.x+threadIdx.x;
+
+	int heightIndex = (int)((x - center_x)*sin_theta + (y - center_y)*cos_theta + center_y);
+	int widthIndex = (int)((x - center_x)*cos_theta - (y - center_y)*sin_theta + center_x);
+
+	float v;
 	
-	int THCudaTensor_argmax(THCState *state, THCudaTensor *t){
-		t = THCudaTensor_newContiguous(state, t);
-		thrust::device_ptr<float> data(THCudaTensor_data(state, t));
-
-		thrust::device_vector<float>::iterator iter =
-			thrust::max_element(data, data + THCudaTensor_nElement(state, t));
-
-		int position = thrust::device_pointer_cast(&(iter[0])) - data;
-		THCudaTensor_free(state, t);
-
-		return position;
-	}
-
-	int THCudaTensor_argmin(THCState *state, THCudaTensor *t){
-		t = THCudaTensor_newContiguous(state, t);
-		thrust::device_ptr<float> data(THCudaTensor_data(state, t));
-
-		thrust::device_vector<float>::iterator iter =
-			thrust::min_element(data, data + THCudaTensor_nElement(state, t));
-
-		int position = thrust::device_pointer_cast(&(iter[0])) - data;
-		THCudaTensor_free(state, t);
-
-		return position;
-	}
-	
-	
-	void THCudaTensor_scale2d(THCState *state, THCudaTensor *output, THCudaTensor *input)
-	{
-		long output_c, output_h, output_w;
-		output_c = output->size[0];
-		output_h = output->size[1];
-		output_w = output->size[2];
-		
-		long input_c, input_h, input_w;
-		if(input->nDimension==2){
-			input_c = 1;
-			input_h = input->size[0];
-			input_w = input->size[1]; 
+	if(zeropad != 0) {
+		if(heightIndex < 0 || widthIndex < 0
+			|| heightIndex >= height || widthIndex >= width){
+			v = 0.0f;
 		} else {
-			input_c = input->size[0];
-			input_h = input->size[1];
-			input_w = input->size[2];
+			v = input[c*width*height + heightIndex*width + widthIndex];
 		}
-		
-		input = THCudaTensor_newContiguous(state, input);
-		
-		float s_y = (input_h-1)/(float)(output_h-1);
-		float s_x = (input_w-1)/(float)(output_h-1);
-		
-    	dim3 threads(16, 16);
-    	dim3 blocks(output_c, output_h/threads.y + 1, output_w/threads.x + 1);
-    	
-    	scale2d <<<blocks, threads, 0, THCState_getCurrentStream(state)>>> (
-    	  THCudaTensor_data(state, input), THCudaTensor_data(state, output),
-    	  input_c, input_h, input_w, output_c, output_h, output_w, s_x, s_y);
-    	
-    	  
-    	THCudaTensor_free(state, input);
-    	
+	} else {
+		// use boundary values to extend?
+		if(heightIndex < 0) {
+			heightIndex = 0;
+		} else if(heightIndex >= height) {
+			heightIndex = height - 1;
+		}
+
+		if(widthIndex < 0 ) {
+			widthIndex = 0;
+		} else if(widthIndex >= width) {
+			widthIndex = width - 1;
+		}
+
+		v = input[c*width*height + heightIndex*width + widthIndex];
 	}
+	
+	output[c*width*height + y*width + x] = v;
+}
+
+	
+int THCudaTensor_argmax(THCState *state, THCudaTensor *t){
+	t = THCudaTensor_newContiguous(state, t);
+	thrust::device_ptr<float> data(THCudaTensor_data(state, t));
+
+	thrust::device_vector<float>::iterator iter =
+		thrust::max_element(data, data + THCudaTensor_nElement(state, t));
+
+	int position = thrust::device_pointer_cast(&(iter[0])) - data;
+	THCudaTensor_free(state, t);
+
+	return position;
+}
+
+int THCudaTensor_argmin(THCState *state, THCudaTensor *t){
+	t = THCudaTensor_newContiguous(state, t);
+	thrust::device_ptr<float> data(THCudaTensor_data(state, t));
+
+	thrust::device_vector<float>::iterator iter =
+		thrust::min_element(data, data + THCudaTensor_nElement(state, t));
+
+	int position = thrust::device_pointer_cast(&(iter[0])) - data;
+	THCudaTensor_free(state, t);
+
+	return position;
+}
+
+
+void THCudaTensor_scale2d(THCState *state, THCudaTensor *output, THCudaTensor *input)
+{
+	long output_c, output_h, output_w;
+	output_c = output->size[0];
+	output_h = output->size[1];
+	output_w = output->size[2];
+	
+	long input_c, input_h, input_w;
+	if(input->nDimension==2){
+		input_c = 1;
+		input_h = input->size[0];
+		input_w = input->size[1]; 
+	} else {
+		input_c = input->size[0];
+		input_h = input->size[1];
+		input_w = input->size[2];
+	}
+	
+	input = THCudaTensor_newContiguous(state, input);
+	
+	float s_y = (input_h-1)/(float)(output_h-1);
+	float s_x = (input_w-1)/(float)(output_h-1);
+	
+	dim3 threads(16, 16);
+	dim3 blocks(output_c, output_h/threads.y + 1, output_w/threads.x + 1);
+	
+	scale2d <<<blocks, threads, 0, THCState_getCurrentStream(state)>>> (
+	  THCudaTensor_data(state, input), THCudaTensor_data(state, output),
+	  input_c, input_h, input_w, output_c, output_h, output_w, s_x, s_y);
+	
+	THCudaTensor_free(state, input);
+}
+
+
+void THCudaTensor_rotate(THCState *state, THCudaTensor *output, THCudaTensor *input,
+		float theta, float center_x, float center_y, int zeropad )
+{
+	long channels, height, width;
+	channels = input->size[0];
+	height = input->size[1];
+	width = input->size[2];
+	input = THCudaTensor_newContiguous(state, input);
+	
+	double sin_theta = sin(theta);
+	double cos_theta = cos(theta);
+	
+	dim3 threads(16, 16);
+	dim3 blocks(channels, height/threads.y + 1, width/threads.x + 1);
+	
+	rotate <<<blocks, threads, 0, THCState_getCurrentStream(state)>>> (
+	  THCudaTensor_data(state, input), THCudaTensor_data(state, output),
+	  channels, height, width, sin_theta, cos_theta, center_x, center_y, zeropad);
+	
+	THCudaTensor_free(state, input);
+}
