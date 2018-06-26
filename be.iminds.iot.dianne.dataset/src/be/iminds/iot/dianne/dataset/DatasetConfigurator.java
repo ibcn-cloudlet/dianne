@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -110,48 +111,51 @@ public class DatasetConfigurator implements DianneDatasets {
 		System.out.println("---");
 		System.out.println("* dataset = "+name);
 
-		Configuration xppoolConfiguration = null;
+		Configuration datasetConfiguration = null;
 		List<Configuration> adapterConfigurations = new ArrayList<>();
 
 		Dataset d = getDataset(name);
 		if(d == null){
-			// check if this is an ExperiencePool, in this case we can try to create it
-			if(config.get("environment")!=null){
-				Hashtable<String, Object> props = new Hashtable<>();
-				
-				String pid = "be.iminds.iot.dianne.dataset.MemoryExperiencePool";
-				if(config.containsKey("type")){
-					String type = config.get("type");
-					pid = "be.iminds.iot.dianne.dataset."+type;
-				}
-
-				File dir = new File(path+"/"+name);
-				dir.mkdirs();
-				props.put("dir", dir.getAbsolutePath());
-				
-				props.put("name", name);
-				props.put("aiolos.combine", "*");
-				props.put("aiolos.instance.id", name);
-
-				props.put("stateDims", config.get("stateDims").split(","));
-				props.put("actionDims", config.get("actionDims").split(","));
-				if(config.containsKey("maxSize")){
-					props.put("maxSize", config.get("maxSize"));
-				} 
-				
-				try {
-					Configuration c = ca.createFactoryConfiguration(pid, null);
-					c.update(props);
-					xppoolConfiguration = c;
-				} catch(Exception e){
-					e.printStackTrace();
-				}
-				
-			} else {
-				return null;
+			// Try to create it ourselves
+			Hashtable<String, Object> props = new Hashtable<>();
+			
+			// Mostly used to create experience pools...
+			String pid = "be.iminds.iot.dianne.dataset.MemoryExperiencePool";
+			if(config.containsKey("type")){
+				String type = config.get("type");
+				pid = "be.iminds.iot.dianne.dataset."+type;
 			}
-		}
-		
+
+			String dir = config.get("dir");
+			if(dir == null) {
+				File dr = new File(path+"/"+name);
+				dr.mkdirs();
+				dir = dr.getAbsolutePath();
+			}
+			props.put("dir", dir);
+			
+			props.put("name", name);
+			props.put("aiolos.combine", "*");
+			props.put("aiolos.instance.id", name);
+
+			for(Entry<String, String> e : config.entrySet()) {
+				String key = e.getKey();
+				String value = e.getValue();
+				if(value.contains(",")) {
+					props.put(key, value.split(",")); // treat comma separation as array type
+				} else {
+					props.put(key, value);
+				}
+			}
+			
+			try {
+				Configuration c = ca.createFactoryConfiguration(pid, null);
+				c.update(props);
+				datasetConfiguration = c;
+			} catch(Exception e){
+				e.printStackTrace();
+			}
+		} 
 		
 		// TODO type safe creation of dataset adapter configurations?
 		// flip -> rotate -> crop -> frame?
@@ -479,9 +483,9 @@ public class DatasetConfigurator implements DianneDatasets {
 				} catch (IOException e) {
 				}
 			}
-			if(xppoolConfiguration != null){
+			if(datasetConfiguration != null){
 				try {
-					xppoolConfiguration.delete();
+					datasetConfiguration.delete();
 				} catch (IOException e) {
 				}
 			}
