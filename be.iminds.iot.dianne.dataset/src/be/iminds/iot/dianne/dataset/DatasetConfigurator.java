@@ -25,6 +25,7 @@ package be.iminds.iot.dianne.dataset;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
@@ -50,6 +51,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 
 import be.iminds.iot.dianne.api.dataset.Dataset;
 import be.iminds.iot.dianne.api.dataset.DatasetDTO;
@@ -155,6 +157,11 @@ public class DatasetConfigurator implements DianneDatasets {
 			} catch(Exception e){
 				e.printStackTrace();
 			}
+			
+			// also store this in json file?
+			config.put("name", name);
+			File jsonFile = new File(dir + File.separator + "dataset.json");
+			writeDatasetConfiguration(jsonFile, config);
 		} 
 		
 		// TODO type safe creation of dataset adapter configurations?
@@ -665,6 +672,26 @@ public class DatasetConfigurator implements DianneDatasets {
 			return null;
 		}
 	}
+	
+	
+	void writeDatasetConfiguration(File f, Map<String, String> config) {
+		try {
+			JsonWriter writer = new JsonWriter(new FileWriter(f));
+			writer.setLenient(true);
+			writer.setIndent("  ");
+			writer.beginObject();
+			for(Entry<String, String> e : config.entrySet()) {
+				writer.name(e.getKey());
+				writer.value(e.getValue());
+			}
+			writer.endObject();
+			writer.flush();
+			writer.close();
+		} catch(IOException e) {
+			System.err.println("Failed writing dataset configuration file "+f.getAbsolutePath());
+		}
+	}
+	
 	
 	@Reference
 	void setConfigurationAdmin(ConfigurationAdmin ca){
