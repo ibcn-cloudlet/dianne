@@ -148,7 +148,7 @@ public class DianneCoordinatorCommands {
 			Map<String, String> defaults = new HashMap<>();
 			defaults.put("strategy", "FeedForwardLearningStrategy");
 			
-			Map<String, String> config = createConfig(defaults, properties);
+			Map<String, String> config = ConfigurationParser.parse(defaults, properties);
 		
 			coordinator.learn(dataset, config, nnName.split(",")).then(p -> {
 				System.out.println("Learn Job done!");
@@ -177,7 +177,7 @@ public class DianneCoordinatorCommands {
 			Map<String, String> defaults = new HashMap<>();
 			defaults.put("strategy", "ClassificationEvaluationStrategy");
 			
-			Map<String, String> config = createConfig(defaults, properties);
+			Map<String, String> config = ConfigurationParser.parse(defaults, properties);
 		
 			coordinator.eval(dataset, config, nnName==null ? null : nnName.split(",")).then(p -> {
 				System.out.println("Evaluation Job done!");
@@ -216,7 +216,7 @@ public class DianneCoordinatorCommands {
 			
 			defaults.put("environment", environment);
 			
-			Map<String, String> config = createConfig(defaults, properties);
+			Map<String, String> config = ConfigurationParser.parse(defaults, properties);
 		
 			coordinator.act(experiencePool, config, nnName==null ? null : nnName.split(",")).then(p -> {
 				System.out.println("Act Job done!");
@@ -250,9 +250,9 @@ public class DianneCoordinatorCommands {
 				defaults.put("environment", environment);
 				defaults.put("maxSequences", "100");
 				
-				Map<String, String> agentConfig = createConfig(defaults, properties);
+				Map<String, String> agentConfig = ConfigurationParser.parse(defaults, properties);
 				coordinator.act(experiencePool, agentConfig, nnName==null ? null : nnName.split(",")).then(p -> {
-					Map<String, String> evalConfig = createConfig(defaults, properties);
+					Map<String, String> evalConfig = ConfigurationParser.parse(defaults, properties);
 					evalConfig.put("strategy", "RewardEvaluationStrategy");
 					coordinator.eval(experiencePool, evalConfig, (String[])null).then(pp -> {
 						EvaluationResult result = pp.getValue();
@@ -274,7 +274,7 @@ public class DianneCoordinatorCommands {
 				defaults.put("tag", UUID.randomUUID().toString()); // make sure a shared tag is specified
 				defaults.put("environment", environment);
 				
-				Map<String, String> agentConfig = createConfig(defaults, properties);
+				Map<String, String> agentConfig = ConfigurationParser.parse(defaults, properties);
 				
 				// somehow guess the action strategy here?!
 				if(agentConfig.containsKey("strategy")){
@@ -303,7 +303,7 @@ public class DianneCoordinatorCommands {
 				Thread.sleep(2000);
 				
 				// learn job
-				Map<String, String> learnConfig = createConfig(defaults, properties);
+				Map<String, String> learnConfig = ConfigurationParser.parse(defaults, properties);
 				if(learnConfig.containsKey("learningStrategy")){
 					learnConfig.put("strategy", learnConfig.get("learningStrategy"));
 				} else {
@@ -331,7 +331,7 @@ public class DianneCoordinatorCommands {
 	public void bptt(String nnName, String dataset, String... properties){
 		final Map<String, String> defaults = new HashMap<>();
 		defaults.put("strategy", "be.iminds.iot.dianne.rnn.learn.strategy.BPTTLearningStrategy");
-		Map<String, String> config = createConfig(defaults, properties);
+		Map<String, String> config = ConfigurationParser.parse(defaults, properties);
 		
 		coordinator.learn(dataset, config, nnName.split(",")).then(p -> {
 			System.out.println("Learn Job done!");
@@ -345,19 +345,6 @@ public class DianneCoordinatorCommands {
 		});
 	}
 
-	
-	private Map<String, String> createConfig(Map<String, String> defaults, String[] properties){
-		Map<String, String> config = new HashMap<String, String>(defaults);
-		for(String property : properties){
-			String[] p = property.split("=");
-			if(p.length==2){
-				config.put(p[0].trim(), p[1].trim());
-			}
-		}
-		
-		return config;
-	}
-	
 	@Reference
 	void setDianneCoordinator(DianneCoordinator c){
 		this.coordinator = c;

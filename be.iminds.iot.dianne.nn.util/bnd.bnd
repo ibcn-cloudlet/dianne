@@ -15,7 +15,9 @@ Export-Package: \
 	be.iminds.iot.dianne.nn.util.random,\
 	be.iminds.iot.dianne.nn.util.random.distributions,\
 	be.iminds.iot.dianne.api.nn.module.dto
-Private-Package: be.iminds.iot.dianne.nn.util.strategy
+Private-Package: \
+	be.iminds.iot.dianne.nn.util.strategy,\
+	be.iminds.iot.dianne.nn.util.export
 
 ## hacky stuff for making the strategy factory magic happen
 DynamicImport-Package: *

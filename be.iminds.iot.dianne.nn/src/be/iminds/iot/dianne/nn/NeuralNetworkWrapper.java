@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -650,8 +651,13 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		
 		// if a NeuralNetworkDTO is available, add its properties as service properties
 		if(nni.nn != null) {
-			for(String k : nni.nn.properties.keySet()) {
-				properties.put(k, nni.nn.properties.get(k));
+			for(Entry<String, String> e : nni.nn.properties.entrySet()) {
+				if(e.getValue().contains(",")) {
+					// interpret as String[]
+					properties.put(e.getKey(), e.getValue().split(","));
+				} else {
+					properties.put(e.getKey(), e.getValue());
+				}
 			}
 		}
 		

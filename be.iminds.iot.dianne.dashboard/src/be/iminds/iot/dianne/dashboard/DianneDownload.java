@@ -40,15 +40,13 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
-import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
-import be.iminds.iot.dianne.api.repository.DianneRepository;
+import be.iminds.iot.dianne.api.nn.util.DianneExporter;
 import be.iminds.iot.dianne.nn.util.DianneJSONConverter;
 import be.iminds.iot.dianne.tensor.Tensor;
 
@@ -61,17 +59,11 @@ public class DianneDownload extends HttpServlet{
 	
 	private static final long serialVersionUID = 1L;
 	
-	private BundleContext context;
-	private DianneRepository repository;
-	
-	@Activate
-	void activate(BundleContext c){
-		this.context = c;
-	}
+	private DianneExporter exporter;
 	
 	@Reference
-	void setRepository(DianneRepository r){
-		this.repository = r;
+	void setExporter(DianneExporter e){
+		this.exporter = e;
 	}
 	
 	@Override
@@ -79,7 +71,7 @@ public class DianneDownload extends HttpServlet{
 		String nnName = req.getParameter("nn");
 		String tag = req.getParameter("tag");
 		
-		byte[] zip = zipNN(nnName, (tag == null || tag.isEmpty()) ? null : tag.split(","));
+		byte[] zip = exporter.export(nnName, (tag == null || tag.isEmpty()) ? null : tag.split(","));
 
 		if(zip != null){
 			ServletOutputStream out = resp.getOutputStream();
@@ -89,101 +81,5 @@ public class DianneDownload extends HttpServlet{
 			out.write(zip);
 			out.flush();
 		}
-	}
-	
-	private byte[] zipNN(String nnName, String... tags) {
-        try(
-        	ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ZipOutputStream zos = new ZipOutputStream(baos);
-        	DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(zos))
-        ) {
-        	String version = "1.0.0";
-        	for(String t : tags){
-        		if(isVersion(t)){
-        			version = t;
-        			break;
-        		}
-        	}
-        	
-        	// add manifest
-        	Manifest manifest = new Manifest();
-    		Attributes atts = manifest.getMainAttributes();
-    		atts.put(Attributes.Name.MANIFEST_VERSION, "1.0");
-    		atts.putValue(Constants.BUNDLE_MANIFESTVERSION, "2");
-    		atts.putValue(Constants.BUNDLE_NAME, "Dianne NN "+nnName);
-    		atts.putValue(Constants.BUNDLE_SYMBOLICNAME, "be.iminds.iot.dianne.nn."+nnName);
-    		atts.putValue(Constants.BUNDLE_VERSION, version);
-    		atts.putValue("NeuralNetwork", nnName);
-    		// TODO add requirement on a DIANNE runtime capability instead of Import-Package?
-    		atts.putValue("Import-Package", "be.iminds.iot.dianne.api.nn.runtime;version=\""+dianneVersion()+"\"");
-    		
-    		zos.putNextEntry(new ZipEntry("META-INF/MANIFEST.MF"));
-    		manifest.write(zos);
-    		zos.closeEntry();
-        	
-        	// add nn description
-			NeuralNetworkDTO nn = repository.loadNeuralNetwork(nnName);
-			String nnString = DianneJSONConverter.toJsonString(nn, true);
-			
-			zos.putNextEntry(new ZipEntry("modules.txt"));
-			zos.write(nnString.getBytes());
-			zos.closeEntry();
-			
-			// add nn layout if present
-			try {
-				String layout = repository.loadLayout(nnName);
-				zos.putNextEntry(new ZipEntry("layout.txt"));
-				zos.write(layout.getBytes());
-				zos.closeEntry();
-			} catch(Exception e){}
-
-			// add weights in binary files
-			try {
-				Map<UUID, Tensor> weights = repository.loadParameters(nnName, tags);
-				for(Entry<UUID, Tensor> e : weights.entrySet()){
-					String weightName = e.getKey().toString();
-					if(tags!=null && tags.length>0){
-						for(String t : tags){
-							weightName+="-"+t;
-						}
-					}
-					zos.putNextEntry(new ZipEntry(weightName));
-					
-					float[] data = e.getValue().get();
-					dos.writeInt(data.length);
-					for(int i=0;i<data.length;i++){
-						dos.writeFloat(data[i]);
-					}
-					dos.flush();
-					
-					zos.closeEntry();
-				}
-			}catch(Exception e){
-				// ignore if no parameters available
-			}
-			
-			zos.flush();
-			zos.finish();
-			baos.flush();
-		    return baos.toByteArray();
-        } catch(Exception e){
-        }
-        
-        return null;
-	}
-	
-	private boolean isVersion(String v){
-		try {
-			Version version = Version.parseVersion(v);
-			return true;
-		} catch(Exception e){
-			return false;
-		}
-	}
-	
-	private String dianneVersion() {
-		Version v = context.getBundle().getVersion();
-		// omit qualifier
-		return v.getMajor()+"."+v.getMinor()+"."+v.getMicro();
 	}
 }

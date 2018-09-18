@@ -36,7 +36,8 @@ import be.iminds.iot.dianne.tensor.Tensor;
 @Component(immediate=true, 
 	property={"osgi.command.scope=dianne",
 		  "osgi.command.function=fromOnnx",
-		  "osgi.command.function=toOnnx"})
+		  "osgi.command.function=toOnnx"
+	})
 public class DianneOnnx implements OnnxConverter {
 
 	private DianneRepository repository;
