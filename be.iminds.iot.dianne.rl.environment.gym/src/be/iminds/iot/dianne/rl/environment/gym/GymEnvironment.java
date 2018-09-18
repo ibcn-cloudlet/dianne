@@ -328,6 +328,20 @@ public class GymEnvironment implements Environment {
 	@Override
 	public void cleanup() {
 		active = false;
+		
+		try {
+			thread.submit(()->{
+				try {
+					jep.eval("env.close()");
+				} catch(Exception e){
+					e.printStackTrace();
+				}					
+			}).get();
+		} catch(InterruptedException e){
+			// ignore interrupted exceptions
+		} catch(ExecutionException e){
+			e.printStackTrace();
+		}
 	}
 
 	private Tensor gymArrayToTensor(Tensor res, NDArray<?> array){
