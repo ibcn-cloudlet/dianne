@@ -11,7 +11,7 @@ $( document ).ready(function() {
 	    config[pair[0]] = decodeURIComponent(pair[1] || '');
 	});
 	
-	$.post("/dianne/vae", {'dataset':config.dataset,'encoder':config.encoder}, 
+	$.post("/dianne/vae", config, 
 			function( data ) {
 				renderSamples($("#samples"), data);
 			}
@@ -53,7 +53,9 @@ function renderSamples(target, data){
 				$('.selected').removeClass('selected');
 				$(this).addClass('selected');
 				var i = $(this).find('.index').val();
-				$.post("/dianne/vae", {'dataset':config.dataset,'encoder':config.encoder,'sample':i,'decoder':config.decoder}, 
+				var c = Object.assign({}, config);
+				c['sample'] = i;
+				$.post("/dianne/vae", c, 
 						function( data ) {
 							$("#similar").empty();
 							renderSamples($("#similar"), data);
@@ -70,7 +72,10 @@ function renderSamples(target, data){
 }
 
 function renderLatent(means){
-	$.post("/dianne/vae", {'dataset':config.dataset,'encoder':config.encoder,'latent':JSON.stringify(means),'size':1,'decoder':config.decoder}, 
+	var c = Object.assign({}, config);
+	c['latent'] = JSON.stringify(means);
+	c['size'] = 1;
+	$.post("/dianne/vae", c, 
 			function( samples ) {
 				var sampleCanvas = $('#latent-modal').find('.sampleCanvas')[0];
 				var sampleCanvasCtx = sampleCanvas.getContext('2d');

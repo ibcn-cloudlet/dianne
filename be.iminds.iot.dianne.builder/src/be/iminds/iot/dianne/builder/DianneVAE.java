@@ -37,7 +37,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -113,7 +112,6 @@ public class DianneVAE extends HttpServlet {
 			return;
 		}
 		
-		
 		String tag = request.getParameter("tag");
 		
 		String enc = request.getParameter("encoder");
@@ -131,6 +129,12 @@ public class DianneVAE extends HttpServlet {
 				e.printStackTrace();
 				return;
 			}
+		} else {
+			try {
+				encoder.loadParameters(tag);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 		
 		
@@ -145,7 +149,18 @@ public class DianneVAE extends HttpServlet {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
+			} else {
+				try {
+					decoder.loadParameters(tag);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
+		} 
+		
+		boolean sampleReconstruction = true;
+		if("false".equals(request.getParameter("sampleReconstruction"))){
+			sampleReconstruction = false;
 		}
 		
 		int size = this.size;
@@ -190,7 +205,7 @@ public class DianneVAE extends HttpServlet {
 				Tensor mean = latent.narrow(0, latent.size()/2);
 				Tensor stdev = latent.narrow(latent.size()/2, latent.size()/2);
 				Tensor rand = new Tensor(latent.size()/2);
-				Tensor rand2 = null;
+				Tensor reconstructed = null;
 				
 				for(int i=0;i<size;i++){
 					rand.randn();
@@ -201,16 +216,27 @@ public class DianneVAE extends HttpServlet {
 					Tensor rmean = reconstruction.narrow(0, reconstruction.size()/2);
 					Tensor rstdev = reconstruction.narrow(reconstruction.size()/2, reconstruction.size()/2);
 					
-					if(rand2 == null){
-						rand2 = new Tensor(rmean.dims());
+					if(sampleReconstruction) {
+						if(reconstructed == null){
+							reconstructed = new Tensor(rmean.dims());
+						}
+						reconstructed.randn();
+						TensorOps.cmul(reconstructed, reconstructed, rstdev);
+						TensorOps.add(reconstructed, reconstructed, rmean);
+			
+					} else {
+						reconstructed = rmean.copyInto(reconstructed);
 					}
-					rand2.randn();
-					TensorOps.cmul(rand2, rand2, rstdev);
-					TensorOps.add(rand2, rand2, rmean);
+					
+					// reshape to dataset dims if possible
+					int[] dims = dataset.inputDims();
+					if(dims != null) {
+						reconstructed.reshape(dims);
+					}
 					
 					JsonObject o = new JsonObject();
 					o.add("index", new JsonPrimitive(-1));
-					o.add("data", converter.toJson(rand2));
+					o.add("data", converter.toJson(reconstructed));
 					o.add("latent", converter.toJson(latent));
 					result.add(o);
 				}
