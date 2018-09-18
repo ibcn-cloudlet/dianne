@@ -115,7 +115,7 @@ public class DianneDownload extends HttpServlet{
     		atts.putValue(Constants.BUNDLE_VERSION, version);
     		atts.putValue("NeuralNetwork", nnName);
     		// TODO add requirement on a DIANNE runtime capability instead of Import-Package?
-    		atts.putValue("Import-Package", "be.iminds.iot.dianne.api.nn.runtime;version=\""+context.getBundle().getVersion()+"\"");
+    		atts.putValue("Import-Package", "be.iminds.iot.dianne.api.nn.runtime;version=\""+dianneVersion()+"\"");
     		
     		zos.putNextEntry(new ZipEntry("META-INF/MANIFEST.MF"));
     		manifest.write(zos);
@@ -172,12 +172,18 @@ public class DianneDownload extends HttpServlet{
         return null;
 	}
 	
-	public boolean isVersion(String v){
+	private boolean isVersion(String v){
 		try {
 			Version version = Version.parseVersion(v);
 			return true;
 		} catch(Exception e){
 			return false;
 		}
+	}
+	
+	private String dianneVersion() {
+		Version v = context.getBundle().getVersion();
+		// omit qualifier
+		return v.getMajor()+"."+v.getMinor()+"."+v.getMicro();
 	}
 }
