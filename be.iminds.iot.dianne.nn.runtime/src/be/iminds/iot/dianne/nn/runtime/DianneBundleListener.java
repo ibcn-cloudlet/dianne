@@ -117,7 +117,7 @@ public class DianneBundleListener implements SynchronousBundleListener {
 				modules.put(mi.moduleId, mi);
 			});
 			
-			NeuralNetworkInstanceDTO nni = new NeuralNetworkInstanceDTO(nnId, dto.name, b.getSymbolicName(),modules);
+			NeuralNetworkInstanceDTO nni = new NeuralNetworkInstanceDTO(nnId, dto, b.getSymbolicName(),modules);
 			nns.put(b, nni);
 			dianne.getNeuralNetwork(nni);
 			

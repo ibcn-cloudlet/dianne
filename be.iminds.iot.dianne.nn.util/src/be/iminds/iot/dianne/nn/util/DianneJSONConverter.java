@@ -69,10 +69,18 @@ public class DianneJSONConverter {
 	
 	public static NeuralNetworkDTO parseJSON(JsonObject json){
 		String name = null;
+		Map<String, String> properties = new HashMap<>();
 		List<ModuleDTO> modules = new ArrayList<ModuleDTO>();
 
 		if(json.has("name")){
 			name = json.get("name").getAsString();
+		}
+		
+		if(json.has("properties")) {
+			JsonObject jsonProperties = json.get("properties").getAsJsonObject();
+			for(Entry<String, JsonElement> property : jsonProperties.entrySet()){
+				properties.put(property.getKey(), property.getValue().getAsString());
+			}
 		}
 		
 		// could be either a nice NeuralNetworkDTO or just a bunch of modules
@@ -86,7 +94,7 @@ public class DianneJSONConverter {
 			modules.add(parseModuleJSON(moduleJson));
 		}
 		
-		return new NeuralNetworkDTO(name, modules);
+		return new NeuralNetworkDTO(name, modules, properties);
 	}
 	
 	
@@ -185,6 +193,11 @@ public class DianneJSONConverter {
 	public static JsonObject toJson(NeuralNetworkDTO dto){
 		JsonObject nn = new JsonObject();
 		
+		JsonObject properties = new JsonObject();
+		for(String k : dto.properties.keySet()) {
+			properties.add(k, new JsonPrimitive(dto.properties.get(k)));
+		}
+		
 		JsonObject modules = new JsonObject();
 		for(ModuleDTO m : dto.modules.values()){
 			JsonObject module = toJson(m);
@@ -193,6 +206,7 @@ public class DianneJSONConverter {
 		
 		String name = dto.name==null ? "unnamed" : dto.name;
 		nn.add("name", new JsonPrimitive(name));
+		nn.add("properties", properties);
 		nn.add("modules", modules);
 		return nn;
 	}

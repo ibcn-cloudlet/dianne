@@ -42,9 +42,11 @@ public class NeuralNetworkInstanceDTO {
 	// human readable neural network description
 	public final String description;
 	
-	// name of the neural network
-	// can be used to fetch the NeuralNetworkDTO from DianneRepository
+	// neural network name
 	public final String name;
+	
+	// optionally the complete neural network dto
+	public NeuralNetworkDTO nn = null;
 	
 	// The list of ModuleInstances that this neural network instance is composed of
 	public final Map<UUID, ModuleInstanceDTO> modules;
@@ -56,6 +58,18 @@ public class NeuralNetworkInstanceDTO {
 	public NeuralNetworkInstanceDTO(UUID id, String name, String description, Map<UUID, ModuleInstanceDTO> modules){
 		this.id = id;
 		this.name = name;
+		this.description = description;
+		this.modules = modules;
+	}
+	
+	public NeuralNetworkInstanceDTO(UUID id, NeuralNetworkDTO nn, Map<UUID, ModuleInstanceDTO> modules){
+		this(id, nn, null, modules);
+	}
+	
+	public NeuralNetworkInstanceDTO(UUID id, NeuralNetworkDTO nn, String description, Map<UUID, ModuleInstanceDTO> modules){
+		this.id = id;
+		this.name = nn.name;
+		this.nn = nn;
 		this.description = description;
 		this.modules = modules;
 	}

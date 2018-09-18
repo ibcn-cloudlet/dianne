@@ -41,6 +41,9 @@ public class NeuralNetworkDTO {
 	// name identifier of this neural network
 	public final String name;
 	
+	// additional custom properties to put on the NeuralNetwork service
+	public final Map<String, String> properties;
+	
 	// the ModuleDTOs that this neural network consists of
 	public final Map<UUID, ModuleDTO> modules;
 	
@@ -48,6 +51,7 @@ public class NeuralNetworkDTO {
 	public NeuralNetworkDTO(String name, Map<UUID, ModuleDTO> modules){
 		this.name = name;
 		this.modules = modules;
+		this.properties = new HashMap<>();
 	}
 	
 	public NeuralNetworkDTO(String name, List<ModuleDTO> moduleList){
@@ -56,6 +60,26 @@ public class NeuralNetworkDTO {
 		for(ModuleDTO dto : moduleList){
 			modules.put(dto.id, dto);
 		}
+		this.properties = new HashMap<>();
+	}
+
+	public NeuralNetworkDTO(String name,  
+			Map<UUID, ModuleDTO> modules,
+			Map<String, String> properties){
+		this.name = name;
+		this.modules = modules;
+		this.properties = properties;
+	}
+	
+	public NeuralNetworkDTO(String name, 
+			List<ModuleDTO> moduleList,
+			Map<String, String> properties){
+		this.name = name;
+		this.modules = new HashMap<>();
+		for(ModuleDTO dto : moduleList){
+			modules.put(dto.id, dto);
+		}
+		this.properties = properties;
 	}
 	
 	@Override

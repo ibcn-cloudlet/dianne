@@ -65,7 +65,8 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 
 	private final DianneRepository repository;
 
-	private final NeuralNetworkInstanceDTO nn;
+	private final NeuralNetworkInstanceDTO nni;
+	
 	private Map<UUID, Module> modules;
 	private Map<UUID, Input> inputs;
 	private Map<UUID, Output> outputs;
@@ -89,8 +90,8 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	
 	private boolean valid = true;
 	
-	public NeuralNetworkWrapper(NeuralNetworkInstanceDTO nn, Collection<Module> modules, DianneRepository repo, BundleContext context) {
-		this.nn = nn;
+	public NeuralNetworkWrapper(NeuralNetworkInstanceDTO nni, Collection<Module> modules, DianneRepository repo, BundleContext context) {
+		this.nni = nni;
 		this.context = context;
 		
 		this.repository = repo;
@@ -106,12 +107,12 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 
 	@Override
 	public UUID getId() {
-		return nn.id;
+		return nni.id;
 	}
 	
 	@Override
 	public NeuralNetworkInstanceDTO getNeuralNetworkInstance() {
-		return nn;
+		return nni;
 	}
 
 	@Override
@@ -151,7 +152,7 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 				addInterest(outputId, tag);
 		} else {
 			// just mark all outputs as interested
-			nn.modules.values().stream().filter(m -> m.module.type.equals("Output")).map(m -> m.moduleId).forEach(id -> addInterest(id, tag));
+			nni.modules.values().stream().filter(m -> m.module.type.equals("Output")).map(m -> m.moduleId).forEach(id -> addInterest(id, tag));
 		}
 		
 		Progress p = new Progress(outputIds);
@@ -270,7 +271,7 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 			}
 		} else {
 			// just mark all inputs as interested
-			nn.modules.values().stream().filter(m -> m.module.type.equals("Input")).map(m -> m.moduleId).forEach(id -> addInterest(id, tag));
+			nni.modules.values().stream().filter(m -> m.module.type.equals("Input")).map(m -> m.moduleId).forEach(id -> addInterest(id, tag));
 		}
 		
 		Progress p = new Progress(inputIds);
@@ -535,7 +536,7 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	
 	void register(){
 		Dictionary<String, Object> propertiesFw = new Hashtable<String, Object>();
-		propertiesFw.put("targets", new String[]{nn.id.toString()});
+		propertiesFw.put("targets", new String[]{nni.id.toString()});
 		propertiesFw.put("aiolos.unique", true);
 		forwardListenerReg = context.registerService(ForwardListener.class, new ForwardListener() {
 			
@@ -588,7 +589,7 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		}, propertiesFw);
 	
 		Dictionary<String, Object> propertiesBw = new Hashtable<String, Object>();
-		propertiesBw.put("targets", new String[]{nn.id.toString()});
+		propertiesBw.put("targets", new String[]{nni.id.toString()});
 		propertiesBw.put("aiolos.unique", true);
 		backwardListenerReg = context.registerService(BackwardListener.class, new BackwardListener() {
 			
@@ -643,9 +644,17 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		}, propertiesBw);	
 		
 		Dictionary<String, Object> properties = new Hashtable<String, Object>();
-		properties.put("nn.id", nn.id.toString());
+		properties.put("nn.id", nni.id.toString());
 		properties.put("aiolos.export", false);
 		properties.put("aiolos.unique", true);
+		
+		// if a NeuralNetworkDTO is available, add its properties as service properties
+		if(nni.nn != null) {
+			for(String k : nni.nn.properties.keySet()) {
+				properties.put(k, nni.nn.properties.get(k));
+			}
+		}
+		
 		nnReg = context.registerService(NeuralNetwork.class, this, properties);
 		
 		valid = true;
@@ -757,7 +766,7 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 	}
 	
 	private void storeOutputLabels(UUID outputId, String[] labels){
-		NeuralNetworkDTO dto = repository.loadNeuralNetwork(nn.name);
+		NeuralNetworkDTO dto = repository.loadNeuralNetwork(nni.name);
 		ModuleDTO outputDTO = dto.modules.get(outputId);
 		String labelString = "[";
 		for(int i=0;i<labels.length;i++){
@@ -874,7 +883,7 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 			throw new RuntimeException("This neural network object is no longer valid");
 		}
 		 
-		repository.storeParameters(nn.id, getParameters(), tag);
+		repository.storeParameters(nni.id, getParameters(), tag);
 	}
 	
 	@Override
@@ -884,9 +893,9 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		}
 		
 		if(tag == null)
-			repository.storeParameters(nn.id, params); 
+			repository.storeParameters(nni.id, params); 
 		else 
-			repository.storeParameters(nn.id, params, tag);
+			repository.storeParameters(nni.id, params, tag);
 	}
 
 	@Override
@@ -899,9 +908,9 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 				.collect(Collectors.toMap(e -> e.getKey(), e -> TensorOps.sub(null,
 						e.getValue().getParameters(), previous.get(e.getKey()))));
 		if(tag == null)
-			repository.accParameters(nn.id, deltaParameters);
+			repository.accParameters(nni.id, deltaParameters);
 		else 
-			repository.accParameters(nn.id, deltaParameters, tag);
+			repository.accParameters(nni.id, deltaParameters, tag);
 			
 	}
 
@@ -911,7 +920,7 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 			throw new RuntimeException("This neural network object is no longer valid");
 		}
 
-		Map<UUID, Tensor> parameters = tag==null? repository.loadParameters(nn.name) : repository.loadParameters(nn.name, tag);
+		Map<UUID, Tensor> parameters = tag==null? repository.loadParameters(nni.name) : repository.loadParameters(nni.name, tag);
 		setParameters(parameters);
 		return parameters;
 	}
