@@ -7,7 +7,7 @@ Bundle-Version: 0.7.0.${tstamp}
 	be.iminds.iot.dianne.tensor;version=latest,\
 	be.iminds.iot.dianne.api;version=latest,\
 	be.iminds.iot.dianne.nn.util;version=latest,\
-	osgi.promise;version=6.0,\
+	org.osgi.util.promise,\
 	com.google.gson
 Private-Package: be.iminds.iot.dianne.nn.runtime
 -dsannotations: *

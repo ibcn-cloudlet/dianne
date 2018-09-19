@@ -7,7 +7,7 @@ Bundle-Version: 0.7.0.${tstamp}
 	be.iminds.iot.dianne.api;version=latest,\
 	be.iminds.iot.things.api,\
 	be.iminds.iot.dianne.tensor.util;version=latest,\
-	osgi.promise,\
+	org.osgi.util.promise,\
 	be.iminds.iot.sensor.api;version=0.4,\
 	be.iminds.iot.input.api;version=0.2,\
 	be.iminds.iot.robot.api;version=0.4

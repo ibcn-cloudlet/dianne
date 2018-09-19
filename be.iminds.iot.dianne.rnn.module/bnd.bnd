@@ -5,7 +5,7 @@ Bundle-Name: Dianne RNN Modules
 	biz.aQute.junit,\
 	osgi.core;version=5.0,\
 	osgi.enterprise;version=5.0,\
-	osgi.promise,\
+	org.osgi.util.promise,\
 	be.iminds.iot.dianne.api;version=latest,\
 	be.iminds.iot.dianne.tensor;version=latest,\
 	be.iminds.iot.dianne.nn.learn;version=latest,\

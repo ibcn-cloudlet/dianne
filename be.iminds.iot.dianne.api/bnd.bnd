@@ -27,6 +27,6 @@ Export-Package: \
 Bundle-Name: Dianne API
 Bundle-Description: API bundle for the Dianne project
 -buildpath: \
-	osgi.promise,\
+	org.osgi.util.promise,\
 	be.iminds.iot.dianne.tensor;version=latest,\
 	osgi.enterprise;version=5.0

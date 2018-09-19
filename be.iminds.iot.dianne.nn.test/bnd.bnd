@@ -11,7 +11,7 @@ Bundle-Version: 0.7.0.${tstamp}
 	be.iminds.iot.dianne.nn.module;version=latest,\
 	be.iminds.iot.dianne.nn.runtime;version=latest,\
 	be.iminds.iot.dianne.nn.util;version=latest,\
-	osgi.promise,\
+	org.osgi.util.promise,\
 	be.iminds.iot.dianne.tensor.native.generic;version=latest,\
 	be.iminds.iot.dianne.repository;version=latest,\
 	be.iminds.iot.dianne.nn.platform;version=latest,\

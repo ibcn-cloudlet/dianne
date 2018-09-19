@@ -10,7 +10,7 @@ Bundle-Name: Dianne Experience Pools
 	be.iminds.iot.dianne.api;version=latest,\
 	be.iminds.iot.dianne.tensor;version=latest,\
 	be.iminds.iot.dianne.dataset;version=latest,\
-	osgi.promise;version=6.0
+	org.osgi.util.promise
 Private-Package: \
 	be.iminds.iot.dianne.rl.experience,\
 	be.iminds.iot.dianne.rl.experience.serializer,\

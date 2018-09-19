@@ -6,7 +6,7 @@ Bundle-Version: 0.7.0.${tstamp}
 	osgi.enterprise;version=5.0,\
 	be.iminds.iot.dianne.tensor;version=latest,\
 	be.iminds.iot.dianne.api;version=latest,\
-	osgi.promise,\
+	org.osgi.util.promise,\
 	be.iminds.iot.dianne.nn.util;version=latest,\
 	be.iminds.iot.dianne.nn.learn;version=latest
 	
