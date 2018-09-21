@@ -16,7 +16,7 @@
 #
 Bundle-Version: 0.7.0.${tstamp}
 
-aiolos.version='[0.6.0,0.7.0)'
+aiolos.version='[0.7.0,0.8.0)'
 
 -runfw: org.eclipse.concierge
 # ignore custom launcher for now - can be used to inject gpu capabilities
@@ -62,6 +62,8 @@ aiolos.version='[0.6.0,0.7.0)'
 	org.xml.sax.ext,\
 	org.xml.sax.helpers,\
 	org.w3c.dom,\
+	org.w3c.dom.bootstrap,\
+	org.w3c.dom.ls,\
 	javax.annotation,\
 	javax.annotation.meta,\
 	javax.management,\

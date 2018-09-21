@@ -7,7 +7,7 @@ Bundle-Version: 0.7.0.${tstamp}
 	be.iminds.iot.dianne.tensor;version=latest,\
 	be.iminds.iot.dianne.api;version=latest,\
 	org.osgi.util.promise,\
-	be.iminds.aiolos.api;version='[0.6.0,0.7.0)',\
+	be.iminds.aiolos.api;version='[0.6.0,1.0.0)',\
 	com.google.gson,\
 	be.iminds.iot.dianne.nn.util;version=latest
 	

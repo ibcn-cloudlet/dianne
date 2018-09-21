@@ -1,8 +1,5 @@
 task generateFiles(description: "Generate ale.bnd files for this host. This behaviour can be adjusted with environment variables (OS, ARCH, LIB, ...)", group: "build") {
 	def inputTemplates = "*.template"
-	inputs.files fileTree(dir: projectDir, include: inputTemplates)
-	outputs.files fileTree(dir: projectDir, include: "*.bnd", exclude: "bnd.bnd")
-	outputs.upToDateWhen { false }
 	doLast {
 		copy {
 			from projectDir
@@ -26,7 +23,7 @@ task javah(type:Exec, description: "Generate jni header files used by native bui
 	inputs.files compileJava
 	def nativeIncludes = "$bnd.project.targetDir/jni-headers"
 	outputs.dir nativeIncludes
-	commandLine "javah", "-jni", "-d", nativeIncludes, "-classpath", bnd.project.buildpath.join(':'), "be.iminds.iot.dianne.rl.environment.ale.ArcadeLearningEnvironment"
+	commandLine "javah", "-jni", "-d", nativeIncludes, "-classpath", compileJava.classpath.join(':')+":"+compileJava.destinationDir, "be.iminds.iot.dianne.rl.environment.ale.ArcadeLearningEnvironment"
 }
 buildNative.dependsOn(javah)
 jar.dependsOn(javah)

@@ -2,6 +2,6 @@ task javah(type:Exec, description: "Generate jni header files used by native bui
 	inputs.files compileJava
 	def nativeIncludes = "$bnd.project.targetDir/jni-headers"
 	outputs.dir nativeIncludes
-	commandLine "javah", "-jni", "-d", nativeIncludes, "-classpath", bnd.project.buildpath.join(':'), "be.iminds.iot.dianne.tensor.Tensor", "be.iminds.iot.dianne.tensor.TensorOps", "be.iminds.iot.dianne.tensor.ModuleOps", "be.iminds.iot.dianne.tensor.NativeTensorLoader"
+	commandLine "javah", "-jni", "-d", nativeIncludes, "-classpath", compileJava.classpath.join(':')+":"+compileJava.destinationDir, "be.iminds.iot.dianne.tensor.Tensor", "be.iminds.iot.dianne.tensor.TensorOps", "be.iminds.iot.dianne.tensor.ModuleOps", "be.iminds.iot.dianne.tensor.NativeTensorLoader"
 }
 jar.dependsOn(javah)

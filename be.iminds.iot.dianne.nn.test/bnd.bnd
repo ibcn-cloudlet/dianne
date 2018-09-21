@@ -3,23 +3,24 @@ Bundle-Version: 0.7.0.${tstamp}
 -buildpath: \
 	osgi.core;version='[4.2,5)',\
 	osgi.cmpn,\
+	org.osgi.util.promise,\
 	biz.aQute.junit,\
 	com.google.gson;version=2.2,\
 	be.iminds.iot.dianne.tensor;version=latest,\
 	be.iminds.iot.dianne.tensor.util;version=latest,\
 	be.iminds.iot.dianne.api;version=latest,\
+	be.iminds.iot.dianne.onnx;version=latest,\
 	be.iminds.iot.dianne.nn.module;version=latest,\
 	be.iminds.iot.dianne.nn.runtime;version=latest,\
 	be.iminds.iot.dianne.nn.util;version=latest,\
-	org.osgi.util.promise,\
 	be.iminds.iot.dianne.tensor.native.generic;version=latest,\
 	be.iminds.iot.dianne.repository;version=latest,\
 	be.iminds.iot.dianne.nn.platform;version=latest,\
 	be.iminds.iot.dianne.nn;version=latest,\
 	be.iminds.iot.dianne.nn.eval;version=latest,\
-	be.iminds.iot.dianne.dataset;version=latest,\
-	be.iminds.iot.dianne.onnx;version=latest
+	be.iminds.iot.dianne.dataset;version=latest
 	
+		
 Private-Package: \
 	be.iminds.iot.dianne.nn.test.integration,\
 	be.iminds.iot.dianne.nn.test,\
@@ -29,16 +30,30 @@ Test-Cases: \
 	be.iminds.iot.dianne.nn.test.integration.WrongSizeTest,\
 	be.iminds.iot.dianne.nn.test.onnx.OnnxTest
 
+
 # how to make sure dataset/ NN models are there?
 #
 #	be.iminds.iot.dianne.nn.test.integration.MNISTTest,\
 #	be.iminds.iot.dianne.nn.test.integration.OverfeatTest,\
 	
+-runfw: org.eclipse.concierge
 	
--include: ../tools/common.bndrun
-	
--runbundles.test: \
-	biz.aQute.junit,\
+-runbundles: \
+	org.osgi.util.function;version='[1.1,1.2)',\
+	org.osgi.util.promise;version='[1.1,1.2)',\
+	org.osgi.util.pushstream;version='[1.0,1.1)',\
+	org.apache.felix.http.api;version='[3.0.0,3.1)',\
+	org.apache.felix.http.servlet-api;version='[1.1.2,1.1.3)',\
+	org.apache.felix.http.jetty;version='[3.1.0,3.2)',\
+	org.apache.felix.configadmin;version='[1.8.2,1.9)',\
+	org.apache.felix.eventadmin;version='[1.4.2,1.5)',\
+	org.apache.felix.log;version='[1.0.1,1.0.2)',\
+	org.apache.felix.metatype;version='[1.0.10,1.1)',\
+	org.apache.felix.scr;version='[2.0.2,2.0.3)',\
+	com.google.gson;version='[2.2.4,2.3)',\
+	com.google.protobuf;version='[2.6.1,2.7)',\
+	ai.onnx;version='[1.0.1,2.0)',\
+	be.iminds.iot.dianne.onnx;version=latest,\
 	be.iminds.iot.dianne.tensor.util;version=latest,\
 	be.iminds.iot.dianne.tensor;version=latest,\
 	be.iminds.iot.dianne.tensor.native.generic;version=latest,\
@@ -51,13 +66,41 @@ Test-Cases: \
 	be.iminds.iot.dianne.nn.eval;version=latest,\
 	be.iminds.iot.dianne.repository;version=latest,\
 	be.iminds.iot.dianne.dataset;version=latest,\
-	be.iminds.iot.dianne.nn.test;version=latest
+	be.iminds.iot.dianne.nn.test;version=latest,\
+	biz.aQute.junit
 	
--runbundles.testonnx: \
-	com.google.protobuf;version='[2.6.1,2.7)',\
-	ai.onnx;version='[1.0.1,2.0)',\
-	be.iminds.iot.dianne.onnx;version=latest
-	
--runproperties.test:\
+
+-runproperties:\
 	be.iminds.iot.dianne.storage="models",\
 	be.iminds.iot.dianne.datasets.location="datasets"
+	
+-runsystempackages: \
+	javax.naming,\
+	javax.net,\
+	javax.net.ssl,\
+	javax.sql,\
+	javax.xml,\
+	javax.xml.parsers,\
+	javax.xml.namespace,\
+	javax.xml.bind,\
+	javax.crypto,\
+	javax.crypto.spec,\
+	org.xml.sax,\
+	org.xml.sax.ext,\
+	org.xml.sax.helpers,\
+	org.w3c.dom,\
+	org.w3c.dom.bootstrap,\
+	org.w3c.dom.ls,\
+	javax.annotation,\
+	javax.annotation.meta,\
+	javax.management,\
+	javax.management.modelmbean,\
+	javax.management.remote,\
+	javax.security.auth,\
+	javax.security.cert,\
+	javax.imageio,\
+	javax.imageio.stream,\
+	javax.imageio.plugins.jpeg,\
+	javax.tools
+
+-runtrace: true
