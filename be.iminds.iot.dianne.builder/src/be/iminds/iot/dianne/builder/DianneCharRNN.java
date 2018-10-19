@@ -44,7 +44,7 @@ import be.iminds.iot.dianne.tensor.TensorOps;
 
 @Component(service = { javax.servlet.Servlet.class }, 
 	property = { "alias:String=/dianne/charrnn",
-				 "osgi.http.whiteboard.servlet.pattern=/dianne/output",
+				 "osgi.http.whiteboard.servlet.pattern=/dianne/charrnn",
 				 "aiolos.proxy=false" }, 
 	immediate = true)
 public class DianneCharRNN extends HttpServlet {
