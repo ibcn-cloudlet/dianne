@@ -42,7 +42,7 @@ USER dianne
 
 
 # build DIANNE, exclude ALE
-RUN ./gradlew cleanAll -x :be.iminds.iot.dianne.rl.environment.ale:assemble assemble :tools:export
+RUN ./gradlew cleanAll -x :be.iminds.iot.dianne.rl.environment.ale:assemble assemble :tools:export.all
 
 
 # set default bndrun target
