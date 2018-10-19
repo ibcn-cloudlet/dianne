@@ -49,8 +49,8 @@ public class DianneExportCommands {
 	
 	@Descriptor("Export a neural network to a .jar.")
 	public void jar(String nnName, String... properties) throws IOException {
-		String fileName = nnName+".jar";
-		
+		String fileName = "be.iminds.iot.dianne.nn."+nnName.toLowerCase()+".jar";
+
 		String[] tags = null;
 		Map<String, String> config = ConfigurationParser.parse(properties);
 		if(config.containsKey("tag")) {

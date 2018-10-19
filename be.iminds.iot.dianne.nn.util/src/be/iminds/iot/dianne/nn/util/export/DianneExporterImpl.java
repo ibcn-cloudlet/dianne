@@ -36,6 +36,7 @@ import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import org.omg.Messaging.SyncScopeHelper;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
@@ -43,6 +44,7 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
+import be.iminds.iot.dianne.api.namespace.DianneNamespace;
 import be.iminds.iot.dianne.api.nn.module.dto.NeuralNetworkDTO;
 import be.iminds.iot.dianne.api.nn.util.DianneExporter;
 import be.iminds.iot.dianne.api.repository.DianneRepository;
@@ -84,7 +86,7 @@ public class DianneExporterImpl implements DianneExporter {
 				}
 			}
 			// maybe there is a tag that can be used as version?
-			if(version == null) {
+			if(version == null && tags != null) {
 				for (String t : tags) {
 					if (isVersion(t)) {
 						version = t;
@@ -103,14 +105,19 @@ public class DianneExporterImpl implements DianneExporter {
 			atts.put(Attributes.Name.MANIFEST_VERSION, "1.0");
 			atts.putValue(Constants.BUNDLE_MANIFESTVERSION, "2");
 			atts.putValue(Constants.BUNDLE_NAME, "Dianne NN " + name);
-			atts.putValue(Constants.BUNDLE_SYMBOLICNAME, "be.iminds.iot.dianne.nn." + name);
+			atts.putValue(Constants.BUNDLE_SYMBOLICNAME, "be.iminds.iot.dianne.nn." + name.toLowerCase());
 			atts.putValue(Constants.BUNDLE_VERSION, version);
 			atts.putValue("NeuralNetwork", name);
 			// TODO add requirement on a DIANNE runtime capability instead of Import-Package?
-			atts.putValue("Import-Package", "be.iminds.iot.dianne.api.nn.runtime;version=\"" + dianneVersion() + "\"");
+			atts.putValue("Import-Package", "be.iminds.iot.dianne.api.nn.runtime;version=\"" + dianneVersion() + "\","
+					+ "be.iminds.iot.dianne.api.nn;version=\"" + dianneVersion() + "\"");
 			
 			// TODO do we need to add (some of) the properties as capabilities?
 			// TODO do we need to specify a namespace for this?
+			String caps = capabilityString(properties);
+			if(caps != null) {
+				atts.putValue("Provide-Capability", caps);
+			}
 			
 			zos.putNextEntry(new ZipEntry("META-INF/MANIFEST.MF"));
 			manifest.write(zos);
@@ -184,5 +191,51 @@ public class DianneExporterImpl implements DianneExporter {
 		Version v = context.getBundle().getVersion();
 		// omit qualifier
 		return v.getMajor() + "." + v.getMinor() + "." + v.getMicro();
+	}
+	
+	private String capabilityString(Map<String, String> properties) {
+		List<String> caps = new ArrayList<>();
+		
+		properties.entrySet().forEach(e -> {
+			switch(e.getKey()) {
+			// filter out the stuff which is not String type
+			case DianneNamespace.INPUT_WIDTH:
+				caps.add(DianneNamespace.INPUT_WIDTH+":Long="+e.getValue());
+				break;
+			case DianneNamespace.INPUT_HEIGHT:
+				caps.add(DianneNamespace.INPUT_HEIGHT+":Long="+e.getValue());
+				break;
+			case DianneNamespace.INPUT_DEPTH:
+				caps.add(DianneNamespace.INPUT_DEPTH+":Long="+e.getValue());
+				break;
+			case DianneNamespace.INPUT_SIZE:
+				caps.add(DianneNamespace.INPUT_SIZE+":Long="+e.getValue());
+				break;
+			case DianneNamespace.OUTPUT_WIDTH:
+				caps.add(DianneNamespace.OUTPUT_WIDTH+":Long="+e.getValue());
+				break;
+			case DianneNamespace.OUTPUT_HEIGHT:
+				caps.add(DianneNamespace.OUTPUT_HEIGHT+":Long="+e.getValue());
+				break;
+			case DianneNamespace.OUTPUT_DEPTH:
+				caps.add(DianneNamespace.OUTPUT_DEPTH+":Long="+e.getValue());
+				break;
+			case DianneNamespace.OUTPUT_SIZE:
+				caps.add(DianneNamespace.OUTPUT_SIZE+":Long="+e.getValue());
+				break;
+			default:
+				if(e.getValue().contains(",")) {
+					caps.add(e.getKey()+":List="+e.getValue());
+				} else {
+					caps.add(e.getKey()+":String="+e.getValue());
+				}
+			}});
+		
+		if(caps.isEmpty()) {
+			return null;
+		}
+
+		return DianneNamespace.DIANNE_NAMESPACE + 
+				";"+String.join(",", caps.toArray(new String[caps.size()]));
 	}
 }

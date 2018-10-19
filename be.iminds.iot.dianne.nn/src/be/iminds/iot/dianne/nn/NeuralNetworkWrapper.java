@@ -646,17 +646,18 @@ public class NeuralNetworkWrapper implements NeuralNetwork {
 		
 		Dictionary<String, Object> properties = new Hashtable<String, Object>();
 		properties.put("nn.id", nni.id.toString());
+		properties.put("nn.name", nni.name);
 		properties.put("aiolos.export", false);
 		properties.put("aiolos.unique", true);
 		
-		// if a NeuralNetworkDTO is available, add its properties as service properties
+		// if a NeuralNetworkDTO is available, add its properties as service properties, prefixed with "nn"
 		if(nni.nn != null) {
 			for(Entry<String, String> e : nni.nn.properties.entrySet()) {
 				if(e.getValue().contains(",")) {
 					// interpret as String[]
-					properties.put(e.getKey(), e.getValue().split(","));
+					properties.put("nn."+e.getKey(), e.getValue().split(","));
 				} else {
-					properties.put(e.getKey(), e.getValue());
+					properties.put("nn."+e.getKey(), e.getValue());
 				}
 			}
 		}
