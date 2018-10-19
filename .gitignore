@@ -6,6 +6,7 @@
 .DS_Store
 /generated/
 /*.git/
+/.bnd/
 
 .gradle
 build/
