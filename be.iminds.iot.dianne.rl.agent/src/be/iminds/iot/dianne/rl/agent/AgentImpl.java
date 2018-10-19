@@ -327,7 +327,7 @@ public class AgentImpl implements Agent {
 					// sync parameters
 					if(sync && count == 0){
 						for(int k=0;k<nns.length;k++){
-							if(config.tag.length == nns.length) {
+							if(config.tag != null && config.tag.length == nns.length) {
 								try {
 									nns[k].loadParameters(config.tag[k]);
 								} catch(Exception e){
@@ -414,10 +414,13 @@ public class AgentImpl implements Agent {
 							if(progress.reward > maxReward){
 								maxReward = progress.reward;
 								for(int i=0;i<nns.length;i++){
-									if(config.tag.length == nns.length)
+									if(config.tag != null && config.tag.length == nns.length) {
 										nns[i].storeParameters(config.tag[i],"best");
-									else
+									} else if(config.tag != null){
 										nns[i].storeParameters(config.tag[0],"best");
+									} else {
+										nns[i].storeParameters("best");
+									}
 								}
 							}
 						}
