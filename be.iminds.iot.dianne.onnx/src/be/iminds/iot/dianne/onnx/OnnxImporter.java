@@ -51,13 +51,18 @@ public class OnnxImporter {
 	private String name;
 	private List<ModuleDTO> modules = new ArrayList<>();
 	private Map<UUID, Tensor> parameters = new HashMap<>();
-	
+	private Map<String, Tensor> constants = new HashMap<>();
 
 	public OnnxImporter(String onnxFile) {
 		parse(onnxFile);
 	}
 	
 	public NeuralNetworkDTO getNN() {
+		NeuralNetworkDTO nn = new NeuralNetworkDTO(name, modules);
+		return nn;
+	}
+	
+	public NeuralNetworkDTO getNN(String name) {
 		NeuralNetworkDTO nn = new NeuralNetworkDTO(name, modules);
 		return nn;
 	}
@@ -92,8 +97,17 @@ public class OnnxImporter {
 			// parse nodes
 			List<NodeProto> nodes = graph.getNodeList();
 			nodes.forEach(node -> {
+				System.out.println("Parsing "+node.getName()+" "+node.getOpType());
+				node.getAttributeList().forEach(attr -> System.out.println(" * "+attr.getName()));
+				
 				ModuleDTO dto = new ModuleDTO();
 
+				if(node.getOpType().equals("Constant")) {
+					Tensor c = toTensor(node.getAttribute(0).getT());
+					constants.put(node.getOutput(0), c);
+					return;
+				}
+				
 				// get previous
 				ModuleDTO prev =  outputMap.get(node.getInput(0));
 				if(prev == null) {
@@ -505,7 +519,25 @@ public class OnnxImporter {
 							}
 							break;
 						}
-					});					
+					});
+					
+					if(node.getInputCount() == 2) {
+						// shape is provided as constant input
+						String c = node.getInput(1);
+						Tensor shape = constants.get(c);
+						if(shape.get(0) == -1) {
+							// in case -1 is used to indicate batch dimension, omit it
+							// Dianne automatically detects this...
+							for(int i=1;i<shape.size();i++) {
+								dto.properties.put("dim"+(i-1), ""+(int)shape.get(i));								
+							}
+						} else {
+							for(int i=0;i<shape.size();i++) {
+								dto.properties.put("dim"+i, ""+(int)shape.get(i));								
+							}
+						}
+					}
+					
 					break;
 				}
 				case "Dropout":
@@ -669,16 +701,27 @@ public class OnnxImporter {
 			dims[i] = (int)t.getDims(i);
 		}
 
-		if(t.getDataType()!=DataType.FLOAT) {
-			// TODO also support other data formats
-			throw new RuntimeException("Only Float format is supported atm");
+		float[] data;
+		ByteBuffer buffer = t.getRawData().asReadOnlyByteBuffer().order(ByteOrder.LITTLE_ENDIAN);
+		if(t.getDataType() == DataType.FLOAT) {
+			data = new float[buffer.capacity()/4];
+			for(int i=0;i<data.length;i++) {
+				data[i] = buffer.getFloat();
+			}
+		} else if(t.getDataType() == DataType.INT64) {
+			data = new float[buffer.capacity()/8];
+			for(int i=0;i<data.length;i++) {
+				data[i] = (float)buffer.getLong();
+			}
+		} else if(t.getDataType() == DataType.INT32) {
+			data = new float[buffer.capacity()/4];
+			for(int i=0;i<data.length;i++) {
+				data[i] = (float)buffer.getInt();
+			}
+		} else {
+			throw new RuntimeException("Unsupported data format "+t.getDataType().toString());
 		}
 		
-		ByteBuffer buffer = t.getRawData().asReadOnlyByteBuffer().order(ByteOrder.LITTLE_ENDIAN);
-		float[] data = new float[buffer.capacity()/4];
-		for(int i=0;i<data.length;i++) {
-			data[i] = buffer.getFloat();
-		}
 		
 		return new Tensor(data, dims);
 	}
