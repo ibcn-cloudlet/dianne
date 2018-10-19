@@ -28,6 +28,8 @@ public interface OnnxConverter {
 
 	public NeuralNetworkDTO fromOnnx(String onnxFile);
 	
+	public NeuralNetworkDTO fromOnnx(String onnxFile, String name);
+	
 	public void toOnnx(String onnxFile, String nnName, String... tag);
 	
 }

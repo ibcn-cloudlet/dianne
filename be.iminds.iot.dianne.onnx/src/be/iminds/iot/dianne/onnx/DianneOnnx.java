@@ -55,6 +55,15 @@ public class DianneOnnx implements OnnxConverter {
 		return nn;
 	}
 	
+	public NeuralNetworkDTO fromOnnx(String onnxFile, String name) {
+		OnnxImporter importer = new OnnxImporter(onnxFile);
+		NeuralNetworkDTO nn = importer.getNN(name);
+		repository.storeNeuralNetwork(nn);
+		repository.storeParameters(nn.name, importer.getParameters());
+		return nn;
+	}
+	
+	
 	public void toOnnx(String onnxFile, String nnName, String... tag) {
 		try {
 			NeuralNetworkDTO nn = repository.loadNeuralNetwork(nnName);
