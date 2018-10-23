@@ -196,12 +196,15 @@ public class DianneDeployer extends HttpServlet {
 				
 				try {
 					response.getWriter().write("{\"nn\":");
-					NeuralNetworkDTO nn = repository.loadNeuralNetwork(nni.name);
-					String s = DianneJSONConverter.toJsonString(nn); 
+					String s = DianneJSONConverter.toJsonString(nni.nn); 
 					response.getWriter().write(s);
-					response.getWriter().write(", \"layout\":");
-					String layout = repository.loadLayout(nni.name);
-					response.getWriter().write(layout);
+					try {
+						String layout = repository.loadLayout(nni.name);
+						response.getWriter().write(", \"layout\":");
+						response.getWriter().write(layout);
+					} catch(Exception e) {
+						// ignore layout if not available
+					}
 					response.getWriter().write(", \"deployment\":");
 					JsonObject deployment = deploymentToJSON(nni.modules.values());
 					response.getWriter().write(deployment.toString());
@@ -210,6 +213,7 @@ public class DianneDeployer extends HttpServlet {
 					response.getWriter().write("}");
 					response.getWriter().flush();
 				} catch(Exception e){
+					e.printStackTrace();
 					System.out.println("Failed to recover "+nni.name+" "+nni.id);
 				}
 			}

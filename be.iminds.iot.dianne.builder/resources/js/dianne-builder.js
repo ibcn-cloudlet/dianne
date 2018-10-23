@@ -1128,7 +1128,11 @@ function recover(id){
 				$('#name').text(nn.name);
 				nn.id = data.id;
 				nn.modules = data.nn.modules;
-				loadLayout(data.layout);
+				if(data.layout !== undefined){
+					loadLayout(data.layout);
+				} else {
+					createLayout();
+				}
 				deployment = data.deployment;
 				$.each( data.deployment, color );
 				$('#dialog-recover').remove();
