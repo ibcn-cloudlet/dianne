@@ -1,5 +1,5 @@
 task javah(type:Exec, description: "Generate jni header files used by native builds", group: "build", dependsOn: classes) {
-	inputs.files compileJava
+	inputs.dir compileJava.destinationDir
 	def nativeIncludes = "$bnd.project.targetDir/jni-headers"
 	outputs.dir nativeIncludes
 	commandLine "javah", "-jni", "-d", nativeIncludes, "-classpath", compileJava.classpath.join(':')+":"+compileJava.destinationDir, "be.iminds.iot.dianne.tensor.Tensor", "be.iminds.iot.dianne.tensor.TensorOps", "be.iminds.iot.dianne.tensor.ModuleOps", "be.iminds.iot.dianne.tensor.NativeTensorLoader"
