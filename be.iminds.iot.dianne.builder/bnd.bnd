@@ -3,7 +3,7 @@ Bundle-Version: 0.7.0.${tstamp}
 -includeresource: res=resources
 -buildpath: \
 	biz.aQute.junit,\
-	osgi.enterprise;version=5.0,\
+	osgi.cmpn;version=5.0,\
 	osgi.core;version=5.0.0,\
 	org.apache.felix.http.servlet-api,\
 	org.apache.felix.http.api,\

@@ -4,7 +4,7 @@ Bundle-Name: Dianne RNN Learner
 -buildpath: \
 	biz.aQute.junit,\
 	osgi.core;version=5.0,\
-	osgi.enterprise;version=5.0,\
+	osgi.cmpn;version=5.0,\
 	org.osgi.util.promise,\
 	be.iminds.iot.dianne.api;version=latest,\
 	be.iminds.iot.dianne.tensor;version=latest,\

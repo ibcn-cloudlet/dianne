@@ -4,7 +4,7 @@ Bundle-Name: Dianne Pong Environment
 -buildpath: \
 	biz.aQute.junit,\
 	osgi.core;version=5.0,\
-	osgi.enterprise;version=5.0,\
+	osgi.cmpn;version=5.0,\
 	org.apache.felix.http.servlet-api,\
 	org.apache.felix.http.api,\
 	org.websocket;version=1.0,\

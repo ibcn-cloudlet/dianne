@@ -3,13 +3,18 @@ repourl="http://aiolos.intec.ugent.be/repositories"
 
 -pluginpath: ${plugindir}/be.li.bnd.plugin.workspacerepo/be.li.bnd.plugin.workspacerepo.jar
 
--plugin:\
+-plugin.repo.Central: \
+	aQute.bnd.repository.maven.provider.MavenBndRepository; \
+		releaseUrl=https://repo.maven.apache.org/maven2/; \
+		index=${.}/central.maven; \
+		readOnly=true; \
+		name="Maven Central"
+
+-plugin.repo.extra:\
 	aQute.bnd.deployer.repository.LocalIndexedRepo; name=Local; local=${workspace}/cnf/localrepo;pretty=true,\
 	aQute.bnd.deployer.repository.LocalIndexedRepo; name=Release; local=${workspace}/cnf/releaserepo;pretty=true,\
-	aQute.bnd.repository.osgi.OSGiRepository; name=Build; locations=${repourl}/buildrepo/index.xml,\
 	aQute.bnd.repository.osgi.OSGiRepository; name=Concierge; locations=${repourl}/org.eclipse.concierge/index.xml,\
 	aQute.bnd.repository.osgi.OSGiRepository; name=Androsgi; locations=${repourl}/androsgi/index.xml,\
-	aQute.bnd.repository.osgi.OSGiRepository; name=Felix; locations=${repourl}/org.apache.felix/index.xml,\
 	aQute.bnd.repository.osgi.OSGiRepository; name=AIOLOS; locations=${repourl}/be.iminds.aiolos/index.xml,\
 	aQute.bnd.repository.osgi.OSGiRepository; name=DIANNE; locations=${repourl}/be.iminds.iot.dianne/index.xml,\
 	aQute.bnd.repository.osgi.OSGiRepository; name=DYAMAND; locations=${repourl}/org.dyamand/index.xml,\
@@ -22,5 +27,4 @@ repourl="http://aiolos.intec.ugent.be/repositories"
 #	
 #	be.li.bnd.plugin.workspacerepo.WorkspaceRepository; name=Robot; location=/home/tverbele/Data/code/ros/rososgi
 
-	
 -releaserepo: Release

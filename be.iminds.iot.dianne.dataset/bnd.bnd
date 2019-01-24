@@ -7,7 +7,7 @@ Bundle-Description: Expose datasets on the filesystem as OSGi services
 	be.iminds.iot.dianne.tensor.util;version=latest,\
 	com.esotericsoftware.kryo;version=2.23,\
 	biz.aQute.junit,\
-	osgi.enterprise;version=5.0,\
+	osgi.cmpn;version=5.0,\
 	osgi.core;version=5.0,\
 	be.iminds.iot.dianne.api;version=latest,\
 	com.google.gson

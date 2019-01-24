@@ -3,7 +3,7 @@ Bundle-Version: 0.7.0.${tstamp}
 -includeresource: res=resources
 -buildpath: \
 	biz.aQute.junit,\
-	osgi.enterprise;version=5.0,\
+	osgi.cmpn;version=5.0,\
 	osgi.core;version=5.0.0,\
 	org.apache.felix.http.servlet-api,\
 	org.apache.felix.http.api,\
@@ -14,7 +14,7 @@ Bundle-Version: 0.7.0.${tstamp}
 	be.iminds.iot.dianne.tensor.util;version=latest,\
 	be.iminds.iot.dianne.coordinator;version=latest,\
 	org.osgi.util.promise,\
-	org.apache.felix.gogo.runtime,\
+	org.apache.felix.gogo.runtime;version=1.1.0,\
 	
 -dsannotations: *
 
