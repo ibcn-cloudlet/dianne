@@ -44,10 +44,3 @@ biz.aQute.bnd:biz.aQute.remote.launcher:4.1.0
 biz.aQute.bnd:biz.aQute.remote.agent:4.1.0
 biz.aQute.bnd:biz.aQute.remote.main:4.1.0
 
-# Other
-org.mockito:mockito-all:1.10.19
-
-# To keep the build of the (broken) launcher build from failing
-biz.aQute.bnd:biz.aQute.launcher:4.1.0
-biz.aQute.bnd:biz.aQute.junit:4.1.0
-biz.aQute.bnd:biz.aQute.bnd:4.1.0
