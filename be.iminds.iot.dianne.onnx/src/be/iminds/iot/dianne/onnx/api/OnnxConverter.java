@@ -32,4 +32,6 @@ public interface OnnxConverter {
 	
 	public void toOnnx(String onnxFile, String nnName, String... tag);
 	
+	public void loadOnnx(String onnxFile, String name, String... tag);
+	
 }

@@ -36,7 +36,9 @@ import be.iminds.iot.dianne.tensor.Tensor;
 @Component(immediate=true, 
 	property={"osgi.command.scope=dianne",
 		  "osgi.command.function=fromOnnx",
-		  "osgi.command.function=toOnnx"
+		  "osgi.command.function=toOnnx",
+		  "osgi.command.function=loadOnnx"
+		  
 	})
 public class DianneOnnx implements OnnxConverter {
 
@@ -76,4 +78,13 @@ public class DianneOnnx implements OnnxConverter {
 		}
 	}
 	
+	public void loadOnnx(String onnxFile, String nnName, String... tags) {
+		try {
+			NeuralNetworkDTO nn = repository.loadNeuralNetwork(nnName);
+			OnnxLoader loader = new OnnxLoader(onnxFile, nn);
+			repository.storeParameters(nn.name, loader.getParameters(), tags);
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to load "+nnName, e);
+		}
+	}
 }
