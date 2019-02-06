@@ -7,7 +7,9 @@ import be.iminds.iot.dianne.tensor.Tensor;
 import onnx.Onnx.TensorProto;
 import onnx.Onnx.TensorProto.DataType;
 
-abstract class OnnxUtil {
+final class OnnxUtil {
+	
+	private OnnxUtil() {}
 
 	static Tensor toTensor(TensorProto t) {
 		int[] dims = new int[t.getDimsCount()];
