@@ -23,8 +23,6 @@
 package be.iminds.iot.dianne.onnx;
 
 import java.io.FileInputStream;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -43,7 +41,6 @@ import onnx.Onnx.GraphProto;
 import onnx.Onnx.ModelProto;
 import onnx.Onnx.NodeProto;
 import onnx.Onnx.TensorProto;
-import onnx.Onnx.TensorProto.DataType;
 
 public class OnnxLoader {
 
@@ -135,9 +132,9 @@ public class OnnxLoader {
 						// create params Tensor
 						Tensor params = new Tensor(oo*(ii+1));
 						params.fill(0.0f);
-						toTensor(w).copyInto(params.narrow(0, 0, oo*ii));
+						OnnxUtil.toTensor(w).copyInto(params.narrow(0, 0, oo*ii));
 						if(b != null) {
-							toTensor(b).copyInto(params.narrow(0, oo*ii, oo));
+							OnnxUtil.toTensor(b).copyInto(params.narrow(0, oo*ii, oo));
 						}
 						
 						parameters.put(module.id, params);
@@ -155,12 +152,12 @@ public class OnnxLoader {
 						}
 
 						// create params Tensor
-						Tensor tw = toTensor(w);
+						Tensor tw = OnnxUtil.toTensor(w);
 						Tensor params = new Tensor(tw.size()+noOutputPlanes);
 						params.fill(0.0f);
 						tw.copyInto(params.narrow(0, 0, tw.size()));
 						if(b != null) {
-							toTensor(b).copyInto(params.narrow(0, tw.size(), noOutputPlanes));
+							OnnxUtil.toTensor(b).copyInto(params.narrow(0, tw.size(), noOutputPlanes));
 						}
 						parameters.put(module.id, params);
 						break;
@@ -177,36 +174,5 @@ public class OnnxLoader {
 			throw new RuntimeException("Failed to import ONNX file "+onnxFile, e);
 		}
 		
-	}
-	
-	private Tensor toTensor(TensorProto t) {
-		int[] dims = new int[t.getDimsCount()];
-		for(int i=0;i<dims.length;i++) {
-			dims[i] = (int)t.getDims(i);
-		}
-
-		float[] data;
-		ByteBuffer buffer = t.getRawData().asReadOnlyByteBuffer().order(ByteOrder.LITTLE_ENDIAN);
-		if(t.getDataType() == DataType.FLOAT) {
-			data = new float[buffer.capacity()/4];
-			for(int i=0;i<data.length;i++) {
-				data[i] = buffer.getFloat();
-			}
-		} else if(t.getDataType() == DataType.INT64) {
-			data = new float[buffer.capacity()/8];
-			for(int i=0;i<data.length;i++) {
-				data[i] = (float)buffer.getLong();
-			}
-		} else if(t.getDataType() == DataType.INT32) {
-			data = new float[buffer.capacity()/4];
-			for(int i=0;i<data.length;i++) {
-				data[i] = (float)buffer.getInt();
-			}
-		} else {
-			throw new RuntimeException("Unsupported data format "+t.getDataType().toString());
-		}
-		
-		
-		return new Tensor(data, dims);
 	}
 }
