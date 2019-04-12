@@ -11,7 +11,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import be.iminds.iot.dianne.tensor.Tensor;
-import be.iminds.iot.dianne.tensor.TensorOps;
 
 public abstract class TensorUtil {
 	
@@ -29,17 +28,14 @@ public abstract class TensorUtil {
 			float[] data = new float[bufferSize];
 			
 			int noDims = is.readInt();
-			System.out.println("dims lenght: " + noDims);
 			int[] dims = new int[noDims];
 			for (int i=0; i<noDims; i++) {
 				dims[i] = is.readInt();
-				System.out.println("dim: " + dims[i]);
 			}
 			
 			t = new Tensor(dims);
 			int length = t.size();
 			t.reshape(length); // reshape to allow narrowing on entire data
-			System.out.println("Size: " + t.size() + "; data size: " + length);
 			
 			int index = 0;
 			while(length > 0){
@@ -51,8 +47,6 @@ public abstract class TensorUtil {
 				for(int i=0;i<bufferSize;i++){
 					data[i] = is.readFloat();
 				}
-				
-				System.out.println("data size: " + index + "/" + (index+bufferSize-1) + "/" + (t.size()-1));
 				t.narrow(0, index, bufferSize).set(data);				
 				
 				length -= bufferSize;
@@ -71,13 +65,10 @@ public abstract class TensorUtil {
 						new BufferedOutputStream(
 								new FileOutputStream(f)))) {
 			os.writeInt(t.dims().length);
-			System.out.println("dims lenght: " + t.dims().length);
 			for (int dim : t.dims()) {
 				os.writeInt(dim);
-				System.out.println("dim: " + dim);
 			}
 			float[] data = t.get();
-			System.out.println("Size: " + t.size() + "; data size: " + data.length);
 			
 			for(float value : data){
 				os.writeFloat(value);
