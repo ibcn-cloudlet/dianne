@@ -45,6 +45,7 @@ import com.google.gson.JsonPrimitive;
 @Component(service={javax.servlet.Servlet.class, EventHandler.class},
 property={"alias:String=/dianne/sse",
 	 	  "osgi.http.whiteboard.servlet.pattern=/dianne/sse",
+	 	  "osgi.http.whiteboard.servlet.asyncSupported:Boolean=true",
 		  "aiolos.proxy=false",
 		  "event.topics=dianne/*"},
 immediate=true)
