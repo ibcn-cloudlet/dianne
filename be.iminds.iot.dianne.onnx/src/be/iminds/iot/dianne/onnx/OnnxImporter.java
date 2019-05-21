@@ -234,12 +234,12 @@ public class OnnxImporter {
 						case "kernel_shape":
 							List<Long> shape = attr.getIntsList();
 
-							dto.properties.put("kernelWidth", ""+shape.get(0));
+							dto.properties.put("kernelWidth", ""+shape.get(shape.size()-1));
 							if(shape.size() > 1) {
-								dto.properties.put("kernelHeight", ""+shape.get(1));
+								dto.properties.put("kernelHeight", ""+shape.get(shape.size()-2));
 							}
 							if(shape.size() > 2) {
-								dto.properties.put("kernelDepth", ""+shape.get(2));
+								dto.properties.put("kernelDepth", ""+shape.get(shape.size()-3));
 							}
 							if(shape.size() > 3) {
 								throw new RuntimeException("Dianne doesn't support kernel sizes larger than 3d");
