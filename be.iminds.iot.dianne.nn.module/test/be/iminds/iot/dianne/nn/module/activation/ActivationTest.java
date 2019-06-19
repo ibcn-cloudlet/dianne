@@ -168,6 +168,18 @@ public class ActivationTest extends ModuleTest {
 	}
 
 	@Test
+	public void testLReLU() throws Exception {
+		float[] eo = new float[] { -0.05f, -0.04f, -0.03f, -0.02f, -0.01f, 0f, 1f, 2f, 3f, 4f, 5f };
+		Tensor expOutput = new Tensor(eo, 11);
+
+		float[] eg = new float[] { 0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 1f, 1f, 1f, 1f, 1f };
+		Tensor expGradInput = new Tensor(eg, 11);
+
+		Module m = new LeakyReLU(0.01f);
+		testModule(m, input, expOutput, gradOutput, expGradInput);
+	}
+	
+	@Test
 	public void testSoftmax() throws Exception {
 		float[] eo = new float[] { 0.0000f, 0.0001f, 0.0002f, 0.0006f, 0.0016f,
 				0.0043f, 0.0116f, 0.0315f, 0.0855f, 0.2325f, 0.6321f };

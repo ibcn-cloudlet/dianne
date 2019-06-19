@@ -121,6 +121,11 @@ public class OnnxImporter {
 					dto.type = "ReLU";
 					break;
 				}
+				case "LeakyRelu":
+				{
+					dto.type = "LeakyReLU";
+					break;
+				}
 				case "Sigmoid":
 				{
 					dto.type = "Sigmoid";

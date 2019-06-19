@@ -275,6 +275,39 @@ JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_reluGradIn
 }
 
 
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_lrelu
+  (JNIEnv * env, jclass c, jobject out, jobject in, jfloat l){
+	THTensor* input = getTensor(env, in);
+	THTensor* output = getTensor(env, out);
+
+	THNN_(LeakyReLU_updateOutput)(
+	          state,
+	          input,
+	          output,
+			  l,
+			  0);
+
+	return out == NULL ? createTensorObject(env, output) : out;
+}
+
+JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_lreluGradIn
+  (JNIEnv * env, jclass c, jobject gradIn, jobject gradOut, jobject in, jobject out, jfloat l){
+	THTensor* gradInput = getTensor(env, gradIn);
+	THTensor* gradOutput = getTensor(env, gradOut);
+	THTensor* input = getTensor(env, in);
+
+	THNN_(LeakyReLU_updateGradInput)(
+	          state,
+	          input,
+	          gradOutput,
+	          gradInput,
+	          l,
+			  0);
+
+	return gradIn == NULL ? createTensorObject(env, gradInput) : gradIn;
+}
+
+
 JNIEXPORT jobject JNICALL Java_be_iminds_iot_dianne_tensor_ModuleOps_prelu
   (JNIEnv * env, jclass c, jobject out, jobject in, jobject w, jint nOutputPlane){
 	THTensor* input = getTensor(env, in);

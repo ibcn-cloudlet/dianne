@@ -60,6 +60,11 @@ public class ModuleOps {
 	public static native Tensor reluGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor input, final Tensor output);
 	
 	
+	public static native Tensor lrelu(Tensor output, final Tensor input, float leakyness);
+
+	public static native Tensor lreluGradIn(Tensor gradInput, final Tensor gradOutput, final Tensor input, final Tensor output, float leakyness);
+	
+		
 	public static native Tensor prelu(Tensor output, final Tensor input, 
 			final Tensor weight, final int noOutputPlanes);
 

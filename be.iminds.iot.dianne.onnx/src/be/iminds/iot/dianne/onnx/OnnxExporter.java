@@ -243,6 +243,15 @@ public class OnnxExporter {
 			);
 			break;
 		}
+		case "LeakyReLU":
+		{
+			graph.addNode(NodeProto.newBuilder()
+				.setOpType("LeakyRelu")
+				.addInput(dto.prev[0].toString())
+				.addOutput(dto.id.toString())
+			);
+			break;
+		}
 		case "SELU":
 		{
 			graph.addNode(NodeProto.newBuilder()

@@ -38,6 +38,7 @@ import be.iminds.iot.dianne.api.nn.module.dto.ModulePropertyDTO;
 import be.iminds.iot.dianne.api.nn.module.dto.ModuleTypeDTO;
 import be.iminds.iot.dianne.api.nn.module.factory.ModuleFactory;
 import be.iminds.iot.dianne.api.nn.module.factory.ModuleTypeNotSupportedException;
+import be.iminds.iot.dianne.nn.module.activation.LeakyReLU;
 import be.iminds.iot.dianne.nn.module.activation.LogSoftmax;
 import be.iminds.iot.dianne.nn.module.activation.PReLU;
 import be.iminds.iot.dianne.nn.module.activation.ReLU;
@@ -125,6 +126,9 @@ public class DianneModuleFactory implements ModuleFactory {
 		addSupportedType(new ModuleTypeDTO("LogSoftmax", "Activation", false));	
 	
 		addSupportedType(new ModuleTypeDTO("ReLU", "Activation", false));
+
+		addSupportedType(new ModuleTypeDTO("LeakyReLU", "Activation", false, 
+				new ModulePropertyDTO("Leakyness", "leakyness", Float.class.getName())));
 		
 		addSupportedType(new ModuleTypeDTO("SELU", "Activation", false));
 
@@ -375,6 +379,17 @@ public class DianneModuleFactory implements ModuleFactory {
 			if(parameters!=null){
 				((PReLU)module).setParameters(parameters);
 			}
+			break;
+		}
+		case "LeakyReLU":
+		{
+			if(dto.properties.containsKey("leakyness")){
+				float leakyness = Float.parseFloat(dto.properties.get("leakyness"));
+				module = new LeakyReLU(id, leakyness);
+			} else {
+				module = new LeakyReLU(id);
+			}
+			
 			break;
 		}
 		case "Threshold":
