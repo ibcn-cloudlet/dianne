@@ -4,10 +4,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 	build-essential \
 	cmake \
 	gfortran \
+	lib32z1-dev \
 	&& rm -rf /var/lib/apt/lists/*
 WORKDIR /usr/src/app
 COPY . ./
-RUN ./gradlew -x :be.iminds.iot.dianne.rl.environment.ale:assemble assemble assemble 
+RUN ./gradlew -x testOSGi build 
 RUN ./gradlew export.all export.coordinator export.runtime.evaluator export.runtime.learner export.runtime.agent
 
 FROM openjdk:8-jre-slim AS runtime
